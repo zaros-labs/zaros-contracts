@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import { PRBTest } from "@prb/test/PRBTest.sol";
+import { Test } from "forge-std/Test.sol";
 import { console2 } from "forge-std/console2.sol";
-import { StdCheats } from "forge-std/StdCheats.sol";
 
 // import { Foo } from "../src/Foo.sol";
 
@@ -13,7 +12,7 @@ interface IERC20 {
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract LiquidStakingPoolTest is PRBTest, StdCheats {
+contract LiquidStakingPoolTest is Test {
 // Foo internal foo;
 
 // /// @dev A function invoked before each test case is run.

@@ -1,4 +1,3 @@
-@prb/test/=lib/prb-test/src/
 forge-std/=lib/forge-std/src/
 src/=src/
-@balancer-v2/=lib/balancer-v2-monorepo/pkg/
+@balancer-labs=node_modules/@balancer-labs

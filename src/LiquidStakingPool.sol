@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+import { IGeneralPool } from "@balancer-labs/v2-interfaces/contracts/vault/IGeneralPool.sol";
+
 // TODO: implement
 struct SwapRequest {
     bool todo;
 }
 
-contract LiquidStakingPool {
+contract LiquidStakingPool is IGeneralPool {
     function _swapGivenIn(
         SwapRequest memory swapRequest,
         uint256[] memory registeredBalances,
