@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-// Balancer dependencies
-import { IGeneralPool, IBasePool } from "@balancer-labs/v2-interfaces/contracts/vault/IGeneralPool.sol";
+// Zaros dependencies
+import { ILiquidStakingPool } from "./ILiquidStakingPool.sol";
 
-contract LiquidStakingPool is IGeneralPool {
-    /// @inheritdoc IBasePool
+contract LiquidStakingPool is ILiquidStakingPool {
+    /// @inheritdoc ILiquidStakingPool
     function getPoolId() external view returns (bytes32) { }
 
-    /// @inheritdoc IBasePool
+    /// @inheritdoc ILiquidStakingPool
     function getSwapFeePercentage() external view returns (uint256) { }
 
-    /// @inheritdoc IBasePool
+    /// @inheritdoc ILiquidStakingPool
     function getScalingFactors() external view returns (uint256[] memory) { }
 
-    /// @inheritdoc IBasePool
+    /// @inheritdoc ILiquidStakingPool
     function onJoinPool(
         bytes32 poolId,
         address sender,
@@ -28,7 +28,7 @@ contract LiquidStakingPool is IGeneralPool {
         returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts)
     { }
 
-    /// @inheritdoc IBasePool
+    /// @inheritdoc ILiquidStakingPool
     function onExitPool(
         bytes32 poolId,
         address sender,
@@ -42,7 +42,7 @@ contract LiquidStakingPool is IGeneralPool {
         returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts)
     { }
 
-    /// @inheritdoc IGeneralPool
+    /// @inheritdoc ILiquidStakingPool
     function onSwap(
         SwapRequest memory swapRequest,
         uint256[] memory balances,
