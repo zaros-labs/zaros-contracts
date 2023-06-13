@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+// Balancer dependencies
 import { IGeneralPool, IBasePool } from "@balancer-labs/v2-interfaces/contracts/vault/IGeneralPool.sol";
 
 contract LiquidStakingPool is IGeneralPool {
@@ -52,7 +53,6 @@ contract LiquidStakingPool is IGeneralPool {
         override
         returns (uint256 amount)
     { }
-
 
     function queryJoin(
         bytes32 poolId,
