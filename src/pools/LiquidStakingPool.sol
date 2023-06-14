@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { ILiquidStakingPool } from "./ILiquidStakingPool.sol";
+import { ILiquidStakingPool } from "../interfaces/ILiquidStakingPool.sol";
 
 contract LiquidStakingPool is ILiquidStakingPool {
     /// @inheritdoc ILiquidStakingPool
