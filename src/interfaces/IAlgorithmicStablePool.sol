@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 // Balancer dependencies
 import { IGeneralPool, IBasePool } from "@balancer-labs/v2-interfaces/contracts/vault/IGeneralPool.sol";
 
-interface AlgorithmicStablePool is IGeneralPool {
+interface IAlgorithmicStablePool is IGeneralPool {
     /// @inheritdoc IBasePool
     function getPoolId() external view returns (bytes32);
 
