@@ -7,6 +7,8 @@
     "url": "https://github.com/zeroday-labs"
   },
   "devDependencies": {
+    "@balancer-labs/v2-interfaces": "^0.4.0",
+    "@balancer-labs/v2-vault": "^3.0.1",
     "prettier": "^2.8.7",
     "solhint": "^3.4.0"
   },
@@ -16,8 +18,7 @@
     "forge",
     "foundry",
     "smart-contracts",
-    "solidity",
-    "template"
+    "solidity"
   ],
   "private": true,
   "scripts": {
