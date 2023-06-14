@@ -8,15 +8,6 @@ devDependencies:
   '@balancer-labs/v2-interfaces':
     specifier: ^0.4.0
     version: 0.4.0
-  '@balancer-labs/v2-pool-stable':
-    specifier: ^2.0.0
-    version: 2.0.0
-  '@balancer-labs/v2-pool-weighted':
-    specifier: ^2.0.1
-    version: 2.0.1
-  '@balancer-labs/v2-solidity-utils':
-    specifier: ^4.0.0
-    version: 4.0.0
   '@balancer-labs/v2-vault':
     specifier: ^3.0.1
     version: 3.0.1
@@ -50,13 +41,6 @@ packages:
       js-tokens: 4.0.0
     dev: true
 
-  /@balancer-labs/v2-asset-manager-utils@0.2.0:
-    resolution: {integrity: sha512-6ti1pzbpgB5aT1WzbGwo69ILTNAJdAnaJcw3L9QB2aBsAhQ41H+MF3tjPvuv6P84RgJ9z42EhtwLYZqklRF0rg==}
-    dependencies:
-      '@balancer-labs/v2-solidity-utils': 2.0.0
-      '@balancer-labs/v2-vault': 2.0.0
-    dev: true
-
   /@balancer-labs/v2-interfaces@0.2.0:
     resolution: {integrity: sha512-p317Ojk3iZ6ja689u72HZvi03mG02LRkS+40J/EO2o1SDdOxbKThP7cWaZNbNJBC3IP8hzRcsZI+zmLqGa6Emw==}
     dev: true
@@ -69,50 +53,10 @@ packages:
     resolution: {integrity: sha512-K0ij26m8/UOvdPmrAnuh/C7kT8OQupsgV8KRyIt+aTHW1KbPOi4v8zLMwW2AwSYMSRjPK2A/ttlnNizT0iA4Qg==}
     dev: true
 
-  /@balancer-labs/v2-pool-stable@2.0.0:
-    resolution: {integrity: sha512-zh1saY6lbiOfmxTCyZjfwiYpLYISpnWdSJIfZkJxOemGF/YkeojRnF6p9t///iKRAaH6YdX5iU24LkBK1Atv3g==}
-    dependencies:
-      '@balancer-labs/v2-pool-utils': 2.0.1
-      '@balancer-labs/v2-solidity-utils': 2.0.0
-      '@balancer-labs/v2-vault': 2.0.0
-    dev: true
-
-  /@balancer-labs/v2-pool-utils@2.0.1:
-    resolution: {integrity: sha512-Xt3d8LqJnqq5JkuSgvf0sZuWqaywg9JxrCT1myVsG6zgbtfvcraJgSCLERUdqxP47aUPHwKvm5/+mdT9xayCXA==}
-    dependencies:
-      '@balancer-labs/v2-asset-manager-utils': 0.2.0
-      '@balancer-labs/v2-solidity-utils': 2.0.0
-      '@balancer-labs/v2-vault': 2.0.0
-    dev: true
-
-  /@balancer-labs/v2-pool-weighted@2.0.1:
-    resolution: {integrity: sha512-0rNdK/7grQ1UlqmEtZV2nldSlNrGaBevfoiIbhYK3K+GHRTBs4cyCtuucDvEgtmDxbKIoO4W4p0xcrfCtMiyBw==}
-    dependencies:
-      '@balancer-labs/v2-pool-utils': 2.0.1
-      '@balancer-labs/v2-solidity-utils': 2.0.0
-      '@balancer-labs/v2-vault': 2.0.0
-    dev: true
-
-  /@balancer-labs/v2-solidity-utils@2.0.0:
-    resolution: {integrity: sha512-OB+05vJqrs35B1d40y7tnSm6oYWnsmfRa/wpI2owJXhwx/8qr2buE+RDmT0x6Upr/c7wBdUh8v4UVk9l0+CNiA==}
-    dev: true
-
   /@balancer-labs/v2-solidity-utils@3.0.1:
     resolution: {integrity: sha512-uhaQbgFyT5uRWW39aPWH0ZARzqIICJvwZXKJpv7EPG2NAUrf03ZsF/Zb3gxpTZXfNoKsKznJWtxgJ1W0rnLu9w==}
     dependencies:
       '@balancer-labs/v2-interfaces': 0.2.0
-    dev: true
-
-  /@balancer-labs/v2-solidity-utils@4.0.0:
-    resolution: {integrity: sha512-BB9bawgywV8q8v/m3xhYVI5X0rJ3ox64t4IYiAQvgdrR7+Sgn6AAkAP++odjbDJdCcM5wQMi92zwt50rq2nn6A==}
-    dependencies:
-      '@balancer-labs/v2-interfaces': 0.4.0
-    dev: true
-
-  /@balancer-labs/v2-vault@2.0.0:
-    resolution: {integrity: sha512-GwPY84j6g7OY1z13wRYYGQeupb6DI3U+s22Ebg2v32djS9CnPzM04GJapURRbKZkpraUOYIcqhEF3Cm1AafAKg==}
-    dependencies:
-      '@balancer-labs/v2-solidity-utils': 2.0.0
     dev: true
 
   /@balancer-labs/v2-vault@3.0.1:
