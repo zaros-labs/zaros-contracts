@@ -3,15 +3,14 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IVaultModule } from "@zaros/core/vault/interfaces/IVaultModule.sol";
-import { Account } from "@zaros/core/account/storage/Account.sol";
-import { AccountRBAC } from "@zaros/core/account/storage/AccountRBAC.sol";
-import { Collateral } from "@zaros/core/collateral/storage/Collateral.sol";
-import { CollateralConfig } from "@zaros/core/collateral/storage/CollateralConfig.sol";
-// import { Pool } from "@zaros/core/pool/storage/Pool.sol";
-import { Vault } from "@zaros/core/vault/storage/Vault.sol";
-import { VaultEpoch } from "@zaros/core/vault/storage/VaultEpoch.sol";
-import { FeatureFlag } from "@zaros/utils/modules/feature-flag/storage/FeatureFlag.sol";
+import { IVaultModule } from "../interfaces/IVaultModule.sol";
+import { Account } from "../storage/Account.sol";
+import { AccountRBAC } from "../storage/AccountRBAC.sol";
+import { Collateral } from "../storage/Collateral.sol";
+import { CollateralConfig } from "../storage/CollateralConfig.sol";
+import { Vault } from "../storage/Vault.sol";
+import { VaultEpoch } from "../storage/VaultEpoch.sol";
+import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -28,7 +27,6 @@ contract VaultModule is IVaultModule {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
-    using Pool for Pool.Data;
     using Vault for Vault.Data;
     using VaultEpoch for VaultEpoch.Data;
     using Collateral for Collateral.Data;

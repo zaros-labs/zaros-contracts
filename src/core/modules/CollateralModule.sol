@@ -9,7 +9,7 @@ import { ICollateralModule } from "../interfaces/ICollateralModule.sol";
 import { Collateral } from "../storage/Collateral.sol";
 import { CollateralConfig } from "../storage/CollateralConfig.sol";
 import { ParameterError } from "../../utils/Errors.sol";
-import { FeatureFlag } from "@zaros/utils/modules/feature-flag/storage/FeatureFlag.sol";
+import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
