@@ -9,12 +9,6 @@ pragma solidity >=0.8.11 <0.9.0;
  */
 interface IVaultModule {
     /**
-     * @notice Thrown when attempting to delegate collateral to a vault with a leverage amount that is not supported by
-     * the system.
-     */
-    error Zaros_VaultModule_InvalidLeverage(uint256 leverage);
-
-    /**
      * @notice Thrown when attempting to delegate collateral to a market whose capacity is locked.
      */
     error Zaros_VaultModule_CapacityLocked(uint256 marketId);
@@ -31,7 +25,6 @@ interface IVaultModule {
      * @param poolId The id of the pool in which the position was updated.
      * @param collateralType The address of the collateral associated to the position.
      * @param amount The new amount of the position, denominated with 18 decimals of precision.
-     * @param leverage The new leverage value of the position, denominated with 18 decimals of precision.
      * @param sender The address that triggered the update of the position.
      */
     event LogDelegateCollateral(
@@ -39,7 +32,6 @@ interface IVaultModule {
         uint128 indexed poolId,
         address collateralType,
         uint256 amount,
-        uint256 leverage,
         address indexed sender
     );
 
@@ -49,7 +41,6 @@ interface IVaultModule {
      * @param poolId The id of the pool associated with the position.
      * @param collateralType The address of the collateral used in the position.
      * @param amount The new amount of collateral delegated in the position, denominated with 18 decimals of precision.
-     * @param leverage The new leverage amount used in the position, denominated with 18 decimals of precision.
      *
      * Requirements:
      *
@@ -61,14 +52,7 @@ interface IVaultModule {
      *
      * Emits a {DelegationUpdated} event.
      */
-    function delegateCollateral(
-        uint128 accountId,
-        uint128 poolId,
-        address collateralType,
-        uint256 amount,
-        uint256 leverage
-    )
-        external;
+    function delegateCollateral(uint128 accountId, uint128 poolId, address collateralType, uint256 amount) external;
 
     /**
      * @notice Returns the collateralization ratio of the specified liquidity position. If debt is negative, this

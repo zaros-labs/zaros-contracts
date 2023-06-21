@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { CollateralConfig } from "@zaros/core/collateral/storage/CollateralConfig.sol";
+import { CollateralConfig } from "../storage/CollateralConfig.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";

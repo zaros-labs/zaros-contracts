@@ -3,17 +3,15 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { VaultEpoch } from "@zaros/core/vault/storage/VaultEpoch.sol";
+import { VaultEpoch } from "./VaultEpoch.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
-
-// Solmate dependencies
-import { SafeCastLib } from "@solmate/utils/SafeCastLib.sol";
 
 /**
  * @title Tracks collateral and debt distributions in a pool, for a specific collateral type.
@@ -28,7 +26,7 @@ import { SafeCastLib } from "@solmate/utils/SafeCastLib.sol";
 library Vault {
     // using Distribution for Distribution.Data;
     using EnumerableSet for EnumerableSet.Bytes32Set;
-    using SafeCastLib for uint256;
+    using SafeCast for uint256;
     // using ScalableMapping for ScalableMapping.Data;
     using RewardDistribution for RewardDistribution.Data;
     using VaultEpoch for VaultEpoch.Data;
@@ -74,7 +72,6 @@ library Vault {
 
     function load(address collateralType) internal view returns (Data storage vault) {
         bytes32 s = keccak256(VAULT_DOMAIN, collateralType);
-
         assembly {
             vault.slot := s
         }

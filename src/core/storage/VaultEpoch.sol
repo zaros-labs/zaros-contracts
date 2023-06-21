@@ -9,8 +9,8 @@ pragma solidity 0.8.19;
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-// Solmate dependencies
-import { SafeCastLib } from "@solmate/utils/SafeCastLib.sol";
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 /**
  * @title Tracks collateral and debt distributions in a pool, for a specific collateral type, in a given epoch.

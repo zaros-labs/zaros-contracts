@@ -71,7 +71,6 @@ library Account {
      */
     function load(uint128 id) internal pure returns (Data storage account) {
         bytes32 s = keccak256(abi.encode(ACCOUNT_DOMAIN, id));
-
         assembly {
             account.slot := s
         }
