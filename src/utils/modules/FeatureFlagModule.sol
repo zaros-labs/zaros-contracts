@@ -17,7 +17,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
  */
 contract FeatureFlagModule is IFeatureFlagModule {
     using EnumerableSet for EnumerableSet.AddressSet;
-    using Feature for Feature.Data;
+    using FeatureFlag for FeatureFlag.Data;
 
     /**
      * @inheritdoc IFeatureFlagModule
