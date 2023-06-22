@@ -23,7 +23,7 @@ contract FeatureFlagModule is IFeatureFlagModule {
      * @inheritdoc IFeatureFlagModule
      */
     function setFeatureFlagAllowAll(bytes32 feature, bool allowAll) external override {
-        OwnableStorage.onlyOwner();
+        // OwnableStorage.onlyOwner();
         FeatureFlag.load(feature).allowAll = allowAll;
 
         if (allowAll) {
@@ -40,7 +40,7 @@ contract FeatureFlagModule is IFeatureFlagModule {
         FeatureFlag.Data storage flag = FeatureFlag.load(feature);
 
         if (!denyAll || !flag.isDenier(msg.sender)) {
-            OwnableStorage.onlyOwner();
+            // OwnableStorage.onlyOwner();
         }
 
         flag.denyAll = denyAll;
@@ -52,7 +52,7 @@ contract FeatureFlagModule is IFeatureFlagModule {
      * @inheritdoc IFeatureFlagModule
      */
     function addToFeatureFlagAllowlist(bytes32 feature, address account) external override {
-        OwnableStorage.onlyOwner();
+        // OwnableStorage.onlyOwner();
 
         EnumerableSet.AddressSet storage permissionedAddresses = FeatureFlag.load(feature).permissionedAddresses;
 
@@ -66,7 +66,7 @@ contract FeatureFlagModule is IFeatureFlagModule {
      * @inheritdoc IFeatureFlagModule
      */
     function removeFromFeatureFlagAllowlist(bytes32 feature, address account) external override {
-        OwnableStorage.onlyOwner();
+        // OwnableStorage.onlyOwner();
 
         EnumerableSet.AddressSet storage permissionedAddresses = FeatureFlag.load(feature).permissionedAddresses;
 
@@ -80,7 +80,7 @@ contract FeatureFlagModule is IFeatureFlagModule {
      * @inheritdoc IFeatureFlagModule
      */
     function setDeniers(bytes32 feature, address[] memory deniers) external override {
-        OwnableStorage.onlyOwner();
+        // OwnableStorage.onlyOwner();
         FeatureFlag.Data storage flag = FeatureFlag.load(feature);
 
         // resize array (its really dumb how you have to do this)
