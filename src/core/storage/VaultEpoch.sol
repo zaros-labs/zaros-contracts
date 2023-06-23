@@ -3,7 +3,8 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-// import { Distribution } from "@zaros/core/reward/storage/Distribution.sol";
+import { Distribution } from "./Distribution.sol";
+import { ScalableMapping } from "./ScalableMapping.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -27,8 +28,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
  * Consolidated debt is updated when users interact with the system.
  */
 library VaultEpoch {
-    // using Distribution for Distribution.Data;
-    // using ScalableMapping for ScalableMapping.Data;
+    using Distribution for Distribution.Data;
+    using ScalableMapping for ScalableMapping.Data;
 
     struct Data {
         /**
@@ -52,7 +53,7 @@ library VaultEpoch {
          * Also, when debt is socialized in a liquidation, it is done onto this distribution. As users
          * interact with the system, their independent debt is consolidated or rolled into consolidatedDebtDist.
          */
-        // Distribution.Data accountsDebtDistribution;
+        Distribution.Data accountsDebtDistribution;
         /**
          * @dev Tracks collateral delegated to this vault, for each user.
          *

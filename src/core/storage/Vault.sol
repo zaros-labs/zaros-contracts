@@ -3,6 +3,9 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Distribution } from "./Distribution.sol";
+import { RewardDistribution } from "./RewardDistribution.sol";
+import { ScalableMapping } from "./ScalableMapping.sol";
 import { VaultEpoch } from "./VaultEpoch.sol";
 
 // Open Zeppelin dependencies
@@ -24,11 +27,11 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
  * It is recommended to understand VaultEpoch before understanding this object.
  */
 library Vault {
-    // using Distribution for Distribution.Data;
+    using Distribution for Distribution.Data;
     using EnumerableSet for EnumerableSet.Bytes32Set;
-    using SafeCast for uint256;
-    // using ScalableMapping for ScalableMapping.Data;
     using RewardDistribution for RewardDistribution.Data;
+    using SafeCast for uint256;
+    using ScalableMapping for ScalableMapping.Data;
     using VaultEpoch for VaultEpoch.Data;
 
     /// @dev Constant base domain used to access a given vault's storage slot
