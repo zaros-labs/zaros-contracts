@@ -23,10 +23,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
  * Whenever the shares of an actor of the distribution is updated, you get information about how the actor's total value changed since it was last updated.
  */
 library Distribution {
-    using SafeCastU128 for uint128;
-    using SafeCastU256 for uint256;
-    using SafeCastI128 for int128;
-    using SafeCastI256 for int256;
+    using SafeCast for int256;
 
     /**
      * @dev Thrown when an attempt is made to distribute value to a distribution
@@ -65,10 +62,8 @@ library Distribution {
             revert Zaros_Distribution_EmptyDistribution();
         }
 
-        int256 valueD45 = valueD18 * DecimalMath.UNIT_PRECISE_INT;
-        int256 deltaValuePerShareD27 = valueD45 / totalSharesD18.toInt();
-
-        self.valuePerShareD27 += deltaValuePerShareD27.to128();
+        SD59x18 deltaValuePerShare = value.div(totalShares.intoSD59x18());
+        self.valuePerShare = sd59x18(self.valuePerShare).add(deltaValuePerShare).intoInt256().toInt128();
     }
 
     /**
@@ -82,16 +77,14 @@ library Distribution {
         Data storage self,
         bytes32 actorId,
         UD60x18 newActorShares
-    ) internal returns (int256 valueChangeD18) {
-        valueChangeD18 = getActorValueChange(self, actorId);
-
+    ) internal returns (SD59x18 valueChange) {
+        valueChange = getActorValueChange(self, actorId);
         DistributionActor.Data storage actor = self.actorInfo[actorId];
 
-        uint128 sharesUint128D18 = newActorSharesD18.to128();
-        self.totalSharesD18 = self.totalSharesD18 + sharesUint128D18 - actor.sharesD18;
+        self.totalShares = ud60x18(self.totalShares).add(newActorShares).sub(ud60x18(actor.shares)).intoUint128();
+        actor.sharesD18 = newActorShares.intoUint128();
 
-        actor.sharesD18 = sharesUint128D18;
-        _updateLastValuePerShare(self, actor, newActorSharesD18);
+        _updateLastValuePerShare(self, actor, newActorShares);
     }
 
     /**
