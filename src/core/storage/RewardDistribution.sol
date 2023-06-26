@@ -11,7 +11,8 @@ import "./Distribution.sol";
 import "./RewardDistributionClaimStatus.sol";
 
 /**
- * @title Used by vaults to track rewards for its participants. There will be one of these for each pool, collateral type, and distributor combination.
+ * @title Used by vaults to track rewards for its participants. There will be one of these for each pool, collateral
+ * type, and distributor combination.
  */
 library RewardDistribution {
     using DecimalMath for int256;
@@ -63,7 +64,8 @@ library RewardDistribution {
     /**
      * @dev Distributes rewards into a new rewards distribution entry.
      *
-     * Note: this function allows for more special cases such as distributing at a future date or distributing over time.
+     * Note: this function allows for more special cases such as distributing at a future date or distributing over
+     * time.
      * If you want to apply the distribution to the pool, call `distribute` with the return value. Otherwise, you can
      * record this independently as well.
      */
@@ -73,14 +75,14 @@ library RewardDistribution {
         int256 amountD18,
         uint64 start,
         uint32 duration
-    ) internal returns (int256 diffD18) {
+    )
+        internal
+        returns (int256 diffD18)
+    {
         uint256 totalSharesD18 = dist.totalSharesD18;
 
         if (totalSharesD18 == 0) {
-            revert ParameterError.InvalidParameter(
-                "amount",
-                "can't distribute to empty distribution"
-            );
+            revert ParameterError.InvalidParameter("amount", "can't distribute to empty distribution");
         }
 
         uint256 curTime = block.timestamp;
@@ -113,14 +115,12 @@ library RewardDistribution {
     }
 
     /**
-     * @dev Updates the total shares of a reward distribution entry, and releases its unlocked value into its value per share, depending on the time elapsed since the start of the distribution's entry.
+     * @dev Updates the total shares of a reward distribution entry, and releases its unlocked value into its value per
+     * share, depending on the time elapsed since the start of the distribution's entry.
      *
      * Note: call every time before `totalShares` changes.
      */
-    function updateEntry(
-        Data storage self,
-        uint256 totalSharesAmountD18
-    ) internal returns (int256) {
+    function updateEntry(Data storage self, uint256 totalSharesAmountD18) internal returns (int256) {
         // Cannot process distributed rewards if a pool is empty or if it has no rewards.
         if (self.scheduledValueD18 == 0 || totalSharesAmountD18 == 0) {
             return 0;
@@ -139,9 +139,7 @@ library RewardDistribution {
         // consider the entry to be an instant distribution.
         if (self.duration == 0 && self.lastUpdate < self.start) {
             // Simply update the value per share to the total value divided by the total shares.
-            valuePerShareChangeD18 = self.scheduledValueD18.to256().divDecimal(
-                totalSharesAmountD18.toInt()
-            );
+            valuePerShareChangeD18 = self.scheduledValueD18.to256().divDecimal(totalSharesAmountD18.toInt());
             // Else, if the last update was before the end of the duration.
         } else if (self.lastUpdate < self.start + self.duration) {
             // Determine how much was previously distributed.
@@ -149,8 +147,7 @@ library RewardDistribution {
             // otherwise the amount is proportional to the time elapsed since the start.
             int256 lastUpdateDistributedD18 = self.lastUpdate < self.start
                 ? SafeCastI128.zero()
-                : (self.scheduledValueD18 * (self.lastUpdate - self.start).toInt()) /
-                    self.duration.toInt();
+                : (self.scheduledValueD18 * (self.lastUpdate - self.start).toInt()) / self.duration.toInt();
 
             // If the current time is beyond the duration, then consider all scheduled value to be distributed.
             // Else, the amount distributed is proportional to the elapsed time.
@@ -159,13 +156,13 @@ library RewardDistribution {
                 // Note: Not using an intermediate time ratio variable
                 // in the following calculation to maintain precision.
                 curUpdateDistributedD18 =
-                    (curUpdateDistributedD18 * (curTime - self.start).toInt()) /
-                    self.duration.toInt();
+                    (curUpdateDistributedD18 * (curTime - self.start).toInt()) / self.duration.toInt();
             }
 
-            // The final value per share change is the difference between what is to be distributed and what was distributed.
-            valuePerShareChangeD18 = (curUpdateDistributedD18 - lastUpdateDistributedD18)
-                .divDecimal(totalSharesAmountD18.toInt());
+            // The final value per share change is the difference between what is to be distributed and what was
+            // distributed.
+            valuePerShareChangeD18 =
+                (curUpdateDistributedD18 - lastUpdateDistributedD18).divDecimal(totalSharesAmountD18.toInt());
         }
 
         self.lastUpdate = curTime.to32();
