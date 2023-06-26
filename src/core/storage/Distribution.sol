@@ -56,8 +56,6 @@ library Distribution {
      * The value being distributed ultimately modifies the distribution's valuePerShare.
      */
     function distributeValue(Data storage self, SD59x18 value) internal {
-        // TODO: check if compiles
-
         if (value.eq(sd59x18(0))) {
             return;
         }
@@ -103,7 +101,7 @@ library Distribution {
      */
     function accumulateActor(Data storage self, bytes32 actorId) internal returns (SD59x18 valueChange) {
         DistributionActor.Data storage actor = self.actorInfo[actorId];
-        return _updateLastValuePerShare(self, actor, actor.sharesD18);
+        return _updateLastValuePerShare(self, actor, actor.shares);
     }
 
     /**
@@ -155,10 +153,10 @@ library Distribution {
     )
         private
         view
-        returns (int256 valueChangeD18)
+        returns (SD59x18 valueChange)
     {
         SD59x18 deltaValuePerShare =
             sd59x18(int256(self.valuePerShare)).sub(sd59x18(int256(actor.lastValuePerShareD27)));
-        valueChangeD18 = deltaValuePerShare.mul(ud60x18(actor.shares).intoSD59x18());
+        valueChange = deltaValuePerShare.mul(ud60x18(actor.shares).intoSD59x18());
     }
 }

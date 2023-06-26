@@ -65,7 +65,7 @@ library VaultEpoch {
          * collateral into a place where it could later be claimed. With a distribution, liquidated collateral can be
          * socialized very easily.
          */
-        // ScalableMapping.Data collateralAmounts;
+        ScalableMapping.Data collateralAmounts;
         /**
          * @dev Tracks consolidated debt for each user.
          *

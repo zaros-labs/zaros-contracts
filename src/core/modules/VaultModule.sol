@@ -34,7 +34,6 @@ contract VaultModule is IVaultModule {
     using AccountRBAC for AccountRBAC.Data;
     using Distribution for Distribution.Data;
     using CollateralConfiguration for CollateralConfiguration.Data;
-    using ScalableMapping for ScalableMapping.Data;
 
     bytes32 private constant _DELEGATE_FEATURE_FLAG = "delegateCollateral";
 

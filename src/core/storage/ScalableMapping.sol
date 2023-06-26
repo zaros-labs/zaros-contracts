@@ -1,8 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.11 <0.9.0;
 
-import "@synthetixio/core-contracts/contracts/utils/DecimalMath.sol";
-import "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 /**
  * @title Data structure that wraps a mapping with a scalar multiplier.
@@ -44,27 +48,20 @@ import "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
  *
  */
 library ScalableMapping {
-    using SafeCastU128 for uint128;
-    using SafeCastU256 for uint256;
-    using SafeCastI128 for int128;
-    using SafeCastI256 for int256;
-    using DecimalMath for int256;
-    using DecimalMath for uint256;
-
     /**
      * @dev Thrown when attempting to scale a mapping with an amount that is lower than its resolution.
      */
-    error InsufficientMappedAmount();
+    error Zaros_ScalableMapping_InsufficientMappedAmount();
 
     /**
      * @dev Thrown when attempting to scale a mapping with no shares.
      */
-    error CannotScaleEmptyMapping();
+    error Zaros_ScalableMapping_CannotScaleEmptyMapping();
 
     struct Data {
-        uint128 totalSharesD18;
-        int128 scaleModifierD27;
-        mapping(bytes32 => uint256) sharesD18;
+        uint128 totalShares;
+        int128 scaleModifier;
+        mapping(bytes32 => uint256) shares;
     }
 
     /**
