@@ -7,6 +7,7 @@ import { IAccountModule } from "../interfaces/IAccountModule.sol";
 import { IAccountTokenModule } from "../interfaces/IAccountTokenModule.sol";
 import { Account } from "../storage/Account.sol";
 import { AccountRBAC } from "../storage/AccountRBAC.sol";
+import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 import { SystemAccountConfiguration } from "../storage/SystemAccountConfiguration.sol";
 
 // Open Zeppelin dependencies

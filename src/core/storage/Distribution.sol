@@ -155,8 +155,7 @@ library Distribution {
         view
         returns (SD59x18 valueChange)
     {
-        SD59x18 deltaValuePerShare =
-            sd59x18(int256(self.valuePerShare)).sub(sd59x18(int256(actor.lastValuePerShareD27)));
+        SD59x18 deltaValuePerShare = sd59x18(int256(self.valuePerShare)).sub(sd59x18(int256(actor.lastValuePerShare)));
         valueChange = deltaValuePerShare.mul(ud60x18(actor.shares).intoSD59x18());
     }
 }

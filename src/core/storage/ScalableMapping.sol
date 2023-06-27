@@ -69,23 +69,21 @@ library ScalableMapping {
      * @dev The incoming value is split per share, and used as a delta that is *added* to the existing scale modifier.
      * The resulting scale modifier must be in the range [-1, type(int128).max).
      */
-    function scale(Data storage self, int256 valueD18) internal {
-        if (valueD18 == 0) {
+    function scale(Data storage self, SD59x18 value) internal {
+        if (value.isZero()) {
             return;
         }
 
-        uint256 totalSharesD18 = self.totalSharesD18;
-        if (totalSharesD18 == 0) {
-            revert CannotScaleEmptyMapping();
+        UD60x18 totalShares = ud60x18(self.totalShares);
+        if (totalShares.isZero()) {
+            revert Zaros_ScalableMapping_CannotScaleEmptyMapping();
         }
 
-        int256 valueD45 = valueD18 * DecimalMath.UNIT_PRECISE_INT;
-        int256 deltaScaleModifierD27 = valueD45 / totalSharesD18.toInt();
+        SD59x18 deltaScaleModifier = value.div(totalShares.intoSD59x18());
+        self.scaleModifier = ud60x18(self.scaleModifier).add(deltaScaleModifier).intoUint128();
 
-        self.scaleModifierD27 += deltaScaleModifierD27.to128();
-
-        if (self.scaleModifierD27 < -DecimalMath.UNIT_PRECISE_INT) {
-            revert InsufficientMappedAmount();
+        if (self.scaleModifier.lt(SD59x18.UNIT.unary())) {
+            revert Zaros_ScalableMapping_InsufficientMappedAmount();
         }
     }
 
@@ -100,20 +98,20 @@ library ScalableMapping {
     function set(
         Data storage self,
         bytes32 actorId,
-        uint256 newActorValueD18
+        uint256 newActorValue
     )
         internal
-        returns (uint256 resultingSharesD18)
+        returns (UD60x18 resultingShares)
     {
         // Represent the actor's change in value by changing the actor's number of shares,
         // and keeping the distribution's scaleModifier constant.
 
-        resultingSharesD18 = getSharesForAmount(self, newActorValueD18);
+        resultingShares = getSharesForAmount(self, newActorValue);
 
         // Modify the total shares with the actor's change in shares.
-        self.totalSharesD18 = (self.totalSharesD18 + resultingSharesD18 - self.sharesD18[actorId]).to128();
-
-        self.sharesD18[actorId] = resultingSharesD18.to128();
+        self.totalShares =
+            (ud60x18(self.totalShares).add(resultingShares).sub(ud60x18(self.shares[actorId]))).intoUint128();
+        self.shares[actorId] = resultingShares.intoUint128();
     }
 
     /**
@@ -121,13 +119,14 @@ library ScalableMapping {
      *
      * i.e. actor.shares * scaleModifier
      */
-    function get(Data storage self, bytes32 actorId) internal view returns (uint256 valueD18) {
-        uint256 totalSharesD18 = self.totalSharesD18;
-        if (totalSharesD18 == 0) {
-            return 0;
+    function get(Data storage self, bytes32 actorId) internal view returns (UD60x18 value) {
+        UD60x18 totalShares = ud60x18(self.totalShares);
+        UD60x18 actorShares = ud60x18(self.shares[actorId]);
+        if (totalShares.isZero()) {
+            return UD60x18.ZERO;
         }
 
-        return (self.sharesD18[actorId] * totalAmount(self)) / totalSharesD18;
+        return (ud60x18(self.shares[actorId]).mul(totalAmount(self))).div(totalShares);
     }
 
     /**
@@ -135,13 +134,11 @@ library ScalableMapping {
      *
      * i.e. totalShares * scaleModifier
      */
-    function totalAmount(Data storage self) internal view returns (uint256 valueD18) {
-        return ((self.scaleModifierD27 + DecimalMath.UNIT_PRECISE_INT).toUint() * self.totalSharesD18)
-            / DecimalMath.UNIT_PRECISE;
+    function totalAmount(Data storage self) internal view returns (UD60x18 value) {
+        return self.scaleModifier.add(SD59x18.UNIT).intoUD60x18().mul(self.totalShares);
     }
 
-    function getSharesForAmount(Data storage self, uint256 amountD18) internal view returns (uint256 sharesD18) {
-        sharesD18 =
-            (amountD18 * DecimalMath.UNIT_PRECISE) / (self.scaleModifierD27 + DecimalMath.UNIT_PRECISE_INT128).toUint();
+    function getSharesForAmount(Data storage self, UD60x18 amount) internal view returns (UD60x18 shares) {
+        shares = amount.div(self.scaleModifier.add(SD59x18.UNIT).intoUD60x18());
     }
 }

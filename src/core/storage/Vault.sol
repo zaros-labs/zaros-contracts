@@ -13,7 +13,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /**
@@ -70,7 +70,7 @@ library Vault {
         /**
          * @dev Tracks reward ids, for this vault.
          */
-        SetUtil.Bytes32Set rewardIds;
+        EnumerableSet.Bytes32Set rewardIds;
     }
 
     function load(address collateralType) internal view returns (Data storage vault) {

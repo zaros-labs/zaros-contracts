@@ -30,7 +30,7 @@ contract CollateralModule is ICollateralModule {
     using Account for Account.Data;
     using AccountRBAC for AccountRBAC.Data;
     using Collateral for Collateral.Data;
-    using SafeCastLib for uint256;
+    using SafeCast for uint256;
     using SafeERC20 for IERC20;
 
     bytes32 private constant _DEPOSIT_FEATURE_FLAG = "deposit";
@@ -52,7 +52,7 @@ contract CollateralModule is ICollateralModule {
      * @inheritdoc ICollateralModule
      */
     function getCollateralConfigs(bool hideDisabled) external view override returns (CollateralConfig.Data[] memory) {
-        SetUtil.AddressSet storage collateralTypes = CollateralConfig.loadAvailableCollaterals();
+        EnumerableSet.AddressSet storage collateralTypes = CollateralConfig.loadAvailableCollaterals();
 
         uint256 numCollaterals = collateralTypes.length();
         CollateralConfig.Data[] memory filteredCollaterals = new CollateralConfig.Data[](numCollaterals);
@@ -120,9 +120,10 @@ contract CollateralModule is ICollateralModule {
      */
     function withdraw(uint128 accountId, address collateralType, uint256 tokenAmount) external override {
         FeatureFlag.ensureAccessToFeature(_WITHDRAW_FEATURE_FLAG);
-        Account.Data storage account = Account.loadAccountAndValidatePermissionAndTimeout(
-            accountId, AccountRBAC._WITHDRAW_PERMISSION, Config.readUint(_CONFIG_TIMEOUT_WITHDRAW, 0)
-        );
+        // Account.Data storage account = Account.loadAccountAndValidatePermissionAndTimeout(
+        //     accountId, AccountRBAC._WITHDRAW_PERMISSION, Config.readUint(_CONFIG_TIMEOUT_WITHDRAW, 0)
+        // );
+        Account.Data storage account = Account.loadAccountAndValidatePermission(accountId);
 
         UD60x18 tokenWad = CollateralConfig.load(collateralType).normalizeTokenAmount(tokenAmount);
 

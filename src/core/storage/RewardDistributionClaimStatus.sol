@@ -9,10 +9,10 @@ library RewardDistributionClaimStatus {
         /**
          * @dev The last known reward per share for this actor.
          */
-        uint128 lastRewardPerShareD18;
+        uint128 lastRewardPerShare;
         /**
          * @dev The amount of rewards pending to be claimed by this actor.
          */
-        uint128 pendingSendD18;
+        uint128 pendingSend;
     }
 }

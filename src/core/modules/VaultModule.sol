@@ -8,6 +8,7 @@ import { Account } from "../storage/Account.sol";
 import { AccountRBAC } from "../storage/AccountRBAC.sol";
 import { Collateral } from "../storage/Collateral.sol";
 import { CollateralConfig } from "../storage/CollateralConfig.sol";
+import { Distribution } from "../storage/Distribution.sol";
 import { Vault } from "../storage/Vault.sol";
 import { VaultEpoch } from "../storage/VaultEpoch.sol";
 import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
@@ -33,7 +34,7 @@ contract VaultModule is IVaultModule {
     using CollateralConfig for CollateralConfig.Data;
     using AccountRBAC for AccountRBAC.Data;
     using Distribution for Distribution.Data;
-    using CollateralConfiguration for CollateralConfiguration.Data;
+    using CollateralConfig for CollateralConfig.Data;
 
     bytes32 private constant _DELEGATE_FEATURE_FLAG = "delegateCollateral";
 
