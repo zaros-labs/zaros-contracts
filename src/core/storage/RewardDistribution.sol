@@ -122,14 +122,14 @@ library RewardDistribution {
         // Cannot process distributed rewards if a pool is empty or if it has no rewards.
         SD59x18 scheduledValue = sd59x18(self.scheduledValue);
         if (scheduledValue.isZero() || totalSharesAmount.isZero()) {
-            return sd59x18(0);
+            return SD_ZERO;
         }
 
         UD60x18 currentTime = ud60x18(block.timestamp);
         UD60x18 duration = ud60x18(self.duration);
         UD60x18 lastUpdate = ud60x18(self.lastUpdate);
         UD60x18 start = ud60x18(self.start);
-        SD59x18 valuePerShareChange = sd59x18(0);
+        SD59x18 valuePerShareChange = SD_ZERO;
 
         // Cannot update an entry whose start date has not being reached.
         if (currentTime.lt(start)) {
@@ -147,7 +147,7 @@ library RewardDistribution {
             // If the last update is zero, then nothing was distributed,
             // otherwise the amount is proportional to the time elapsed since the start.
             SD59x18 lastUpdateDistributed = lastUpdate.lt(start)
-                ? sd59x18(0)
+                ? SD_ZERO
                 : scheduledValue.mul(lastUpdate.sub(start).intoSD59x18()).div(duration.intoSD59x18());
 
             // If the current time is beyond the duration, then consider all scheduled value to be distributed.

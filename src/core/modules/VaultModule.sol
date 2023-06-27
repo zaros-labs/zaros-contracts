@@ -17,8 +17,8 @@ import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 // PRB Math dependencies
-import { UD60x18, uUNIT, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18, UNIT, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /**
  * @title Allows accounts to delegate collateral to a pool.
@@ -128,7 +128,7 @@ contract VaultModule is IVaultModule {
         FeatureFlag.ensureAccessToFeature(_DELEGATE_FEATURE_FLAG);
         Account.loadAccountAndValidatePermission(accountId, AccountRBAC._DELEGATE_PERMISSION);
 
-        if (newCollateralAmount.gt(ud60x18(0))) {
+        if (newCollateralAmount.gt(UD_ZERO)) {
             CollateralConfig.requireSufficientDelegation(collateralType, newCollateralAmount);
         }
 
@@ -157,7 +157,7 @@ contract VaultModule is IVaultModule {
         if (newCollateralAmount.lt(currentCollateralAmount)) {
             SD59x18 debt = sd59x18(vault.currentEpoch().consolidatedDebtAmounts[accountId]);
             CollateralConfig.load(collateralType).verifyIssuanceRatio(
-                debt.lt(sd59x18(0)) ? ud60x18(0) : ud60x18(debt), newCollateralAmount.mul(collateralPrice)
+                debt.lt(SD_ZERO) ? UD_ZERO : ud60x18(debt), newCollateralAmount.mul(collateralPrice)
             );
             // TODO: Delegate to market manager
             // _verifyNotCapacityLocked(poolId);

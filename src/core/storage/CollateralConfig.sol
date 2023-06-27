@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, uUNIT } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, uUNIT, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 
 /**
  * @title Tracks system-wide settings for each collateral type, as well as helper functions for it, such as retrieving
@@ -161,7 +161,7 @@ library CollateralConfig {
 
         UD60x18 minDelegation = ud60x18(config.minDelegation);
 
-        if (minDelegation.eq(ud60x18(0))) {
+        if (minDelegation.eq(UD_ZERO)) {
             minDelegation = ud60x18(config.liquidationReward);
         }
 
@@ -184,8 +184,8 @@ library CollateralConfig {
      */
     function verifyIssuanceRatio(Data storage self, UD60x18 debt, UD60x18 collateralValue) internal view {
         if (
-            debt.neq(ud60x18(0))
-                && (collateralValue.eq(ud60x18(0)) || collateralValue.div(debt).lt(ud60x18(self.issuanceRatio)))
+            debt.neq(UD_ZERO)
+                && (collateralValue.eq(UD_ZERO) || collateralValue.div(debt).lt(ud60x18(self.issuanceRatio)))
         ) {
             revert Zaros_CollateralConfig_InsufficientCollateralRatio(
                 collateralValue.intoUint256(),

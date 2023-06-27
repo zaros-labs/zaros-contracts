@@ -5,8 +5,8 @@ pragma solidity >=0.8.11 <0.9.0;
 import { DistributionActor } from "./DistributionActor.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -56,13 +56,13 @@ library Distribution {
      * The value being distributed ultimately modifies the distribution's valuePerShare.
      */
     function distributeValue(Data storage self, SD59x18 value) internal {
-        if (value.eq(sd59x18(0))) {
+        if (value.eq(SD_ZERO)) {
             return;
         }
 
         UD60x18 totalShares = ud60x18(self.totalShares);
 
-        if (totalShares.eq(ud60x18(0))) {
+        if (totalShares.eq(UD_ZERO)) {
             revert Zaros_Distribution_EmptyDistribution();
         }
 
@@ -143,7 +143,7 @@ library Distribution {
     {
         valueChange = _getActorValueChange(self, actor);
 
-        actor.lastValuePerShare = newActorShares.eq(ud60x18(0)) ? int128(0) : self.valuePerShare;
+        actor.lastValuePerShare = newActorShares.eq(UD_ZERO) ? int128(0) : self.valuePerShare;
     }
 
     function _getActorValueChange(
