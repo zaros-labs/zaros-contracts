@@ -101,7 +101,7 @@ library Distribution {
      */
     function accumulateActor(Data storage self, bytes32 actorId) internal returns (SD59x18 valueChange) {
         DistributionActor.Data storage actor = self.actorInfo[actorId];
-        return _updateLastValuePerShare(self, actor, actor.shares);
+        return _updateLastValuePerShare(self, actor, ud60x18(actor.shares));
     }
 
     /**
@@ -143,8 +143,7 @@ library Distribution {
     {
         valueChange = _getActorValueChange(self, actor);
 
-        actor.lastValuePerShare =
-            newActorShares.eq(ud60x18(0)) ? sd59x18(int256(0)) : sd59x18(int256(self.valuePerShare));
+        actor.lastValuePerShare = newActorShares.eq(ud60x18(0)) ? int128(0) : self.valuePerShare;
     }
 
     function _getActorValueChange(

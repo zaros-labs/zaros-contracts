@@ -59,7 +59,7 @@ contract CollateralModule is ICollateralModule {
 
         uint256 collateralsIdx;
         for (uint256 i = 1; i <= numCollaterals; i++) {
-            address collateralType = collateralTypes.valueAt(i);
+            address collateralType = collateralTypes.at(i);
 
             CollateralConfig.Data storage collateral = CollateralConfig.load(collateralType);
 
@@ -123,7 +123,8 @@ contract CollateralModule is ICollateralModule {
         // Account.Data storage account = Account.loadAccountAndValidatePermissionAndTimeout(
         //     accountId, AccountRBAC._WITHDRAW_PERMISSION, Config.readUint(_CONFIG_TIMEOUT_WITHDRAW, 0)
         // );
-        Account.Data storage account = Account.loadAccountAndValidatePermission(accountId);
+        Account.Data storage account =
+            Account.loadAccountAndValidatePermission(accountId, AccountRBAC._WITHDRAW_PERMISSION);
 
         UD60x18 tokenWad = CollateralConfig.load(collateralType).normalizeTokenAmount(tokenAmount);
 

@@ -9,7 +9,7 @@ import { RewardDistributionClaimStatus } from "./RewardDistributionClaimStatus.s
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -20,6 +20,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
  */
 library RewardDistribution {
     using SafeCast for int256;
+    using SafeCast for uint256;
 
     struct Data {
         /**
@@ -79,7 +80,7 @@ library RewardDistribution {
         UD60x18 totalShares = ud60x18(dist.totalShares);
 
         if (totalShares.isZero()) {
-            revert ParameterError.InvalidParameter("amount", "can't distribute to empty distribution");
+            revert ParameterError.Zaros_InvalidParameter("amount", "can't distribute to empty distribution");
         }
 
         uint256 currentTime = block.timestamp;
@@ -99,7 +100,7 @@ library RewardDistribution {
             self.scheduledValue = 0;
             // Else, schedule the amount to distribute.
         } else {
-            self.scheduledValue = amount.toInt128();
+            self.scheduledValue = amount.intoInt256().toInt128();
 
             self.start = start;
             self.duration = duration;
@@ -131,8 +132,8 @@ library RewardDistribution {
         SD59x18 valuePerShareChange = sd59x18(0);
 
         // Cannot update an entry whose start date has not being reached.
-        if (currentTime < self.start) {
-            return 0;
+        if (currentTime.lt(start)) {
+            return SD_ZERO;
         }
 
         // If the entry's duration is zero and the its last update is zero,
@@ -156,7 +157,7 @@ library RewardDistribution {
                 // Note: Not using an intermediate time ratio variable
                 // in the following calculation to maintain precision.
                 currentUpdateDistributed =
-                    (currentUpdateDistributed.mul(currentTime.sub(start))).intoSD59x18().div(duration.intoSD59x18());
+                    (currentUpdateDistributed.mul(currentTime.sub(start).intoSD59x18())).div(duration.intoSD59x18());
             }
 
             // The final value per share change is the difference between what is to be distributed and what was
@@ -165,7 +166,7 @@ library RewardDistribution {
                 (currentUpdateDistributed.sub(lastUpdateDistributed)).div(totalSharesAmount.intoSD59x18());
         }
 
-        self.lastUpdate = currentTime.toUint32();
+        self.lastUpdate = currentTime.intoUint256().toUint32();
 
         return valuePerShareChange;
     }

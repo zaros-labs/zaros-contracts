@@ -29,6 +29,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
  */
 library VaultEpoch {
     using Distribution for Distribution.Data;
+    using SafeCast for int256;
     using ScalableMapping for ScalableMapping.Data;
 
     struct Data {
@@ -95,7 +96,7 @@ library VaultEpoch {
 
         // Cache total debt here.
         // Will roll over to individual users as they interact with the system.
-        self.unconsolidatedDebt = sd59x18(self.unconsolidatedDebt).sub(debtChange).intoUint128();
+        self.unconsolidatedDebt = sd59x18(self.unconsolidatedDebt).sub(debtChange).intoInt256().toInt128();
     }
 
     /**
@@ -113,7 +114,7 @@ library VaultEpoch {
     {
         SD59x18 currentDebt = sd59x18(self.consolidatedDebtAmounts[accountId]);
         self.consolidatedDebtAmounts[accountId] = currentDebt.add(amount).intoInt256();
-        self.totalConsolidatedDebt = sd59x18(self.totalConsolidatedDebt).add(amount).intoUint128();
+        self.totalConsolidatedDebt = sd59x18(self.totalConsolidatedDebt).add(amount).intoInt256().toInt128();
         return currentDebt.add(amount);
     }
 
@@ -126,10 +127,10 @@ library VaultEpoch {
      * real debt of a user needs to be known.
      */
     function consolidateAccountDebt(Data storage self, uint128 accountId) internal returns (SD59x18 currentDebt) {
-        SD59x18 newDebt = self.accountsDebtDistribution.accumulateActor(accountId.toBytes32());
+        SD59x18 newDebt = self.accountsDebtDistribution.accumulateActor(bytes32(uint256(accountId)));
 
         currentDebt = assignDebtToAccount(self, accountId, newDebt);
-        self.unconsolidatedDebt = newDebt.intoUint128();
+        self.unconsolidatedDebt = newDebt.intoInt256().toInt128();
     }
 
     /**
@@ -146,14 +147,14 @@ library VaultEpoch {
     )
         internal
     {
-        bytes32 actorId = accountId.toBytes32();
+        bytes32 actorId = bytes32(uint256(accountId));
 
         // Ensure account debt is consolidated before we do next things.
         consolidateAccountDebt(self, accountId);
 
         self.collateralAmounts.set(actorId, collateralAmount);
         self.accountsDebtDistribution.setActorShares(
-            actorId, self.collateralAmounts.shares[actorId].mul(ud60x18(leverage))
+            actorId, ud60x18(self.collateralAmounts.shares[actorId]).mul(ud60x18(leverage))
         );
     }
 
@@ -162,13 +163,13 @@ library VaultEpoch {
      * that hasn't yet been consolidated into individual accounts.
      */
     function totalDebt(Data storage self) internal view returns (SD59x18) {
-        return sd59x18(self.unconsolidatedDebt).add(self.totalConsolidatedDebt);
+        return sd59x18(self.unconsolidatedDebt).add(sd59x18(self.totalConsolidatedDebt));
     }
 
     /**
      * @dev Returns an account's value in the Vault's collateral distribution.
      */
     function getAccountCollateral(Data storage self, uint128 accountId) internal view returns (UD60x18 amount) {
-        return self.collateralAmounts.get(accountId.toBytes32());
+        return self.collateralAmounts.get(bytes32(uint256(accountId)));
     }
 }

@@ -43,7 +43,7 @@ contract AccountModule is IAccountModule {
         uint256 allPermissionsLength = accountRbac.permissionAddresses.length();
         accountPerms = new AccountPermissions[](allPermissionsLength);
         for (uint256 i = 1; i <= allPermissionsLength; i++) {
-            address permissionAddress = accountRbac.permissionAddresses.valueAt(i);
+            address permissionAddress = accountRbac.permissionAddresses.at(i);
             accountPerms[i - 1] = AccountPermissions({
                 user: permissionAddress,
                 permissions: accountRbac.permissions[permissionAddress].values()

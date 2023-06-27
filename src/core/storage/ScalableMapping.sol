@@ -2,8 +2,8 @@
 pragma solidity >=0.8.11 <0.9.0;
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, UNIT as SD_UNIT, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -48,6 +48,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
  *
  */
 library ScalableMapping {
+    using SafeCast for int256;
+
     /**
      * @dev Thrown when attempting to scale a mapping with an amount that is lower than its resolution.
      */
@@ -80,11 +82,13 @@ library ScalableMapping {
         }
 
         SD59x18 deltaScaleModifier = value.div(totalShares.intoSD59x18());
-        self.scaleModifier = ud60x18(self.scaleModifier).add(deltaScaleModifier).intoUint128();
+        SD59x18 newScaleModifier = sd59x18(self.scaleModifier).add(deltaScaleModifier);
 
-        if (self.scaleModifier.lt(SD59x18.UNIT.unary())) {
+        if (newScaleModifier.lt(-SD_UNIT)) {
             revert Zaros_ScalableMapping_InsufficientMappedAmount();
         }
+
+        self.scaleModifier = newScaleModifier.intoInt256().toInt128();
     }
 
     /**
@@ -98,7 +102,7 @@ library ScalableMapping {
     function set(
         Data storage self,
         bytes32 actorId,
-        uint256 newActorValue
+        UD60x18 newActorValue
     )
         internal
         returns (UD60x18 resultingShares)
@@ -123,7 +127,7 @@ library ScalableMapping {
         UD60x18 totalShares = ud60x18(self.totalShares);
         UD60x18 actorShares = ud60x18(self.shares[actorId]);
         if (totalShares.isZero()) {
-            return UD60x18.ZERO;
+            return UD_ZERO;
         }
 
         return (ud60x18(self.shares[actorId]).mul(totalAmount(self))).div(totalShares);
@@ -135,10 +139,11 @@ library ScalableMapping {
      * i.e. totalShares * scaleModifier
      */
     function totalAmount(Data storage self) internal view returns (UD60x18 value) {
-        return self.scaleModifier.add(SD59x18.UNIT).intoUD60x18().mul(self.totalShares);
+        // TODO: come back here
+        return sd59x18((self.scaleModifier)).add(SD_UNIT).intoUD60x18().mul(ud60x18(self.totalShares));
     }
 
     function getSharesForAmount(Data storage self, UD60x18 amount) internal view returns (UD60x18 shares) {
-        shares = amount.div(self.scaleModifier.add(SD59x18.UNIT).intoUD60x18());
+        shares = amount.div(sd59x18(int256(self.scaleModifier)).add(SD_UNIT).intoUD60x18());
     }
 }

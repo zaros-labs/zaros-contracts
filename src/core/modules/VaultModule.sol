@@ -129,35 +129,38 @@ contract VaultModule is IVaultModule {
         Account.loadAccountAndValidatePermission(accountId, AccountRBAC._DELEGATE_PERMISSION);
 
         if (newCollateralAmount.gt(ud60x18(0))) {
-            CollateralConfiguration.requireSufficientDelegation(collateralType, newCollateralAmount);
+            CollateralConfig.requireSufficientDelegation(collateralType, newCollateralAmount);
         }
 
         Vault.Data storage vault = Vault.load(collateralType);
-        vault.updateRewards(accountId, poolId, collateralType);
+        // TODO: work on rewards
+        // vault.updateRewards(accountId, poolId, collateralType);
         uint256 currentCollateralAmount = vault.currentAccountCollateral(accountId);
 
         if (newCollateralAmount.eq(currentCollateralAmount)) {
             revert Zaros_VaultModule_InvalidCollateralAmount();
         } else if (newCollateralAmount.gt(currentCollateralAmount)) {
-            CollateralConfiguration.collateralEnabled(collateralType);
+            CollateralConfig.collateralEnabled(collateralType);
             Account.requireSufficientCollateral(
                 accountId, collateralType, newCollateralAmount.sub(currentCollateralAmount)
             );
-        } else {
-            Pool.loadExisting(poolId).requireMinDelegationTimeElapsed(
-                vault.currentEpoch().lastDelegationTime[accountId]
-            );
         }
+        // TODO: Delegate to market manager
+        // else {
+        //     Pool.loadExisting(poolId).requireMinDelegationTimeElapsed(
+        //         vault.currentEpoch().lastDelegationTime[accountId]
+        //     );
+        // }
         uint256 collateralPrice =
-            _updatePosition(accountId, poolId, collateralType, newCollateralAmount, currentCollateralAmount);
-        _updateAccountCollateralPools(accountId, poolId, collateralType, newCollateralAmount.gt(ud60x18(0)));
+            _updatePosition(accountId, collateralType, newCollateralAmount, currentCollateralAmount);
 
         if (newCollateralAmount.lt(currentCollateralAmount)) {
             SD59x18 debt = sd59x18(vault.currentEpoch().consolidatedDebtAmounts[accountId]);
-            CollateralConfiguration.load(collateralType).verifyIssuanceRatio(
+            CollateralConfig.load(collateralType).verifyIssuanceRatio(
                 debt.lt(sd59x18(0)) ? ud60x18(0) : ud60x18(debt), newCollateralAmount.mul(collateralPrice)
             );
-            _verifyNotCapacityLocked(poolId);
+            // TODO: Delegate to market manager
+            // _verifyNotCapacityLocked(poolId);
         }
 
         vault.currentEpoch().lastDelegationTime[accountId] = uint64(block.timestamp);
@@ -166,7 +169,7 @@ contract VaultModule is IVaultModule {
     }
 
     /**
-     * @dev Updates the given account's position regarding the given pool and collateral type,
+     * @dev Updates the given account's position regarding the given collateral type,
      * with the new amount of delegated collateral.
      *
      * The update will be reflected in the registered delegated collateral amount,
@@ -174,7 +177,6 @@ contract VaultModule is IVaultModule {
      */
     function _updatePosition(
         uint128 accountId,
-        uint128 poolId,
         address collateralType,
         UD60x18 newCollateralAmount,
         UD60x18 oldCollateralAmount
@@ -182,11 +184,11 @@ contract VaultModule is IVaultModule {
         internal
         returns (uint256 collateralPrice)
     {
-        Pool.Data storage pool = Pool.load(poolId);
+        Vault.Data storage vault = Vault.load(collateralType);
 
         // Trigger an update in the debt distribution chain to make sure that
         // the user's debt is up to date.
-        pool.updateAccountDebt(collateralType, accountId);
+        vault.updateAccountDebt(accountId);
 
         // Get the collateral entry for the given account and collateral type.
         Collateral.Data storage collateral = Account.load(accountId).collaterals[collateralType];
@@ -198,46 +200,22 @@ contract VaultModule is IVaultModule {
             collateral.increaseAvailableCollateral(oldCollateralAmount.sub(newCollateralAmount));
         }
 
-        // If the collateral amount is not negative, make sure that the pool exists
-        // in the collateral entry's pool array. Otherwise remove it.
-        _updateAccountCollateralPools(accountId, poolId, collateralType, newCollateralAmount.gt(ud60x18(0)));
-
         // Update the account's position in the vault data structure.
-        pool.vaults[collateralType].currentEpoch().updateAccountPosition(accountId, newCollateralAmount);
+        vault.currentEpoch().updateAccountPosition(accountId, newCollateralAmount);
 
         // Trigger another update in the debt distribution chain,
         // and surface the latest price for the given collateral type (which is retrieved in the update).
-        collateralPrice = pool.recalculateVaultCollateral(collateralType);
+        // TODO: Delegate to market manager
+        // collateralPrice = pool.recalculateVaultCollateral(collateralType);
     }
 
-    function _verifyNotCapacityLocked(uint128 poolId) internal view {
-        Pool.Data storage pool = Pool.load(poolId);
+    // function _verifyNotCapacityLocked(uint128 poolId) internal view {
+    //     Pool.Data storage pool = Pool.load(poolId);
 
-        Market.Data storage market = pool.findMarketWithCapacityLocked();
+    //     Market.Data storage market = pool.findMarketWithCapacityLocked();
 
-        if (market.id > 0) {
-            revert Zaros_VaultModule_CapacityLocked(market.id);
-        }
-    }
-
-    /**
-     * @dev Registers the pool in the given account's collaterals array.
-     */
-    function _updateAccountCollateralPools(
-        uint128 accountId,
-        uint128 poolId,
-        address collateralType,
-        bool added
-    )
-        internal
-    {
-        Collateral.Data storage depositedCollateral = Account.load(accountId).collaterals[collateralType];
-
-        bool containsPool = depositedCollateral.pools.contains(poolId);
-        if (added && !containsPool) {
-            depositedCollateral.pools.add(poolId);
-        } else if (!added && containsPool) {
-            depositedCollateral.pools.remove(poolId);
-        }
-    }
+    //     if (market.id > 0) {
+    //         revert Zaros_VaultModule_CapacityLocked(market.id);
+    //     }
+    // }
 }

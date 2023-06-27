@@ -14,7 +14,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /**
  * @title Tracks collateral and debt distributions in a pool, for a specific collateral type.
@@ -30,6 +30,7 @@ library Vault {
     using Distribution for Distribution.Data;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using RewardDistribution for RewardDistribution.Data;
+    using SafeCast for int256;
     using SafeCast for uint256;
     using ScalableMapping for ScalableMapping.Data;
     using VaultEpoch for VaultEpoch.Data;
@@ -74,7 +75,7 @@ library Vault {
     }
 
     function load(address collateralType) internal view returns (Data storage vault) {
-        bytes32 s = keccak256(VAULT_DOMAIN, collateralType);
+        bytes32 s = keccak256(abi.encode(VAULT_DOMAIN, collateralType));
         assembly {
             vault.slot := s
         }
@@ -108,9 +109,9 @@ library Vault {
 
         totalDebt = epochData.totalDebt();
 
-        deltaDebt = totalDebt.sub(self.prevTotalDebt);
+        deltaDebt = totalDebt.sub(sd59x18(self.prevTotalDebt));
 
-        self.prevTotalDebt = totalDebt.safeCastTo128();
+        self.prevTotalDebt = totalDebt.intoInt256().toInt128();
     }
 
     /**
@@ -127,69 +128,69 @@ library Vault {
         return currentEpoch(self).consolidateAccountDebt(accountId);
     }
 
-    /**
-     * @dev Traverses available rewards for this vault, and updates an accounts
-     * claim on them according to the amount of debt shares they have.
-     */
-    function updateRewards(
-        Data storage self,
-        uint128 accountId,
-        uint128 poolId,
-        address collateralType
-    )
-        internal
-        returns (uint256[] memory rewards, address[] memory distributors)
-    {
-        rewards = new uint256[](self.rewardIds.length());
-        distributors = new address[](self.rewardIds.length());
+    // /**
+    //  * @dev Traverses available rewards for this vault, and updates an accounts
+    //  * claim on them according to the amount of debt shares they have.
+    //  */
+    // function updateRewards(
+    //     Data storage self,
+    //     uint128 accountId,
+    //     uint128 poolId,
+    //     address collateralType
+    // )
+    //     internal
+    //     returns (uint256[] memory rewards, address[] memory distributors)
+    // {
+    //     rewards = new uint256[](self.rewardIds.length());
+    //     distributors = new address[](self.rewardIds.length());
 
-        uint256 numRewards = self.rewardIds.length();
-        for (uint256 i = 0; i < numRewards; i++) {
-            RewardDistribution.Data storage dist = self.rewards[self.rewardIds.valueAt(i + 1)];
+    //     uint256 numRewards = self.rewardIds.length();
+    //     for (uint256 i = 0; i < numRewards; i++) {
+    //         RewardDistribution.Data storage dist = self.rewards[self.rewardIds.at(i + 1)];
 
-            if (address(dist.distributor) == address(0)) {
-                continue;
-            }
+    //         if (address(dist.distributor) == address(0)) {
+    //             continue;
+    //         }
 
-            distributors[i] = address(dist.distributor);
-            rewards[i] = updateReward(self, accountId, poolId, collateralType, self.rewardIds.valueAt(i + 1));
-        }
-    }
+    //         distributors[i] = address(dist.distributor);
+    //         rewards[i] = updateReward(self, accountId, poolId, collateralType, self.rewardIds.at(i + 1));
+    //     }
+    // }
 
-    /**
-     * @dev Traverses available rewards for this vault and the reward id, and updates an accounts
-     * claim on them according to the amount of debt shares they have.
-     */
-    function updateReward(
-        Data storage self,
-        uint128 accountId,
-        uint128 poolId,
-        address collateralType,
-        bytes32 rewardId
-    )
-        internal
-        returns (uint256)
-    {
-        UD60x18 totalShares = ud60x18(currentEpoch(self).accountsDebtDistribution.totalShares);
-        UD60x18 actorShares = currentEpoch(self).accountsDebtDistribution.getActorShares(accountId.toBytes32());
+    // /**
+    //  * @dev Traverses available rewards for this vault and the reward id, and updates an accounts
+    //  * claim on them according to the amount of debt shares they have.
+    //  */
+    // function updateReward(
+    //     Data storage self,
+    //     uint128 accountId,
+    //     uint128 poolId,
+    //     address collateralType,
+    //     bytes32 rewardId
+    // )
+    //     internal
+    //     returns (uint256)
+    // {
+    //     UD60x18 totalShares = ud60x18(currentEpoch(self).accountsDebtDistribution.totalShares);
+    //     UD60x18 actorShares = currentEpoch(self).accountsDebtDistribution.getActorShares(accountId.toBytes32());
 
-        RewardDistribution.Data storage dist = self.rewards[rewardId];
+    //     RewardDistribution.Data storage dist = self.rewards[rewardId];
 
-        if (address(dist.distributor) == address(0)) {
-            revert Zaros_Vault_RewardDistributorNotFound();
-        }
+    //     if (address(dist.distributor) == address(0)) {
+    //         revert Zaros_Vault_RewardDistributorNotFound();
+    //     }
 
-        dist.distributor.onStakerChanged(accountId, poolId, collateralType, actorShares);
+    //     dist.distributor.onPositionUpdated(accountId, poolId, collateralType, actorShares);
 
-        dist.rewardPerShare += dist.updateEntry(totalShares).intoUint128();
+    //     dist.rewardPerShare += dist.updateEntry(totalShares).intoUint128();
 
-        dist.claimStatus[accountId].pendingSend +=
-            actorShares.mul(dist.rewardPerShare - dist.claimStatus[accountId].lastRewardPerShare).intoUint128();
+    //     dist.claimStatus[accountId].pendingSend +=
+    //         actorShares.mul(dist.rewardPerShare - dist.claimStatus[accountId].lastRewardPerShare).intoUint128();
 
-        dist.claimStatus[accountId].lastRewardPerShare = dist.rewardPerShare;
+    //     dist.claimStatus[accountId].lastRewardPerShare = dist.rewardPerShare;
 
-        return dist.claimStatus[accountId].pendingSend;
-    }
+    //     return dist.claimStatus[accountId].pendingSend;
+    // }
 
     /**
      * @dev Increments the current epoch index, effectively producing a
