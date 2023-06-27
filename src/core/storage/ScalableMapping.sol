@@ -144,6 +144,6 @@ library ScalableMapping {
     }
 
     function getSharesForAmount(Data storage self, UD60x18 amount) internal view returns (UD60x18 shares) {
-        shares = amount.div(sd59x18(int256(self.scaleModifier)).add(SD_UNIT).intoUD60x18());
+        shares = amount.div(sd59x18(self.scaleModifier).add(SD_UNIT).intoUD60x18());
     }
 }

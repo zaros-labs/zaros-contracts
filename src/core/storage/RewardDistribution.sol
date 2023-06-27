@@ -120,15 +120,15 @@ library RewardDistribution {
      */
     function updateEntry(Data storage self, UD60x18 totalSharesAmount) internal returns (SD59x18) {
         // Cannot process distributed rewards if a pool is empty or if it has no rewards.
-        SD59x18 scheduledValue = sd59x18(int256(self.scheduledValue));
+        SD59x18 scheduledValue = sd59x18(self.scheduledValue);
         if (scheduledValue.isZero() || totalSharesAmount.isZero()) {
-            return sd59x18(int256(0));
+            return sd59x18(0);
         }
 
-        UD60x18 currentTime = ud60x18(uint256(block.timestamp));
-        UD60x18 duration = ud60x18(uint256(self.duration));
-        UD60x18 lastUpdate = ud60x18(uint256(self.lastUpdate));
-        UD60x18 start = ud60x18(uint256(self.start));
+        UD60x18 currentTime = ud60x18(block.timestamp);
+        UD60x18 duration = ud60x18(self.duration);
+        UD60x18 lastUpdate = ud60x18(self.lastUpdate);
+        UD60x18 start = ud60x18(self.start);
         SD59x18 valuePerShareChange = sd59x18(0);
 
         // Cannot update an entry whose start date has not being reached.

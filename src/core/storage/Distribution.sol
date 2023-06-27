@@ -67,7 +67,7 @@ library Distribution {
         }
 
         SD59x18 deltaValuePerShare = value.div(totalShares.intoSD59x18());
-        self.valuePerShare = sd59x18(int256(self.valuePerShare)).add(deltaValuePerShare).intoInt256().toInt128();
+        self.valuePerShare = sd59x18(self.valuePerShare).add(deltaValuePerShare).intoInt256().toInt128();
     }
 
     /**
@@ -130,7 +130,7 @@ library Distribution {
      * @return The value per share in 18 decimal precision.
      */
     function getValuePerShare(Data storage self) internal view returns (SD59x18) {
-        return sd59x18(int256(self.valuePerShare));
+        return sd59x18(self.valuePerShare);
     }
 
     function _updateLastValuePerShare(
@@ -154,7 +154,7 @@ library Distribution {
         view
         returns (SD59x18 valueChange)
     {
-        SD59x18 deltaValuePerShare = sd59x18(int256(self.valuePerShare)).sub(sd59x18(int256(actor.lastValuePerShare)));
+        SD59x18 deltaValuePerShare = sd59x18(self.valuePerShare).sub(sd59x18(actor.lastValuePerShare));
         valueChange = deltaValuePerShare.mul(ud60x18(actor.shares).intoSD59x18());
     }
 }
