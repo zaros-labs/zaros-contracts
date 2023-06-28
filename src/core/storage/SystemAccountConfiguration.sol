@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
  */
 library SystemAccountConfiguration {
     bytes32 private constant _SYSTEM_ACCOUNT_CONFIGURATION_SLOT =
-        keccak256(abi.encodePacked("fi.zaros.core.SystemAccountConfiguration"));
+        keccak256(abi.encode("fi.zaros.core.SystemAccountConfiguration"));
 
     struct Data {
         /**
