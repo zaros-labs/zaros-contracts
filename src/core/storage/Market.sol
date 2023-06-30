@@ -1,13 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.11 <0.9.0;
 
-import "@synthetixio/core-contracts/contracts/utils/HeapUtil.sol";
+// Zaros dependencies
+import { Distribution } from "./Distribution.sol";
+import { CollateralConfig } from "./CollateralConfig.sol";
+// import "./MarketPoolInfo.sol";
 
-import "./Distribution.sol";
-import "./CollateralConfig.sol";
-import "./MarketPoolInfo.sol";
-
-import "../interfaces/external/IMarket.sol";
+import { IMarket } from "../interfaces/external/IMarket.sol";
 
 /**
  * @title Connects external contracts that implement the `IMarket` interface to the system.
@@ -18,22 +17,18 @@ import "../interfaces/external/IMarket.sol";
  * The Market object's main responsibility is to track collateral provided by the pools that support it, and to trace
  * their debt back to such pools.
  */
+
+// TODO: I just need to change the pool distribution mapping to a single actor accounting model
 library Market {
     using Distribution for Distribution.Data;
-    using HeapUtil for HeapUtil.Data;
-    using DecimalMath for uint256;
-    using DecimalMath for uint128;
-    using DecimalMath for int256;
-    using DecimalMath for int128;
-    using SafeCastU256 for uint256;
-    using SafeCastU128 for uint128;
-    using SafeCastI256 for int256;
-    using SafeCastI128 for int128;
 
     /**
      * @dev Thrown when a specified market is not found.
      */
     error MarketNotFound(uint128 marketId);
+
+    /// @dev Constant base domain used to access a given market's storage slot
+    string internal constant MARKET_DOMAIN = "fi.zaros.core.Market";
 
     struct Data {
         /**
@@ -182,7 +177,7 @@ library Market {
      * @dev Returns the market stored at the specified market id.
      */
     function load(uint128 id) internal pure returns (Data storage market) {
-        bytes32 s = keccak256(abi.encode("io.synthetix.synthetix.Market", id));
+        bytes32 s = keccak256(abi.encode(MARKET_DOMAIN, id));
         assembly {
             market.slot := s
         }
@@ -198,15 +193,15 @@ library Market {
      *
      * See the `IMarket` interface.
      */
-    function getReportedDebt(Data storage self) internal view returns (uint256) {
-        return IMarket(self.marketAddress).reportedDebt(self.id);
+    function getReportedDebt(Data storage self) internal view returns (UD60x18) {
+        return ud60x18(IMarket(self.marketAddress).reportedDebt(self.id));
     }
 
     /**
      * @dev Queries the market for the amount of collateral which should be prevented from withdrawal.
      */
-    function getLockedCreditCapacity(Data storage self) internal view returns (uint256) {
-        return IMarket(self.marketAddress).minimumCredit(self.id);
+    function getLockedCreditCapacity(Data storage self) internal view returns (UD60x18) {
+        return ud60x18(IMarket(self.marketAddress).minimumCredit(self.id));
     }
 
     /**
@@ -226,8 +221,10 @@ library Market {
      * Additionally, the market's totalDebt might be affected by price fluctuations via reportedDebt, or fees.
      *
      */
-    function totalDebt(Data storage self) internal view returns (int256) {
-        return getReportedDebt(self).toInt() + self.netIssuanceD18 - getDepositedCollateralValue(self).toInt();
+    function totalDebt(Data storage self) internal view returns (SD59x18) {
+        return getReportedDebt(self).intoSD59x18().add(sd59x18(self.netIssuanceD18)).sub(
+            getDepositedCollateralValue(self)
+        ).intoSD59x18();
     }
 
     /**
@@ -235,21 +232,22 @@ library Market {
      *
      * Note: This is not credit capacity provided by depositors through pools.
      */
-    function getDepositedCollateralValue(Data storage self) internal view returns (uint256) {
-        uint256 totalDepositedCollateralValueD18 = 0;
+    function getDepositedCollateralValue(Data storage self) internal view returns (UD60x18) {
+        UD60x18 totalDepositedCollateralValueD18 = UD_ZERO;
 
         // Sweep all DepositedCollateral entries and aggregate their USD value.
         for (uint256 i = 0; i < self.depositedCollateral.length; i++) {
             DepositedCollateral memory entry = self.depositedCollateral[i];
-            CollateralConfig.Data storage CollateralConfig = CollateralConfig.load(entry.collateralType);
+            CollateralConfig.Data storage collateralConfig = CollateralConfig.load(entry.collateralType);
 
             if (entry.amountD18 == 0) {
                 continue;
             }
 
-            uint256 priceD18 = CollateralConfig.getCollateralPrice(CollateralConfig);
+            UD60x18 priceD18 = collateralConfig.getCollateralPrice();
 
-            totalDepositedCollateralValueD18 += priceD18.mulDecimal(entry.amountD18);
+            totalDepositedCollateralValueD18 =
+                totalDepositedCollateralValueD18.add(priceD18.mul(ud60x18(entry.amountD18)));
         }
 
         return totalDepositedCollateralValueD18;
@@ -262,7 +260,7 @@ library Market {
      * distribution, which represents the amount of USD denominated credit capacity that the pool has provided to the
      * market.
      */
-    function getPoolCreditCapacity(Data storage self, uint128 poolId) internal view returns (uint256) {
+    function getPoolCreditCapacity(Data storage self, uint128 poolId) internal view returns (UD60x18) {
         return self.poolsDebtDistribution.getActorShares(poolId.toBytes32());
     }
 
@@ -280,17 +278,18 @@ library Market {
      */
     function getCreditCapacityContribution(
         Data storage self,
-        uint256 creditCapacitySharesD18,
-        int256 maxShareValueD18
+        UD60x18 creditCapacitySharesD18,
+        SD59x18 maxShareValueD18
     )
         internal
         view
-        returns (int256 contributionD18)
+        returns (SD59x18 contributionD18)
     {
         // Determine how much the current value per share deviates from the maximum.
-        uint256 deltaValuePerShareD18 = (maxShareValueD18 - self.poolsDebtDistribution.getValuePerShare()).toUint();
+        UD60x18 deltaValuePerShareD18 =
+            (maxShareValueD18.sub(self.poolsDebtDistribution.getValuePerShare())).intoUD60x18();
 
-        return deltaValuePerShareD18.mulDecimal(creditCapacitySharesD18).toInt();
+        return deltaValuePerShareD18.mul(creditCapacitySharesD18).intoSD59x18();
     }
 
     /**
@@ -298,45 +297,14 @@ library Market {
      *
      */
     function isCapacityLocked(Data storage self) internal view returns (bool) {
-        return self.creditCapacityD18 < getLockedCreditCapacity(self).toInt();
-    }
-
-    /**
-     * @dev Gets any outstanding debt. Do not call this method except in tests
-     *
-     * Note: This function should only be used in tests!
-     */
-    // solhint-disable-next-line private-vars-leading-underscore, func-name-mixedcase
-    function _testOnly_getOutstandingDebt(Data storage self, uint128 poolId) internal returns (int256 debtChangeD18) {
-        return
-            self.pools[poolId].pendingDebtD18.toInt() + self.poolsDebtDistribution.accumulateActor(poolId.toBytes32());
-    }
-
-    /**
-     * Returns the number of pools currently active in the market
-     *
-     * Note: this is test only
-     */
-    // solhint-disable-next-line private-vars-leading-underscore, func-name-mixedcase
-    function _testOnly_inRangePools(Data storage self) internal view returns (uint256) {
-        return self.inRangePools.size();
-    }
-
-    /**
-     * Returns the number of pools currently active in the market
-     *
-     * Note: this is test only
-     */
-    // solhint-disable-next-line private-vars-leading-underscore, func-name-mixedcase
-    function _testOnly_outRangePools(Data storage self) internal view returns (uint256) {
-        return self.outRangePools.size();
+        return sd59x18(self.creditCapacityD18).lt(getLockedCreditCapacity(self).intoSD59x18());
     }
 
     /**
      * @dev Returns the debt value per share
      */
-    function getDebtPerShare(Data storage self) internal view returns (int256 debtPerShareD18) {
-        return self.poolsDebtDistribution.getValuePerShare();
+    function getDebtPerShare(Data storage self) internal view returns (SD59x18 debtPerShareD18) {
+        return sd59x18(self.poolsDebtDistribution.getValuePerShare());
     }
 
     /**
