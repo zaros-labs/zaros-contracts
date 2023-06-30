@@ -13,7 +13,7 @@ import { AccessError } from "../../utils/Errors.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO, UNIT as UD_UNIT, MAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 // import "./Config.sol";
@@ -34,6 +34,7 @@ library MarketManager {
     using CollateralConfig for CollateralConfig.Data;
     using Distribution for Distribution.Data;
     using Market for Market.Data;
+    using SafeCast for int256;
     using Vault for Vault.Data;
 
     /**
@@ -112,7 +113,7 @@ library MarketManager {
      * @dev Ticker function that updates the debt distribution chain downwards, from markets into the pool, according to
      * each market's weight.
      *
-     * It updates the chain by performing these actions:
+     * It updates the chain by performing the se actions:
      * - Splits the pool's total liquidity of the pool into each market, pro-rata. The amount of shares that the pool
      * has on each market depends on how much liquidity the pool provides to the market.
      * - Accumulates the change in debt value from each market into the pools own vault debt distribution's value per
@@ -121,7 +122,7 @@ library MarketManager {
     function distributeDebtToVaults(Data storage self) internal {
         UD60x18 totalWeightsD18 = ud60x18(self.totalWeightsD18);
 
-        if (totalWeightsD18 == 0) {
+        if (totalWeightsD18.isZero()) {
             return; // Nothing to rebalance.
         }
 
@@ -194,24 +195,23 @@ library MarketManager {
      */
     function getSystemMaxValuePerShare(
         uint128 marketId,
-        uint256 minLiquidityRatioD18,
-        int256 debtPerShareD18
+        UD60x18 minLiquidityRatioD18,
+        SD59x18 debtPerShareD18
     )
         internal
         view
-        returns (int256)
+        returns (SD59x18)
     {
         // Retrieve the current value per share of the market.
         Market.Data storage marketData = Market.load(marketId);
-        int256 valuePerShareD18 = marketData.poolsDebtDistribution.getValuePerShare();
+        SD59x18 valuePerShareD18 = marketData.poolsDebtDistribution.getValuePerShare();
 
         // Calculate the margin of debt that the market would incur if it hit the system wide limit.
-        uint256 marginD18 =
-            minLiquidityRatioD18 == 0 ? DecimalMath.UNIT : DecimalMath.UNIT.divDecimal(minLiquidityRatioD18);
+        UD60x18 marginD18 = minLiquidityRatioD18.isZero() ? UD_UNIT : UD_UNIT.div(minLiquidityRatioD18);
 
         // The resulting maximum value per share is the distribution's value per share,
         // plus the margin to hit the limit, minus the current debt per share.
-        return valuePerShareD18 + marginD18.toInt() - debtPerShareD18;
+        return valuePerShareD18.add(marginD18.intoSD59x18()).sub(debtPerShareD18);
     }
 
     /**
@@ -228,7 +228,7 @@ library MarketManager {
         address collateralType
     )
         internal
-        returns (uint256 collateralPriceD18)
+        returns (UD60x18 collateralPriceD18)
     {
         // Update each market's pro-rata liquidity and collect accumulated debt into the pool's debt distribution.
         distributeDebtToVaults(self);
@@ -242,14 +242,14 @@ library MarketManager {
 
         // Changes in price update the corresponding vault's total collateral value as well as its liquidity (collateral
         // - debt).
-        (uint256 usdWeightD18,, int256 deltaDebtD18) =
+        (UD60x18 usdWeightD18,, SD59x18 deltaDebtD18) =
             self.vaults[collateralType].updateCreditCapacity(collateralPriceD18);
 
         // Update the vault's shares in the pool's debt distribution, according to the value of its collateral.
         self.vaultsDebtDistribution.setActorShares(actorId, usdWeightD18);
 
         // Accumulate the change in total liquidity, from the vault, into the pool.
-        self.totalVaultDebtsD18 = self.totalVaultDebtsD18 + deltaDebtD18.to128();
+        self.totalVaultDebtsD18 = sd59x18(self.totalVaultDebtsD18).add(deltaDebtD18).intoInt256().toInt128();
 
         // Distribute debt again because the market credit capacity may have changed, so we should ensure the vaults
         // have the most up to date capacities
@@ -265,7 +265,7 @@ library MarketManager {
         uint128 accountId
     )
         internal
-        returns (int256 debtD18)
+        returns (SD59x18 debtD18)
     {
         recalculateVaultCollateral(self, collateralType);
 
@@ -291,11 +291,11 @@ library MarketManager {
      *
      * Note: This is not a view function. It updates the debt distribution chain before performing any calculations.
      */
-    function currentVaultCollateralRatio(Data storage self, address collateralType) internal returns (uint256) {
-        int256 vaultDebtD18 = currentVaultDebt(self, collateralType);
-        (, uint256 collateralValueD18) = currentVaultCollateral(self, collateralType);
+    function currentVaultCollateralRatio(Data storage self, address collateralType) internal returns (UD60x18) {
+        SD59x18 vaultDebtD18 = currentVaultDebt(self, collateralType);
+        (, UD60x18 collateralValueD18) = currentVaultCollateral(self, collateralType);
 
-        return vaultDebtD18 > 0 ? collateralValueD18.divDecimal(vaultDebtD18.toUint()) : 0;
+        return vaultDebtD18.gt(UD_ZERO) ? collateralValueD18.div(vaultDebtD18.intoUD60x18()) : UD_ZERO;
     }
 
     /**
@@ -337,7 +337,7 @@ library MarketManager {
      *
      * Note: This is not a view function. It updates the debt distribution chain before performing any calculations.
      */
-    function currentVaultDebt(Data storage self, address collateralType) internal returns (int256) {
+    function currentVaultDebt(Data storage self, address collateralType) internal returns (SD59x18) {
         recalculateVaultCollateral(self, collateralType);
 
         return self.vaults[collateralType].currentDebt();
@@ -352,12 +352,12 @@ library MarketManager {
     )
         internal
         view
-        returns (uint256 collateralAmountD18, uint256 collateralValueD18)
+        returns (UD60x18 collateralAmountD18, UD60x18 collateralValueD18)
     {
-        uint256 collateralPriceD18 = CollateralConfig.load(collateralType).getCollateralPrice();
+        UD60x18 collateralPriceD18 = CollateralConfig.load(collateralType).getCollateralPrice();
 
         collateralAmountD18 = self.vaults[collateralType].currentCollateral();
-        collateralValueD18 = collateralPriceD18.mulDecimal(collateralAmountD18);
+        collateralValueD18 = collateralPriceD18.mul(collateralAmountD18);
     }
 
     /**
@@ -370,12 +370,12 @@ library MarketManager {
     )
         internal
         view
-        returns (uint256 collateralAmountD18, uint256 collateralValueD18)
+        returns (UD60x18 collateralAmountD18, UD60x18 collateralValueD18)
     {
-        uint256 collateralPriceD18 = CollateralConfig.load(collateralType).getCollateralPrice();
+        UD60x18 collateralPriceD18 = CollateralConfig.load(collateralType).getCollateralPrice();
 
         collateralAmountD18 = self.vaults[collateralType].currentAccountCollateral(accountId);
-        collateralValueD18 = collateralPriceD18.mulDecimal(collateralAmountD18);
+        collateralValueD18 = collateralPriceD18.mul(collateralAmountD18);
     }
 
     /**
@@ -388,16 +388,16 @@ library MarketManager {
         uint128 accountId
     )
         internal
-        returns (uint256)
+        returns (UD60x18)
     {
-        int256 positionDebtD18 = updateAccountDebt(self, collateralType, accountId);
-        if (positionDebtD18 <= 0) {
-            return type(uint256).max;
+        SD59x18 positionDebtD18 = updateAccountDebt(self, collateralType, accountId);
+        if (positionDebtD18.le(SD_ZERO)) {
+            return MAX_UD60x18;
         }
 
-        (, uint256 positionCollateralValueD18) = currentAccountCollateral(self, collateralType, accountId);
+        (, UD60x18 positionCollateralValueD18) = currentAccountCollateral(self, collateralType, accountId);
 
-        return positionCollateralValueD18.divDecimal(positionDebtD18.toUint());
+        return positionCollateralValueD18.div(positionDebtD18.intoUD60x18());
     }
 
     function requireMinDelegationTimeElapsed(Data storage self, uint64 lastDelegationTime) internal view {
