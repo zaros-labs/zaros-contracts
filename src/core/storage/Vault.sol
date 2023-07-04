@@ -89,15 +89,6 @@ library Vault {
     }
 
     /**
-     * @dev Updates the debt distribution chain for this pool, and consolidates the given account's debt.
-     */
-    function updateAccountDebt(Data storage self, uint128 accountId) internal returns (int256 debtD18) {
-        recalculateVaultCollateral(self);
-
-        return consolidateAccountDebt(accountId);
-    }
-
-    /**
      * @dev Updates the vault's credit capacity as the value of its collateral minus its debt.
      *
      * Called as a ticker when users interact with pools, allowing pools to set

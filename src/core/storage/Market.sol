@@ -13,7 +13,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO, UNIT as UD_UNIT, MAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-
 /**
  * @title Connects external contracts that implement the `IMarket` interface to the system.
  *
@@ -37,7 +36,7 @@ library Market {
     string internal constant MARKET_DOMAIN = "fi.zaros.core.Market";
 
     struct Data {
-                /**
+        /**
          * @dev Address for the external contract that implements the `IMarket` interface, which this Market objects
          * connects to.
          *

@@ -214,7 +214,7 @@ contract VaultModule is IVaultModule {
 
     //     Market.Data storage market = pool.findMarketWithCapacityLocked();
 
-    //     if (market.id > 0) {
+    //     if (market.marketAddress != address(0)) {
     //         revert Zaros_VaultModule_CapacityLocked(market.id);
     //     }
     // }

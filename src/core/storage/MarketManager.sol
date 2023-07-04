@@ -7,7 +7,6 @@ import { Distribution } from "./Distribution.sol";
 import { Market } from "./Market.sol";
 import { MarketConfiguration } from "./MarketConfiguration.sol";
 import { Vault } from "./Vault.sol";
-import { AccessError } from "../../utils/Errors.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -15,77 +14,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD_ZERO, UNIT as UD_UNIT, MAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
-
-struct Market {
-        /**
-         * @dev Address for the external contract that implements the `IMarket` interface, which this Market objects
-         * connects to.
-         *
-         * Note: This object is how the system tracks the market. The actual market is external to the system, i.e. its
-         * own contract.
-         */
-        address marketAddress;
-        /**
-         * @dev Issuance can be seen as how much USD the Market "has issued", printed, or has asked the system to mint
-         * on its behalf.
-         *
-         * More precisely it can be seen as the net difference between the USD burnt and the USD minted by the market.
-         *
-         * More issuance means that the market owes more USD to the system.
-         *
-         * A market burns USD when users deposit it in exchange for some asset that the market offers.
-         * The Market object calls `MarketManager.depositUSD()`, which burns the USD, and decreases its issuance.
-         *
-         * A market mints USD when users return the asset that the market offered and thus withdraw their USD.
-         * The Market object calls `MarketManager.withdrawUSD()`, which mints the USD, and increases its issuance.
-         *
-         * Instead of burning, the Market object could transfer USD to and from the MarketManager, but minting and
-         * burning takes the USD out of circulation, which doesn't affect `totalSupply`, thus simplifying accounting.
-         *
-         * How much USD a market can mint depends on how much credit capacity is given to the market by the pools that
-         * support it, and reflected in `Market.capacity`.
-         *
-         */
-        int128 netIssuanceD18;
-        /**
-         * @dev The total amount of USD that the market could withdraw if it were to immediately unwrap all its
-         * positions.
-         *
-         * The Market's credit capacity increases when the market burns USD, i.e. when it deposits USD in the
-         * MarketManager.
-         *
-         * It decreases when the market mints USD, i.e. when it withdraws USD from the MarketManager.
-         *
-         * The Market's credit capacity also depends on how much credit is given to it by the pools that support it.
-         *
-         * The Market's credit capacity also has a dependency on the external market reported debt as it will respond to
-         * that debt (and hence change the credit capacity if it increases or decreases)
-         *
-         * The credit capacity can go negative if all of the collateral provided by pools is exhausted, and there is
-         * market provided collateral available to consume. in this case, the debt is still being
-         * appropriately assigned, but the market has a dynamic cap based on deposited collateral types.
-         *
-         */
-        int128 creditCapacityD18;
-        /**
-         * @dev The amount of debt the pool has which hasn't been passed down the debt distribution chain yet.
-         */
-        uint128 pendingDebtD18;
-        /**
-         * @dev The total balance that the market had the last time that its debt was distributed.
-         *
-         * A Market's debt is distributed when the reported debt of its associated external market is rolled into the
-         * pools that provide credit capacity to it.
-         */
-        int128 lastDistributedMarketBalanceD18;
-        /**
-         * @dev Market-specific override of the minimum liquidity ratio
-         */
-        uint256 minLiquidityRatioD18;
-        uint32 minDelegateTime;
-}
-
-// import "./Config.sol";
 
 /**
  * @title Aggregates collateral from multiple users in order to provide liquidity to a configurable set of markets.
@@ -171,7 +99,7 @@ library MarketManager {
     /**
      * @dev Returns the pool stored at the specified pool id.
      */
-    function load(uint128 id) internal pure returns (Data storage marketManager) {
+    function load() internal pure returns (Data storage marketManager) {
         bytes32 s = _MARKET_MANAGER_SLOT;
         assembly {
             pool.slot := s
@@ -188,70 +116,72 @@ library MarketManager {
      * - Accumulates the change in debt value from each market into the pools own vault debt distribution's value per
      * share.
      */
-    function distributeDebtToVaults(Data storage self) internal {
-        UD60x18 totalWeightsD18 = ud60x18(self.totalWeightsD18);
+    // function distributeDebtToVaults(Data storage self) internal {
+    //     UD60x18 totalWeightsD18 = ud60x18(self.totalWeightsD18);
 
-        if (totalWeightsD18.isZero()) {
-            return; // Nothing to rebalance.
-        }
+    //     if (totalWeightsD18.isZero()) {
+    //         return; // Nothing to rebalance.
+    //     }
 
-        // Read from storage once, before entering the loop below.
-        // These values should not change while iterating through each market.
-        UD60x18 totalCreditCapacityD18 = ud60x18(self.vaultsDebtDistribution.totalSharesD18);
-        SD59x18 debtPerShareD18 = totalCreditCapacityD18.gt(UD_ZERO)
-            ? sd59x18(self.totalVaultDebtsD18).div(totalCreditCapacityD18.intoSD59x18())
-            : SD_ZERO;
+    //     // Read from storage once, before entering the loop below.
+    //     // These values should not change while iterating through each market.
+    //     UD60x18 totalCreditCapacityD18 = ud60x18(self.vaultsDebtDistribution.totalSharesD18);
+    //     SD59x18 debtPerShareD18 = totalCreditCapacityD18.gt(UD_ZERO)
+    //         ? sd59x18(self.totalVaultDebtsD18).div(totalCreditCapacityD18.intoSD59x18())
+    //         : SD_ZERO;
 
-        SD59x18 cumulativeDebtChangeD18 = SD_ZERO;
+    //     SD59x18 cumulativeDebtChangeD18 = SD_ZERO;
 
-        UD60x18 systemMinLiquidityRatioD18 = ud60x18(self.minLiquidityRatioD18);
+    //     UD60x18 systemMinLiquidityRatioD18 = ud60x18(self.minLiquidityRatioD18);
 
-        // Loop through the pool's markets, applying market weights, and tracking how this changes the amount of debt
-        // that this pool is responsible for.
-        // This debt extracted from markets is then applied to the pool's vault debt distribution, which thus exposes
-        // debt to the pool's vaults.
-        for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
-            MarketConfiguration.Data storage marketConfiguration = self.marketConfigurations[i];
+    //     // Loop through the pool's markets, applying market weights, and tracking how this changes the amount of debt
+    //     // that this pool is responsible for.
+    //     // This debt extracted from markets is then applied to the pool's vault debt distribution, which thus exposes
+    //     // debt to the pool's vaults.
+    //     for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
+    //         MarketConfiguration.Data storage marketConfiguration = self.marketConfigurations[i];
 
-            UD60x18 weightD18 = ud60x18(marketConfiguration.weightD18);
+    //         UD60x18 weightD18 = ud60x18(marketConfiguration.weightD18);
 
-            // Calculate each market's pro-rata USD liquidity.
-            // Note: the factor `(weight / totalWeights)` is not deduped in the operations below to maintain numeric
-            // precision.
+    //         // Calculate each market's pro-rata USD liquidity.
+    //         // Note: the factor `(weight / totalWeights)` is not deduped in the operations below to maintain numeric
+    //         // precision.
 
-            UD60x18 marketCreditCapacityD18 = totalCreditCapacityD18.mul(weightD18).div(totalWeightsD18);
+    //         UD60x18 marketCreditCapacityD18 = totalCreditCapacityD18.mul(weightD18).div(totalWeightsD18);
 
-            Market.Data storage marketData = Market.load(marketConfiguration.marketId);
+    //         Market.Data storage marketData = Market.load(marketConfiguration.marketId);
 
-            // Use market-specific minimum liquidity ratio if set, otherwise use system default.
-            UD60x18 minLiquidityRatioD18 = marketData.minLiquidityRatioD18 > 0
-                ? ud60x18(marketData.minLiquidityRatioD18)
-                : systemMinLiquidityRatioD18;
+    //         // Use market-specific minimum liquidity ratio if set, otherwise use system default.
+    //         UD60x18 minLiquidityRatioD18 = marketData.minLiquidityRatioD18 > 0
+    //             ? ud60x18(marketData.minLiquidityRatioD18)
+    //             : systemMinLiquidityRatioD18;
 
-            // Contain the pool imposed market's maximum debt share value.
-            // Imposed by system.
-            SD59x18 effectiveMaxShareValueD18 =
-                getSystemMaxValuePerShare(marketData.id, minLiquidityRatioD18, debtPerShareD18);
-            // Imposed by pool.
-            SD59x18 configuredMaxShareValueD18 = sd59x18(marketConfiguration.maxDebtShareValueD18);
-            effectiveMaxShareValueD18 = effectiveMaxShareValueD18.lt(configuredMaxShareValueD18)
-                ? effectiveMaxShareValueD18
-                : configuredMaxShareValueD18;
+    //         // Contain the pool imposed market's maximum debt share value.
+    //         // Imposed by system.
+    //         SD59x18 effectiveMaxShareValueD18 =
+    //             getSystemMaxValuePerShare(marketData.id, minLiquidityRatioD18, debtPerShareD18);
+    //         // Imposed by pool.
+    //         SD59x18 configuredMaxShareValueD18 = sd59x18(marketConfiguration.maxDebtShareValueD18);
+    //         effectiveMaxShareValueD18 = effectiveMaxShareValueD18.lt(configuredMaxShareValueD18)
+    //             ? effectiveMaxShareValueD18
+    //             : configuredMaxShareValueD18;
 
-            // Update each market's corresponding credit capacity.
-            // The returned value represents how much the market's debt changed after changing the shares of this pool
-            // actor, which is aggregated to later be passed on the pools debt distribution.
-            cumulativeDebtChangeD18 = cumulativeDebtChangeD18.add(
-                Market.rebalancePools(
-                    marketConfiguration.marketId, self.id, effectiveMaxShareValueD18, marketCreditCapacityD18
-                )
-            );
-        }
+    //         // Update each market's corresponding credit capacity.
+    //         // The returned value represents how much the market's debt changed after changing the shares of this
+    // pool
+    //         // actor, which is aggregated to later be passed on the pools debt distribution.
+    //         cumulativeDebtChangeD18 = cumulativeDebtChangeD18.add(
+    //             Market.rebalancePools(
+    //                 marketConfiguration.marketId, self.id, effectiveMaxShareValueD18, marketCreditCapacityD18
+    //             )
+    //         );
+    //     }
 
-        // Passes on the accumulated debt changes from the markets, into the pool, so that vaults can later access this
-        // debt.
-        // self.vaultsDebtDistribution.distributeValue(cumulativeDebtChangeD18);
-    }
+    //     // Passes on the accumulated debt changes from the markets, into the pool, so that vaults can later access
+    // this
+    //     // debt.
+    //     self.vaultsDebtDistribution.distributeValue(cumulativeDebtChangeD18);
+    // }
 
     /**
      * @dev Determines the resulting maximum value per share for a market, according to a system-wide minimum liquidity
@@ -263,7 +193,7 @@ library MarketManager {
      * See `SystemPoolConfiguration.minLiquidityRatio`.
      */
     function getSystemMaxValuePerShare(
-        uint128 marketId,
+        address marketAddress,
         UD60x18 minLiquidityRatioD18,
         SD59x18 debtPerShareD18
     )
@@ -272,7 +202,7 @@ library MarketManager {
         returns (SD59x18)
     {
         // Retrieve the current value per share of the market.
-        Market.Data storage marketData = Market.load(marketId);
+        Market.Data storage marketData = Market.load(marketAddress);
         SD59x18 valuePerShareD18 = marketData.poolsDebtDistribution.getValuePerShare();
 
         // Calculate the margin of debt that the market would incur if it hit the system wide limit.
@@ -300,10 +230,10 @@ library MarketManager {
         returns (UD60x18 collateralPriceD18)
     {
         // Update each market's pro-rata liquidity and collect accumulated debt into the pool's debt distribution.
-        distributeDebtToVaults(self);
+        // distributeDebtToVaults(self);
 
         // Transfer the debt change from the pool into the vault.
-        bytes32 actorId = collateralType.toBytes32();
+        bytes32 actorId = bytes32(uint256(uint160(collateralType)));
         self.vaults[collateralType].distributeDebtToAccounts(self.vaultsDebtDistribution.accumulateActor(actorId));
 
         // Get the latest collateral price.
@@ -322,7 +252,7 @@ library MarketManager {
 
         // Distribute debt again because the market credit capacity may have changed, so we should ensure the vaults
         // have the most up to date capacities
-        distributeDebtToVaults(self);
+        // distributeDebtToVaults(self);
     }
 
     /**
@@ -382,19 +312,19 @@ library MarketManager {
         }
 
         // Market zero = null market.
-        return Market.load(0);
+        return Market.load(address(0));
     }
 
     function getRequiredMinDelegationTime(Data storage self) internal view returns (uint32 requiredMinDelegateTime) {
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
-            uint32 marketMinDelegateTime = Market.load(self.marketConfigurations[i].marketId).minDelegateTime;
+            uint32 marketMinDelegateTime = Market.load(self.marketConfigurations[i].marketAddress).minDelegateTime;
 
             if (marketMinDelegateTime > requiredMinDelegateTime) {
                 requiredMinDelegateTime = marketMinDelegateTime;
             }
         }
 
-        return MAX_MIN_DELEGATE_TIME < requiredMinDelegateTime ? maxMinDelegateTime : requiredMinDelegateTime;
+        return MAX_MIN_DELEGATE_TIME < requiredMinDelegateTime ? MAX_MIN_DELEGATE_TIME : requiredMinDelegateTime;
     }
 
     /**
@@ -472,7 +402,7 @@ library MarketManager {
     function requireMinDelegationTimeElapsed(Data storage self, uint64 lastDelegationTime) internal view {
         uint32 requiredMinDelegationTime = getRequiredMinDelegationTime(self);
         if (block.timestamp < lastDelegationTime + requiredMinDelegationTime) {
-            revert MinDelegationTimeoutPending(
+            revert Zaros_MarketManager_MinDelegationTimeoutPending(
                 self.id,
                 // solhint-disable-next-line numcast/safe-cast
                 uint32(lastDelegationTime + requiredMinDelegationTime - block.timestamp)

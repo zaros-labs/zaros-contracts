@@ -21,7 +21,7 @@ library MarketConfiguration {
          *
          * Must be unique, and in a list of `MarketConfiguration[]`, must be increasing.
          */
-        uint128 marketId;
+        address marketAddress;
         /**
          * @dev The ratio of each market's `weight` to the pool's `totalWeights` determines the pro-rata share of the
          * market to the pool's total liquidity.
