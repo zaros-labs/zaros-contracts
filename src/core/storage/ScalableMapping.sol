@@ -139,7 +139,6 @@ library ScalableMapping {
      * i.e. totalShares * scaleModifier
      */
     function totalAmount(Data storage self) internal view returns (UD60x18 value) {
-        // TODO: come back here
         return sd59x18((self.scaleModifier)).add(SD_UNIT).intoUD60x18().mul(ud60x18(self.totalShares));
     }
 

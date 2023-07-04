@@ -23,7 +23,6 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
  * their debt back to such pools.
  */
 
-// TODO: I just need to change the pool distribution mapping to a single actor accounting model
 library Market {
     using Distribution for Distribution.Data;
 
