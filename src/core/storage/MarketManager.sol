@@ -16,6 +16,75 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO, UNIT as UD_UNIT, MAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
+struct Market {
+        /**
+         * @dev Address for the external contract that implements the `IMarket` interface, which this Market objects
+         * connects to.
+         *
+         * Note: This object is how the system tracks the market. The actual market is external to the system, i.e. its
+         * own contract.
+         */
+        address marketAddress;
+        /**
+         * @dev Issuance can be seen as how much USD the Market "has issued", printed, or has asked the system to mint
+         * on its behalf.
+         *
+         * More precisely it can be seen as the net difference between the USD burnt and the USD minted by the market.
+         *
+         * More issuance means that the market owes more USD to the system.
+         *
+         * A market burns USD when users deposit it in exchange for some asset that the market offers.
+         * The Market object calls `MarketManager.depositUSD()`, which burns the USD, and decreases its issuance.
+         *
+         * A market mints USD when users return the asset that the market offered and thus withdraw their USD.
+         * The Market object calls `MarketManager.withdrawUSD()`, which mints the USD, and increases its issuance.
+         *
+         * Instead of burning, the Market object could transfer USD to and from the MarketManager, but minting and
+         * burning takes the USD out of circulation, which doesn't affect `totalSupply`, thus simplifying accounting.
+         *
+         * How much USD a market can mint depends on how much credit capacity is given to the market by the pools that
+         * support it, and reflected in `Market.capacity`.
+         *
+         */
+        int128 netIssuanceD18;
+        /**
+         * @dev The total amount of USD that the market could withdraw if it were to immediately unwrap all its
+         * positions.
+         *
+         * The Market's credit capacity increases when the market burns USD, i.e. when it deposits USD in the
+         * MarketManager.
+         *
+         * It decreases when the market mints USD, i.e. when it withdraws USD from the MarketManager.
+         *
+         * The Market's credit capacity also depends on how much credit is given to it by the pools that support it.
+         *
+         * The Market's credit capacity also has a dependency on the external market reported debt as it will respond to
+         * that debt (and hence change the credit capacity if it increases or decreases)
+         *
+         * The credit capacity can go negative if all of the collateral provided by pools is exhausted, and there is
+         * market provided collateral available to consume. in this case, the debt is still being
+         * appropriately assigned, but the market has a dynamic cap based on deposited collateral types.
+         *
+         */
+        int128 creditCapacityD18;
+        /**
+         * @dev The amount of debt the pool has which hasn't been passed down the debt distribution chain yet.
+         */
+        uint128 pendingDebtD18;
+        /**
+         * @dev The total balance that the market had the last time that its debt was distributed.
+         *
+         * A Market's debt is distributed when the reported debt of its associated external market is rolled into the
+         * pools that provide credit capacity to it.
+         */
+        int128 lastDistributedMarketBalanceD18;
+        /**
+         * @dev Market-specific override of the minimum liquidity ratio
+         */
+        uint256 minLiquidityRatioD18;
+        uint32 minDelegateTime;
+}
+
 // import "./Config.sol";
 
 /**
