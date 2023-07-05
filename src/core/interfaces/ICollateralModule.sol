@@ -95,7 +95,7 @@ interface ICollateralModule {
      * @param collateralType The address for the collateral whose price is being queried.
      * @return price The price of the given collateral, denominated with 18 decimals of precision.
      */
-    function getCollateralPrice(address collateralType) external view returns (UD60x18 price);
+    function getCollateralPrice(address collateralType) external view returns (uint256 price);
 
     /**
      * @notice Deposits `tokenAmount` of collateral of type `collateralType` into account `accountId`.
@@ -153,5 +153,5 @@ interface ICollateralModule {
     )
         external
         view
-        returns (UD60x18 amount);
+        returns (uint256 amount);
 }

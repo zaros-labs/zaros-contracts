@@ -162,8 +162,8 @@ library Market {
      */
     function totalDebt(Data storage self) internal view returns (SD59x18) {
         return getReportedDebt(self).intoSD59x18().add(sd59x18(self.netIssuanceD18)).sub(
-            getDepositedCollateralValue(self)
-        ).intoSD59x18();
+            ud60x18(self.depositedUSDCollateral).intoSD59x18()
+        );
     }
 
     /**

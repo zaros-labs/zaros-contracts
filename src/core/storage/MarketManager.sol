@@ -102,7 +102,7 @@ library MarketManager {
     function load() internal pure returns (Data storage marketManager) {
         bytes32 s = _MARKET_MANAGER_SLOT;
         assembly {
-            pool.slot := s
+            marketManager.slot := s
         }
     }
 

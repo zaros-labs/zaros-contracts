@@ -88,8 +88,8 @@ contract CollateralModule is ICollateralModule {
     /**
      * @inheritdoc ICollateralModule
      */
-    function getCollateralPrice(address collateralType) external view override returns (UD60x18) {
-        return CollateralConfig.getCollateralPrice(CollateralConfig.load(collateralType));
+    function getCollateralPrice(address collateralType) external view override returns (uint256) {
+        return CollateralConfig.getCollateralPrice(CollateralConfig.load(collateralType)).intoUint256();
     }
 
     /**
