@@ -216,7 +216,7 @@ library Vault {
     }
 
     /**
-     * @dev Returns an account's collateral value in this vault's current epoch.
+     * @dev Returns an account's collateral amount in this vault's current epoch.
      */
     function currentAccountCollateral(Data storage self, uint128 accountId) internal view returns (UD60x18) {
         return currentEpoch(self).getAccountCollateral(accountId);

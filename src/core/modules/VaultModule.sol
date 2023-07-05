@@ -10,6 +10,7 @@ import { Collateral } from "../storage/Collateral.sol";
 import { CollateralConfig } from "../storage/CollateralConfig.sol";
 import { Distribution } from "../storage/Distribution.sol";
 import { MarketManager } from "../storage/MarketManager.sol";
+import { Market } from "../storage/Market.sol";
 import { Vault } from "../storage/Vault.sol";
 import { VaultEpoch } from "../storage/VaultEpoch.sol";
 import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
@@ -50,14 +51,14 @@ contract VaultModule is IVaultModule {
         override
         returns (uint256)
     {
-        return Vault.load(collateralType).currentAccountCollateralRatio(accountId);
+        return MarketManager.load().currentAccountCollateralRatio(collateralType, accountId).intoUint256();
     }
 
     /**
      * @inheritdoc IVaultModule
      */
     function getVaultCollateralRatio(address collateralType) external override returns (uint256) {
-        return Vault.load(collateralType).currentVaultCollateralRatio();
+        return MarketManager.load().currentVaultCollateralRatio(collateralType).intoUint256();
     }
 
     /**
@@ -88,7 +89,6 @@ contract VaultModule is IVaultModule {
     {
         MarketManager.Data storage marketManager = MarketManager.load();
 
-        // TODO: check UD60x18 type conversion
         debt = marketManager.updateAccountDebt(collateralType, accountId).intoInt256();
         (UD60x18 collateralAmountUD, UD60x18 collateralValueUD) =
             marketManager.currentAccountCollateral(collateralType, accountId);
@@ -100,21 +100,21 @@ contract VaultModule is IVaultModule {
      * @inheritdoc IVaultModule
      */
     function getPositionDebt(uint128 accountId, address collateralType) external override returns (int256) {
-        return Vault.load(collateralType).updateAccountDebt(accountId);
+        return MarketManager.load().updateAccountDebt(collateralType, accountId);
     }
 
     /**
      * @inheritdoc IVaultModule
      */
     function getVaultCollateral(address collateralType) public view override returns (uint256 amount, uint256 value) {
-        return Vault.load(collateralType).currentVaultCollateral();
+        return MarketManager.load().currentVaultCollateral(collateralType);
     }
 
     /**
      * @inheritdoc IVaultModule
      */
     function getVaultDebt(address collateralType) public override returns (int256) {
-        return Vault.load(collateralType).currentVaultDebt();
+        return MarketManager.load().currentVaultDebt(collateralType);
     }
 
     /**
@@ -146,13 +146,9 @@ contract VaultModule is IVaultModule {
         } else if (amount.gt(currentCollateralAmount)) {
             CollateralConfig.collateralEnabled(collateralType);
             Account.requireSufficientCollateral(accountId, collateralType, amount.sub(currentCollateralAmount));
+        } else {
+            MarketManager.load().requireMinDelegationTimeElapsed(vault.currentEpoch().lastDelegationTime[accountId]);
         }
-        // TODO: Delegate to market manager
-        // else {
-        //     Pool.loadExisting(poolId).requireMinDelegationTimeElapsed(
-        //         vault.currentEpoch().lastDelegationTime[accountId]
-        //     );
-        // }
         uint256 collateralPrice = _updatePosition(accountId, collateralType, amount, currentCollateralAmount);
 
         if (amount.lt(currentCollateralAmount)) {
@@ -160,8 +156,7 @@ contract VaultModule is IVaultModule {
             CollateralConfig.load(collateralType).verifyIssuanceRatio(
                 debt.lt(SD_ZERO) ? UD_ZERO : ud60x18(debt), amount.mul(collateralPrice)
             );
-            // TODO: Delegate to market manager
-            // _verifyNotCapacityLocked(poolId);
+            _verifyNotCapacityLocked();
         }
 
         vault.currentEpoch().lastDelegationTime[accountId] = uint64(block.timestamp);
@@ -185,11 +180,12 @@ contract VaultModule is IVaultModule {
         internal
         returns (uint256 collateralPrice)
     {
+        MarketManager.Data storage marketManager = MarketManager.load();
         Vault.Data storage vault = Vault.load(collateralType);
 
         // Trigger an update in the debt distribution chain to make sure that
         // the user's debt is up to date.
-        vault.updateAccountDebt(accountId);
+        marketManager.updateAccountDebt(collateralType, accountId);
 
         // Get the collateral entry for the given account and collateral type.
         Collateral.Data storage collateral = Account.load(accountId).collaterals[collateralType];
@@ -206,17 +202,16 @@ contract VaultModule is IVaultModule {
 
         // Trigger another update in the debt distribution chain,
         // and surface the latest price for the given collateral type (which is retrieved in the update).
-        // TODO: Delegate to market manager
-        // collateralPrice = pool.recalculateVaultCollateral(collateralType);
+        collateralPrice = marketManager.recalculateVaultCollateral(collateralType);
     }
 
-    // function _verifyNotCapacityLocked(uint128 poolId) internal view {
-    //     Pool.Data storage pool = Pool.load(poolId);
+    function _verifyNotCapacityLocked() internal view {
+        MarketManager.Data storage marketManager = MarketManager.load();
 
-    //     Market.Data storage market = pool.findMarketWithCapacityLocked();
+        Market.Data storage market = marketManager.findMarketWithCapacityLocked();
 
-    //     if (market.marketAddress != address(0)) {
-    //         revert Zaros_VaultModule_CapacityLocked(market.id);
-    //     }
-    // }
+        if (market.marketAddress != address(0)) {
+            revert Zaros_VaultModule_CapacityLocked(market.id);
+        }
+    }
 }
