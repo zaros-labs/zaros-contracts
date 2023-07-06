@@ -13,6 +13,8 @@ import { UD60x18, ud60x18, ZERO as UD_ZERO, UNIT as UD_UNIT, MAX_UD60x18 } from 
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 library Market {
+    using SafeCast for int256;
+
     /**
      * @dev Thrown when a specified market is not found.
      */
@@ -67,5 +69,12 @@ library Market {
         return ud60x18(self.creditCapacity).lt(getLockedCreditCapacity(self));
     }
 
-    function distributeDebt(Data storage self) internal returns (SD59x18) { }
+    function distributeDebt(Data storage self) internal returns (SD59x18 newPendingDebt) {
+        SD59x18 debtPerCredit = getDebtPerCredit(self);
+        newPendingDebt = sd59x18(self.pendingDebt).add(
+            ud60x18(self.creditCapacity).intoSD59x18().mul(debtPerCredit.sub(sd59x18(self.lastDebtPerCredit)))
+        );
+        self.lastDebtPerCredit = debtPerCredit.intoInt256();
+        self.pendingDebt = newPendingDebt.intoInt256().toInt128();
+    }
 }

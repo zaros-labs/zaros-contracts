@@ -61,20 +61,15 @@ library MarketManager {
         }
     }
 
-    function distributeDebtToVaults(
-        Data storage self,
-        address optionalCollateralType
-    )
-        internal
-        returns (SD59x18 cumulativeDebtChange)
-    {
+    function distributeDebtToVaults(Data storage self, address optionalCollateralType) internal {
+        SD59x18 cumulativePendingDebt = SD_ZERO;
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
             Market.Data storage market = Market.load(self.marketConfigurations[i].marketAddress);
-            cumulativeDebtChange = cumulativeDebtChange.add(market.distributeDebt());
+            cumulativePendingDebt = cumulativePendingDebt.add(sd59x18(market.pendingDebt));
         }
 
-        self.totalVaultDebts = sd59x18(self.totalVaultDebts).add(cumulativeDebtChange).intoInt256().toInt128();
-        self.vaultsDebtDistribution.distributeValue(cumulativeDebtChange);
+        self.totalVaultDebts = sd59x18(self.totalVaultDebts).add(cumulativePendingDebt).intoInt256().toInt128();
+        self.vaultsDebtDistribution.distributeValue(cumulativePendingDebt);
 
         if (optionalCollateralType != address(0)) {
             bytes32 actorId = bytes32(uint256(uint160(optionalCollateralType)));
@@ -164,7 +159,6 @@ library MarketManager {
         SD59x18 debtPerCredit = totalVaultsCreditCapacity.isZero()
             ? SD_ZERO
             : sd59x18(self.totalVaultDebts).div(totalVaultsCreditCapacity.intoSD59x18());
-        UD60x18 minLiquidityRatio = ud60x18(self.minLiquidityRatio);
 
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
             MarketConfiguration.Data storage marketConfiguration = self.marketConfigurations[i];
