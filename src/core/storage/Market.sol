@@ -24,7 +24,7 @@ library Market {
     struct Data {
         address marketAddress;
         int128 netIssuance;
-        int128 creditCapacity;
+        uint128 creditCapacity;
         int128 pendingDebt;
         int256 lastDebtPerCredit;
         uint128 depositedUSDCollateral;
@@ -41,7 +41,7 @@ library Market {
 
     function getDebtPerCredit(Data storage self) internal view returns (SD59x18) {
         return sd59x18(self.lastDebtPerCredit).add(
-            totalDebt(self).add(sd59x18(self.pendingDebt)).div(sd59x18(self.creditCapacity))
+            totalDebt(self).add(sd59x18(self.pendingDebt)).div(ud60x18(self.creditCapacity).intoSD59x18())
         );
     }
 
@@ -64,7 +64,7 @@ library Market {
     }
 
     function isCapacityLocked(Data storage self) internal view returns (bool) {
-        return sd59x18(self.creditCapacity).lt(getLockedCreditCapacity(self).intoSD59x18());
+        return ud60x18(self.creditCapacity).lt(getLockedCreditCapacity(self));
     }
 
     function distributeDebt(Data storage self) internal returns (SD59x18) { }

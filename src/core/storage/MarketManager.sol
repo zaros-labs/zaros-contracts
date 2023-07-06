@@ -43,13 +43,12 @@ library MarketManager {
     uint32 private constant MAX_MIN_DELEGATE_TIME = 30 days;
 
     struct Data {
-        uint128 totalWeights;
+        uint128 minLiquidityRatio;
+        uint128 totalMarketsWeights;
+        Distribution.Data vaultsDebtDistribution;
         int128 totalVaultDebts;
         MarketConfiguration.Data[] marketConfigurations;
-        Distribution.Data vaultsDebtDistribution;
         mapping(address => Vault.Data) vaults;
-        uint256 minLiquidityRatio;
-        uint64 lastConfigurationTime;
     }
 
     /**
@@ -126,7 +125,7 @@ library MarketManager {
 
         // Update the vault's shares in its debt distribution, according to the total value of its collateral.
         self.vaultsDebtDistribution.setActorShares(bytes32(uint256(uint160(collateralType))), totalCollateralValue);
-        // syncMarkets();
+        syncMarkets(self);
     }
 
     /**
@@ -153,6 +152,29 @@ library MarketManager {
 
         // Ensure that the vault's values update the debt distribution chain.
         recalculateVaultCollateral(self, collateralType);
+    }
+
+    function syncMarkets(Data storage self) internal {
+        UD60x18 totalMarketsWeights = ud60x18(self.totalMarketsWeights);
+        if (totalMarketsWeights.isZero()) {
+            return;
+        }
+
+        UD60x18 totalVaultsCreditCapacity = ud60x18(self.vaultsDebtDistribution.totalShares);
+        SD59x18 debtPerCredit = totalVaultsCreditCapacity.isZero()
+            ? SD_ZERO
+            : sd59x18(self.totalVaultDebts).div(totalVaultsCreditCapacity.intoSD59x18());
+        UD60x18 minLiquidityRatio = ud60x18(self.minLiquidityRatio);
+
+        for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
+            MarketConfiguration.Data storage marketConfiguration = self.marketConfigurations[i];
+            UD60x18 marketWeight = ud60x18(marketConfiguration.weight);
+            UD60x18 marketCreditCapacity = totalVaultsCreditCapacity.mul(marketWeight).div(totalMarketsWeights);
+
+            Market.Data storage market = Market.load(marketConfiguration.marketAddress);
+            market.distributeDebt();
+            market.creditCapacity = marketCreditCapacity.intoUint128();
+        }
     }
 
     /**
