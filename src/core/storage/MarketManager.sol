@@ -43,56 +43,12 @@ library MarketManager {
     uint32 private constant MAX_MIN_DELEGATE_TIME = 30 days;
 
     struct Data {
-        /**
-         * @dev Sum of all market weights.
-         *
-         * Market weights are tracked in `MarketConfiguration.weight`, one for each market. The ratio of each market's
-         * `weight` to the pool's `totalWeights` determines the pro-rata share of the market to the pool's total
-         * liquidity.
-         *
-         * Reciprocally, this pro-rata share also determines how much the pool is exposed to each market's debt.
-         */
-        uint128 totalWeightsD18;
-        /**
-         * @dev Accumulated cache value of all vault collateral debts
-         */
-        int128 totalVaultDebtsD18;
-        /**
-         * @dev Array of markets connected to this pool, and their configurations. I.e. weight, etc.
-         *
-         * See totalWeights.
-         */
+        uint128 totalWeights;
+        int128 totalVaultDebts;
         MarketConfiguration.Data[] marketConfigurations;
-        /**
-         * @dev A pool's debt distribution connects pools to the debt distribution chain, i.e. vaults and markets. Vaults
-         * are actors in the pool's debt distribution, where the amount of shares they possess depends on the amount of
-         * collateral each vault delegates to the pool.
-         *
-         * The debt distribution chain will move debt from markets into this pools, and then from pools to vaults.
-         *
-         * Actors: Vaults.
-         * Shares: USD value, proportional to the amount of collateral that the vault delegates to the pool.
-         * Value per share: Debt per dollar of collateral. Depends on aggregated debt of connected markets.
-         *
-         */
         Distribution.Data vaultsDebtDistribution;
-        /**
-         * @dev Reference to all the vaults that provide liquidity to this pool.
-         *
-         * Each collateral type will have its own vault, specific to this pool. I.e. if two pools both use SNX
-         * collateral, each will have its own SNX vault.
-         *
-         * Vaults track user collateral and debt using a debt distribution, which is connected to the debt distribution
-         * chain.
-         */
         mapping(address => Vault.Data) vaults;
-        /**
-         * @dev Owner specified system-wide limiting factor that prevents markets from minting too much debt, similar to
-         * the issuance ratio to a collateral type.
-         *
-         * Note: If zero, then this value defaults to 100%.
-         */
-        uint256 minLiquidityRatioD18;
+        uint256 minLiquidityRatio;
         uint64 lastConfigurationTime;
     }
 
@@ -106,82 +62,28 @@ library MarketManager {
         }
     }
 
-    /**
-     * @dev Ticker function that updates the debt distribution chain downwards, from markets into the pool, according to
-     * each market's weight.
-     *
-     * It updates the chain by performing the se actions:
-     * - Splits the pool's total liquidity of the pool into each market, pro-rata. The amount of shares that the pool
-     * has on each market depends on how much liquidity the pool provides to the market.
-     * - Accumulates the change in debt value from each market into the pools own vault debt distribution's value per
-     * share.
-     */
-    // function distributeDebtToVaults(Data storage self) internal {
-    //     UD60x18 totalWeightsD18 = ud60x18(self.totalWeightsD18);
+    function distributeDebtToVaults(
+        Data storage self,
+        address optionalCollateralType
+    )
+        internal
+        returns (SD59x18 cumulativeDebtChange)
+    {
+        for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
+            Market.Data storage market = Market.load(self.marketConfigurations[i].marketAddress);
+            cumulativeDebtChange = cumulativeDebtChange.add(market.distributeDebt());
+        }
 
-    //     if (totalWeightsD18.isZero()) {
-    //         return; // Nothing to rebalance.
-    //     }
+        self.totalVaultDebts = sd59x18(self.totalVaultDebts).add(cumulativeDebtChange).intoInt256().toInt128();
+        self.vaultsDebtDistribution.distributeValue(cumulativeDebtChange);
 
-    //     // Read from storage once, before entering the loop below.
-    //     // These values should not change while iterating through each market.
-    //     UD60x18 totalCreditCapacityD18 = ud60x18(self.vaultsDebtDistribution.totalSharesD18);
-    //     SD59x18 debtPerShareD18 = totalCreditCapacityD18.gt(UD_ZERO)
-    //         ? sd59x18(self.totalVaultDebtsD18).div(totalCreditCapacityD18.intoSD59x18())
-    //         : SD_ZERO;
-
-    //     SD59x18 cumulativeDebtChangeD18 = SD_ZERO;
-
-    //     UD60x18 systemMinLiquidityRatioD18 = ud60x18(self.minLiquidityRatioD18);
-
-    //     // Loop through the pool's markets, applying market weights, and tracking how this changes the amount of debt
-    //     // that this pool is responsible for.
-    //     // This debt extracted from markets is then applied to the pool's vault debt distribution, which thus exposes
-    //     // debt to the pool's vaults.
-    //     for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
-    //         MarketConfiguration.Data storage marketConfiguration = self.marketConfigurations[i];
-
-    //         UD60x18 weightD18 = ud60x18(marketConfiguration.weightD18);
-
-    //         // Calculate each market's pro-rata USD liquidity.
-    //         // Note: the factor `(weight / totalWeights)` is not deduped in the operations below to maintain numeric
-    //         // precision.
-
-    //         UD60x18 marketCreditCapacityD18 = totalCreditCapacityD18.mul(weightD18).div(totalWeightsD18);
-
-    //         Market.Data storage marketData = Market.load(marketConfiguration.marketId);
-
-    //         // Use market-specific minimum liquidity ratio if set, otherwise use system default.
-    //         UD60x18 minLiquidityRatioD18 = marketData.minLiquidityRatioD18 > 0
-    //             ? ud60x18(marketData.minLiquidityRatioD18)
-    //             : systemMinLiquidityRatioD18;
-
-    //         // Contain the pool imposed market's maximum debt share value.
-    //         // Imposed by system.
-    //         SD59x18 effectiveMaxShareValueD18 =
-    //             getSystemMaxValuePerShare(marketData.id, minLiquidityRatioD18, debtPerShareD18);
-    //         // Imposed by pool.
-    //         SD59x18 configuredMaxShareValueD18 = sd59x18(marketConfiguration.maxDebtShareValueD18);
-    //         effectiveMaxShareValueD18 = effectiveMaxShareValueD18.lt(configuredMaxShareValueD18)
-    //             ? effectiveMaxShareValueD18
-    //             : configuredMaxShareValueD18;
-
-    //         // Update each market's corresponding credit capacity.
-    //         // The returned value represents how much the market's debt changed after changing the shares of this
-    // pool
-    //         // actor, which is aggregated to later be passed on the pools debt distribution.
-    //         cumulativeDebtChangeD18 = cumulativeDebtChangeD18.add(
-    //             Market.rebalancePools(
-    //                 marketConfiguration.marketId, self.id, effectiveMaxShareValueD18, marketCreditCapacityD18
-    //             )
-    //         );
-    //     }
-
-    //     // Passes on the accumulated debt changes from the markets, into the pool, so that vaults can later access
-    // this
-    //     // debt.
-    //     self.vaultsDebtDistribution.distributeValue(cumulativeDebtChangeD18);
-    // }
+        if (optionalCollateralType != address(0)) {
+            bytes32 actorId = bytes32(uint256(uint160(optionalCollateralType)));
+            self.vaults[optionalCollateralType].distributeDebtToAccounts(
+                self.vaultsDebtDistribution.accumulateActor(actorId)
+            );
+        }
+    }
 
     /**
      * @dev Determines the resulting maximum value per share for a market, according to a system-wide minimum liquidity
@@ -194,65 +96,37 @@ library MarketManager {
      */
     function getSystemMaxValuePerShare(
         address marketAddress,
-        UD60x18 minLiquidityRatioD18,
-        SD59x18 debtPerShareD18
+        UD60x18 minLiquidityRatio,
+        SD59x18 debtPerShare
     )
         internal
         view
         returns (SD59x18)
     {
-        // Retrieve the current value per share of the market.
-        Market.Data storage marketData = Market.load(marketAddress);
-        SD59x18 valuePerShareD18 = marketData.poolsDebtDistribution.getValuePerShare();
+        Market.Data storage market = Market.load(marketAddress);
+        SD59x18 valuePerShare = market.getDebtPerCredit();
+        UD60x18 margin = minLiquidityRatio.isZero() ? UD_UNIT : UD_UNIT.div(minLiquidityRatio);
 
-        // Calculate the margin of debt that the market would incur if it hit the system wide limit.
-        UD60x18 marginD18 = minLiquidityRatioD18.isZero() ? UD_UNIT : UD_UNIT.div(minLiquidityRatioD18);
-
-        // The resulting maximum value per share is the distribution's value per share,
-        // plus the margin to hit the limit, minus the current debt per share.
-        return valuePerShareD18.add(marginD18.intoSD59x18()).sub(debtPerShareD18);
+        return valuePerShare.add(margin.intoSD59x18()).sub(debtPerShare);
     }
 
-    /**
-     * @dev Ticker function that updates the debt distribution chain for a specific collateral type downwards, from the
-     * pool into the corresponding the vault, according to changes in the collateral's price.
-     *
-     * It updates the chain by performing these actions:
-     * - Collects the latest price of the corresponding collateral and updates the vault's liquidity.
-     * - Updates the vaults shares in the pool's debt distribution, according to the collateral provided by the vault.
-     * - Updates the value per share of the vault's debt distribution.
-     */
     function recalculateVaultCollateral(
         Data storage self,
         address collateralType
     )
         internal
-        returns (UD60x18 collateralPriceD18)
+        returns (UD60x18 collateralPrice)
     {
-        // Update each market's pro-rata liquidity and collect accumulated debt into the pool's debt distribution.
-        // distributeDebtToVaults(self);
-
-        // Transfer the debt change from the pool into the vault.
-        bytes32 actorId = bytes32(uint256(uint160(collateralType)));
-        self.vaults[collateralType].distributeDebtToAccounts(self.vaultsDebtDistribution.accumulateActor(actorId));
-
         // Get the latest collateral price.
-        collateralPriceD18 = CollateralConfig.load(collateralType).getCollateralPrice();
+        collateralPrice = CollateralConfig.load(collateralType).getCollateralPrice();
 
         // Changes in price update the corresponding vault's total collateral value as well as its liquidity (collateral
         // - debt).
-        (UD60x18 usdWeightD18,, SD59x18 deltaDebtD18) =
-            self.vaults[collateralType].updateCreditCapacity(collateralPriceD18);
+        UD60x18 totalCollateralValue = self.vaults[collateralType].currentCreditCapacity(collateralPrice);
 
-        // Update the vault's shares in the pool's debt distribution, according to the value of its collateral.
-        self.vaultsDebtDistribution.setActorShares(actorId, usdWeightD18);
-
-        // Accumulate the change in total liquidity, from the vault, into the pool.
-        self.totalVaultDebtsD18 = sd59x18(self.totalVaultDebtsD18).add(deltaDebtD18).intoInt256().toInt128();
-
-        // Distribute debt again because the market credit capacity may have changed, so we should ensure the vaults
-        // have the most up to date capacities
-        // distributeDebtToVaults(self);
+        // Update the vault's shares in its debt distribution, according to the total value of its collateral.
+        self.vaultsDebtDistribution.setActorShares(bytes32(uint256(uint160(collateralType))), totalCollateralValue);
+        // syncMarkets();
     }
 
     /**
@@ -264,10 +138,9 @@ library MarketManager {
         uint128 accountId
     )
         internal
-        returns (SD59x18 debtD18)
+        returns (SD59x18 debt)
     {
-        recalculateVaultCollateral(self, collateralType);
-
+        distributeDebtToVaults(self, collateralType);
         return self.vaults[collateralType].consolidateAccountDebt(accountId);
     }
 
@@ -291,10 +164,10 @@ library MarketManager {
      * Note: This is not a view function. It updates the debt distribution chain before performing any calculations.
      */
     function currentVaultCollateralRatio(Data storage self, address collateralType) internal returns (UD60x18) {
-        SD59x18 vaultDebtD18 = currentVaultDebt(self, collateralType);
-        (, UD60x18 collateralValueD18) = currentVaultCollateral(self, collateralType);
+        SD59x18 vaultDebt = currentVaultDebt(self, collateralType);
+        (, UD60x18 collateralValue) = currentVaultCollateral(self, collateralType);
 
-        return vaultDebtD18.gt(UD_ZERO) ? collateralValueD18.div(vaultDebtD18.intoUD60x18()) : UD_ZERO;
+        return vaultDebt.gt(SD_ZERO) ? collateralValue.div(vaultDebt.intoUD60x18()) : UD_ZERO;
     }
 
     /**
@@ -304,7 +177,7 @@ library MarketManager {
      */
     function findMarketWithCapacityLocked(Data storage self) internal view returns (Market.Data storage lockedMarket) {
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
-            Market.Data storage market = Market.load(self.marketConfigurations[i].marketId);
+            Market.Data storage market = Market.load(self.marketConfigurations[i].marketAddress);
 
             if (market.isCapacityLocked()) {
                 return market;
@@ -351,12 +224,12 @@ library MarketManager {
     )
         internal
         view
-        returns (UD60x18 collateralAmountD18, UD60x18 collateralValueD18)
+        returns (UD60x18 collateralAmount, UD60x18 collateralValue)
     {
-        UD60x18 collateralPriceD18 = CollateralConfig.load(collateralType).getCollateralPrice();
+        UD60x18 collateralPrice = CollateralConfig.load(collateralType).getCollateralPrice();
 
-        collateralAmountD18 = self.vaults[collateralType].currentCollateral();
-        collateralValueD18 = collateralPriceD18.mul(collateralAmountD18);
+        collateralAmount = self.vaults[collateralType].currentCollateral();
+        collateralValue = collateralPrice.mul(collateralAmount);
     }
 
     /**
@@ -369,12 +242,12 @@ library MarketManager {
     )
         internal
         view
-        returns (UD60x18 collateralAmountD18, UD60x18 collateralValueD18)
+        returns (UD60x18 collateralAmount, UD60x18 collateralValue)
     {
-        UD60x18 collateralPriceD18 = CollateralConfig.load(collateralType).getCollateralPrice();
+        UD60x18 collateralPrice = CollateralConfig.load(collateralType).getCollateralPrice();
 
-        collateralAmountD18 = self.vaults[collateralType].currentAccountCollateral(accountId);
-        collateralValueD18 = collateralPriceD18.mul(collateralAmountD18);
+        collateralAmount = self.vaults[collateralType].currentAccountCollateral(accountId);
+        collateralValue = collateralPrice.mul(collateralAmount);
     }
 
     /**
@@ -389,22 +262,20 @@ library MarketManager {
         internal
         returns (UD60x18)
     {
-        SD59x18 positionDebtD18 = updateAccountDebt(self, collateralType, accountId);
-        if (positionDebtD18.le(SD_ZERO)) {
+        SD59x18 positionDebt = updateAccountDebt(self, collateralType, accountId);
+        if (positionDebt.lte(SD_ZERO)) {
             return MAX_UD60x18;
         }
 
-        (, UD60x18 positionCollateralValueD18) = currentAccountCollateral(self, collateralType, accountId);
+        (, UD60x18 positionCollateralValue) = currentAccountCollateral(self, collateralType, accountId);
 
-        return positionCollateralValueD18.div(positionDebtD18.intoUD60x18());
+        return positionCollateralValue.div(positionDebt.intoUD60x18());
     }
 
     function requireMinDelegationTimeElapsed(Data storage self, uint64 lastDelegationTime) internal view {
         uint32 requiredMinDelegationTime = getRequiredMinDelegationTime(self);
         if (block.timestamp < lastDelegationTime + requiredMinDelegationTime) {
             revert Zaros_MarketManager_MinDelegationTimeoutPending(
-                self.id,
-                // solhint-disable-next-line numcast/safe-cast
                 uint32(lastDelegationTime + requiredMinDelegationTime - block.timestamp)
             );
         }

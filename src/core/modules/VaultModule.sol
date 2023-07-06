@@ -37,6 +37,7 @@ contract VaultModule is IVaultModule {
     using AccountRBAC for AccountRBAC.Data;
     using Distribution for Distribution.Data;
     using CollateralConfig for CollateralConfig.Data;
+    using MarketManager for MarketManager.Data;
 
     bytes32 private constant _DELEGATE_FEATURE_FLAG = "delegateCollateral";
 
@@ -73,7 +74,8 @@ contract VaultModule is IVaultModule {
         override
         returns (uint256 amount, uint256 value)
     {
-        (amount, value) = MarketManager.load().currentAccountCollateral(collateralType, accountId);
+        (UD60x18 amountUD, UD60x18 valueUD) = MarketManager.load().currentAccountCollateral(collateralType, accountId);
+        (amount, value) = (amountUD.intoUint256(), valueUD.intoUint256());
     }
 
     /**
@@ -100,21 +102,22 @@ contract VaultModule is IVaultModule {
      * @inheritdoc IVaultModule
      */
     function getPositionDebt(uint128 accountId, address collateralType) external override returns (int256) {
-        return MarketManager.load().updateAccountDebt(collateralType, accountId);
+        return MarketManager.load().updateAccountDebt(collateralType, accountId).intoInt256();
     }
 
     /**
      * @inheritdoc IVaultModule
      */
     function getVaultCollateral(address collateralType) public view override returns (uint256 amount, uint256 value) {
-        return MarketManager.load().currentVaultCollateral(collateralType);
+        (UD60x18 amountUD, UD60x18 valueUD) = MarketManager.load().currentVaultCollateral(collateralType);
+        (amount, value) = (amountUD.intoUint256(), valueUD.intoUint256());
     }
 
     /**
      * @inheritdoc IVaultModule
      */
     function getVaultDebt(address collateralType) public override returns (int256) {
-        return MarketManager.load().currentVaultDebt(collateralType);
+        return MarketManager.load().currentVaultDebt(collateralType).intoInt256();
     }
 
     /**
@@ -139,7 +142,7 @@ contract VaultModule is IVaultModule {
         Vault.Data storage vault = Vault.load(collateralType);
         // TODO: work on rewards
         // vault.updateRewards(accountId, poolId, collateralType);
-        uint256 currentCollateralAmount = vault.currentAccountCollateral(accountId);
+        UD60x18 currentCollateralAmount = vault.currentAccountCollateral(accountId);
 
         if (amount.eq(currentCollateralAmount)) {
             revert Zaros_VaultModule_InvalidCollateralAmount();
@@ -149,12 +152,12 @@ contract VaultModule is IVaultModule {
         } else {
             MarketManager.load().requireMinDelegationTimeElapsed(vault.currentEpoch().lastDelegationTime[accountId]);
         }
-        uint256 collateralPrice = _updatePosition(accountId, collateralType, amount, currentCollateralAmount);
+        UD60x18 collateralPrice = _updatePosition(accountId, collateralType, amount, currentCollateralAmount);
 
         if (amount.lt(currentCollateralAmount)) {
             SD59x18 debt = sd59x18(vault.currentEpoch().consolidatedDebtAmounts[accountId]);
             CollateralConfig.load(collateralType).verifyIssuanceRatio(
-                debt.lt(SD_ZERO) ? UD_ZERO : ud60x18(debt), amount.mul(collateralPrice)
+                debt.lt(SD_ZERO) ? UD_ZERO : debt.intoUD60x18(), amount.mul(collateralPrice)
             );
             _verifyNotCapacityLocked();
         }
@@ -178,7 +181,7 @@ contract VaultModule is IVaultModule {
         UD60x18 oldCollateralAmount
     )
         internal
-        returns (uint256 collateralPrice)
+        returns (UD60x18 collateralPrice)
     {
         MarketManager.Data storage marketManager = MarketManager.load();
         Vault.Data storage vault = Vault.load(collateralType);
@@ -211,7 +214,7 @@ contract VaultModule is IVaultModule {
         Market.Data storage market = marketManager.findMarketWithCapacityLocked();
 
         if (market.marketAddress != address(0)) {
-            revert Zaros_VaultModule_CapacityLocked(market.id);
+            revert Zaros_VaultModule_CapacityLocked(market.marketAddress);
         }
     }
 }

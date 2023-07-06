@@ -133,29 +133,14 @@ library VaultEpoch {
         self.unconsolidatedDebt = newDebt.intoInt256().toInt128();
     }
 
-    /**
-     * @dev Updates a user's collateral value, and sets their exposure to debt
-     * according to the collateral they delegated and the leverage used.
-     *
-     * Called whenever a user's collateral changes.
-     */
-    function updateAccountPosition(
-        Data storage self,
-        uint128 accountId,
-        UD60x18 collateralAmount,
-        uint256 leverage
-    )
-        internal
-    {
+    function updateAccountPosition(Data storage self, uint128 accountId, UD60x18 collateralAmount) internal {
         bytes32 actorId = bytes32(uint256(accountId));
 
         // Ensure account debt is consolidated before we do next things.
         consolidateAccountDebt(self, accountId);
 
         self.collateralAmounts.set(actorId, collateralAmount);
-        self.accountsDebtDistribution.setActorShares(
-            actorId, ud60x18(self.collateralAmounts.shares[actorId]).mul(ud60x18(leverage))
-        );
+        self.accountsDebtDistribution.setActorShares(actorId, ud60x18(self.collateralAmounts.shares[actorId]));
     }
 
     /**

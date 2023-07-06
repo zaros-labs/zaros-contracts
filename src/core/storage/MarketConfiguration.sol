@@ -26,7 +26,7 @@ library MarketConfiguration {
          * @dev The ratio of each market's `weight` to the pool's `totalWeights` determines the pro-rata share of the
          * market to the pool's total liquidity.
          */
-        uint128 weightD18;
+        uint128 weight;
         /**
          * @dev Maximum value per share that a pool will tolerate for this market.
          *
@@ -34,8 +34,8 @@ library MarketConfiguration {
          * pool that no longer provides credit to it.
          *
          * Note: This value will have no effect if the system wide limit is hit first. See
-         * `PoolConfiguration.minLiquidityRatioD18`.
+         * `PoolConfiguration.minLiquidityRatio`.
          */
-        int128 maxDebtShareValueD18;
+        int128 maxDebtShareValue;
     }
 }

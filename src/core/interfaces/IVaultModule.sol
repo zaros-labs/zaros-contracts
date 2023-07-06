@@ -11,7 +11,7 @@ interface IVaultModule {
     /**
      * @notice Thrown when attempting to delegate collateral to a market whose capacity is locked.
      */
-    error Zaros_VaultModule_CapacityLocked(uint256 marketId);
+    error Zaros_VaultModule_CapacityLocked(address marketAddress);
 
     /**
      * @notice Thrown when the specified new collateral amount to delegate to the vault equals the current existing

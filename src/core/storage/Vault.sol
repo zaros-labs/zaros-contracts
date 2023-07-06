@@ -45,32 +45,9 @@ library Vault {
 
     struct Data {
         address collateralType;
-        /**
-         * @dev The vault's current epoch number.
-         *
-         * Vault data is divided into epochs. An epoch changes when an entire vault is liquidated.
-         */
         uint256 epoch;
-        /**
-         * @dev Unused property, maintained for backwards compatibility in storage layout.
-         */
-        // solhint-disable-next-line private-vars-leading-underscore
-        bytes32 __slotAvailableForFutureUse;
-        /**
-         * @dev The previous debt of the vault, when `updateCreditCapacity` was last called by the Pool.
-         */
-        int128 prevTotalDebt;
-        /**
-         * @dev Vault data for all the liquidation cycles divided into epochs.
-         */
         mapping(uint256 => VaultEpoch.Data) epochData;
-        /**
-         * @dev Tracks available rewards, per user, for this vault.
-         */
         mapping(bytes32 => RewardDistribution.Data) rewards;
-        /**
-         * @dev Tracks reward ids, for this vault.
-         */
         EnumerableSet.Bytes32Set rewardIds;
     }
 
@@ -88,30 +65,17 @@ library Vault {
         return self.epochData[self.epoch];
     }
 
-    /**
-     * @dev Updates the vault's credit capacity as the value of its collateral minus its debt.
-     *
-     * Called as a ticker when users interact with pools, allowing pools to set
-     * vaults' credit capacity shares within them.
-     *
-     * Returns the amount of collateral that this vault is providing in net USD terms.
-     */
-    function updateCreditCapacity(
+    function currentCreditCapacity(
         Data storage self,
         UD60x18 collateralPrice
     )
         internal
-        returns (UD60x18 usdWeight, SD59x18 totalDebt, SD59x18 deltaDebt)
+        view
+        returns (UD60x18 totalCollateralValue)
     {
         VaultEpoch.Data storage epochData = currentEpoch(self);
 
-        usdWeight = (epochData.collateralAmounts.totalAmount()).mul(collateralPrice);
-
-        totalDebt = epochData.totalDebt();
-
-        deltaDebt = totalDebt.sub(sd59x18(self.prevTotalDebt));
-
-        self.prevTotalDebt = totalDebt.intoInt256().toInt128();
+        totalCollateralValue = (epochData.collateralAmounts.totalAmount()).mul(collateralPrice);
     }
 
     /**

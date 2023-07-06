@@ -130,7 +130,7 @@ library ScalableMapping {
             return UD_ZERO;
         }
 
-        return (ud60x18(self.shares[actorId]).mul(totalAmount(self))).div(totalShares);
+        return (actorShares.mul(totalAmount(self))).div(totalShares);
     }
 
     /**
