@@ -1,5 +1,6 @@
 //SPDX-License-Identifier: MIT
-pragma solidity >=0.8.11 <0.9.0;
+
+pragma solidity 0.8.19;
 
 /**
  * @title Stores information for specific actors in a Distribution.
