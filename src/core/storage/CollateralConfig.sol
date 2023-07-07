@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.19;
 
+// Zaros dependencies
+import { ChainlinkOracle } from "../storage/ChainlinkOracle.sol";
+
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
@@ -13,6 +16,8 @@ import { UD60x18, ud60x18, uUNIT, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol"
  * its current price from the oracle manager.
  */
 library CollateralConfig {
+    using ChainlinkOracle for ChainlinkOracle.Data;
+
     string internal constant COLLATERAL_CONFIG_DOMAIN = "fi.zaros.core.CollateralConfig";
     bytes32 internal constant SLOT_AVAILABLE_COLLATERALS =
         keccak256(abi.encode(COLLATERAL_CONFIG_DOMAIN, "_availableCollaterals"));
@@ -75,9 +80,7 @@ library CollateralConfig {
          * @dev Amount of tokens to award when an account is liquidated.
          */
         uint256 liquidationReward;
-        /**
-         * @dev The oracle manager node id which reports the current price for this collateral type.
-         */
+        ChainlinkOracle.Data oracle;
         bytes32 oracleNodeId;
         /**
          * @dev The token address for this collateralType collateral.
@@ -135,7 +138,7 @@ library CollateralConfig {
         storedConfig.decimals = config.decimals;
         storedConfig.issuanceRatio = config.issuanceRatio;
         storedConfig.liquidationRatio = config.liquidationRatio;
-        storedConfig.oracleNodeId = config.oracleNodeId;
+        storedConfig.oracle = config.oracle;
         storedConfig.liquidationReward = config.liquidationReward;
         storedConfig.minDelegation = config.minDelegation;
         storedConfig.depositingEnabled = config.depositingEnabled;
@@ -172,7 +175,10 @@ library CollateralConfig {
 
     /// TODO: implement
     function getCollateralPrice(Data storage self) internal view returns (UD60x18) {
-        return ud60x18(1);
+        ChainlinkOracle.Data storage oracle = self.oracle;
+        UD60x18 price = ChainlinkOracle.getPrice();
+
+        return price;
     }
 
     /**
