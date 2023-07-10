@@ -3,10 +3,11 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { ChainlinkOracle } from "../storage/ChainlinkOracle.sol";
+import { IAggregatorV3 } from "../interfaces/external/chainlink/IAggregatorV3.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, uUNIT, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
@@ -16,13 +17,12 @@ import { UD60x18, ud60x18, uUNIT, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol"
  * its current price from the oracle manager.
  */
 library CollateralConfig {
-    using ChainlinkOracle for ChainlinkOracle.Data;
+    using EnumerableSet for EnumerableSet.AddressSet;
+    using SafeCast for int256;
 
     string internal constant COLLATERAL_CONFIG_DOMAIN = "fi.zaros.core.CollateralConfig";
     bytes32 internal constant SLOT_AVAILABLE_COLLATERALS =
         keccak256(abi.encode(COLLATERAL_CONFIG_DOMAIN, "_availableCollaterals"));
-
-    using EnumerableSet for EnumerableSet.AddressSet;
 
     /**
      * @dev Thrown when the token address of a collateral cannot be found.
@@ -80,7 +80,7 @@ library CollateralConfig {
          * @dev Amount of tokens to award when an account is liquidated.
          */
         uint256 liquidationReward;
-        ChainlinkOracle.Data oracle;
+        address oracle;
         bytes32 oracleNodeId;
         /**
          * @dev The token address for this collateralType collateral.
@@ -173,10 +173,14 @@ library CollateralConfig {
         }
     }
 
-    /// TODO: implement
+    /// TODO: improve this
     function getCollateralPrice(Data storage self) internal view returns (UD60x18) {
-        ChainlinkOracle.Data storage oracle = self.oracle;
-        UD60x18 price = ChainlinkOracle.getPrice();
+        IAggregatorV3 oracle = IAggregatorV3(self.oracle);
+        uint8 decimals = oracle.decimals();
+        (, int256 answer,,,) = oracle.latestRoundData();
+        // should panic if decimals > 18
+        assert(decimals <= uUNIT);
+        UD60x18 price = ud60x18(answer.toUint256() * 10 ** (uUNIT - decimals));
 
         return price;
     }
