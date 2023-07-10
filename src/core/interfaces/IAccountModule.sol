@@ -72,17 +72,7 @@ interface IAccountModule {
         view
         returns (AccountPermissions[] memory accountPerms);
 
-    /**
-     * @notice Mints an account token with id `requestedAccountId` to `msg.sender`.
-     * @param requestedAccountId The id requested for the account being created. Reverts if id already exists.
-     *
-     * Requirements:
-     *
-     * - `requestedAccountId` must not already be minted.
-     *
-     * Emits a {AccountCreated} event.
-     */
-    function createAccount(uint128 requestedAccountId) external;
+    function createAccount() external;
 
     /**
      * @notice Called by AccountTokenModule to notify the system when the account token is transferred.

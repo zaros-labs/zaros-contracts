@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.8.19;
 
@@ -18,8 +18,6 @@ contract AccountModule is IAccountModule {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using AccountRBAC for AccountRBAC.Data;
     using Account for Account.Data;
-
-    bytes32 private constant _ACCOUNT_SYSTEM = "accountNft";
 
     bytes32 private constant _CREATE_ACCOUNT_FEATURE_FLAG = "createAccount";
 
@@ -54,14 +52,14 @@ contract AccountModule is IAccountModule {
     /**
      * @inheritdoc IAccountModule
      */
-    function createAccount(uint128 requestedAccountId) external override {
+    function createAccount() external override {
         FeatureFlag.ensureAccessToFeature(_CREATE_ACCOUNT_FEATURE_FLAG);
-        IAccountTokenModule accountTokenModule = IAccountTokenModule(getAccountTokenAddress());
-        accountTokenModule.mint(msg.sender, requestedAccountId);
+        (uint128 accountId, IAccountTokenModule accountTokenModule) = SystemAccountConfiguration.onCreateAccount();
+        accountTokenModule.mint(msg.sender, accountId);
 
-        Account.create(requestedAccountId, msg.sender);
+        Account.create(accountId, msg.sender);
 
-        emit LogCreateAccount(requestedAccountId, msg.sender);
+        emit LogCreateAccount(accountId, msg.sender);
     }
 
     /**
@@ -156,5 +154,9 @@ contract AccountModule is IAccountModule {
         if (msg.sender != address(getAccountTokenAddress())) {
             revert Zaros_AccountModule_OnlyAccountTokenProxy(msg.sender);
         }
+    }
+
+    function __AccountModule_init(address accountToken) internal {
+        SystemAccountConfiguration.load().accountToken = accountToken;
     }
 }

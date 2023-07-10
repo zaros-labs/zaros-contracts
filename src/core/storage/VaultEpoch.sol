@@ -33,53 +33,11 @@ library VaultEpoch {
     using ScalableMapping for ScalableMapping.Data;
 
     struct Data {
-        /**
-         * @dev Amount of debt in this Vault that is yet to be consolidated.
-         *
-         * E.g. when a given amount of debt is socialized during a liquidation, but it yet hasn't been rolled into
-         * the consolidated debt distribution.
-         */
         int128 unconsolidatedDebt;
-        /**
-         * @dev Amount of debt in this Vault that has been consolidated.
-         */
         int128 totalConsolidatedDebt;
-        /**
-         * @dev Tracks incoming debt for each user.
-         *
-         * The value of shares in this distribution change as the associate market changes, i.e. price changes in an
-         * asset in
-         * a spot market.
-         *
-         * Also, when debt is socialized in a liquidation, it is done onto this distribution. As users
-         * interact with the system, their independent debt is consolidated or rolled into consolidatedDebtDist.
-         */
         Distribution.Data accountsDebtDistribution;
-        /**
-         * @dev Tracks collateral delegated to this vault, for each user.
-         *
-         * Uses a distribution instead of a regular market because of the way collateral is socialized during
-         * liquidations.
-         *
-         * A regular mapping would require looping over the mapping of each account's collateral, or moving the
-         * liquidated
-         * collateral into a place where it could later be claimed. With a distribution, liquidated collateral can be
-         * socialized very easily.
-         */
         ScalableMapping.Data collateralAmounts;
-        /**
-         * @dev Tracks consolidated debt for each user.
-         *
-         * Updated when users interact with the system, consolidating changes from the fluctuating
-         * accountsDebtDistribution,
-         * and directly when users mint or burn USD, or repay debt.
-         */
         mapping(uint256 => int256) consolidatedDebtAmounts;
-        /**
-         * @dev Tracks last time a user delegated to this vault.
-         *
-         * Needed to validate min delegation time compliance to prevent small scale debt pool frontrunning
-         */
         mapping(uint128 => uint64) lastDelegationTime;
     }
 

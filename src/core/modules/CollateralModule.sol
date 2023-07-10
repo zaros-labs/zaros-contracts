@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.8.19;
 
@@ -13,6 +13,7 @@ import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
@@ -22,9 +23,8 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 /**
  * @title Module for managing user collateral.
  * @dev See ICollateralModule.
- * TODO: add access control (Ownable)
  */
-contract CollateralModule is ICollateralModule {
+contract CollateralModule is ICollateralModule, Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using CollateralConfig for CollateralConfig.Data;
     using Account for Account.Data;
@@ -41,8 +41,8 @@ contract CollateralModule is ICollateralModule {
     /**
      * @inheritdoc ICollateralModule
      */
-    function configureCollateral(CollateralConfig.Data memory collateralConfig) external override {
-        // TODO: validate collateralConfig
+    function configureCollateral(CollateralConfig.Data memory collateralConfig) external override onlyOwner {
+        // TODO: add input validation
         CollateralConfig.set(collateralConfig);
 
         emit LogConfigureCollateral(collateralConfig.tokenAddress, collateralConfig);
