@@ -140,8 +140,7 @@ contract VaultModule is IVaultModule {
         }
 
         Vault.Data storage vault = Vault.load(collateralType);
-        // TODO: work on rewards
-        // vault.updateRewards(accountId, poolId, collateralType);
+        vault.updateRewards(accountId);
         UD60x18 currentCollateralAmount = vault.currentAccountCollateral(accountId);
 
         if (amount.eq(currentCollateralAmount)) {
