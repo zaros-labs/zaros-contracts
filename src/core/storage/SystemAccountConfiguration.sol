@@ -1,6 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+// Zaros dependencies
+import { IAccountTokenModule } from "../interfaces/IAccountTokenModule.sol";
+
 /**
  * @title System wide configuration for accounts.
  */
@@ -12,7 +15,7 @@ library SystemAccountConfiguration {
         /**
          * @dev Offset to use for auto-generated account IDs
          */
-        uint64 accountIdOffset;
+        uint96 nextAccountId;
         /**
          * @dev The address of the account token.
          */
@@ -27,5 +30,11 @@ library SystemAccountConfiguration {
         assembly {
             systemAccountConfiguration.slot := s
         }
+    }
+
+    function onCreateAccount() internal returns (uint128 accountId, IAccountTokenModule accountTokenModule) {
+        Data storage self = load();
+        accountId = self.nextAccountId++;
+        accountTokenModule = IAccountTokenModule(self.accountToken);
     }
 }
