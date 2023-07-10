@@ -19,8 +19,6 @@ contract AccountModule is IAccountModule {
     using AccountRBAC for AccountRBAC.Data;
     using Account for Account.Data;
 
-    bytes32 private constant _ACCOUNT_SYSTEM = "accountNft";
-
     bytes32 private constant _CREATE_ACCOUNT_FEATURE_FLAG = "createAccount";
 
     /**
