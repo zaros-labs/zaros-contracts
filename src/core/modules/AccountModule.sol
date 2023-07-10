@@ -155,4 +155,8 @@ contract AccountModule is IAccountModule {
             revert Zaros_AccountModule_OnlyAccountTokenProxy(msg.sender);
         }
     }
+
+    function __AccountModule_init(address accountToken) internal {
+        SystemAccountConfiguration.load().accountToken = accountToken;
+    }
 }
