@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.19;
 
-/// TODO: Support ERC165
 /// @title Interface for markets integrated with Zaros
 interface IMarket {
     /// @notice returns a human-readable name for a given market

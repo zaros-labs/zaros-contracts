@@ -157,10 +157,6 @@ library MarketManager {
         }
 
         UD60x18 totalVaultsCreditCapacity = ud60x18(self.vaultsDebtDistribution.totalShares);
-        SD59x18 debtPerCredit = totalVaultsCreditCapacity.isZero()
-            ? SD_ZERO
-            : sd59x18(self.totalVaultDebts).div(totalVaultsCreditCapacity.intoSD59x18());
-
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
             MarketConfiguration.Data storage marketConfiguration = self.marketConfigurations[i];
             UD60x18 marketWeight = ud60x18(marketConfiguration.weight);
