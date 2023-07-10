@@ -8,22 +8,20 @@ import { FeatureFlag } from "../storage/FeatureFlag.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-
-// TODO: implement access control
+import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
 /**
  * @title Module for granular enabling and disabling of system features and functions.
  * See IFeatureFlagModule.
  */
-contract FeatureFlagModule is IFeatureFlagModule {
+contract FeatureFlagModule is IFeatureFlagModule, Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using FeatureFlag for FeatureFlag.Data;
 
     /**
      * @inheritdoc IFeatureFlagModule
      */
-    function setFeatureFlagAllowAll(bytes32 feature, bool allowAll) external override {
-        // OwnableStorage.onlyOwner();
+    function setFeatureFlagAllowAll(bytes32 feature, bool allowAll) external override onlyOwner {
         FeatureFlag.load(feature).allowAll = allowAll;
 
         if (allowAll) {
@@ -40,7 +38,7 @@ contract FeatureFlagModule is IFeatureFlagModule {
         FeatureFlag.Data storage flag = FeatureFlag.load(feature);
 
         if (!denyAll || !flag.isDenier(msg.sender)) {
-            // OwnableStorage.onlyOwner();
+            _checkOwner();
         }
 
         flag.denyAll = denyAll;
@@ -51,9 +49,7 @@ contract FeatureFlagModule is IFeatureFlagModule {
     /**
      * @inheritdoc IFeatureFlagModule
      */
-    function addToFeatureFlagAllowlist(bytes32 feature, address account) external override {
-        // OwnableStorage.onlyOwner();
-
+    function addToFeatureFlagAllowlist(bytes32 feature, address account) external override onlyOwner {
         EnumerableSet.AddressSet storage permissionedAddresses = FeatureFlag.load(feature).permissionedAddresses;
 
         if (!permissionedAddresses.contains(account)) {
@@ -65,9 +61,7 @@ contract FeatureFlagModule is IFeatureFlagModule {
     /**
      * @inheritdoc IFeatureFlagModule
      */
-    function removeFromFeatureFlagAllowlist(bytes32 feature, address account) external override {
-        // OwnableStorage.onlyOwner();
-
+    function removeFromFeatureFlagAllowlist(bytes32 feature, address account) external override onlyOwner {
         EnumerableSet.AddressSet storage permissionedAddresses = FeatureFlag.load(feature).permissionedAddresses;
 
         if (permissionedAddresses.contains(account)) {
@@ -79,8 +73,7 @@ contract FeatureFlagModule is IFeatureFlagModule {
     /**
      * @inheritdoc IFeatureFlagModule
      */
-    function setDeniers(bytes32 feature, address[] memory deniers) external override {
-        // OwnableStorage.onlyOwner();
+    function setDeniers(bytes32 feature, address[] memory deniers) external override onlyOwner {
         FeatureFlag.Data storage flag = FeatureFlag.load(feature);
 
         // resize array (its really dumb how you have to do this)
