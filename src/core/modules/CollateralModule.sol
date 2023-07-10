@@ -74,11 +74,9 @@ contract CollateralModule is ICollateralModule {
     /**
      * @inheritdoc ICollateralModule
      */
-    // Note: Disabling Solidity warning, not sure why it suggests pure mutability.
-    // solc-ignore-next-line func-mutability
     function getCollateralConfig(address collateralType)
         external
-        view
+        pure
         override
         returns (CollateralConfig.Data memory)
     {

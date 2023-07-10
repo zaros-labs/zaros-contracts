@@ -51,7 +51,7 @@ library Vault {
         EnumerableSet.Bytes32Set rewardIds;
     }
 
-    function load(address collateralType) internal view returns (Data storage vault) {
+    function load(address collateralType) internal pure returns (Data storage vault) {
         bytes32 s = keccak256(abi.encode(VAULT_DOMAIN, collateralType));
         assembly {
             vault.slot := s
