@@ -50,77 +50,39 @@ interface IMarketManagerModule {
      */
     event SetMarketMinLiquidityRatio(address indexed marketAddress, uint256 minLiquidityRatio);
 
-    function registerMarket(address market) external;
+    // function depositMarketUsd(
+    //     address marketAddress,
+    //     address target,
+    //     uint256 amount
+    // )
+    //     external
+    //     returns (uint256 feeAmount);
 
-    function depositMarketUsd(
-        address marketAddress,
-        address target,
-        uint256 amount
-    )
-        external
-        returns (uint256 feeAmount);
+    // function withdrawMarketUsd(
+    //     address marketAddress,
+    //     address target,
+    //     uint256 amount
+    // )
+    //     external
+    //     returns (uint256 feeAmount);
 
-    function withdrawMarketUsd(
-        address marketAddress,
-        address target,
-        uint256 amount
-    )
-        external
-        returns (uint256 feeAmount);
-    function getMarketFees(
-        address marketAddress,
-        uint256 amount
-    )
-        external
-        view
-        returns (uint256 depositFeeAmount, uint256 withdrawFeeAmount);
+    function getWithdrawableMarketUsd(address marketAddress) external view returns (uint256 withdrawable);
 
-    function getWithdrawableMarketUsd(address marketAddress) external view returns (uint256 withdrawableD18);
+    function getMarketNetIssuance(address marketAddress) external view returns (int128 issuance);
 
-    function getMarketNetIssuance(address marketAddress) external view returns (int128 issuanceD18);
+    function getMarketReportedDebt(address marketAddress) external view returns (uint256 reportedDebt);
 
-    function getMarketReportedDebt(address marketAddress) external view returns (uint256 reportedDebtD18);
+    function getMarketTotalDebt(address marketAddress) external view returns (int256 totalDebt);
 
-    function getMarketTotalDebt(address marketAddress) external view returns (int256 totalDebtD18);
+    function getMarketCollateral(address marketAddress) external view returns (uint256 value);
 
-    function getMarketCollateral(address marketAddress) external view returns (uint256 valueD18);
-
-    function getMarketDebtPerCredit(address marketAddress) external returns (int256 debtPerShareD18);
+    function getMarketDebtPerCredit(address marketAddress) external returns (int256 debtPerShare);
 
     function isMarketCapacityLocked(address marketAddress) external view returns (bool isLocked);
 
     function getZarosUsd() external view returns (address);
 
-    /**
-     * @notice allows for a market to set its minimum delegation time. This is useful for preventing stakers from
-     * frontrunning rewards or losses
-     * by limiting the frequency of `delegateCollateral` (or `setPoolConfiguration`) calls. By default, there is no
-     * minimum delegation time.
-     * @param marketAddress the id of the market that wants to set delegation time.
-     * @param minDelegateTime the minimum number of seconds between delegation calls. Note: this value must be less than
-     * the globally defined maximum minDelegateTime
-     */
-    function setMarketMinDelegateTime(address marketAddress, uint32 minDelegateTime) external;
+    function setMinLiquidityRatio(address marketAddress, uint128 minLiquidityRatio) external;
 
-    /**
-     * @notice Retrieve the minimum delegation time of a market
-     * @param marketAddress the id of the market
-     */
-    function getMarketMinDelegateTime(address marketAddress) external view returns (uint32);
-
-    /**
-     * @notice Allows the system owner (not the pool owner) to set a market-specific minimum liquidity ratio.
-     * @param marketAddress the id of the market
-     * @param minLiquidityRatio The new market-specific minimum liquidity ratio, denominated with 18 decimals of
-     * precision. (100% is represented by 1 followed by 18 zeros.)
-     */
-    function setMinLiquidityRatio(address marketAddress, uint256 minLiquidityRatio) external;
-
-    /**
-     * @notice Retrieves the market-specific minimum liquidity ratio.
-     * @param marketAddress the id of the market
-     * @return minRatioD18 The current market-specific minimum liquidity ratio, denominated with 18 decimals of
-     * precision. (100% is represented by 1 followed by 18 zeros.)
-     */
-    function getMinLiquidityRatio(address marketAddress) external view returns (uint256 minRatioD18);
+    function getMinLiquidityRatio(address marketAddress) external view returns (uint256 minRatio);
 }

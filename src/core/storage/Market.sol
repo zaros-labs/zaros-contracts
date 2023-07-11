@@ -42,6 +42,8 @@ library Market {
         }
     }
 
+    function create(address marketAddress) internal { }
+
     function getDebtPerCredit(Data storage self) internal view returns (SD59x18) {
         return sd59x18(self.lastDebtPerCredit).add(
             totalDebt(self).add(sd59x18(self.pendingDebt)).div(ud60x18(self.creditCapacity).intoSD59x18())

@@ -4,6 +4,8 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { Constants } from "../../utils/Constants.sol";
+import { ParameterError } from "../../utils/Errors.sol";
+import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 import { IMarketManagerModule } from "../interfaces/IMarketManagerModule.sol";
 import { Market } from "../storage/Market.sol";
 import { MarketManager } from "../storage/MarketManager.sol";
@@ -22,17 +24,6 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     bytes32 private constant _MARKET_FEATURE_FLAG = "registerMarket";
     bytes32 private constant _DEPOSIT_MARKET_FEATURE_FLAG = "depositMarketUsd";
     bytes32 private constant _WITHDRAW_MARKET_FEATURE_FLAG = "withdrawMarketUsd";
-    /**
-     * @inheritdoc IMarketManagerModule
-     */
-
-    function registerMarket(address marketAddress) external override {
-        FeatureFlag.ensureAccessToFeature(_MARKET_FEATURE_FLAG);
-
-        Market.create(marketAddress);
-
-        emit MarketRegistered(marketAddress, msg.sender);
-    }
 
     function getWithdrawableMarketUsd(address marketAddress) public view override returns (uint256) {
         return ud60x18(Market.load(marketAddress).creditCapacity).add(
@@ -96,8 +87,8 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     //     ITokenModule usdToken = AssociatedSystem.load(_USD_TOKEN).asToken();
 
     //     // Adjust accounting.
-    //     market.creditCapacityD18 += (amount - feeAmount).toInt().to128();
-    //     market.netIssuanceD18 -= (amount - feeAmount).toInt().to128();
+    //     market.creditCapacity += (amount - feeAmount).toInt().to128();
+    //     market.netIssuance -= (amount - feeAmount).toInt().to128();
 
     //     // Burn the incoming USD.
     //     // Note: Instead of burning, we could transfer USD to and from the MarketManager,
@@ -138,8 +129,8 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     //         : address(0);
 
     //     // Adjust accounting.
-    //     marketData.creditCapacityD18 -= (amount + feeAmount).toInt().to128();
-    //     marketData.netIssuanceD18 += (amount + feeAmount).toInt().to128();
+    //     marketData.creditCapacity -= (amount + feeAmount).toInt().to128();
+    //     marketData.netIssuance += (amount + feeAmount).toInt().to128();
 
     //     // Mint the requested USD.
     //     AssociatedSystem.load(_USD_TOKEN).asToken().mint(target, amount);
@@ -156,37 +147,10 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     /**
      * @inheritdoc IMarketManagerModule
      */
-    function setMarketMinDelegateTime(address marketAddress, uint32 minDelegateTime) external override {
+    function setMinLiquidityRatio(address marketAddress, uint128 minLiquidityRatio) external override onlyOwner {
         Market.Data storage market = Market.load(marketAddress);
 
-        if (msg.sender != market.marketAddress) revert AccessError.Unauthorized(msg.sender);
-
-        if (minDelegateTime > Constants.MAX_MIN_DELEGATE_TIME) {
-            revert ParameterError.InvalidParameter("minDelegateTime", "must not be too large");
-        }
-
-        market.minDelegateTime = minDelegateTime;
-
-        emit SetMinDelegateTime(marketAddress, minDelegateTime);
-    }
-
-    /**
-     * @inheritdoc IMarketManagerModule
-     */
-    function getMarketMinDelegateTime(address marketAddress) external view override returns (uint32) {
-        // solhint-disable-next-line numcast/safe-cast
-        uint32 maxMinDelegateTime = Constants.MAX_MIN_DELEGATE_TIME;
-        uint32 marketMinDelegateTime = Market.load(marketAddress).minDelegateTime;
-        return maxMinDelegateTime < marketMinDelegateTime ? maxMinDelegateTime : marketMinDelegateTime;
-    }
-
-    /**
-     * @inheritdoc IMarketManagerModule
-     */
-    function setMinLiquidityRatio(address marketAddress, uint256 minLiquidityRatio) external override onlyOwner {
-        Market.Data storage market = Market.load(marketAddress);
-
-        market.minLiquidityRatioD18 = minLiquidityRatio;
+        market.minLiquidityRatio = minLiquidityRatio;
 
         emit SetMarketMinLiquidityRatio(marketAddress, minLiquidityRatio);
     }
@@ -195,6 +159,6 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
      * @inheritdoc IMarketManagerModule
      */
     function getMinLiquidityRatio(address marketAddress) external view override returns (uint256) {
-        return Market.load(marketAddress).minLiquidityRatioD18;
+        return Market.load(marketAddress).minLiquidityRatio;
     }
 }
