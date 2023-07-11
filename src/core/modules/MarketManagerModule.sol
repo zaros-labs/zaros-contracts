@@ -147,6 +147,13 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     /**
      * @inheritdoc IMarketManagerModule
      */
+    function getMinLiquidityRatio(address marketAddress) external view override returns (uint256) {
+        return Market.load(marketAddress).minLiquidityRatio;
+    }
+
+       /**
+     * @inheritdoc IMarketManagerModule
+     */
     function setMinLiquidityRatio(address marketAddress, uint128 minLiquidityRatio) external override onlyOwner {
         Market.Data storage market = Market.load(marketAddress);
 
@@ -155,10 +162,8 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
         emit SetMarketMinLiquidityRatio(marketAddress, minLiquidityRatio);
     }
 
-    /**
-     * @inheritdoc IMarketManagerModule
-     */
-    function getMinLiquidityRatio(address marketAddress) external view override returns (uint256) {
-        return Market.load(marketAddress).minLiquidityRatio;
+    /// @dev Still need to implement configuration checks e.g locked markets
+    function configureMarkets(MarketConfiguration.Data[] calldata marketConfigurations) external override onlyOwner {
+
     }
 }
