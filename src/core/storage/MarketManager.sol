@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Constants } from "../../utils/Constants.sol";
 import { CollateralConfig } from "./CollateralConfig.sol";
 import { Distribution } from "./Distribution.sol";
 import { Market } from "./Market.sol";
@@ -41,7 +42,6 @@ library MarketManager {
     error Zaros_MarketManager_MinDelegationTimeoutPending(uint32 timeRemaining);
 
     bytes32 private constant _MARKET_MANAGER_SLOT = keccak256(abi.encodePacked("fi.zaros.core.MarketManager"));
-    uint32 private constant MAX_MIN_DELEGATE_TIME = 30 days;
 
     struct Data {
         uint128 minLiquidityRatio;
@@ -212,7 +212,9 @@ library MarketManager {
             }
         }
 
-        return MAX_MIN_DELEGATE_TIME < requiredMinDelegateTime ? MAX_MIN_DELEGATE_TIME : requiredMinDelegateTime;
+        return Constants.MAX_MIN_DELEGATE_TIME < requiredMinDelegateTime
+            ? Constants.MAX_MIN_DELEGATE_TIME
+            : requiredMinDelegateTime;
     }
 
     /**

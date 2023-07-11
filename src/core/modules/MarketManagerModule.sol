@@ -3,14 +3,19 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Constants } from "../../utils/Constants.sol";
 import { IMarketManagerModule } from "../interfaces/IMarketManagerModule.sol";
 import { Market } from "../storage/Market.sol";
 import { MarketManager } from "../storage/MarketManager.sol";
 
+// Open Zeppelin dependencies
+import { Ownable } from "@openzeppelin/access/Ownable.sol";
+
 // PRB Math dependencies
+import { ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-contract MarketManagerModule {
+contract MarketManagerModule is IMarketManagerModule, Ownable {
     using Market for Market.Data;
     using MarketManager for MarketManager.Data;
 
@@ -151,39 +156,12 @@ contract MarketManagerModule {
     /**
      * @inheritdoc IMarketManagerModule
      */
-    function getMarketFees(
-        uint128,
-        uint256 amount
-    )
-        external
-        view
-        override
-        returns (uint256 depositFeeAmount, uint256 withdrawFeeAmount)
-    {
-        depositFeeAmount = amount.mulDecimal(Config.readUint(_CONFIG_DEPOSIT_MARKET_USD_FEE_RATIO, 0));
-
-        withdrawFeeAmount = amount.mulDecimal(Config.readUint(_CONFIG_WITHDRAW_MARKET_USD_FEE_RATIO, 0));
-    }
-
-    /**
-     * @inheritdoc IMarketManagerModule
-     */
-    function distributeDebtToPools(address marketAddress, uint256 maxIter) external override returns (bool) {
-        return Market.load(marketAddress).distributeDebtToPools(maxIter);
-    }
-
-    /**
-     * @inheritdoc IMarketManagerModule
-     */
     function setMarketMinDelegateTime(address marketAddress, uint32 minDelegateTime) external override {
         Market.Data storage market = Market.load(marketAddress);
 
         if (msg.sender != market.marketAddress) revert AccessError.Unauthorized(msg.sender);
 
-        // min delegate time should not be unreasonably long
-        uint256 maxMinDelegateTime = Config.readUint(_CONFIG_SET_MARKET_MIN_DELEGATE_MAX, 86_400 * 30);
-
-        if (minDelegateTime > maxMinDelegateTime) {
+        if (minDelegateTime > Constants.MAX_MIN_DELEGATE_TIME) {
             revert ParameterError.InvalidParameter("minDelegateTime", "must not be too large");
         }
 
@@ -197,7 +175,7 @@ contract MarketManagerModule {
      */
     function getMarketMinDelegateTime(address marketAddress) external view override returns (uint32) {
         // solhint-disable-next-line numcast/safe-cast
-        uint32 maxMinDelegateTime = uint32(Config.readUint(_CONFIG_SET_MARKET_MIN_DELEGATE_MAX, 86_400 * 30));
+        uint32 maxMinDelegateTime = Constants.MAX_MIN_DELEGATE_TIME;
         uint32 marketMinDelegateTime = Market.load(marketAddress).minDelegateTime;
         return maxMinDelegateTime < marketMinDelegateTime ? maxMinDelegateTime : marketMinDelegateTime;
     }
@@ -205,8 +183,7 @@ contract MarketManagerModule {
     /**
      * @inheritdoc IMarketManagerModule
      */
-    function setMinLiquidityRatio(address marketAddress, uint256 minLiquidityRatio) external override {
-        OwnableStorage.onlyOwner();
+    function setMinLiquidityRatio(address marketAddress, uint256 minLiquidityRatio) external override onlyOwner {
         Market.Data storage market = Market.load(marketAddress);
 
         market.minLiquidityRatioD18 = minLiquidityRatio;
