@@ -48,6 +48,8 @@ library MarketManager {
         uint128 totalMarketsWeights;
         Distribution.Data vaultsDebtDistribution;
         int128 totalVaultDebts;
+        // TODO: check if this is the best place to store zrsUSD
+        address zrsUSD;
         MarketConfiguration.Data[] marketConfigurations;
         mapping(address => Vault.Data) vaults;
     }
