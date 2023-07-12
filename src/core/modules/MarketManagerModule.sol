@@ -65,7 +65,7 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     }
 
     function getZarosUsd() external view override returns (address) {
-        return MarketManager.load().zrsUSD;
+        return MarketManager.load().zrsUsd;
     }
 
     // /**

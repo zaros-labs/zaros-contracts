@@ -81,7 +81,6 @@ library CollateralConfig {
          */
         uint256 liquidationReward;
         address oracle;
-        bytes32 oracleNodeId;
         /**
          * @dev The token address for this collateralType collateral.
          */
