@@ -19,7 +19,7 @@ library Market {
     /**
      * @dev Thrown when a specified market is not found.
      */
-    error MarketNotFound(uint128 marketId);
+    error Zaros_Market_MarketNotFound(address marketAddress);
 
     /// @dev Constant base domain used to access a given market's storage slot
     string internal constant MARKET_DOMAIN = "fi.zaros.core.Market";
@@ -41,6 +41,8 @@ library Market {
             market.slot := s
         }
     }
+
+    function create(address marketAddress) internal { }
 
     function getDebtPerCredit(Data storage self) internal view returns (SD59x18) {
         return sd59x18(self.lastDebtPerCredit).add(

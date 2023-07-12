@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Constants } from "../../utils/Constants.sol";
 import { CollateralConfig } from "./CollateralConfig.sol";
 import { Distribution } from "./Distribution.sol";
 import { Market } from "./Market.sol";
@@ -41,13 +42,14 @@ library MarketManager {
     error Zaros_MarketManager_MinDelegationTimeoutPending(uint32 timeRemaining);
 
     bytes32 private constant _MARKET_MANAGER_SLOT = keccak256(abi.encodePacked("fi.zaros.core.MarketManager"));
-    uint32 private constant MAX_MIN_DELEGATE_TIME = 30 days;
 
     struct Data {
         uint128 minLiquidityRatio;
-        uint128 totalMarketsWeights;
+        uint128 totalMarketsWeight;
         Distribution.Data vaultsDebtDistribution;
         int128 totalVaultDebts;
+        // TODO: check if this is the best place to store zrsUSD
+        address zrsUSD;
         MarketConfiguration.Data[] marketConfigurations;
         mapping(address => Vault.Data) vaults;
     }
@@ -151,8 +153,8 @@ library MarketManager {
     }
 
     function syncMarkets(Data storage self) internal {
-        UD60x18 totalMarketsWeights = ud60x18(self.totalMarketsWeights);
-        if (totalMarketsWeights.isZero()) {
+        UD60x18 totalMarketsWeight = ud60x18(self.totalMarketsWeight);
+        if (totalMarketsWeight.isZero()) {
             return;
         }
 
@@ -160,7 +162,7 @@ library MarketManager {
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
             MarketConfiguration.Data storage marketConfiguration = self.marketConfigurations[i];
             UD60x18 marketWeight = ud60x18(marketConfiguration.weight);
-            UD60x18 marketCreditCapacity = totalVaultsCreditCapacity.mul(marketWeight).div(totalMarketsWeights);
+            UD60x18 marketCreditCapacity = totalVaultsCreditCapacity.mul(marketWeight).div(totalMarketsWeight);
 
             Market.Data storage market = Market.load(marketConfiguration.marketAddress);
             market.distributeDebt();
@@ -210,7 +212,9 @@ library MarketManager {
             }
         }
 
-        return MAX_MIN_DELEGATE_TIME < requiredMinDelegateTime ? MAX_MIN_DELEGATE_TIME : requiredMinDelegateTime;
+        return Constants.MAX_MIN_DELEGATE_TIME < requiredMinDelegateTime
+            ? Constants.MAX_MIN_DELEGATE_TIME
+            : requiredMinDelegateTime;
     }
 
     /**
