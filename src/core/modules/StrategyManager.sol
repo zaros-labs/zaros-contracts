@@ -35,8 +35,8 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
     function mintZrsUsdToStrategy(address collateralType, uint256 amount) external override {
         Strategy.Data storage strategy = Strategy.load(collateralType);
         address strategyHandler = strategy.handler;
-        if (msg.sender != strategyHandler) {
-            revert Zaros_StrategyManagerModule_SenderNotStrategy(msg.sender, strategyHandler);
+        if (msg.sender != strategyHandler && msg.sender != owner()) {
+            revert Zaros_StrategyManagerModule_InvalidSender(msg.sender, strategyHandler);
         }
 
         IZarosUSD zrsUsd = IZarosUSD(MarketManager.load().zrsUsd);

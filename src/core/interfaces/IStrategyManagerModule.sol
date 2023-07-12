@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 interface IStrategyManagerModule {
-    error Zaros_StrategyManagerModule_SenderNotStrategy(address sender, address strategyHandler);
+    error Zaros_StrategyManagerModule_InvalidSender(address sender, address strategyHandler);
 
     error Zaros_StrategyManagerModule_StrategyNotRegistered(address collateralType);
 
