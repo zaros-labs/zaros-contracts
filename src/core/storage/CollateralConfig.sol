@@ -90,6 +90,7 @@ library CollateralConfig {
          * @dev The number of decimals of the collateralType collateral token.
          */
         uint8 decimals;
+        address strategy;
         /**
          * @dev Minimum amount that accounts can delegate to the vault.
          * Helps prevent spamming on the system.
@@ -140,6 +141,7 @@ library CollateralConfig {
         storedConfig.liquidationRatio = config.liquidationRatio;
         storedConfig.oracle = config.oracle;
         storedConfig.liquidationReward = config.liquidationReward;
+        storedConfig.strategy = config.strategy;
         storedConfig.minDelegation = config.minDelegation;
         storedConfig.depositingEnabled = config.depositingEnabled;
     }
