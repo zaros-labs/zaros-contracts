@@ -9,17 +9,21 @@ import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 import { IMarketManagerModule } from "../interfaces/IMarketManagerModule.sol";
 import { Market } from "../storage/Market.sol";
 import { MarketManager } from "../storage/MarketManager.sol";
+import { MarketConfiguration } from "../storage/MarketConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
+// TODO: implement fees
 contract MarketManagerModule is IMarketManagerModule, Ownable {
     using Market for Market.Data;
     using MarketManager for MarketManager.Data;
+    using SafeCast for uint256;
 
     bytes32 private constant _MARKET_FEATURE_FLAG = "registerMarket";
     bytes32 private constant _DEPOSIT_MARKET_FEATURE_FLAG = "depositMarketUsd";
@@ -151,7 +155,7 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
         return Market.load(marketAddress).minLiquidityRatio;
     }
 
-       /**
+    /**
      * @inheritdoc IMarketManagerModule
      */
     function setMinLiquidityRatio(address marketAddress, uint128 minLiquidityRatio) external override onlyOwner {
@@ -159,11 +163,23 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
 
         market.minLiquidityRatio = minLiquidityRatio;
 
-        emit SetMarketMinLiquidityRatio(marketAddress, minLiquidityRatio);
+        emit LogSetMinLiquidityRatio(marketAddress, minLiquidityRatio);
     }
 
-    /// @dev Still need to implement configuration checks e.g locked markets
+    /// @dev Still need to support scenarios when updating market configuratinos
+    /// and handle edge cases like locked markets
     function configureMarkets(MarketConfiguration.Data[] calldata marketConfigurations) external override onlyOwner {
+        MarketManager.Data storage marketManager = MarketManager.load();
+        marketManager.distributeDebtToVaults(address(0));
 
+        uint256 totalMarketsWeight = 0;
+        for (uint256 i = 0; i < marketConfigurations.length; i++) {
+            marketManager.marketConfigurations[i] = marketConfigurations[i];
+            totalMarketsWeight += marketConfigurations[i].weight;
+        }
+        marketManager.totalMarketsWeight = totalMarketsWeight.toUint128();
+        marketManager.syncMarkets();
+
+        emit LogConfigureMarkets(msg.sender, marketConfigurations);
     }
 }

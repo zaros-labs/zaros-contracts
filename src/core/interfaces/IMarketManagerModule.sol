@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.19;
 
+import { MarketConfiguration } from "../storage/MarketConfiguration.sol";
+
 /**
  * @title System-wide entry point for the management of markets connected to the system.
  */
@@ -48,7 +50,9 @@ interface IMarketManagerModule {
      * @param marketAddress The id of the market that the setting is applied to
      * @param minLiquidityRatio The new market-specific minimum liquidity ratio
      */
-    event SetMarketMinLiquidityRatio(address indexed marketAddress, uint256 minLiquidityRatio);
+    event LogSetMinLiquidityRatio(address indexed marketAddress, uint256 minLiquidityRatio);
+
+    event LogConfigureMarkets(address indexed sender, MarketConfiguration.Data[] marketConfigurations);
 
     // function depositMarketUsd(
     //     address marketAddress,
@@ -82,7 +86,9 @@ interface IMarketManagerModule {
 
     function getZarosUsd() external view returns (address);
 
+    function getMinLiquidityRatio(address marketAddress) external view returns (uint256 minRatio);
+
     function setMinLiquidityRatio(address marketAddress, uint128 minLiquidityRatio) external;
 
-    function getMinLiquidityRatio(address marketAddress) external view returns (uint256 minRatio);
+    function configureMarkets(MarketConfiguration.Data[] calldata marketConfigurations) external;
 }

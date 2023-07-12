@@ -45,7 +45,7 @@ library MarketManager {
 
     struct Data {
         uint128 minLiquidityRatio;
-        uint128 totalMarketsWeights;
+        uint128 totalMarketsWeight;
         Distribution.Data vaultsDebtDistribution;
         int128 totalVaultDebts;
         // TODO: check if this is the best place to store zrsUSD
@@ -153,8 +153,8 @@ library MarketManager {
     }
 
     function syncMarkets(Data storage self) internal {
-        UD60x18 totalMarketsWeights = ud60x18(self.totalMarketsWeights);
-        if (totalMarketsWeights.isZero()) {
+        UD60x18 totalMarketsWeight = ud60x18(self.totalMarketsWeight);
+        if (totalMarketsWeight.isZero()) {
             return;
         }
 
@@ -162,7 +162,7 @@ library MarketManager {
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
             MarketConfiguration.Data storage marketConfiguration = self.marketConfigurations[i];
             UD60x18 marketWeight = ud60x18(marketConfiguration.weight);
-            UD60x18 marketCreditCapacity = totalVaultsCreditCapacity.mul(marketWeight).div(totalMarketsWeights);
+            UD60x18 marketCreditCapacity = totalVaultsCreditCapacity.mul(marketWeight).div(totalMarketsWeight);
 
             Market.Data storage market = Market.load(marketConfiguration.marketAddress);
             market.distributeDebt();
