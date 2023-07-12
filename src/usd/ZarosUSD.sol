@@ -13,16 +13,18 @@ contract ZarosUSD is IZarosUSD, ERC20Permit, Ownable {
     constructor() ERC20("Zaros USD", "zrsUSD") ERC20Permit("Zaros USD") { }
 
     function mint(address to, uint256 amount) external onlyOwner {
-        if (amount == 0) {
-            revert ZarosUSD_ZeroAmount(to);
-        }
+        _requireAmountNotZero(amount);
         _mint(to, amount);
     }
 
     function burn(address from, uint256 amount) external onlyOwner {
-        if (amount == 0) {
-            revert ZarosUSD_ZeroAmount(from);
-        }
+        _requireAmountNotZero(amount);
         _burn(from, amount);
+    }
+
+    function _requireAmountNotZero(uint256 amount) private pure {
+        if (amount == 0) {
+            revert ZarosUSD_ZeroAmount();
+        }
     }
 }

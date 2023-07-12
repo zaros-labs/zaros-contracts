@@ -20,4 +20,8 @@ library Strategy {
         Data storage self = load(collateralType);
         self.handler = strategyHandler;
     }
+
+    function execute(Data storage self, uint256 amount, bytes memory data) internal { }
+
+    function withdraw(Data storage self, uint256 amount, bytes memory data) internal { }
 }
