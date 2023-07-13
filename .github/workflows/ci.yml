@@ -5,7 +5,7 @@ env:
   API_KEY_ETHERSCAN: ${{ secrets.API_KEY_ETHERSCAN }}
   API_KEY_INFURA: ${{ secrets.API_KEY_INFURA }}
   FOUNDRY_PROFILE: "ci"
-  MNEMONIC: ${{ secrets.MNEMONIC }}
+  PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
 
 on:
   workflow_dispatch:
