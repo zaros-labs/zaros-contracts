@@ -1,5 +1,5 @@
 forge-std/=lib/forge-std/src/
-src/=src/
+@zaros/=src/
 @balancer-labs=node_modules/@balancer-labs
 @solmate/=lib/solmate/src/
 @prb-math/=lib/prb-math/src/
