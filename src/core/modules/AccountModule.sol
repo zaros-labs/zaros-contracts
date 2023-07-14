@@ -52,7 +52,7 @@ contract AccountModule is IAccountModule {
     /**
      * @inheritdoc IAccountModule
      */
-    function createAccount() external override {
+    function createAccount() public override returns (uint128) {
         FeatureFlag.ensureAccessToFeature(_CREATE_ACCOUNT_FEATURE_FLAG);
         (uint128 accountId, IAccountTokenModule accountTokenModule) = SystemAccountConfiguration.onCreateAccount();
         accountTokenModule.mint(msg.sender, accountId);
@@ -60,6 +60,25 @@ contract AccountModule is IAccountModule {
         Account.create(accountId, msg.sender);
 
         emit LogCreateAccount(accountId, msg.sender);
+    }
+
+    function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results) {
+        uint128 accountId = createAccount();
+
+        results = new bytes[](data.length);
+        for (uint256 i = 0; i < data.length; i++) {
+            bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(accountId), data[i][4:]);
+            (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
+
+            if (!success) {
+                uint256 len = result.length;
+                assembly {
+                    revert(add(result, 0x20), len)
+                }
+            }
+
+            results[i] = result;
+        }
     }
 
     /**

@@ -72,7 +72,7 @@ interface IAccountModule {
         view
         returns (AccountPermissions[] memory accountPerms);
 
-    function createAccount() external;
+    function createAccount() external returns (uint128 accountId);
 
     /**
      * @notice Called by AccountTokenModule to notify the system when the account token is transferred.
