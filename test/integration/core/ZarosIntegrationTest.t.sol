@@ -30,8 +30,41 @@ contract ZarosIntegrationTest is Test {
     }
 
     function test_Integration_LpsCanDepositAndWithdraw() public {
-        // uint256 requestedAccountId = accountNft.zaros.createAccount();
-        // uint256 userAccountId = accountNft.tokenOfOwnerByIndex(users[0], 0);
-        // zaros.deposit(userAccountId, address(sFrxEth), 1e18);
+        uint256 amount = 100e18;
+        _createAccountDepositAndDelegate(address(sFrxEth), amount);
+        // Asserts that the Zaros account has the expected balance of sFrxEth
+        assertEq(sFrxEth.balanceOf(address(zaros)), amount);
+        // get account id of the user's first created account
+        // TODO: improve handling account id query
+        uint128 accountId = uint128(accountNft.tokenOfOwnerByIndex(users[0], 0));
+        _undelegateAndWithdraw(accountId, address(sFrxEth), amount);
+        assertEq(sFrxEth.balanceOf(address(zaros)), 0);
+    }
+
+    function _createAccountDepositAndDelegate(address collateralType, uint256 amount) internal {
+        bytes memory depositData = abi.encodeWithSelector(zaros.deposit.selector, collateralType, amount);
+        bytes memory delegateCollateralData =
+            abi.encodeWithSelector(zaros.delegateCollateral.selector, collateralType, amount);
+        bytes[] memory data = new bytes[](2);
+        data[0] = depositData;
+        data[1] = delegateCollateralData;
+
+        // Creates a new Zaros account and calls `deposit` and `delegateCollateral` in the same transaction
+        zaros.createAccountAndMulticall(data);
+    }
+
+    function _undelegateAndWithdraw(uint128 accountId, address collateralType, uint256 amount) internal {
+        (uint256 positionCollateralAmount, uint256 positionCollateralValue) =
+            zaros.getPositionCollateral(accountId, collateralType);
+        uint256 newAmount = positionCollateralAmount - amount;
+        bytes memory delegateCollateralData =
+            abi.encodeWithSelector(zaros.delegateCollateral.selector, accountId, address(sFrxEth), newAmount);
+        bytes memory withdrawData = abi.encodeWithSelector(zaros.withdraw.selector, accountId, address(sFrxEth), amount);
+        bytes[] memory data = new bytes[](2);
+        data[0] = delegateCollateralData;
+        data[1] = withdrawData;
+
+        // Undelegates and withdraws the given amount of sFrxEth
+        zaros.multicall(data);
     }
 }
