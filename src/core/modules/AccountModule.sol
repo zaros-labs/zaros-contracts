@@ -52,7 +52,7 @@ contract AccountModule is IAccountModule {
     /**
      * @inheritdoc IAccountModule
      */
-    function createAccount() external override {
+    function createAccount() public override returns (uint128) {
         FeatureFlag.ensureAccessToFeature(_CREATE_ACCOUNT_FEATURE_FLAG);
         (uint128 accountId, IAccountTokenModule accountTokenModule) = SystemAccountConfiguration.onCreateAccount();
         accountTokenModule.mint(msg.sender, accountId);
@@ -61,6 +61,8 @@ contract AccountModule is IAccountModule {
 
         emit LogCreateAccount(accountId, msg.sender);
     }
+
+    // function createAccountAndCall()
 
     /**
      * @inheritdoc IAccountModule

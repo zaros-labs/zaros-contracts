@@ -1,6 +1,7 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+// Forge dependencies
 import { Script } from "forge-std/Script.sol";
 
 abstract contract BaseScript is Script {
