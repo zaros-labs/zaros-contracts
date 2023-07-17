@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
-import { MockERC20 } from "@zaros/mocks/MockERC20.sol";
+import { MockERC20 } from "..../../test/mocks/MockERC20.sol";
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";

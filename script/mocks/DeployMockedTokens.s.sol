@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { BaseScript } from "../Base.s.sol";
-import { MockERC20 } from "@zaros/mocks/MockERC20.sol";
+import { MockERC20 } from "../../test/mocks/MockERC20.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract Deploy is BaseScript {
