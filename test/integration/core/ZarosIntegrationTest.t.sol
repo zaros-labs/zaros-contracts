@@ -30,6 +30,7 @@ contract ZarosIntegrationTest is Test {
     uint256 public constant usdcLiquidationRatio = 110e18;
     uint256 public constant liquidationRewardRatio = 0.05e18;
 
+    // TODO: create MockChainlinkOracle
     function setUp() public {
         startHoax(deployer);
 
