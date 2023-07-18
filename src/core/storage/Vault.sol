@@ -35,9 +35,6 @@ library Vault {
     using ScalableMapping for ScalableMapping.Data;
     using VaultEpoch for VaultEpoch.Data;
 
-    /// @dev Constant base domain used to access a given vault's storage slot
-    string internal constant VAULT_DOMAIN = "fi.zaros.core.Vault";
-
     /**
      * @dev Thrown when a non-existent reward distributor is referenced
      */
@@ -49,13 +46,6 @@ library Vault {
         mapping(uint256 => VaultEpoch.Data) epochData;
         mapping(bytes32 => RewardDistribution.Data) rewards;
         EnumerableSet.Bytes32Set rewardIds;
-    }
-
-    function load(address collateralType) internal pure returns (Data storage vault) {
-        bytes32 s = keccak256(abi.encode(VAULT_DOMAIN, collateralType));
-        assembly {
-            vault.slot := s
-        }
     }
 
     /**
