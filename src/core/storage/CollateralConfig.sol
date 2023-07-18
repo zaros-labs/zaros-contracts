@@ -62,38 +62,13 @@ library CollateralConfig {
     error Zaros_CollateralConfig_PrecisionLost(uint256 tokenAmount, uint8 decimals);
 
     struct Data {
-        /**
-         * @dev Allows the owner to control deposits and delegation of collateral types.
-         */
         bool depositingEnabled;
-        /**
-         * @dev System-wide collateralization ratio for issuance of zrsUSD.
-         * Accounts will not be able to mint zrsUSD if they are below this issuance c-ratio.
-         */
         uint256 issuanceRatio;
-        /**
-         * @dev System-wide collateralization ratio for liquidations of this collateral type.
-         * Accounts below this c-ratio can be immediately liquidated.
-         */
         uint256 liquidationRatio;
-        /**
-         * @dev Amount of tokens to award when an account is liquidated.
-         */
-        uint256 liquidationReward;
+        uint256 liquidationRewardRatio;
         address oracle;
-        /**
-         * @dev The token address for this collateralType collateral.
-         */
         address tokenAddress;
-        /**
-         * @dev The number of decimals of the collateralType collateral token.
-         */
         uint8 decimals;
-        /**
-         * @dev Minimum amount that accounts can delegate to the vault.
-         * Helps prevent spamming on the system.
-         * Note: If zero, liquidationReward will be used.
-         */
         uint256 minDelegation;
     }
 
@@ -138,7 +113,7 @@ library CollateralConfig {
         storedConfig.issuanceRatio = config.issuanceRatio;
         storedConfig.liquidationRatio = config.liquidationRatio;
         storedConfig.oracle = config.oracle;
-        storedConfig.liquidationReward = config.liquidationReward;
+        storedConfig.liquidationRewardRatio = config.liquidationRewardRatio;
         storedConfig.minDelegation = config.minDelegation;
         storedConfig.depositingEnabled = config.depositingEnabled;
     }
@@ -162,10 +137,6 @@ library CollateralConfig {
         CollateralConfig.Data storage config = load(token);
 
         UD60x18 minDelegation = ud60x18(config.minDelegation);
-
-        if (minDelegation.eq(UD_ZERO)) {
-            minDelegation = ud60x18(config.liquidationReward);
-        }
 
         if (amount.lt(minDelegation)) {
             revert Zaros_CollateralConfig_InsufficientDelegation(minDelegation.intoUint256());
