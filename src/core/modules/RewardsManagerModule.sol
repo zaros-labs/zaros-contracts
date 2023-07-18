@@ -38,7 +38,7 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
 
     bytes32 private constant _CLAIM_FEATURE_FLAG = "claimRewards";
 
-    function registerRewardsDistributor(address collateralType, address distributor) external override onlyOwner {
+    function registerRewardDistributor(address collateralType, address distributor) external override onlyOwner {
         Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         EnumerableSet.Bytes32Set storage rewardIds = vault.rewardIds;
 

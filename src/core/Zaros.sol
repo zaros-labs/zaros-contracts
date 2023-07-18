@@ -20,6 +20,7 @@ contract Zaros is
     CollateralModule,
     MulticallModule,
     MarketManagerModule,
+    RewardsManagerModule,
     StrategyManagerModule,
     VaultModule
 {

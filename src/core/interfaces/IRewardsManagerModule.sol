@@ -23,7 +23,7 @@ interface IRewardsManagerModule {
 
     event LogRemoveRewardsDistributor(address indexed collateralType, address indexed distributor);
 
-    function registerRewardsDistributor(address collateralType, address distributor) external;
+    function registerRewardDistributor(address collateralType, address distributor) external;
 
     function removeRewardsDistributor(address collateralType, address distributor) external;
 

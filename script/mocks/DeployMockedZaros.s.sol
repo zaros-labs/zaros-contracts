@@ -7,6 +7,7 @@ import { MockERC20 } from "../../test/mocks/MockERC20.sol";
 import { MockZarosUSD } from "../../test/mocks/MockZarosUSD.sol";
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
+import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract DeployMockedZaros is BaseScript {
@@ -16,6 +17,12 @@ contract DeployMockedZaros is BaseScript {
         MockZarosUSD zrsUsd = new MockZarosUSD(100_000_000e18);
         AccountNFT accountNft = new AccountNFT();
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
+        RewardDistributor sFrxEthRewardDistributor =
+            new RewardDistributor(address(zaros), address(zrsUsd), "sfrxETH Vault zrsUSD Distributor");
+        RewardDistributor usdcRewardDistributor =
+            new RewardDistributor(address(zaros), address(zrsUsd), "USDC Vault zrsUSD Distributor");
+        zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
+        zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));
 
         sFrxEth.mint(deployer, 100_000_000e18);
         usdc.mint(deployer, 100_000_000e6);
