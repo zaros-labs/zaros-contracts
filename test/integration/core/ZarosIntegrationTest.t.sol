@@ -20,7 +20,7 @@ contract ZarosIntegrationTest is Test {
     function setUp() public {
         startHoax(users[0]);
         accountNft = new AccountNFT();
-        zaros = new Zaros(address(accountNft));
+        zaros = new Zaros(address(accountNft), address(0));
         accountNft.transferOwnership(address(zaros));
         sFrxEth = new MockERC20("Staked Frax Ether", "sfrxETH", 18);
         usdc = new MockERC20("USD Coin", "USDC", 6);

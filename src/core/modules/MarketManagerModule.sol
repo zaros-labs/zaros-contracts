@@ -182,4 +182,8 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
 
         emit LogConfigureMarkets(msg.sender, marketConfigurations);
     }
+
+    function __MarketManagerModule_init(address zrsUsd) internal {
+        MarketManager.load().zrsUsd = zrsUsd;
+    }
 }
