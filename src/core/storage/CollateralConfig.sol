@@ -69,6 +69,7 @@ library CollateralConfig {
         address oracle;
         address tokenAddress;
         uint8 decimals;
+        /// @dev Minimum amount of collateral that can be delegated to the market manager
         uint256 minDelegation;
     }
 

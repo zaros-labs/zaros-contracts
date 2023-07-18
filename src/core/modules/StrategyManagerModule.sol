@@ -21,6 +21,8 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
     using MarketManager for MarketManager.Data;
     using Strategy for Strategy.Data;
 
+    bytes32 private constant _STRATEGY_FEATURE_FLAG = "registerStrategy";
+
     function getStrategy(address collateralType) external view override returns (address strategy) {
         return Strategy.load(collateralType).handler;
     }

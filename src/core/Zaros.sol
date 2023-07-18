@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { FeatureFlagModule } from "@zaros/utils/modules/FeatureFlagModule.sol";
 import { AccountModule } from "./modules/AccountModule.sol";
 import { CollateralModule } from "./modules/CollateralModule.sol";
 import { MarketManagerModule } from "./modules/MarketManagerModule.sol";
@@ -16,6 +17,7 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
 contract Zaros is
     Ownable,
+    FeatureFlagModule,
     AccountModule,
     CollateralModule,
     MulticallModule,

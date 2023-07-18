@@ -5,6 +5,7 @@ pragma solidity 0.8.19;
 import { BaseScript } from "../Base.s.sol";
 import { MockERC20 } from "../../test/mocks/MockERC20.sol";
 import { MockZarosUSD } from "../../test/mocks/MockZarosUSD.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
@@ -30,7 +31,7 @@ contract DeployMockedZaros is BaseScript {
             new RewardDistributor(address(zaros), address(zrsUsd), "USDC Vault zrsUSD Distributor");
         zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
         zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));
-        CollateralConfig.Data memory collateralConfig = CollateralConfig.Data({
+        CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
             issuanceRatio: sFrxEthIssuanceRatio,
             liquidationRatio: sFrxEthLiquidationRatio,
@@ -39,10 +40,33 @@ contract DeployMockedZaros is BaseScript {
             oracle: address(0),
             tokenAddress: address(sFrxEth),
             decimals: 18,
-            minDelegation: 0.1e18
+            minDelegation: 0.5e18
         });
-        zaros.configureCollateral(collateralConfig);
+        CollateralConfig.Data memory usdcCollateralConfig = CollateralConfig.Data({
+            depositingEnabled: true,
+            issuanceRatio: sFrxEthIssuanceRatio,
+            liquidationRatio: sFrxEthLiquidationRatio,
+            liquidationRewardRatio: liquidationRewardRatio,
+            // TODO: update this
+            oracle: address(0),
+            tokenAddress: address(usdc),
+            decimals: 6,
+            minDelegation: 1000e18
+        });
+        zaros.configureCollateral(sFrxEthCollateralConfig);
+        zaros.configureCollateral(usdcCollateralConfig);
         // TODO: configure markets
+
+        // Enable Zaros' general features
+        zaros.setFeatureFlagAllowAll(Constants.CREATE_ACCOUNT_FEATURE_FLAG, true);
+        zaros.setFeatureFlagAllowAll(Constants.DEPOSIT_FEATURE_FLAG, true);
+        zaros.setFeatureFlagAllowAll(Constants.WITHDRAW_FEATURE_FLAG, true);
+        zaros.setFeatureFlagAllowAll(Constants.CLAIM_FEATURE_FLAG, true);
+        zaros.setFeatureFlagAllowAll(Constants.DELEGATE_FEATURE_FLAG, true);
+
+        // Enable Zaros' permissioned features
+        zaros.addToFeatureFlagAllowlist(Constants.MARKET_FEATURE_FLAG, deployer);
+        zaros.addToFeatureFlagAllowlist(Constants.STRATEGY_FEATURE_FLAG, deployer);
 
         sFrxEth.mint(deployer, 100_000_000e18);
         usdc.mint(deployer, 100_000_000e6);
