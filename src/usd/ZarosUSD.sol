@@ -3,21 +3,28 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { FeatureFlagModule } from "@zaros/utils/modules/FeatureFlagModule.sol";
+import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
 import { IZarosUSD } from "./interfaces/IZarosUSD.sol";
 
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { ERC20, ERC20Permit } from "@openzeppelin/token/ERC20/extensions/ERC20Permit.sol";
 
-contract ZarosUSD is IZarosUSD, ERC20Permit, Ownable {
+contract ZarosUSD is IZarosUSD, ERC20Permit, Ownable, FeatureFlagModule {
+    bytes32 private constant _BURN_FEATURE_FLAG = "burn";
+    bytes32 private constant _MINT_FEATURE_FLAG = "mint";
+
     constructor() ERC20("Zaros USD", "zrsUSD") ERC20Permit("Zaros USD") { }
 
-    function mint(address to, uint256 amount) external onlyOwner {
+    function mint(address to, uint256 amount) external {
+        FeatureFlag.ensureAccessToFeature(_MINT_FEATURE_FLAG);
         _requireAmountNotZero(amount);
         _mint(to, amount);
     }
 
-    function burn(address from, uint256 amount) external onlyOwner {
+    function burn(address from, uint256 amount) external {
+        FeatureFlag.ensureAccessToFeature(_BURN_FEATURE_FLAG);
         _requireAmountNotZero(amount);
         _burn(from, amount);
     }
