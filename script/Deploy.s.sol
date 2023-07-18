@@ -11,7 +11,7 @@ import { ZarosUSD } from "@zaros/usd/ZarosUSD.sol";
 contract Deploy is BaseScript {
     function run() public broadcaster returns (address, address) {
         AccountNFT accountNft = new AccountNFT();
-            ZarosUSD zrsUsd = new ZarosUSD();
+        ZarosUSD zrsUsd = new ZarosUSD();
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
 
         return (address(accountNft), address(zaros));
