@@ -29,10 +29,6 @@ library RewardDistribution {
          */
         IRewardDistributor distributor;
         /**
-         * @dev Available slot.
-         */
-        uint128 __slotAvailableForFutureUse;
-        /**
          * @dev The value of the rewards in this entry.
          */
         uint128 rewardPerShare;
