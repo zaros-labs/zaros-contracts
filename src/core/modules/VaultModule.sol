@@ -141,6 +141,7 @@ contract VaultModule is IVaultModule {
 
         Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         vault.updateRewards(accountId);
+
         UD60x18 currentCollateralAmount = vault.currentAccountCollateral(accountId);
 
         if (amount.eq(currentCollateralAmount)) {

@@ -98,14 +98,14 @@ library Vault {
 
         uint256 numRewards = self.rewardIds.length();
         for (uint256 i = 0; i < numRewards; i++) {
-            RewardDistribution.Data storage dist = self.rewards[self.rewardIds.at(i + 1)];
+            RewardDistribution.Data storage dist = self.rewards[self.rewardIds.at(i)];
 
             if (address(dist.distributor) == address(0)) {
                 continue;
             }
 
             distributors[i] = address(dist.distributor);
-            rewards[i] = updateReward(self, accountId, self.rewardIds.at(i + 1));
+            rewards[i] = updateReward(self, accountId, self.rewardIds.at(i));
         }
     }
 

@@ -34,7 +34,7 @@ library SystemAccountConfiguration {
 
     function onCreateAccount() internal returns (uint128 accountId, IAccountTokenModule accountTokenModule) {
         Data storage self = load();
-        accountId = self.nextAccountId++;
+        accountId = ++self.nextAccountId;
         accountTokenModule = IAccountTokenModule(self.accountToken);
     }
 }
