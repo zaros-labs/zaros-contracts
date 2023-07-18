@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { ParameterError } from "../../utils/Errors.sol";
-import { IRewardDistributor } from "../interfaces/external/IRewardDistributor.sol";
+import { IRewardDistributor } from "@zaros/reward-distributor/interfaces/IRewardDistributor.sol";
 import { Distribution } from "./Distribution.sol";
 import { RewardDistributionClaimStatus } from "./RewardDistributionClaimStatus.sol";
 

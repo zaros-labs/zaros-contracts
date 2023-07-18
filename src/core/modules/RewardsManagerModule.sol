@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IRewardDistributor } from "../interfaces/external/IRewardDistributor.sol";
+import { IRewardDistributor } from "@zaros/reward-distributor/interfaces/IRewardDistributor.sol";
 import { IRewardsManagerModule } from "../interfaces/IRewardsManagerModule.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
