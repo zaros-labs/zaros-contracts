@@ -139,7 +139,7 @@ contract VaultModule is IVaultModule {
             CollateralConfig.requireSufficientDelegation(collateralType, amount);
         }
 
-        Vault.Data storage vault = Vault.load(collateralType);
+        Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         vault.updateRewards(accountId);
         UD60x18 currentCollateralAmount = vault.currentAccountCollateral(accountId);
 
@@ -183,7 +183,7 @@ contract VaultModule is IVaultModule {
         returns (UD60x18 collateralPrice)
     {
         MarketManager.Data storage marketManager = MarketManager.load();
-        Vault.Data storage vault = Vault.load(collateralType);
+        Vault.Data storage vault = MarketManager.load().vaults[collateralType];
 
         // Trigger an update in the debt distribution chain to make sure that
         // the user's debt is up to date.

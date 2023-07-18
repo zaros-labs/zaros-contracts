@@ -23,11 +23,7 @@ interface IRewardsManagerModule {
      * @param duration The time in which all of the distributed rewards will be claimable.
      */
     event LogDistributeRewards(
-        address indexed collateralType,
-        address distributor,
-        uint256 amount,
-        uint256 start,
-        uint256 duration
+        address indexed collateralType, address distributor, uint256 amount, uint256 start, uint256 duration
     );
 
     /**
@@ -38,10 +34,7 @@ interface IRewardsManagerModule {
      * @param amount The amount of rewards that were claimed.
      */
     event LogClaimRewards(
-        uint128 indexed accountId,
-        address indexed collateralType,
-        address distributor,
-        uint256 amount
+        uint128 indexed accountId, address indexed collateralType, address distributor, uint256 amount
     );
 
     /**
@@ -49,30 +42,21 @@ interface IRewardsManagerModule {
      * @param collateralType The address of the collateral used in the pool's rewards.
      * @param distributor The address of the newly registered reward distributor.
      */
-    event LogRegisterRewardsDistributor(
-        address indexed collateralType,
-        address indexed distributor
-    );
+    event LogRegisterRewardsDistributor(address indexed collateralType, address indexed distributor);
 
     /**
      * @notice Emitted when an already registered rewards distributor is removed.
      * @param collateralType The address of the collateral used in the pool's rewards.
      * @param distributor The address of the registered reward distributor.
      */
-    event LogRemoveRewardsDistributor(
-        address indexed collateralType,
-        address indexed distributor
-    );
+    event LogRemoveRewardsDistributor(address indexed collateralType, address indexed distributor);
 
     /**
      * @notice Called by pool owner to register rewards for vault participants.
      * @param collateralType The address of the collateral used in the pool's rewards.
      * @param distributor The address of the reward distributor to be registered.
      */
-    function registerRewardsDistributor(
-        address collateralType,
-        address distributor
-    ) external;
+    function registerRewardsDistributor(address collateralType, address distributor) external;
 
     /**
      * @notice Called by pool owner to remove a registered rewards distributor for vault participants.
@@ -87,10 +71,7 @@ interface IRewardsManagerModule {
      * @param collateralType The address of the collateral used in the pool's rewards.
      * @param distributor The address of the reward distributor to be registered.
      */
-    function removeRewardsDistributor(
-        address collateralType,
-        address distributor
-    ) external;
+    function removeRewardsDistributor(address collateralType, address distributor) external;
 
     /**
      * @notice Called by a registered distributor to set up rewards for vault participants.
@@ -100,12 +81,7 @@ interface IRewardsManagerModule {
      * @param start The date at which the rewards will begin to be claimable.
      * @param duration The period after which all distributed rewards will be claimable.
      */
-    function distributeRewards(
-        address collateralType,
-        uint256 amount,
-        uint64 start,
-        uint32 duration
-    ) external;
+    function distributeRewards(address collateralType, uint256 amount, uint64 start, uint32 duration) external;
 
     /**
      * @notice Allows a user with appropriate permissions to claim rewards associated with a position.
@@ -118,28 +94,31 @@ interface IRewardsManagerModule {
         uint128 accountId,
         address collateralType,
         address distributor
-    ) external returns (uint256 amountClaimedD18);
+    )
+        external
+        returns (uint256 amountClaimedD18);
 
     /**
      * @notice For a given position, return the rewards that can currently be claimed.
      * @param collateralType The address of the collateral used in the pool's rewards.
      * @param accountId The id of the account whose available rewards are being queried.
      * @return claimableD18 An array of ids of the reward entries that are claimable by the position.
-     * @return distributors An array with the addresses of the reward distributors associated with the claimable rewards.
+     * @return distributors An array with the addresses of the reward distributors associated with the claimable
+     * rewards.
      */
     function updateRewards(
         address collateralType,
         uint128 accountId
-    ) external returns (uint256[] memory claimableD18, address[] memory distributors);
+    )
+        external
+        returns (uint256[] memory claimableD18, address[] memory distributors);
 
     /**
-     * @notice Returns the number of individual units of amount emitted per second per share for the given collateralType and distributor.
+     * @notice Returns the number of individual units of amount emitted per second per share for the given
+     * collateralType and distributor.
      * @param collateralType The address of the collateral used in the pool's rewards.
      * @param distributor The address of the rewards distributor associated with the rewards in question.
      * @return rateD18 The queried rewards rate.
      */
-    function getRewardRate(
-        address collateralType,
-        address distributor
-    ) external view returns (uint256 rateD18);
+    function getRewardRate(address collateralType, address distributor) external view returns (uint256 rateD18);
 }

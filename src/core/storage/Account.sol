@@ -124,7 +124,7 @@ library Account {
      * collateral type.
      */
     function getAssignedCollateral(Data storage self, address collateralType) internal view returns (UD60x18) {
-        Vault.Data storage vault = Vault.load(collateralType);
+        Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         UD60x18 assignedCollateral = vault.currentAccountCollateral(self.id);
 
         return assignedCollateral;
