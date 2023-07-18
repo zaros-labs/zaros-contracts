@@ -60,6 +60,7 @@ contract AccountModule is IAccountModule {
         Account.create(accountId, msg.sender);
 
         emit LogCreateAccount(accountId, msg.sender);
+        return accountId;
     }
 
     function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results) {

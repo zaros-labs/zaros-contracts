@@ -51,7 +51,7 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
         return Market.load(marketAddress).totalDebt().intoInt256();
     }
 
-    function getMarketDebtPerCredit(address marketAddress) external override returns (int256) {
+    function getMarketDebtPerCredit(address marketAddress) external view override returns (int256) {
         Market.Data storage market = Market.load(marketAddress);
 
         return market.getDebtPerCredit().intoInt256();
