@@ -25,12 +25,18 @@ contract DeployMockedZaros is BaseScript {
         MockZarosUSD zrsUsd = new MockZarosUSD(100_000_000e18);
         AccountNFT accountNft = new AccountNFT();
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
+
+        zrsUsd.transferOwnership(address(zaros));
+        accountNft.transferOwnership(address(zaros));
+
         RewardDistributor sFrxEthRewardDistributor =
             new RewardDistributor(address(zaros), address(zrsUsd), "sfrxETH Vault zrsUSD Distributor");
         RewardDistributor usdcRewardDistributor =
             new RewardDistributor(address(zaros), address(zrsUsd), "USDC Vault zrsUSD Distributor");
+
         zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
         zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));
+
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
             issuanceRatio: sFrxEthIssuanceRatio,
@@ -44,8 +50,8 @@ contract DeployMockedZaros is BaseScript {
         });
         CollateralConfig.Data memory usdcCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
-            issuanceRatio: sFrxEthIssuanceRatio,
-            liquidationRatio: sFrxEthLiquidationRatio,
+            issuanceRatio: usdcIssuanceRatio,
+            liquidationRatio: usdcIssuanceRatio,
             liquidationRewardRatio: liquidationRewardRatio,
             // TODO: update this
             oracle: address(0),
@@ -53,8 +59,10 @@ contract DeployMockedZaros is BaseScript {
             decimals: 6,
             minDelegation: 1000e18
         });
+
         zaros.configureCollateral(sFrxEthCollateralConfig);
         zaros.configureCollateral(usdcCollateralConfig);
+
         // TODO: configure markets
 
         // Enable Zaros' general features
