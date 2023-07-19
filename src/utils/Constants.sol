@@ -16,6 +16,8 @@ library Constants {
     bytes32 internal constant WITHDRAW_FEATURE_FLAG = "withdraw";
     bytes32 internal constant CLAIM_FEATURE_FLAG = "claimRewards";
     bytes32 internal constant DELEGATE_FEATURE_FLAG = "delegateCollateral";
+    bytes32 internal constant LIQUIDATE_FEATURE_FLAG = "liquidate";
+    bytes32 internal constant LIQUIDATE_VAULT_FEATURE_FLAG = "liquidateVault";
 
     /// @dev Permissioned fetures
     bytes32 internal constant MARKET_FEATURE_FLAG = "configureMarkets";
