@@ -4,6 +4,9 @@ pragma solidity 0.8.19;
 
 // TODO: use feature flag constants from here
 library Constants {
+    /// @dev Protocl wide standard decimals
+    uint8 internal constant DECIMALS = 18;
+    /// @dev Maximum minimum delegation time to markets
     uint32 internal constant MAX_MIN_DELEGATE_TIME = 30 days;
 
     /// @dev All users features

@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Constants } from "@zaros/utils/Constants.sol";
 import { IAggregatorV3 } from "../interfaces/external/chainlink/IAggregatorV3.sol";
 
 // Open Zeppelin dependencies
@@ -10,7 +11,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, uUNIT, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 
 /**
  * @title Tracks system-wide settings for each collateral type, as well as helper functions for it, such as retrieving
@@ -149,9 +150,10 @@ library CollateralConfig {
         IAggregatorV3 oracle = IAggregatorV3(self.oracle);
         uint8 decimals = oracle.decimals();
         (, int256 answer,,,) = oracle.latestRoundData();
+
         // should panic if decimals > 18
-        assert(decimals <= uUNIT);
-        UD60x18 price = ud60x18(answer.toUint256() * 10 ** (uUNIT - decimals));
+        assert(decimals <= Constants.DECIMALS);
+        UD60x18 price = ud60x18(answer.toUint256() * 10 ** (Constants.DECIMALS - decimals));
 
         return price;
     }
@@ -190,12 +192,12 @@ library CollateralConfig {
             revert Zaros_CollateralConfig_CollateralNotFound();
         }
 
-        if (self.decimals == uUNIT) {
+        if (self.decimals == Constants.DECIMALS) {
             wad = ud60x18(tokenAmount);
-        } else if (self.decimals < uUNIT) {
+        } else if (self.decimals < Constants.DECIMALS) {
             uint256 scalar;
             unchecked {
-                scalar = uUNIT - self.decimals;
+                scalar = Constants.DECIMALS - self.decimals;
             }
             wad = ud60x18(tokenAmount * scalar);
         }
