@@ -2,17 +2,18 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { BaseScript } from "../Base.s.sol";
-import { MockERC20 } from "../../test/mocks/MockERC20.sol";
-import { MockZarosUSD } from "../../test/mocks/MockZarosUSD.sol";
+import { BaseScript } from "./Base.s.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
+import { ZarosUSD } from "@zaros/usd/ZarosUSD.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
 
-/// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
-contract DeployMockedZaros is BaseScript {
+// Open Zeppelin dependencies
+import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+
+contract DeployZaros is BaseScript {
     uint256 public constant SFRXETH_ISSUANCE_RATIO = 200e18;
     uint256 public constant USDC_ISSUANCE_RATIO = 150e18;
     uint256 public constant SFRXETH_LIQUIDATION_RATIO = 150e18;
@@ -24,11 +25,11 @@ contract DeployMockedZaros is BaseScript {
     function run()
         public
         broadcaster
-        returns (MockERC20, MockERC20, MockZarosUSD, AccountNFT, Zaros, RewardDistributor, RewardDistributor)
+        returns (IERC20, IERC20, ZarosUSD, AccountNFT, Zaros, RewardDistributor, RewardDistributor)
     {
-        MockERC20 sFrxEth = new MockERC20("Staked Frax Ether", "sfrxETH", 18);
-        MockERC20 usdc = new MockERC20("USD Coin", "USDC", 6);
-        MockZarosUSD zrsUsd = new MockZarosUSD(100_000_000e18);
+        IERC20 sFrxEth = IERC20(vm.envAddress("SFRXETH"));
+        IERC20 usdc = IERC20(vm.envAddress("USDC"));
+        ZarosUSD zrsUsd = ZarosUSD(vm.envAddress("ZRSUSD"));
         AccountNFT accountNft = new AccountNFT();
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
         ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
@@ -81,9 +82,6 @@ contract DeployMockedZaros is BaseScript {
         // Enable Zaros' permissioned features
         zaros.addToFeatureFlagAllowlist(Constants.MARKET_FEATURE_FLAG, deployer);
         zaros.addToFeatureFlagAllowlist(Constants.STRATEGY_FEATURE_FLAG, deployer);
-
-        sFrxEth.mint(deployer, 100_000_000e18);
-        usdc.mint(deployer, 100_000_000e6);
 
         return (sFrxEth, usdc, zrsUsd, accountNft, zaros, sFrxEthRewardDistributor, usdcRewardDistributor);
     }
