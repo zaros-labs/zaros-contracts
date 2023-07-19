@@ -8,7 +8,7 @@ import { BaseScript } from "../Base.s.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
-contract Deploy is BaseScript {
+contract DisperseTokens is BaseScript {
     function run() public broadcaster {
         IERC20 token = IERC20(address(uint160(0x0Aaed628D7D1B81D0a784dc50ce5969a8045705a)));
 

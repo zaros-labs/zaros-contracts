@@ -25,9 +25,7 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     using MarketManager for MarketManager.Data;
     using SafeCast for uint256;
 
-    bytes32 private constant _MARKET_FEATURE_FLAG = "registerMarket";
-    bytes32 private constant _DEPOSIT_MARKET_FEATURE_FLAG = "depositMarketUsd";
-    bytes32 private constant _WITHDRAW_MARKET_FEATURE_FLAG = "withdrawMarketUsd";
+    bytes32 private constant _MARKET_FEATURE_FLAG = "configureMarkets";
 
     function getWithdrawableMarketUsd(address marketAddress) public view override returns (uint256) {
         return ud60x18(Market.load(marketAddress).creditCapacity).add(
@@ -51,7 +49,7 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
         return Market.load(marketAddress).totalDebt().intoInt256();
     }
 
-    function getMarketDebtPerCredit(address marketAddress) external override returns (int256) {
+    function getMarketDebtPerCredit(address marketAddress) external view override returns (int256) {
         Market.Data storage market = Market.load(marketAddress);
 
         return market.getDebtPerCredit().intoInt256();
@@ -181,5 +179,9 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
         marketManager.syncMarkets();
 
         emit LogConfigureMarkets(msg.sender, marketConfigurations);
+    }
+
+    function __MarketManagerModule_init(address zrsUsd) internal {
+        MarketManager.load().zrsUsd = zrsUsd;
     }
 }

@@ -5,6 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { AccountRBAC } from "../storage/AccountRBAC.sol";
 import { Collateral } from "../storage/Collateral.sol";
+import { MarketManager } from "../storage/MarketManager.sol";
 import { Vault } from "../storage/Vault.sol";
 
 // Open Zeppelin dependencies
@@ -124,7 +125,7 @@ library Account {
      * collateral type.
      */
     function getAssignedCollateral(Data storage self, address collateralType) internal view returns (UD60x18) {
-        Vault.Data storage vault = Vault.load(collateralType);
+        Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         UD60x18 assignedCollateral = vault.currentAccountCollateral(self.id);
 
         return assignedCollateral;

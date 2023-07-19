@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { ParameterError } from "../../utils/Errors.sol";
-import { IRewardDistributor } from "../interfaces/external/IRewardDistributor.sol";
+import { IRewardDistributor } from "@zaros/reward-distributor/interfaces/IRewardDistributor.sol";
 import { Distribution } from "./Distribution.sol";
 import { RewardDistributionClaimStatus } from "./RewardDistributionClaimStatus.sol";
 
@@ -28,10 +28,6 @@ library RewardDistribution {
          * @dev The 3rd party smart contract which holds/mints tokens for distributing rewards to vault participants.
          */
         IRewardDistributor distributor;
-        /**
-         * @dev Available slot.
-         */
-        uint128 __slotAvailableForFutureUse;
         /**
          * @dev The value of the rewards in this entry.
          */

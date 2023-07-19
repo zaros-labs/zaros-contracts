@@ -41,14 +41,13 @@ library MarketManager {
      */
     error Zaros_MarketManager_MinDelegationTimeoutPending(uint32 timeRemaining);
 
-    bytes32 private constant _MARKET_MANAGER_SLOT = keccak256(abi.encodePacked("fi.zaros.core.MarketManager"));
+    bytes32 private constant _MARKET_MANAGER_SLOT = keccak256(abi.encode("fi.zaros.core.MarketManager"));
 
     struct Data {
         uint128 minLiquidityRatio;
         uint128 totalMarketsWeight;
         Distribution.Data vaultsDebtDistribution;
         int128 totalVaultDebts;
-        // TODO: check if this is the best place to store zrsUSD
         address zrsUsd;
         MarketConfiguration.Data[] marketConfigurations;
         mapping(address => Vault.Data) vaults;

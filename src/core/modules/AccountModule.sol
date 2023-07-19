@@ -60,6 +60,7 @@ contract AccountModule is IAccountModule {
         Account.create(accountId, msg.sender);
 
         emit LogCreateAccount(accountId, msg.sender);
+        return accountId;
     }
 
     function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results) {
@@ -167,8 +168,6 @@ contract AccountModule is IAccountModule {
     /**
      * @dev Reverts if the caller is not the account token managed by this module.
      */
-    // Note: Disabling Solidity warning, not sure why it suggests pure mutability.
-    // solc-ignore-next-line func-mutability
     function _onlyAccountToken() internal view {
         if (msg.sender != address(getAccountTokenAddress())) {
             revert Zaros_AccountModule_OnlyAccountTokenProxy(msg.sender);

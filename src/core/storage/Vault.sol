@@ -35,9 +35,6 @@ library Vault {
     using ScalableMapping for ScalableMapping.Data;
     using VaultEpoch for VaultEpoch.Data;
 
-    /// @dev Constant base domain used to access a given vault's storage slot
-    string internal constant VAULT_DOMAIN = "fi.zaros.core.Vault";
-
     /**
      * @dev Thrown when a non-existent reward distributor is referenced
      */
@@ -49,13 +46,6 @@ library Vault {
         mapping(uint256 => VaultEpoch.Data) epochData;
         mapping(bytes32 => RewardDistribution.Data) rewards;
         EnumerableSet.Bytes32Set rewardIds;
-    }
-
-    function load(address collateralType) internal pure returns (Data storage vault) {
-        bytes32 s = keccak256(abi.encode(VAULT_DOMAIN, collateralType));
-        assembly {
-            vault.slot := s
-        }
     }
 
     /**
@@ -101,21 +91,21 @@ library Vault {
         uint128 accountId
     )
         internal
-        returns (uint256[] memory rewards, address[] memory distributors)
+        returns (UD60x18[] memory rewards, address[] memory distributors)
     {
-        rewards = new uint256[](self.rewardIds.length());
+        rewards = new UD60x18[](self.rewardIds.length());
         distributors = new address[](self.rewardIds.length());
 
         uint256 numRewards = self.rewardIds.length();
         for (uint256 i = 0; i < numRewards; i++) {
-            RewardDistribution.Data storage dist = self.rewards[self.rewardIds.at(i + 1)];
+            RewardDistribution.Data storage dist = self.rewards[self.rewardIds.at(i)];
 
             if (address(dist.distributor) == address(0)) {
                 continue;
             }
 
             distributors[i] = address(dist.distributor);
-            rewards[i] = updateReward(self, accountId, self.rewardIds.at(i + 1));
+            rewards[i] = updateReward(self, accountId, self.rewardIds.at(i));
         }
     }
 
@@ -123,7 +113,7 @@ library Vault {
      * @dev Traverses available rewards for this vault and the reward id, and updates an accounts
      * claim on them according to the amount of debt shares they have.
      */
-    function updateReward(Data storage self, uint128 accountId, bytes32 rewardId) internal returns (uint256) {
+    function updateReward(Data storage self, uint128 accountId, bytes32 rewardId) internal returns (UD60x18) {
         UD60x18 totalShares = ud60x18(currentEpoch(self).accountsDebtDistribution.totalShares);
         UD60x18 actorShares = currentEpoch(self).accountsDebtDistribution.getActorShares(bytes32(uint256(accountId)));
 
@@ -143,7 +133,7 @@ library Vault {
 
         dist.claimStatus[accountId].lastRewardPerShare = dist.rewardPerShare;
 
-        return dist.claimStatus[accountId].pendingSend;
+        return ud60x18(dist.claimStatus[accountId].pendingSend);
     }
 
     /**
