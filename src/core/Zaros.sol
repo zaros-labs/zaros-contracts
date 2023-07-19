@@ -15,6 +15,7 @@ import { VaultModule } from "./modules/VaultModule.sol";
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
+// TODO: re-add strategy manager
 contract Zaros is
     Ownable,
     FeatureFlagModule,
@@ -23,7 +24,6 @@ contract Zaros is
     MulticallModule,
     MarketManagerModule,
     RewardsManagerModule,
-    StrategyManagerModule,
     VaultModule
 {
     // TODO: switch to UUPS

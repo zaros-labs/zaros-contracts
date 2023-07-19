@@ -21,7 +21,11 @@ contract DeployMockedZaros is BaseScript {
     address public ethUsdOracle;
     address public usdcUsdOracle;
 
-    function run() public broadcaster {
+    function run()
+        public
+        broadcaster
+        returns (MockERC20, MockERC20, MockZarosUSD, AccountNFT, Zaros, RewardDistributor, RewardDistributor)
+    {
         MockERC20 sFrxEth = new MockERC20("Staked Frax Ether", "sfrxETH", 18);
         MockERC20 usdc = new MockERC20("USD Coin", "USDC", 6);
         MockZarosUSD zrsUsd = new MockZarosUSD(100_000_000e18);
@@ -80,5 +84,7 @@ contract DeployMockedZaros is BaseScript {
 
         sFrxEth.mint(deployer, 100_000_000e18);
         usdc.mint(deployer, 100_000_000e6);
+
+        return (sFrxEth, usdc, zrsUsd, accountNft, zaros, sFrxEthRewardDistributor, usdcRewardDistributor);
     }
 }
