@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { MockERC20 } from "..../../test/mocks/MockERC20.sol";
+import { MockPriceFeed } from "..../../test/mocks/MockPriceFeed.sol";
 import { MockZarosUSD } from "..../../test/mocks/MockZarosUSD.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
@@ -24,11 +25,13 @@ contract ZarosIntegrationTest is Test {
     Zaros internal zaros;
 
     /// @dev Configuration constants
-    uint256 public constant sFrxEthIssuanceRatio = 200e18;
-    uint256 public constant usdcIssuanceRatio = 150e18;
-    uint256 public constant sFrxEthLiquidationRatio = 150e18;
-    uint256 public constant usdcLiquidationRatio = 110e18;
-    uint256 public constant liquidationRewardRatio = 0.05e18;
+    uint256 public constant SFRXETH_ISSUANCE_RATIO = 200e18;
+    uint256 public constant USDC_ISSUANCE_RATIO = 150e18;
+    uint256 public constant SFRXETH_LIQUIDATION_RATIO = 150e18;
+    uint256 public constant USDC_LIQUIDATION_RATIO = 110e18;
+    uint256 public constant LIQUIDATION_REWARD_RATIO = 0.05e18;
+    address public ethUsdOracle;
+    address public usdcUsdOracle;
 
     // TODO: create MockChainlinkOracle
     function setUp() public {
@@ -39,6 +42,8 @@ contract ZarosIntegrationTest is Test {
         zrsUsd = new MockZarosUSD(100_000_000e18);
         accountNft = new AccountNFT();
         zaros = new Zaros(address(accountNft), address(zrsUsd));
+        ethUsdOracle = address(new MockPriceFeed(8, 1000e8));
+        usdcUsdOracle = address(new MockPriceFeed(8, 1e8));
 
         zrsUsd.transferOwnership(address(zaros));
         accountNft.transferOwnership(address(zaros));
@@ -53,22 +58,20 @@ contract ZarosIntegrationTest is Test {
 
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
-            issuanceRatio: sFrxEthIssuanceRatio,
-            liquidationRatio: sFrxEthLiquidationRatio,
-            liquidationRewardRatio: liquidationRewardRatio,
-            // TODO: update this
-            oracle: address(0),
+            issuanceRatio: SFRXETH_ISSUANCE_RATIO,
+            liquidationRatio: SFRXETH_LIQUIDATION_RATIO,
+            liquidationRewardRatio: LIQUIDATION_REWARD_RATIO,
+            oracle: ethUsdOracle,
             tokenAddress: address(sFrxEth),
             decimals: 18,
             minDelegation: 0.5e18
         });
         CollateralConfig.Data memory usdcCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
-            issuanceRatio: usdcIssuanceRatio,
-            liquidationRatio: usdcIssuanceRatio,
-            liquidationRewardRatio: liquidationRewardRatio,
-            // TODO: update this
-            oracle: address(0),
+            issuanceRatio: USDC_ISSUANCE_RATIO,
+            liquidationRatio: USDC_ISSUANCE_RATIO,
+            liquidationRewardRatio: LIQUIDATION_REWARD_RATIO,
+            oracle: usdcUsdOracle,
             tokenAddress: address(usdc),
             decimals: 6,
             minDelegation: 1000e18
@@ -122,8 +125,7 @@ contract ZarosIntegrationTest is Test {
     }
 
     function _undelegateAndWithdraw(uint128 accountId, address collateralType, uint256 amount) internal {
-        (uint256 positionCollateralAmount, uint256 positionCollateralValue) =
-            zaros.getPositionCollateral(accountId, collateralType);
+        (uint256 positionCollateralAmount,) = zaros.getPositionCollateral(accountId, collateralType);
         uint256 newAmount = positionCollateralAmount - amount;
         bytes memory delegateCollateralData =
             abi.encodeWithSelector(zaros.delegateCollateral.selector, accountId, collateralType, newAmount);

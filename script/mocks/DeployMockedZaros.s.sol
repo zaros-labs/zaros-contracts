@@ -13,11 +13,13 @@ import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract DeployMockedZaros is BaseScript {
-    uint256 public constant sFrxEthIssuanceRatio = 200e18;
-    uint256 public constant usdcIssuanceRatio = 150e18;
-    uint256 public constant sFrxEthLiquidationRatio = 150e18;
-    uint256 public constant usdcLiquidationRatio = 110e18;
-    uint256 public constant liquidationRewardRatio = 0.05e18;
+    uint256 public constant SFRXETH_ISSUANCE_RATIO = 200e18;
+    uint256 public constant USDC_ISSUANCE_RATIO = 150e18;
+    uint256 public constant SFRXETH_LIQUIDATION_RATIO = 150e18;
+    uint256 public constant USDC_LIQUIDATION_RATIO = 110e18;
+    uint256 public constant LIQUIDATION_REWARD_RATIO = 0.05e18;
+    address public ethUsdOracle;
+    address public usdcUsdOracle;
 
     function run() public broadcaster {
         MockERC20 sFrxEth = new MockERC20("Staked Frax Ether", "sfrxETH", 18);
@@ -25,6 +27,8 @@ contract DeployMockedZaros is BaseScript {
         MockZarosUSD zrsUsd = new MockZarosUSD(100_000_000e18);
         AccountNFT accountNft = new AccountNFT();
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
+        ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
+        usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
 
         zrsUsd.transferOwnership(address(zaros));
         accountNft.transferOwnership(address(zaros));
@@ -39,22 +43,20 @@ contract DeployMockedZaros is BaseScript {
 
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
-            issuanceRatio: sFrxEthIssuanceRatio,
-            liquidationRatio: sFrxEthLiquidationRatio,
-            liquidationRewardRatio: liquidationRewardRatio,
-            // TODO: update this
-            oracle: address(0),
+            issuanceRatio: SFRXETH_ISSUANCE_RATIO,
+            liquidationRatio: SFRXETH_LIQUIDATION_RATIO,
+            liquidationRewardRatio: LIQUIDATION_REWARD_RATIO,
+            oracle: ethUsdOracle,
             tokenAddress: address(sFrxEth),
             decimals: 18,
             minDelegation: 0.5e18
         });
         CollateralConfig.Data memory usdcCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
-            issuanceRatio: usdcIssuanceRatio,
-            liquidationRatio: usdcIssuanceRatio,
-            liquidationRewardRatio: liquidationRewardRatio,
-            // TODO: update this
-            oracle: address(0),
+            issuanceRatio: USDC_ISSUANCE_RATIO,
+            liquidationRatio: USDC_ISSUANCE_RATIO,
+            liquidationRewardRatio: LIQUIDATION_REWARD_RATIO,
+            oracle: usdcUsdOracle,
             tokenAddress: address(usdc),
             decimals: 6,
             minDelegation: 1000e18
