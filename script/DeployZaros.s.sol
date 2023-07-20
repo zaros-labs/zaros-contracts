@@ -15,9 +15,11 @@ import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract DeployZaros is BaseScript {
     uint256 public constant SFRXETH_ISSUANCE_RATIO = 200e18;
-    uint256 public constant USDC_ISSUANCE_RATIO = 150e18;
     uint256 public constant SFRXETH_LIQUIDATION_RATIO = 150e18;
+    uint256 public constant SFRXETH_MIN_DELEGATION = 0.5e18;
+    uint256 public constant USDC_ISSUANCE_RATIO = 150e18;
     uint256 public constant USDC_LIQUIDATION_RATIO = 110e18;
+    uint256 public constant USDC_MIN_DELEGATION = 1000e18;
     uint256 public constant LIQUIDATION_REWARD_RATIO = 0.05e18;
     address public ethUsdOracle;
     address public usdcUsdOracle;
@@ -54,7 +56,7 @@ contract DeployZaros is BaseScript {
             oracle: ethUsdOracle,
             tokenAddress: address(sFrxEth),
             decimals: 18,
-            minDelegation: 0.5e18
+            minDelegation: SFRXETH_MIN_DELEGATION
         });
         CollateralConfig.Data memory usdcCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
@@ -64,7 +66,7 @@ contract DeployZaros is BaseScript {
             oracle: usdcUsdOracle,
             tokenAddress: address(usdc),
             decimals: 6,
-            minDelegation: 1000e18
+            minDelegation: USDC_MIN_DELEGATION
         });
 
         zaros.configureCollateral(sFrxEthCollateralConfig);
