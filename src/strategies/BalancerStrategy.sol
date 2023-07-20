@@ -7,51 +7,85 @@ import { AddressError } from "@zaros/utils/Errors.sol";
 import { IStrategy } from "./interfaces/IStrategy.sol";
 
 // Open Zeppelin dependencies
-import { ERC4626, ERC20, IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
+import { ERC4626, IERC4626, ERC20, IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 import { ReentrancyGuard } from "@openzeppelin/security/ReentrancyGuard.sol";
 
-// contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
-//     address private _zaros;
-//     uint256 private _totalUsdcInvested;
+contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
+    address private _zaros;
+    uint256 private _totalUsdcInvested;
 
-//     modifier onlyZaros() {
-//         if (msg.sender != _zaros) {
-//             revert AddressError.Zaros_Unauthorized(msg.sender);
-//         }
-//         _;
-//     }
+    modifier onlyZaros() {
+        if (msg.sender != _zaros) {
+            revert AddressError.Zaros_Unauthorized(msg.sender);
+        }
+        _;
+    }
 
-//     constructor(
-//         address zaros,
-//         IERC20 usdc
-//     )
-//         ERC4626(usdc)
-//         ERC20("Zaros zrsUSD/USDC Balancer Strategy", "zrsUSD/USDC-BAL")
-//     {
-//         _zaros = zaros;
-//     }
+    constructor(
+        address zaros,
+        IERC20 usdc
+    )
+        ERC4626(usdc)
+        ERC20("Zaros zrsUSD/USDC Balancer Strategy", "zrsUSD/USDC-BAL")
+    {
+        _zaros = zaros;
+    }
 
-//     function deposit(uint256 assets, address receiver) public override nonReentrant onlyZaros returns (uint256) {
-//         return super.deposit(assets, receiver);
-//     }
+    function totalAssets() public view override(IERC4626, ERC4626) returns (uint256) {
+        return super.totalAssets() + _totalUsdcInvested;
+    }
 
-//     function mint(uint256 shares, address receiver) public override nonReentrant onlyZaros returns (uint256) {
-//         return super.mint(shares, receiver);
-//     }
+    function deposit(
+        uint256 assets,
+        address receiver
+    )
+        public
+        override(IERC4626, ERC4626)
+        nonReentrant
+        onlyZaros
+        returns (uint256)
+    {
+        return super.deposit(assets, receiver);
+    }
 
-//     function withdraw(
-//         uint256 assets,
-//         address receiver,
-//         address owner
-//     )
-//         public
-//         override
-//         nonReentrant
-//         onlyZaros
-//         returns (uint256)
-//     {
-//         return super.withdraw(assets, receiver, owner);
-//     }
-// }
+    function mint(
+        uint256 shares,
+        address receiver
+    )
+        public
+        override(IERC4626, ERC4626)
+        nonReentrant
+        onlyZaros
+        returns (uint256)
+    {
+        return super.mint(shares, receiver);
+    }
 
-contract BalancerUSDCStrategy { }
+    function withdraw(
+        uint256 assets,
+        address receiver,
+        address owner
+    )
+        public
+        override(IERC4626, ERC4626)
+        nonReentrant
+        onlyZaros
+        returns (uint256)
+    {
+        return super.withdraw(assets, receiver, owner);
+    }
+
+    function redeem(
+        uint256 shares,
+        address receiver,
+        address owner
+    )
+        public
+        override(IERC4626, ERC4626)
+        nonReentrant
+        onlyZaros
+        returns (uint256)
+    {
+        return super.redeem(shares, receiver, owner);
+    }
+}
