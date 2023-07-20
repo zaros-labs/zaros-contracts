@@ -7,7 +7,7 @@ interface IStrategyManagerModule {
 
     error Zaros_StrategyManagerModule_StrategyNotRegistered(address collateralType);
 
-    error Zaros_StrategyManagerModule_WithdrawAmountTooLow(uint256 assetsAmount, uint256 minAssetsAmount);
+    error Zaros_StrategyManagerModule_OutputTooLow(uint256 amount, uint256 minAmount);
 
     event LogRegisterStrategy(address indexed collateralType, address indexed strategyHandler);
 
@@ -23,7 +23,7 @@ interface IStrategyManagerModule {
 
     function mintZrsUsdToStrategy(address collateralType, uint256 amount) external;
 
-    function depositToStrategy(address collateralType, uint256 assetsAmount) external;
+    function depositToStrategy(address collateralType, uint256 assetsAmount, uint256 minSharesAmount) external;
 
     function withdrawFromStrategy(address collateralType, uint256 sharesAmount, uint256 minAssetsAmount) external;
 }

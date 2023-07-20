@@ -48,9 +48,20 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
     }
 
     /// @dev TODO: add needed collateral credit and zrsUSD debt accounting
-    function depositToStrategy(address collateralType, uint256 assetsAmount) external override onlyOwner {
+    function depositToStrategy(
+        address collateralType,
+        uint256 assetsAmount,
+        uint256 minSharesAmount
+    )
+        external
+        override
+        onlyOwner
+    {
         Strategy.Data storage strategy = Strategy.load(collateralType);
         _requireStrategyIsRegistered(collateralType);
+
+        uint256 sharesAmount = IStrategy(strategy.handler).previewDeposit(assetsAmount);
+        _requireEnoughOutput(sharesAmount, minSharesAmount);
 
         IERC20(collateralType).approve(strategy.handler, assetsAmount);
         IStrategy(strategy.handler).deposit(assetsAmount, address(this));
@@ -73,9 +84,8 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
         _requireStrategyIsRegistered(collateralType);
 
         uint256 assetsAmount = strategyContract.previewWithdraw(sharesAmount);
-        if (assetsAmount < minAssetsAmount) {
-            revert Zaros_StrategyManagerModule_WithdrawAmountTooLow(assetsAmount, minAssetsAmount);
-        }
+        _requireEnoughOutput(assetsAmount, minAssetsAmount);
+
         strategyContract.withdraw(assetsAmount, address(this), address(this));
 
         emit LogWithdrawFromStrategy(msg.sender, collateralType, sharesAmount);
@@ -84,6 +94,12 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
     function _requireStrategyIsRegistered(address collateralType) private view {
         if (Strategy.load(collateralType).handler == address(0)) {
             revert Zaros_StrategyManagerModule_StrategyNotRegistered(collateralType);
+        }
+    }
+
+    function _requireEnoughOutput(uint256 amount, uint256 minAmount) private pure {
+        if (amount < minAmount) {
+            revert Zaros_StrategyManagerModule_OutputTooLow(amount, minAmount);
         }
     }
 }
