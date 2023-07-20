@@ -3,8 +3,8 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IZarosUSD } from "../../usd/interfaces/IZarosUSD.sol";
-
+import { IStrategy } from "@zaros/strategies/interfaces/IStrategy.sol";
+import { IZarosUSD } from "@zaros/usd/interfaces/IZarosUSD.sol";
 import { IStrategyManagerModule } from "../interfaces/IStrategyManagerModule.sol";
 import { MarketManager } from "../storage/MarketManager.sol";
 import { Strategy } from "../storage/Strategy.sol";
@@ -48,40 +48,37 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
     }
 
     /// @dev TODO: add needed collateral credit and zrsUSD debt accounting
-    function depositToStrategy(
-        address collateralType,
-        uint256 amount,
-        bytes calldata data
-    )
-        external
-        override
-        onlyOwner
-    {
+    function depositToStrategy(address collateralType, uint256 assetsAmount) external override onlyOwner {
         Strategy.Data storage strategy = Strategy.load(collateralType);
         _requireStrategyIsRegistered(collateralType);
 
-        IERC20(collateralType).approve(strategy.handler, amount);
-        strategy.execute(amount, data);
+        IERC20(collateralType).approve(strategy.handler, assetsAmount);
+        IStrategy(strategy.handler).deposit(assetsAmount, address(this));
 
-        emit LogDepositToStrategy(msg.sender, collateralType, amount, data);
+        emit LogDepositToStrategy(msg.sender, collateralType, assetsAmount);
     }
 
     /// @dev TODO: add needed collateral credit and zrsUSD debt accounting
     function withdrawFromStrategy(
         address collateralType,
-        uint256 amount,
-        bytes calldata data
+        uint256 sharesAmount,
+        uint256 minAssetsAmount
     )
         external
         override
         onlyOwner
     {
         Strategy.Data storage strategy = Strategy.load(collateralType);
+        IStrategy strategyContract = IStrategy(strategy.handler);
         _requireStrategyIsRegistered(collateralType);
 
-        strategy.withdraw(amount, data);
+        uint256 assetsAmount = strategyContract.previewWithdraw(sharesAmount);
+        if (assetsAmount < minAssetsAmount) {
+            revert Zaros_StrategyManagerModule_WithdrawAmountTooLow(assetsAmount, minAssetsAmount);
+        }
+        strategyContract.withdraw(assetsAmount, address(this), address(this));
 
-        emit LogWithdrawFromStrategy(msg.sender, collateralType, amount, data);
+        emit LogWithdrawFromStrategy(msg.sender, collateralType, sharesAmount);
     }
 
     function _requireStrategyIsRegistered(address collateralType) private view {
