@@ -47,9 +47,10 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
     }
 
     /// @dev TODO: add input checks, and needed collateral credit and zrsUSD debt accounting
-    function mintUsdToStrategy(address collateralType, uint256 amount) external override {
+    function mintUsdToStrategy(address collateralType, uint256 amount) external override returns (uint256) {
         Strategy.Data storage strategy = Strategy.load(collateralType);
         address strategyHandler = strategy.handler;
+        /// TODO: create modifier?
         if (msg.sender != strategyHandler && msg.sender != owner()) {
             revert Zaros_StrategyManagerModule_InvalidSender(msg.sender, strategyHandler);
         }
@@ -63,6 +64,8 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
         zrsUsd.mint(strategyHandler, amount);
 
         emit LogMintZrsUsdToStrategy(collateralType, strategyHandler, amount);
+
+        return amount;
     }
 
     /// @dev TODO: add needed collateral credit and zrsUSD debt accounting
