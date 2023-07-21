@@ -14,31 +14,49 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
-import { ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract StrategyManagerModule is IStrategyManagerModule, Ownable {
     using SafeERC20 for IZarosUSD;
+    using SafeERC20 for IERC20;
     using MarketManager for MarketManager.Data;
     using Strategy for Strategy.Data;
 
     bytes32 private constant _STRATEGY_FEATURE_FLAG = "registerStrategy";
 
-    function getStrategy(address collateralType) external view override returns (address strategy) {
+    function getStrategy(address collateralType) external view override returns (address) {
         return Strategy.load(collateralType).handler;
     }
 
-    function registerStrategy(address collateralType, address strategy) external override onlyOwner {
-        Strategy.create(collateralType, strategy);
+    function getStrategyBorrowedUsd(address collateralType) external view override returns (uint256) {
+        return Strategy.load(collateralType).borrowedUsd;
+    }
+
+    function registerStrategy(
+        address collateralType,
+        address strategy,
+        uint128 borrowCap
+    )
+        external
+        override
+        onlyOwner
+    {
+        Strategy.create(collateralType, strategy, borrowCap);
 
         emit LogRegisterStrategy(collateralType, strategy);
     }
 
     /// @dev TODO: add input checks, and needed collateral credit and zrsUSD debt accounting
-    function mintZrsUsdToStrategy(address collateralType, uint256 amount) external override {
+    function mintUsdToStrategy(address collateralType, uint256 amount) external override {
         Strategy.Data storage strategy = Strategy.load(collateralType);
         address strategyHandler = strategy.handler;
         if (msg.sender != strategyHandler && msg.sender != owner()) {
             revert Zaros_StrategyManagerModule_InvalidSender(msg.sender, strategyHandler);
+        }
+
+        (uint128 borrowCap, uint128 borrowedUsd) = strategy.getBorrowData();
+        if (ud60x18(borrowedUsd).add(ud60x18(amount)).gt(ud60x18(borrowCap))) {
+            revert Zaros_StrategyManagerModule_BorrowCapReached(borrowCap, borrowedUsd, amount);
         }
 
         IZarosUSD zrsUsd = IZarosUSD(MarketManager.load().zrsUsd);
@@ -63,7 +81,7 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
         uint256 sharesAmount = IStrategy(strategy.handler).previewDeposit(assetsAmount);
         _requireEnoughOutput(sharesAmount, minSharesAmount);
 
-        IERC20(collateralType).approve(strategy.handler, assetsAmount);
+        IERC20(collateralType).safeIncreaseAllowance(strategy.handler, assetsAmount);
         IStrategy(strategy.handler).deposit(assetsAmount, address(this));
 
         emit LogDepositToStrategy(msg.sender, collateralType, assetsAmount);

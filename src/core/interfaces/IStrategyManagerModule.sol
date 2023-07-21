@@ -7,6 +7,8 @@ interface IStrategyManagerModule {
 
     error Zaros_StrategyManagerModule_StrategyNotRegistered(address collateralType);
 
+    error Zaros_StrategyManagerModule_BorrowCapReached(uint128 borrowCap, uint128 borrowedUsd, uint256 amount);
+
     error Zaros_StrategyManagerModule_OutputTooLow(uint256 amount, uint256 minAmount);
 
     event LogRegisterStrategy(address indexed collateralType, address indexed strategyHandler);
@@ -19,9 +21,11 @@ interface IStrategyManagerModule {
 
     function getStrategy(address collateralType) external view returns (address strategyHandler);
 
-    function registerStrategy(address strategyHandler, address collateralType) external;
+    function getStrategyBorrowedUsd(address collateralType) external view returns (uint256);
 
-    function mintZrsUsdToStrategy(address collateralType, uint256 amount) external;
+    function registerStrategy(address strategyHandler, address collateralType, uint128 borrowCap) external;
+
+    function mintUsdToStrategy(address collateralType, uint256 amount) external;
 
     function depositToStrategy(address collateralType, uint256 assetsAmount, uint256 minSharesAmount) external;
 

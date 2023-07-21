@@ -98,8 +98,8 @@ contract ZarosIntegrationTest is Test {
         sFrxEth.mint(deployer, 100_000_000e18);
         usdc.mint(deployer, 100_000_000e6);
 
-        sFrxEth.approve(address(zaros), type(uint256).max);
-        usdc.approve(address(zaros), type(uint256).max);
+        require(sFrxEth.approve(address(zaros), type(uint256).max), "approve failed");
+        require(usdc.approve(address(zaros), type(uint256).max), "approve failed");
     }
 
     function test_Integration_LpsCanDepositAndWithdraw() public {

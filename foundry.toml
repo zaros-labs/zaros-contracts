@@ -10,9 +10,7 @@
   gas_reports = ["*"]
   libs = ["lib"]
   optimizer = true
-  # TODO: set optimizer to higher value when possible
-  optimizer_runs = 100
-  via_ir = true
+  optimizer_runs = 1000
   out = "out"
   script = "script"
   solc = "0.8.19"
