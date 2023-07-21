@@ -12,6 +12,7 @@
   optimizer = true
   # TODO: set optimizer to higher value when possible
   optimizer_runs = 100
+  via_ir = true
   out = "out"
   script = "script"
   solc = "0.8.19"
