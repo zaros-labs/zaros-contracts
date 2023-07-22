@@ -79,9 +79,5 @@ contract DeployZaros is BaseScript {
         zaros.setFeatureFlagAllowAll(Constants.WITHDRAW_FEATURE_FLAG, true);
         zaros.setFeatureFlagAllowAll(Constants.CLAIM_FEATURE_FLAG, true);
         zaros.setFeatureFlagAllowAll(Constants.DELEGATE_FEATURE_FLAG, true);
-
-        // Enable Zaros' permissioned features
-        zaros.addToFeatureFlagAllowlist(Constants.MARKET_FEATURE_FLAG, deployer);
-        zaros.addToFeatureFlagAllowlist(Constants.STRATEGY_FEATURE_FLAG, deployer);
     }
 }

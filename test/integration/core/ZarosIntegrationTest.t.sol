@@ -90,10 +90,6 @@ contract ZarosIntegrationTest is Test {
         zaros.setFeatureFlagAllowAll(Constants.CLAIM_FEATURE_FLAG, true);
         zaros.setFeatureFlagAllowAll(Constants.DELEGATE_FEATURE_FLAG, true);
 
-        // Enable Zaros' permissioned features
-        zaros.addToFeatureFlagAllowlist(Constants.MARKET_FEATURE_FLAG, deployer);
-        zaros.addToFeatureFlagAllowlist(Constants.STRATEGY_FEATURE_FLAG, deployer);
-
         sFrxEth.mint(deployer, 100_000_000e18);
         usdc.mint(deployer, 100_000_000e6);
 
