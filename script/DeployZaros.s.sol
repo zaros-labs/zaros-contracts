@@ -22,6 +22,7 @@ contract DeployZaros is BaseScript {
     uint256 public constant USDC_LIQUIDATION_RATIO = 110e18;
     uint256 public constant USDC_MIN_DELEGATION = 1000e18;
     uint256 public constant LIQUIDATION_REWARD_RATIO = 0.05e18;
+    uint128 public constant USDC_STRATEGY_BORROW_CAP = type(uint128).max;
 
     function run()
         public
@@ -33,6 +34,8 @@ contract DeployZaros is BaseScript {
         ZarosUSD zrsUsd = ZarosUSD(vm.envAddress("ZRSUSD"));
         AccountNFT accountNft = new AccountNFT();
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
+        BalancerUSDCStrategy balancerUsdcStrategy =
+        new BalancerUSDCStrategy(address(zaros), address(usdc), address(zrsUsd), vm.envAddress("BALANCER_VAULT"), vm.envBytes32("ZRSUSD_USDC_POOL_ID"));
         address ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
         address usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
 
@@ -46,6 +49,7 @@ contract DeployZaros is BaseScript {
 
         zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
         zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));
+        zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
 
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
