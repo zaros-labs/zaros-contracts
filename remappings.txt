@@ -1,8 +1,6 @@
 forge-std/=lib/forge-std/src/
 @zaros/=src/
 @balancer-labs=node_modules/@balancer-labs
-@solmate/=lib/solmate/src/
 @prb-math/=lib/prb-math/src/
-@boringsolidity/=lib/BoringSolidity/contracts/
 @openzeppelin/=lib/openzeppelin-contracts/contracts/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/

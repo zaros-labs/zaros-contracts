@@ -41,7 +41,7 @@ contract RewardDistributor is IRewardDistributor {
         return true;
     }
 
-    function distributeRewards(address collateralType, uint256 amount, uint64 start, uint32 duration) external {
+    function distributeRewards(address collateralType, uint256 amount, uint64 start, uint32 duration) public {
         IRewardsManagerModule(_rewardManager).distributeRewards(collateralType, amount, start, duration);
     }
 

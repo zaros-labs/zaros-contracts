@@ -24,6 +24,7 @@ contract Zaros is
     MulticallModule,
     MarketManagerModule,
     RewardsManagerModule,
+    StrategyManagerModule,
     VaultModule
 {
     // TODO: switch to UUPS

@@ -25,8 +25,6 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     using MarketManager for MarketManager.Data;
     using SafeCast for uint256;
 
-    bytes32 private constant _MARKET_FEATURE_FLAG = "configureMarkets";
-
     function getWithdrawableMarketUsd(address marketAddress) public view override returns (uint256) {
         return ud60x18(Market.load(marketAddress).creditCapacity).add(
             Market.load(marketAddress).getDepositedCollateralValue()

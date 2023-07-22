@@ -26,14 +26,15 @@ contract ZarosIntegrationTest is Test {
 
     /// @dev Configuration constants
     uint256 public constant SFRXETH_ISSUANCE_RATIO = 200e18;
-    uint256 public constant USDC_ISSUANCE_RATIO = 150e18;
     uint256 public constant SFRXETH_LIQUIDATION_RATIO = 150e18;
+    uint256 public constant SFRXETH_MIN_DELEGATION = 0.5e18;
+    uint256 public constant USDC_ISSUANCE_RATIO = 150e18;
     uint256 public constant USDC_LIQUIDATION_RATIO = 110e18;
+    uint256 public constant USDC_MIN_DELEGATION = 1000e18;
     uint256 public constant LIQUIDATION_REWARD_RATIO = 0.05e18;
     address public ethUsdOracle;
     address public usdcUsdOracle;
 
-    // TODO: create MockChainlinkOracle
     function setUp() public {
         startHoax(deployer);
 
@@ -64,7 +65,7 @@ contract ZarosIntegrationTest is Test {
             oracle: ethUsdOracle,
             tokenAddress: address(sFrxEth),
             decimals: 18,
-            minDelegation: 0.5e18
+            minDelegation: SFRXETH_MIN_DELEGATION
         });
         CollateralConfig.Data memory usdcCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
@@ -74,7 +75,7 @@ contract ZarosIntegrationTest is Test {
             oracle: usdcUsdOracle,
             tokenAddress: address(usdc),
             decimals: 6,
-            minDelegation: 1000e18
+            minDelegation: USDC_MIN_DELEGATION
         });
 
         zaros.configureCollateral(sFrxEthCollateralConfig);
@@ -89,15 +90,11 @@ contract ZarosIntegrationTest is Test {
         zaros.setFeatureFlagAllowAll(Constants.CLAIM_FEATURE_FLAG, true);
         zaros.setFeatureFlagAllowAll(Constants.DELEGATE_FEATURE_FLAG, true);
 
-        // Enable Zaros' permissioned features
-        zaros.addToFeatureFlagAllowlist(Constants.MARKET_FEATURE_FLAG, deployer);
-        zaros.addToFeatureFlagAllowlist(Constants.STRATEGY_FEATURE_FLAG, deployer);
-
         sFrxEth.mint(deployer, 100_000_000e18);
         usdc.mint(deployer, 100_000_000e6);
 
-        sFrxEth.approve(address(zaros), type(uint256).max);
-        usdc.approve(address(zaros), type(uint256).max);
+        require(sFrxEth.approve(address(zaros), type(uint256).max), "approve failed");
+        require(usdc.approve(address(zaros), type(uint256).max), "approve failed");
     }
 
     function test_Integration_LpsCanDepositAndWithdraw() public {

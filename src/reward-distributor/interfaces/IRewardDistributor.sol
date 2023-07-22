@@ -18,5 +18,7 @@ interface IRewardDistributor {
         external
         returns (bool);
 
+    function distributeRewards(address collateralType, uint256 amount, uint64 start, uint32 duration) external;
+
     function onPositionUpdated(uint128 accountId, address collateralType, uint256 newShares) external;
 }

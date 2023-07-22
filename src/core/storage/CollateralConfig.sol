@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
-import { IAggregatorV3 } from "../interfaces/external/chainlink/IAggregatorV3.sol";
+import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -86,10 +86,6 @@ library CollateralConfig {
         }
     }
 
-    /**
-     * @dev Loads all available collateral types configured in the system.
-     * @return availableCollaterals An array of addresses, one for each collateral type supported by the system.
-     */
     function loadAvailableCollaterals() internal pure returns (EnumerableSet.AddressSet storage availableCollaterals) {
         bytes32 s = SLOT_AVAILABLE_COLLATERALS;
         assembly {
@@ -97,10 +93,6 @@ library CollateralConfig {
         }
     }
 
-    /**
-     * @dev Configures a collateral type.
-     * @param config The CollateralConfig object with all the settings for the collateral type being configured.
-     */
     function set(Data memory config) internal {
         EnumerableSet.AddressSet storage collateralTypes = loadAvailableCollaterals();
 
