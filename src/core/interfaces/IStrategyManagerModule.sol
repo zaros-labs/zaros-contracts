@@ -25,7 +25,7 @@ interface IStrategyManagerModule {
 
     function registerStrategy(address strategyHandler, address collateralType, uint128 borrowCap) external;
 
-    function mintUsdToStrategy(address collateralType, uint256 amount) external;
+    function mintUsdToStrategy(address collateralType, uint256 amount) external returns (uint256);
 
     function depositToStrategy(address collateralType, uint256 assetsAmount, uint256 minSharesAmount) external;
 

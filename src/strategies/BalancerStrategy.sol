@@ -3,7 +3,8 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IBalancerVault } from "@zaros/external/balancer/IBalancerVault.sol";
+import { IZaros } from "@zaros/core/interfaces/IZaros.sol";
+import { IBalancerVault, IAsset } from "@zaros/external/interfaces/balancer/IBalancerVault.sol";
 import { AddressError } from "@zaros/utils/Errors.sol";
 import { IStrategy } from "./interfaces/IStrategy.sol";
 
@@ -117,37 +118,69 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         return super.redeem(shares, receiver, owner);
     }
 
-    function collectRewards(uint256 minLpOut) external override onlyZaros returns (uint256) { }
+    function collectRewards(uint256[] calldata minAmountsOut) external override onlyZaros returns (uint256) { }
 
-    function invest(uint256 mintLpOut) external override onlyZaros {
+    function addLiquidityToPool(uint256 minBptOut) external override onlyZaros {
         address usdc = asset();
         uint256 outstandingUsdc = IERC20(usdc).balanceOf(address(this));
         uint256 zrsUsdAmountToBorrow = _normalizeAssetToZarosUsd(outstandingUsdc);
         uint256 zrsUsdBorrowed = IZaros(_zaros).mintUsdToStrategy(usdc, zrsUsdAmountToBorrow);
 
         // Forms Balancer Join Pool Request
-        IBalancerVault.IAsset[] memory assets = new IAsset[](2);
-        assets[0] = IAsset(usdc);
-        assets[1] = IAsset(_zrsUsd);
+        IAsset[] memory assets = _getAssets();
+
         uint256[] memory maxAmountsIn = new uint256[](2);
         maxAmountsIn[0] = outstandingUsdc;
         maxAmountsIn[1] = zrsUsdAmountToBorrow;
 
-        balVault.joinPool(
+        IBalancerVault(_balancerVault).joinPool(
             _zrsUsdUsdcPoolId,
             address(this),
             address(this),
             IBalancerVault.JoinPoolRequest(
                 assets,
                 maxAmountsIn,
-                abi.encode(IBalancerVault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT, _amountsIn, minLpOut),
+                abi.encode(IBalancerVault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT, maxAmountsIn, minBptOut),
+                false
+            )
+        );
+    }
+
+    function removeLiquidityFromPool(
+        uint256 bptAmountIn,
+        uint256[] calldata minAmountsOut
+    )
+        external
+        override
+        onlyZaros
+    {
+        // Forms Balancer Exit Pool Request
+        IAsset[] memory assets = _getAssets();
+
+        IBalancerVault(_balancerVault).exitPool(
+            _zrsUsdUsdcPoolId,
+            address(this),
+            payable(address(this)),
+            IBalancerVault.ExitPoolRequest(
+                assets,
+                minAmountsOut,
+                abi.encode(IBalancerVault.ExitKind.EXACT_BPT_IN_FOR_TOKENS_OUT, bptAmountIn),
                 false
             )
         );
     }
 
     function _normalizeAssetToZarosUsd(uint256 assetAmount) internal view returns (uint256) {
+        uint256 usdcDecimals = ERC20(asset()).decimals();
+        uint256 zrsUsdDecimals = ERC20(_zrsUsd).decimals();
+        return assetAmount * (10 ** zrsUsdDecimals) / (10 ** usdcDecimals);
+    }
 
+    function _getAssets() internal view returns (IAsset[] memory) {
+        IAsset[] memory assets = new IAsset[](2);
+        assets[0] = IAsset(asset());
+        assets[1] = IAsset(_zrsUsd);
 
+        return assets;
     }
 }
