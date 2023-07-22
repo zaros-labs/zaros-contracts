@@ -19,7 +19,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     address private _zaros;
     address private _zrsUsd;
     address private _balancerVault;
-    uint256 private _totalUsdcInvested;
+    uint256 private _totalUsdcAllocated;
     bytes32 private _zrsUsdUsdcPoolId;
 
     modifier onlyZaros() {
@@ -47,8 +47,8 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
 
     function totalAssets() public view override(IERC4626, ERC4626) returns (uint256) {
         // TODO: query usdc balance on balancer pool
-        return super.totalAssets();
-        // return super.totalAssets() + _totalUsdcInvested;
+        // TODO: https://docs.balancer.fi/reference/contracts/query-functions.html
+        return super.totalAssets() + _totalUsdcAllocated;
     }
 
     function setAllowances(uint256 amount, bool shouldIncrease) external override onlyZaros {
@@ -118,6 +118,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         return super.redeem(shares, receiver, owner);
     }
 
+    /// TODO: Implement in new async flow
     function collectRewards(uint256[] calldata minAmountsOut) external override onlyZaros returns (uint256) { }
 
     function addLiquidityToPool(uint256 minBptOut) external override onlyZaros {
@@ -133,6 +134,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         maxAmountsIn[0] = outstandingUsdc;
         maxAmountsIn[1] = zrsUsdAmountToBorrow;
 
+        _totalUsdcAllocated += outstandingUsdc;
         IBalancerVault(_balancerVault).joinPool(
             _zrsUsdUsdcPoolId,
             address(this),
@@ -157,6 +159,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         // Forms Balancer Exit Pool Request
         IAsset[] memory assets = _getAssets();
 
+        _totalUsdcAllocated -= minAmountsOut[0];
         IBalancerVault(_balancerVault).exitPool(
             _zrsUsdUsdcPoolId,
             address(this),

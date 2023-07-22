@@ -35,7 +35,6 @@ contract ZarosIntegrationTest is Test {
     address public ethUsdOracle;
     address public usdcUsdOracle;
 
-    // TODO: create MockChainlinkOracle
     function setUp() public {
         startHoax(deployer);
 

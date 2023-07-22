@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.19;
 
-// TODO: use feature flag constants from here
 library Constants {
     /// @dev Protocl wide standard decimals
     uint8 internal constant DECIMALS = 18;
