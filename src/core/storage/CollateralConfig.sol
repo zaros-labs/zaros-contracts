@@ -64,14 +64,15 @@ library CollateralConfig {
 
     struct Data {
         bool depositingEnabled;
-        uint256 issuanceRatio;
-        uint256 liquidationRatio;
-        uint256 liquidationRewardRatio;
+        uint80 issuanceRatio;
+        uint80 liquidationRatio;
+        uint80 liquidationRewardRatio;
+        uint8 decimals;
         address oracle;
         address tokenAddress;
-        uint8 decimals;
         /// @dev Minimum amount of collateral that can be delegated to the market manager
         uint256 minDelegation;
+        uint256 depositCap;
     }
 
     /**
@@ -102,14 +103,14 @@ library CollateralConfig {
 
         Data storage storedConfig = load(config.tokenAddress);
 
-        storedConfig.tokenAddress = config.tokenAddress;
-        storedConfig.decimals = config.decimals;
+        storedConfig.depositingEnabled = config.depositingEnabled;
         storedConfig.issuanceRatio = config.issuanceRatio;
         storedConfig.liquidationRatio = config.liquidationRatio;
-        storedConfig.oracle = config.oracle;
         storedConfig.liquidationRewardRatio = config.liquidationRewardRatio;
+        storedConfig.decimals = config.decimals;
+        storedConfig.oracle = config.oracle;
+        storedConfig.tokenAddress = config.tokenAddress;
         storedConfig.minDelegation = config.minDelegation;
-        storedConfig.depositingEnabled = config.depositingEnabled;
     }
 
     /**
