@@ -24,11 +24,7 @@ contract DeployZaros is BaseScript {
     uint256 public constant LIQUIDATION_REWARD_RATIO = 0.05e18;
     uint128 public constant USDC_STRATEGY_BORROW_CAP = type(uint128).max;
 
-    function run()
-        public
-        broadcaster
-        returns (IERC20, IERC20, ZarosUSD, AccountNFT, Zaros, RewardDistributor, RewardDistributor)
-    {
+    function run() public broadcaster {
         IERC20 sFrxEth = IERC20(vm.envAddress("SFRXETH"));
         IERC20 usdc = IERC20(vm.envAddress("USDC"));
         ZarosUSD zrsUsd = ZarosUSD(vm.envAddress("ZRSUSD"));
@@ -87,7 +83,5 @@ contract DeployZaros is BaseScript {
         // Enable Zaros' permissioned features
         zaros.addToFeatureFlagAllowlist(Constants.MARKET_FEATURE_FLAG, deployer);
         zaros.addToFeatureFlagAllowlist(Constants.STRATEGY_FEATURE_FLAG, deployer);
-
-        return (sFrxEth, usdc, zrsUsd, accountNft, zaros, sFrxEthRewardDistributor, usdcRewardDistributor);
     }
 }
