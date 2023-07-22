@@ -147,7 +147,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     }
 
     function _normalizeAssetToZarosUsd(uint256 assetAmount) internal view returns (uint256) {
-        /// TODO: implement
-        return uint256(1);
+
+
     }
 }
