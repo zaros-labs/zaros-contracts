@@ -7,8 +7,9 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { ZarosUSD } from "@zaros/usd/ZarosUSD.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
-import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
+import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
+import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -21,8 +22,6 @@ contract DeployZaros is BaseScript {
     uint256 public constant USDC_LIQUIDATION_RATIO = 110e18;
     uint256 public constant USDC_MIN_DELEGATION = 1000e18;
     uint256 public constant LIQUIDATION_REWARD_RATIO = 0.05e18;
-    address public ethUsdOracle;
-    address public usdcUsdOracle;
 
     function run()
         public
@@ -34,8 +33,8 @@ contract DeployZaros is BaseScript {
         ZarosUSD zrsUsd = ZarosUSD(vm.envAddress("ZRSUSD"));
         AccountNFT accountNft = new AccountNFT();
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
-        ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
-        usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
+        address ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
+        address usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
 
         zrsUsd.transferOwnership(address(zaros));
         accountNft.transferOwnership(address(zaros));
