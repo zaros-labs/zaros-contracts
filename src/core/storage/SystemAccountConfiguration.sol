@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 
 library SystemAccountConfiguration {
-    bytes32 private constant _SYSTEM_ACCOUNT_CONFIGURATION_SLOT =
+    bytes32 internal constant SYSTEM_ACCOUNT_CONFIGURATION_SLOT =
         keccak256(abi.encode("fi.zaros.core.SystemAccountConfiguration"));
 
     struct Data {
@@ -14,7 +14,7 @@ library SystemAccountConfiguration {
     }
 
     function load() internal pure returns (Data storage systemAccountConfiguration) {
-        bytes32 s = _SYSTEM_ACCOUNT_CONFIGURATION_SLOT;
+        bytes32 s = SYSTEM_ACCOUNT_CONFIGURATION_SLOT;
         assembly {
             systemAccountConfiguration.slot := s
         }

@@ -10,7 +10,6 @@ library PerpsAccount {
 
     struct Data {
         mapping(address collateralType => uint256) availableMargin;
-        mapping(address collateralType => bool) enabledCollateralTypes;
     }
 
     /// @dev TODO: use account id / nft id instead of address

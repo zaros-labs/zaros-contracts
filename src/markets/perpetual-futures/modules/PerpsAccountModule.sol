@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
+import { PerpsAccount } from "../storage/PerpsAccount.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";

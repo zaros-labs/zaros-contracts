@@ -17,18 +17,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO, UNIT as UD_UNIT, MAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-/**
- * @title Aggregates collateral from multiple users in order to provide liquidity to a configurable set of markets.
- *
- * The set of markets is configured as an array of MarketConfiguration objects, where the weight of the market can be
- * specified. This weight, and the aggregated total weight of all the configured markets, determines how much collateral
- * from the pool each market has, as well as in what proportion the market passes on debt to the pool and thus to all
- * its users.
- *
- * The pool tracks the collateral provided by users using an array of Vaults objects, for which there will be one per
- * collateral type. Each vault tracks how much collateral each user has delegated to this pool, how much debt the user
- * has because of minting USD, as well as how much corresponding debt the pool has passed on to the user.
- */
 library MarketManager {
     using CollateralConfig for CollateralConfig.Data;
     using Distribution for Distribution.Data;
@@ -38,7 +26,7 @@ library MarketManager {
 
     error Zaros_MarketManager_MinDelegationTimeoutPending(uint32 timeRemaining);
 
-    bytes32 private constant _MARKET_MANAGER_SLOT = keccak256(abi.encode("fi.zaros.core.MarketManager"));
+    bytes32 private constant MARKET_MANAGER_SLOT = keccak256(abi.encode("fi.zaros.core.MarketManager"));
 
     struct Data {
         uint128 minLiquidityRatio;
@@ -51,7 +39,7 @@ library MarketManager {
     }
 
     function load() internal pure returns (Data storage marketManager) {
-        bytes32 s = _MARKET_MANAGER_SLOT;
+        bytes32 s = MARKET_MANAGER_SLOT;
         assembly {
             marketManager.slot := s
         }

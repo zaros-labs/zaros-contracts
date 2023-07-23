@@ -21,6 +21,8 @@ interface IPerpsMarket is IOrderModule {
 
     function indexPrice() external view returns (UD60x18);
 
+    function oracle() external view returns (address);
+
     function fundingRate() external view returns (SD59x18);
 
     function fundingVelocity() external view returns (SD59x18);

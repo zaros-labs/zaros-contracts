@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 library Strategy {
-    string internal constant _STRATEGY_DOMAIN = "fi.zaros.core.Strategy";
+    string internal constant STRATEGY_DOMAIN = "fi.zaros.core.Strategy";
 
     struct Data {
         address handler;
@@ -12,7 +12,7 @@ library Strategy {
     }
 
     function load(address collateralType) internal pure returns (Data storage strategy) {
-        bytes32 s = keccak256(abi.encode(_STRATEGY_DOMAIN, collateralType));
+        bytes32 s = keccak256(abi.encode(STRATEGY_DOMAIN, collateralType));
         assembly {
             strategy.slot := s
         }
