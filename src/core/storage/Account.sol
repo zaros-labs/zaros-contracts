@@ -15,9 +15,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-/**
- * @title Object for tracking accounts with access control and collateral tracking.
- */
 library Account {
     using AccountRBAC for AccountRBAC.Data;
     using Collateral for Collateral.Data;
@@ -49,27 +46,12 @@ library Account {
     error Zaros_Account_AccountActivityTimeoutPending(uint128 accountId, uint256 currentTime, uint256 requiredTime);
 
     struct Data {
-        /**
-         * @dev Numeric identifier for the account. Must be unique.
-         * @dev There cannot be an account with id zero (See ERC721._mint()).
-         */
         uint128 id;
-        /**
-         * @dev Role based access control data for the account.
-         */
-        AccountRBAC.Data rbac;
         uint64 lastInteraction;
-        uint64 __slotAvailableForFutureUse;
-        uint128 __slot2AvailableForFutureUse;
-        /**
-         * @dev Address set of collaterals that are being used in the system by this account.
-         */
+        AccountRBAC.Data rbac;
         mapping(address => Collateral.Data) collaterals;
     }
 
-    /**
-     * @dev Returns the account stored at the specified account id.
-     */
     function load(uint128 id) internal pure returns (Data storage account) {
         bytes32 s = keccak256(abi.encode(ACCOUNT_DOMAIN, id));
         assembly {
@@ -77,12 +59,6 @@ library Account {
         }
     }
 
-    /**
-     * @dev Creates an account for the given id, and associates it to the given owner.
-     *
-     * Note: Will not fail if the account already exists, and if so, will overwrite the existing owner. Whatever calls
-     * this internal function must first check that the account doesn't exist before re-creating it.
-     */
     function create(uint128 id, address owner) internal returns (Data storage account) {
         account = load(id);
 
@@ -90,9 +66,6 @@ library Account {
         account.rbac.owner = owner;
     }
 
-    /**
-     * @dev Reverts if the account does not exist with appropriate error. Otherwise, returns the account.
-     */
     function exists(uint128 id) internal view returns (Data storage account) {
         Data storage a = load(id);
         if (a.rbac.owner == address(0)) {
@@ -102,10 +75,6 @@ library Account {
         return a;
     }
 
-    /**
-     * @dev Given a collateral type, returns information about the total collateral assigned and deposited by
-     * the account
-     */
     function getCollateralTotals(
         Data storage self,
         address collateralType
@@ -120,10 +89,6 @@ library Account {
         return (totalDeposited, totalAssigned);
     }
 
-    /**
-     * @dev Returns the total amount of collateral that has been delegated, for the given
-     * collateral type.
-     */
     function getAssignedCollateral(Data storage self, address collateralType) internal view returns (UD60x18) {
         Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         UD60x18 assignedCollateral = vault.currentAccountCollateral(self.id);
@@ -136,14 +101,6 @@ library Account {
         self.lastInteraction = uint64(block.timestamp);
     }
 
-    /**
-     * @dev Loads the Account object for the specified accountId,
-     * and validates that sender has the specified permission. It also resets
-     * the interaction timeout. These
-     * are different actions but they are merged in a single function
-     * because loading an account and checking for a permission is a very
-     * common use case in other parts of the code.
-     */
     function loadAccountAndValidatePermission(
         uint128 accountId,
         bytes32 permission
@@ -189,9 +146,6 @@ library Account {
         }
     }
 
-    /**
-     * @dev Ensure that the account has the required amount of collateral funds remaining
-     */
     function requireSufficientCollateral(uint128 accountId, address collateralType, UD60x18 wad) internal view {
         if (ud60x18(Account.load(accountId).collaterals[collateralType].amountAvailableForDelegation).lt(wad)) {
             revert Zaros_Account_InsufficientAccountCollateral(wad.intoUint256());

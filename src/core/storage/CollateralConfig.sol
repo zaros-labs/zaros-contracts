@@ -25,41 +25,16 @@ library CollateralConfig {
     bytes32 internal constant SLOT_AVAILABLE_COLLATERALS =
         keccak256(abi.encode(COLLATERAL_CONFIG_DOMAIN, "_availableCollaterals"));
 
-    /**
-     * @dev Thrown when the token address of a collateral cannot be found.
-     */
     error Zaros_CollateralConfig_CollateralNotFound();
 
-    /**
-     * @dev Thrown when deposits are disabled for the given collateral type.
-     * @param collateralType The address of the collateral type for which depositing was disabled.
-     */
     error Zaros_CollateralConfig_CollateralDepositDisabled(address collateralType);
 
-    /**
-     * @dev Thrown when collateral ratio is not sufficient in a given operation in the system.
-     * @param collateralValue The net USD value of the position.
-     * @param debt The net USD debt of the position.
-     * @param ratio The collateralization ratio of the position.
-     * @param minRatio The minimum c-ratio which was not met. Could be issuance ratio or liquidation ratio, depending on
-     * the case.
-     */
     error Zaros_CollateralConfig_InsufficientCollateralRatio(
         uint256 collateralValue, uint256 debt, uint256 ratio, uint256 minRatio
     );
 
-    /**
-     * @dev Thrown when the amount being delegated is less than the minimum expected amount.
-     * @param minDelegation The current minimum for deposits and delegation set to this collateral type.
-     */
     error Zaros_CollateralConfig_InsufficientDelegation(uint256 minDelegation);
 
-    /**
-     * @dev Thrown when attempting to convert a token to the system amount and the conversion results in a loss of
-     * precision.
-     * @param tokenAmount The amount of tokens that were attempted to be converted.
-     * @param decimals The number of decimals of the token that was attempted to be converted.
-     */
     error Zaros_CollateralConfig_PrecisionLost(uint256 tokenAmount, uint8 decimals);
 
     struct Data {
@@ -75,11 +50,6 @@ library CollateralConfig {
         uint256 depositCap;
     }
 
-    /**
-     * @dev Loads the CollateralConfig object for the given collateralType collateral.
-     * @param token The address of the collateralType collateral.
-     * @return collateralConfig The CollateralConfig object.
-     */
     function load(address token) internal pure returns (Data storage collateralConfig) {
         bytes32 s = keccak256(abi.encode(COLLATERAL_CONFIG_DOMAIN, token));
         assembly {
@@ -113,21 +83,12 @@ library CollateralConfig {
         storedConfig.minDelegation = config.minDelegation;
     }
 
-    /**
-     * @dev Shows if a given collateral type is enabled for deposits and delegation.
-     * @param token The address of the collateral being queried.
-     */
     function collateralEnabled(address token) internal view {
         if (!load(token).depositingEnabled) {
             revert Zaros_CollateralConfig_CollateralDepositDisabled(token);
         }
     }
 
-    /**
-     * @dev Reverts if the amount being delegated is insufficient for the system.
-     * @param token The address of the collateral type.
-     * @param amount The amount being checked for sufficient delegation.
-     */
     function requireSufficientDelegation(address token, UD60x18 amount) internal view {
         CollateralConfig.Data storage config = load(token);
 
@@ -138,7 +99,7 @@ library CollateralConfig {
         }
     }
 
-    /// TODO: improve this
+    /// @dev TODO: improve this
     function getCollateralPrice(Data storage self) internal view returns (UD60x18) {
         IAggregatorV3 oracle = IAggregatorV3(self.oracle);
         uint8 decimals = oracle.decimals();
@@ -151,13 +112,6 @@ library CollateralConfig {
         return price;
     }
 
-    /**
-     * @dev Reverts if the specified collateral and debt values produce a collateralization ratio which is below the
-     * amount required for new issuance of zrsUSD.
-     * @param self The CollateralConfig object whose collateral and settings are being queried.
-     * @param debt The debt component of the ratio.
-     * @param collateralValue The collateral component of the ratio.
-     */
     function verifyIssuanceRatio(Data storage self, UD60x18 debt, UD60x18 collateralValue) internal view {
         if (
             debt.neq(UD_ZERO)
@@ -172,14 +126,6 @@ library CollateralConfig {
         }
     }
 
-    /**
-     * @dev Converts token amounts with non-system decimal precisions, to 18 decimals of precision.
-     * E.g: $TOKEN_A uses 6 decimals of precision, so this would upscale it by 12 decimals.
-     * E.g: $TOKEN_B uses 20 decimals of precision, so this would downscale it by 2 decimals.
-     * @param self The CollateralConfig object corresponding to the collateral type being converted.
-     * @param tokenAmount The token amount, denominated in its native decimal precision.
-     * @return wad The converted amount, denominated in the system's 18 decimal precision.
-     */
     function normalizeTokenAmount(Data storage self, uint256 tokenAmount) internal view returns (UD60x18 wad) {
         if (self.tokenAddress == address(0)) {
             revert Zaros_CollateralConfig_CollateralNotFound();

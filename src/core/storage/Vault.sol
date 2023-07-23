@@ -16,16 +16,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-/**
- * @title Tracks collateral and debt distributions in a pool, for a specific collateral type.
- *
- * I.e. if a pool supports bb-a-USD and wstETH collaterals, it will have a bb-a-USD  Vault, and a wstETH Vault.
- *
- * The Vault data structure is itself split into VaultEpoch sub-structures. This facilitates liquidations,
- * so that whenever one occurs, a clean state of all data is achieved by simply incrementing the epoch index.
- *
- * It is recommended to understand VaultEpoch before understanding this object.
- */
 library Vault {
     using Distribution for Distribution.Data;
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -35,9 +25,6 @@ library Vault {
     using ScalableMapping for ScalableMapping.Data;
     using VaultEpoch for VaultEpoch.Data;
 
-    /**
-     * @dev Thrown when a non-existent reward distributor is referenced
-     */
     error Zaros_Vault_RewardDistributorNotFound();
 
     struct Data {
@@ -48,9 +35,6 @@ library Vault {
         EnumerableSet.Bytes32Set rewardIds;
     }
 
-    /**
-     * @dev Return's the VaultEpoch data for the current epoch.
-     */
     function currentEpoch(Data storage self) internal view returns (VaultEpoch.Data storage epoch) {
         return self.epochData[self.epoch];
     }
@@ -68,24 +52,14 @@ library Vault {
         totalCollateralValue = (epochData.collateralAmounts.totalAmount()).mul(collateralPrice);
     }
 
-    /**
-     * @dev Updated the value per share of the current epoch's incoming debt distribution.
-     */
     function distributeDebtToAccounts(Data storage self, SD59x18 debtChange) internal {
         currentEpoch(self).distributeDebtToAccounts(debtChange);
     }
 
-    /**
-     * @dev Consolidates an accounts debt.
-     */
     function consolidateAccountDebt(Data storage self, uint128 accountId) internal returns (SD59x18) {
         return currentEpoch(self).consolidateAccountDebt(accountId);
     }
 
-    /**
-     * @dev Traverses available rewards for this vault, and updates an accounts
-     * claim on them according to the amount of debt shares they have.
-     */
     function updateRewards(
         Data storage self,
         uint128 accountId
@@ -109,10 +83,6 @@ library Vault {
         }
     }
 
-    /**
-     * @dev Traverses available rewards for this vault and the reward id, and updates an accounts
-     * claim on them according to the amount of debt shares they have.
-     */
     function updateReward(Data storage self, uint128 accountId, bytes32 rewardId) internal returns (UD60x18) {
         UD60x18 totalShares = ud60x18(currentEpoch(self).accountsDebtDistribution.totalShares);
         UD60x18 actorShares = currentEpoch(self).accountsDebtDistribution.getActorShares(bytes32(uint256(accountId)));
@@ -136,32 +106,18 @@ library Vault {
         return ud60x18(dist.claimStatus[accountId].pendingSend);
     }
 
-    /**
-     * @dev Increments the current epoch index, effectively producing a
-     * completely blank new VaultEpoch data structure in the vault.
-     */
     function reset(Data storage self) internal {
         self.epoch++;
     }
 
-    /**
-     * @dev Returns the vault's combined debt (consolidated and unconsolidated),
-     * for the current epoch.
-     */
     function currentDebt(Data storage self) internal view returns (SD59x18) {
         return currentEpoch(self).totalDebt();
     }
 
-    /**
-     * @dev Returns the total value in the Vault's collateral distribution, for the current epoch.
-     */
     function currentCollateral(Data storage self) internal view returns (UD60x18) {
         return currentEpoch(self).collateralAmounts.totalAmount();
     }
 
-    /**
-     * @dev Returns an account's collateral amount in this vault's current epoch.
-     */
     function currentAccountCollateral(Data storage self, uint128 accountId) internal view returns (UD60x18) {
         return currentEpoch(self).getAccountCollateral(accountId);
     }

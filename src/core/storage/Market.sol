@@ -16,9 +16,6 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 library Market {
     using SafeCast for int256;
 
-    /**
-     * @dev Thrown when a specified market is not found.
-     */
     error Zaros_Market_MarketNotFound(address marketAddress);
 
     /// @dev Constant base domain used to access a given market's storage slot

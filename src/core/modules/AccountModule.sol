@@ -4,7 +4,8 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { IAccountModule } from "../interfaces/IAccountModule.sol";
-import { IAccountTokenModule } from "../interfaces/IAccountTokenModule.sol";
+import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { Account } from "../storage/Account.sol";
 import { AccountRBAC } from "../storage/AccountRBAC.sol";
 import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
@@ -19,18 +20,10 @@ contract AccountModule is IAccountModule {
     using AccountRBAC for AccountRBAC.Data;
     using Account for Account.Data;
 
-    bytes32 private constant _CREATE_ACCOUNT_FEATURE_FLAG = "createAccount";
-
-    /**
-     * @inheritdoc IAccountModule
-     */
     function getAccountTokenAddress() public view override returns (address) {
         return SystemAccountConfiguration.load().accountToken;
     }
 
-    /**
-     * @inheritdoc IAccountModule
-     */
     function getAccountPermissions(uint128 accountId)
         external
         view
@@ -49,12 +42,55 @@ contract AccountModule is IAccountModule {
         }
     }
 
-    /**
-     * @inheritdoc IAccountModule
-     */
+    function hasPermission(uint128 accountId, bytes32 permission, address user) public view override returns (bool) {
+        return Account.load(accountId).rbac.hasPermission(permission, user);
+    }
+
+    function isAuthorized(uint128 accountId, bytes32 permission, address user) public view override returns (bool) {
+        return Account.load(accountId).rbac.authorized(permission, user);
+    }
+
+    function getAccountOwner(uint128 accountId) public view returns (address) {
+        return Account.load(accountId).rbac.owner;
+    }
+
+    function getAccountLastInteraction(uint128 accountId) external view returns (uint256) {
+        return Account.load(accountId).lastInteraction;
+    }
+
+    function grantPermission(uint128 accountId, bytes32 permission, address user) external override {
+        AccountRBAC.isPermissionValid(permission);
+
+        Account.Data storage account =
+            Account.loadAccountAndValidatePermission(accountId, AccountRBAC._ADMIN_PERMISSION);
+
+        account.rbac.grantPermission(permission, user);
+
+        emit LogGrantPermission(accountId, permission, user, msg.sender);
+    }
+
+    function revokePermission(uint128 accountId, bytes32 permission, address user) external override {
+        Account.Data storage account =
+            Account.loadAccountAndValidatePermission(accountId, AccountRBAC._ADMIN_PERMISSION);
+
+        account.rbac.revokePermission(permission, user);
+
+        emit LogRevokePermission(accountId, permission, user, msg.sender);
+    }
+
+    function renouncePermission(uint128 accountId, bytes32 permission) external override {
+        if (!Account.load(accountId).rbac.hasPermission(permission, msg.sender)) {
+            revert Zaros_AccountModule_PermissionNotGranted(accountId, permission, msg.sender);
+        }
+
+        Account.load(accountId).rbac.revokePermission(permission, msg.sender);
+
+        emit LogRevokePermission(accountId, permission, msg.sender, msg.sender);
+    }
+
     function createAccount() public override returns (uint128) {
-        FeatureFlag.ensureAccessToFeature(_CREATE_ACCOUNT_FEATURE_FLAG);
-        (uint128 accountId, IAccountTokenModule accountTokenModule) = SystemAccountConfiguration.onCreateAccount();
+        FeatureFlag.ensureAccessToFeature(Constants.CREATE_ACCOUNT_FEATURE_FLAG);
+        (uint128 accountId, IAccountNFT accountTokenModule) = SystemAccountConfiguration.onCreateAccount();
         accountTokenModule.mint(msg.sender, accountId);
 
         Account.create(accountId, msg.sender);
@@ -82,9 +118,6 @@ contract AccountModule is IAccountModule {
         }
     }
 
-    /**
-     * @inheritdoc IAccountModule
-     */
     function notifyAccountTransfer(address to, uint128 accountId) external override {
         _onlyAccountToken();
 
@@ -98,76 +131,6 @@ contract AccountModule is IAccountModule {
         account.rbac.setOwner(to);
     }
 
-    /**
-     * @inheritdoc IAccountModule
-     */
-    function hasPermission(uint128 accountId, bytes32 permission, address user) public view override returns (bool) {
-        return Account.load(accountId).rbac.hasPermission(permission, user);
-    }
-
-    /**
-     * @inheritdoc IAccountModule
-     */
-    function isAuthorized(uint128 accountId, bytes32 permission, address user) public view override returns (bool) {
-        return Account.load(accountId).rbac.authorized(permission, user);
-    }
-
-    /**
-     * @inheritdoc IAccountModule
-     */
-    function grantPermission(uint128 accountId, bytes32 permission, address user) external override {
-        AccountRBAC.isPermissionValid(permission);
-
-        Account.Data storage account =
-            Account.loadAccountAndValidatePermission(accountId, AccountRBAC._ADMIN_PERMISSION);
-
-        account.rbac.grantPermission(permission, user);
-
-        emit LogGrantPermission(accountId, permission, user, msg.sender);
-    }
-
-    /**
-     * @inheritdoc IAccountModule
-     */
-    function revokePermission(uint128 accountId, bytes32 permission, address user) external override {
-        Account.Data storage account =
-            Account.loadAccountAndValidatePermission(accountId, AccountRBAC._ADMIN_PERMISSION);
-
-        account.rbac.revokePermission(permission, user);
-
-        emit LogRevokePermission(accountId, permission, user, msg.sender);
-    }
-
-    /**
-     * @inheritdoc IAccountModule
-     */
-    function renouncePermission(uint128 accountId, bytes32 permission) external override {
-        if (!Account.load(accountId).rbac.hasPermission(permission, msg.sender)) {
-            revert Zaros_AccountModule_PermissionNotGranted(accountId, permission, msg.sender);
-        }
-
-        Account.load(accountId).rbac.revokePermission(permission, msg.sender);
-
-        emit LogRevokePermission(accountId, permission, msg.sender, msg.sender);
-    }
-
-    /**
-     * @inheritdoc IAccountModule
-     */
-    function getAccountOwner(uint128 accountId) public view returns (address) {
-        return Account.load(accountId).rbac.owner;
-    }
-
-    /**
-     * @inheritdoc IAccountModule
-     */
-    function getAccountLastInteraction(uint128 accountId) external view returns (uint256) {
-        return Account.load(accountId).lastInteraction;
-    }
-
-    /**
-     * @dev Reverts if the caller is not the account token managed by this module.
-     */
     function _onlyAccountToken() internal view {
         if (msg.sender != address(getAccountTokenAddress())) {
             revert Zaros_AccountModule_OnlyAccountTokenProxy(msg.sender);

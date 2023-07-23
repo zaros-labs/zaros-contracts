@@ -5,9 +5,6 @@ pragma solidity 0.8.19;
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
-/**
- * @title Module for connecting rewards distributors to vaults.
- */
 interface IRewardsManagerModule {
     error Zaros_RewardsManagerModule_RewardUnavailable(address distributor);
 

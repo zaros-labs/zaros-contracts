@@ -36,9 +36,6 @@ library MarketManager {
     using SafeCast for int256;
     using Vault for Vault.Data;
 
-    /**
-     * @dev Thrown when min delegation time for a market connected to the pool has not elapsed
-     */
     error Zaros_MarketManager_MinDelegationTimeoutPending(uint32 timeRemaining);
 
     bytes32 private constant _MARKET_MANAGER_SLOT = keccak256(abi.encode("fi.zaros.core.MarketManager"));
@@ -53,9 +50,6 @@ library MarketManager {
         mapping(address => Vault.Data) vaults;
     }
 
-    /**
-     * @dev Returns the pool stored at the specified pool id.
-     */
     function load() internal pure returns (Data storage marketManager) {
         bytes32 s = _MARKET_MANAGER_SLOT;
         assembly {
@@ -81,15 +75,6 @@ library MarketManager {
         }
     }
 
-    /**
-     * @dev Determines the resulting maximum value per share for a market, according to a system-wide minimum liquidity
-     * ratio. This prevents markets from assigning more debt to pools than they have collateral to cover.
-     *
-     * Note: There is a market-wide fail safe for each market at `MarketConfiguration.maxDebtShareValue`. The lower of
-     * the two values should be used.
-     *
-     * See `SystemPoolConfiguration.minLiquidityRatio`.
-     */
     function getSystemMaxValuePerShare(
         address marketAddress,
         UD60x18 minLiquidityRatio,
@@ -113,21 +98,14 @@ library MarketManager {
         internal
         returns (UD60x18 collateralPrice)
     {
-        // Get the latest collateral price.
         collateralPrice = CollateralConfig.load(collateralType).getCollateralPrice();
-
-        // Changes in price update the corresponding vault's total collateral value as well as its liquidity (collateral
-        // - debt).
         UD60x18 totalCollateralValue = self.vaults[collateralType].currentCreditCapacity(collateralPrice);
 
-        // Update the vault's shares in its debt distribution, according to the total value of its collateral.
         self.vaultsDebtDistribution.setActorShares(bytes32(uint256(uint160(collateralType))), totalCollateralValue);
+
         syncMarkets(self);
     }
 
-    /**
-     * @dev Updates the debt distribution chain for this pool, and consolidates the given account's debt.
-     */
     function updateAccountDebt(
         Data storage self,
         address collateralType,
@@ -140,14 +118,9 @@ library MarketManager {
         return self.vaults[collateralType].consolidateAccountDebt(accountId);
     }
 
-    /**
-     * @dev Clears all vault data for the specified collateral type.
-     */
     function resetVault(Data storage self, address collateralType) internal {
-        // Creates a new epoch in the vault, effectively zeroing out all values.
         self.vaults[collateralType].reset();
 
-        // Ensure that the vault's values update the debt distribution chain.
         recalculateVaultCollateral(self, collateralType);
     }
 
@@ -184,11 +157,6 @@ library MarketManager {
         return vaultDebt.gt(SD_ZERO) ? collateralValue.div(vaultDebt.intoUD60x18()) : UD_ZERO;
     }
 
-    /**
-     * @dev Finds a connected market whose credit capacity has reached its locked limit.
-     *
-     * Note: Returns market zero (null market) if none is found.
-     */
     function findMarketWithCapacityLocked(Data storage self) internal view returns (Market.Data storage lockedMarket) {
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
             Market.Data storage market = Market.load(self.marketConfigurations[i].marketAddress);
@@ -216,24 +184,12 @@ library MarketManager {
             : requiredMinDelegateTime;
     }
 
-    /**
-     * @dev Returns the debt of the vault that tracks the given collateral type.
-     *
-     * The vault's debt is the vault's share of the total debt of the pool, or its share of the total debt of the
-     * markets connected to the pool. The size of this share depends on how much collateral the pool provides to the
-     * pool.
-     *
-     * Note: This is not a view function. It updates the debt distribution chain before performing any calculations.
-     */
     function currentVaultDebt(Data storage self, address collateralType) internal returns (SD59x18) {
         recalculateVaultCollateral(self, collateralType);
 
         return self.vaults[collateralType].currentDebt();
     }
 
-    /**
-     * @dev Returns the total amount and value of the specified collateral delegated to this pool.
-     */
     function currentVaultCollateral(
         Data storage self,
         address collateralType
@@ -248,9 +204,6 @@ library MarketManager {
         collateralValue = collateralPrice.mul(collateralAmount);
     }
 
-    /**
-     * @dev Returns the amount and value of collateral that the specified account has delegated to this pool.
-     */
     function currentAccountCollateral(
         Data storage self,
         address collateralType,
@@ -266,10 +219,6 @@ library MarketManager {
         collateralValue = collateralPrice.mul(collateralAmount);
     }
 
-    /**
-     * @dev Returns the specified account's collateralization ratio (collateral / debt).
-     * @dev If the account's debt is negative or zero, returns an "infinite" c-ratio.
-     */
     function currentAccountCollateralRatio(
         Data storage self,
         address collateralType,

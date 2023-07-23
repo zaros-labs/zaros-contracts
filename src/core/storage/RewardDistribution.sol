@@ -15,55 +15,20 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-/**
- * @title Used by vaults to track rewards for its participants. There will be one of these for each pool, collateral
- * type, and distributor combination.
- */
 library RewardDistribution {
     using SafeCast for int256;
     using SafeCast for uint256;
 
     struct Data {
-        /**
-         * @dev The 3rd party smart contract which holds/mints tokens for distributing rewards to vault participants.
-         */
         IRewardDistributor distributor;
-        /**
-         * @dev The value of the rewards in this entry.
-         */
         uint128 rewardPerShare;
-        /**
-         * @dev The status for each actor, regarding this distribution's entry.
-         */
         mapping(uint256 => RewardDistributionClaimStatus.Data) claimStatus;
-        /**
-         * @dev Value to be distributed as rewards in a scheduled form.
-         */
         int128 scheduledValue;
-        /**
-         * @dev Date at which the entry's rewards will begin to be claimable.
-         *
-         * Note: Set to <= block.timestamp to distribute immediately to currently participating users.
-         */
         uint64 start;
-        /**
-         * @dev Time span after the start date, in which the whole of the entry's rewards will become claimable.
-         */
         uint32 duration;
-        /**
-         * @dev Date on which this distribution entry was last updated.
-         */
         uint32 lastUpdate;
     }
 
-    /**
-     * @dev Distributes rewards into a new rewards distribution entry.
-     *
-     * Note: this function allows for more special cases such as distributing at a future date or distributing over
-     * time.
-     * If you want to apply the distribution to the pool, call `distribute` with the return value. Otherwise, you can
-     * record this independently as well.
-     */
     function distribute(
         Data storage self,
         Distribution.Data storage dist,

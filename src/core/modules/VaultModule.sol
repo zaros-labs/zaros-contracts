@@ -3,6 +3,8 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Constants } from "@zaros/utils/Constants.sol";
+import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
 import { IVaultModule } from "../interfaces/IVaultModule.sol";
 import { Account } from "../storage/Account.sol";
 import { AccountRBAC } from "../storage/AccountRBAC.sol";
@@ -13,7 +15,6 @@ import { MarketManager } from "../storage/MarketManager.sol";
 import { Market } from "../storage/Market.sol";
 import { Vault } from "../storage/Vault.sol";
 import { VaultEpoch } from "../storage/VaultEpoch.sol";
-import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -22,10 +23,6 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { UD60x18, UNIT, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-/**
- * @title Allows accounts to delegate collateral to a pool.
- * @dev See IVaultModule.
- */
 contract VaultModule is IVaultModule {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -39,11 +36,6 @@ contract VaultModule is IVaultModule {
     using CollateralConfig for CollateralConfig.Data;
     using MarketManager for MarketManager.Data;
 
-    bytes32 private constant _DELEGATE_FEATURE_FLAG = "delegateCollateral";
-
-    /**
-     * @inheritdoc IVaultModule
-     */
     function getPositionCollateralRatio(
         uint128 accountId,
         address collateralType
@@ -55,16 +47,10 @@ contract VaultModule is IVaultModule {
         return MarketManager.load().currentAccountCollateralRatio(collateralType, accountId).intoUint256();
     }
 
-    /**
-     * @inheritdoc IVaultModule
-     */
     function getVaultCollateralRatio(address collateralType) external override returns (uint256) {
         return MarketManager.load().currentVaultCollateralRatio(collateralType).intoUint256();
     }
 
-    /**
-     * @inheritdoc IVaultModule
-     */
     function getPositionCollateral(
         uint128 accountId,
         address collateralType
@@ -78,9 +64,6 @@ contract VaultModule is IVaultModule {
         (amount, value) = (amountUD.intoUint256(), valueUD.intoUint256());
     }
 
-    /**
-     * @inheritdoc IVaultModule
-     */
     function getPosition(
         uint128 accountId,
         address collateralType
@@ -98,45 +81,32 @@ contract VaultModule is IVaultModule {
         collateralizationRatio = marketManager.currentAccountCollateralRatio(collateralType, accountId).intoUint256();
     }
 
-    /**
-     * @inheritdoc IVaultModule
-     */
     function getPositionDebt(uint128 accountId, address collateralType) external override returns (int256) {
         return MarketManager.load().updateAccountDebt(collateralType, accountId).intoInt256();
     }
 
-    /**
-     * @inheritdoc IVaultModule
-     */
     function getVaultCollateral(address collateralType) public view override returns (uint256 amount, uint256 value) {
         (UD60x18 amountUD, UD60x18 valueUD) = MarketManager.load().currentVaultCollateral(collateralType);
         (amount, value) = (amountUD.intoUint256(), valueUD.intoUint256());
     }
 
-    /**
-     * @inheritdoc IVaultModule
-     */
     function getVaultDebt(address collateralType) public override returns (int256) {
         return MarketManager.load().currentVaultDebt(collateralType).intoInt256();
     }
 
-    /**
-     * @inheritdoc IVaultModule
-     */
     function delegateCollateral(
         uint128 accountId,
         address collateralType,
-        uint256 newCollateralAmount
+        UD60x18 newCollateralAmount
     )
         external
         override
     {
-        FeatureFlag.ensureAccessToFeature(_DELEGATE_FEATURE_FLAG);
+        FeatureFlag.ensureAccessToFeature(Constants.DELEGATE_FEATURE_FLAG);
         Account.loadAccountAndValidatePermission(accountId, AccountRBAC._DELEGATE_PERMISSION);
-        UD60x18 amount = ud60x18(newCollateralAmount);
 
-        if (amount.gt(UD_ZERO)) {
-            CollateralConfig.requireSufficientDelegation(collateralType, amount);
+        if (newCollateralAmount.gt(UD_ZERO)) {
+            CollateralConfig.requireSufficientDelegation(collateralType, newCollateralAmount);
         }
 
         Vault.Data storage vault = MarketManager.load().vaults[collateralType];
@@ -144,36 +114,32 @@ contract VaultModule is IVaultModule {
 
         UD60x18 currentCollateralAmount = vault.currentAccountCollateral(accountId);
 
-        if (amount.eq(currentCollateralAmount)) {
+        if (newCollateralAmount.eq(currentCollateralAmount)) {
             revert Zaros_VaultModule_InvalidCollateralAmount();
-        } else if (amount.gt(currentCollateralAmount)) {
+        } else if (newCollateralAmount.gt(currentCollateralAmount)) {
             CollateralConfig.collateralEnabled(collateralType);
-            Account.requireSufficientCollateral(accountId, collateralType, amount.sub(currentCollateralAmount));
+            Account.requireSufficientCollateral(
+                accountId, collateralType, newCollateralAmount.sub(currentCollateralAmount)
+            );
         } else {
             MarketManager.load().requireMinDelegationTimeElapsed(vault.currentEpoch().lastDelegationTime[accountId]);
         }
-        UD60x18 collateralPrice = _updatePosition(accountId, collateralType, amount, currentCollateralAmount);
+        UD60x18 collateralPrice =
+            _updatePosition(accountId, collateralType, newCollateralAmount, currentCollateralAmount);
 
-        if (amount.lt(currentCollateralAmount)) {
+        if (newCollateralAmount.lt(currentCollateralAmount)) {
             SD59x18 debt = sd59x18(vault.currentEpoch().consolidatedDebtAmounts[accountId]);
             CollateralConfig.load(collateralType).verifyIssuanceRatio(
-                debt.lt(SD_ZERO) ? UD_ZERO : debt.intoUD60x18(), amount.mul(collateralPrice)
+                debt.lt(SD_ZERO) ? UD_ZERO : debt.intoUD60x18(), newCollateralAmount.mul(collateralPrice)
             );
             _verifyNotCapacityLocked();
         }
 
         vault.currentEpoch().lastDelegationTime[accountId] = uint64(block.timestamp);
 
-        emit LogDelegateCollateral(accountId, collateralType, amount.intoUint256(), msg.sender);
+        emit LogDelegateCollateral(accountId, collateralType, newCollateralAmount.intoUint256(), msg.sender);
     }
 
-    /**
-     * @dev Updates the given account's position regarding the given collateral type,
-     * with the new amount of delegated collateral.
-     *
-     * The update will be reflected in the registered delegated collateral amount,
-     * but it will also trigger updates to the entire debt distribution chain.
-     */
     function _updatePosition(
         uint128 accountId,
         address collateralType,
