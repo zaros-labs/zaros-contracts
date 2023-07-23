@@ -9,7 +9,6 @@ library Constants {
     uint32 internal constant MAX_MIN_DELEGATE_TIME = 30 days;
 
     /// @dev All users features
-
     bytes32 internal constant CREATE_ACCOUNT_FEATURE_FLAG = "createAccount";
     bytes32 internal constant DEPOSIT_FEATURE_FLAG = "deposit";
     bytes32 internal constant WITHDRAW_FEATURE_FLAG = "withdraw";

@@ -5,6 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { IRewardDistributor } from "@zaros/reward-distributor/interfaces/IRewardDistributor.sol";
 import { IRewardsManagerModule } from "../interfaces/IRewardsManagerModule.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
 import { Account } from "../storage/Account.sol";
@@ -36,14 +37,14 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
 
     uint256 private constant _MAX_REWARD_DISTRIBUTIONS = 10;
 
-    bytes32 private constant _CLAIM_FEATURE_FLAG = "claimRewards";
+    function getRewardRate(address collateralType, address distributor) external view override returns (uint256) {
+        return _getRewardRate(collateralType, distributor).intoUint256();
+    }
 
     function registerRewardDistributor(address collateralType, address distributor) external override onlyOwner {
         Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         EnumerableSet.Bytes32Set storage rewardIds = vault.rewardIds;
 
-        // Limit the maximum amount of rewards distributors can be connected to each vault to prevent excessive gas
-        // usage on other calls
         if (rewardIds.length() > _MAX_REWARD_DISTRIBUTIONS) {
             revert ParameterError.Zaros_InvalidParameter("index", "too large");
         }
@@ -77,7 +78,6 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
         Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         EnumerableSet.Bytes32Set storage rewardIds = vault.rewardIds;
 
-        // Identify the reward id for the caller, and revert if it is not a registered reward distributor.
         bytes32 rewardId = _getRewardId(collateralType, msg.sender);
         if (!rewardIds.contains(rewardId)) {
             revert ParameterError.Zaros_InvalidParameter("collateralType-distributor", "reward is not registered");
@@ -107,10 +107,6 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
         return vault.updateRewards(accountId);
     }
 
-    function getRewardRate(address collateralType, address distributor) external view override returns (uint256) {
-        return _getRewardRate(collateralType, distributor).intoUint256();
-    }
-
     function claimRewards(
         uint128 accountId,
         address collateralType,
@@ -120,7 +116,7 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
         override
         returns (uint256)
     {
-        FeatureFlag.ensureAccessToFeature(_CLAIM_FEATURE_FLAG);
+        FeatureFlag.ensureAccessToFeature(Constants.CLAIM_FEATURE_FLAG);
         Account.loadAccountAndValidatePermission(accountId, AccountRBAC._REWARDS_PERMISSION);
 
         Vault.Data storage vault = MarketManager.load().vaults[collateralType];

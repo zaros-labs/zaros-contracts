@@ -53,9 +53,6 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
         return market.getDebtPerCredit().intoInt256();
     }
 
-    /**
-     * @inheritdoc IMarketManagerModule
-     */
     function isMarketCapacityLocked(address marketAddress) external view override returns (bool) {
         return Market.load(marketAddress).isCapacityLocked();
     }
@@ -64,9 +61,6 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
         return MarketManager.load().zrsUsd;
     }
 
-    // /**
-    //  * @inheritdoc IMarketManagerModule
-    //  */
     // function depositMarketUsd(
     //     address marketAddress,
     //     address target,
@@ -105,9 +99,6 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     //     emit MarketUsdDeposited(marketAddress, target, amount, msg.sender);
     // }
 
-    // /**
-    //  * @inheritdoc IMarketManagerModule
-    //  */
     // function withdrawMarketUsd(
     //     address marketAddress,
     //     address target,
@@ -144,16 +135,10 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     //     emit MarketUsdWithdrawn(marketAddress, target, amount, msg.sender);
     // }
 
-    /**
-     * @inheritdoc IMarketManagerModule
-     */
     function getMinLiquidityRatio(address marketAddress) external view override returns (uint256) {
         return Market.load(marketAddress).minLiquidityRatio;
     }
 
-    /**
-     * @inheritdoc IMarketManagerModule
-     */
     function setMinLiquidityRatio(address marketAddress, uint128 minLiquidityRatio) external override onlyOwner {
         Market.Data storage market = Market.load(marketAddress);
 

@@ -36,21 +36,6 @@ contract CollateralModule is ICollateralModule, Ownable {
     bytes32 private constant _DEPOSIT_FEATURE_FLAG = "deposit";
     bytes32 private constant _WITHDRAW_FEATURE_FLAG = "withdraw";
 
-    // bytes32 private constant _CONFIG_TIMEOUT_WITHDRAW = "accountTimeoutWithdraw";
-
-    /**
-     * @inheritdoc ICollateralModule
-     */
-    function configureCollateral(CollateralConfig.Data memory collateralConfig) external override onlyOwner {
-        // TODO: add input validation
-        CollateralConfig.set(collateralConfig);
-
-        emit LogConfigureCollateral(collateralConfig.tokenAddress, collateralConfig);
-    }
-
-    /**
-     * @inheritdoc ICollateralModule
-     */
     function getCollateralConfigs(bool hideDisabled) external view override returns (CollateralConfig.Data[] memory) {
         EnumerableSet.AddressSet storage collateralTypes = CollateralConfig.loadAvailableCollaterals();
 
@@ -71,9 +56,6 @@ contract CollateralModule is ICollateralModule, Ownable {
         return filteredCollaterals;
     }
 
-    /**
-     * @inheritdoc ICollateralModule
-     */
     function getCollateralConfig(address collateralType)
         external
         pure
@@ -83,16 +65,42 @@ contract CollateralModule is ICollateralModule, Ownable {
         return CollateralConfig.load(collateralType);
     }
 
-    /**
-     * @inheritdoc ICollateralModule
-     */
     function getCollateralPrice(address collateralType) external view override returns (uint256) {
         return CollateralConfig.getCollateralPrice(CollateralConfig.load(collateralType)).intoUint256();
     }
 
-    /**
-     * @inheritdoc ICollateralModule
-     */
+    function getAccountCollateral(
+        uint128 accountId,
+        address collateralType
+    )
+        external
+        view
+        override
+        returns (UD60x18 totalDeposited, UD60x18 totalAssigned)
+    {
+        return Account.load(accountId).getCollateralTotals(collateralType);
+    }
+
+    function getAccountAvailableCollateral(
+        uint128 accountId,
+        address collateralType
+    )
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return Account.load(accountId).collaterals[collateralType].amountAvailableForDelegation;
+    }
+
+    function configureCollateral(CollateralConfig.Data memory collateralConfig) external override onlyOwner {
+        // TODO: add input validation
+        CollateralConfig.set(collateralConfig);
+
+        emit LogConfigureCollateral(collateralConfig.tokenAddress, collateralConfig);
+    }
+
+    /// @dev TODO: add deposit cap check
     function deposit(uint128 accountId, address collateralType, uint256 tokenAmount) external override {
         FeatureFlag.ensureAccessToFeature(_DEPOSIT_FEATURE_FLAG);
         CollateralConfig.collateralEnabled(collateralType);
@@ -113,9 +121,6 @@ contract CollateralModule is ICollateralModule, Ownable {
         emit LogDeposit(accountId, collateralType, tokenAmount, msg.sender);
     }
 
-    /**
-     * @inheritdoc ICollateralModule
-     */
     function withdraw(uint128 accountId, address collateralType, uint256 tokenAmount) external override {
         FeatureFlag.ensureAccessToFeature(_WITHDRAW_FEATURE_FLAG);
         // Account.Data storage account = Account.loadAccountAndValidatePermissionAndTimeout(
@@ -138,35 +143,5 @@ contract CollateralModule is ICollateralModule, Ownable {
         IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
 
         emit LogWithdrawal(accountId, collateralType, tokenAmount, msg.sender);
-    }
-
-    /**
-     * @inheritdoc ICollateralModule
-     */
-    function getAccountCollateral(
-        uint128 accountId,
-        address collateralType
-    )
-        external
-        view
-        override
-        returns (UD60x18 totalDeposited, UD60x18 totalAssigned)
-    {
-        return Account.load(accountId).getCollateralTotals(collateralType);
-    }
-
-    /**
-     * @inheritdoc ICollateralModule
-     */
-    function getAccountAvailableCollateral(
-        uint128 accountId,
-        address collateralType
-    )
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return Account.load(accountId).collaterals[collateralType].amountAvailableForDelegation;
     }
 }
