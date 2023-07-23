@@ -5,6 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { IPerpsMarket } from "./interfaces/IPerpsMarket.sol";
 import { OrderModule } from "./modules/OrderModule.sol";
+import { OrderFees } from "./storage/OrderFees.sol";
 import { Position } from "./storage/Position.sol";
 import { PerpsMarketConfig } from "./storage/PerpsMarketConfig.sol";
 
@@ -14,6 +15,21 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract PerpsMarket is IPerpsMarket, OrderModule {
     using PerpsMarketConfig for PerpsMarketConfig.Data;
+
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        address _oracle,
+        address _perpsVault,
+        OrderFees.Data memory _orderFees
+    ) {
+        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
+        perpsMarketConfig.name = _name;
+        perpsMarketConfig.symbol = _symbol;
+        perpsMarketConfig.oracle = _oracle;
+        perpsMarketConfig.perpsVault = _perpsVault;
+        perpsMarketConfig.orderFees = _orderFees;
+    }
 
     function name() external view returns (string memory) {
         return PerpsMarketConfig.load().name;

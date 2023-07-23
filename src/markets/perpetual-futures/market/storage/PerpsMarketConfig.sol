@@ -5,6 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
+import { OrderFees } from "../storage/OrderFees.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -24,6 +25,7 @@ library PerpsMarketConfig {
         uint256 size;
         address oracle;
         address perpsVault;
+        OrderFees.Data orderFees;
     }
 
     function load() internal pure returns (Data storage perpsMarketConfig) {

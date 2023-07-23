@@ -6,14 +6,23 @@ pragma solidity 0.8.19;
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
+import { PerpsMarketConfig } from "../storage/PerpsMarketConfig.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 contract OrderModule is IOrderModule {
-    function fillPrice(UD60x18 size) external view returns (UD60x18) { }
+    using PerpsMarketConfig for PerpsMarketConfig.Data;
 
-    function getOrderFees() external view returns (OrderFees.Data memory) { }
+    function fillPrice(UD60x18 size) external view returns (UD60x18) {
+        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
+        return perpsMarketConfig.getIndexPrice();
+    }
+
+    function getOrderFees() external view returns (OrderFees.Data memory) {
+        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
+        return perpsMarketConfig.orderFees;
+    }
 
     function getOrders(address account) external view returns (Order.Data[] memory) { }
 
