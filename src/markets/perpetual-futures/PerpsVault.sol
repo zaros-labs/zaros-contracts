@@ -5,10 +5,10 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { IPerpsVault } from "./interfaces/IPerpsVault.sol";
 import { PerpsAccountModule } from "./modules/PerpsAccountModule.sol";
-import { PerpsMarketConfigurationModule } from "./modules/PerpsMarketConfigurationModule.sol";
+import { SystemPerpsMarketConfigurationModule } from "./modules/SystemPerpsMarketConfigurationModule.sol";
 
-contract PerpsVault is IPerpsVault, PerpsAccountModule, PerpsMarketConfigurationModule {
+contract PerpsVault is IPerpsVault, PerpsAccountModule, SystemPerpsMarketConfigurationModule {
     constructor(address zaros, address zrsUsd) {
-        PerpsMarketConfigurationModule.__PerpsMarketConfigurationModule_init(zaros, zrsUsd);
+        SystemPerpsMarketConfigurationModule.__SystemPerpsMarketConfigurationModule_init(zaros, zrsUsd);
     }
 }

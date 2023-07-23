@@ -5,9 +5,9 @@ pragma solidity 0.8.19;
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-library PerpsMarketConfiguration {
+library SystemPerpsMarketConfiguration {
     bytes32 internal constant PERPS_MARKET_CONFIGURATION_SLOT =
-        keccak256(abi.encode("fi.zaros.markets.PerpsMarketConfiguration"));
+        keccak256(abi.encode("fi.zaros.markets.SystemPerpsMarketConfiguration"));
 
     struct Data {
         mapping(address collateralType => bool) enabledCollateralTypes;

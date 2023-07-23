@@ -4,6 +4,6 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { IPerpsAccountModule } from "./IPerpsAccountModule.sol";
-import { IPerpsMarketConfigurationModule } from "./IPerpsMarketConfigurationModule.sol";
+import { ISystemPerpsMarketConfigurationModule } from "./ISystemPerpsMarketConfigurationModule.sol";
 
-interface IPerpsVault is IPerpsAccountModule, IPerpsMarketConfigurationModule { }
+interface IPerpsVault is IPerpsAccountModule, ISystemPerpsMarketConfigurationModule { }
