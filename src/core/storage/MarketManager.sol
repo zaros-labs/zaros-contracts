@@ -47,7 +47,7 @@ library MarketManager {
         int128 totalVaultDebts;
         address zrsUsd;
         MarketConfiguration.Data[] marketConfigurations;
-        mapping(address => Vault.Data) vaults;
+        mapping(address collateralType => Vault.Data) vaults;
     }
 
     function load() internal pure returns (Data storage marketManager) {

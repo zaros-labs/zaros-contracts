@@ -25,31 +25,19 @@ library Account {
     /// @dev Constant base domain used to access a given account's storage slot
     string internal constant ACCOUNT_DOMAIN = "fi.zaros.core.Account";
 
-    /**
-     * @dev Thrown when the given target address does not have the given permission with the given account.
-     */
     error Zaros_Account_PermissionDenied(uint128 accountId, bytes32 permission, address target);
 
-    /**
-     * @dev Thrown when an account cannot be found.
-     */
     error Zaros_Account_AccountNotFound(uint128 accountId);
 
-    /**
-     * @dev Thrown when an account does not have sufficient collateral for a particular operation in the system.
-     */
     error Zaros_Account_InsufficientAccountCollateral(uint256 requestedAmount);
 
-    /**
-     * @dev Thrown when the requested operation requires an activity timeout before the
-     */
     error Zaros_Account_AccountActivityTimeoutPending(uint128 accountId, uint256 currentTime, uint256 requiredTime);
 
     struct Data {
         uint128 id;
         uint64 lastInteraction;
         AccountRBAC.Data rbac;
-        mapping(address => Collateral.Data) collaterals;
+        mapping(address collateralType => Collateral.Data) collaterals;
     }
 
     function load(uint128 id) internal pure returns (Data storage account) {
@@ -117,14 +105,6 @@ library Account {
         recordInteraction(account);
     }
 
-    /**
-     * @dev Loads the Account object for the specified accountId,
-     * and validates that sender has the specified permission. It also resets
-     * the interaction timeout. These
-     * are different actions but they are merged in a single function
-     * because loading an account and checking for a permission is a very
-     * common use case in other parts of the code.
-     */
     function loadAccountAndValidatePermissionAndTimeout(
         uint128 accountId,
         bytes32 permission,

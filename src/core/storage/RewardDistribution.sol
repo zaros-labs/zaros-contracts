@@ -22,7 +22,7 @@ library RewardDistribution {
     struct Data {
         IRewardDistributor distributor;
         uint128 rewardPerShare;
-        mapping(uint256 => RewardDistributionClaimStatus.Data) claimStatus;
+        mapping(uint256 index => RewardDistributionClaimStatus.Data) claimStatus;
         int128 scheduledValue;
         uint64 start;
         uint32 duration;

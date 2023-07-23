@@ -22,7 +22,7 @@ library AccountRBAC {
 
     struct Data {
         address owner;
-        mapping(address => EnumerableSet.Bytes32Set) permissions;
+        mapping(address operator => EnumerableSet.Bytes32Set) permissions;
         EnumerableSet.AddressSet permissionAddresses;
     }
 

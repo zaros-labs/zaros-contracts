@@ -24,68 +24,8 @@ contract AccountModule is IAccountModule {
         return SystemAccountConfiguration.load().accountToken;
     }
 
-    function getAccountPermissions(uint128 accountId)
-        external
-        view
-        returns (AccountPermissions[] memory accountPerms)
-    {
-        AccountRBAC.Data storage accountRbac = Account.load(accountId).rbac;
-
-        uint256 allPermissionsLength = accountRbac.permissionAddresses.length();
-        accountPerms = new AccountPermissions[](allPermissionsLength);
-        for (uint256 i = 1; i <= allPermissionsLength; i++) {
-            address permissionAddress = accountRbac.permissionAddresses.at(i);
-            accountPerms[i - 1] = AccountPermissions({
-                user: permissionAddress,
-                permissions: accountRbac.permissions[permissionAddress].values()
-            });
-        }
-    }
-
-    function hasPermission(uint128 accountId, bytes32 permission, address user) public view override returns (bool) {
-        return Account.load(accountId).rbac.hasPermission(permission, user);
-    }
-
-    function isAuthorized(uint128 accountId, bytes32 permission, address user) public view override returns (bool) {
-        return Account.load(accountId).rbac.authorized(permission, user);
-    }
-
     function getAccountOwner(uint128 accountId) public view returns (address) {
         return Account.load(accountId).rbac.owner;
-    }
-
-    function getAccountLastInteraction(uint128 accountId) external view returns (uint256) {
-        return Account.load(accountId).lastInteraction;
-    }
-
-    function grantPermission(uint128 accountId, bytes32 permission, address user) external override {
-        AccountRBAC.isPermissionValid(permission);
-
-        Account.Data storage account =
-            Account.loadAccountAndValidatePermission(accountId, AccountRBAC._ADMIN_PERMISSION);
-
-        account.rbac.grantPermission(permission, user);
-
-        emit LogGrantPermission(accountId, permission, user, msg.sender);
-    }
-
-    function revokePermission(uint128 accountId, bytes32 permission, address user) external override {
-        Account.Data storage account =
-            Account.loadAccountAndValidatePermission(accountId, AccountRBAC._ADMIN_PERMISSION);
-
-        account.rbac.revokePermission(permission, user);
-
-        emit LogRevokePermission(accountId, permission, user, msg.sender);
-    }
-
-    function renouncePermission(uint128 accountId, bytes32 permission) external override {
-        if (!Account.load(accountId).rbac.hasPermission(permission, msg.sender)) {
-            revert Zaros_AccountModule_PermissionNotGranted(accountId, permission, msg.sender);
-        }
-
-        Account.load(accountId).rbac.revokePermission(permission, msg.sender);
-
-        emit LogRevokePermission(accountId, permission, msg.sender, msg.sender);
     }
 
     function createAccount() public override returns (uint128) {
