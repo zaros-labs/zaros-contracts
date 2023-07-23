@@ -33,4 +33,10 @@ contract PerpsMarketConfigurationModule is IPerpsMarketConfigurationModule, Owna
 
         emit LogSetSupportedCollateral(msg.sender, collateralType, enable);
     }
+
+    function __PerpsMarketConfigurationModule_init(address zaros, address zrsUsd) internal {
+        PerpsMarketConfiguration.Data storage perpsMarketConfiguration = PerpsMarketConfiguration.load();
+        perpsMarketConfiguration.zaros = zaros;
+        perpsMarketConfiguration.zrsUsd = zrsUsd;
+    }
 }

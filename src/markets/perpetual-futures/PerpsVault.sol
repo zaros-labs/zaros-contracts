@@ -7,4 +7,8 @@ import { IPerpsVault } from "./interfaces/IPerpsVault.sol";
 import { PerpsAccountModule } from "./modules/PerpsAccountModule.sol";
 import { PerpsMarketConfigurationModule } from "./modules/PerpsMarketConfigurationModule.sol";
 
-contract PerpsVault is IPerpsVault, PerpsAccountModule, PerpsMarketConfigurationModule { }
+contract PerpsVault is IPerpsVault, PerpsAccountModule, PerpsMarketConfigurationModule {
+    constructor(address zaros, address zrsUsd) {
+        PerpsMarketConfigurationModule.__PerpsMarketConfigurationModule_init(zaros, zrsUsd);
+    }
+}
