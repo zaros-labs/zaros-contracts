@@ -30,8 +30,8 @@ library Vault {
     struct Data {
         address collateralType;
         uint256 epoch;
-        mapping(uint256 => VaultEpoch.Data) epochData;
-        mapping(bytes32 => RewardDistribution.Data) rewards;
+        mapping(uint256 index => VaultEpoch.Data) epochData;
+        mapping(bytes32 rewardId => RewardDistribution.Data) rewards;
         EnumerableSet.Bytes32Set rewardIds;
     }
 

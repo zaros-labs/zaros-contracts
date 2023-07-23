@@ -27,7 +27,7 @@ contract Zaros is
     StrategyManagerModule,
     VaultModule
 {
-    // TODO: switch to UUPS
+    // TODO: switch to Diamonds
     constructor(address accountToken, address zrsUsd) {
         AccountModule.__AccountModule_init(accountToken);
         MarketManagerModule.__MarketManagerModule_init(zrsUsd);

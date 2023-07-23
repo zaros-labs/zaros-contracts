@@ -19,7 +19,7 @@ library ScalableMapping {
     struct Data {
         uint128 totalShares;
         int128 scaleModifier;
-        mapping(bytes32 => uint256) shares;
+        mapping(bytes32 actorId => uint256) shares;
     }
 
     function scale(Data storage self, SD59x18 value) internal {

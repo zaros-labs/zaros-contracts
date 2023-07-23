@@ -20,7 +20,7 @@ library Distribution {
     struct Data {
         uint128 totalShares;
         int128 valuePerShare;
-        mapping(bytes32 => DistributionActor.Data) actorInfo;
+        mapping(bytes32 actorId => DistributionActor.Data) actorInfo;
     }
 
     function distributeValue(Data storage self, SD59x18 value) internal {

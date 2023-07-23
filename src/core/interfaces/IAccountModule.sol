@@ -17,49 +17,43 @@ interface IAccountModule {
         uint128 indexed accountId, bytes32 indexed permission, address indexed user, address sender
     );
 
-    struct AccountPermissions {
-        address user;
-        bytes32[] permissions;
-    }
+    // struct AccountPermissions {
+    //     address user;
+    //     bytes32[] permissions;
+    // }
 
-    function getAccountPermissions(uint128 accountId)
-        external
-        view
-        returns (AccountPermissions[] memory accountPerms);
+    // function getAccountPermissions(uint128 accountId)
+    //     external
+    //     view
+    //     returns (AccountPermissions[] memory accountPerms);
 
-    function hasPermission(
-        uint128 accountId,
-        bytes32 permission,
-        address user
-    )
-        external
-        view
-        returns (bool hasPermission);
+    // function hasPermission(
+    //     uint128 accountId,
+    //     bytes32 permission,
+    //     address user
+    // )
+    //     external
+    //     view
+    //     returns (bool hasPermission);
 
-    function isAuthorized(
-        uint128 accountId,
-        bytes32 permission,
-        address target
-    )
-        external
-        view
-        returns (bool isAuthorized);
+    // function isAuthorized(
+    //     uint128 accountId,
+    //     bytes32 permission,
+    //     address target
+    // )
+    //     external
+    //     view
+    //     returns (bool isAuthorized);
 
     function getAccountTokenAddress() external view returns (address accountNftToken);
 
     function getAccountOwner(uint128 accountId) external view returns (address owner);
 
-    function getAccountLastInteraction(uint128 accountId) external view returns (uint256 timestamp);
+    // function getAccountLastInteraction(uint128 accountId) external view returns (uint256 timestamp);
 
     function createAccount() external returns (uint128 accountId);
 
     function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results);
 
     function notifyAccountTransfer(address to, uint128 accountId) external;
-
-    function grantPermission(uint128 accountId, bytes32 permission, address user) external;
-
-    function revokePermission(uint128 accountId, bytes32 permission, address user) external;
-
-    function renouncePermission(uint128 accountId, bytes32 permission) external;
 }

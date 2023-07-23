@@ -23,8 +23,8 @@ library VaultEpoch {
         int128 totalConsolidatedDebt;
         Distribution.Data accountsDebtDistribution;
         ScalableMapping.Data collateralAmounts;
-        mapping(uint256 => int256) consolidatedDebtAmounts;
-        mapping(uint128 => uint64) lastDelegationTime;
+        mapping(uint256 index => int256) consolidatedDebtAmounts;
+        mapping(uint128 accountId => uint64) lastDelegationTime;
     }
 
     function distributeDebtToAccounts(Data storage self, SD59x18 debtChange) internal {
