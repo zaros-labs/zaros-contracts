@@ -21,6 +21,7 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         string memory _symbol,
         address _oracle,
         address _perpsVault,
+        uint256 _maxLeverage,
         OrderFees.Data memory _orderFees
     ) {
         PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
@@ -28,6 +29,7 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         perpsMarketConfig.symbol = _symbol;
         perpsMarketConfig.oracle = _oracle;
         perpsMarketConfig.perpsVault = _perpsVault;
+        perpsMarketConfig.maxLeverage = _maxLeverage;
         perpsMarketConfig.orderFees = _orderFees;
     }
 
@@ -65,7 +67,12 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         return sd59x18(0);
     }
 
-    function getOpenPosition(address account) external view returns (Position.Data memory) { }
+    function getOpenPosition(address account) external view returns (Position.Data memory) {
+        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
+        Position.Data memory position = perpsMarketConfig.positions[account];
+
+        return position;
+    }
 
     function setPerpsVault(address perpsVault) external {
         PerpsMarketConfig.load().perpsVault = perpsVault;

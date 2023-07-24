@@ -5,7 +5,9 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
+import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
+import { Position } from "../storage/Position.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -24,9 +26,13 @@ library PerpsMarketConfig {
         string symbol;
         int256 skew;
         uint256 size;
+        uint256 maxLeverage;
         address oracle;
         address perpsVault;
         OrderFees.Data orderFees;
+        mapping(address account => Position.Data) positions;
+        mapping(address account => Order.Data[]) orders;
+        mapping(address account => mapping(address collateralType => uint256)) margin;
     }
 
     function load() internal pure returns (Data storage perpsMarketConfig) {

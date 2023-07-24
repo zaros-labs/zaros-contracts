@@ -38,6 +38,7 @@ library Position {
         view
         returns (
             UD60x18 notionalValue,
+            SD59x18 size,
             SD59x18 pnl,
             SD59x18 accruedFunding,
             SD59x18 netFundingPerUnit,
@@ -45,6 +46,7 @@ library Position {
         )
     {
         (pnl, accruedFunding, netFundingPerUnit, nextFunding) = getPnl(self, price);
+        size = sd59x18(self.size);
         notionalValue = getNotionalValue(self, price);
     }
 
