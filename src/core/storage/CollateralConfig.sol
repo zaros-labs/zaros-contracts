@@ -134,7 +134,7 @@ library CollateralConfig {
             unchecked {
                 scalar = Constants.DECIMALS - self.decimals;
             }
-            wad = ud60x18(tokenAmount * scalar);
+            wad = ud60x18(tokenAmount * 10 ** scalar);
         }
     }
 }
