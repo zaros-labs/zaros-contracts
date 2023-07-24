@@ -60,15 +60,15 @@ contract OrderModule is IOrderModule {
     function cancelOrder(bytes32 orderId) external { }
 
     function _requireOrderIsValid(Order.Data memory order, UD60x18 currentPrice) internal {
-        if (sd59x18(order.sizeDelta).gt(SD_ZERO)) {
-            if (ud60x18(order.desiredPrice).gt(currentPrice)) {
-                revert Zaros_OrderModule_PriceImpact(order.desiredPrice, currentPrice.intoUint256());
-            }
-        } else {
-            if (ud60x18(order.desiredPrice).lt(currentPrice)) {
-                revert Zaros_OrderModule_PriceImpact(order.desiredPrice, currentPrice.intoUint256());
-            }
-        }
+        // if (sd59x18(order.sizeDelta).gt(SD_ZERO)) {
+        //     if (ud60x18(order.desiredPrice).gt(currentPrice)) {
+        //         revert Zaros_OrderModule_PriceImpact(order.desiredPrice, currentPrice.intoUint256());
+        //     }
+        // } else {
+        //     if (ud60x18(order.desiredPrice).lt(currentPrice)) {
+        //         revert Zaros_OrderModule_PriceImpact(order.desiredPrice, currentPrice.intoUint256());
+        //     }
+        // }
         if (order.filled) {
             revert();
         }
