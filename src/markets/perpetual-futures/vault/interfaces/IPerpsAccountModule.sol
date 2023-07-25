@@ -23,7 +23,13 @@ interface IPerpsAccountModule {
 
     function withdrawMargin(address collateralType, uint256 amount) external;
 
-    function addIsolatedMarginToPosition(address account, address collateralType, UD60x18 amount) external;
+    function addIsolatedMarginToPosition(
+        address account,
+        address collateralType,
+        UD60x18 amount,
+        UD60x18 fee
+    )
+        external;
 
     function removeIsolatedMarginFromPosition(address account, address collateralType, UD60x18 amount) external;
 

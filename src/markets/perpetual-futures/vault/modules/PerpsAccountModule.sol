@@ -5,6 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { IPerpsMarket } from "../../market/interfaces/IPerpsMarket.sol";
 import { Order } from "../../market/storage/Order.sol";
+import { OrderFees } from "../../market/storage/OrderFees.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { SystemPerpsMarketsConfiguration } from "../storage/SystemPerpsMarketsConfiguration.sol";
@@ -59,14 +60,30 @@ contract PerpsAccountModule is IPerpsAccountModule {
         emit LogWithdrawMargin(msg.sender, collateralType, amount);
     }
 
-    function addIsolatedMarginToPosition(address account, address collateralType, UD60x18 amount) external {
+    function addIsolatedMarginToPosition(
+        address account,
+        address collateralType,
+        UD60x18 amount,
+        UD60x18 fee
+    )
+        external
+    {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         _requirePerpsMarketEnabled(systemPerpsMarketsConfiguration.enabledPerpsMarkets[msg.sender]);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(account);
         perpsAccount.decreaseAvailableMargin(collateralType, amount);
-        /// TODO: add erc 20 transfer
+
+        uint256 feeForEach = fee.intoUint256() / 2;
+        uint256 amountMinusFee = amount.sub(fee).intoUint256();
+
+        address sFrxEthRewardDistributor = systemPerpsMarketsConfiguration.sFrxEthRewardDistributor;
+        address usdcRewardDistributor = systemPerpsMarketsConfiguration.usdcRewardDistributor;
+
+        IERC20(collateralType).safeTransfer(sFrxEthRewardDistributor, feeForEach);
+        IERC20(collateralType).safeTransfer(usdcRewardDistributor, feeForEach);
+        IERC20(collateralType).safeTransfer(msg.sender, amountMinusFee);
     }
 
     function removeIsolatedMarginFromPosition(address account, address collateralType, UD60x18 amount) external {
@@ -76,6 +93,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(account);
         perpsAccount.increaseAvailableMargin(collateralType, amount);
+
         /// TODO: add erc20 transfer
     }
 

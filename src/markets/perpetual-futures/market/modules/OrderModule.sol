@@ -16,7 +16,7 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 contract OrderModule is IOrderModule {
     using SafeERC20 for IERC20;
@@ -59,17 +59,23 @@ contract OrderModule is IOrderModule {
         UD60x18 currentPrice = perpsMarketConfig.getIndexPrice();
         _requireOrderIsValid(order, currentPrice);
 
-        // TODO: apply fees
         OrderFees.Data memory orderFees = perpsMarketConfig.orderFees;
-
         Position.Data storage position = perpsMarketConfig.positions[account];
         IPerpsVault perpsVault = IPerpsVault(perpsMarketConfig.perpsVault);
+        UD60x18 sizeAbs = sd59x18(order.sizeDelta).lt(SD_ZERO)
+            ? unary(sd59x18(order.sizeDelta)).intoUD60x18()
+            : sd59x18(order.sizeDelta).intoUD60x18();
+        /// TODO: fix this
+        UD60x18 fee = sizeAbs.mul(ud60x18(orderFees.takerFee));
 
         if (ud60x18(order.marginAmount).gt(ud60x18(position.margin.amount))) {
             perpsVault.addIsolatedMarginToPosition(
-                account, order.collateralType, ud60x18(order.marginAmount).sub(ud60x18(position.margin.amount))
+                account, order.collateralType, ud60x18(order.marginAmount).sub(ud60x18(position.margin.amount)), fee
             );
         } else if (ud60x18(order.marginAmount).lt(ud60x18(position.margin.amount))) {
+            IERC20(order.collateralType).safeTransfer(
+                address(perpsVault), ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount)).intoUint256()
+            );
             perpsVault.removeIsolatedMarginFromPosition(
                 account, order.collateralType, ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount))
             );

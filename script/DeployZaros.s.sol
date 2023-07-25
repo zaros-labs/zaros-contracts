@@ -43,18 +43,6 @@ contract DeployZaros is BaseScript {
         new BalancerUSDCStrategy(address(zaros), address(usdc), address(zrsUsd), vm.envAddress("BALANCER_VAULT"), vm.envBytes32("ZRSUSD_USDC_POOL_ID"));
         address ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
         address usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
-        {
-            PerpsVault perpsVault = new PerpsVault(address(zaros), address(zrsUsd));
-
-            console.log("Perps Vault: ");
-            console.log(address(perpsVault));
-
-            PerpsMarket sFrxEthPerpsMarket =
-            new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP", ethUsdOracle, address(perpsVault), PERPS_MAX_LEVERAGE, orderFees);
-
-            console.log("Perps Market: ");
-            console.log(address(sFrxEthPerpsMarket));
-        }
 
         zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
         zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
@@ -70,6 +58,20 @@ contract DeployZaros is BaseScript {
         zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
         zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));
         zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
+
+        {
+            PerpsVault perpsVault =
+            new PerpsVault(address(zaros), address(zrsUsd), address(sFrxEthRewardDistributor), address(usdcRewardDistributor));
+
+            console.log("Perps Vault: ");
+            console.log(address(perpsVault));
+
+            PerpsMarket sFrxEthPerpsMarket =
+            new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP", ethUsdOracle, address(perpsVault), PERPS_MAX_LEVERAGE, orderFees);
+
+            console.log("Perps Market: ");
+            console.log(address(sFrxEthPerpsMarket));
+        }
 
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,

@@ -52,10 +52,19 @@ contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurati
         emit LogSetSupportedCollateral(msg.sender, collateralType, enable);
     }
 
-    function __SystemPerpsMarketsConfigurationModule_init(address zaros, address zrsUsd) internal {
+    function __SystemPerpsMarketsConfigurationModule_init(
+        address zaros,
+        address zrsUsd,
+        address sFrxEthRewardDistributor,
+        address usdcRewardDistributor
+    )
+        internal
+    {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         systemPerpsMarketsConfiguration.zaros = zaros;
         systemPerpsMarketsConfiguration.zrsUsd = zrsUsd;
+        systemPerpsMarketsConfiguration.sFrxEthRewardDistributor = sFrxEthRewardDistributor;
+        systemPerpsMarketsConfiguration.usdcRewardDistributor = usdcRewardDistributor;
     }
 }
