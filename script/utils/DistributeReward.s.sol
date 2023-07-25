@@ -22,8 +22,6 @@ contract DistributeReward is BaseScript {
         uint256 testDistributionAmount = 2000e18;
         zrsUsd.mint(address(rewardDistributor), testDistributionAmount);
 
-        // function distributeRewards(address collateralType, uint256 amount, uint64 start, uint32 duration) external;
-
         rewardDistributor.distributeRewards(sFrxEth, testDistributionAmount / 2, 0, 0);
         rewardDistributor.distributeRewards(usdc, testDistributionAmount / 2, 0, 0);
     }
