@@ -62,10 +62,19 @@ contract OrderModule is IOrderModule {
         // TODO: apply fees
         OrderFees.Data memory orderFees = perpsMarketConfig.orderFees;
 
-        IPerpsVault perpsVault = IPerpsVault(perpsMarketConfig.perpsVault);
-        perpsVault.addIsolatedMarginToPosition(account, order.collateralType, ud60x18(order.marginAmount));
-
         Position.Data storage position = perpsMarketConfig.positions[account];
+        IPerpsVault perpsVault = IPerpsVault(perpsMarketConfig.perpsVault);
+
+        if (ud60x18(order.marginAmount).gt(ud60x18(position.margin.amount))) {
+            perpsVault.addIsolatedMarginToPosition(
+                account, order.collateralType, ud60x18(order.marginAmount).sub(ud60x18(position.margin.amount))
+            );
+        } else if (ud60x18(order.marginAmount).lt(ud60x18(position.margin.amount))) {
+            perpsVault.removeIsolatedMarginFromPosition(
+                account, order.collateralType, ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount))
+            );
+        }
+
         Position.Data memory newPosition = Position.Data({
             margin: Position.Margin({ collateralType: order.collateralType, amount: order.marginAmount }),
             size: sd59x18(position.size).add(sd59x18(order.sizeDelta)).intoInt256(),

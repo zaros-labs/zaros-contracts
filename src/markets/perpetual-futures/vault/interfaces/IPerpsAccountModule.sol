@@ -28,4 +28,6 @@ interface IPerpsAccountModule {
     function removeIsolatedMarginFromPosition(address account, address collateralType, UD60x18 amount) external;
 
     function depositMarginAndSettleOrder(address perpsMarket, Order.Data calldata order) external;
+
+    function settleOrderAndWithdrawMargin(address perpsMarket, Order.Data calldata order) external;
 }

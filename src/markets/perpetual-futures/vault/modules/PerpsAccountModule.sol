@@ -87,6 +87,15 @@ contract PerpsAccountModule is IPerpsAccountModule {
         IPerpsMarket(perpsMarket).settleOrderFromVault(msg.sender, order);
     }
 
+    function settleOrderAndWithdrawMargin(address perpsMarket, Order.Data calldata order) external {
+        IPerpsMarket(perpsMarket).settleOrderFromVault(msg.sender, order);
+
+        address collateralType = order.collateralType;
+        uint256 amount = order.marginAmount;
+
+        withdrawMargin(collateralType, amount);
+    }
+
     function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
         if (!isEnabled) {
             revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
