@@ -10,9 +10,14 @@ import { Zaros } from "@zaros/core/Zaros.sol";
 import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
+import { PerpsVault } from "@zaros/markets/perpetual-futures/vault/PerpsVault.sol";
+import { PerpsMarket } from "@zaros/markets/perpetual-futures/market/PerpsMarket.sol";
+import { OrderFees } from "@zaros/markets/perpetual-futures/market/storage/OrderFees.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+
+import "forge-std/console.sol";
 
 contract DeployZaros is BaseScript {
     uint80 public constant SFRXETH_ISSUANCE_RATIO = 200e18;
@@ -25,6 +30,8 @@ contract DeployZaros is BaseScript {
     uint256 public constant USDC_DEPOSIT_CAP = 100_000_000e6;
     uint80 public constant LIQUIDATION_REWARD_RATIO = 0.05e18;
     uint128 public constant USDC_STRATEGY_BORROW_CAP = type(uint128).max;
+    uint256 public constant PERPS_MAX_LEVERAGE = 50e18;
+    OrderFees.Data public orderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     function run() public broadcaster {
         IERC20 sFrxEth = IERC20(vm.envAddress("SFRXETH"));
@@ -37,17 +44,31 @@ contract DeployZaros is BaseScript {
         address ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
         address usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
 
-        zrsUsd.transferOwnership(address(zaros));
+        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
+        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
+        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, deployer);
+        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, deployer);
         accountNft.transferOwnership(address(zaros));
 
-        RewardDistributor sFrxEthRewardDistributor =
-            new RewardDistributor(address(zaros), address(zrsUsd), "sfrxETH Vault zrsUSD Distributor");
-        RewardDistributor usdcRewardDistributor =
-            new RewardDistributor(address(zaros), address(zrsUsd), "USDC Vault zrsUSD Distributor");
+        RewardDistributor rewardDistributor =
+            new RewardDistributor(address(zaros), address(zrsUsd), "Zaros zrsUSD Distributor");
 
-        zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
-        zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));
+        zaros.registerRewardDistributor(address(sFrxEth), address(rewardDistributor));
+        zaros.registerRewardDistributor(address(usdc), address(rewardDistributor));
         zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
+
+        {
+            PerpsVault perpsVault = new PerpsVault(address(zaros), address(zrsUsd), address(rewardDistributor));
+
+            console.log("Perps Vault: ");
+            console.log(address(perpsVault));
+
+            PerpsMarket sFrxEthPerpsMarket =
+            new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP", ethUsdOracle, address(perpsVault), PERPS_MAX_LEVERAGE, orderFees);
+
+            console.log("Perps Market: ");
+            console.log(address(sFrxEthPerpsMarket));
+        }
 
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({
             depositingEnabled: true,
@@ -83,5 +104,14 @@ contract DeployZaros is BaseScript {
         zaros.setFeatureFlagAllowAll(Constants.WITHDRAW_FEATURE_FLAG, true);
         zaros.setFeatureFlagAllowAll(Constants.CLAIM_FEATURE_FLAG, true);
         zaros.setFeatureFlagAllowAll(Constants.DELEGATE_FEATURE_FLAG, true);
+
+        console.log("Zaros: ");
+        console.log(address(zaros));
+        console.log("Account NFT: ");
+        console.log(address(accountNft));
+        console.log("Balancer USDC Strategy: ");
+        console.log(address(balancerUsdcStrategy));
+        console.log("Reward Distributor: ");
+        console.log(address(rewardDistributor));
     }
 }

@@ -33,7 +33,7 @@ contract RewardDistributor is IRewardDistributor {
         return _rewardToken;
     }
 
-    function payout(uint128, address, address sender, uint256 amount) external returns (bool) {
+    function payout(uint128, address, address sender, uint256 amount) external override returns (bool) {
         if (msg.sender != _rewardManager) {
             revert AddressError.Zaros_Unauthorized(msg.sender);
         }
@@ -41,11 +41,11 @@ contract RewardDistributor is IRewardDistributor {
         return true;
     }
 
-    function distributeRewards(address collateralType, uint256 amount, uint64 start, uint32 duration) public {
+    function distributeRewards(address collateralType, uint256 amount, uint64 start, uint32 duration) public override {
         IRewardsManagerModule(_rewardManager).distributeRewards(collateralType, amount, start, duration);
     }
 
-    function onPositionUpdated(uint128, address, uint256) external pure {
+    function onPositionUpdated(uint128, address, uint256) external pure override {
         return;
     }
 }

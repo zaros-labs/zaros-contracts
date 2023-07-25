@@ -13,10 +13,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 
-/**
- * @title Tracks system-wide settings for each collateral type, as well as helper functions for it, such as retrieving
- * its current price from the oracle manager.
- */
 library CollateralConfig {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeCast for int256;
@@ -138,7 +134,7 @@ library CollateralConfig {
             unchecked {
                 scalar = Constants.DECIMALS - self.decimals;
             }
-            wad = ud60x18(tokenAmount * scalar);
+            wad = ud60x18(tokenAmount * 10 ** scalar);
         }
     }
 }

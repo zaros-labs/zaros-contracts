@@ -109,14 +109,11 @@ contract CollateralModule is ICollateralModule, Ownable {
         Account.Data storage account = Account.load(accountId);
 
         address depositFrom = msg.sender;
-
         address self = address(this);
-
         IERC20(collateralType).safeTransferFrom(depositFrom, self, tokenAmount);
 
-        account.collaterals[collateralType].increaseAvailableCollateral(
-            CollateralConfig.load(collateralType).normalizeTokenAmount(tokenAmount)
-        );
+        UD60x18 normalizedTokenAmount = CollateralConfig.load(collateralType).normalizeTokenAmount(tokenAmount);
+        account.collaterals[collateralType].increaseAvailableCollateral(normalizedTokenAmount);
 
         emit LogDeposit(accountId, collateralType, tokenAmount, msg.sender);
     }

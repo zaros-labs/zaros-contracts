@@ -125,7 +125,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         address usdc = asset();
         uint256 outstandingUsdc = IERC20(usdc).balanceOf(address(this));
         uint256 zrsUsdAmountToBorrow = _normalizeAssetToZarosUsd(outstandingUsdc);
-        uint256 zrsUsdBorrowed = IZaros(_zaros).mintUsdToStrategy(usdc, zrsUsdAmountToBorrow);
+        IZaros(_zaros).mintUsdToStrategy(usdc, zrsUsdAmountToBorrow);
 
         // Forms Balancer Join Pool Request
         IAsset[] memory assets = _getAssets();
