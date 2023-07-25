@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-interface ISystemPerpsMarketConfigurationModule {
+interface ISystemPerpsMarketsConfigurationModule {
     event LogSetSupportedMarket(address indexed perpsMarket, bool enabled);
 
     event LogSetSupportedCollateral(address indexed sender, address indexed collateralType, bool enabled);
