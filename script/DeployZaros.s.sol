@@ -58,6 +58,8 @@ contract DeployZaros is BaseScript {
 
         zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
         zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
+        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, deployer);
+        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, deployer);
         accountNft.transferOwnership(address(zaros));
 
         RewardDistributor sFrxEthRewardDistributor =

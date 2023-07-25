@@ -17,9 +17,6 @@ contract DeployMockTokens is BaseScript {
         sFrxEth.mint(deployer, 1_000_000_000e18);
         usdc.mint(deployer, 1_000_000_000e6);
 
-        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, vm.envAddress("ZAROS"));
-        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, vm.envAddress("ZAROS"));
-
         return (sFrxEth, usdc, zrsUsd);
     }
 }
