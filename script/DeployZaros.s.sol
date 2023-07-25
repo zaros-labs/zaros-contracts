@@ -56,7 +56,8 @@ contract DeployZaros is BaseScript {
             console.log(address(sFrxEthPerpsMarket));
         }
 
-        zrsUsd.transferOwnership(address(zaros));
+        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
+        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
         accountNft.transferOwnership(address(zaros));
 
         RewardDistributor sFrxEthRewardDistributor =

@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Constants } from "@zaros/utils/Constants.sol";
 import { BaseScript } from "../Base.s.sol";
 import { MockERC20 } from "../../test/mocks/MockERC20.sol";
 import { MockZarosUSD } from "../../test/mocks/MockZarosUSD.sol";
@@ -15,6 +16,9 @@ contract DeployMockTokens is BaseScript {
 
         sFrxEth.mint(deployer, 1_000_000_000e18);
         usdc.mint(deployer, 1_000_000_000e6);
+
+        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, vm.envAddress("ZAROS"));
+        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, vm.envAddress("ZAROS"));
 
         return (sFrxEth, usdc, zrsUsd);
     }
