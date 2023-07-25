@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { IPerpsVault } from "../../vault/interfaces/IPerpsVault.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
@@ -46,8 +47,12 @@ contract OrderModule is IOrderModule {
         // TODO: apply fees
         OrderFees.Data memory orderFees = perpsMarketConfig.orderFees;
 
+        IPerpsVault perpsVault = IPerpsVault(perpsMarketConfig.perpsVault);
+        perpsVault.addIsolatedMarginToPosition(msg.sender, order.collateralType, ud60x18(order.marginAmount));
+
         Position.Data storage position = perpsMarketConfig.positions[msg.sender];
         Position.Data memory newPosition = Position.Data({
+            margin: Position.Margin({ collateralType: order.collateralType, amount: order.marginAmount }),
             size: sd59x18(position.size).add(sd59x18(order.sizeDelta)).intoInt256(),
             lastInteractionPrice: currentPrice.intoUint256(),
             lastInteractionFunding: 0

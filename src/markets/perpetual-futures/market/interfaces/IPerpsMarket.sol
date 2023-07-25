@@ -17,7 +17,7 @@ interface IPerpsMarket is IOrderModule {
 
     function skew() external view returns (SD59x18);
 
-    function size() external view returns (UD60x18);
+    function totalOpenInterest() external view returns (UD60x18);
 
     function indexPrice() external view returns (UD60x18);
 

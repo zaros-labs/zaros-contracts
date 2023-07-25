@@ -6,7 +6,7 @@ library Order {
     struct Data {
         address account;
         address collateralType;
-        uint256 margin;
+        uint256 marginAmount;
         int256 sizeDelta;
         uint184 desiredPrice;
         uint64 deadline;

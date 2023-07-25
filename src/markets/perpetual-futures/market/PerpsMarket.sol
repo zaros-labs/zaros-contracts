@@ -46,7 +46,7 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         return sd59x18(PerpsMarketConfig.load().skew);
     }
 
-    function size() external view returns (UD60x18) {
+    function totalOpenInterest() external view returns (UD60x18) {
         return ud60x18(PerpsMarketConfig.load().size);
     }
 

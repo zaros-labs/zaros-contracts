@@ -7,6 +7,7 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 interface IPerpsAccountModule {
     error Zaros_PerpsAccountModule_InvalidCollateralType(address collateralType);
+    error Zaros_PerpsAccountModule_InvalidPerpsMarket(address perpsMarket);
 
     event LogDepositMargin(address indexed sender, address indexed collateralType, uint256 amount);
     event LogWithdrawMargin(address indexed sender, address indexed collateralType, uint256 amount);
@@ -19,5 +20,7 @@ interface IPerpsAccountModule {
 
     function withdrawMargin(address collateralType, uint256 amount) external;
 
-    function addIsolatedMarginToPosition(address account, UD60x18 amount) external;
+    function addIsolatedMarginToPosition(address account, address collateralType, UD60x18 amount) external;
+
+    function removeIsolatedMarginFromPosition(address account, address collateralType, UD60x18 amount) external;
 }

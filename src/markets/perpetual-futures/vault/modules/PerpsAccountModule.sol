@@ -57,11 +57,35 @@ contract PerpsAccountModule is IPerpsAccountModule {
         emit LogWithdrawMargin(msg.sender, collateralType, amount);
     }
 
-    function addIsolatedMarginToPosition(address account, UD60x18 amount) external { }
+    function addIsolatedMarginToPosition(address account, address collateralType, UD60x18 amount) external {
+        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
+            SystemPerpsMarketsConfiguration.load();
+        _requirePerpsMarketEnabled(systemPerpsMarketsConfiguration.enabledPerpsMarkets[msg.sender]);
+
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(account);
+        perpsAccount.decreaseAvailableMargin(collateralType, amount);
+        /// TODO: add erc 20 transfer
+    }
+
+    function removeIsolatedMarginFromPosition(address account, address collateralType, UD60x18 amount) external {
+        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
+            SystemPerpsMarketsConfiguration.load();
+        _requirePerpsMarketEnabled(systemPerpsMarketsConfiguration.enabledPerpsMarkets[msg.sender]);
+
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(account);
+        perpsAccount.increaseAvailableMargin(collateralType, amount);
+        /// TODO: add erc20 transfer
+    }
 
     function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
         if (!isEnabled) {
             revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
+        }
+    }
+
+    function _requirePerpsMarketEnabled(bool isEnabled) internal view {
+        if (!isEnabled) {
+            revert Zaros_PerpsAccountModule_InvalidPerpsMarket(msg.sender);
         }
     }
 }

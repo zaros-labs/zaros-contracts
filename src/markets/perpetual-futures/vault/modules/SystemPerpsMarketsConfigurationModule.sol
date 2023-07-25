@@ -13,7 +13,15 @@ contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurati
     function isCollateralEnabled(address collateralType) external view returns (bool) {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
+
         return systemPerpsMarketsConfiguration.enabledCollateralTypes[collateralType];
+    }
+
+    function isPerpsMarketEnabled(address perpsMarket) external view returns (bool) {
+        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
+            SystemPerpsMarketsConfiguration.load();
+
+        return systemPerpsMarketsConfiguration.enabledPerpsMarkets[perpsMarket];
     }
 
     function setZaros(address zaros) external {

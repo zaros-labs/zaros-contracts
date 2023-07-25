@@ -32,7 +32,6 @@ library PerpsMarketConfig {
         OrderFees.Data orderFees;
         mapping(address account => Position.Data) positions;
         mapping(address account => Order.Data[]) orders;
-        mapping(address account => mapping(address collateralType => uint256)) margin;
     }
 
     function load() internal pure returns (Data storage perpsMarketConfig) {
