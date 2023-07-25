@@ -7,14 +7,6 @@ import { MarketConfiguration } from "../storage/MarketConfiguration.sol";
 interface IMarketManagerModule {
     error Zaros_MarketManagerModule_NotEnoughLiquidity(address marketAddress, uint256 amount);
 
-    event MarketRegistered(address indexed marketAddress, address indexed sender);
-
-    event MarketUsdDeposited(address indexed marketAddress, address indexed target, uint256 amount);
-
-    event MarketUsdWithdrawn(address indexed marketAddress, address indexed target, uint256 amount);
-
-    event MarketSystemFeePaid(address indexed marketAddress, uint256 feeAmount);
-
     event SetMinDelegateTime(address indexed marketAddress, uint32 minDelegateTime);
 
     event LogSetMinLiquidityRatio(address indexed marketAddress, uint256 minLiquidityRatio);
