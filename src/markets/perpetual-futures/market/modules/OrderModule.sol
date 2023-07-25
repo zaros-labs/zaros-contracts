@@ -40,6 +40,21 @@ contract OrderModule is IOrderModule {
     function settleOrder(bytes32 orderId) external { }
 
     function settleOrder(Order.Data calldata order) external {
+        _settleOrder(msg.sender, order);
+    }
+
+    function cancelOrder(bytes32 orderId) external { }
+
+    function settleOrderFromVault(address account, Order.Data calldata order) external {
+        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
+        if (msg.sender != perpsMarketConfig.perpsVault) {
+            revert();
+        }
+
+        _settleOrder(account, order);
+    }
+
+    function _settleOrder(address account, Order.Data memory order) internal {
         PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
         UD60x18 currentPrice = perpsMarketConfig.getIndexPrice();
         _requireOrderIsValid(order, currentPrice);
@@ -48,9 +63,9 @@ contract OrderModule is IOrderModule {
         OrderFees.Data memory orderFees = perpsMarketConfig.orderFees;
 
         IPerpsVault perpsVault = IPerpsVault(perpsMarketConfig.perpsVault);
-        perpsVault.addIsolatedMarginToPosition(msg.sender, order.collateralType, ud60x18(order.marginAmount));
+        perpsVault.addIsolatedMarginToPosition(account, order.collateralType, ud60x18(order.marginAmount));
 
-        Position.Data storage position = perpsMarketConfig.positions[msg.sender];
+        Position.Data storage position = perpsMarketConfig.positions[account];
         Position.Data memory newPosition = Position.Data({
             margin: Position.Margin({ collateralType: order.collateralType, amount: order.marginAmount }),
             size: sd59x18(position.size).add(sd59x18(order.sizeDelta)).intoInt256(),
@@ -59,10 +74,8 @@ contract OrderModule is IOrderModule {
         });
         position.updatePosition(newPosition);
 
-        emit LogSettleOrder(msg.sender, order, newPosition);
+        emit LogSettleOrder(account, order, newPosition);
     }
-
-    function cancelOrder(bytes32 orderId) external { }
 
     function _requireOrderIsValid(Order.Data memory order, UD60x18 currentPrice) internal {
         // if (sd59x18(order.sizeDelta).gt(SD_ZERO)) {

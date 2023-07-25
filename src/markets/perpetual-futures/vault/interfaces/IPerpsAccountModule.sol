@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.19;
 
+// Zaros dependencies
+import { Order } from "../../market/storage/Order.sol";
+
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
@@ -23,4 +26,6 @@ interface IPerpsAccountModule {
     function addIsolatedMarginToPosition(address account, address collateralType, UD60x18 amount) external;
 
     function removeIsolatedMarginFromPosition(address account, address collateralType, UD60x18 amount) external;
+
+    function depositMarginAndSettleOrder(address perpsMarket, Order.Data calldata order) external;
 }

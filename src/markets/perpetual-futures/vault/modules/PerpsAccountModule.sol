@@ -3,6 +3,8 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { IPerpsMarket } from "../../market/interfaces/IPerpsMarket.sol";
+import { Order } from "../../market/storage/Order.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { SystemPerpsMarketsConfiguration } from "../storage/SystemPerpsMarketsConfiguration.sol";
@@ -27,7 +29,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
 
     function getTotalAvailableMargin(address account) external view returns (UD60x18) { }
 
-    function depositMargin(address collateralType, uint256 amount) external {
+    function depositMargin(address collateralType, uint256 amount) public {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
@@ -42,7 +44,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         emit LogDepositMargin(msg.sender, collateralType, amount);
     }
 
-    function withdrawMargin(address collateralType, uint256 amount) external {
+    function withdrawMargin(address collateralType, uint256 amount) public {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
@@ -75,6 +77,14 @@ contract PerpsAccountModule is IPerpsAccountModule {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(account);
         perpsAccount.increaseAvailableMargin(collateralType, amount);
         /// TODO: add erc20 transfer
+    }
+
+    function depositMarginAndSettleOrder(address perpsMarket, Order.Data calldata order) external {
+        address collateralType = order.collateralType;
+        uint256 amount = order.marginAmount;
+
+        depositMargin(collateralType, amount);
+        IPerpsMarket(perpsMarket).settleOrderFromVault(msg.sender, order);
     }
 
     function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
