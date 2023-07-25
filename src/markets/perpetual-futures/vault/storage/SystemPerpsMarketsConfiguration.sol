@@ -14,8 +14,7 @@ library SystemPerpsMarketsConfiguration {
         mapping(address perpsMarket => bool) enabledPerpsMarkets;
         address zaros;
         address zrsUsd;
-        address sFrxEthRewardDistributor;
-        address usdcRewardDistributor;
+        address rewardDistributor;
     }
 
     function load() internal pure returns (Data storage systemPerpsMarketsConfiguration) {

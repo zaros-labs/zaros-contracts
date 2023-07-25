@@ -55,8 +55,7 @@ contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurati
     function __SystemPerpsMarketsConfigurationModule_init(
         address zaros,
         address zrsUsd,
-        address sFrxEthRewardDistributor,
-        address usdcRewardDistributor
+        address rewardDistributor
     )
         internal
     {
@@ -64,7 +63,6 @@ contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurati
             SystemPerpsMarketsConfiguration.load();
         systemPerpsMarketsConfiguration.zaros = zaros;
         systemPerpsMarketsConfiguration.zrsUsd = zrsUsd;
-        systemPerpsMarketsConfiguration.sFrxEthRewardDistributor = sFrxEthRewardDistributor;
-        systemPerpsMarketsConfiguration.usdcRewardDistributor = usdcRewardDistributor;
+        systemPerpsMarketsConfiguration.rewardDistributor = rewardDistributor;
     }
 }

@@ -75,14 +75,11 @@ contract PerpsAccountModule is IPerpsAccountModule {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(account);
         perpsAccount.decreaseAvailableMargin(collateralType, amount);
 
-        uint256 feeForEach = fee.intoUint256() / 2;
         uint256 amountMinusFee = amount.sub(fee).intoUint256();
 
-        address sFrxEthRewardDistributor = systemPerpsMarketsConfiguration.sFrxEthRewardDistributor;
-        address usdcRewardDistributor = systemPerpsMarketsConfiguration.usdcRewardDistributor;
+        address rewardDistributor = systemPerpsMarketsConfiguration.rewardDistributor;
 
-        IERC20(collateralType).safeTransfer(sFrxEthRewardDistributor, feeForEach);
-        IERC20(collateralType).safeTransfer(usdcRewardDistributor, feeForEach);
+        IERC20(collateralType).safeTransfer(rewardDistributor, fee.intoUint256());
         IERC20(collateralType).safeTransfer(msg.sender, amountMinusFee);
     }
 

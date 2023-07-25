@@ -8,9 +8,9 @@ import { PerpsAccountModule } from "./modules/PerpsAccountModule.sol";
 import { SystemPerpsMarketsConfigurationModule } from "./modules/SystemPerpsMarketsConfigurationModule.sol";
 
 contract PerpsVault is IPerpsVault, PerpsAccountModule, SystemPerpsMarketsConfigurationModule {
-    constructor(address zaros, address zrsUsd, address sFrxEthRewardDistributor, address usdcRewardDistributor) {
+    constructor(address zaros, address zrsUsd, address rewardDistributor) {
         SystemPerpsMarketsConfigurationModule.__SystemPerpsMarketsConfigurationModule_init(
-            zaros, zrsUsd, sFrxEthRewardDistributor, usdcRewardDistributor
+            zaros, zrsUsd, rewardDistributor
         );
     }
 }

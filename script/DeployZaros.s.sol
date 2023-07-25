@@ -50,18 +50,15 @@ contract DeployZaros is BaseScript {
         zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, deployer);
         accountNft.transferOwnership(address(zaros));
 
-        RewardDistributor sFrxEthRewardDistributor =
-            new RewardDistributor(address(zaros), address(zrsUsd), "sfrxETH Vault zrsUSD Distributor");
-        RewardDistributor usdcRewardDistributor =
-            new RewardDistributor(address(zaros), address(zrsUsd), "USDC Vault zrsUSD Distributor");
+        RewardDistributor rewardDistributor =
+            new RewardDistributor(address(zaros), address(zrsUsd), "Zaros zrsUSD Distributor");
 
-        zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
-        zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));
+        zaros.registerRewardDistributor(address(sFrxEth), address(rewardDistributor));
+        zaros.registerRewardDistributor(address(usdc), address(rewardDistributor));
         zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
 
         {
-            PerpsVault perpsVault =
-            new PerpsVault(address(zaros), address(zrsUsd), address(sFrxEthRewardDistributor), address(usdcRewardDistributor));
+            PerpsVault perpsVault = new PerpsVault(address(zaros), address(zrsUsd), address(rewardDistributor));
 
             console.log("Perps Vault: ");
             console.log(address(perpsVault));
@@ -114,9 +111,7 @@ contract DeployZaros is BaseScript {
         console.log(address(accountNft));
         console.log("Balancer USDC Strategy: ");
         console.log(address(balancerUsdcStrategy));
-        console.log("sfrxETH Reward Distributor: ");
-        console.log(address(sFrxEthRewardDistributor));
-        console.log("USDC Reward Distributor: ");
-        console.log(address(usdcRewardDistributor));
+        console.log("Reward Distributor: ");
+        console.log(address(rewardDistributor));
     }
 }
