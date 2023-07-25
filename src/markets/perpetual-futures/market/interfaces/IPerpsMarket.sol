@@ -27,7 +27,17 @@ interface IPerpsMarket is IOrderModule {
 
     function fundingVelocity() external view returns (SD59x18);
 
-    function getOpenPosition(address account) external view returns (Position.Data memory);
+    function getOpenPositionData(address account)
+        external
+        view
+        returns (
+            UD60x18 notionalValue,
+            SD59x18 size,
+            SD59x18 pnl,
+            SD59x18 accruedFunding,
+            SD59x18 netFundingPerUnit,
+            SD59x18 nextFunding
+        );
 
     function setPerpsVault(address perpsVault) external;
 }

@@ -15,6 +15,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract PerpsMarket is IPerpsMarket, OrderModule {
     using PerpsMarketConfig for PerpsMarketConfig.Data;
+    using Position for Position.Data;
 
     constructor(
         string memory _name,
@@ -67,11 +68,23 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         return sd59x18(0);
     }
 
-    function getOpenPosition(address account) external view returns (Position.Data memory) {
+    function getOpenPositionData(address account)
+        external
+        view
+        returns (
+            UD60x18 notionalValue,
+            SD59x18 size,
+            SD59x18 pnl,
+            SD59x18 accruedFunding,
+            SD59x18 netFundingPerUnit,
+            SD59x18 nextFunding
+        )
+    {
         PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
-        Position.Data memory position = perpsMarketConfig.positions[account];
+        Position.Data storage position = perpsMarketConfig.positions[account];
+        UD60x18 price = perpsMarketConfig.getIndexPrice();
 
-        return position;
+        (notionalValue, size, pnl, accruedFunding, netFundingPerUnit, nextFunding) = position.getPositionData(price);
     }
 
     function setPerpsVault(address perpsVault) external {
