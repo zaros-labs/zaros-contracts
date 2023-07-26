@@ -9,3 +9,7 @@
 - End to end perps implementation
 - Async Orders
 - CCIP Integration
+
+### Architecture
+
+![Architecture Diagram](./docs/img/architecture.png)
