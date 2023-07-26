@@ -30,5 +30,10 @@ interface IOrderModule {
 
     function cancelOrder(bytes32 orderId) external;
 
-    function settleOrderFromVault(address account, Order.Data calldata order) external;
+    function settleOrderFromVault(
+        address account,
+        Order.Data calldata order
+    )
+        external
+        returns (uint256 previousPositionAmount);
 }
