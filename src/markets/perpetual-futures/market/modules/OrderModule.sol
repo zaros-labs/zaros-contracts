@@ -45,22 +45,29 @@ contract OrderModule is IOrderModule {
 
     function cancelOrder(bytes32 orderId) external { }
 
-    function settleOrderFromVault(address account, Order.Data calldata order) external {
+    function settleOrderFromVault(
+        address account,
+        Order.Data calldata order
+    )
+        external
+        returns (uint256 previousPositionAmount)
+    {
         PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
         if (msg.sender != perpsMarketConfig.perpsVault) {
             revert();
         }
 
-        _settleOrder(account, order);
+        return _settleOrder(account, order);
     }
 
-    function _settleOrder(address account, Order.Data memory order) internal {
+    function _settleOrder(address account, Order.Data memory order) internal returns (uint256 previousPositionAmount) {
         PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
         UD60x18 currentPrice = perpsMarketConfig.getIndexPrice();
         _requireOrderIsValid(order, currentPrice);
 
         OrderFees.Data memory orderFees = perpsMarketConfig.orderFees;
         Position.Data storage position = perpsMarketConfig.positions[account];
+        previousPositionAmount = position.margin.amount;
         IPerpsVault perpsVault = IPerpsVault(perpsMarketConfig.perpsVault);
         UD60x18 sizeAbs = sd59x18(order.sizeDelta).lt(SD_ZERO)
             ? unary(sd59x18(order.sizeDelta)).intoUD60x18()

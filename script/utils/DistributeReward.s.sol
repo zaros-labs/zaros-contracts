@@ -19,7 +19,7 @@ contract DistributeReward is BaseScript {
         address sFrxEth = vm.envAddress("SFRXETH");
         address usdc = vm.envAddress("USDC");
 
-        uint256 testDistributionAmount = 50e18;
+        uint256 testDistributionAmount = 500e18;
         zrsUsd.mint(address(rewardDistributor), testDistributionAmount);
 
         rewardDistributor.distributeRewards(sFrxEth, testDistributionAmount / 2, 0, 0);

@@ -103,12 +103,11 @@ contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     function settleOrderAndWithdrawMargin(address perpsMarket, Order.Data calldata order) external {
-        IPerpsMarket(perpsMarket).settleOrderFromVault(msg.sender, order);
+        uint256 previousPositionAmount = IPerpsMarket(perpsMarket).settleOrderFromVault(msg.sender, order);
 
         address collateralType = order.collateralType;
-        uint256 amount = order.marginAmount;
 
-        withdrawMargin(collateralType, amount);
+        withdrawMargin(collateralType, previousPositionAmount);
     }
 
     function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
