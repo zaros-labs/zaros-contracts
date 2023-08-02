@@ -7,4 +7,8 @@ import { Test } from "forge-std/Test.sol";
 
 contract AccountModuleTest is Test {
     function setUp() public { }
+
+    function test_createAccount() public {}
+
+    function test_createAccountAndMulticall() public {}
 }
