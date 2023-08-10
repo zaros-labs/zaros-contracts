@@ -36,7 +36,7 @@ library Account {
     struct Data {
         uint128 id;
         uint64 lastInteraction;
-        AccountRBAC.Data rbac;
+        mapping(address operator => bool) approvedOperators;
         mapping(address collateralType => Collateral.Data) collaterals;
     }
 
