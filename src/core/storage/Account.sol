@@ -15,6 +15,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+// TODO: Think on using a feature flag instead of operator mapping
 library Account {
     using AccountRBAC for AccountRBAC.Data;
     using Collateral for Collateral.Data;
