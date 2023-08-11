@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { Account } from "../storage/Account.sol";
-import { AccountRBAC } from "../storage/AccountRBAC.sol";
 import { ICollateralModule } from "../interfaces/ICollateralModule.sol";
 import { Collateral } from "../storage/Collateral.sol";
 import { CollateralConfig } from "../storage/CollateralConfig.sol";
@@ -28,7 +27,6 @@ contract CollateralModule is ICollateralModule, Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using CollateralConfig for CollateralConfig.Data;
     using Account for Account.Data;
-    using AccountRBAC for AccountRBAC.Data;
     using Collateral for Collateral.Data;
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
@@ -121,10 +119,9 @@ contract CollateralModule is ICollateralModule, Ownable {
     function withdraw(uint128 accountId, address collateralType, uint256 tokenAmount) external override {
         FeatureFlag.ensureAccessToFeature(_WITHDRAW_FEATURE_FLAG);
         // Account.Data storage account = Account.loadAccountAndValidatePermissionAndTimeout(
-        //     accountId, AccountRBAC._WITHDRAW_PERMISSION, Config.readUint(_CONFIG_TIMEOUT_WITHDRAW, 0)
+        //     accountId, Config.readUint(_CONFIG_TIMEOUT_WITHDRAW, 0)
         // );
-        Account.Data storage account =
-            Account.loadAccountAndValidatePermission(accountId, AccountRBAC._WITHDRAW_PERMISSION);
+        Account.Data storage account = Account.loadAccountAndValidatePermission(accountId);
 
         UD60x18 tokenWad = CollateralConfig.load(collateralType).normalizeTokenAmount(tokenAmount);
 

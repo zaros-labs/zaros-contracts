@@ -12,8 +12,4 @@ contract AccountNFT is ERC721Enumerable, Ownable {
     function mint(address to, uint256 tokenId) external onlyOwner {
         _mint(to, tokenId);
     }
-
-    function isApprovedOrOwner(address spender, uint256 tokenId) external view virtual returns (bool) {
-        return _isApprovedOrOwner(spender, tokenId);
-    }
 }
