@@ -15,9 +15,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-// TODO: Think on using a feature flag instead of operator mapping
 library Account {
-    using AccountRBAC for AccountRBAC.Data;
     using Collateral for Collateral.Data;
     using EnumerableSet for EnumerableSet.UintSet;
     using Vault for Vault.Data;
@@ -37,7 +35,6 @@ library Account {
     struct Data {
         uint128 id;
         uint64 lastInteraction;
-        mapping(address operator => bool) approvedOperators;
         mapping(address collateralType => Collateral.Data) collaterals;
     }
 
@@ -48,11 +45,10 @@ library Account {
         }
     }
 
-    function create(uint128 id, address owner) internal returns (Data storage account) {
+    function create(uint128 id) internal returns (Data storage account) {
         account = load(id);
 
         account.id = id;
-        account.rbac.owner = owner;
     }
 
     function exists(uint128 id) internal view returns (Data storage account) {
