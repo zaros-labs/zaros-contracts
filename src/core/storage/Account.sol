@@ -95,7 +95,6 @@ library Account {
 
     function loadAccountAndValidatePermissionAndTimeout(
         uint128 accountId,
-        bytes32 permission,
         uint256 timeout
     )
         internal
