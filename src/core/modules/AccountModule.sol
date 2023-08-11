@@ -26,6 +26,10 @@ contract AccountModule is IAccountModule {
         return Account.load(accountId).owner;
     }
 
+    function getAccountLastInteraction(uint128 accountId) external view returns (uint256 timestamp) {
+        return Account.load(accountId).lastInteraction;
+    }
+
     function createAccount() public override returns (uint128) {
         FeatureFlag.ensureAccessToFeature(Constants.CREATE_ACCOUNT_FEATURE_FLAG);
         (uint128 accountId, IAccountNFT accountTokenModule) = SystemAccountConfiguration.onCreateAccount();
