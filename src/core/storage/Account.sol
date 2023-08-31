@@ -3,7 +3,6 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { AccountRBAC } from "../storage/AccountRBAC.sol";
 import { Collateral } from "../storage/Collateral.sol";
 import { MarketManager } from "../storage/MarketManager.sol";
 import { Vault } from "../storage/Vault.sol";
@@ -16,7 +15,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 library Account {
-    using AccountRBAC for AccountRBAC.Data;
     using Collateral for Collateral.Data;
     using EnumerableSet for EnumerableSet.UintSet;
     using Vault for Vault.Data;
@@ -25,7 +23,7 @@ library Account {
     /// @dev Constant base domain used to access a given account's storage slot
     string internal constant ACCOUNT_DOMAIN = "fi.zaros.core.Account";
 
-    error Zaros_Account_PermissionDenied(uint128 accountId, bytes32 permission, address target);
+    error Zaros_Account_PermissionDenied(uint128 accountId, address sender);
 
     error Zaros_Account_AccountNotFound(uint128 accountId);
 
@@ -35,8 +33,8 @@ library Account {
 
     struct Data {
         uint128 id;
+        address owner;
         uint64 lastInteraction;
-        AccountRBAC.Data rbac;
         mapping(address collateralType => Collateral.Data) collaterals;
     }
 
@@ -49,18 +47,17 @@ library Account {
 
     function create(uint128 id, address owner) internal returns (Data storage account) {
         account = load(id);
-
         account.id = id;
-        account.rbac.owner = owner;
+        account.owner = owner;
     }
 
     function exists(uint128 id) internal view returns (Data storage account) {
-        Data storage a = load(id);
-        if (a.rbac.owner == address(0)) {
+        Data storage self = load(id);
+        if (self.owner == address(0)) {
             revert Zaros_Account_AccountNotFound(id);
         }
 
-        return a;
+        return self;
     }
 
     function getCollateralTotals(
@@ -89,25 +86,15 @@ library Account {
         self.lastInteraction = uint64(block.timestamp);
     }
 
-    function loadAccountAndValidatePermission(
-        uint128 accountId,
-        bytes32 permission
-    )
-        internal
-        returns (Data storage account)
-    {
+    function loadAccountAndValidatePermission(uint128 accountId) internal returns (Data storage account) {
         account = Account.load(accountId);
-
-        if (!account.rbac.authorized(permission, msg.sender)) {
-            revert Zaros_Account_PermissionDenied(accountId, permission, msg.sender);
-        }
+        verifyCaller(account);
 
         recordInteraction(account);
     }
 
     function loadAccountAndValidatePermissionAndTimeout(
         uint128 accountId,
-        bytes32 permission,
         uint256 timeout
     )
         internal
@@ -115,14 +102,17 @@ library Account {
         returns (Data storage account)
     {
         account = Account.load(accountId);
-
-        if (!account.rbac.authorized(permission, msg.sender)) {
-            revert Zaros_Account_PermissionDenied(accountId, permission, msg.sender);
-        }
+        verifyCaller(account);
 
         uint256 endWaitingPeriod = account.lastInteraction + timeout;
         if (block.timestamp < endWaitingPeriod) {
             revert Zaros_Account_AccountActivityTimeoutPending(accountId, block.timestamp, endWaitingPeriod);
+        }
+    }
+
+    function verifyCaller(Data storage self) internal view {
+        if (self.owner != msg.sender) {
+            revert Zaros_Account_PermissionDenied(self.id, msg.sender);
         }
     }
 

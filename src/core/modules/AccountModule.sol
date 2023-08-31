@@ -7,7 +7,6 @@ import { IAccountModule } from "../interfaces/IAccountModule.sol";
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Account } from "../storage/Account.sol";
-import { AccountRBAC } from "../storage/AccountRBAC.sol";
 import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 import { SystemAccountConfiguration } from "../storage/SystemAccountConfiguration.sol";
 
@@ -17,7 +16,6 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 contract AccountModule is IAccountModule {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
-    using AccountRBAC for AccountRBAC.Data;
     using Account for Account.Data;
 
     function getAccountTokenAddress() public view override returns (address) {
@@ -25,7 +23,11 @@ contract AccountModule is IAccountModule {
     }
 
     function getAccountOwner(uint128 accountId) public view returns (address) {
-        return Account.load(accountId).rbac.owner;
+        return Account.load(accountId).owner;
+    }
+
+    function getAccountLastInteraction(uint128 accountId) external view returns (uint256 timestamp) {
+        return Account.load(accountId).lastInteraction;
     }
 
     function createAccount() public override returns (uint128) {
@@ -62,13 +64,7 @@ contract AccountModule is IAccountModule {
         _onlyAccountToken();
 
         Account.Data storage account = Account.load(accountId);
-
-        address[] memory permissionedAddresses = account.rbac.permissionAddresses.values();
-        for (uint256 i = 0; i < permissionedAddresses.length; i++) {
-            account.rbac.revokeAllPermissions(permissionedAddresses[i]);
-        }
-
-        account.rbac.setOwner(to);
+        account.owner = to;
     }
 
     function _onlyAccountToken() internal view {

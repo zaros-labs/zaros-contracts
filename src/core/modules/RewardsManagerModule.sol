@@ -9,7 +9,6 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
 import { Account } from "../storage/Account.sol";
-import { AccountRBAC } from "../storage/AccountRBAC.sol";
 import { Distribution } from "../storage/Distribution.sol";
 import { MarketManager } from "../storage/MarketManager.sol";
 import { RewardDistribution } from "../storage/RewardDistribution.sol";
@@ -117,7 +116,7 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
         returns (uint256)
     {
         FeatureFlag.ensureAccessToFeature(Constants.CLAIM_FEATURE_FLAG);
-        Account.loadAccountAndValidatePermission(accountId, AccountRBAC._REWARDS_PERMISSION);
+        Account.loadAccountAndValidatePermission(accountId);
 
         Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         bytes32 rewardId = keccak256(abi.encode(collateralType, distributor));

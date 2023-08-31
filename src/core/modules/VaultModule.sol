@@ -7,7 +7,6 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
 import { IVaultModule } from "../interfaces/IVaultModule.sol";
 import { Account } from "../storage/Account.sol";
-import { AccountRBAC } from "../storage/AccountRBAC.sol";
 import { Collateral } from "../storage/Collateral.sol";
 import { CollateralConfig } from "../storage/CollateralConfig.sol";
 import { Distribution } from "../storage/Distribution.sol";
@@ -31,7 +30,6 @@ contract VaultModule is IVaultModule {
     using VaultEpoch for VaultEpoch.Data;
     using Collateral for Collateral.Data;
     using CollateralConfig for CollateralConfig.Data;
-    using AccountRBAC for AccountRBAC.Data;
     using Distribution for Distribution.Data;
     using CollateralConfig for CollateralConfig.Data;
     using MarketManager for MarketManager.Data;
@@ -103,7 +101,7 @@ contract VaultModule is IVaultModule {
         override
     {
         FeatureFlag.ensureAccessToFeature(Constants.DELEGATE_FEATURE_FLAG);
-        Account.loadAccountAndValidatePermission(accountId, AccountRBAC._DELEGATE_PERMISSION);
+        Account.loadAccountAndValidatePermission(accountId);
 
         if (newCollateralAmount.gt(UD_ZERO)) {
             CollateralConfig.requireSufficientDelegation(collateralType, newCollateralAmount);
