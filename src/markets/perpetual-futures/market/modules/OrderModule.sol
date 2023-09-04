@@ -33,20 +33,16 @@ contract OrderModule is IOrderModule {
         return perpsMarketConfig.orderFees;
     }
 
-    function getOrders(address account) external view returns (Order.Data[] memory) { }
+    function getOrders(uint256 accountId) external view returns (Order.Data[] memory) { }
 
     function createOrder(Order.Data calldata order) external { }
 
     function settleOrder(bytes32 orderId) external { }
 
-    function settleOrder(Order.Data calldata order) external {
-        _settleOrder(msg.sender, order);
-    }
-
     function cancelOrder(bytes32 orderId) external { }
 
     function settleOrderFromVault(
-        address account,
+        uint256 accountId,
         Order.Data calldata order
     )
         external
@@ -57,16 +53,22 @@ contract OrderModule is IOrderModule {
             revert();
         }
 
-        return _settleOrder(account, order);
+        return _settleOrder(accountId, order);
     }
 
-    function _settleOrder(address account, Order.Data memory order) internal returns (uint256 previousPositionAmount) {
+    function _settleOrder(
+        uint256 accountId,
+        Order.Data memory order
+    )
+        internal
+        returns (uint256 previousPositionAmount)
+    {
         PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
         UD60x18 currentPrice = perpsMarketConfig.getIndexPrice();
         _requireOrderIsValid(order, currentPrice);
 
         OrderFees.Data memory orderFees = perpsMarketConfig.orderFees;
-        Position.Data storage position = perpsMarketConfig.positions[account];
+        Position.Data storage position = perpsMarketConfig.positions[accountId];
         previousPositionAmount = position.margin.amount;
         IPerpsVault perpsVault = IPerpsVault(perpsMarketConfig.perpsVault);
         UD60x18 sizeAbs = sd59x18(order.sizeDelta).lt(SD_ZERO)
@@ -77,14 +79,14 @@ contract OrderModule is IOrderModule {
 
         if (ud60x18(order.marginAmount).gt(ud60x18(position.margin.amount))) {
             perpsVault.addIsolatedMarginToPosition(
-                account, order.collateralType, ud60x18(order.marginAmount).sub(ud60x18(position.margin.amount)), fee
+                accountId, order.collateralType, ud60x18(order.marginAmount).sub(ud60x18(position.margin.amount)), fee
             );
         } else if (ud60x18(order.marginAmount).lt(ud60x18(position.margin.amount))) {
             IERC20(order.collateralType).safeTransfer(
                 address(perpsVault), ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount)).intoUint256()
             );
             perpsVault.removeIsolatedMarginFromPosition(
-                account, order.collateralType, ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount))
+                accountId, order.collateralType, ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount))
             );
         }
 
@@ -96,7 +98,7 @@ contract OrderModule is IOrderModule {
         });
         position.updatePosition(newPosition);
 
-        emit LogSettleOrder(account, order, newPosition);
+        emit LogSettleOrder(msg.sender, accountId, order, newPosition);
     }
 
     function _requireOrderIsValid(Order.Data memory order, UD60x18 currentPrice) internal {

@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 library Order {
     struct Data {
-        address account;
+        uint256 accountId;
         address collateralType;
         uint256 marginAmount;
         int256 sizeDelta;

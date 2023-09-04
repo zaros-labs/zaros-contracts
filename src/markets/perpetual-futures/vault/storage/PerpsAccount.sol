@@ -9,12 +9,13 @@ library PerpsAccount {
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
 
     struct Data {
+        uint256 id;
         mapping(address collateralType => uint256) availableMargin;
     }
 
     /// @dev TODO: use account id / nft id instead of address
-    function load(address account) internal pure returns (Data storage perpsAccount) {
-        bytes32 slot = keccak256(abi.encode(PERPS_ACCOUNT_DOMAIN, account));
+    function load(uint256 id) internal pure returns (Data storage perpsAccount) {
+        bytes32 slot = keccak256(abi.encode(PERPS_ACCOUNT_DOMAIN, id));
         assembly {
             perpsAccount.slot := slot
         }

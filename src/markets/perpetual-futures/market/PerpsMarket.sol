@@ -68,7 +68,7 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         return sd59x18(0);
     }
 
-    function getOpenPositionData(address account)
+    function getOpenPositionData(uint256 accountId)
         external
         view
         returns (
@@ -81,7 +81,7 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         )
     {
         PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
-        Position.Data storage position = perpsMarketConfig.positions[account];
+        Position.Data storage position = perpsMarketConfig.positions[accountId];
         UD60x18 price = perpsMarketConfig.getIndexPrice();
 
         (notionalValue, size, pnl, accruedFunding, netFundingPerUnit, nextFunding) = position.getPositionData(price);

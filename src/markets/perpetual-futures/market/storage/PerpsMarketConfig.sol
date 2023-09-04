@@ -30,8 +30,8 @@ library PerpsMarketConfig {
         address oracle;
         address perpsVault;
         OrderFees.Data orderFees;
-        mapping(address account => Position.Data) positions;
-        mapping(address account => Order.Data[]) orders;
+        mapping(uint256 accountId => Position.Data) positions;
+        mapping(uint256 accountId => Order.Data[]) orders;
     }
 
     function load() internal pure returns (Data storage perpsMarketConfig) {

@@ -27,7 +27,7 @@ interface IPerpsMarket is IOrderModule {
 
     function fundingVelocity() external view returns (SD59x18);
 
-    function getOpenPositionData(address account)
+    function getOpenPositionData(uint256 accountId)
         external
         view
         returns (
