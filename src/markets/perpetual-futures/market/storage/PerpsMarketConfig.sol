@@ -28,7 +28,7 @@ library PerpsMarketConfig {
         uint256 size;
         uint256 maxLeverage;
         address oracle;
-        address perpsVault;
+        address perpsManager;
         OrderFees.Data orderFees;
         mapping(uint256 accountId => Position.Data) positions;
         mapping(uint256 accountId => Order.Data[]) orders;

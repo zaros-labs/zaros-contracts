@@ -10,7 +10,7 @@ import { Zaros } from "@zaros/core/Zaros.sol";
 import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
-import { PerpsVault } from "@zaros/markets/perpetual-futures/vault/PerpsVault.sol";
+import { PerpsManager } from "@zaros/markets/perpetual-futures/vault/PerpsManager.sol";
 import { PerpsMarket } from "@zaros/markets/perpetual-futures/market/PerpsMarket.sol";
 import { OrderFees } from "@zaros/markets/perpetual-futures/market/storage/OrderFees.sol";
 
@@ -58,19 +58,19 @@ contract DeployZaros is BaseScript {
         zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
 
         {
-            PerpsVault perpsVault = new PerpsVault(address(zaros), address(zrsUsd), address(rewardDistributor));
+            PerpsManager perpsManager = new PerpsManager(address(zaros), address(zrsUsd), address(rewardDistributor));
 
             console.log("Perps Vault: ");
-            console.log(address(perpsVault));
+            console.log(address(perpsManager));
 
             PerpsMarket sFrxEthPerpsMarket =
-            new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP", ethUsdOracle, address(perpsVault), PERPS_MAX_LEVERAGE, orderFees);
+            new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP", ethUsdOracle, address(perpsManager), PERPS_MAX_LEVERAGE, orderFees);
 
             console.log("Perps Market: ");
             console.log(address(sFrxEthPerpsMarket));
 
-            perpsVault.setSupportedMarket(address(sFrxEthPerpsMarket), true);
-            perpsVault.setSupportedCollateral(address(zrsUsd), true);
+            perpsManager.setSupportedMarket(address(sFrxEthPerpsMarket), true);
+            perpsManager.setSupportedCollateral(address(zrsUsd), true);
         }
 
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({

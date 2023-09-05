@@ -39,5 +39,5 @@ interface IPerpsMarket is IOrderModule {
             SD59x18 nextFunding
         );
 
-    function setPerpsVault(address perpsVault) external;
+    function setPerpsManager(address perpsManager) external;
 }
