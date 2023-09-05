@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IPerpsManager } from "../../vault/interfaces/IPerpsManager.sol";
+import { IPerpsManager } from "../../manager/interfaces/IPerpsManager.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";

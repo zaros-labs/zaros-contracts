@@ -10,7 +10,7 @@ import { Zaros } from "@zaros/core/Zaros.sol";
 import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
-import { PerpsManager } from "@zaros/markets/perpetual-futures/vault/PerpsManager.sol";
+import { PerpsManager } from "@zaros/markets/perpetual-futures/manager/PerpsManager.sol";
 import { PerpsMarket } from "@zaros/markets/perpetual-futures/market/PerpsMarket.sol";
 import { OrderFees } from "@zaros/markets/perpetual-futures/market/storage/OrderFees.sol";
 
