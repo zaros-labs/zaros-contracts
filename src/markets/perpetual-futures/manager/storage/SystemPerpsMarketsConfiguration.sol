@@ -5,15 +5,22 @@ pragma solidity 0.8.19;
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+
 library SystemPerpsMarketsConfiguration {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
+    error Zaros_SystemPerpsMarketsConfiguration_InvalidToggle(address collateralType, bool shouldEnable);
+
     bytes32 internal constant SYSTEM_PERPS_MARKET_CONFIGURATION_SLOT =
         keccak256(abi.encode("fi.zaros.markets.SystemPerpsMarketsConfiguration"));
 
     struct Data {
-        mapping(address collateralType => bool) enabledCollateralTypes;
+        EnumerableSet.AddressSet enabledCollateralTypes;
         address zaros;
-        address zrsUsd;
         address rewardDistributor;
+        address accountToken;
     }
 
     function load() internal pure returns (Data storage systemPerpsMarketsConfiguration) {
@@ -24,6 +31,20 @@ library SystemPerpsMarketsConfiguration {
     }
 
     function isCollateralEnabled(Data storage self, address collateralType) internal view returns (bool) {
-        return self.enabledCollateralTypes[collateralType];
+        return self.enabledCollateralTypes.contains(collateralType);
+    }
+
+    /// @dev If collateralType is already enabled or disabled, this function won't revert.
+    function setIsCollateralEnabled(Data storage self, address collateralType, bool shouldEnable) internal {
+        bool success;
+        if (shouldEnable) {
+            success = self.enabledCollateralTypes.add(collateralType);
+        } else {
+            success = self.enabledCollateralTypes.remove(collateralType);
+        }
+
+        if (!success) {
+            revert Zaros_SystemPerpsMarketsConfiguration_InvalidToggle(collateralType, shouldEnable);
+        }
     }
 }

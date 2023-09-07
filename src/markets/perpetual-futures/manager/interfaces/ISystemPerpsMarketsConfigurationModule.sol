@@ -7,9 +7,11 @@ interface ISystemPerpsMarketsConfigurationModule {
 
     event LogSetSupportedCollateral(address indexed sender, address indexed collateralType, bool enabled);
 
-    function isCollateralEnabled(address collateralType) external view returns (bool);
+    function zaros() external view returns (address);
 
-    function isPerpsMarketEnabled(address perpsMarket) external view returns (bool);
+    function accountToken() external view returns (address);
+
+    function isCollateralEnabled(address collateralType) external view returns (bool);
 
     function setZaros(address zaros) external;
 
@@ -17,5 +19,5 @@ interface ISystemPerpsMarketsConfigurationModule {
 
     function setSupportedMarket(address perpsMarket, bool enable) external;
 
-    function setSupportedCollateral(address collateralType, bool enabled) external;
+    function setIsEnabledCollateral(address collateralType, bool shouldEnable) external;
 }

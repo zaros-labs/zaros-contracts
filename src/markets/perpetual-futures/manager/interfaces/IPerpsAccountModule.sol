@@ -25,7 +25,9 @@ interface IPerpsAccountModule {
 
     function getTotalAvailableMargin(uint256 accountId) external view returns (UD60x18);
 
-    // function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results);
+    function createAccount() external returns (uint128);
+
+    function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results);
 
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) external;
 

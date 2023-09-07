@@ -10,18 +10,23 @@ import { SystemPerpsMarketsConfiguration } from "../storage/SystemPerpsMarketsCo
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
 contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurationModule, Ownable {
+    function zaros() external view returns (address) {
+        SystemPerpsMarketsConfiguration storage systemPerpsMarketConfiguration = SystemPerpsMarketConfiguration.load();
+
+        return systemPerpsMarketConfiguration.zaros;
+    }
+
+    function accountToken() external view returns (address) {
+        SystemPerpsMarketsConfiguration storage systemPerpsMarketConfiguration = SystemPerpsMarketConfiguration.load();
+
+        return systemPerpsMarketConfiguration.accountToken;
+    }
+
     function isCollateralEnabled(address collateralType) external view returns (bool) {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
 
-        return systemPerpsMarketsConfiguration.enabledCollateralTypes[collateralType];
-    }
-
-    function isPerpsMarketEnabled(address perpsMarket) external view returns (bool) {
-        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
-            SystemPerpsMarketsConfiguration.load();
-
-        return systemPerpsMarketsConfiguration.enabledPerpsMarkets[perpsMarket];
+        return systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType);
     }
 
     function setZaros(address zaros) external {
@@ -30,26 +35,13 @@ contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurati
         systemPerpsMarketsConfiguration.zaros = zaros;
     }
 
-    function setUsd(address zrsUsd) external {
+    function setIsEnabledCollateral(address collateralType, bool shouldEnable) external onlyOwner {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
-        systemPerpsMarketsConfiguration.zrsUsd = zrsUsd;
-    }
 
-    function setSupportedMarket(address perpsMarket, bool enable) external onlyOwner {
-        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
-            SystemPerpsMarketsConfiguration.load();
-        systemPerpsMarketsConfiguration.enabledPerpsMarkets[perpsMarket] = enable;
+        systemPerpsMarketsConfiguration.setIsCollateralEnabled(collateralType, shouldEnable);
 
-        emit LogSetSupportedMarket(perpsMarket, enable);
-    }
-
-    function setSupportedCollateral(address collateralType, bool enable) external onlyOwner {
-        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
-            SystemPerpsMarketsConfiguration.load();
-        systemPerpsMarketsConfiguration.enabledCollateralTypes[collateralType] = enable;
-
-        emit LogSetSupportedCollateral(msg.sender, collateralType, enable);
+        emit LogSetSupportedCollateral(msg.sender, collateralType, shouldEnable);
     }
 
     function __SystemPerpsMarketsConfigurationModule_init(
