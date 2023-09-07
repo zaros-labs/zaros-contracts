@@ -11,7 +11,6 @@ library SystemPerpsMarketsConfiguration {
 
     struct Data {
         mapping(address collateralType => bool) enabledCollateralTypes;
-        mapping(address perpsMarket => bool) enabledPerpsMarkets;
         address zaros;
         address zrsUsd;
         address rewardDistributor;
