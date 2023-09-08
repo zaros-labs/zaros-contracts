@@ -10,14 +10,18 @@ import { SystemPerpsMarketsConfiguration } from "../storage/SystemPerpsMarketsCo
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
 contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurationModule, Ownable {
+    using SystemPerpsMarketsConfiguration for SystemPerpsMarketsConfiguration.Data;
+
     function zaros() external view returns (address) {
-        SystemPerpsMarketsConfiguration storage systemPerpsMarketConfiguration = SystemPerpsMarketConfiguration.load();
+        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketConfiguration =
+            SystemPerpsMarketsConfiguration.load();
 
         return systemPerpsMarketConfiguration.zaros;
     }
 
     function accountToken() external view returns (address) {
-        SystemPerpsMarketsConfiguration storage systemPerpsMarketConfiguration = SystemPerpsMarketConfiguration.load();
+        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketConfiguration =
+            SystemPerpsMarketsConfiguration.load();
 
         return systemPerpsMarketConfiguration.accountToken;
     }
@@ -44,17 +48,10 @@ contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurati
         emit LogSetSupportedCollateral(msg.sender, collateralType, shouldEnable);
     }
 
-    function __SystemPerpsMarketsConfigurationModule_init(
-        address zaros,
-        address zrsUsd,
-        address rewardDistributor
-    )
-        internal
-    {
+    function __SystemPerpsMarketsConfigurationModule_init(address zaros, address rewardDistributor) internal {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         systemPerpsMarketsConfiguration.zaros = zaros;
-        systemPerpsMarketsConfiguration.zrsUsd = zrsUsd;
         systemPerpsMarketsConfiguration.rewardDistributor = rewardDistributor;
     }
 }

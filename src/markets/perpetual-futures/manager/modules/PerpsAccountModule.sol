@@ -83,7 +83,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
     {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
-        _requirePerpsMarketEnabled(systemPerpsMarketsConfiguration.enabledPerpsMarkets[msg.sender]);
+        // _requirePerpsMarketEnabled(systemPerpsMarketsConfiguration.enabledPerpsMarkets[msg.sender]);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
         perpsAccount.decreaseAvailableMargin(collateralType, amount);
@@ -99,7 +99,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function removeIsolatedMarginFromPosition(uint256 accountId, address collateralType, UD60x18 amount) external {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
-        _requirePerpsMarketEnabled(systemPerpsMarketsConfiguration.enabledPerpsMarkets[msg.sender]);
+        // _requirePerpsMarketEnabled(systemPerpsMarketsConfiguration.enabledPerpsMarkets[msg.sender]);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
         perpsAccount.increaseAvailableMargin(collateralType, amount);

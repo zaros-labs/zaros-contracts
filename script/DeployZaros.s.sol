@@ -58,7 +58,7 @@ contract DeployZaros is BaseScript {
         zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
 
         {
-            PerpsManager perpsManager = new PerpsManager(address(zaros), address(zrsUsd), address(rewardDistributor));
+            PerpsManager perpsManager = new PerpsManager(address(zaros), address(rewardDistributor));
 
             console.log("Perps Vault: ");
             console.log(address(perpsManager));
@@ -69,8 +69,8 @@ contract DeployZaros is BaseScript {
             console.log("Perps Market: ");
             console.log(address(sFrxEthPerpsMarket));
 
-            perpsManager.setSupportedMarket(address(sFrxEthPerpsMarket), true);
-            perpsManager.setSupportedCollateral(address(zrsUsd), true);
+            // perpsManager.setSupportedMarket(address(sFrxEthPerpsMarket), true);
+            perpsManager.setIsEnabledCollateral(address(zrsUsd), true);
         }
 
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({

@@ -15,9 +15,7 @@ interface ISystemPerpsMarketsConfigurationModule {
 
     function setZaros(address zaros) external;
 
-    function setUsd(address zrsUsd) external;
-
-    function setSupportedMarket(address perpsMarket, bool enable) external;
+    // function setSupportedMarket(address perpsMarket, bool enable) external;
 
     function setIsEnabledCollateral(address collateralType, bool shouldEnable) external;
 }
