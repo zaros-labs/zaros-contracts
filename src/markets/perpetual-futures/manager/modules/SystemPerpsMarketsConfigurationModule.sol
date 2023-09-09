@@ -12,13 +12,6 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurationModule, Ownable {
     using SystemPerpsMarketsConfiguration for SystemPerpsMarketsConfiguration.Data;
 
-    function zaros() external view returns (address) {
-        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketConfiguration =
-            SystemPerpsMarketsConfiguration.load();
-
-        return systemPerpsMarketConfiguration.zaros;
-    }
-
     function accountToken() external view returns (address) {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketConfiguration =
             SystemPerpsMarketsConfiguration.load();
