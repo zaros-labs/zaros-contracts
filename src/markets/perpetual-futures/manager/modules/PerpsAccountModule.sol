@@ -25,12 +25,17 @@ contract PerpsAccountModule is IPerpsAccountModule {
     using SafeERC20 for IERC20;
     using SystemPerpsMarketsConfiguration for SystemPerpsMarketsConfiguration.Data;
 
+    function getAccountTokenAddress() public view override returns (address) {
+        return SystemPerpsMarketsConfiguration.load().accountToken;
+    }
+
     function getAccountMargin(
         uint256 accountId,
         address collateralType
     )
         external
         view
+        override
         returns (UD60x18 marginBalance, UD60x18 availableMargin)
     {
         // PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
@@ -41,6 +46,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function getTotalAccountMargin(uint256 accountId)
         external
         view
+        override
         returns (UD60x18 marginBalance, UD60x18 availableMargin)
     { }
 
@@ -54,7 +60,12 @@ contract PerpsAccountModule is IPerpsAccountModule {
         return accountId;
     }
 
-    function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results) {
+    function createAccountAndMulticall(bytes[] calldata data)
+        external
+        payable
+        override
+        returns (bytes[] memory results)
+    {
         uint256 accountId = createAccount();
 
         results = new bytes[](data.length);
@@ -73,7 +84,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         }
     }
 
-    function depositMargin(uint256 accountId, address collateralType, uint256 amount) public {
+    function depositMargin(uint256 accountId, address collateralType, uint256 amount) external override {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         // _requireCollateralEnabled(collateralType,
@@ -89,7 +100,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         emit LogDepositMargin(msg.sender, collateralType, amount);
     }
 
-    function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) public {
+    function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external override {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         // _requireCollateralEnabled(collateralType,
@@ -103,6 +114,19 @@ contract PerpsAccountModule is IPerpsAccountModule {
         IERC20(collateralType).safeTransfer(msg.sender, amount);
 
         emit LogWithdrawMargin(msg.sender, collateralType, amount);
+    }
+
+    function notifyAccountTransfer(address to, uint128 accountId) external override {
+        _onlyAccountToken();
+
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        perpsAccount.owner = to;
+    }
+
+    function _onlyAccountToken() internal view {
+        if (msg.sender != address(getAccountTokenAddress())) {
+            revert Zaros_PerpsAccountModule_OnlyAccountToken(msg.sender);
+        }
     }
 
     // function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {

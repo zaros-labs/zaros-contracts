@@ -58,7 +58,9 @@ contract DeployZaros is BaseScript {
         zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
 
         {
-            PerpsManager perpsManager = new PerpsManager(address(zaros), address(rewardDistributor));
+            // TODO: use correct accountNft
+            PerpsManager perpsManager =
+                new PerpsManager(address(accountNft), address(zaros), address(rewardDistributor));
 
             console.log("Perps Vault: ");
             console.log(address(perpsManager));

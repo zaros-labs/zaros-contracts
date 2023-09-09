@@ -12,13 +12,6 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurationModule, Ownable {
     using SystemPerpsMarketsConfiguration for SystemPerpsMarketsConfiguration.Data;
 
-    function accountToken() external view returns (address) {
-        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketConfiguration =
-            SystemPerpsMarketsConfiguration.load();
-
-        return systemPerpsMarketConfiguration.accountToken;
-    }
-
     function isCollateralEnabled(address collateralType) external view returns (bool) {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
@@ -41,10 +34,17 @@ contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurati
         emit LogSetSupportedCollateral(msg.sender, collateralType, shouldEnable);
     }
 
-    function __SystemPerpsMarketsConfigurationModule_init(address zaros, address rewardDistributor) internal {
+    function __SystemPerpsMarketsConfigurationModule_init(
+        address zaros,
+        address rewardDistributor,
+        address accountToken
+    )
+        internal
+    {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         systemPerpsMarketsConfiguration.zaros = zaros;
         systemPerpsMarketsConfiguration.rewardDistributor = rewardDistributor;
+        systemPerpsMarketsConfiguration.accountToken = accountToken;
     }
 }
