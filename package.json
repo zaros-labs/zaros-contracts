@@ -1,5 +1,5 @@
 {
-  "name": "@zeroday-labs/zaros-fraxbuild",
+  "name": "@zaros-labs/zaros-contracts",
   "description": "Zaros Liquid Staking Pool implementation for the FraxBuild hackathon",
   "version": "1.0.0",
   "author": {
