@@ -25,30 +25,32 @@ contract PerpsAccountModule is IPerpsAccountModule {
     using SafeERC20 for IERC20;
     using SystemPerpsMarketsConfiguration for SystemPerpsMarketsConfiguration.Data;
 
+    /// @inheritdoc IPerpsAccountModule
     function getAccountTokenAddress() public view override returns (address) {
         return SystemPerpsMarketsConfiguration.load().accountToken;
     }
 
-    function getAccountMargin(
+    /// @inheritdoc IPerpsAccountModule
+    function getAccountMarginCollateral(
         uint256 accountId,
         address collateralType
     )
         external
         view
         override
-        returns (UD60x18 marginBalance, UD60x18 availableMargin)
+        returns (UD60x18)
     {
-        // PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        UD60x18 marginCollateral = perpsAccount.getMarginCollateral(collateralType);
 
-        // return ud60x18(perpsAccount.availableMargin.get(collateralType));
+        return marginCollateral;
     }
 
-    function getTotalAccountMargin(uint256 accountId)
-        external
-        view
-        override
-        returns (UD60x18 marginBalance, UD60x18 availableMargin)
-    { }
+    /// @inheritdoc IPerpsAccountModule
+    function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) { }
+
+    /// @inheritdoc IPerpsAccountModule
+    function getAccountMargin(uint256 accountId) external view override returns (UD60x18, UD60x18) { }
 
     function createAccount() public override returns (uint128) {
         (uint128 accountId, IAccountNFT accountTokenModule) = SystemPerpsMarketsConfiguration.onCreateAccount();
@@ -87,14 +89,13 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) external override {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
-        // _requireCollateralEnabled(collateralType,
-        // systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
+        _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
         if (amount == 0) {
             revert();
         }
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        perpsAccount.increaseMarginBalance(collateralType, ud60x18(amount));
+        perpsAccount.increaseMarginCollateral(collateralType, ud60x18(amount));
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 
         emit LogDepositMargin(msg.sender, collateralType, amount);
@@ -103,14 +104,13 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external override {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
-        // _requireCollateralEnabled(collateralType,
-        // systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
+        _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
         if (amount == 0) {
             revert();
         }
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        perpsAccount.decreaseMarginBalance(collateralType, ud60x18(amount));
+        perpsAccount.decreaseMarginCollateral(collateralType, ud60x18(amount));
         IERC20(collateralType).safeTransfer(msg.sender, amount);
 
         emit LogWithdrawMargin(msg.sender, collateralType, amount);
@@ -129,15 +129,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
         }
     }
 
-    // function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
-    //     if (!isEnabled) {
-    //         revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
-    //     }
-    // }
-
-    // function _requirePerpsMarketEnabled(bool isEnabled) internal view {
-    //     if (!isEnabled) {
-    //         revert Zaros_PerpsAccountModule_InvalidPerpsMarket(msg.sender);
-    //     }
-    // }
+    function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
+        if (!isEnabled) {
+            revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
+        }
+    }
 }

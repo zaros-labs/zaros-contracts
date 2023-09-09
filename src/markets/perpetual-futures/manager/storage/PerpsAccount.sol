@@ -21,7 +21,7 @@ library PerpsAccount {
     struct Data {
         uint256 id;
         address owner;
-        EnumerableMap.AddressToUintMap marginBalance;
+        EnumerableMap.AddressToUintMap activeMarginCollateral;
         EnumerableSet.UintSet activeMarketsIds;
     }
 
@@ -37,27 +37,31 @@ library PerpsAccount {
         verifyCaller(perpsAccount);
     }
 
+    function getMarginCollateral(Data storage perpsAccount, address collateralType) internal view returns (UD60x18) {
+        return ud60x18(perpsAccount.activeMarginCollateral.get(collateralType));
+    }
+
     function create(uint256 accountId, address owner) internal returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         perpsAccount.id = accountId;
         perpsAccount.owner = owner;
     }
 
-    function increaseMarginBalance(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
-        EnumerableMap.AddressToUintMap storage marginBalance = perpsAccount.marginBalance;
-        uint256 newMarginBalance = ud60x18(marginBalance.get(collateralType)).add(amount).intoUint256();
+    function increaseMarginCollateral(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
+        EnumerableMap.AddressToUintMap storage activeMarginCollateral = perpsAccount.activeMarginCollateral;
+        uint256 newMarginCollateral = ud60x18(activeMarginCollateral.get(collateralType)).add(amount).intoUint256();
 
-        marginBalance.set(collateralType, newMarginBalance);
+        activeMarginCollateral.set(collateralType, newMarginCollateral);
     }
 
-    function decreaseMarginBalance(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
-        EnumerableMap.AddressToUintMap storage marginBalance = perpsAccount.marginBalance;
-        UD60x18 newMarginBalance = ud60x18(marginBalance.get(collateralType)).sub(amount);
+    function decreaseMarginCollateral(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
+        EnumerableMap.AddressToUintMap storage activeMarginCollateral = perpsAccount.activeMarginCollateral;
+        UD60x18 newMarginCollateral = ud60x18(activeMarginCollateral.get(collateralType)).sub(amount);
 
-        if (newMarginBalance.isZero()) {
-            marginBalance.remove(collateralType);
+        if (newMarginCollateral.isZero()) {
+            activeMarginCollateral.remove(collateralType);
         } else {
-            marginBalance.set(collateralType, newMarginBalance.intoUint256());
+            activeMarginCollateral.set(collateralType, newMarginCollateral.intoUint256());
         }
     }
 
