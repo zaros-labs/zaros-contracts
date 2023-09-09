@@ -12,20 +12,20 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurationModule, Ownable {
     using SystemPerpsMarketsConfiguration for SystemPerpsMarketsConfiguration.Data;
 
-    function isCollateralEnabled(address collateralType) external view returns (bool) {
+    function isCollateralEnabled(address collateralType) external view override returns (bool) {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
 
         return systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType);
     }
 
-    function setZaros(address zaros) external {
+    function setZaros(address zaros) external override {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         systemPerpsMarketsConfiguration.zaros = zaros;
     }
 
-    function setIsEnabledCollateral(address collateralType, bool shouldEnable) external onlyOwner {
+    function setIsEnabledCollateral(address collateralType, bool shouldEnable) external override onlyOwner {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
 
@@ -35,16 +35,16 @@ contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurati
     }
 
     function __SystemPerpsMarketsConfigurationModule_init(
-        address zaros,
+        address accountToken,
         address rewardDistributor,
-        address accountToken
+        address zaros
     )
         internal
     {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
-        systemPerpsMarketsConfiguration.zaros = zaros;
-        systemPerpsMarketsConfiguration.rewardDistributor = rewardDistributor;
         systemPerpsMarketsConfiguration.accountToken = accountToken;
+        systemPerpsMarketsConfiguration.rewardDistributor = rewardDistributor;
+        systemPerpsMarketsConfiguration.zaros = zaros;
     }
 }
