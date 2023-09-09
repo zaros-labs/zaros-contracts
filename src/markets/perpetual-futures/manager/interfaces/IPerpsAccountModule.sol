@@ -15,15 +15,18 @@ interface IPerpsAccountModule {
     event LogDepositMargin(address indexed sender, address indexed collateralType, uint256 amount);
     event LogWithdrawMargin(address indexed sender, address indexed collateralType, uint256 amount);
 
-    function getPerpsAccountAvailableMargin(
+    function getAccountMargin(
         uint256 accountId,
         address collateralType
     )
         external
         view
-        returns (UD60x18);
+        returns (UD60x18 marginBalance, UD60x18 availableMargin);
 
-    function getTotalAvailableMargin(uint256 accountId) external view returns (UD60x18);
+    function getTotalAccountMargin(uint256 accountId)
+        external
+        view
+        returns (UD60x18 marginBalance, UD60x18 availableMargin);
 
     function createAccount() external returns (uint128);
 
@@ -32,18 +35,4 @@ interface IPerpsAccountModule {
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) external;
 
     function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external;
-
-    function addIsolatedMarginToPosition(
-        uint256 accountId,
-        address collateralType,
-        UD60x18 amount,
-        UD60x18 fee
-    )
-        external;
-
-    function removeIsolatedMarginFromPosition(uint256 accountId, address collateralType, UD60x18 amount) external;
-
-    function depositMarginAndSettleOrder(uint256 accountId, address perpsMarket, Order.Data calldata order) external;
-
-    function settleOrderAndWithdrawMargin(uint256 accountId, address perpsMarket, Order.Data calldata order) external;
 }

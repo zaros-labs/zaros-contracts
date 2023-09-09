@@ -24,20 +24,24 @@ contract PerpsAccountModule is IPerpsAccountModule {
     using SafeERC20 for IERC20;
     using SystemPerpsMarketsConfiguration for SystemPerpsMarketsConfiguration.Data;
 
-    function getPerpsAccountAvailableMargin(
+    function getAccountMargin(
         uint256 accountId,
         address collateralType
     )
         external
         view
-        returns (UD60x18)
+        returns (UD60x18 marginBalance, UD60x18 availableMargin)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        // PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        return ud60x18(perpsAccount.availableMargin.get(collateralType));
+        // return ud60x18(perpsAccount.availableMargin.get(collateralType));
     }
 
-    function getTotalAvailableMargin(uint256 accountId) external view returns (UD60x18) { }
+    function getTotalAccountMargin(uint256 accountId)
+        external
+        view
+        returns (UD60x18 marginBalance, UD60x18 availableMargin)
+    { }
 
     function createAccount() external returns (uint128) { }
 
@@ -46,7 +50,8 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) public {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
-        _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
+        // _requireCollateralEnabled(collateralType,
+        // systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
         if (amount == 0) {
             revert();
         }
@@ -61,7 +66,8 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) public {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
-        _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
+        // _requireCollateralEnabled(collateralType,
+        // systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
         if (amount == 0) {
             revert();
         }
@@ -73,65 +79,15 @@ contract PerpsAccountModule is IPerpsAccountModule {
         emit LogWithdrawMargin(msg.sender, collateralType, amount);
     }
 
-    function addIsolatedMarginToPosition(
-        uint256 accountId,
-        address collateralType,
-        UD60x18 amount,
-        UD60x18 fee
-    )
-        external
-    {
-        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
-            SystemPerpsMarketsConfiguration.load();
-        // _requirePerpsMarketEnabled(systemPerpsMarketsConfiguration.enabledPerpsMarkets[msg.sender]);
+    // function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
+    //     if (!isEnabled) {
+    //         revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
+    //     }
+    // }
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        perpsAccount.decreaseAvailableMargin(collateralType, amount);
-
-        uint256 amountMinusFee = amount.sub(fee).intoUint256();
-
-        address rewardDistributor = systemPerpsMarketsConfiguration.rewardDistributor;
-
-        IERC20(collateralType).safeTransfer(rewardDistributor, fee.intoUint256());
-        IERC20(collateralType).safeTransfer(msg.sender, amountMinusFee);
-    }
-
-    function removeIsolatedMarginFromPosition(uint256 accountId, address collateralType, UD60x18 amount) external {
-        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
-            SystemPerpsMarketsConfiguration.load();
-        // _requirePerpsMarketEnabled(systemPerpsMarketsConfiguration.enabledPerpsMarkets[msg.sender]);
-
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        perpsAccount.increaseAvailableMargin(collateralType, amount);
-
-        /// TODO: add erc20 transfer
-    }
-
-    function depositMarginAndSettleOrder(uint256 accountId, address perpsMarket, Order.Data calldata order) external {
-        address collateralType = order.collateralType;
-        uint256 amount = order.marginAmount;
-
-        depositMargin(accountId, collateralType, amount);
-        IPerpsMarket(perpsMarket).settleOrderFromVault(accountId, order);
-    }
-
-    function settleOrderAndWithdrawMargin(uint256 accountId, address perpsMarket, Order.Data calldata order) external {
-        uint256 previousPositionAmount = IPerpsMarket(perpsMarket).settleOrderFromVault(accountId, order);
-
-        address collateralType = order.collateralType;
-
-        withdrawMargin(accountId, collateralType, previousPositionAmount);
-    }
-
-    function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
-        if (!isEnabled) {
-            revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
-        }
-    }
-
-    function _requirePerpsMarketEnabled(bool isEnabled) internal view {
-        if (!isEnabled) {
-            revert Zaros_PerpsAccountModule_InvalidPerpsMarket(msg.sender);
-        }
-    }
+    // function _requirePerpsMarketEnabled(bool isEnabled) internal view {
+    //     if (!isEnabled) {
+    //         revert Zaros_PerpsAccountModule_InvalidPerpsMarket(msg.sender);
+    //     }
+    // }
 }
