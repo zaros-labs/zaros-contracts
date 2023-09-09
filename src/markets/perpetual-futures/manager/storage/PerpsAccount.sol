@@ -11,36 +11,56 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
+    /// @dev Constant base domain used to access a given PerpsAccount's storage slot
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
+
+    error Zaros_PerpsAccount_PermissionDenied(uint256 accountId, address sender);
 
     struct Data {
         uint256 id;
-        EnumerableMap.AddressToUintMap availableMargin;
+        address owner;
+        EnumerableMap.AddressToUintMap marginBalance;
     }
 
-    /// @dev TODO: use account id / nft id instead of address
-    function load(uint256 id) internal pure returns (Data storage perpsAccount) {
-        bytes32 slot = keccak256(abi.encode(PERPS_ACCOUNT_DOMAIN, id));
+    function load(uint256 accountId) internal pure returns (Data storage perpsAccount) {
+        bytes32 slot = keccak256(abi.encode(PERPS_ACCOUNT_DOMAIN, accountId));
         assembly {
             perpsAccount.slot := slot
         }
     }
 
-    function increaseAvailableMargin(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
-        EnumerableMap.AddressToUintMap storage availableMargin = perpsAccount.availableMargin;
-        uint256 newAvailableMargin = ud60x18(availableMargin.get(collateralType)).add(amount).intoUint256();
-
-        availableMargin.set(collateralType, newAvailableMargin);
+    function loadAccountAndValidatePermission(uint256 accountId) internal returns (Data storage perpsAccount) {
+        perpsAccount = load(accountId);
+        verifyCaller(perpsAccount);
     }
 
-    function decreaseAvailableMargin(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
-        EnumerableMap.AddressToUintMap storage availableMargin = perpsAccount.availableMargin;
-        uint256 newAvailableMargin = ud60x18(availableMargin.get(collateralType)).sub(amount).intoUint256();
+    function create(uint256 accountId, address owner) internal returns (Data storage perpsAccount) {
+        perpsAccount = load(accountId);
+        perpsAccount.id = accountId;
+        perpsAccount.owner = owner;
+    }
 
-        if (newAvailableMargin == 0) {
-            availableMargin.remove(collateralType);
+    function increaseMarginBalance(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
+        EnumerableMap.AddressToUintMap storage marginBalance = perpsAccount.marginBalance;
+        uint256 newMarginBalance = ud60x18(marginBalance.get(collateralType)).add(amount).intoUint256();
+
+        marginBalance.set(collateralType, newMarginBalance);
+    }
+
+    function decreaseMarginBalance(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
+        EnumerableMap.AddressToUintMap storage marginBalance = perpsAccount.marginBalance;
+        UD60x18 newMarginBalance = ud60x18(marginBalance.get(collateralType)).sub(amount);
+
+        if (newMarginBalance.isZero()) {
+            marginBalance.remove(collateralType);
         } else {
-            availableMargin.set(collateralType, newAvailableMargin);
+            marginBalance.set(collateralType, newMarginBalance.intoUint256());
+        }
+    }
+
+    function verifyCaller(Data storage self) internal view {
+        if (self.owner != msg.sender) {
+            revert Zaros_PerpsAccount_PermissionDenied(self.id, msg.sender);
         }
     }
 }

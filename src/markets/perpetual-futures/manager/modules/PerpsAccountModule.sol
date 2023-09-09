@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { IPerpsMarket } from "../../market/interfaces/IPerpsMarket.sol";
 import { Order } from "../../market/storage/Order.sol";
 import { OrderFees } from "../../market/storage/OrderFees.sol";
@@ -43,7 +44,15 @@ contract PerpsAccountModule is IPerpsAccountModule {
         returns (UD60x18 marginBalance, UD60x18 availableMargin)
     { }
 
-    function createAccount() external returns (uint128) { }
+    function createAccount() public override returns (uint128) {
+        (uint128 accountId, IAccountNFT accountTokenModule) = SystemPerpsMarketsConfiguration.onCreateAccount();
+        accountTokenModule.mint(msg.sender, accountId);
+
+        PerpsAccount.create(accountId, msg.sender);
+
+        emit LogCreatePerpsAccount(accountId, msg.sender);
+        return accountId;
+    }
 
     function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results) { }
 
@@ -57,7 +66,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         }
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        perpsAccount.increaseAvailableMargin(collateralType, ud60x18(amount));
+        perpsAccount.increaseMarginBalance(collateralType, ud60x18(amount));
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 
         emit LogDepositMargin(msg.sender, collateralType, amount);
@@ -73,7 +82,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         }
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        perpsAccount.decreaseAvailableMargin(collateralType, ud60x18(amount));
+        perpsAccount.decreaseMarginBalance(collateralType, ud60x18(amount));
         IERC20(collateralType).safeTransfer(msg.sender, amount);
 
         emit LogWithdrawMargin(msg.sender, collateralType, amount);

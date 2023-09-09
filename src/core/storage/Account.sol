@@ -87,7 +87,7 @@ library Account {
     }
 
     function loadAccountAndValidatePermission(uint128 accountId) internal returns (Data storage account) {
-        account = Account.load(accountId);
+        account = load(accountId);
         verifyCaller(account);
 
         recordInteraction(account);

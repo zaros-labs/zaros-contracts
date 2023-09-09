@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.19;
 
+// Zaros dependencies
+import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
+
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
@@ -21,6 +24,7 @@ library SystemPerpsMarketsConfiguration {
         address zaros;
         address rewardDistributor;
         address accountToken;
+        uint96 nextAccountId;
     }
 
     function load() internal pure returns (Data storage systemPerpsMarketsConfiguration) {
@@ -46,5 +50,11 @@ library SystemPerpsMarketsConfiguration {
         if (!success) {
             revert Zaros_SystemPerpsMarketsConfiguration_InvalidToggle(collateralType, shouldEnable);
         }
+    }
+
+    function onCreateAccount() internal returns (uint128 accountId, IAccountNFT accountTokenModule) {
+        Data storage self = load();
+        accountId = ++self.nextAccountId;
+        accountTokenModule = IAccountNFT(self.accountToken);
     }
 }

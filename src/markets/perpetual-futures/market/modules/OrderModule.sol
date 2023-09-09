@@ -78,16 +78,17 @@ contract OrderModule is IOrderModule {
         UD60x18 fee = sizeAbs.mul(ud60x18(orderFees.takerFee));
 
         if (ud60x18(order.marginAmount).gt(ud60x18(position.margin.amount))) {
-            perpsManager.addIsolatedMarginToPosition(
-                accountId, order.collateralType, ud60x18(order.marginAmount).sub(ud60x18(position.margin.amount)), fee
-            );
+            // perpsManager.addIsolatedMarginToPosition(
+            //     accountId, order.collateralType, ud60x18(order.marginAmount).sub(ud60x18(position.margin.amount)),
+            // fee
+            // );
         } else if (ud60x18(order.marginAmount).lt(ud60x18(position.margin.amount))) {
             IERC20(order.collateralType).safeTransfer(
                 address(perpsManager), ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount)).intoUint256()
             );
-            perpsManager.removeIsolatedMarginFromPosition(
-                accountId, order.collateralType, ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount))
-            );
+            // perpsManager.removeIsolatedMarginFromPosition(
+            //     accountId, order.collateralType, ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount))
+            // );
         }
 
         Position.Data memory newPosition = Position.Data({

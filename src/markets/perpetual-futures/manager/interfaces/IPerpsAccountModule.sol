@@ -12,6 +12,7 @@ interface IPerpsAccountModule {
     error Zaros_PerpsAccountModule_InvalidCollateralType(address collateralType);
     error Zaros_PerpsAccountModule_InvalidPerpsMarket(address perpsMarket);
 
+    event LogCreatePerpsAccount(uint256 accountId, address sender);
     event LogDepositMargin(address indexed sender, address indexed collateralType, uint256 amount);
     event LogWithdrawMargin(address indexed sender, address indexed collateralType, uint256 amount);
 
