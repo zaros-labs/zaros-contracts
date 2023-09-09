@@ -54,7 +54,24 @@ contract PerpsAccountModule is IPerpsAccountModule {
         return accountId;
     }
 
-    function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results) { }
+    function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results) {
+        uint256 accountId = createAccount();
+
+        results = new bytes[](data.length);
+        for (uint256 i = 0; i < data.length; i++) {
+            bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(accountId), data[i][4:]);
+            (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
+
+            if (!success) {
+                uint256 len = result.length;
+                assembly {
+                    revert(add(result, 0x20), len)
+                }
+            }
+
+            results[i] = result;
+        }
+    }
 
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) public {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
