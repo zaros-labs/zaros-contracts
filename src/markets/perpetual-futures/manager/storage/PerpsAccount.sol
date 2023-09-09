@@ -4,12 +4,14 @@ pragma solidity 0.8.19;
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     /// @dev Constant base domain used to access a given PerpsAccount's storage slot
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
@@ -20,6 +22,7 @@ library PerpsAccount {
         uint256 id;
         address owner;
         EnumerableMap.AddressToUintMap marginBalance;
+        EnumerableSet.UintSet activeMarketsIds;
     }
 
     function load(uint256 accountId) internal pure returns (Data storage perpsAccount) {
@@ -55,6 +58,14 @@ library PerpsAccount {
             marginBalance.remove(collateralType);
         } else {
             marginBalance.set(collateralType, newMarginBalance.intoUint256());
+        }
+    }
+
+    function updateAccountMarketState(Data storage self, uint256 marketId, bool isActive) internal {
+        if (isActive) {
+            self.activeMarketsIds.add(marketId);
+        } else {
+            self.activeMarketsIds.remove(marketId);
         }
     }
 
