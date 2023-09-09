@@ -40,7 +40,8 @@ contract DeployZaros is BaseScript {
         AccountNFT accountNft = new AccountNFT();
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
         BalancerUSDCStrategy balancerUsdcStrategy =
-        new BalancerUSDCStrategy(address(zaros), address(usdc), address(zrsUsd), vm.envAddress("BALANCER_VAULT"), vm.envBytes32("ZRSUSD_USDC_POOL_ID"));
+        new BalancerUSDCStrategy(address(zaros), address(usdc), address(zrsUsd),
+        vm.envAddress("BALANCER_VAULT"), vm.envBytes32("ZRSUSD_USDC_POOL_ID"));
         address ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
         address usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
 
@@ -65,8 +66,8 @@ contract DeployZaros is BaseScript {
             console.log("Perps Vault: ");
             console.log(address(perpsManager));
 
-            PerpsMarket sFrxEthPerpsMarket =
-            new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP", ethUsdOracle, address(perpsManager), PERPS_MAX_LEVERAGE, orderFees);
+            PerpsMarket sFrxEthPerpsMarket = new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP",
+            ethUsdOracle, address(perpsManager), PERPS_MAX_LEVERAGE, orderFees);
 
             console.log("Perps Market: ");
             console.log(address(sFrxEthPerpsMarket));
