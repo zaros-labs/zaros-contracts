@@ -23,7 +23,7 @@ contract Base_Test is Test {
     RewardDistributor internal rewardDistributor;
     Zaros internal zaros;
 
-    function setUp() public {
+    function setUp() public virtual {
         accountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
         zrsUsd = new MockZarosUSD(100_000_000e18);
         zaros = Zaros(mockZarosAddress);
