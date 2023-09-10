@@ -9,12 +9,33 @@ import { Order } from "../../market/storage/Order.sol";
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 interface IPerpsAccountModule {
+    /// @notice Thrown When the provided collateral is not supported.
     error Zaros_PerpsAccountModule_InvalidCollateralType(address collateralType);
+    /// @notice Thrown When the caller is not the account token contract.
     error Zaros_PerpsAccountModule_OnlyAccountToken(address sender);
 
+    /// @notice Emitted when a new perps account is created.
+    /// @param accountId The trading account id.
+    /// @param sender The `msg.sender` of the create account transaction.
     event LogCreatePerpsAccount(uint256 accountId, address sender);
-    event LogDepositMargin(address indexed sender, address indexed collateralType, uint256 amount);
-    event LogWithdrawMargin(address indexed sender, address indexed collateralType, uint256 amount);
+
+    /// @notice Emitted when `msg.sender` deposits `amount` of `collateralType` into `accountId`.
+    /// @param sender The `msg.sender`.
+    /// @param accountId The trading account id.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The amount of margin collateral deposited.
+    event LogDepositMargin(
+        address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
+    );
+
+    /// @notice Emitted when `msg.sender` withdraws `amount` of `collateralType` from `accountId`.
+    /// @param sender The `msg.sender`.
+    /// @param accountId The trading account id.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The amount of margin collateral withdrawn.
+    event LogWithdrawMargin(
+        address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
+    );
 
     /// @notice Gets the contract address of the trading accounts NFTs.
     /// @return accountToken The account token address.
@@ -51,13 +72,31 @@ interface IPerpsAccountModule {
         view
         returns (UD60x18 marginBalance, UD60x18 availableMargin);
 
-    function createAccount() external returns (uint128);
+    /// @notice Creates a new trading account and mints its NFT
+    /// @return accountId The trading account id.
+    function createAccount() external returns (uint256 accountId);
 
+    /// @notice Creates a new trading account and multicalls using the provided data payload.
+    /// @param data The data payload to be multicalled.
+    /// @return results The array of results of the multicall.
     function createAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results);
 
+    /// @notice Deposits margin collateral into the given trading account.
+    /// @param accountId The trading account id.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The amount of margin collateral to deposit.
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) external;
 
+    /// @notice Withdraws available margin collateral from the given trading account.
+    /// @param accountId The trading account id.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The amount of margin collateral to withdraw.
     function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external;
 
+    /// @notice Used by the Account NFT contract to notify an account transfer.
+    /// @dev Can only be called by the Account NFT contract.
+    /// @dev It updates the Perps Account stored access control data.
+    /// @param to The recipient of the account transfer.
+    /// @param accountId The trading account id.
     function notifyAccountTransfer(address to, uint128 accountId) external;
 }

@@ -52,7 +52,7 @@ library SystemPerpsMarketsConfiguration {
         }
     }
 
-    function onCreateAccount() internal returns (uint128 accountId, IAccountNFT accountTokenModule) {
+    function onCreateAccount() internal returns (uint256 accountId, IAccountNFT accountTokenModule) {
         Data storage self = load();
         accountId = ++self.nextAccountId;
         accountTokenModule = IAccountNFT(self.accountToken);

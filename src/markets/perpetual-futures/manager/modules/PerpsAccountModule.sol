@@ -52,8 +52,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
     /// @inheritdoc IPerpsAccountModule
     function getAccountMargin(uint256 accountId) external view override returns (UD60x18, UD60x18) { }
 
-    function createAccount() public override returns (uint128) {
-        (uint128 accountId, IAccountNFT accountTokenModule) = SystemPerpsMarketsConfiguration.onCreateAccount();
+    /// @inheritdoc IPerpsAccountModule
+    function createAccount() public override returns (uint256) {
+        (uint256 accountId, IAccountNFT accountTokenModule) = SystemPerpsMarketsConfiguration.onCreateAccount();
         accountTokenModule.mint(msg.sender, accountId);
 
         PerpsAccount.create(accountId, msg.sender);
@@ -62,6 +63,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         return accountId;
     }
 
+    /// @inheritdoc IPerpsAccountModule
     function createAccountAndMulticall(bytes[] calldata data)
         external
         payable
@@ -86,6 +88,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         }
     }
 
+    /// @inheritdoc IPerpsAccountModule
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) external override {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
@@ -98,9 +101,10 @@ contract PerpsAccountModule is IPerpsAccountModule {
         perpsAccount.increaseMarginCollateral(collateralType, ud60x18(amount));
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 
-        emit LogDepositMargin(msg.sender, collateralType, amount);
+        emit LogDepositMargin(msg.sender, accountId, collateralType, amount);
     }
 
+    /// @inheritdoc IPerpsAccountModule
     function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external override {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
@@ -113,9 +117,10 @@ contract PerpsAccountModule is IPerpsAccountModule {
         perpsAccount.decreaseMarginCollateral(collateralType, ud60x18(amount));
         IERC20(collateralType).safeTransfer(msg.sender, amount);
 
-        emit LogWithdrawMargin(msg.sender, collateralType, amount);
+        emit LogWithdrawMargin(msg.sender, accountId, collateralType, amount);
     }
 
+    /// @inheritdoc IPerpsAccountModule
     function notifyAccountTransfer(address to, uint128 accountId) external override {
         _onlyAccountToken();
 
