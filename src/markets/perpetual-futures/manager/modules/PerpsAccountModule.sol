@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
+import { ParameterError } from "@zaros/utils/Errors.sol";
 import { IPerpsMarket } from "../../market/interfaces/IPerpsMarket.sol";
 import { Order } from "../../market/storage/Order.sol";
 import { OrderFees } from "../../market/storage/OrderFees.sol";
@@ -93,31 +94,29 @@ contract PerpsAccountModule is IPerpsAccountModule {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
-        if (amount == 0) {
-            revert();
-        }
+        UD60x18 udAmount = ud60x18(amount);
+        _requireAmountNotZero(udAmount);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        perpsAccount.increaseMarginCollateral(collateralType, ud60x18(amount));
-        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
+        perpsAccount.increaseMarginCollateral(collateralType, udAmount);
+        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), udAmount.intoUint256());
 
-        emit LogDepositMargin(msg.sender, accountId, collateralType, amount);
+        emit LogDepositMargin(msg.sender, accountId, collateralType, udAmount.intoUint256());
     }
 
     /// @inheritdoc IPerpsAccountModule
     function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external override {
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
-        _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
-        if (amount == 0) {
-            revert();
-        }
+        UD60x18 udAmount = ud60x18(amount);
+        _requireAmountNotZero(udAmount);
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        perpsAccount.decreaseMarginCollateral(collateralType, ud60x18(amount));
-        IERC20(collateralType).safeTransfer(msg.sender, amount);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
+        _checkMarginIsAvailable(perpsAccount, collateralType, udAmount);
+        perpsAccount.decreaseMarginCollateral(collateralType, udAmount);
+        IERC20(collateralType).safeTransfer(msg.sender, udAmount.intoUint256());
 
-        emit LogWithdrawMargin(msg.sender, accountId, collateralType, amount);
+        emit LogWithdrawMargin(msg.sender, accountId, collateralType, udAmount.intoUint256());
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -128,12 +127,35 @@ contract PerpsAccountModule is IPerpsAccountModule {
         perpsAccount.owner = to;
     }
 
+    /// @dev Checks if the requested amount of margin collateral is available to be withdrawn.
+    /// @dev Iterates over active positions in order to take uPnL and margin requirements into account.
+    /// @param perpsAccount The perps account storage pointer.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The amount of margin collateral to be withdrawn.
+    function _checkMarginIsAvailable(
+        PerpsAccount.Data storage perpsAccount,
+        address collateralType,
+        UD60x18 amount
+    )
+        internal
+        view
+    { }
+
+    /// @dev Reverts if the caller is not the account owner.
     function _onlyAccountToken() internal view {
         if (msg.sender != address(getAccountTokenAddress())) {
             revert Zaros_PerpsAccountModule_OnlyAccountToken(msg.sender);
         }
     }
 
+    /// @dev Reverts if the amount is zero.
+    function _requireAmountNotZero(UD60x18 amount) internal pure {
+        if (amount.isZero()) {
+            revert ParameterError.Zaros_InvalidParameter("amount", "amount can't be zero");
+        }
+    }
+
+    /// @dev Reverts if the collateral type is not supported.
     function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
         if (!isEnabled) {
             revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
