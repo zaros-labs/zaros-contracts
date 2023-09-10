@@ -7,12 +7,12 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
 import { PerpsManager } from "@zaros/markets/perpetual-futures/manager/PerpsManager.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
-import { MockZarosUSD } from "../../mocks/MockZarosUSD.sol";
+import { MockZarosUSD } from "test/mocks/MockZarosUSD.sol";
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";
 
-contract PerpsAccountModuleTest is Test {
+contract PerpsAccountModule_Unit_Test is Test {
     address internal deployer = vm.addr(1);
     address internal mockZarosAddress = vm.addr(2);
     address internal mockRewardDistributorAddress = vm.addr(3);
@@ -31,7 +31,9 @@ contract PerpsAccountModuleTest is Test {
         perpsManager = new PerpsManager(address(accountToken), address(mockRewardDistributorAddress), address(zaros));
     }
 
-    function test_createAccount() public { }
+    function test_createAccount() public {
+        (uint256 accountId) = perpsManager.createAccount();
+    }
 
     function test_createAccountAndMulticall() public { }
 }
