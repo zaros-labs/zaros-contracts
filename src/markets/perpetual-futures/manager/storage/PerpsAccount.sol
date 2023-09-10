@@ -32,7 +32,7 @@ library PerpsAccount {
         }
     }
 
-    function loadAccountAndValidatePermission(uint256 accountId) internal returns (Data storage perpsAccount) {
+    function loadAccountAndValidatePermission(uint256 accountId) internal view returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         verifyCaller(perpsAccount);
     }
