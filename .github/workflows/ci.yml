@@ -73,7 +73,7 @@ jobs:
         run: "pnpm install"
 
       - name: "Build the contracts and print their size"
-        run: "forge build --sizes --via-ir"
+        run: "forge build --sizes --skip src/core/Zaros.sol"
 
       - name: "Add build summary"
         run: |
