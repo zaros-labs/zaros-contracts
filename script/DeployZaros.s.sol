@@ -37,7 +37,7 @@ contract DeployZaros is BaseScript {
         IERC20 sFrxEth = IERC20(vm.envAddress("SFRXETH"));
         IERC20 usdc = IERC20(vm.envAddress("USDC"));
         ZarosUSD zrsUsd = ZarosUSD(vm.envAddress("ZRSUSD"));
-        AccountNFT accountNft = new AccountNFT();
+        AccountNFT accountNft = new AccountNFT("Zaros Accounts", "ZRS-ACC");
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
         BalancerUSDCStrategy balancerUsdcStrategy =
         new BalancerUSDCStrategy(address(zaros), address(usdc), address(zrsUsd),

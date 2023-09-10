@@ -43,7 +43,7 @@ contract ZarosIntegrationTest is Test {
         sFrxEth = new MockERC20("Staked Frax Ether", "sfrxETH", 18);
         usdc = new MockERC20("USD Coin", "USDC", 6);
         zrsUsd = new MockZarosUSD(100_000_000e18);
-        accountNft = new AccountNFT();
+        accountNft = new AccountNFT("Zaros Accounts", "ZRS-ACC");
         zaros = new Zaros(address(accountNft), address(zrsUsd));
         ethUsdOracle = address(new MockPriceFeed(8, 1000e8));
         usdcUsdOracle = address(new MockPriceFeed(8, 1e8));
