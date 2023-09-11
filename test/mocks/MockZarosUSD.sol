@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 import { ZarosUSD } from "@zaros/usd/ZarosUSD.sol";
 
 contract MockZarosUSD is ZarosUSD {
-    constructor(uint256 amount) {
-        _mint(msg.sender, amount);
+    constructor(uint256 ownerBalance) {
+        _mint(msg.sender, ownerBalance);
     }
 }
