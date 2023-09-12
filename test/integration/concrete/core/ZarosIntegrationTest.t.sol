@@ -3,9 +3,9 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { MockERC20 } from "../../mocks/MockERC20.sol";
-import { MockPriceFeed } from "../../mocks/MockPriceFeed.sol";
-import { MockZarosUSD } from "../../mocks/MockZarosUSD.sol";
+import { MockERC20 } from "test/mocks/MockERC20.sol";
+import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { MockZarosUSD } from "test/mocks/MockZarosUSD.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
