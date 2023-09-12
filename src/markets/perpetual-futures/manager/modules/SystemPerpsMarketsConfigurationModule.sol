@@ -19,7 +19,21 @@ contract SystemPerpsMarketsConfigurationModule is ISystemPerpsMarketsConfigurati
         return systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType);
     }
 
+    function setAccountToken(address accountToken) external {
+        if (accountToken == address(0)) {
+            revert Zaros_SystemPerpsMarketsConfigurationModule_AccountTokenNotDefined();
+        }
+
+        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
+            SystemPerpsMarketsConfiguration.load();
+        systemPerpsMarketsConfiguration.accountToken = accountToken;
+    }
+
     function setZaros(address zaros) external override {
+        if (zaros == address(0)) {
+            revert Zaros_SystemPerpsMarketsConfigurationModule_ZarosNotDefined();
+        }
+
         SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
             SystemPerpsMarketsConfiguration.load();
         systemPerpsMarketsConfiguration.zaros = zaros;
