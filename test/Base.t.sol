@@ -17,6 +17,7 @@ contract Base_Test is Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
+
     Users internal users;
 
     /// @dev TODO: deploy real contracts instead of mocking them
@@ -26,6 +27,7 @@ contract Base_Test is Test {
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
+
     AccountNFT internal accountToken;
     MockZarosUSD internal zrsUsd;
     PerpsManager internal perpsManager;
@@ -33,8 +35,18 @@ contract Base_Test is Test {
     Zaros internal zaros;
 
     /*//////////////////////////////////////////////////////////////////////////
+                                      MODIFIERS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    modifier baseSetup() {
+        setUp();
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
+
     function setUp() public virtual {
         accountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
         zrsUsd = new MockZarosUSD({ ownerBalance: 100_000_000e18 });
@@ -56,6 +68,10 @@ contract Base_Test is Test {
             madara: createUser({ name: "Madara Uchiha" })
         });
     }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                      HELPERS
+    //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev Generates a user, labels its address, and funds it with test assets.
     function createUser(string memory name) internal returns (address payable) {

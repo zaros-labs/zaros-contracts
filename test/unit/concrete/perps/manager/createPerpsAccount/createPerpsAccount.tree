@@ -1,0 +1,8 @@
+createPerpsAccount.t.sol
+├── when the perps account token is not defined
+│   └── it should revert
+└── when the caller creates a perps account
+    ├── given the caller has no previous perps account
+    │   └── it should create a perps account and return a valid id
+    └── given the caller has a previously created perps account
+        └── it should create a perps account and return a valid id
