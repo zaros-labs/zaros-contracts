@@ -54,7 +54,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function getAccountMargin(uint256 accountId) external view override returns (UD60x18, UD60x18) { }
 
     /// @inheritdoc IPerpsAccountModule
-    function createAccount() public override returns (uint256) {
+    function createPerpsAccount() public override returns (uint256) {
         (uint256 accountId, IAccountNFT accountTokenModule) = SystemPerpsMarketsConfiguration.onCreateAccount();
         accountTokenModule.mint(msg.sender, accountId);
 
@@ -65,13 +65,13 @@ contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function createAccountAndMulticall(bytes[] calldata data)
+    function createPerpsAccountAndMulticall(bytes[] calldata data)
         external
         payable
         override
         returns (bytes[] memory results)
     {
-        uint256 accountId = createAccount();
+        uint256 accountId = createPerpsAccount();
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
