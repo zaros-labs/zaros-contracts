@@ -67,6 +67,8 @@ contract Base_Test is Test {
             sakura: createUser({ name: "Sakura Haruno" }),
             madara: createUser({ name: "Madara Uchiha" })
         });
+
+        vm.startPrank({ msgSender: users.owner });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
