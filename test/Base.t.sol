@@ -26,7 +26,6 @@ contract Base_Test is Test {
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
-
     AccountNFT internal accountToken;
     MockZarosUSD internal zrsUsd;
     PerpsManager internal perpsManager;
