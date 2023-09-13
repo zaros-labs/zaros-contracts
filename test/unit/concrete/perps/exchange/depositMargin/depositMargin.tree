@@ -9,4 +9,5 @@ depositMargin.t.sol
         │   └── it should revert
         └── given the perps account exists
             ├── it should emit a {LogDepositMargin} event
+            ├── it should increase the amount of margin collateral
             └── it should transfer the amount from the sender to the perps account
