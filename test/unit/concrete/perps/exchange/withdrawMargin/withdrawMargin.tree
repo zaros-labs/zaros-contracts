@@ -1,0 +1,8 @@
+when the amount is zero
+ it should revert
+when the amount is not zero
+ given there is no margin available
+  it should revert
+ given there is margin available
+  it should emit a {LogWithdrawMargin} event
+  it should update the available margin

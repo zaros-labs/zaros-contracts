@@ -22,7 +22,7 @@ library PerpsAccount {
     struct Data {
         uint256 id;
         address owner;
-        EnumerableMap.AddressToUintMap activeMarginCollateral;
+        EnumerableMap.AddressToUintMap marginCollateral;
         EnumerableSet.UintSet activeMarketsIds;
     }
 
@@ -46,7 +46,7 @@ library PerpsAccount {
     }
 
     function getMarginCollateral(Data storage perpsAccount, address collateralType) internal view returns (UD60x18) {
-        return ud60x18(perpsAccount.activeMarginCollateral.get(collateralType));
+        return ud60x18(perpsAccount.marginCollateral.get(collateralType));
     }
 
     function create(uint256 accountId, address owner) internal returns (Data storage perpsAccount) {
@@ -56,21 +56,21 @@ library PerpsAccount {
     }
 
     function increaseMarginCollateral(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
-        EnumerableMap.AddressToUintMap storage activeMarginCollateral = perpsAccount.activeMarginCollateral;
-        (, uint256 currentMarginCollateral) = activeMarginCollateral.tryGet(collateralType);
+        EnumerableMap.AddressToUintMap storage marginCollateral = perpsAccount.marginCollateral;
+        (, uint256 currentMarginCollateral) = marginCollateral.tryGet(collateralType);
         uint256 newMarginCollateral = ud60x18(currentMarginCollateral).add(amount).intoUint256();
 
-        activeMarginCollateral.set(collateralType, newMarginCollateral);
+        marginCollateral.set(collateralType, newMarginCollateral);
     }
 
     function decreaseMarginCollateral(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
-        EnumerableMap.AddressToUintMap storage activeMarginCollateral = perpsAccount.activeMarginCollateral;
-        UD60x18 newMarginCollateral = ud60x18(activeMarginCollateral.get(collateralType)).sub(amount);
+        EnumerableMap.AddressToUintMap storage marginCollateral = perpsAccount.marginCollateral;
+        UD60x18 newMarginCollateral = ud60x18(marginCollateral.get(collateralType)).sub(amount);
 
         if (newMarginCollateral.isZero()) {
-            activeMarginCollateral.remove(collateralType);
+            marginCollateral.remove(collateralType);
         } else {
-            activeMarginCollateral.set(collateralType, newMarginCollateral.intoUint256());
+            marginCollateral.set(collateralType, newMarginCollateral.intoUint256());
         }
     }
 
