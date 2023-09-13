@@ -70,6 +70,8 @@ contract DepositMargin_Unit_Concrete_Test is Base_Test {
         uint256 amountToDeposit = 100e18;
         uint256 userPerpsAccountId = perpsExchange.createPerpsAccount();
 
+        vm.expectEmit({ emitter: address(perpsExchange) });
+        emit LogDepositMargin(users.naruto, userPerpsAccountId, address(zrsUsd), amountToDeposit);
         perpsExchange.depositMargin(userPerpsAccountId, address(zrsUsd), amountToDeposit);
     }
 }
