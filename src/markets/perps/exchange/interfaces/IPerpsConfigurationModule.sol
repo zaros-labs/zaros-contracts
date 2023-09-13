@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.19;
 
-interface ISystemPerpsMarketsConfigurationModule {
-    error Zaros_SystemPerpsMarketsConfigurationModule_AccountTokenNotDefined();
-    error Zaros_SystemPerpsMarketsConfigurationModule_ZarosNotDefined();
+interface IPerpsConfigurationModule {
+    error Zaros_PerpsConfigurationModule_AccountTokenNotDefined();
+    error Zaros_PerpsConfigurationModule_ZarosNotDefined();
 
     event LogSetSupportedMarket(address indexed perpsMarket, bool enabled);
     event LogSetSupportedCollateral(address indexed sender, address indexed collateralType, bool enabled);

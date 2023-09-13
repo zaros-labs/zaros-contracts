@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IPerpsManager } from "../../manager/interfaces/IPerpsManager.sol";
+import { IPerpsExchange } from "../../exchange/interfaces/IPerpsExchange.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
@@ -49,7 +49,7 @@ contract OrderModule is IOrderModule {
         returns (uint256 previousPositionAmount)
     {
         PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
-        if (msg.sender != perpsMarketConfig.perpsManager) {
+        if (msg.sender != perpsMarketConfig.perpsExchange) {
             revert();
         }
 
@@ -70,7 +70,7 @@ contract OrderModule is IOrderModule {
         OrderFees.Data memory orderFees = perpsMarketConfig.orderFees;
         Position.Data storage position = perpsMarketConfig.positions[accountId];
         previousPositionAmount = position.margin.amount;
-        IPerpsManager perpsManager = IPerpsManager(perpsMarketConfig.perpsManager);
+        IPerpsExchange perpsExchange = IPerpsExchange(perpsMarketConfig.perpsExchange);
         UD60x18 sizeAbs = sd59x18(order.sizeDelta).lt(SD_ZERO)
             ? unary(sd59x18(order.sizeDelta)).intoUD60x18()
             : sd59x18(order.sizeDelta).intoUD60x18();
@@ -78,15 +78,15 @@ contract OrderModule is IOrderModule {
         UD60x18 fee = sizeAbs.mul(ud60x18(orderFees.takerFee));
 
         if (ud60x18(order.marginAmount).gt(ud60x18(position.margin.amount))) {
-            // perpsManager.addIsolatedMarginToPosition(
+            // perpsExchange.addIsolatedMarginToPosition(
             //     accountId, order.collateralType, ud60x18(order.marginAmount).sub(ud60x18(position.margin.amount)),
             // fee
             // );
         } else if (ud60x18(order.marginAmount).lt(ud60x18(position.margin.amount))) {
             IERC20(order.collateralType).safeTransfer(
-                address(perpsManager), ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount)).intoUint256()
+                address(perpsExchange), ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount)).intoUint256()
             );
-            // perpsManager.removeIsolatedMarginFromPosition(
+            // perpsExchange.removeIsolatedMarginFromPosition(
             //     accountId, order.collateralType, ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount))
             // );
         }

@@ -22,7 +22,7 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         string memory _name,
         string memory _symbol,
         address _oracle,
-        address _perpsManager,
+        address _perpsExchange,
         uint256 _maxLeverage,
         OrderFees.Data memory _orderFees
     ) {
@@ -30,7 +30,7 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         perpsMarketConfig.name = _name;
         perpsMarketConfig.symbol = _symbol;
         perpsMarketConfig.oracle = _oracle;
-        perpsMarketConfig.perpsManager = _perpsManager;
+        perpsMarketConfig.perpsExchange = _perpsExchange;
         perpsMarketConfig.maxLeverage = _maxLeverage;
         perpsMarketConfig.orderFees = _orderFees;
     }
@@ -88,7 +88,7 @@ contract PerpsMarket is IPerpsMarket, OrderModule {
         (notionalValue, size, pnl, accruedFunding, netFundingPerUnit, nextFunding) = position.getPositionData(price);
     }
 
-    function setPerpsManager(address perpsManager) external {
-        PerpsMarketConfig.load().perpsManager = perpsManager;
+    function setPerpsExchange(address perpsExchange) external {
+        PerpsMarketConfig.load().perpsExchange = perpsExchange;
     }
 }

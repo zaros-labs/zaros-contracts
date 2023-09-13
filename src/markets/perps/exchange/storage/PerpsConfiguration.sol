@@ -11,13 +11,13 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
-library SystemPerpsMarketsConfiguration {
+library PerpsConfiguration {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    error Zaros_SystemPerpsMarketsConfiguration_InvalidToggle(address collateralType, bool shouldEnable);
+    error Zaros_PerpsConfiguration_InvalidToggle(address collateralType, bool shouldEnable);
 
     bytes32 internal constant SYSTEM_PERPS_MARKET_CONFIGURATION_SLOT =
-        keccak256(abi.encode("fi.zaros.markets.SystemPerpsMarketsConfiguration"));
+        keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
     struct Data {
         EnumerableSet.AddressSet enabledCollateralTypes;
@@ -27,10 +27,11 @@ library SystemPerpsMarketsConfiguration {
         uint96 nextAccountId;
     }
 
-    function load() internal pure returns (Data storage systemPerpsMarketsConfiguration) {
+    function load() internal pure returns (Data storage perpsConfiguration) {
         bytes32 slot = SYSTEM_PERPS_MARKET_CONFIGURATION_SLOT;
+
         assembly {
-            systemPerpsMarketsConfiguration.slot := slot
+            perpsConfiguration.slot := slot
         }
     }
 
@@ -48,7 +49,7 @@ library SystemPerpsMarketsConfiguration {
         }
 
         if (!success) {
-            revert Zaros_SystemPerpsMarketsConfiguration_InvalidToggle(collateralType, shouldEnable);
+            revert Zaros_PerpsConfiguration_InvalidToggle(collateralType, shouldEnable);
         }
     }
 

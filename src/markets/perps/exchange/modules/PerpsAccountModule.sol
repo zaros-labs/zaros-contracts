@@ -10,7 +10,7 @@ import { Order } from "../../engine/storage/Order.sol";
 import { OrderFees } from "../../engine/storage/OrderFees.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
-import { SystemPerpsMarketsConfiguration } from "../storage/SystemPerpsMarketsConfiguration.sol";
+import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -24,11 +24,11 @@ contract PerpsAccountModule is IPerpsAccountModule {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using PerpsAccount for PerpsAccount.Data;
     using SafeERC20 for IERC20;
-    using SystemPerpsMarketsConfiguration for SystemPerpsMarketsConfiguration.Data;
+    using PerpsConfiguration for PerpsConfiguration.Data;
 
     /// @inheritdoc IPerpsAccountModule
     function getAccountTokenAddress() public view override returns (address) {
-        return SystemPerpsMarketsConfiguration.load().accountToken;
+        return PerpsConfiguration.load().accountToken;
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -55,7 +55,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint256) {
-        (uint256 accountId, IAccountNFT accountTokenModule) = SystemPerpsMarketsConfiguration.onCreateAccount();
+        (uint256 accountId, IAccountNFT accountTokenModule) = PerpsConfiguration.onCreateAccount();
         accountTokenModule.mint(msg.sender, accountId);
 
         PerpsAccount.create(accountId, msg.sender);
@@ -91,9 +91,8 @@ contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) external override {
-        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
-            SystemPerpsMarketsConfiguration.load();
-        _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        _requireCollateralEnabled(collateralType, perpsConfiguration.isCollateralEnabled(collateralType));
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
         PerpsAccount.exists(accountId);
@@ -107,8 +106,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external override {
-        SystemPerpsMarketsConfiguration.Data storage systemPerpsMarketsConfiguration =
-            SystemPerpsMarketsConfiguration.load();
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
 

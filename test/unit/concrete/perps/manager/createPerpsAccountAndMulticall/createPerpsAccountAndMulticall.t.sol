@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IPerpsAccountModule } from "@zaros/markets/perps/manager/interfaces/IPerpsAccountModule.sol";
+import { IPerpsAccountModule } from "@zaros/markets/perps/exchange/interfaces/IPerpsAccountModule.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 
@@ -22,7 +22,7 @@ contract CreatePerpsAccountAndMulticall_Unit_Concrete_Test is Base_Test {
                 ParameterError.Zaros_InvalidParameter.selector, "amount", "amount can't be zero"
                 )
         });
-        perpsManager.createPerpsAccountAndMulticall(data);
+        perpsExchange.createPerpsAccountAndMulticall(data);
     }
 
     modifier whenNonRevertingCall() {
@@ -34,10 +34,10 @@ contract CreatePerpsAccountAndMulticall_Unit_Concrete_Test is Base_Test {
         uint256 expectedAccountId = 1;
         uint256 expectedResultsLength = 0;
 
-        vm.expectEmit({ emitter: address(perpsManager) });
+        vm.expectEmit({ emitter: address(perpsExchange) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
 
-        bytes[] memory results = perpsManager.createPerpsAccountAndMulticall(data);
+        bytes[] memory results = perpsExchange.createPerpsAccountAndMulticall(data);
         assertEq(results.length, expectedResultsLength, "createPerpsAccountAndMulticall");
     }
 
@@ -47,10 +47,10 @@ contract CreatePerpsAccountAndMulticall_Unit_Concrete_Test is Base_Test {
         uint256 expectedAccountId = 1;
         data[0] = abi.encodeWithSelector(IPerpsAccountModule.getAccountTokenAddress.selector);
 
-        vm.expectEmit({ emitter: address(perpsManager) });
+        vm.expectEmit({ emitter: address(perpsExchange) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
 
-        bytes[] memory results = perpsManager.createPerpsAccountAndMulticall(data);
+        bytes[] memory results = perpsExchange.createPerpsAccountAndMulticall(data);
         address accountTokenReturned = abi.decode(results[0], (address));
 
         assertEq(accountTokenReturned, address(accountToken), "createPerpsAccountAndMulticall");
