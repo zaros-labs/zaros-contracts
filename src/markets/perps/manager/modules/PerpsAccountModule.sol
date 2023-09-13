@@ -5,9 +5,9 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
-import { IPerpsMarket } from "../../market/interfaces/IPerpsMarket.sol";
-import { Order } from "../../market/storage/Order.sol";
-import { OrderFees } from "../../market/storage/OrderFees.sol";
+import { IPerpsMarket } from "../../engine/interfaces/IPerpsMarket.sol";
+import { Order } from "../../engine/storage/Order.sol";
+import { OrderFees } from "../../engine/storage/OrderFees.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { SystemPerpsMarketsConfiguration } from "../storage/SystemPerpsMarketsConfiguration.sol";
