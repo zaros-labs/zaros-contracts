@@ -81,7 +81,8 @@
 //         uint256 newAmount = positionCollateralAmount - amount;
 //         bytes memory delegateCollateralData =
 //             abi.encodeWithSelector(zaros.delegateCollateral.selector, accountId, collateralType, newAmount);
-//         bytes memory withdrawData = abi.encodeWithSelector(zaros.withdraw.selector, accountId, collateralType, amount);
+//         bytes memory withdrawData = abi.encodeWithSelector(zaros.withdraw.selector, accountId, collateralType,
+// amount);
 //         bytes[] memory data = new bytes[](2);
 //         data[0] = delegateCollateralData;
 //         data[1] = withdrawData;
