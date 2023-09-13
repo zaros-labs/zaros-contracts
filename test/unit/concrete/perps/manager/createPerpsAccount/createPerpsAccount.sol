@@ -8,10 +8,10 @@ import { Base_Test } from "test/Base.t.sol";
 contract CreatePerpsAccount_Unit_Concrete_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        vm.startPrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto });
     }
 
-    function test_CreatePerpsAccount() public {
+    function test_CreatePerpsAccount() external {
         uint256 expectedAccountId = 1;
 
         vm.expectEmit({ emitter: address(perpsManager) });
@@ -22,7 +22,7 @@ contract CreatePerpsAccount_Unit_Concrete_Test is Base_Test {
         assertEq(accountId, expectedAccountId, "createPerpsAccount");
     }
 
-    function test_CreatePerpsAccount_NotFirstAccount() public {
+    function test_CreatePerpsAccount_NotFirstAccount() external {
         uint256 expectedAccountId = 2;
         perpsManager.createPerpsAccount();
 

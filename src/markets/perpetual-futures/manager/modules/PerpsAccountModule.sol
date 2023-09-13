@@ -96,6 +96,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         _requireCollateralEnabled(collateralType, systemPerpsMarketsConfiguration.isCollateralEnabled(collateralType));
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
+        PerpsAccount.exists(accountId);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
         perpsAccount.increaseMarginCollateral(collateralType, udAmount);

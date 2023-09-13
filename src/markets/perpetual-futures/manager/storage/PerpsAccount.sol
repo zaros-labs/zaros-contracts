@@ -17,6 +17,7 @@ library PerpsAccount {
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
 
     error Zaros_PerpsAccount_PermissionDenied(uint256 accountId, address sender);
+    error Zaros_PerpsAccount_AccountNotFound(uint256 accountId, address sender);
 
     struct Data {
         uint256 id;
@@ -29,6 +30,13 @@ library PerpsAccount {
         bytes32 slot = keccak256(abi.encode(PERPS_ACCOUNT_DOMAIN, accountId));
         assembly {
             perpsAccount.slot := slot
+        }
+    }
+
+    function exists(uint256 accountId) internal view returns (Data storage perpsAccount) {
+        perpsAccount = load(accountId);
+        if (perpsAccount.owner == address(0)) {
+            revert Zaros_PerpsAccount_AccountNotFound(accountId, msg.sender);
         }
     }
 
@@ -49,7 +57,8 @@ library PerpsAccount {
 
     function increaseMarginCollateral(Data storage perpsAccount, address collateralType, UD60x18 amount) internal {
         EnumerableMap.AddressToUintMap storage activeMarginCollateral = perpsAccount.activeMarginCollateral;
-        uint256 newMarginCollateral = ud60x18(activeMarginCollateral.get(collateralType)).add(amount).intoUint256();
+        (, uint256 currentMarginCollateral) = activeMarginCollateral.tryGet(collateralType);
+        uint256 newMarginCollateral = ud60x18(currentMarginCollateral).add(amount).intoUint256();
 
         activeMarginCollateral.set(collateralType, newMarginCollateral);
     }

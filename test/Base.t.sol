@@ -7,8 +7,8 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
 import { PerpsManager } from "@zaros/markets/perpetual-futures/manager/PerpsManager.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { MockZarosUSD } from "./mocks/MockZarosUSD.sol";
-import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Users } from "./utils/Types.sol";
 
@@ -18,7 +18,10 @@ import { Test } from "forge-std/Test.sol";
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
-contract Base_Test is Test, Constants, Events {
+// PRB Math dependencies
+import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
+
+contract Base_Test is Test, Events {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -59,8 +62,9 @@ contract Base_Test is Test, Constants, Events {
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         perpsManager = new PerpsManager(address(accountToken), address(mockRewardDistributorAddress), address(zaros));
 
-        accountToken.transferOwnership(address(perpsManager));
         distributeTokens();
+        accountToken.transferOwnership(address(perpsManager));
+        configureContracts();
 
         vm.label({ account: address(accountToken), newLabel: "Perps Account Token" });
         vm.label({ account: address(zrsUsd), newLabel: "Zaros USD" });
@@ -84,19 +88,28 @@ contract Base_Test is Test, Constants, Events {
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
         changePrank({ msgSender: users.naruto });
-        zrsUsd.approve({ spender: address(perpsManager), amount: MAX_UINT256 });
+        zrsUsd.approve({ spender: address(perpsManager), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sasuke });
-        zrsUsd.approve({ spender: address(perpsManager), amount: MAX_UINT256 });
+        zrsUsd.approve({ spender: address(perpsManager), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sakura });
-        zrsUsd.approve({ spender: address(perpsManager), amount: MAX_UINT256 });
+        zrsUsd.approve({ spender: address(perpsManager), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.madara });
-        zrsUsd.approve({ spender: address(perpsManager), amount: MAX_UINT256 });
+        zrsUsd.approve({ spender: address(perpsManager), amount: uMAX_UD60x18 });
 
         // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });
+    }
+
+    function configureContracts() internal {
+        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
+        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
+        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, users.owner);
+        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
+
+        perpsManager.setIsEnabledCollateral(address(zrsUsd), true);
     }
 
     function distributeTokens() internal {
