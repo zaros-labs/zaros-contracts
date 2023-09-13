@@ -110,7 +110,7 @@ abstract contract Base_Test is Test, Events {
         zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, users.owner);
         zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
 
-        perpsExchange.setIsEnabledCollateral(address(zrsUsd), true);
+        perpsExchange.setIsCollateralEnabled(address(zrsUsd), true);
     }
 
     function distributeTokens() internal {

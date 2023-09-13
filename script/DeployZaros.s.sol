@@ -73,7 +73,7 @@ contract DeployZaros is BaseScript {
             console.log(address(sFrxEthPerpsMarket));
 
             // perpsExchange.setSupportedMarket(address(sFrxEthPerpsMarket), true);
-            perpsExchange.setIsEnabledCollateral(address(zrsUsd), true);
+            perpsExchange.setIsCollateralEnabled(address(zrsUsd), true);
         }
 
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({

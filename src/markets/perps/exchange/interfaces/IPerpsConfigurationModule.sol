@@ -17,5 +17,5 @@ interface IPerpsConfigurationModule {
 
     // function setSupportedMarket(address perpsMarket, bool enable) external;
 
-    function setIsEnabledCollateral(address collateralType, bool shouldEnable) external;
+    function setIsCollateralEnabled(address collateralType, bool shouldEnable) external;
 }
