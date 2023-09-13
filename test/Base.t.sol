@@ -59,6 +59,9 @@ contract Base_Test is Test, Constants, Events {
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         perpsManager = new PerpsManager(address(accountToken), address(mockRewardDistributorAddress), address(zaros));
 
+        accountToken.transferOwnership(address(perpsManager));
+        distributeTokens();
+
         vm.label({ account: address(accountToken), newLabel: "Perps Account Token" });
         vm.label({ account: address(zrsUsd), newLabel: "Zaros USD" });
         vm.label({ account: address(zaros), newLabel: "Zaros" });
@@ -74,13 +77,12 @@ contract Base_Test is Test, Constants, Events {
     function createUser(string memory name) internal returns (address payable) {
         address payable user = payable(makeAddr(name));
         vm.deal({ account: user, newBalance: 100 ether });
-        deal({ token: address(zrsUsd), to: user, give: 1_000_000e18 });
 
         return user;
     }
 
     /// @dev Approves all Zaros contracts to spend the test assets.
-    function approveProtocol() internal {
+    function approveContracts() internal {
         changePrank({ msgSender: users.naruto });
         zrsUsd.approve({ spender: address(perpsManager), amount: MAX_UINT256 });
 
@@ -95,6 +97,16 @@ contract Base_Test is Test, Constants, Events {
 
         // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });
+    }
+
+    function distributeTokens() internal {
+        deal({ token: address(zrsUsd), to: users.naruto, give: 1_000_000e18 });
+
+        deal({ token: address(zrsUsd), to: users.sasuke, give: 1_000_000e18 });
+
+        deal({ token: address(zrsUsd), to: users.sakura, give: 1_000_000e18 });
+
+        deal({ token: address(zrsUsd), to: users.madara, give: 1_000_000e18 });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
