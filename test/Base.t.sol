@@ -36,7 +36,7 @@ contract Base_Test is Test, Events {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    AccountNFT internal accountToken;
+    AccountNFT internal perpsPerpsAccountToken;
     MockZarosUSD internal zrsUsd;
     PerpsExchange internal perpsExchange;
     RewardDistributor internal rewardDistributor;
@@ -56,17 +56,18 @@ contract Base_Test is Test, Events {
         });
         vm.startPrank({ msgSender: users.owner });
 
-        accountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
+        perpsPerpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
         zrsUsd = new MockZarosUSD({ ownerBalance: 100_000_000e18 });
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
-        perpsExchange = new PerpsExchange(address(accountToken), address(mockRewardDistributorAddress), address(zaros));
+        perpsExchange =
+            new PerpsExchange(address(perpsPerpsAccountToken), address(mockRewardDistributorAddress), address(zaros));
 
         distributeTokens();
-        accountToken.transferOwnership(address(perpsExchange));
+        perpsPerpsAccountToken.transferOwnership(address(perpsExchange));
         configureContracts();
 
-        vm.label({ account: address(accountToken), newLabel: "Perps Account Token" });
+        vm.label({ account: address(perpsPerpsAccountToken), newLabel: "Perps Account Token" });
         vm.label({ account: address(zrsUsd), newLabel: "Zaros USD" });
         vm.label({ account: address(zaros), newLabel: "Zaros" });
         vm.label({ account: address(rewardDistributor), newLabel: "Reward Distributor" });

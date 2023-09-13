@@ -9,4 +9,11 @@ contract CreatePerpsAccount_Unit_Concrete_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
     }
+
+    function test_PerpsAccountTokenStored() external {
+        address expectedPerpsAccountToken = address(perpsPerpsAccountToken);
+        address perpsPerpsAccountToken = perpsExchange.getPerpsAccountTokenAddress();
+
+        assertEq(perpsPerpsAccountToken, expectedPerpsAccountToken, "getPerpsAccountTokenAddress");
+    }
 }

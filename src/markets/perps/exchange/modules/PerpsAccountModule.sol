@@ -27,8 +27,8 @@ contract PerpsAccountModule is IPerpsAccountModule {
     using PerpsConfiguration for PerpsConfiguration.Data;
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountTokenAddress() public view override returns (address) {
-        return PerpsConfiguration.load().accountToken;
+    function getPerpsAccountTokenAddress() public view override returns (address) {
+        return PerpsConfiguration.load().perpsPerpsAccountToken;
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -55,8 +55,8 @@ contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint256) {
-        (uint256 accountId, IAccountNFT accountTokenModule) = PerpsConfiguration.onCreateAccount();
-        accountTokenModule.mint(msg.sender, accountId);
+        (uint256 accountId, IAccountNFT perpsPerpsAccountTokenModule) = PerpsConfiguration.onCreateAccount();
+        perpsPerpsAccountTokenModule.mint(msg.sender, accountId);
 
         PerpsAccount.create(accountId, msg.sender);
 
@@ -120,7 +120,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function notifyAccountTransfer(address to, uint128 accountId) external override {
-        _onlyAccountToken();
+        _onlyPerpsAccountToken();
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
         perpsAccount.owner = to;
@@ -141,9 +141,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
     { }
 
     /// @dev Reverts if the caller is not the account owner.
-    function _onlyAccountToken() internal view {
-        if (msg.sender != address(getAccountTokenAddress())) {
-            revert Zaros_PerpsAccountModule_OnlyAccountToken(msg.sender);
+    function _onlyPerpsAccountToken() internal view {
+        if (msg.sender != address(getPerpsAccountTokenAddress())) {
+            revert Zaros_PerpsAccountModule_OnlyPerpsAccountToken(msg.sender);
         }
     }
 

@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 interface IPerpsConfigurationModule {
-    error Zaros_PerpsConfigurationModule_AccountTokenNotDefined();
+    error Zaros_PerpsConfigurationModule_PerpsAccountTokenNotDefined();
     error Zaros_PerpsConfigurationModule_ZarosNotDefined();
 
     event LogSetSupportedMarket(address indexed perpsMarket, bool enabled);
@@ -11,7 +11,7 @@ interface IPerpsConfigurationModule {
 
     function isCollateralEnabled(address collateralType) external view returns (bool);
 
-    function setAccountToken(address accountToken) external;
+    function setPerpsAccountToken(address perpsPerpsAccountToken) external;
 
     function setZaros(address zaros) external;
 

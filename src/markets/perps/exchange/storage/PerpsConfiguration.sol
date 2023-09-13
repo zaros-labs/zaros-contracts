@@ -23,7 +23,7 @@ library PerpsConfiguration {
         EnumerableSet.AddressSet enabledCollateralTypes;
         address zaros;
         address rewardDistributor;
-        address accountToken;
+        address perpsPerpsAccountToken;
         uint96 nextAccountId;
     }
 
@@ -53,9 +53,9 @@ library PerpsConfiguration {
         }
     }
 
-    function onCreateAccount() internal returns (uint256 accountId, IAccountNFT accountTokenModule) {
+    function onCreateAccount() internal returns (uint256 accountId, IAccountNFT perpsPerpsAccountTokenModule) {
         Data storage self = load();
         accountId = ++self.nextAccountId;
-        accountTokenModule = IAccountNFT(self.accountToken);
+        perpsPerpsAccountTokenModule = IAccountNFT(self.perpsPerpsAccountToken);
     }
 }

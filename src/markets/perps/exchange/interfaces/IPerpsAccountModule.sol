@@ -15,7 +15,7 @@ interface IPerpsAccountModule {
     /// @notice Thrown When the provided collateral is not supported.
     error Zaros_PerpsAccountModule_InvalidCollateralType(address collateralType);
     /// @notice Thrown When the caller is not the account token contract.
-    error Zaros_PerpsAccountModule_OnlyAccountToken(address sender);
+    error Zaros_PerpsAccountModule_OnlyPerpsAccountToken(address sender);
 
     /// @notice Emitted when a new perps account is created.
     /// @param accountId The trading account id.
@@ -41,8 +41,8 @@ interface IPerpsAccountModule {
     );
 
     /// @notice Gets the contract address of the trading accounts NFTs.
-    /// @return accountToken The account token address.
-    function getAccountTokenAddress() external view returns (address);
+    /// @return perpsPerpsAccountToken The account token address.
+    function getPerpsAccountTokenAddress() external view returns (address);
 
     /// @notice Returns the account's margin amount of the given collateral type.
     /// @param accountId The trading account id.
