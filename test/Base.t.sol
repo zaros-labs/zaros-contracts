@@ -21,7 +21,7 @@ import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
-contract Base_Test is Test, Events {
+abstract contract Base_Test is Test, Events {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

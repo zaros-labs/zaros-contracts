@@ -9,7 +9,7 @@ import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 // OpenZeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
-contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable {
+abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable {
     using PerpsConfiguration for PerpsConfiguration.Data;
 
     function isCollateralEnabled(address collateralType) external view override returns (bool) {
