@@ -1,9 +1,9 @@
-// SPDX-LICENSE-IDENTIFIER: UNLICENSED
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IPerpsAccountModule } from "@zaros/markets/perpetual-futures/manager/interfaces/IPerpsAccountModule.sol";
+import { IPerpsAccountModule } from "@zaros/markets/perps/manager/interfaces/IPerpsAccountModule.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 

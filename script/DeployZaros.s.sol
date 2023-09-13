@@ -10,9 +10,9 @@ import { Zaros } from "@zaros/core/Zaros.sol";
 import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
-import { PerpsManager } from "@zaros/markets/perpetual-futures/manager/PerpsManager.sol";
-import { PerpsMarket } from "@zaros/markets/perpetual-futures/market/PerpsMarket.sol";
-import { OrderFees } from "@zaros/markets/perpetual-futures/market/storage/OrderFees.sol";
+import { PerpsManager } from "@zaros/markets/perps/manager/PerpsManager.sol";
+import { PerpsMarket } from "@zaros/markets/perps/market/PerpsMarket.sol";
+import { OrderFees } from "@zaros/markets/perps/market/storage/OrderFees.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
