@@ -69,7 +69,7 @@ contract AccountModule is IAccountModule {
 
     function _onlyAccountToken() internal view {
         if (msg.sender != address(getAccountTokenAddress())) {
-            revert Zaros_AccountModule_OnlyAccountTokenProxy(msg.sender);
+            revert Zaros_AccountModule_OnlyAccountToken(msg.sender);
         }
     }
 

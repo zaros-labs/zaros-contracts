@@ -1,0 +1,13 @@
+withdrawMargin.t.sol
+├── when the amount is zero
+│   └── it should revert
+└── when the amount is not zero
+    ├── given the sender is not authorized
+    │   └── it should revert
+    └── given the sender is authorized
+        ├── given there is not enough margin available
+        │   └── it should revert
+        └── given there is margin available
+            ├── it should emit a {LogWithdrawMargin} event
+            ├── it should decrease the amount of margin collateral
+            └── it should transfer the withdrawn amount to the sender

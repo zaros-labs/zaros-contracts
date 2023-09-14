@@ -10,9 +10,9 @@ import { Zaros } from "@zaros/core/Zaros.sol";
 import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
-import { PerpsVault } from "@zaros/markets/perpetual-futures/vault/PerpsVault.sol";
-import { PerpsMarket } from "@zaros/markets/perpetual-futures/market/PerpsMarket.sol";
-import { OrderFees } from "@zaros/markets/perpetual-futures/market/storage/OrderFees.sol";
+import { PerpsExchange } from "@zaros/markets/perps/exchange/PerpsExchange.sol";
+import { PerpsMarket } from "@zaros/markets/perps/engine/PerpsMarket.sol";
+import { OrderFees } from "@zaros/markets/perps/engine/storage/OrderFees.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -37,10 +37,11 @@ contract DeployZaros is BaseScript {
         IERC20 sFrxEth = IERC20(vm.envAddress("SFRXETH"));
         IERC20 usdc = IERC20(vm.envAddress("USDC"));
         ZarosUSD zrsUsd = ZarosUSD(vm.envAddress("ZRSUSD"));
-        AccountNFT accountNft = new AccountNFT();
+        AccountNFT accountNft = new AccountNFT("Zaros Accounts", "ZRS-ACC");
         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
         BalancerUSDCStrategy balancerUsdcStrategy =
-        new BalancerUSDCStrategy(address(zaros), address(usdc), address(zrsUsd), vm.envAddress("BALANCER_VAULT"), vm.envBytes32("ZRSUSD_USDC_POOL_ID"));
+        new BalancerUSDCStrategy(address(zaros), address(usdc), address(zrsUsd),
+        vm.envAddress("BALANCER_VAULT"), vm.envBytes32("ZRSUSD_USDC_POOL_ID"));
         address ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
         address usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
 
@@ -55,22 +56,25 @@ contract DeployZaros is BaseScript {
 
         zaros.registerRewardDistributor(address(sFrxEth), address(rewardDistributor));
         zaros.registerRewardDistributor(address(usdc), address(rewardDistributor));
-        zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
+        // TODO: uncomment
+        // zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
 
         {
-            PerpsVault perpsVault = new PerpsVault(address(zaros), address(zrsUsd), address(rewardDistributor));
+            // TODO: use correct accountNft
+            PerpsExchange perpsExchange =
+                new PerpsExchange(address(accountNft), address(zaros), address(rewardDistributor));
 
             console.log("Perps Vault: ");
-            console.log(address(perpsVault));
+            console.log(address(perpsExchange));
 
-            PerpsMarket sFrxEthPerpsMarket =
-            new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP", ethUsdOracle, address(perpsVault), PERPS_MAX_LEVERAGE, orderFees);
+            PerpsMarket sFrxEthPerpsMarket = new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP",
+            ethUsdOracle, address(perpsExchange), PERPS_MAX_LEVERAGE, orderFees);
 
             console.log("Perps Market: ");
             console.log(address(sFrxEthPerpsMarket));
 
-            perpsVault.setSupportedMarket(address(sFrxEthPerpsMarket), true);
-            perpsVault.setSupportedCollateral(address(zrsUsd), true);
+            // perpsExchange.setSupportedMarket(address(sFrxEthPerpsMarket), true);
+            perpsExchange.setIsCollateralEnabled(address(zrsUsd), true);
         }
 
         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({

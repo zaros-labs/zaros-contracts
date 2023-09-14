@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 interface IAccountModule {
-    error Zaros_AccountModule_OnlyAccountTokenProxy(address origin);
+    error Zaros_AccountModule_OnlyAccountToken(address origin);
 
     event LogCreateAccount(uint128 indexed accountId, address indexed owner);
 

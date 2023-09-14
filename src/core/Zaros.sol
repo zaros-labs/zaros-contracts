@@ -15,17 +15,14 @@ import { VaultModule } from "./modules/VaultModule.sol";
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
-// TODO: re-add strategy manager
+// TODO: re-add MulticallModule, VaultModule, StrategyManagerModule
 contract Zaros is
     Ownable,
     FeatureFlagModule,
     AccountModule,
     CollateralModule,
-    MulticallModule,
     MarketManagerModule,
-    RewardsManagerModule,
-    StrategyManagerModule,
-    VaultModule
+    RewardsManagerModule
 {
     // TODO: switch to Diamonds
     constructor(address accountToken, address zrsUsd) {

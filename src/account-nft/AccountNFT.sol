@@ -10,7 +10,7 @@ import { ERC721, ERC721Enumerable } from "@openzeppelin/token/ERC721/extensions/
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
 contract AccountNFT is ERC721Enumerable, Ownable {
-    constructor() ERC721("Zaros Accounts", "ZRS-ACC") { }
+    constructor(string memory name, string memory symbol) ERC721(name, symbol) { }
 
     function mint(address to, uint256 tokenId) external onlyOwner {
         _mint(to, tokenId);
