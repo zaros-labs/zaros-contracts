@@ -43,7 +43,6 @@ contract CreatePerpsAccountAndMulticall_Unit_Concrete_Test is Base_Test {
 
     function test_ValidDataArray() external whenNonRevertingCall {
         bytes[] memory data = new bytes[](1);
-        uint256 depositAmount = 10e18;
         uint256 expectedAccountId = 1;
         data[0] = abi.encodeWithSelector(IPerpsAccountModule.getPerpsAccountTokenAddress.selector);
 

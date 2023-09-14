@@ -56,7 +56,8 @@ contract DeployZaros is BaseScript {
 
         zaros.registerRewardDistributor(address(sFrxEth), address(rewardDistributor));
         zaros.registerRewardDistributor(address(usdc), address(rewardDistributor));
-        zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
+        // TODO: uncomment
+        // zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
 
         {
             // TODO: use correct accountNft
