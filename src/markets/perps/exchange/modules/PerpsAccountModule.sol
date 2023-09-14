@@ -106,7 +106,6 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external override {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
 
