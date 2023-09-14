@@ -8,9 +8,6 @@ import { PerpsAccount } from "@zaros/markets/perps/exchange/storage/PerpsAccount
 import { ParameterError } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 
-// PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-
 contract DepositMargin_Unit_Concrete_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
@@ -74,8 +71,8 @@ contract DepositMargin_Unit_Concrete_Test is Base_Test {
         uint256 userPerpsAccountId = perpsExchange.createPerpsAccount();
 
         vm.expectEmit({ emitter: address(perpsExchange) });
-        expectCallToTransferFrom(zrsUsd, users.naruto, address(perpsExchange), amountToDeposit);
         emit LogDepositMargin(users.naruto, userPerpsAccountId, address(zrsUsd), amountToDeposit);
+        expectCallToTransferFrom(zrsUsd, users.naruto, address(perpsExchange), amountToDeposit);
         perpsExchange.depositMargin(userPerpsAccountId, address(zrsUsd), amountToDeposit);
 
         uint256 newMarginCollateral =
