@@ -70,9 +70,8 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         }
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        PerpsMarket.Data storage perpsMarket =
-            PerpsMarket.createAndVerifyId(marketId, name, symbol, priceFeed, maxLeverage, orderFees);
 
+        PerpsMarket.createAndVerifyId(marketId, name, symbol, priceFeed, maxLeverage, orderFees);
         perpsConfiguration.addMarket(marketId);
 
         emit LogCreatePerpsMarket(marketId, name, symbol);

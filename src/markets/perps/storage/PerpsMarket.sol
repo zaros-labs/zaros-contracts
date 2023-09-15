@@ -19,6 +19,9 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 library PerpsMarket {
     using SafeCast for int256;
 
+    /// @notice Thrown when a perps market id has already been used.
+    error Zaros_PerpsMarket_MarketAlreadyExists(uint128 marketId, address sender);
+
     /// @dev Constant base domain used to access a given PerpsMarket's storage slot.
     string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpsMarket";
 
@@ -52,11 +55,10 @@ library PerpsMarket {
         OrderFees.Data memory orderFees
     )
         internal
-        returns (Data storage perpsMarket)
     {
-        perpsMarket = load(marketId);
+        Data storage perpsMarket = load(marketId);
         if (perpsMarket.id != 0) {
-            revert();
+            revert Zaros_PerpsMarket_MarketAlreadyExists(marketId, msg.sender);
         }
 
         perpsMarket.id = marketId;
