@@ -50,8 +50,8 @@ contract CreatePerpsAccountAndMulticall_Unit_Concrete_Test is Base_Test {
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
 
         bytes[] memory results = perpsExchange.createPerpsAccountAndMulticall(data);
-        address perpsPerpsAccountTokenReturned = abi.decode(results[0], (address));
+        address perpsAccountTokenReturned = abi.decode(results[0], (address));
 
-        assertEq(perpsPerpsAccountTokenReturned, address(perpsPerpsAccountToken), "createPerpsAccountAndMulticall");
+        assertEq(perpsAccountTokenReturned, address(perpsAccountToken), "createPerpsAccountAndMulticall");
     }
 }

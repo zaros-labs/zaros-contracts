@@ -28,7 +28,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function getPerpsAccountTokenAddress() public view override returns (address) {
-        return PerpsConfiguration.load().perpsPerpsAccountToken;
+        return PerpsConfiguration.load().perpsAccountToken;
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -48,15 +48,17 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
+    /// @dev TODO: Implement Chainlink price feed.
     function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) { }
 
     /// @inheritdoc IPerpsAccountModule
+    /// @dev TODO: Implement Chainlink price feed.
     function getAccountMargin(uint256 accountId) external view override returns (UD60x18, UD60x18) { }
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint256) {
-        (uint256 accountId, IAccountNFT perpsPerpsAccountTokenModule) = PerpsConfiguration.onCreateAccount();
-        perpsPerpsAccountTokenModule.mint(msg.sender, accountId);
+        (uint256 accountId, IAccountNFT perpsAccountTokenModule) = PerpsConfiguration.onCreateAccount();
+        perpsAccountTokenModule.mint(msg.sender, accountId);
 
         PerpsAccount.create(accountId, msg.sender);
 

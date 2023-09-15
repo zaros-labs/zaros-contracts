@@ -18,13 +18,13 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         return perpsConfiguration.isCollateralEnabled(collateralType);
     }
 
-    function setPerpsAccountToken(address perpsPerpsAccountToken) external {
-        if (perpsPerpsAccountToken == address(0)) {
+    function setPerpsAccountToken(address perpsAccountToken) external {
+        if (perpsAccountToken == address(0)) {
             revert Zaros_PerpsConfigurationModule_PerpsAccountTokenNotDefined();
         }
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.perpsPerpsAccountToken = perpsPerpsAccountToken;
+        perpsConfiguration.perpsAccountToken = perpsAccountToken;
     }
 
     function setZaros(address zaros) external override {
@@ -45,14 +45,14 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
     }
 
     function __PerpsConfigurationModule_init(
-        address perpsPerpsAccountToken,
+        address perpsAccountToken,
         address rewardDistributor,
         address zaros
     )
         internal
     {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.perpsPerpsAccountToken = perpsPerpsAccountToken;
+        perpsConfiguration.perpsAccountToken = perpsAccountToken;
         perpsConfiguration.rewardDistributor = rewardDistributor;
         perpsConfiguration.zaros = zaros;
     }
