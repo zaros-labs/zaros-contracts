@@ -48,9 +48,11 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
+    /// @dev TODO: Implement Chainlink price feed.
     function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) { }
 
     /// @inheritdoc IPerpsAccountModule
+    /// @dev TODO: Implement Chainlink price feed.
     function getAccountMargin(uint256 accountId) external view override returns (UD60x18, UD60x18) { }
 
     /// @inheritdoc IPerpsAccountModule
