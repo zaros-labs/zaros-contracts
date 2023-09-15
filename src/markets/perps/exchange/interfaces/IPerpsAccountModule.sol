@@ -41,7 +41,7 @@ interface IPerpsAccountModule {
     );
 
     /// @notice Gets the contract address of the trading accounts NFTs.
-    /// @return perpsPerpsAccountToken The account token address.
+    /// @return perpsAccountToken The account token address.
     function getPerpsAccountTokenAddress() external view returns (address);
 
     /// @notice Returns the account's margin amount of the given collateral type.
