@@ -3,8 +3,8 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IPerpsAccountModule } from "@zaros/markets/perps/exchange/interfaces/IPerpsAccountModule.sol";
-import { PerpsAccount } from "@zaros/markets/perps/exchange/storage/PerpsAccount.sol";
+import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
+import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 

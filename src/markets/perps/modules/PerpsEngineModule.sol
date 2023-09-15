@@ -3,18 +3,16 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IPerpsMarket } from "./interfaces/IPerpsMarket.sol";
-import { OrderModule } from "./modules/OrderModule.sol";
-import { OrderFees } from "./storage/OrderFees.sol";
-import { Position } from "./storage/Position.sol";
-import { PerpsMarketConfig } from "./storage/PerpsMarketConfig.sol";
+import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
+import { OrderFees } from "../storage/OrderFees.sol";
+import { Position } from "../storage/Position.sol";
+import { PerpsMarketConfig } from "../storage/PerpsMarketConfig.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-/// @dev TODO: work as an engine instead of an individual market
-contract PerpsMarket is IPerpsMarket, OrderModule {
+contract PerpsEngineModule is IPerpsEngine {
     using PerpsMarketConfig for PerpsMarketConfig.Data;
     using Position for Position.Data;
 

@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { Order } from "../../engine/storage/Order.sol";
+import { Order } from "../storage/Order.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";

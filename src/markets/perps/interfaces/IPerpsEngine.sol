@@ -3,14 +3,13 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IOrderModule } from "./IOrderModule.sol";
 import { Position } from "../storage/Position.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-interface IPerpsMarket is IOrderModule {
+interface IPerpsEngine {
     function name() external view returns (string memory);
 
     function symbol() external view returns (string memory);
@@ -38,6 +37,4 @@ interface IPerpsMarket is IOrderModule {
             SD59x18 netFundingPerUnit,
             SD59x18 nextFunding
         );
-
-    function setPerpsExchange(address perpsExchange) external;
 }
