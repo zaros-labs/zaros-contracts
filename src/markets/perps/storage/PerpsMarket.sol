@@ -19,33 +19,59 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 library PerpsMarket {
     using SafeCast for int256;
 
-    bytes32 internal constant PERPS_MARKET_SLOT = keccak256(abi.encode("fi.zaros.markets.PerpsMarket"));
+    /// @dev Constant base domain used to access a given PerpsMarket's storage slot.
+    string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpsMarket";
 
     struct Data {
         string name;
         string symbol;
-        int256 skew;
-        uint256 size;
-        uint256 maxLeverage;
-        address oracle;
+        uint128 id;
+        uint128 maxLeverage;
+        int128 skew;
+        uint128 size;
+        address priceFeed;
         address perpsExchange;
         OrderFees.Data orderFees;
         mapping(uint256 accountId => Position.Data) positions;
         mapping(uint256 accountId => Order.Data[]) orders;
     }
 
-    function load() internal pure returns (Data storage perpsMarket) {
-        bytes32 slot = PERPS_MARKET_SLOT;
+    function load(uint128 marketId) internal pure returns (Data storage perpsMarket) {
+        bytes32 slot = keccak256(abi.encode(PERPS_MARKET_DOMAIN, marketId));
         assembly {
             perpsMarket.slot := slot
         }
     }
 
+    function createAndVerifyId(
+        uint128 marketId,
+        string memory name,
+        string memory symbol,
+        address priceFeed,
+        uint128 maxLeverage,
+        OrderFees.Data memory orderFees
+    )
+        internal
+        returns (Data storage perpsMarket)
+    {
+        perpsMarket = load(marketId);
+        if (perpsMarket.id != 0) {
+            revert();
+        }
+
+        perpsMarket.id = marketId;
+        perpsMarket.name = name;
+        perpsMarket.symbol = symbol;
+        perpsMarket.priceFeed = priceFeed;
+        perpsMarket.maxLeverage = maxLeverage;
+        perpsMarket.orderFees = orderFees;
+    }
+
     /// @dev TODO: improve this
     function getIndexPrice(Data storage self) internal view returns (UD60x18) {
-        IAggregatorV3 oracle = IAggregatorV3(self.oracle);
-        uint8 decimals = oracle.decimals();
-        (, int256 answer,,,) = oracle.latestRoundData();
+        IAggregatorV3 priceFeed = IAggregatorV3(self.priceFeed);
+        uint8 decimals = priceFeed.decimals();
+        (, int256 answer,,,) = priceFeed.latestRoundData();
 
         // should panic if decimals > 18
         assert(decimals <= Constants.DECIMALS);

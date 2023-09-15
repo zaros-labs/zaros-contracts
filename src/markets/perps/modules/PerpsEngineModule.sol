@@ -12,14 +12,14 @@ import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-contract PerpsEngineModule is IPerpsEngine {
+abstract contract PerpsEngineModule is IPerpsEngine {
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
 
     // constructor(
     //     string memory _name,
     //     string memory _symbol,
-    //     address _oracle,
+    //     address _priceFeed,
     //     address _perpsExchange,
     //     uint256 _maxLeverage,
     //     OrderFees.Data memory _orderFees
@@ -27,47 +27,50 @@ contract PerpsEngineModule is IPerpsEngine {
     //     PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
     //     perpsMarket.name = _name;
     //     perpsMarket.symbol = _symbol;
-    //     perpsMarket.oracle = _oracle;
+    //     perpsMarket.priceFeed = _priceFeed;
     //     perpsMarket.perpsExchange = _perpsExchange;
     //     perpsMarket.maxLeverage = _maxLeverage;
     //     perpsMarket.orderFees = _orderFees;
     // }
 
-    function name() external view returns (string memory) {
-        return PerpsMarket.load().name;
+    function name(uint128 marketId) external view returns (string memory) {
+        return PerpsMarket.load(marketId).name;
     }
 
-    function symbol() external view returns (string memory) {
-        return PerpsMarket.load().symbol;
+    function symbol(uint128 marketId) external view returns (string memory) {
+        return PerpsMarket.load(marketId).symbol;
     }
 
-    function skew() external view returns (SD59x18) {
-        return sd59x18(PerpsMarket.load().skew);
+    function skew(uint128 marketId) external view returns (SD59x18) {
+        return sd59x18(PerpsMarket.load(marketId).skew);
     }
 
-    function totalOpenInterest() external view returns (UD60x18) {
-        return ud60x18(PerpsMarket.load().size);
+    function totalOpenInterest(uint128 marketId) external view returns (UD60x18) {
+        return ud60x18(PerpsMarket.load(marketId).size);
     }
 
-    function indexPrice() external view returns (UD60x18) {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
+    function indexPrice(uint128 marketId) external view returns (UD60x18) {
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
 
         return perpsMarket.getIndexPrice();
     }
 
-    function oracle() external view returns (address) {
-        return PerpsMarket.load().oracle;
+    function priceFeed(uint128 marketId) external view returns (address) {
+        return PerpsMarket.load(marketId).priceFeed;
     }
 
-    function fundingRate() external view returns (SD59x18) {
+    function fundingRate(uint128 marketId) external view returns (SD59x18) {
         return sd59x18(0);
     }
 
-    function fundingVelocity() external view returns (SD59x18) {
+    function fundingVelocity(uint128 marketId) external view returns (SD59x18) {
         return sd59x18(0);
     }
 
-    function getOpenPositionData(uint256 accountId)
+    function getOpenPositionData(
+        uint256 accountId,
+        uint128 marketId
+    )
         external
         view
         returns (
@@ -79,14 +82,10 @@ contract PerpsEngineModule is IPerpsEngine {
             SD59x18 nextFunding
         )
     {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         Position.Data storage position = perpsMarket.positions[accountId];
         UD60x18 price = perpsMarket.getIndexPrice();
 
         (notionalValue, size, pnl, accruedFunding, netFundingPerUnit, nextFunding) = position.getPositionData(price);
-    }
-
-    function setPerpsExchange(address perpsExchange) external {
-        PerpsMarket.load().perpsExchange = perpsExchange;
     }
 }

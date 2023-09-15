@@ -14,17 +14,19 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 library PerpsConfiguration {
     using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     /// @notice Thrown when the provided `collateralType` is already enabled or disabled.
     error Zaros_PerpsConfiguration_InvalidCollateralConfig(address collateralType, bool shouldEnable);
 
-    /// @dev Constant base domain used to access the PerpsConfiguration storage slot.
+    /// @dev PerpsConfiguration namespace storage slot.
     bytes32 internal constant SYSTEM_PERPS_MARKET_CONFIGURATION_SLOT =
         keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
     /// @notice {PerpConfiguration} namespace storage structure.
     struct Data {
         EnumerableSet.AddressSet enabledCollateralTypes;
+        EnumerableSet.UintSet enabledMarketsIds;
         address zaros;
         address rewardDistributor;
         address perpsAccountToken;
@@ -65,6 +67,13 @@ library PerpsConfiguration {
         if (!success) {
             revert Zaros_PerpsConfiguration_InvalidCollateralConfig(collateralType, shouldEnable);
         }
+    }
+
+    /// @dev Adds a new perps market to the enabled markets set.
+    /// @param self The perps configuration storage pointer.
+    /// @param marketId The id of the market to add.
+    function addMarket(Data storage self, uint128 marketId) internal {
+        self.enabledMarketsIds.add(uint256(marketId));
     }
 
     /// @dev Helper called when a perps account is created.

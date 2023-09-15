@@ -10,23 +10,26 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 interface IPerpsEngine {
-    function name() external view returns (string memory);
+    function name(uint128 marketId) external view returns (string memory);
 
-    function symbol() external view returns (string memory);
+    function symbol(uint128 marketId) external view returns (string memory);
 
-    function skew() external view returns (SD59x18);
+    function skew(uint128 marketId) external view returns (SD59x18);
 
-    function totalOpenInterest() external view returns (UD60x18);
+    function totalOpenInterest(uint128 marketId) external view returns (UD60x18);
 
-    function indexPrice() external view returns (UD60x18);
+    function indexPrice(uint128 marketId) external view returns (UD60x18);
 
-    function oracle() external view returns (address);
+    function priceFeed(uint128 marketId) external view returns (address);
 
-    function fundingRate() external view returns (SD59x18);
+    function fundingRate(uint128 marketId) external view returns (SD59x18);
 
-    function fundingVelocity() external view returns (SD59x18);
+    function fundingVelocity(uint128 marketId) external view returns (SD59x18);
 
-    function getOpenPositionData(uint256 accountId)
+    function getOpenPositionData(
+        uint256 accountId,
+        uint128 marketId
+    )
         external
         view
         returns (

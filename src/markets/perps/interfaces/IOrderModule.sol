@@ -17,9 +17,9 @@ interface IOrderModule {
         address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
     );
 
-    function fillPrice(UD60x18 size) external view returns (UD60x18);
+    function fillPrice(uint128 marketId, UD60x18 size) external view returns (UD60x18);
 
-    function getOrderFees() external view returns (OrderFees.Data memory);
+    function getOrderFees(uint128 marketId) external view returns (OrderFees.Data memory);
 
     function getOrders(uint256 accountId) external view returns (Order.Data[] memory);
 
@@ -32,10 +32,10 @@ interface IOrderModule {
 
     function cancelOrder(bytes32 orderId) external;
 
-    function settleOrderFromVault(
-        uint256 accountId,
-        Order.Data calldata order
-    )
-        external
-        returns (uint256 previousPositionAmount);
+    // function settleOrderFromVault(
+    //     uint256 accountId,
+    //     Order.Data calldata order
+    // )
+    //     external
+    //     returns (uint256 previousPositionAmount);
 }

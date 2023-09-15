@@ -124,6 +124,20 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         perpsAccount.owner = to;
     }
 
+    /// @dev Reverts if the amount is zero.
+    function _requireAmountNotZero(UD60x18 amount) internal pure {
+        if (amount.isZero()) {
+            revert ParameterError.Zaros_InvalidParameter("amount", "amount can't be zero");
+        }
+    }
+
+    /// @dev Reverts if the collateral type is not supported.
+    function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
+        if (!isEnabled) {
+            revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
+        }
+    }
+
     /// @dev Checks if the requested amount of margin collateral is available to be withdrawn.
     /// @dev Iterates over active positions in order to take uPnL and margin requirements into account.
     /// @param perpsAccount The perps account storage pointer.
@@ -142,20 +156,6 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     function _onlyPerpsAccountToken() internal view {
         if (msg.sender != address(getPerpsAccountTokenAddress())) {
             revert Zaros_PerpsAccountModule_OnlyPerpsAccountToken(msg.sender);
-        }
-    }
-
-    /// @dev Reverts if the amount is zero.
-    function _requireAmountNotZero(UD60x18 amount) internal pure {
-        if (amount.isZero()) {
-            revert ParameterError.Zaros_InvalidParameter("amount", "amount can't be zero");
-        }
-    }
-
-    /// @dev Reverts if the collateral type is not supported.
-    function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
-        if (!isEnabled) {
-            revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
         }
     }
 }

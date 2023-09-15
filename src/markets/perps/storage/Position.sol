@@ -65,7 +65,7 @@ library Position {
         view
         returns (SD59x18 pnl, SD59x18 accruedFunding, SD59x18 netFundingPerUnit, SD59x18 nextFunding)
     {
-        nextFunding = PerpsMarket.load().calculateNextFunding(price);
+        // nextFunding = PerpsMarket.load().calculateNextFunding(price);
         netFundingPerUnit = nextFunding.sub(sd59x18(self.lastInteractionFunding));
         accruedFunding = sd59x18(self.size).mul(netFundingPerUnit);
 
