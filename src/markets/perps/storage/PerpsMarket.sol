@@ -33,7 +33,6 @@ library PerpsMarket {
         int128 skew;
         uint128 size;
         address priceFeed;
-        address perpsExchange;
         OrderFees.Data orderFees;
         mapping(uint256 accountId => Position.Data) positions;
         mapping(uint256 accountId => Order.Data[]) orders;

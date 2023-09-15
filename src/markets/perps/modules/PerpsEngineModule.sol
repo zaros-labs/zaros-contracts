@@ -16,23 +16,6 @@ abstract contract PerpsEngineModule is IPerpsEngine {
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
 
-    // constructor(
-    //     string memory _name,
-    //     string memory _symbol,
-    //     address _priceFeed,
-    //     address _perpsExchange,
-    //     uint256 _maxLeverage,
-    //     OrderFees.Data memory _orderFees
-    // ) {
-    //     PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
-    //     perpsMarket.name = _name;
-    //     perpsMarket.symbol = _symbol;
-    //     perpsMarket.priceFeed = _priceFeed;
-    //     perpsMarket.perpsExchange = _perpsExchange;
-    //     perpsMarket.maxLeverage = _maxLeverage;
-    //     perpsMarket.orderFees = _orderFees;
-    // }
-
     function name(uint128 marketId) external view returns (string memory) {
         return PerpsMarket.load(marketId).name;
     }
