@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 
 // Open Zeppelin dependencies
+// import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 // PRB Math dependencies
@@ -21,6 +22,7 @@ library PerpsConfiguration {
     bytes32 internal constant SYSTEM_PERPS_MARKET_CONFIGURATION_SLOT =
         keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
+    /// @notice {PerpConfiguration} namespace storage structure.
     struct Data {
         EnumerableSet.AddressSet enabledCollateralTypes;
         address zaros;

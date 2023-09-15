@@ -6,57 +6,57 @@ pragma solidity 0.8.19;
 import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
-import { PerpsMarketConfig } from "../storage/PerpsMarketConfig.sol";
+import { PerpsMarket } from "../storage/PerpsMarket.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract PerpsEngineModule is IPerpsEngine {
-    using PerpsMarketConfig for PerpsMarketConfig.Data;
+    using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _oracle,
-        address _perpsExchange,
-        uint256 _maxLeverage,
-        OrderFees.Data memory _orderFees
-    ) {
-        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
-        perpsMarketConfig.name = _name;
-        perpsMarketConfig.symbol = _symbol;
-        perpsMarketConfig.oracle = _oracle;
-        perpsMarketConfig.perpsExchange = _perpsExchange;
-        perpsMarketConfig.maxLeverage = _maxLeverage;
-        perpsMarketConfig.orderFees = _orderFees;
-    }
+    // constructor(
+    //     string memory _name,
+    //     string memory _symbol,
+    //     address _oracle,
+    //     address _perpsExchange,
+    //     uint256 _maxLeverage,
+    //     OrderFees.Data memory _orderFees
+    // ) {
+    //     PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
+    //     perpsMarket.name = _name;
+    //     perpsMarket.symbol = _symbol;
+    //     perpsMarket.oracle = _oracle;
+    //     perpsMarket.perpsExchange = _perpsExchange;
+    //     perpsMarket.maxLeverage = _maxLeverage;
+    //     perpsMarket.orderFees = _orderFees;
+    // }
 
     function name() external view returns (string memory) {
-        return PerpsMarketConfig.load().name;
+        return PerpsMarket.load().name;
     }
 
     function symbol() external view returns (string memory) {
-        return PerpsMarketConfig.load().symbol;
+        return PerpsMarket.load().symbol;
     }
 
     function skew() external view returns (SD59x18) {
-        return sd59x18(PerpsMarketConfig.load().skew);
+        return sd59x18(PerpsMarket.load().skew);
     }
 
     function totalOpenInterest() external view returns (UD60x18) {
-        return ud60x18(PerpsMarketConfig.load().size);
+        return ud60x18(PerpsMarket.load().size);
     }
 
     function indexPrice() external view returns (UD60x18) {
-        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
 
-        return perpsMarketConfig.getIndexPrice();
+        return perpsMarket.getIndexPrice();
     }
 
     function oracle() external view returns (address) {
-        return PerpsMarketConfig.load().oracle;
+        return PerpsMarket.load().oracle;
     }
 
     function fundingRate() external view returns (SD59x18) {
@@ -79,14 +79,14 @@ contract PerpsEngineModule is IPerpsEngine {
             SD59x18 nextFunding
         )
     {
-        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
-        Position.Data storage position = perpsMarketConfig.positions[accountId];
-        UD60x18 price = perpsMarketConfig.getIndexPrice();
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
+        Position.Data storage position = perpsMarket.positions[accountId];
+        UD60x18 price = perpsMarket.getIndexPrice();
 
         (notionalValue, size, pnl, accruedFunding, netFundingPerUnit, nextFunding) = position.getPositionData(price);
     }
 
     function setPerpsExchange(address perpsExchange) external {
-        PerpsMarketConfig.load().perpsExchange = perpsExchange;
+        PerpsMarket.load().perpsExchange = perpsExchange;
     }
 }

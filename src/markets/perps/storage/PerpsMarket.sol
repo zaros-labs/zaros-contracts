@@ -16,10 +16,10 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-library PerpsMarketConfig {
+library PerpsMarket {
     using SafeCast for int256;
 
-    bytes32 internal constant PERPS_MARKET_CONFIG_SLOT = keccak256(abi.encode("fi.zaros.markets.PerpsMarketConfig"));
+    bytes32 internal constant PERPS_MARKET_SLOT = keccak256(abi.encode("fi.zaros.markets.PerpsMarket"));
 
     struct Data {
         string name;
@@ -34,10 +34,10 @@ library PerpsMarketConfig {
         mapping(uint256 accountId => Order.Data[]) orders;
     }
 
-    function load() internal pure returns (Data storage perpsMarketConfig) {
-        bytes32 slot = PERPS_MARKET_CONFIG_SLOT;
+    function load() internal pure returns (Data storage perpsMarket) {
+        bytes32 slot = PERPS_MARKET_SLOT;
         assembly {
-            perpsMarketConfig.slot := slot
+            perpsMarket.slot := slot
         }
     }
 

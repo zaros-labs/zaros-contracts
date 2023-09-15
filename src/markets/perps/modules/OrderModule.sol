@@ -7,7 +7,7 @@ import { IPerpsExchange } from "../interfaces/IPerpsExchange.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
-import { PerpsMarketConfig } from "../storage/PerpsMarketConfig.sol";
+import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
 
 // Open Zeppelin dependencies
@@ -20,17 +20,17 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol"
 
 abstract contract OrderModule is IOrderModule {
     using SafeERC20 for IERC20;
-    using PerpsMarketConfig for PerpsMarketConfig.Data;
+    using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
 
     function fillPrice(UD60x18 size) external view returns (UD60x18) {
-        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
-        return perpsMarketConfig.getIndexPrice();
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
+        return perpsMarket.getIndexPrice();
     }
 
     function getOrderFees() external view returns (OrderFees.Data memory) {
-        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
-        return perpsMarketConfig.orderFees;
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
+        return perpsMarket.orderFees;
     }
 
     function getOrders(uint256 accountId) external view returns (Order.Data[] memory) { }
@@ -48,8 +48,8 @@ abstract contract OrderModule is IOrderModule {
         external
         returns (uint256 previousPositionAmount)
     {
-        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
-        if (msg.sender != perpsMarketConfig.perpsExchange) {
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
+        if (msg.sender != perpsMarket.perpsExchange) {
             revert();
         }
 
@@ -63,14 +63,14 @@ abstract contract OrderModule is IOrderModule {
         internal
         returns (uint256 previousPositionAmount)
     {
-        PerpsMarketConfig.Data storage perpsMarketConfig = PerpsMarketConfig.load();
-        UD60x18 currentPrice = perpsMarketConfig.getIndexPrice();
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
+        UD60x18 currentPrice = perpsMarket.getIndexPrice();
         _requireOrderIsValid(order, currentPrice);
 
-        OrderFees.Data memory orderFees = perpsMarketConfig.orderFees;
-        Position.Data storage position = perpsMarketConfig.positions[accountId];
+        OrderFees.Data memory orderFees = perpsMarket.orderFees;
+        Position.Data storage position = perpsMarket.positions[accountId];
         previousPositionAmount = position.margin.amount;
-        IPerpsExchange perpsExchange = IPerpsExchange(perpsMarketConfig.perpsExchange);
+        IPerpsExchange perpsExchange = IPerpsExchange(perpsMarket.perpsExchange);
         UD60x18 sizeAbs = sd59x18(order.sizeDelta).lt(SD_ZERO)
             ? unary(sd59x18(order.sizeDelta)).intoUD60x18()
             : sd59x18(order.sizeDelta).intoUD60x18();
