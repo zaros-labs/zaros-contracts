@@ -30,6 +30,7 @@ library PerpsMarket {
         string symbol;
         uint128 id;
         uint128 maxLeverage;
+        uint256 maxOpenInterest;
         int128 skew;
         uint128 size;
         address priceFeed;
@@ -45,12 +46,13 @@ library PerpsMarket {
         }
     }
 
-    function createAndVerifyId(
+    function create(
         uint128 marketId,
         string memory name,
         string memory symbol,
         address priceFeed,
         uint128 maxLeverage,
+        uint256 maxOpenInterest,
         OrderFees.Data memory orderFees
     )
         internal
@@ -60,11 +62,13 @@ library PerpsMarket {
             revert Zaros_PerpsMarket_MarketAlreadyExists(marketId, msg.sender);
         }
 
+        // TODO: remember to test gas cost / number of sstores here
         perpsMarket.id = marketId;
         perpsMarket.name = name;
         perpsMarket.symbol = symbol;
         perpsMarket.priceFeed = priceFeed;
         perpsMarket.maxLeverage = maxLeverage;
+        perpsMarket.maxOpenInterest = maxOpenInterest;
         perpsMarket.orderFees = orderFees;
     }
 

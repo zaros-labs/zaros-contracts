@@ -48,12 +48,14 @@ interface IPerpsConfigurationModule {
     /// @param priceFeed The perps market price feed address.
     /// @param maxLeverage The perps market max leverage.
     /// @param orderFees The perps market maker and taker fees.
+    /// @param maxOpenInterest The perps market maximum open interest per side.
     function createPerpsMarket(
         uint128 marketId,
         string calldata name,
         string calldata symbol,
         address priceFeed,
         uint128 maxLeverage,
+        uint256 maxOpenInterest,
         OrderFees.Data calldata orderFees
     )
         external;

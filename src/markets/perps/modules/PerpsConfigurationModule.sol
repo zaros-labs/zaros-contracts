@@ -16,12 +16,14 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
     using PerpsConfiguration for PerpsConfiguration.Data;
     using PerpsMarket for PerpsMarket.Data;
 
+    /// @inheritdoc IPerpsConfigurationModule
     function isCollateralEnabled(address collateralType) external view override returns (bool) {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
         return perpsConfiguration.isCollateralEnabled(collateralType);
     }
 
+    /// @inheritdoc IPerpsConfigurationModule
     function setPerpsAccountToken(address perpsAccountToken) external {
         if (perpsAccountToken == address(0)) {
             revert Zaros_PerpsConfigurationModule_PerpsAccountTokenNotDefined();
@@ -31,6 +33,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         perpsConfiguration.perpsAccountToken = perpsAccountToken;
     }
 
+    /// @inheritdoc IPerpsConfigurationModule
     function setZaros(address zaros) external override {
         if (zaros == address(0)) {
             revert Zaros_PerpsConfigurationModule_ZarosNotDefined();
@@ -40,6 +43,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         perpsConfiguration.zaros = zaros;
     }
 
+    /// @inheritdoc IPerpsConfigurationModule
     function setIsCollateralEnabled(address collateralType, bool shouldEnable) external override onlyOwner {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
@@ -55,6 +59,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         string calldata symbol,
         address priceFeed,
         uint128 maxLeverage,
+        uint256 maxOpenInterest,
         OrderFees.Data calldata orderFees
     )
         external
@@ -71,12 +76,13 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
-        PerpsMarket.createAndVerifyId(marketId, name, symbol, priceFeed, maxLeverage, orderFees);
+        PerpsMarket.create(marketId, name, symbol, priceFeed, maxLeverage, maxOpenInterest, orderFees);
         perpsConfiguration.addMarket(marketId);
 
         emit LogCreatePerpsMarket(marketId, name, symbol);
     }
 
+    /// @dev {PerpsConfigurationModule} UUPS initializer.
     function __PerpsConfigurationModule_init(
         address perpsAccountToken,
         address rewardDistributor,
