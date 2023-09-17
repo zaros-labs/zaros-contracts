@@ -5,9 +5,6 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
-import { IPerpsMarket } from "../../engine/interfaces/IPerpsMarket.sol";
-import { Order } from "../../engine/storage/Order.sol";
-import { OrderFees } from "../../engine/storage/OrderFees.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
@@ -20,6 +17,7 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+/// @notice See {IPerpsAccountModule}.
 abstract contract PerpsAccountModule is IPerpsAccountModule {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using PerpsAccount for PerpsAccount.Data;
@@ -127,6 +125,20 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         perpsAccount.owner = to;
     }
 
+    /// @dev Reverts if the amount is zero.
+    function _requireAmountNotZero(UD60x18 amount) internal pure {
+        if (amount.isZero()) {
+            revert ParameterError.Zaros_InvalidParameter("amount", "amount can't be zero");
+        }
+    }
+
+    /// @dev Reverts if the collateral type is not supported.
+    function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
+        if (!isEnabled) {
+            revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
+        }
+    }
+
     /// @dev Checks if the requested amount of margin collateral is available to be withdrawn.
     /// @dev Iterates over active positions in order to take uPnL and margin requirements into account.
     /// @param perpsAccount The perps account storage pointer.
@@ -145,20 +157,6 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     function _onlyPerpsAccountToken() internal view {
         if (msg.sender != address(getPerpsAccountTokenAddress())) {
             revert Zaros_PerpsAccountModule_OnlyPerpsAccountToken(msg.sender);
-        }
-    }
-
-    /// @dev Reverts if the amount is zero.
-    function _requireAmountNotZero(UD60x18 amount) internal pure {
-        if (amount.isZero()) {
-            revert ParameterError.Zaros_InvalidParameter("amount", "amount can't be zero");
-        }
-    }
-
-    /// @dev Reverts if the collateral type is not supported.
-    function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
-        if (!isEnabled) {
-            revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
         }
     }
 }

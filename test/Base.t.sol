@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
-import { PerpsExchange } from "@zaros/markets/perps/exchange/PerpsExchange.sol";
+import { PerpsExchange } from "@zaros/markets/perps/PerpsExchange.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { MockZarosUSD } from "./mocks/MockZarosUSD.sol";

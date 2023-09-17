@@ -6,23 +6,34 @@ pragma solidity 0.8.19;
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 
 // Open Zeppelin dependencies
+// import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+/// @title The PerpsConfiguration namespace.
 library PerpsConfiguration {
     using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     /// @notice Thrown when the provided `collateralType` is already enabled or disabled.
     error Zaros_PerpsConfiguration_InvalidCollateralConfig(address collateralType, bool shouldEnable);
 
-    /// @dev Constant base domain used to access the PerpsConfiguration storage slot.
+    /// @dev PerpsConfiguration namespace storage slot.
     bytes32 internal constant SYSTEM_PERPS_MARKET_CONFIGURATION_SLOT =
         keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
+    /// @notice {PerpConfiguration} namespace storage structure.
+    /// @param enabledCollateralTypes The cross margin supported collateral types.
+    /// @param enabledMarketsIds The enabled perps markets ids.
+    /// @param zaros The Zaros protocol contract address.
+    /// @param rewardDistributor The reward distributor contract address.
+    /// @param perpsAccountToken The perps account token contract address.
+    /// @param nextAccountId The next account id to be used.
     struct Data {
         EnumerableSet.AddressSet enabledCollateralTypes;
+        EnumerableSet.UintSet enabledMarketsIds;
         address zaros;
         address rewardDistributor;
         address perpsAccountToken;
@@ -63,6 +74,13 @@ library PerpsConfiguration {
         if (!success) {
             revert Zaros_PerpsConfiguration_InvalidCollateralConfig(collateralType, shouldEnable);
         }
+    }
+
+    /// @dev Adds a new perps market to the enabled markets set.
+    /// @param self The perps configuration storage pointer.
+    /// @param marketId The id of the market to add.
+    function addMarket(Data storage self, uint128 marketId) internal {
+        self.enabledMarketsIds.add(uint256(marketId));
     }
 
     /// @dev Helper called when a perps account is created.

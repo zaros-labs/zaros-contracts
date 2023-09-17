@@ -3,14 +3,14 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { PerpsMarketConfig } from "./PerpsMarketConfig.sol";
+import { PerpsMarket } from "./PerpsMarket.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 library Position {
-    using PerpsMarketConfig for PerpsMarketConfig.Data;
+    using PerpsMarket for PerpsMarket.Data;
 
     struct Margin {
         address collateralType;
@@ -65,7 +65,7 @@ library Position {
         view
         returns (SD59x18 pnl, SD59x18 accruedFunding, SD59x18 netFundingPerUnit, SD59x18 nextFunding)
     {
-        nextFunding = PerpsMarketConfig.load().calculateNextFunding(price);
+        // nextFunding = PerpsMarket.load().calculateNextFunding(price);
         netFundingPerUnit = nextFunding.sub(sd59x18(self.lastInteractionFunding));
         accruedFunding = sd59x18(self.size).mul(netFundingPerUnit);
 

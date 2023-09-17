@@ -9,17 +9,18 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+/// @title The PerpsAccount namespace.
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
-
-    /// @dev Constant base domain used to access a given PerpsAccount's storage slot.
-    string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
 
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
     error Zaros_PerpsAccount_PermissionDenied(uint256 accountId, address sender);
     /// @notice Thrown when the given `accountId` doesn't exist.
     error Zaros_PerpsAccount_AccountNotFound(uint256 accountId, address sender);
+
+    /// @dev Constant base domain used to access a given PerpsAccount's storage slot.
+    string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
 
     /// @notice {PerpsAccount} namespace storage structure.
     /// @param id The perps account id.
@@ -84,6 +85,7 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @param amount The amount of margin collateral to be added.
+    /// @dev TODO: normalize margin collateral decimals
     function increaseMarginCollateral(Data storage self, address collateralType, UD60x18 amount) internal {
         EnumerableMap.AddressToUintMap storage marginCollateral = self.marginCollateral;
         (, uint256 currentMarginCollateral) = marginCollateral.tryGet(collateralType);
@@ -96,6 +98,7 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @param amount The amount of margin collateral to be removed.
+    /// @dev TODO: denormalize margin collateral decimals
     function decreaseMarginCollateral(Data storage self, address collateralType, UD60x18 amount) internal {
         EnumerableMap.AddressToUintMap storage marginCollateral = self.marginCollateral;
         UD60x18 newMarginCollateral = ud60x18(marginCollateral.get(collateralType)).sub(amount);

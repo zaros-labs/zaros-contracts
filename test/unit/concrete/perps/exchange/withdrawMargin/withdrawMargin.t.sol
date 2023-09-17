@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-import { PerpsAccount } from "@zaros/markets/perps/exchange/storage/PerpsAccount.sol";
+import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 
 contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
