@@ -32,14 +32,13 @@ interface IPerpsEngineModule {
     /// @param marketId The perps market id.
     function maxOpenInterest(uint128 marketId) external view returns (UD60x18);
 
-    /// @notice Returns the notional value of the total open interest in longs and short positions.
+    /// @notice Returns the open interest in longs and short positions in absolute size.
+    /// @dev E.g: There is 500 ETH in long positions and 450 ETH in short positions, this function
+    /// should return UD60x18 longsOI = 500e18 and UD60x18 shortsOI = 450e18;
     /// @param marketId The perps market id.
-    /// @return longsOINotionalValue The notional value of the total open interest in long positions.
-    /// @return shortsOINotionalValue The notional value of the total open interest in short positions.
-    function openInterestNotionalValues(uint128 marketId)
-        external
-        view
-        returns (UD60x18 longsOINotionalValue, UD60x18 shortsOINotionalValue);
+    /// @return longsOI The total open interest absolute size in long positions.
+    /// @return shortsOI The total open interest absolute size in short positions.
+    function openInterest(uint128 marketId) external view returns (UD60x18 longsOI, UD60x18 shortsOI);
 
     /// @notice Returns the current Chainlink onchain stored price for the given market id.
     /// @dev The index price returned does not necessarily match the latest price provided by the offchain

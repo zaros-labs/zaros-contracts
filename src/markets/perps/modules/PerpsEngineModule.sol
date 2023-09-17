@@ -10,7 +10,7 @@ import { PerpsMarket } from "../storage/PerpsMarket.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpsEngineModule}.
 abstract contract PerpsEngineModule is IPerpsEngineModule {
@@ -28,12 +28,12 @@ abstract contract PerpsEngineModule is IPerpsEngineModule {
     }
 
     /// @inheritdoc IPerpsEngineModule
-    function skew(uint128 marketId) external view returns (SD59x18) {
+    function skew(uint128 marketId) public view returns (SD59x18) {
         return sd59x18(PerpsMarket.load(marketId).skew);
     }
 
     /// @inheritdoc IPerpsEngineModule
-    function size(uint128 marketId) external view returns (UD60x18) {
+    function size(uint128 marketId) public view returns (UD60x18) {
         return ud60x18(PerpsMarket.load(marketId).size);
     }
 
@@ -42,15 +42,16 @@ abstract contract PerpsEngineModule is IPerpsEngineModule {
         return ud60x18(PerpsMarket.load(marketId).maxOpenInterest);
     }
 
-    /// @notice Returns the notional value of the total open interest in longs and short positions.
-    /// @param marketId The perps market id.
-    /// @return longsOINotionalValue The notional value of the total open interest in long positions.
-    /// @return shortsOINotionalValue The notional value of the total open interest in short positions.
-    function openInterestNotionalValues(uint128 marketId)
-        external
-        view
-        returns (UD60x18 longsOINotionalValue, UD60x18 shortsOINotionalValue)
-    { }
+    /// @inheritdoc IPerpsEngineModule
+    function openInterest(uint128 marketId) external view returns (UD60x18 longsOI, UD60x18 shortsOI) {
+        SD59x18 currentSkew = skew(marketId);
+        SD59x18 currentOpenInterest = size(marketId).intoSD59x18();
+        SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18(2));
+        (longsOI, shortsOI) = (
+            halfOpenInterest.add(currentSkew).intoUD60x18(),
+            unary(halfOpenInterest).add(currentSkew).abs().intoUD60x18()
+        );
+    }
 
     /// @inheritdoc IPerpsEngineModule
     function indexPrice(uint128 marketId) external view returns (UD60x18) {
