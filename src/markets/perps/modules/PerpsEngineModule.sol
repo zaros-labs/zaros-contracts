@@ -12,6 +12,7 @@ import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
+/// @notice See {IPerpsEngineModule}.
 abstract contract PerpsEngineModule is IPerpsEngineModule {
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
@@ -65,12 +66,12 @@ abstract contract PerpsEngineModule is IPerpsEngineModule {
 
     /// @inheritdoc IPerpsEngineModule
     function fundingRate(uint128 marketId) external view returns (SD59x18) {
-        return sd59x18(0);
+        return PerpsMarket.load(marketId).getCurrentFundingRate();
     }
 
     /// @inheritdoc IPerpsEngineModule
     function fundingVelocity(uint128 marketId) external view returns (SD59x18) {
-        return sd59x18(0);
+        return PerpsMarket.load(marketId).getCurrentFundingVelocity();
     }
 
     /// @inheritdoc IPerpsEngineModule

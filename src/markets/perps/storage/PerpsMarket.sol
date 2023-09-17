@@ -85,6 +85,14 @@ library PerpsMarket {
         return price;
     }
 
+    function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {
+        return sd59x18(0);
+    }
+
+    function getCurrentFundingVelocity(Data storage self) internal view returns (SD59x18) {
+        return sd59x18(0);
+    }
+
     function calculateNextFunding(Data storage self, UD60x18 price) internal view returns (SD59x18) {
         return sd59x18(0);
     }

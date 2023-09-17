@@ -12,6 +12,7 @@ import { PerpsMarket } from "../storage/PerpsMarket.sol";
 // OpenZeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
+/// @notice See {IPerpsConfigurationModule}.
 abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable {
     using PerpsConfiguration for PerpsConfiguration.Data;
     using PerpsMarket for PerpsMarket.Data;

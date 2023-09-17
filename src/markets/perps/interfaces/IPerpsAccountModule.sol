@@ -8,9 +8,10 @@ import { Order } from "../storage/Order.sol";
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
-/// @title Module for managing perps trading accounts.
-/// @notice Users can mint perps account nfts and use as trading subaccounts, managing
-/// their cross margin collateral and trade on different perps markets.
+/// @title Perps Account Module.
+/// @notice This moduled is used by users in order to mint perps account nfts
+/// to use them as trading subaccounts, managing their cross margin collateral and
+/// trading on different perps markets.
 interface IPerpsAccountModule {
     /// @notice Thrown When the provided collateral is not supported.
     error Zaros_PerpsAccountModule_InvalidCollateralType(address collateralType);

@@ -5,6 +5,9 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { OrderFees } from "../storage/OrderFees.sol";
 
+/// @title Perps Configuration Module.
+/// @notice This module is used by the protocol controller to configure the perps
+/// exchange system.
 interface IPerpsConfigurationModule {
     /// @notice Thrown when the provided `accountToken` is the zero address.
     error Zaros_PerpsConfigurationModule_PerpsAccountTokenNotDefined();
