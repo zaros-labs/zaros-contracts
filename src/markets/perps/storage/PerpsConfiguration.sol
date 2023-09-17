@@ -12,6 +12,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+/// @title The PerpsConfiguration namespace.
 library PerpsConfiguration {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -24,6 +25,12 @@ library PerpsConfiguration {
         keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
     /// @notice {PerpConfiguration} namespace storage structure.
+    /// @param enabledCollateralTypes The cross margin supported collateral types.
+    /// @param enabledMarketsIds The enabled perps markets ids.
+    /// @param zaros The Zaros protocol contract address.
+    /// @param rewardDistributor The reward distributor contract address.
+    /// @param perpsAccountToken The perps account token contract address.
+    /// @param nextAccountId The next account id to be used.
     struct Data {
         EnumerableSet.AddressSet enabledCollateralTypes;
         EnumerableSet.UintSet enabledMarketsIds;

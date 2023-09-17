@@ -16,6 +16,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
+/// @title The PerpsMarket namespace.
 library PerpsMarket {
     using SafeCast for int256;
 
