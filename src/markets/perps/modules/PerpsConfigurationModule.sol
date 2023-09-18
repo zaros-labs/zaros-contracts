@@ -59,8 +59,8 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         string calldata name,
         string calldata symbol,
         address priceFeed,
-        uint128 maxLeverage,
-        uint256 maxOpenInterest,
+        uint128 minInitialMarginRate,
+        uint128 maxOpenInterest,
         OrderFees.Data calldata orderFees
     )
         external
@@ -71,13 +71,13 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
             revert ParameterError.Zaros_InvalidParameter("marketId", "marketId can't be zero");
         } else if (priceFeed == address(0)) {
             revert ParameterError.Zaros_InvalidParameter("priceFeed", "priceFeed can't be the zero address");
-        } else if (maxLeverage == 0) {
-            revert ParameterError.Zaros_InvalidParameter("maxLeverage", "maxLeverage can't be zero");
+        } else if (minInitialMarginRate == 0) {
+            revert ParameterError.Zaros_InvalidParameter("minInitialMarginRate", "minInitialMarginRate can't be zero");
         }
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
-        PerpsMarket.create(marketId, name, symbol, priceFeed, maxLeverage, maxOpenInterest, orderFees);
+        PerpsMarket.create(marketId, name, symbol, priceFeed, minInitialMarginRate, maxOpenInterest, orderFees);
         perpsConfiguration.addMarket(marketId);
 
         emit LogCreatePerpsMarket(marketId, name, symbol);
