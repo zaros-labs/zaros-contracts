@@ -43,14 +43,19 @@ abstract contract PerpsEngineModule is IPerpsEngineModule {
     }
 
     /// @inheritdoc IPerpsEngineModule
-    function openInterest(uint128 marketId) external view returns (UD60x18 longsOI, UD60x18 shortsOI) {
+    function openInterest(uint128 marketId)
+        external
+        view
+        returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest)
+    {
         SD59x18 currentSkew = skew(marketId);
         SD59x18 currentOpenInterest = size(marketId).intoSD59x18();
         SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18(2));
-        (longsOI, shortsOI) = (
+        (longsOpenInterest, shortsOpenInterest) = (
             halfOpenInterest.add(currentSkew).intoUD60x18(),
             unary(halfOpenInterest).add(currentSkew).abs().intoUD60x18()
         );
+        totalOpenInterest = longsOpenInterest.add(shortsOpenInterest);
     }
 
     /// @inheritdoc IPerpsEngineModule
@@ -85,7 +90,7 @@ abstract contract PerpsEngineModule is IPerpsEngineModule {
     //     returns (
     //         UD60x18 notionalValue,
     //         SD59x18 size,
-    //         SD59x18 pnl,
+    //         SD59x18 unrealizedPnl,
     //         SD59x18 accruedFunding,
     //         SD59x18 netFundingPerUnit,
     //         SD59x18 nextFunding
@@ -95,6 +100,7 @@ abstract contract PerpsEngineModule is IPerpsEngineModule {
     //     Position.Data storage position = perpsMarket.positions[accountId];
     //     UD60x18 price = perpsMarket.getIndexPrice();
 
-    //     (notionalValue, size, pnl, accruedFunding, netFundingPerUnit, nextFunding) = position.getPositionData(price);
+    //     (notionalValue, size, unrealizedPnl, accruedFunding, netFundingPerUnit, nextFunding) =
+    // position.getPositionData(price);
     // }
 }
