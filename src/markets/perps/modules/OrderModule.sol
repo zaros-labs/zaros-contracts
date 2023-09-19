@@ -62,7 +62,7 @@ abstract contract OrderModule is IOrderModule {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         Order.Data storage order = perpsMarket.orders[accountId][orderId];
 
-        perpsMarket.updateAccountActiveOrders(accountId, orderId, false);
+        perpsAccount.updateAccountActiveOrders(marketId, orderId, false);
         order.reset();
 
         emit LogCancelOrder(msg.sender, accountId, marketId, orderId);

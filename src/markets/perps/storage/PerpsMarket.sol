@@ -19,7 +19,6 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The PerpsMarket namespace.
 library PerpsMarket {
-    using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
 
     /// @notice Thrown when a perps market id has already been used.
@@ -40,7 +39,6 @@ library PerpsMarket {
         address priceFeed;
         OrderFees.Data orderFees;
         mapping(uint256 accountId => Position.Data) positions;
-        mapping(uint256 accountId => EnumerableSet.UintSet) activeOrdersIds;
         mapping(uint256 accountId => Order.Data[]) orders;
     }
 
@@ -101,17 +99,5 @@ library PerpsMarket {
 
     function calculateNextFundingFeePerUnit(Data storage self, UD60x18 price) internal view returns (SD59x18) {
         return sd59x18(0);
-    }
-
-    function isOrderActive(Data storage self, uint256 accountId, uint8 orderId) internal view returns (bool) {
-        return self.activeOrdersIds[accountId].contains(orderId);
-    }
-
-    function updateAccountActiveOrders(Data storage self, uint256 accountId, uint8 orderId, bool isActive) internal {
-        if (isActive) {
-            self.activeOrdersIds[accountId].add(orderId);
-        } else {
-            self.activeOrdersIds[accountId].remove(orderId);
-        }
     }
 }
