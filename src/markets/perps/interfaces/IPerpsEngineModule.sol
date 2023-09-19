@@ -58,6 +58,12 @@ interface IPerpsEngineModule {
     /// @param marketId The perps market id.
     function fundingVelocity(uint128 marketId) external view returns (SD59x18);
 
+    /// @notice Estimates an order's fill price based on its size.
+    /// @param marketId The perps market id.
+    /// @param sizeDelta The order size impact on the current position.
+    /// @return fillPrice The estimated order fill price.
+    function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view returns (UD60x18 fillPrice);
+
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.

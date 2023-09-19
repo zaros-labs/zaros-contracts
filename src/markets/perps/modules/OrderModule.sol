@@ -23,11 +23,6 @@ abstract contract OrderModule is IOrderModule {
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
 
-    function getFillPrice(uint128 marketId, UD60x18 size) external view returns (UD60x18) {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        return perpsMarket.getIndexPrice();
-    }
-
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         return perpsMarket.orderFees;
@@ -58,7 +53,7 @@ abstract contract OrderModule is IOrderModule {
 
     function createOrder(uint256 accountId, uint128 marketId, Order.Data calldata order) external { }
 
-    function settleOrder(bytes32 orderId) external { }
+    // function settleOrder(bytes32 orderId) external { }
 
     function cancelOrder(bytes32 orderId) external { }
 

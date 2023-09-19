@@ -76,6 +76,12 @@ abstract contract PerpsEngineModule is IPerpsEngineModule {
     }
 
     /// @inheritdoc IPerpsEngineModule
+    function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view returns (UD60x18 fillPrice) {
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        fillPrice = perpsMarket.getIndexPrice();
+    }
+
+    /// @inheritdoc IPerpsEngineModule
     function getOpenPositionData(
         uint256 accountId,
         uint128 marketId
