@@ -7,6 +7,7 @@ import { IPerpsExchange } from "../interfaces/IPerpsExchange.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
+import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
 
@@ -20,6 +21,8 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol"
 
 abstract contract OrderModule is IOrderModule {
     using SafeERC20 for IERC20;
+    using Order for Order.Data;
+    using PerpsAccount for PerpsAccount.Data;
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
 
@@ -30,10 +33,10 @@ abstract contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function getRequiredMarginForOrder(uint128 marketId, int128 sizeDelta) external view returns (UD60x18, UD60x18) { }
+    function estimateOrderFee(uint128 marketId, int128 sizeDelta) external view returns (UD60x18, UD60x18) { }
 
     /// @inheritdoc IOrderModule
-    function estimateOrderFee(uint128 marketId, int128 sizeDelta) external view returns (UD60x18, UD60x18) { }
+    function getRequiredMarginForOrder(uint128 marketId, int128 sizeDelta) external view returns (UD60x18, UD60x18) { }
 
     /// @inheritdoc IOrderModule
     function getOrders(uint256 accountId, uint128 marketId) external view returns (Order.Data[] memory) {
@@ -42,12 +45,28 @@ abstract contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function createOrder(uint256 accountId, uint128 marketId, Order.Data calldata order) external { }
+    function createOrder(uint256 accountId, uint128 marketId, Order.Payload calldata orderPayload) external {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+
+        if (perpsAccount.canBeLiquidated()) {
+            revert Zaros_OrderModule_AccountLiquidatable(msg.sender, accountId);
+        }
+    }
 
     // function settleOrder(bytes32 orderId) external { }
 
     /// @inheritdoc IOrderModule
-    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external { }
+    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        Order.Data storage order = perpsMarket.orders[accountId][orderId];
+
+        perpsMarket.updateAccountActiveOrders(accountId, orderId, false);
+        order.reset();
+
+        emit LogCancelOrder(msg.sender, accountId, marketId, orderId);
+    }
 
     // function settleOrderFromVault(
     //     uint256 accountId,

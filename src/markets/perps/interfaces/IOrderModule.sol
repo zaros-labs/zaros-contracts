@@ -11,11 +11,13 @@ import { Position } from "../storage/Position.sol";
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 interface IOrderModule {
-    error Zaros_OrderModule_PriceImpact(uint256 desiredPrice, uint256 currentPrice);
+    error Zaros_OrderModule_AccountLiquidatable(address sender, uint256 accountId);
 
-    event LogSettleOrder(
-        address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
-    );
+    // event LogSettleOrder(
+    //     address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
+    // );
+
+    event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
 
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
@@ -37,7 +39,7 @@ interface IOrderModule {
         view
         returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin);
 
-    function createOrder(uint256 accountId, uint128 marketId, Order.Data calldata order) external;
+    function createOrder(uint256 accountId, uint128 marketId, Order.Payload calldata order) external;
 
     // function settleOrder(bytes32 orderId) external;
 

@@ -10,6 +10,7 @@ import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
 
 // Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
@@ -18,6 +19,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The PerpsMarket namespace.
 library PerpsMarket {
+    using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
 
     /// @notice Thrown when a perps market id has already been used.
@@ -38,9 +40,11 @@ library PerpsMarket {
         address priceFeed;
         OrderFees.Data orderFees;
         mapping(uint256 accountId => Position.Data) positions;
+        mapping(uint256 accountId => EnumerableSet.UintSet) activeOrdersIds;
         mapping(uint256 accountId => Order.Data[]) orders;
     }
 
+    /// @dev TODO: add function that only loads a valid / existing perps market
     function load(uint128 marketId) internal pure returns (Data storage perpsMarket) {
         bytes32 slot = keccak256(abi.encode(PERPS_MARKET_DOMAIN, marketId));
         assembly {
@@ -97,5 +101,17 @@ library PerpsMarket {
 
     function calculateNextFundingFeePerUnit(Data storage self, UD60x18 price) internal view returns (SD59x18) {
         return sd59x18(0);
+    }
+
+    function isOrderActive(Data storage self, uint256 accountId, uint8 orderId) internal view returns (bool) {
+        return self.activeOrdersIds[accountId].contains(orderId);
+    }
+
+    function updateAccountActiveOrders(Data storage self, uint256 accountId, uint8 orderId, bool isActive) internal {
+        if (isActive) {
+            self.activeOrdersIds[accountId].add(orderId);
+        } else {
+            self.activeOrdersIds[accountId].remove(orderId);
+        }
     }
 }

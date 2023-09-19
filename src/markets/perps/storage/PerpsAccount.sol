@@ -55,6 +55,11 @@ library PerpsAccount {
         }
     }
 
+    /// @dev TODO; implement
+    function canBeLiquidated(Data storage self) internal view returns (bool) {
+        return false;
+    }
+
     /// @dev Loads a perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
