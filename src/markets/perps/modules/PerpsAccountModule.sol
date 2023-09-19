@@ -54,6 +54,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     function getAccountMargin(uint256 accountId) external view override returns (UD60x18, UD60x18) { }
 
     /// @inheritdoc IPerpsAccountModule
+    function getAccountMaintenanceMargin(uint256 accountId) external view returns (UD60x18, UD60x18) { }
+
+    /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint256) {
         (uint256 accountId, IAccountNFT perpsAccountTokenModule) = PerpsConfiguration.onCreateAccount();
         perpsAccountTokenModule.mint(msg.sender, accountId);

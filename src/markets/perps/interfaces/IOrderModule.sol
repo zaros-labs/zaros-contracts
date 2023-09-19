@@ -17,9 +17,9 @@ interface IOrderModule {
         address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
     );
 
-    function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory);
+    function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
-    function getOrders(uint256 accountId, uint128 marketId) external view returns (Order.Data[] memory);
+    function getOrders(uint256 accountId, uint128 marketId) external view returns (Order.Data[] memory orders);
 
     function estimateOrderFee(
         uint128 marketId,
@@ -41,5 +41,5 @@ interface IOrderModule {
 
     // function settleOrder(bytes32 orderId) external;
 
-    function cancelOrder(bytes32 orderId) external;
+    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external;
 }

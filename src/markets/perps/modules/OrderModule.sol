@@ -23,39 +23,31 @@ abstract contract OrderModule is IOrderModule {
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
 
+    /// @inheritdoc IOrderModule
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         return perpsMarket.orderFees;
     }
 
-    function getRequiredMarginForOrder(
-        uint128 marketId,
-        int128 sizeDelta
-    )
-        external
-        view
-        returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin)
-    { }
+    /// @inheritdoc IOrderModule
+    function getRequiredMarginForOrder(uint128 marketId, int128 sizeDelta) external view returns (UD60x18, UD60x18) { }
 
-    function estimateOrderFee(
-        uint128 marketId,
-        int128 sizeDelta
-    )
-        external
-        view
-        returns (UD60x18 fee, UD60x18 fillPrice)
-    { }
+    /// @inheritdoc IOrderModule
+    function estimateOrderFee(uint128 marketId, int128 sizeDelta) external view returns (UD60x18, UD60x18) { }
 
+    /// @inheritdoc IOrderModule
     function getOrders(uint256 accountId, uint128 marketId) external view returns (Order.Data[] memory) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         return perpsMarket.orders[accountId];
     }
 
+    /// @inheritdoc IOrderModule
     function createOrder(uint256 accountId, uint128 marketId, Order.Data calldata order) external { }
 
     // function settleOrder(bytes32 orderId) external { }
 
-    function cancelOrder(bytes32 orderId) external { }
+    /// @inheritdoc IOrderModule
+    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external { }
 
     // function settleOrderFromVault(
     //     uint256 accountId,
