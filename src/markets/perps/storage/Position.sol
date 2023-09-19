@@ -11,13 +11,13 @@ library Position {
     /// @notice The {Position} namespace storage structure.
     /// @param size The position size in asset units, i.e amount of purchased contracts.
     /// @param initialMargin The notional value of the initial margin allocated by the account.
-    /// @param realizedPnl The notional value of the realized profit or loss of the position.
+    /// @param unrealizedPnlStored The notional value of the realized profit or loss of the position.
     /// @param lastInteractionPrice The last settlement reference price of this position.
     /// @param lastInteractionFundingFeePerUnit The last funding fee per unit applied to this position.
     struct Data {
         int256 size;
         uint128 initialMargin;
-        int128 realizedPnl;
+        int128 unrealizedPnlStored;
         uint128 lastInteractionPrice;
         int128 lastInteractionFundingFeePerUnit;
     }
@@ -28,7 +28,7 @@ library Position {
     function updatePosition(Data storage self, Data memory newPosition) internal {
         self.size = newPosition.size;
         self.initialMargin = newPosition.initialMargin;
-        self.realizedPnl = newPosition.realizedPnl;
+        self.unrealizedPnlStored = newPosition.unrealizedPnlStored;
         self.lastInteractionPrice = newPosition.lastInteractionPrice;
         self.lastInteractionFundingFeePerUnit = newPosition.lastInteractionFundingFeePerUnit;
     }
@@ -38,7 +38,7 @@ library Position {
     function clear(Data storage self) internal {
         self.size = 0;
         self.initialMargin = 0;
-        self.realizedPnl = 0;
+        self.unrealizedPnlStored = 0;
         self.lastInteractionPrice = 0;
         self.lastInteractionFundingFeePerUnit = 0;
     }
@@ -75,7 +75,7 @@ library Position {
         returns (SD59x18 unrealizedPnl)
     {
         SD59x18 priceShift = price.intoSD59x18().sub(ud60x18(self.lastInteractionPrice).intoSD59x18());
-        unrealizedPnl = sd59x18(self.size).mul(priceShift).add(accruedFunding);
+        unrealizedPnl = sd59x18(self.size).mul(priceShift).add(accruedFunding).add(sd59x18(self.unrealizedPnlStored));
     }
 
     /// @dev Returns the notional value of the position.
@@ -92,7 +92,7 @@ library Position {
     /// @param fundingFeePerUnit The market's current funding fee per unit.
     /// @return size The position size in asset units, i.e amount of purchased contracts.
     /// @return initialMargin The notional value of the initial margin allocated by the account.
-    /// @return realizedPnl The notional value of the accumulated realized profit or loss of the position.
+    /// @return unrealizedPnlStored The notional value of the accumulated realized profit or loss of the position.
     /// @return notionalValue The notional value of the position.
     /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
     /// @return accruedFunding The accrued funding fee.
@@ -109,7 +109,7 @@ library Position {
         returns (
             SD59x18 size,
             UD60x18 initialMargin,
-            SD59x18 realizedPnl,
+            SD59x18 unrealizedPnlStored,
             UD60x18 notionalValue,
             UD60x18 maintenanceMargin,
             SD59x18 accruedFunding,
@@ -119,7 +119,7 @@ library Position {
     {
         size = sd59x18(self.size);
         initialMargin = ud60x18(self.initialMargin);
-        realizedPnl = sd59x18(self.realizedPnl);
+        unrealizedPnlStored = sd59x18(self.unrealizedPnlStored);
         notionalValue = getNotionalValue(self, price);
         maintenanceMargin = notionalValue.mul(maintenanceMarginRate);
         (accruedFunding, netFundingFeePerUnit) = getAccruedFunding(self, fundingFeePerUnit);
