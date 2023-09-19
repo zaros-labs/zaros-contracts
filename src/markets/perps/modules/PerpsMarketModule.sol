@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IPerpsEngineModule } from "../interfaces/IPerpsEngineModule.sol";
+import { IPerpsMarketModule } from "../interfaces/IPerpsMarketModule.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
@@ -12,32 +12,32 @@ import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
-/// @notice See {IPerpsEngineModule}.
-abstract contract PerpsEngineModule is IPerpsEngineModule {
+/// @notice See {IPerpsMarketModule}.
+abstract contract PerpsMarketModule is IPerpsMarketModule {
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function name(uint128 marketId) external view returns (string memory) {
         return PerpsMarket.load(marketId).name;
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function symbol(uint128 marketId) external view returns (string memory) {
         return PerpsMarket.load(marketId).symbol;
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function skew(uint128 marketId) public view returns (SD59x18) {
         return sd59x18(PerpsMarket.load(marketId).skew);
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function maxOpenInterest(uint128 marketId) external view returns (UD60x18) {
         return ud60x18(PerpsMarket.load(marketId).maxOpenInterest);
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function openInterest(uint128 marketId)
         external
         view
@@ -53,35 +53,35 @@ abstract contract PerpsEngineModule is IPerpsEngineModule {
         totalSize = longsSize.add(shortsSize);
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function indexPrice(uint128 marketId) external view returns (UD60x18) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
 
         return perpsMarket.getIndexPrice();
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function priceFeed(uint128 marketId) external view returns (address) {
         return PerpsMarket.load(marketId).priceFeed;
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function fundingRate(uint128 marketId) external view returns (SD59x18) {
         return PerpsMarket.load(marketId).getCurrentFundingRate();
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function fundingVelocity(uint128 marketId) external view returns (SD59x18) {
         return PerpsMarket.load(marketId).getCurrentFundingVelocity();
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view returns (UD60x18 fillPrice) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         fillPrice = perpsMarket.getIndexPrice();
     }
 
-    /// @inheritdoc IPerpsEngineModule
+    /// @inheritdoc IPerpsMarketModule
     function getOpenPositionData(
         uint256 accountId,
         uint128 marketId
