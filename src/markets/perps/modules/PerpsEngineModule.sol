@@ -85,30 +85,20 @@ abstract contract PerpsEngineModule is IPerpsEngineModule {
         returns (
             SD59x18 size,
             UD60x18 initialMargin,
-            SD59x18 realizedPnl,
             UD60x18 notionalValue,
             UD60x18 maintenanceMargin,
             SD59x18 accruedFunding,
-            SD59x18 netFundingFeePerUnit,
             SD59x18 unrealizedPnl
         )
     {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         Position.Data storage position = perpsMarket.positions[accountId];
 
-        UD60x18 maintenanceMarginRate = ud60x18(perpsMarket.maintenanceMarginRate);
+        // UD60x18 maintenanceMarginRate = ud60x18(perpsMarket.maintenanceMarginRate);
         UD60x18 price = perpsMarket.getIndexPrice();
         SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(price);
 
-        (
-            size,
-            initialMargin,
-            realizedPnl,
-            notionalValue,
-            maintenanceMargin,
-            accruedFunding,
-            netFundingFeePerUnit,
-            unrealizedPnl
-        ) = position.getPositionData(maintenanceMarginRate, price, fundingFeePerUnit);
+        (size, initialMargin, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) =
+            position.getPositionData(ud60x18(perpsMarket.maintenanceMarginRate), price, fundingFeePerUnit);
     }
 }
