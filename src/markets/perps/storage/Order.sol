@@ -2,7 +2,10 @@
 
 pragma solidity 0.8.19;
 
+/// @dev TODO: Think on refactoring this to have Order pointers being calculated
+/// from the namespace (e.g load(accountId,orderId))
 library Order {
+    /// @notice Supported types of orders.
     enum OrderType {
         MARKET,
         LIMIT,
@@ -21,7 +24,7 @@ library Order {
 
     struct Data {
         Payload payload;
-        uint64 settlementTimestamp;
+        uint256 settlementTimestamp;
     }
 
     function reset(Data storage self) internal {

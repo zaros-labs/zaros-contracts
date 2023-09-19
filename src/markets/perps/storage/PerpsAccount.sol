@@ -142,7 +142,7 @@ library PerpsAccount {
     /// @param marketId The perps market id.
     /// @param orderId the order id.
     /// @param isActive `true` if the order is being created, `false` otherwise.
-    function updateAccountActiveOrders(Data storage self, uint128 marketId, uint8 orderId, bool isActive) internal {
+    function updateActiveOrders(Data storage self, uint128 marketId, uint8 orderId, bool isActive) internal {
         bytes32 orderAndMarketIds = keccak256(abi.encode(marketId, orderId));
         bool success;
         if (isActive) {
