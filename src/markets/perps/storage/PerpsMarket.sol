@@ -10,6 +10,7 @@ import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
 
 // Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
@@ -30,8 +31,9 @@ library PerpsMarket {
         string name;
         string symbol;
         uint128 id;
-        uint128 maxLeverage;
-        uint256 maxOpenInterest;
+        uint128 minInitialMarginRate;
+        uint128 maintenanceMarginRate;
+        uint128 maxOpenInterest;
         int128 skew;
         uint128 size;
         address priceFeed;
@@ -40,6 +42,7 @@ library PerpsMarket {
         mapping(uint256 accountId => Order.Data[]) orders;
     }
 
+    /// @dev TODO: add function that only loads a valid / existing perps market
     function load(uint128 marketId) internal pure returns (Data storage perpsMarket) {
         bytes32 slot = keccak256(abi.encode(PERPS_MARKET_DOMAIN, marketId));
         assembly {
@@ -52,8 +55,8 @@ library PerpsMarket {
         string memory name,
         string memory symbol,
         address priceFeed,
-        uint128 maxLeverage,
-        uint256 maxOpenInterest,
+        uint128 minInitialMarginRate,
+        uint128 maxOpenInterest,
         OrderFees.Data memory orderFees
     )
         internal
@@ -68,7 +71,7 @@ library PerpsMarket {
         perpsMarket.name = name;
         perpsMarket.symbol = symbol;
         perpsMarket.priceFeed = priceFeed;
-        perpsMarket.maxLeverage = maxLeverage;
+        perpsMarket.minInitialMarginRate = minInitialMarginRate;
         perpsMarket.maxOpenInterest = maxOpenInterest;
         perpsMarket.orderFees = orderFees;
     }
@@ -94,7 +97,7 @@ library PerpsMarket {
         return sd59x18(0);
     }
 
-    function calculateNextFunding(Data storage self, UD60x18 price) internal view returns (SD59x18) {
+    function calculateNextFundingFeePerUnit(Data storage self, UD60x18 price) internal view returns (SD59x18) {
         return sd59x18(0);
     }
 }

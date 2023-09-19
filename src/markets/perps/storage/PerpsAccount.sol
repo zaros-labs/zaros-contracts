@@ -12,6 +12,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
 
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
@@ -32,6 +33,7 @@ library PerpsAccount {
         uint256 id;
         address owner;
         EnumerableMap.AddressToUintMap marginCollateral;
+        EnumerableSet.Bytes32Set activeOrdersPerMarket;
         EnumerableSet.UintSet activeMarketsIds;
     }
 
@@ -55,6 +57,11 @@ library PerpsAccount {
         }
     }
 
+    /// @dev TODO; implement
+    function canBeLiquidated(Data storage self) internal view returns (bool) {
+        return false;
+    }
+
     /// @dev Loads a perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
@@ -69,6 +76,14 @@ library PerpsAccount {
     /// @return marginCollateral The amount of margin collateral for the given collateral type.
     function getMarginCollateral(Data storage self, address collateralType) internal view returns (UD60x18) {
         return ud60x18(self.marginCollateral.get(collateralType));
+    }
+
+    /// @dev Verifies if the caller is authorized to perform actions on the given perps account.
+    /// @param self The perps account storage pointer.
+    function verifyCaller(Data storage self) internal view {
+        if (self.owner != msg.sender) {
+            revert Zaros_PerpsAccount_PermissionDenied(self.id, msg.sender);
+        }
     }
 
     /// @dev Creates a new perps account.
@@ -114,7 +129,7 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     /// @param marketId The perps market id.
     /// @param isActive `true` if the market is active, `false` otherwise.
-    function updateAccountMarketState(Data storage self, uint256 marketId, bool isActive) internal {
+    function updateActiveMarkets(Data storage self, uint256 marketId, bool isActive) internal {
         if (isActive) {
             self.activeMarketsIds.add(marketId);
         } else {
@@ -122,11 +137,18 @@ library PerpsAccount {
         }
     }
 
-    /// @dev Verifies if the caller is authorized to perform actions on the given perps account.
+    /// @notice Updates the account's active orders ids per market.
     /// @param self The perps account storage pointer.
-    function verifyCaller(Data storage self) internal view {
-        if (self.owner != msg.sender) {
-            revert Zaros_PerpsAccount_PermissionDenied(self.id, msg.sender);
+    /// @param marketId The perps market id.
+    /// @param orderId the order id.
+    /// @param isActive `true` if the order is being created, `false` otherwise.
+    function updateActiveOrders(Data storage self, uint128 marketId, uint8 orderId, bool isActive) internal {
+        bytes32 orderAndMarketIds = keccak256(abi.encode(marketId, orderId));
+        bool success;
+        if (isActive) {
+            success = self.activeOrdersPerMarket.add(orderAndMarketIds);
+        } else {
+            success = self.activeOrdersPerMarket.remove(orderAndMarketIds);
         }
     }
 }

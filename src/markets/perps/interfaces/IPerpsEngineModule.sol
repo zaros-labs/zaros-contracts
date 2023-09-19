@@ -24,21 +24,21 @@ interface IPerpsEngineModule {
     /// @param marketId The perps market id.
     function skew(uint128 marketId) external view returns (SD59x18);
 
-    /// @notice Returns the current market total size (longs + shorts in asset units).
-    /// @param marketId The perps market id.
-    function size(uint128 marketId) external view returns (UD60x18);
-
-    /// @notice Returns the maximum total size of positions on a side of a given market.
+    /// @notice Returns the maximum open interest on a side of the given market.
     /// @param marketId The perps market id.
     function maxOpenInterest(uint128 marketId) external view returns (UD60x18);
 
-    /// @notice Returns the open interest in longs and short positions in absolute size.
+    /// @notice Returns the given market's open interest, including the size of longs and shorts.
     /// @dev E.g: There is 500 ETH in long positions and 450 ETH in short positions, this function
-    /// should return UD60x18 longsOI = 500e18 and UD60x18 shortsOI = 450e18;
+    /// should return UD60x18 longsSize = 500e18 and UD60x18 shortsSize = 450e18;
     /// @param marketId The perps market id.
-    /// @return longsOI The total open interest absolute size in long positions.
-    /// @return shortsOI The total open interest absolute size in short positions.
-    function openInterest(uint128 marketId) external view returns (UD60x18 longsOI, UD60x18 shortsOI);
+    /// @return longsSize The open interest in long positions.
+    /// @return shortsSize The open interest in short positions.
+    /// @return totalSize The sum of longsSize and shortsSize.
+    function openInterest(uint128 marketId)
+        external
+        view
+        returns (UD60x18 longsSize, UD60x18 shortsSize, UD60x18 totalSize);
 
     /// @notice Returns the current Chainlink onchain stored price for the given market id.
     /// @dev The index price returned does not necessarily match the latest price provided by the offchain
@@ -58,19 +58,33 @@ interface IPerpsEngineModule {
     /// @param marketId The perps market id.
     function fundingVelocity(uint128 marketId) external view returns (SD59x18);
 
-    // /// @dev TODO: refactor this spaghetti code
-    // function getOpenPositionData(
-    //     uint256 accountId,
-    //     uint128 marketId
-    // )
-    //     external
-    //     view
-    //     returns (
-    //         UD60x18 notionalValue,
-    //         SD59x18 size,
-    //         SD59x18 pnl,
-    //         SD59x18 accruedFunding,
-    //         SD59x18 netFundingPerUnit,
-    //         SD59x18 nextFunding
-    //     );
+    /// @notice Estimates an order's fill price based on its size.
+    /// @param marketId The perps market id.
+    /// @param sizeDelta The order size impact on the current position.
+    /// @return fillPrice The estimated order fill price.
+    function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view returns (UD60x18 fillPrice);
+
+    /// @notice Gets the given market's open position details.
+    /// @param accountId The perps account id.
+    /// @param marketId The perps market id.
+    /// @return size The position size in asset units, i.e amount of purchased contracts.
+    /// @return initialMargin The notional value of the initial margin allocated by the account.
+    /// @return notionalValue The notional value of the position.
+    /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
+    /// @return accruedFunding The accrued funding fee.
+    /// @return unrealizedPnl The current unrealized profit or loss of the position.
+    function getOpenPositionData(
+        uint256 accountId,
+        uint128 marketId
+    )
+        external
+        view
+        returns (
+            SD59x18 size,
+            UD60x18 initialMargin,
+            UD60x18 notionalValue,
+            UD60x18 maintenanceMargin,
+            SD59x18 accruedFunding,
+            SD59x18 unrealizedPnl
+        );
 }

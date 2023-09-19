@@ -76,6 +76,18 @@ interface IPerpsAccountModule {
         view
         returns (UD60x18 marginBalance, UD60x18 availableMargin);
 
+    /// @notice Returns the account's current maintenance margin in open positions
+    /// and the maintenance margin rate.
+    /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
+    /// the liquidation engine will be triggered.
+    /// @param accountId the trading account id.
+    /// @return maintenanceMargin The account's maintenance margin.
+    /// @return maintenanceMarginRate The account's maintenance margin rate (MMR).
+    function getAccountMaintenanceMargin(uint256 accountId)
+        external
+        view
+        returns (UD60x18 maintenanceMargin, UD60x18 maintenanceMarginRate);
+
     /// @notice Creates a new trading account and mints its NFT
     /// @return accountId The trading account id.
     function createPerpsAccount() external returns (uint256 accountId);

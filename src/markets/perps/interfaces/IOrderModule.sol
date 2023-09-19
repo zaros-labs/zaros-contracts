@@ -11,31 +11,40 @@ import { Position } from "../storage/Position.sol";
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 interface IOrderModule {
-    error Zaros_OrderModule_PriceImpact(uint256 desiredPrice, uint256 currentPrice);
+    error Zaros_OrderModule_AccountLiquidatable(address sender, uint256 accountId);
 
-    event LogSettleOrder(
-        address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
+    // event LogSettleOrder(
+    //     address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
+    // );
+
+    event LogCreateOrder(
+        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId, Order.Data order
     );
+    event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
 
-    function fillPrice(uint128 marketId, UD60x18 size) external view returns (UD60x18);
+    function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
-    function getOrderFees(uint128 marketId) external view returns (OrderFees.Data memory);
+    function getOrders(uint256 accountId, uint128 marketId) external view returns (Order.Data[] memory orders);
 
-    function getOrders(uint256 accountId) external view returns (Order.Data[] memory);
+    function estimateOrderFee(
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        returns (UD60x18 fee, UD60x18 fillPrice);
 
-    function createOrder(Order.Data calldata order) external;
+    function getRequiredMarginForOrder(
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin);
 
-    function settleOrder(bytes32 orderId) external;
+    function createOrder(uint256 accountId, uint128 marketId, Order.Payload calldata orderPayload) external;
 
-    /// @dev TODO: Improve this
-    // function settleOrder(Order.Data calldata order) external;
+    // function settleOrder(bytes32 orderId) external;
 
-    function cancelOrder(bytes32 orderId) external;
-
-    // function settleOrderFromVault(
-    //     uint256 accountId,
-    //     Order.Data calldata order
-    // )
-    //     external
-    //     returns (uint256 previousPositionAmount);
+    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external;
 }

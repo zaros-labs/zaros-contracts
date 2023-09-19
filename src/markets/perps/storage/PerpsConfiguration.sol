@@ -34,6 +34,8 @@ library PerpsConfiguration {
     struct Data {
         EnumerableSet.AddressSet enabledCollateralTypes;
         EnumerableSet.UintSet enabledMarketsIds;
+        uint256 maxPositionsPerAccount;
+        uint256 maxActiveOrders;
         address zaros;
         address rewardDistributor;
         address perpsAccountToken;
