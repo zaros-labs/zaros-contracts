@@ -3,13 +3,18 @@
 pragma solidity 0.8.19;
 
 library Order {
+    enum OrderType {
+        MARKET,
+        LIMIT,
+        TAKE_PROFIT,
+        STOP_LOSS
+    }
+
     struct Data {
-        uint256 accountId;
-        address collateralType;
-        uint256 marginAmount;
-        int256 sizeDelta;
-        uint184 desiredPrice;
-        uint64 deadline;
-        bool filled;
+        uint128 accountId;
+        int128 initialMarginDelta;
+        int128 sizeDelta;
+        uint128 acceptablePrice;
+        OrderType orderType;
     }
 }

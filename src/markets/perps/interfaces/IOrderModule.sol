@@ -17,13 +17,29 @@ interface IOrderModule {
         address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
     );
 
-    function fillPrice(uint128 marketId, UD60x18 size) external view returns (UD60x18);
+    function getFillPrice(uint128 marketId, UD60x18 size) external view returns (UD60x18);
 
-    function getOrderFees(uint128 marketId) external view returns (OrderFees.Data memory);
+    function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory);
 
-    function getOrders(uint256 accountId) external view returns (Order.Data[] memory);
+    function getOrders(uint256 accountId, uint128 marketId) external view returns (Order.Data[] memory);
 
-    function createOrder(Order.Data calldata order) external;
+    function estimateOrderFee(
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        returns (UD60x18 fee, UD60x18 fillPrice);
+
+    function getRequiredMarginForOrder(
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin);
+
+    function createOrder(uint256 accountId, uint128 marketId, Order.Data calldata order) external;
 
     function settleOrder(bytes32 orderId) external;
 
