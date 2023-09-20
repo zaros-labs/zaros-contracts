@@ -2,6 +2,28 @@
 
 pragma solidity 0.8.19;
 
+/// @notice Chainlink Data Streams Report data structure.
+/// @param feedId The feed ID the report has data for
+/// @param median The median value agreed in an OCR round
+/// @param observationsTimestamp The time the median value was observed on
+/// @param bid The best bid value agreed in an OCR round
+/// @param ask The best ask value agreed in an OCR round
+/// @param blockNumberUpperBound The upper bound of the block range the median value was observed within
+/// @param upperBlockhash The blockhash for the upper bound of block range (ensures correct blockchain)
+/// @param blockNumberLowerBound The lower bound of the block range the median value was observed within
+/// @param currentBlockTimestamp The timestamp of the current (upperbound) block number
+struct Report {
+    bytes32 feedId;
+    uint32 observationsTimestamp;
+    int192 median;
+    int192 bid;
+    int192 ask;
+    uint64 blockNumberUpperBound;
+    bytes32 upperBlockhash;
+    uint64 blockNumberLowerBound;
+    uint64 currentBlockTimestamp;
+}
+
 interface IStreamsLookupCompatible {
     error StreamsLookup(string feedParamKey, string[] feeds, string timeParamKey, uint256 time, bytes extraData);
 

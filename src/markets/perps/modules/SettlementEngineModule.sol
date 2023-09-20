@@ -4,10 +4,12 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { ILogAutomation, Log as AutomationLog } from "@zaros/external/interfaces/chainlink/ILogAutomation.sol";
-import { IStreamsLookupCompatible } from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
+import { IStreamsLookupCompatible, Report } from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
+import { IVerifierProxy } from "@zaros/external/interfaces/chainlink/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { ISettlementEngineModule } from "../interfaces/ISettlementEngineModule.sol";
 import { Order } from "../storage/Order.sol";
+import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -49,7 +51,20 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         return (true, abi.encode(values, extraData));
     }
 
-    function performUpkeep(bytes calldata performData) external { }
+    function performUpkeep(bytes calldata performData) external {
+        IVerifierProxy dataStreamsVerifier = PerpsConfiguration.load().dataStreamsVerifier;
+        (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
+        // implement
+        uint256 chainlinkFee;
+        bytes memory verifiedReports = dataStreamsVerifier.verify{ value: chainlinkFee }(signedReports);
+        (uint8 orderId, Order.Data memory order) = abi.decode(extraData, (uint8, Order.Data));
+
+        Report memory report = verifiedReports[0];
+    }
+
+    function _getReport(bytes memory report) internal pure returns (Report memory) {
+        return abi.decode(report, (Report));
+    }
 
     function _settleOrder() internal { }
 }
