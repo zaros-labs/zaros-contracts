@@ -8,6 +8,10 @@ library Constants {
     /// @dev Maximum minimum delegation time to markets
     uint32 internal constant MAX_MIN_DELEGATE_TIME = 30 days;
 
+    /// @dev Chainlink Data Streams Lookup constants
+    string internal constant DATA_STREAMS_FEED_LABEL = "feedIDs";
+    string internal constant DATA_STREAMS_QUERY_LABEL = "timestamp";
+
     /// @dev All Zaros users features
     bytes32 internal constant CREATE_ACCOUNT_FEATURE_FLAG = "createAccount";
     bytes32 internal constant DEPOSIT_FEATURE_FLAG = "deposit";
