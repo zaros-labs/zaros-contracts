@@ -4,7 +4,9 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { ILogAutomation, Log as AutomationLog } from "@zaros/external/interfaces/chainlink/ILogAutomation.sol";
-import { IStreamsLookupCompatible, Report } from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
+import {
+    IStreamsLookupCompatible, BasicReport
+} from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/interfaces/chainlink/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { ISettlementEngineModule } from "../interfaces/ISettlementEngineModule.sol";
@@ -52,18 +54,22 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
     }
 
     function performUpkeep(bytes calldata performData) external {
-        IVerifierProxy dataStreamsVerifier = PerpsConfiguration.load().dataStreamsVerifier;
+        IVerifierProxy chainlinkVerifier = IVerifierProxy(PerpsConfiguration.load().chainlinkVerifier);
         (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
         // implement
         uint256 chainlinkFee;
-        bytes memory verifiedReports = dataStreamsVerifier.verify{ value: chainlinkFee }(signedReports);
-        (uint8 orderId, Order.Data memory order) = abi.decode(extraData, (uint8, Order.Data));
+        bytes memory unverifiedReportData = signedReports[0];
+        BasicReport memory unverifiedReport = _getReport(unverifiedReportData);
+        bytes memory verifiedReportData =
+            chainlinkVerifier.verify{ value: unverifiedReport.nativeFee }(unverifiedReportData);
+        BasicReport memory verifiedReport = _getReport(verifiedReportData);
+        (uint8 orderId,) = abi.decode(extraData, (uint8, Order.Data));
 
-        Report memory report = verifiedReports[0];
+        // _settleOrder(accountId, marketId, orderId, verifiedReport);
     }
 
-    function _getReport(bytes memory report) internal pure returns (Report memory) {
-        return abi.decode(report, (Report));
+    function _getReport(bytes memory report) internal pure returns (BasicReport memory) {
+        return abi.decode(report, (BasicReport));
     }
 
     function _settleOrder() internal { }

@@ -85,6 +85,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
 
     /// @dev {PerpsConfigurationModule} UUPS initializer.
     function __PerpsConfigurationModule_init(
+        address chainlinkVerifier,
         address perpsAccountToken,
         address rewardDistributor,
         address zaros
@@ -92,6 +93,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         internal
     {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
         perpsConfiguration.perpsAccountToken = perpsAccountToken;
         perpsConfiguration.rewardDistributor = rewardDistributor;
         perpsConfiguration.zaros = zaros;

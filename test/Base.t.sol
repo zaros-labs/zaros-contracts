@@ -31,6 +31,7 @@ abstract contract Base_Test is Test, Events {
     /// @dev TODO: deploy real contracts instead of mocking them
     address internal mockZarosAddress = vm.addr({ privateKey: 0x02 });
     address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x03 });
+    address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x04 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -61,7 +62,7 @@ abstract contract Base_Test is Test, Events {
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         perpsExchange =
-            new PerpsExchange(address(perpsAccountToken), address(mockRewardDistributorAddress), address(zaros));
+        new PerpsExchange(mockChainlinkVerifier, address(perpsAccountToken), address(mockRewardDistributorAddress), address(zaros));
 
         distributeTokens();
         perpsAccountToken.transferOwnership(address(perpsExchange));

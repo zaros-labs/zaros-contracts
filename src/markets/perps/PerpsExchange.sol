@@ -18,7 +18,9 @@ contract PerpsExchange is
     PerpsMarketModule,
     SettlementEngineModule
 {
-    constructor(address perpsAccountToken, address rewardDistributor, address zaros) {
-        PerpsConfigurationModule.__PerpsConfigurationModule_init(perpsAccountToken, rewardDistributor, zaros);
+    constructor(address chainlinkVerifier, address perpsAccountToken, address rewardDistributor, address zaros) {
+        PerpsConfigurationModule.__PerpsConfigurationModule_init(
+            chainlinkVerifier, perpsAccountToken, rewardDistributor, zaros
+        );
     }
 }

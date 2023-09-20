@@ -36,9 +36,10 @@ library PerpsConfiguration {
         EnumerableSet.UintSet enabledMarketsIds;
         uint256 maxPositionsPerAccount;
         uint256 maxActiveOrders;
-        address zaros;
-        address rewardDistributor;
+        address chainlinkVerifier;
         address perpsAccountToken;
+        address rewardDistributor;
+        address zaros;
         uint96 nextAccountId;
     }
 
