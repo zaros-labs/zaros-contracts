@@ -64,8 +64,6 @@ abstract contract OrderModule is IOrderModule {
         emit LogCreateOrder(msg.sender, accountId, marketId, orderId, order);
     }
 
-    // function settleOrder(bytes32 orderId) external { }
-
     /// @inheritdoc IOrderModule
     function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
