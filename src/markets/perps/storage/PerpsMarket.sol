@@ -30,6 +30,7 @@ library PerpsMarket {
     struct Data {
         string name;
         string symbol;
+        bytes32 streamId;
         uint128 id;
         uint128 minInitialMarginRate;
         uint128 maintenanceMarginRate;
@@ -54,6 +55,7 @@ library PerpsMarket {
         uint128 marketId,
         string memory name,
         string memory symbol,
+        bytes32 streamId,
         address priceFeed,
         uint128 minInitialMarginRate,
         uint128 maxOpenInterest,
@@ -70,6 +72,7 @@ library PerpsMarket {
         perpsMarket.id = marketId;
         perpsMarket.name = name;
         perpsMarket.symbol = symbol;
+        perpsMarket.streamId = streamId;
         perpsMarket.priceFeed = priceFeed;
         perpsMarket.minInitialMarginRate = minInitialMarginRate;
         perpsMarket.maxOpenInterest = maxOpenInterest;

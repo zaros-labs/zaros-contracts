@@ -48,6 +48,7 @@ interface IPerpsConfigurationModule {
     /// @param marketId The perps market id.
     /// @param name The perps market name.
     /// @param symbol The perps market symbol.
+    /// @param streamId The chainlink data streams feed id.
     /// @param priceFeed The perps market price feed address.
     /// @param minInitialMarginRate The perps market min initial margin rate, which defines the max leverage.
     /// @param orderFees The perps market maker and taker fees.
@@ -56,6 +57,7 @@ interface IPerpsConfigurationModule {
         uint128 marketId,
         string calldata name,
         string calldata symbol,
+        bytes32 streamId,
         address priceFeed,
         uint128 minInitialMarginRate,
         uint128 maxOpenInterest,

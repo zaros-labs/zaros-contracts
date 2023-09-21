@@ -42,11 +42,11 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         // TODO: update to use order.settlementTimestamp
         uint256 settlementTimestamp = log.timestamp;
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[1]), uint256(log.topics[2]).toUint128());
+        bytes32 streamId = PerpsMarket.load(marketId).streamId;
         (Order.Data memory order) = abi.decode(log.data, (Order.Data));
         // TODO: add proper order.validate() check
         string[] memory feeds = new string[](1);
-        // ETH-USD feed id
-        feeds[0] = "0x00023496426b520583ae20a66d80484e0fc18544866a5b0bfee15ec771963274";
+        feeds[0] = string(abi.encodePacked(streamId));
         bytes memory extraData = abi.encode(order.id);
 
         revert StreamsLookup(

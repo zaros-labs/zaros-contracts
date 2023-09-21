@@ -58,6 +58,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         uint128 marketId,
         string calldata name,
         string calldata symbol,
+        bytes32 streamId,
         address priceFeed,
         uint128 minInitialMarginRate,
         uint128 maxOpenInterest,
@@ -77,7 +78,9 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
-        PerpsMarket.create(marketId, name, symbol, priceFeed, minInitialMarginRate, maxOpenInterest, orderFees);
+        PerpsMarket.create(
+            marketId, name, symbol, streamId, priceFeed, minInitialMarginRate, maxOpenInterest, orderFees
+        );
         perpsConfiguration.addMarket(marketId);
 
         emit LogCreatePerpsMarket(marketId, name, symbol);
