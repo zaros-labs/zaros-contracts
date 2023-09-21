@@ -42,7 +42,7 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         // TODO: update to use order.settlementTimestamp
         uint256 settlementTimestamp = log.timestamp;
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[1]), uint256(log.topics[2]).toUint128());
-        (uint8 orderId, Order.Data memory order) = abi.decode(log.data, (uint8, Order.Data));
+        (Order.Data memory order) = abi.decode(log.data, (uint8, Order.Data));
         // TODO: add proper order.validate() check
         string[] memory feeds = new string[](1);
         // ETH-USD feed id
@@ -85,7 +85,7 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
     }
 
     // TODO: many validations pending
-    function _settleOrder(uint128 marketId, uint256 accountId, uint8 orderId, BasicReport memory report) internal {
+    function _settleOrder(Order.Data memory order, BasicReport memory report) internal {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
         Order.Data storage order = perpsMarket.orders[accountId][orderId];

@@ -23,7 +23,7 @@ contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
                 ParameterError.Zaros_InvalidParameter.selector, "amount", "amount can't be zero"
                 )
         });
-        perpsExchange.withdrawMargin(perpsAccountId, address(zrsUsd), 0);
+        perpsExchange.withdrawMargin(perpsAccountId, address(usdToken), 0);
     }
 
     modifier whenAmountIsNotZero() {
@@ -40,7 +40,7 @@ contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
                 PerpsAccount.Zaros_PerpsAccount_PermissionDenied.selector, perpsAccountId, users.sasuke
                 )
         });
-        perpsExchange.withdrawMargin(perpsAccountId, address(zrsUsd), amount);
+        perpsExchange.withdrawMargin(perpsAccountId, address(usdToken), amount);
     }
 
     modifier whenAuthorizedSender() {
@@ -55,19 +55,19 @@ contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
         uint256 perpsAccountId = _createAccountAndDeposit(amount);
 
         vm.expectEmit({ emitter: address(perpsExchange) });
-        emit LogWithdrawMargin(users.naruto, perpsAccountId, address(zrsUsd), amountToWithdraw);
-        expectCallToTransfer(zrsUsd, users.naruto, amountToWithdraw);
-        perpsExchange.withdrawMargin(perpsAccountId, address(zrsUsd), amountToWithdraw);
+        emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);
+        expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
+        perpsExchange.withdrawMargin(perpsAccountId, address(usdToken), amountToWithdraw);
 
         uint256 expectedMargin = amount - amountToWithdraw;
         uint256 newMarginCollateral =
-            perpsExchange.getAccountMarginCollateral(perpsAccountId, address(zrsUsd)).intoUint256();
+            perpsExchange.getAccountMarginCollateral(perpsAccountId, address(usdToken)).intoUint256();
 
         assertEq(expectedMargin, newMarginCollateral);
     }
 
     function _createAccountAndDeposit(uint256 amount) internal returns (uint256 accountId) {
         accountId = perpsExchange.createPerpsAccount();
-        perpsExchange.depositMargin(accountId, address(zrsUsd), amount);
+        perpsExchange.depositMargin(accountId, address(usdToken), amount);
     }
 }

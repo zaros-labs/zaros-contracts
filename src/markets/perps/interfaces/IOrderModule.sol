@@ -17,9 +17,7 @@ interface IOrderModule {
     //     address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
     // );
 
-    event LogCreateOrder(
-        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId, Order.Data order
-    );
+    event LogCreateOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Order.Data order);
     event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
 
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);

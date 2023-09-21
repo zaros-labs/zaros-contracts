@@ -58,7 +58,7 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
     }
 
     function getZarosUsd() external view override returns (address) {
-        return MarketManager.load().zrsUsd;
+        return MarketManager.load().usdToken;
     }
 
     // function depositMarketUsd(
@@ -164,7 +164,7 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
         emit LogConfigureMarkets(msg.sender, marketConfigurations);
     }
 
-    function __MarketManagerModule_init(address zrsUsd) internal {
-        MarketManager.load().zrsUsd = zrsUsd;
+    function __MarketManagerModule_init(address usdToken) internal {
+        MarketManager.load().usdToken = usdToken;
     }
 }

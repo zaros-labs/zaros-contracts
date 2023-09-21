@@ -38,7 +38,7 @@ abstract contract Base_Test is Test, Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     AccountNFT internal perpsAccountToken;
-    MockZarosUSD internal zrsUsd;
+    MockZarosUSD internal usdToken;
     PerpsExchange internal perpsExchange;
     RewardDistributor internal rewardDistributor;
     Zaros internal zaros;
@@ -58,18 +58,18 @@ abstract contract Base_Test is Test, Events {
         vm.startPrank({ msgSender: users.owner });
 
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
-        zrsUsd = new MockZarosUSD({ ownerBalance: 100_000_000e18 });
+        usdToken = new MockZarosUSD({ ownerBalance: 100_000_000e18 });
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         perpsExchange =
-        new PerpsExchange(mockChainlinkVerifier, address(perpsAccountToken), address(mockRewardDistributorAddress), address(zrsUsd), address(zaros));
+        new PerpsExchange(mockChainlinkVerifier, address(perpsAccountToken), address(mockRewardDistributorAddress), address(usdToken), address(zaros));
 
         distributeTokens();
         perpsAccountToken.transferOwnership(address(perpsExchange));
         configureContracts();
 
         vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account Token" });
-        vm.label({ account: address(zrsUsd), newLabel: "Zaros USD" });
+        vm.label({ account: address(usdToken), newLabel: "Zaros USD" });
         vm.label({ account: address(zaros), newLabel: "Zaros" });
         vm.label({ account: address(rewardDistributor), newLabel: "Reward Distributor" });
         vm.label({ account: address(perpsExchange), newLabel: "Perps Manager" });
@@ -90,38 +90,38 @@ abstract contract Base_Test is Test, Events {
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
         changePrank({ msgSender: users.naruto });
-        zrsUsd.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sasuke });
-        zrsUsd.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sakura });
-        zrsUsd.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.madara });
-        zrsUsd.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
 
         // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });
     }
 
     function configureContracts() internal {
-        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
-        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
-        zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, users.owner);
-        zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
+        usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
+        usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
+        usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, users.owner);
+        usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
 
-        perpsExchange.setIsCollateralEnabled(address(zrsUsd), true);
+        perpsExchange.setIsCollateralEnabled(address(usdToken), true);
     }
 
     function distributeTokens() internal {
-        deal({ token: address(zrsUsd), to: users.naruto, give: 1_000_000e18 });
+        deal({ token: address(usdToken), to: users.naruto, give: 1_000_000e18 });
 
-        deal({ token: address(zrsUsd), to: users.sasuke, give: 1_000_000e18 });
+        deal({ token: address(usdToken), to: users.sasuke, give: 1_000_000e18 });
 
-        deal({ token: address(zrsUsd), to: users.sakura, give: 1_000_000e18 });
+        deal({ token: address(usdToken), to: users.sakura, give: 1_000_000e18 });
 
-        deal({ token: address(zrsUsd), to: users.madara, give: 1_000_000e18 });
+        deal({ token: address(usdToken), to: users.madara, give: 1_000_000e18 });
     }
 
     /*//////////////////////////////////////////////////////////////////////////

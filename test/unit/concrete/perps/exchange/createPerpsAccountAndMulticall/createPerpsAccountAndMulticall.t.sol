@@ -16,7 +16,7 @@ contract CreatePerpsAccountAndMulticall_Unit_Concrete_Test is Base_Test {
 
     function test_RevertWhen_RevertingCallProvided() external {
         bytes[] memory data = new bytes[](1);
-        data[0] = abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(zrsUsd), uint256(0));
+        data[0] = abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), uint256(0));
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 ParameterError.Zaros_InvalidParameter.selector, "amount", "amount can't be zero"

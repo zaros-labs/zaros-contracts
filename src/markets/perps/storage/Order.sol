@@ -23,6 +23,7 @@ library Order {
     }
 
     struct Data {
+        uint8 id;
         Payload payload;
         uint256 settlementTimestamp;
     }

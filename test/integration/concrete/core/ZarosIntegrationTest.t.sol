@@ -21,7 +21,7 @@ pragma solidity 0.8.19;
 //     address internal deployer = vm.addr(1);
 //     MockERC20 internal sFrxEth;
 //     MockERC20 internal usdc;
-//     MockZarosUSD internal zrsUsd;
+//     MockZarosUSD internal usdToken;
 //     AccountNFT internal accountNft;
 //     Zaros internal zaros;
 
@@ -43,19 +43,19 @@ pragma solidity 0.8.19;
 
 //         sFrxEth = new MockERC20("Staked Frax Ether", "sfrxETH", 18);
 //         usdc = new MockERC20("USD Coin", "USDC", 6);
-//         zrsUsd = new MockZarosUSD(100_000_000e18);
+//         usdToken = new MockZarosUSD(100_000_000e18);
 //         accountNft = new AccountNFT("Zaros Accounts", "ZRS-ACC");
-//         zaros = new Zaros(address(accountNft), address(zrsUsd));
+//         zaros = new Zaros(address(accountNft), address(usdToken));
 //         ethUsdOracle = address(new MockPriceFeed(8, 1000e8));
 //         usdcUsdOracle = address(new MockPriceFeed(8, 1e8));
 
-//         zrsUsd.transferOwnership(address(zaros));
+//         usdToken.transferOwnership(address(zaros));
 //         accountNft.transferOwnership(address(zaros));
 
 //         RewardDistributor sFrxEthRewardDistributor =
-//             new RewardDistributor(address(zaros), address(zrsUsd), "sfrxETH Vault zrsUSD Distributor");
+//             new RewardDistributor(address(zaros), address(usdToken), "sfrxETH Vault zrsUSD Distributor");
 //         RewardDistributor usdcRewardDistributor =
-//             new RewardDistributor(address(zaros), address(zrsUsd), "USDC Vault zrsUSD Distributor");
+//             new RewardDistributor(address(zaros), address(usdToken), "USDC Vault zrsUSD Distributor");
 
 //         zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
 //         zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));

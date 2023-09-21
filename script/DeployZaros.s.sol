@@ -36,23 +36,23 @@ pragma solidity 0.8.19;
 //     function run() public broadcaster {
 //         IERC20 sFrxEth = IERC20(vm.envAddress("SFRXETH"));
 //         IERC20 usdc = IERC20(vm.envAddress("USDC"));
-//         ZarosUSD zrsUsd = ZarosUSD(vm.envAddress("ZRSUSD"));
+//         ZarosUSD usdToken = ZarosUSD(vm.envAddress("ZRSUSD"));
 //         AccountNFT accountNft = new AccountNFT("Zaros Accounts", "ZRS-ACC");
-//         Zaros zaros = new Zaros(address(accountNft), address(zrsUsd));
+//         Zaros zaros = new Zaros(address(accountNft), address(usdToken));
 //         BalancerUSDCStrategy balancerUsdcStrategy =
-//         new BalancerUSDCStrategy(address(zaros), address(usdc), address(zrsUsd),
+//         new BalancerUSDCStrategy(address(zaros), address(usdc), address(usdToken),
 //         vm.envAddress("BALANCER_VAULT"), vm.envBytes32("ZRSUSD_USDC_POOL_ID"));
 //         address ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
 //         address usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
 
-//         zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
-//         zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
-//         zrsUsd.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, deployer);
-//         zrsUsd.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, deployer);
+//         usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
+//         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
+//         usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, deployer);
+//         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, deployer);
 //         accountNft.transferOwnership(address(zaros));
 
 //         RewardDistributor rewardDistributor =
-//             new RewardDistributor(address(zaros), address(zrsUsd), "Zaros zrsUSD Distributor");
+//             new RewardDistributor(address(zaros), address(usdToken), "Zaros zrsUSD Distributor");
 
 //         zaros.registerRewardDistributor(address(sFrxEth), address(rewardDistributor));
 //         zaros.registerRewardDistributor(address(usdc), address(rewardDistributor));
@@ -74,7 +74,7 @@ pragma solidity 0.8.19;
 //             console.log(address(sFrxEthPerpsMarket));
 
 //             // perpsExchange.setSupportedMarket(address(sFrxEthPerpsMarket), true);
-//             perpsExchange.setIsCollateralEnabled(address(zrsUsd), true);
+//             perpsExchange.setIsCollateralEnabled(address(usdToken), true);
 //         }
 
 //         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({

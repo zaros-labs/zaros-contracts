@@ -56,12 +56,12 @@ abstract contract OrderModule is IOrderModule {
         }
 
         // TODO: validate order
-        Order.Data memory order = Order.Data({ payload: payload, settlementTimestamp: block.timestamp });
+        uint8 orderId = (perpsMarket.orders[accountId].length).toUint8();
+        Order.Data memory order = Order.Data({ id: orderId, payload: payload, settlementTimestamp: block.timestamp });
         perpsMarket.orders[accountId].push(order);
-        uint8 orderId = (perpsMarket.orders[accountId].length - 1).toUint8();
         perpsAccount.updateActiveOrders(marketId, orderId, true);
 
-        emit LogCreateOrder(msg.sender, accountId, marketId, orderId, order);
+        emit LogCreateOrder(msg.sender, accountId, marketId, order);
     }
 
     /// @inheritdoc IOrderModule

@@ -17,7 +17,7 @@ contract DepositMargin_Unit_Concrete_Test is Base_Test {
 
     function test_CollateralNotEnabled() external {
         changePrank({ msgSender: users.owner });
-        perpsExchange.setIsCollateralEnabled(address(zrsUsd), false);
+        perpsExchange.setIsCollateralEnabled(address(usdToken), false);
         changePrank({ msgSender: users.naruto });
 
         uint256 amountToDeposit = 100e18;
@@ -25,11 +25,11 @@ contract DepositMargin_Unit_Concrete_Test is Base_Test {
 
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                IPerpsAccountModule.Zaros_PerpsAccountModule_InvalidCollateralType.selector, address(zrsUsd)
+                IPerpsAccountModule.Zaros_PerpsAccountModule_InvalidCollateralType.selector, address(usdToken)
                 )
         });
 
-        perpsExchange.depositMargin(userPerpsAccountId, address(zrsUsd), amountToDeposit);
+        perpsExchange.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
     }
 
     modifier whenCollateralIsEnabled() {
@@ -46,7 +46,7 @@ contract DepositMargin_Unit_Concrete_Test is Base_Test {
                 )
         });
 
-        perpsExchange.depositMargin(userPerpsAccountId, address(zrsUsd), amountToDeposit);
+        perpsExchange.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
     }
 
     modifier givenAmountIsNotZero() {
@@ -63,7 +63,7 @@ contract DepositMargin_Unit_Concrete_Test is Base_Test {
                 )
         });
 
-        perpsExchange.depositMargin(userPerpsAccountId, address(zrsUsd), amountToDeposit);
+        perpsExchange.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
     }
 
     function test_PerpsAccountExists() external whenCollateralIsEnabled givenAmountIsNotZero {
@@ -71,12 +71,12 @@ contract DepositMargin_Unit_Concrete_Test is Base_Test {
         uint256 userPerpsAccountId = perpsExchange.createPerpsAccount();
 
         vm.expectEmit({ emitter: address(perpsExchange) });
-        emit LogDepositMargin(users.naruto, userPerpsAccountId, address(zrsUsd), amountToDeposit);
-        expectCallToTransferFrom(zrsUsd, users.naruto, address(perpsExchange), amountToDeposit);
-        perpsExchange.depositMargin(userPerpsAccountId, address(zrsUsd), amountToDeposit);
+        emit LogDepositMargin(users.naruto, userPerpsAccountId, address(usdToken), amountToDeposit);
+        expectCallToTransferFrom(usdToken, users.naruto, address(perpsExchange), amountToDeposit);
+        perpsExchange.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
 
         uint256 newMarginCollateral =
-            perpsExchange.getAccountMarginCollateral(userPerpsAccountId, address(zrsUsd)).intoUint256();
+            perpsExchange.getAccountMarginCollateral(userPerpsAccountId, address(usdToken)).intoUint256();
         assertEq(newMarginCollateral, amountToDeposit);
     }
 }
