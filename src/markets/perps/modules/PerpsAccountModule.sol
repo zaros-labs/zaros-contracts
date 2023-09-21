@@ -121,7 +121,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function notifyAccountTransfer(address to, uint256 accountId) external override {
+    function notifyAccountTransfer(address to, uint128 accountId) external override {
         _onlyPerpsAccountToken();
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
