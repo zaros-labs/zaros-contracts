@@ -126,6 +126,6 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         perpsAccount.updateActiveOrders(runtime.marketId, order.id, false);
         oldPosition.update(runtime.newPosition);
 
-        // emit LogSettleOrder();
+        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, order, runtime.newPosition);
     }
 }
