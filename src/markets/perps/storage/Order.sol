@@ -14,7 +14,7 @@ library Order {
     }
 
     struct Payload {
-        uint128 accountId;
+        uint256 accountId;
         uint128 marketId;
         int128 initialMarginDelta;
         int128 sizeDelta;

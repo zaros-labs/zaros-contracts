@@ -114,5 +114,5 @@ interface IPerpsAccountModule {
     /// @dev It updates the Perps Account stored access control data.
     /// @param to The recipient of the account transfer.
     /// @param accountId The trading account id.
-    function notifyAccountTransfer(address to, uint128 accountId) external;
+    function notifyAccountTransfer(address to, uint256 accountId) external;
 }

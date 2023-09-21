@@ -153,7 +153,7 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     /// @param marketId The perps market id.
     /// @param isActive `true` if the market is active, `false` otherwise.
-    function updateActiveMarkets(Data storage self, uint256 marketId, bool isActive) internal {
+    function updateActiveMarkets(Data storage self, uint128 marketId, bool isActive) internal {
         if (isActive) {
             self.activeMarketsIds.add(marketId);
         } else {
