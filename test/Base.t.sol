@@ -62,7 +62,7 @@ abstract contract Base_Test is Test, Events {
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         perpsExchange =
-        new PerpsExchange(mockChainlinkVerifier, address(perpsAccountToken), address(mockRewardDistributorAddress), address(zaros));
+        new PerpsExchange(mockChainlinkVerifier, address(perpsAccountToken), address(mockRewardDistributorAddress), address(zrsUsd), address(zaros));
 
         distributeTokens();
         perpsAccountToken.transferOwnership(address(perpsExchange));

@@ -88,6 +88,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         address chainlinkVerifier,
         address perpsAccountToken,
         address rewardDistributor,
+        address usdToken,
         address zaros
     )
         internal
@@ -96,6 +97,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
         perpsConfiguration.perpsAccountToken = perpsAccountToken;
         perpsConfiguration.rewardDistributor = rewardDistributor;
+        perpsConfiguration.usdToken = usdToken;
         perpsConfiguration.zaros = zaros;
     }
 }

@@ -27,10 +27,10 @@ library PerpsConfiguration {
     /// @notice {PerpConfiguration} namespace storage structure.
     /// @param enabledCollateralTypes The cross margin supported collateral types.
     /// @param enabledMarketsIds The enabled perps markets ids.
-    /// @param zaros The Zaros protocol contract address.
     /// @param rewardDistributor The reward distributor contract address.
     /// @param perpsAccountToken The perps account token contract address.
     /// @param nextAccountId The next account id to be used.
+    /// @param zaros The Zaros protocol contract address.
     struct Data {
         EnumerableSet.AddressSet enabledCollateralTypes;
         EnumerableSet.UintSet enabledMarketsIds;
@@ -39,6 +39,7 @@ library PerpsConfiguration {
         address chainlinkVerifier;
         address perpsAccountToken;
         address rewardDistributor;
+        address usdToken;
         address zaros;
         uint96 nextAccountId;
     }
