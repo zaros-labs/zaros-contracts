@@ -91,7 +91,7 @@ contract DeployAlphaPerps is BaseScript {
     }
 
     function logContracts() internal view {
-        console.log("Perps Account Token: ");
+        console.log("Perps Account NFT: ");
         console.log(address(perpsAccountToken));
 
         console.log("Perps Engine Implementation: ");

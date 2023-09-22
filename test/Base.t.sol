@@ -83,7 +83,7 @@ abstract contract Base_Test is Test, Events {
         distributeTokens();
         configureContracts();
 
-        vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account Token" });
+        vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account NFT" });
         vm.label({ account: address(usdToken), newLabel: "Zaros USD" });
         vm.label({ account: address(zaros), newLabel: "Zaros" });
         vm.label({ account: address(rewardDistributor), newLabel: "Reward Distributor" });
