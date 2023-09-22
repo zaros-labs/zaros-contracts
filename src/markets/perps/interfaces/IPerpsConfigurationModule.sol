@@ -44,6 +44,8 @@ interface IPerpsConfigurationModule {
     /// @param shouldEnable `true` if the collateral type should be enabled, `false` if it should be disabled.
     function setIsCollateralEnabled(address collateralType, bool shouldEnable) external;
 
+    function setChainlinkVerifier(address chainlinkVerifier) external;
+
     /// @notice Creates a new market with the requested market id.
     /// @param marketId The perps market id.
     /// @param name The perps market name.

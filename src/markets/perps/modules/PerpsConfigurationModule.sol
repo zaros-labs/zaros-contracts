@@ -53,6 +53,11 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         emit LogSetSupportedCollateral(msg.sender, collateralType, shouldEnable);
     }
 
+    function setChainlinkVerifier(address chainlinkVerifier) external override onlyOwner {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
+    }
+
     /// @inheritdoc IPerpsConfigurationModule
     function createPerpsMarket(
         uint128 marketId,
