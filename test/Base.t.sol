@@ -62,7 +62,7 @@ abstract contract Base_Test is Test, Events {
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         perpsEngine = new PerpsEngine(mockChainlinkVerifier,
-        address(perpsAccountToken), address(mockRewardDistributorAddress), address(usdToken), address(zaros));
+        address(perpsAccountToken), address(rewardDistributor), address(usdToken), address(zaros));
 
         distributeTokens();
         perpsAccountToken.transferOwnership(address(perpsEngine));
@@ -107,8 +107,11 @@ abstract contract Base_Test is Test, Events {
 
     function configureContracts() internal {
         usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
+
         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
+
         usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, users.owner);
+
         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
 
         perpsEngine.setIsCollateralEnabled(address(usdToken), true);

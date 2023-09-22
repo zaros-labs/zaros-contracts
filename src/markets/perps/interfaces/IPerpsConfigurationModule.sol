@@ -50,17 +50,19 @@ interface IPerpsConfigurationModule {
     /// @param symbol The perps market symbol.
     /// @param streamId The chainlink data streams feed id.
     /// @param priceFeed The perps market price feed address.
+    /// @param maintenanceMarginRate The perps market maintenance margin rate.
+    /// @param maxOpenInterest The perps market maximum open interest per side.
     /// @param minInitialMarginRate The perps market min initial margin rate, which defines the max leverage.
     /// @param orderFees The perps market maker and taker fees.
-    /// @param maxOpenInterest The perps market maximum open interest per side.
     function createPerpsMarket(
         uint128 marketId,
         string calldata name,
         string calldata symbol,
         bytes32 streamId,
         address priceFeed,
-        uint128 minInitialMarginRate,
+        uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
+        uint128 minInitialMarginRate,
         OrderFees.Data calldata orderFees
     )
         external;
