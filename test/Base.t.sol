@@ -65,7 +65,6 @@ abstract contract Base_Test is Test, Events {
         address(perpsAccountToken), address(rewardDistributor), address(usdToken), address(zaros));
 
         distributeTokens();
-        perpsAccountToken.transferOwnership(address(perpsEngine));
         configureContracts();
 
         vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account Token" });
@@ -106,6 +105,8 @@ abstract contract Base_Test is Test, Events {
     }
 
     function configureContracts() internal {
+        perpsAccountToken.transferOwnership(address(perpsEngine));
+
         usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
 
         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));

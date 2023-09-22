@@ -44,6 +44,11 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         perpsConfiguration.zaros = zaros;
     }
 
+    function setChainlinkVerifier(address chainlinkVerifier) external override onlyOwner {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
+    }
+
     /// @inheritdoc IPerpsConfigurationModule
     function setIsCollateralEnabled(address collateralType, bool shouldEnable) external override onlyOwner {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
@@ -51,11 +56,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         perpsConfiguration.setIsCollateralEnabled(collateralType, shouldEnable);
 
         emit LogSetSupportedCollateral(msg.sender, collateralType, shouldEnable);
-    }
-
-    function setChainlinkVerifier(address chainlinkVerifier) external override onlyOwner {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
     }
 
     /// @inheritdoc IPerpsConfigurationModule
