@@ -12,7 +12,7 @@ contract GetAccountTokenAddress_Unit_Concrete_Test is Base_Test {
 
     function test_PerpsAccountTokenStored() external {
         address expectedPerpsAccountToken = address(perpsAccountToken);
-        address perpsAccountToken = perpsExchange.getPerpsAccountTokenAddress();
+        address perpsAccountToken = perpsEngine.getPerpsAccountTokenAddress();
 
         assertEq(perpsAccountToken, expectedPerpsAccountToken, "getPerpsAccountTokenAddress");
     }

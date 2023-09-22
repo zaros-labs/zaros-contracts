@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IPerpsExchange } from "../interfaces/IPerpsExchange.sol";
+import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
@@ -84,7 +84,7 @@ abstract contract OrderModule is IOrderModule {
     //     returns (uint256 previousPositionAmount)
     // {
     //     PerpsMarket.Data storage perpsMarket = PerpsMarket.load();
-    //     if (msg.sender != perpsMarket.perpsExchange) {
+    //     if (msg.sender != perpsMarket.perpsEngine) {
     //         revert();
     //     }
 
@@ -105,7 +105,7 @@ abstract contract OrderModule is IOrderModule {
     //     OrderFees.Data memory orderFees = perpsMarket.orderFees;
     //     Position.Data storage position = perpsMarket.positions[accountId];
     //     previousPositionAmount = position.margin.amount;
-    //     IPerpsExchange perpsExchange = IPerpsExchange(perpsMarket.perpsExchange);
+    //     IPerpsEngine perpsEngine = IPerpsEngine(perpsMarket.perpsEngine);
     //     UD60x18 sizeAbs = sd59x18(order.sizeDelta).lt(SD_ZERO)
     //         ? unary(sd59x18(order.sizeDelta)).intoUD60x18()
     //         : sd59x18(order.sizeDelta).intoUD60x18();
@@ -113,16 +113,16 @@ abstract contract OrderModule is IOrderModule {
     //     UD60x18 fee = sizeAbs.mul(ud60x18(orderFees.takerFee));
 
     //     if (ud60x18(order.marginAmount).gt(ud60x18(position.margin.amount))) {
-    //         // perpsExchange.addIsolatedMarginToPosition(
+    //         // perpsEngine.addIsolatedMarginToPosition(
     //         //     accountId, order.collateralType, ud60x18(order.marginAmount).sub(ud60x18(position.margin.amount)),
     //         // fee
     //         // );
     //     } else if (ud60x18(order.marginAmount).lt(ud60x18(position.margin.amount))) {
     //         IERC20(order.collateralType).safeTransfer(
-    //             address(perpsExchange),
+    //             address(perpsEngine),
     // ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount)).intoUint256()
     //         );
-    //         // perpsExchange.removeIsolatedMarginFromPosition(
+    //         // perpsEngine.removeIsolatedMarginFromPosition(
     //         //     accountId, order.collateralType, ud60x18(position.margin.amount).sub(ud60x18(order.marginAmount))
     //         // );
     //     }

@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
-import { PerpsExchange } from "@zaros/markets/perps/PerpsExchange.sol";
+import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { MockZarosUSD } from "./mocks/MockZarosUSD.sol";
@@ -39,7 +39,7 @@ abstract contract Base_Test is Test, Events {
 
     AccountNFT internal perpsAccountToken;
     MockZarosUSD internal usdToken;
-    PerpsExchange internal perpsExchange;
+    PerpsEngine internal perpsEngine;
     RewardDistributor internal rewardDistributor;
     Zaros internal zaros;
 
@@ -61,18 +61,18 @@ abstract contract Base_Test is Test, Events {
         usdToken = new MockZarosUSD({ ownerBalance: 100_000_000e18 });
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
-        perpsExchange = new PerpsExchange(mockChainlinkVerifier,
+        perpsEngine = new PerpsEngine(mockChainlinkVerifier,
         address(perpsAccountToken), address(mockRewardDistributorAddress), address(usdToken), address(zaros));
 
         distributeTokens();
-        perpsAccountToken.transferOwnership(address(perpsExchange));
+        perpsAccountToken.transferOwnership(address(perpsEngine));
         configureContracts();
 
         vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account Token" });
         vm.label({ account: address(usdToken), newLabel: "Zaros USD" });
         vm.label({ account: address(zaros), newLabel: "Zaros" });
         vm.label({ account: address(rewardDistributor), newLabel: "Reward Distributor" });
-        vm.label({ account: address(perpsExchange), newLabel: "Perps Manager" });
+        vm.label({ account: address(perpsEngine), newLabel: "Perps Manager" });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -90,16 +90,16 @@ abstract contract Base_Test is Test, Events {
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
         changePrank({ msgSender: users.naruto });
-        usdToken.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sasuke });
-        usdToken.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sakura });
-        usdToken.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.madara });
-        usdToken.approve({ spender: address(perpsExchange), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
 
         // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });
@@ -111,7 +111,7 @@ abstract contract Base_Test is Test, Events {
         usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, users.owner);
         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
 
-        perpsExchange.setIsCollateralEnabled(address(usdToken), true);
+        perpsEngine.setIsCollateralEnabled(address(usdToken), true);
     }
 
     function distributeTokens() internal {

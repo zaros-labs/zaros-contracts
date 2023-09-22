@@ -6,4 +6,4 @@ pragma solidity 0.8.19;
 import { IPerpsAccountModule } from "./IPerpsAccountModule.sol";
 import { IPerpsConfigurationModule } from "./IPerpsConfigurationModule.sol";
 
-interface IPerpsExchange is IPerpsAccountModule, IPerpsConfigurationModule { }
+interface IPerpsEngine is IPerpsAccountModule, IPerpsConfigurationModule { }

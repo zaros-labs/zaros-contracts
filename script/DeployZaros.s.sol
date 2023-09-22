@@ -10,7 +10,7 @@ pragma solidity 0.8.19;
 // import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
 // import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 // import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
-// import { PerpsExchange } from "@zaros/markets/perps/PerpsExchange.sol";
+// import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 // import { PerpsMarket } from "@zaros/markets/perps/PerpsMarket.sol";
 // import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 
@@ -61,20 +61,20 @@ pragma solidity 0.8.19;
 
 //         {
 //             // TODO: use correct accountNft
-//             PerpsExchange perpsExchange =
-//                 new PerpsExchange(address(accountNft), address(zaros), address(rewardDistributor));
+//             PerpsEngine perpsEngine =
+//                 new PerpsEngine(address(accountNft), address(zaros), address(rewardDistributor));
 
 //             console.log("Perps Vault: ");
-//             console.log(address(perpsExchange));
+//             console.log(address(perpsEngine));
 
 //             PerpsMarket sFrxEthPerpsMarket = new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP",
-//             ethUsdOracle, address(perpsExchange), PERPS_MAX_LEVERAGE, orderFees);
+//             ethUsdOracle, address(perpsEngine), PERPS_MAX_LEVERAGE, orderFees);
 
 //             console.log("Perps Market: ");
 //             console.log(address(sFrxEthPerpsMarket));
 
-//             // perpsExchange.setSupportedMarket(address(sFrxEthPerpsMarket), true);
-//             perpsExchange.setIsCollateralEnabled(address(usdToken), true);
+//             // perpsEngine.setSupportedMarket(address(sFrxEthPerpsMarket), true);
+//             perpsEngine.setIsCollateralEnabled(address(usdToken), true);
 //         }
 
 //         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({

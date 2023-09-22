@@ -22,7 +22,7 @@ contract CreatePerpsAccountAndMulticall_Unit_Concrete_Test is Base_Test {
                 ParameterError.Zaros_InvalidParameter.selector, "amount", "amount can't be zero"
                 )
         });
-        perpsExchange.createPerpsAccountAndMulticall(data);
+        perpsEngine.createPerpsAccountAndMulticall(data);
     }
 
     modifier whenNonRevertingCall() {
@@ -34,10 +34,10 @@ contract CreatePerpsAccountAndMulticall_Unit_Concrete_Test is Base_Test {
         uint256 expectedAccountId = 1;
         uint256 expectedResultsLength = 0;
 
-        vm.expectEmit({ emitter: address(perpsExchange) });
+        vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
 
-        bytes[] memory results = perpsExchange.createPerpsAccountAndMulticall(data);
+        bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
         assertEq(results.length, expectedResultsLength, "createPerpsAccountAndMulticall");
     }
 
@@ -46,10 +46,10 @@ contract CreatePerpsAccountAndMulticall_Unit_Concrete_Test is Base_Test {
         uint256 expectedAccountId = 1;
         data[0] = abi.encodeWithSelector(IPerpsAccountModule.getPerpsAccountTokenAddress.selector);
 
-        vm.expectEmit({ emitter: address(perpsExchange) });
+        vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
 
-        bytes[] memory results = perpsExchange.createPerpsAccountAndMulticall(data);
+        bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
         address perpsAccountTokenReturned = abi.decode(results[0], (address));
 
         assertEq(perpsAccountTokenReturned, address(perpsAccountToken), "createPerpsAccountAndMulticall");
