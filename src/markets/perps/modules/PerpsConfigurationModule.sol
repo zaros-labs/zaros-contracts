@@ -9,11 +9,12 @@ import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 
-// OpenZeppelin dependencies
-import { Ownable } from "@openzeppelin/access/Ownable.sol";
+// OpenZeppelin Upgradeable dependencies
+import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
+import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 /// @notice See {IPerpsConfigurationModule}.
-abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable {
+abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initializable, OwnableUpgradeable {
     using PerpsConfiguration for PerpsConfiguration.Data;
     using PerpsMarket for PerpsMarket.Data;
 
@@ -109,6 +110,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         address zaros
     )
         internal
+        onlyInitializing
     {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
         perpsConfiguration.chainlinkVerifier = chainlinkVerifier;

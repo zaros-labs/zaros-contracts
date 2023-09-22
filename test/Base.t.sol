@@ -18,6 +18,9 @@ import { Test } from "forge-std/Test.sol";
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
+// Open Zeppelin Upgradeable dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
@@ -40,6 +43,7 @@ abstract contract Base_Test is Test, Events {
     AccountNFT internal perpsAccountToken;
     MockZarosUSD internal usdToken;
     PerpsEngine internal perpsEngine;
+    PerpsEngine internal perpsEngineImplementation;
     RewardDistributor internal rewardDistributor;
     Zaros internal zaros;
 
@@ -61,8 +65,20 @@ abstract contract Base_Test is Test, Events {
         usdToken = new MockZarosUSD({ ownerBalance: 100_000_000e18 });
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
-        perpsEngine = new PerpsEngine(mockChainlinkVerifier,
-        address(perpsAccountToken), address(rewardDistributor), address(usdToken), address(zaros));
+
+        perpsEngineImplementation = new PerpsEngine();
+        bytes memory initializeData = abi.encodeWithSelector(
+            perpsEngineImplementation.initialize.selector,
+            mockChainlinkVerifier,
+            address(perpsAccountToken),
+            address(rewardDistributor),
+            address(usdToken),
+            address(zaros)
+        );
+        (bool success,) = address(perpsEngineImplementation).call(initializeData);
+        require(success, "perpsEngineImplementation.initialize failed");
+
+        perpsEngine = PerpsEngine(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData)));
 
         distributeTokens();
         configureContracts();

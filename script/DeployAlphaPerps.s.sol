@@ -16,6 +16,9 @@ import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { ZarosUSD } from "@zaros/usd/ZarosUSD.sol";
 import { BaseScript } from "./Base.s.sol";
 
+// Open Zeppelin Upgradeable dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+
 // Forge dependencies
 import "forge-std/console.sol";
 
@@ -43,14 +46,27 @@ contract DeployAlphaPerps is BaseScript {
     AccountNFT internal perpsAccountToken;
     ZarosUSD internal usdToken;
     PerpsEngine internal perpsEngine;
+    PerpsEngine internal perpsEngineImplementation;
 
     function run() public broadcaster {
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
         usdToken = ZarosUSD(vm.envAddress("ZRSUSD"));
         ethUsdStreamId = vm.envBytes32("ETH_USD_STREAM_ID");
         ethUsdPriceFeed = vm.envAddress("ETH_USD_PRICE_FEED");
-        perpsEngine = new PerpsEngine(mockChainlinkVerifier, address(perpsAccountToken),
-         mockRewardDistributorAddress, address(usdToken), mockZarosAddress);
+
+        perpsEngineImplementation = new PerpsEngine();
+        bytes memory initializeData = abi.encodeWithSelector(
+            perpsEngineImplementation.initialize.selector,
+            mockChainlinkVerifier,
+            address(perpsAccountToken),
+            mockRewardDistributorAddress,
+            address(usdToken),
+            mockZarosAddress
+        );
+        (bool success,) = address(perpsEngineImplementation).call(initializeData);
+        require(success, "perpsEngineImplementation.initialize failed");
+
+        perpsEngine = PerpsEngine(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData)));
 
         configureContracts();
         logContracts();
@@ -78,7 +94,10 @@ contract DeployAlphaPerps is BaseScript {
         console.log("Perps Account Token: ");
         console.log(address(perpsAccountToken));
 
-        console.log("Perps Engine: ");
+        console.log("Perps Engine Implementation: ");
+        console.log(address(perpsEngineImplementation));
+
+        console.log("Perps Engine Proxy: ");
         console.log(address(perpsEngine));
     }
 }
