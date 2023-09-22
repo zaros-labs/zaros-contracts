@@ -39,7 +39,7 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         view
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        // TODO: update to use order.settlementTimestamp
+        // TODO: use order.settlementTimestamp
         uint256 settlementTimestamp = log.timestamp;
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[1]), uint256(log.topics[2]).toUint128());
         bytes32 streamId = PerpsMarket.load(marketId).streamId;
@@ -47,7 +47,7 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         // TODO: add proper order.validate() check
         string[] memory feeds = new string[](1);
         feeds[0] = string(abi.encodePacked(streamId));
-        bytes memory extraData = abi.encode(order.id);
+        bytes memory extraData = abi.encode(accountId, marketId, order.id);
 
         revert StreamsLookup(
             Constants.DATA_STREAMS_FEED_LABEL, feeds, Constants.DATA_STREAMS_QUERY_LABEL, settlementTimestamp, extraData
@@ -75,7 +75,8 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         bytes memory verifiedReportData =
             chainlinkVerifier.verify{ value: unverifiedReport.nativeFee }(unverifiedReportData);
         BasicReport memory verifiedReport = _getReport(verifiedReportData);
-        (Order.Data memory order) = abi.decode(extraData, (Order.Data));
+        (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
+        Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
 
         _settleOrder(order, verifiedReport);
     }
@@ -85,7 +86,7 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
     }
 
     // TODO: many validations pending
-    function _settleOrder(Order.Data memory order, BasicReport memory report) internal {
+    function _settleOrder(Order.Data storage order, BasicReport memory report) internal {
         SettlementRuntime memory runtime;
         runtime.marketId = order.payload.marketId;
         runtime.accountId = order.payload.accountId;
@@ -122,8 +123,7 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
             lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        Order.Data storage storedOrder = perpsMarket.orders[runtime.accountId][order.id];
-        storedOrder.reset();
+        order.reset();
         perpsAccount.updateActiveOrders(runtime.marketId, order.id, false);
         oldPosition.update(runtime.newPosition);
 
