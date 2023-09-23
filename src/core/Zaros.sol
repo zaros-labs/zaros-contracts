@@ -25,8 +25,8 @@ contract Zaros is
     RewardsManagerModule
 {
     // TODO: switch to Diamonds
-    constructor(address accountToken, address zrsUsd) {
+    constructor(address accountToken, address usdToken) {
         AccountModule.__AccountModule_init(accountToken);
-        MarketManagerModule.__MarketManagerModule_init(zrsUsd);
+        MarketManagerModule.__MarketManagerModule_init(usdToken);
     }
 }

@@ -60,8 +60,8 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
             revert Zaros_StrategyManagerModule_BorrowCapReached(borrowCap, borrowedUsd, amount);
         }
 
-        IZarosUSD zrsUsd = IZarosUSD(MarketManager.load().zrsUsd);
-        zrsUsd.mint(strategyHandler, amount);
+        IZarosUSD usdToken = IZarosUSD(MarketManager.load().usdToken);
+        usdToken.mint(strategyHandler, amount);
 
         emit LogMintZrsUsdToStrategy(collateralType, strategyHandler, amount);
     }

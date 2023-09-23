@@ -25,7 +25,7 @@ library Position {
     /// @dev Updates the current position with the new one.
     /// @param self The position storage pointer.
     /// @param newPosition The new position to be placed.
-    function updatePosition(Data storage self, Data memory newPosition) internal {
+    function update(Data storage self, Data memory newPosition) internal {
         self.size = newPosition.size;
         self.initialMargin = newPosition.initialMargin;
         self.unrealizedPnlStored = newPosition.unrealizedPnlStored;
@@ -47,16 +47,15 @@ library Position {
     /// @param self The position storage pointer.
     /// @param fundingFeePerUnit The market's current funding fee per unit.
     /// @return accruedFunding The accrued funding fee, positive or negative.
-    /// @return netFundingFeePerUnit The net funding fee per unit applied to the position.
     function getAccruedFunding(
         Data storage self,
         SD59x18 fundingFeePerUnit
     )
         internal
         view
-        returns (SD59x18 accruedFunding, SD59x18 netFundingFeePerUnit)
+        returns (SD59x18 accruedFunding)
     {
-        netFundingFeePerUnit = fundingFeePerUnit.sub(sd59x18(self.lastInteractionFundingFeePerUnit));
+        SD59x18 netFundingFeePerUnit = fundingFeePerUnit.sub(sd59x18(self.lastInteractionFundingFeePerUnit));
         accruedFunding = sd59x18(self.size).mul(netFundingFeePerUnit);
     }
 
@@ -117,7 +116,7 @@ library Position {
         initialMargin = ud60x18(self.initialMargin);
         notionalValue = getNotionalValue(self, price);
         maintenanceMargin = notionalValue.mul(maintenanceMarginRate);
-        (accruedFunding,) = getAccruedFunding(self, fundingFeePerUnit);
+        accruedFunding = getAccruedFunding(self, fundingFeePerUnit);
         unrealizedPnl = getUnrealizedPnl(self, price, accruedFunding);
     }
 }

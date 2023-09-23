@@ -33,7 +33,7 @@ library MarketManager {
         uint128 totalMarketsWeight;
         Distribution.Data vaultsDebtDistribution;
         int128 totalVaultDebts;
-        address zrsUsd;
+        address usdToken;
         MarketConfiguration.Data[] marketConfigurations;
         mapping(address collateralType => Vault.Data) vaults;
     }

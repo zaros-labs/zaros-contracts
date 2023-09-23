@@ -9,11 +9,12 @@ import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 
-// OpenZeppelin dependencies
-import { Ownable } from "@openzeppelin/access/Ownable.sol";
+// OpenZeppelin Upgradeable dependencies
+import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
+import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 /// @notice See {IPerpsConfigurationModule}.
-abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable {
+abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initializable, OwnableUpgradeable {
     using PerpsConfiguration for PerpsConfiguration.Data;
     using PerpsMarket for PerpsMarket.Data;
 
@@ -44,6 +45,11 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         perpsConfiguration.zaros = zaros;
     }
 
+    function setChainlinkVerifier(address chainlinkVerifier) external override onlyOwner {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
+    }
+
     /// @inheritdoc IPerpsConfigurationModule
     function setIsCollateralEnabled(address collateralType, bool shouldEnable) external override onlyOwner {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
@@ -58,9 +64,11 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
         uint128 marketId,
         string calldata name,
         string calldata symbol,
+        bytes32 streamId,
         address priceFeed,
-        uint128 minInitialMarginRate,
+        uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
+        uint128 minInitialMarginRate,
         OrderFees.Data calldata orderFees
     )
         external
@@ -77,7 +85,17 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
-        PerpsMarket.create(marketId, name, symbol, priceFeed, minInitialMarginRate, maxOpenInterest, orderFees);
+        PerpsMarket.create(
+            marketId,
+            name,
+            symbol,
+            streamId,
+            priceFeed,
+            maintenanceMarginRate,
+            maxOpenInterest,
+            minInitialMarginRate,
+            orderFees
+        );
         perpsConfiguration.addMarket(marketId);
 
         emit LogCreatePerpsMarket(marketId, name, symbol);
@@ -85,15 +103,20 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Ownable
 
     /// @dev {PerpsConfigurationModule} UUPS initializer.
     function __PerpsConfigurationModule_init(
+        address chainlinkVerifier,
         address perpsAccountToken,
         address rewardDistributor,
+        address usdToken,
         address zaros
     )
         internal
+        onlyInitializing
     {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
         perpsConfiguration.perpsAccountToken = perpsAccountToken;
         perpsConfiguration.rewardDistributor = rewardDistributor;
+        perpsConfiguration.usdToken = usdToken;
         perpsConfiguration.zaros = zaros;
     }
 }

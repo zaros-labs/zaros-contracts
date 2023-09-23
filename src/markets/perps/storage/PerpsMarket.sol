@@ -30,6 +30,7 @@ library PerpsMarket {
     struct Data {
         string name;
         string symbol;
+        bytes32 streamId;
         uint128 id;
         uint128 minInitialMarginRate;
         uint128 maintenanceMarginRate;
@@ -54,26 +55,30 @@ library PerpsMarket {
         uint128 marketId,
         string memory name,
         string memory symbol,
+        bytes32 streamId,
         address priceFeed,
-        uint128 minInitialMarginRate,
+        uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
+        uint128 minInitialMarginRate,
         OrderFees.Data memory orderFees
     )
         internal
     {
-        Data storage perpsMarket = load(marketId);
-        if (perpsMarket.id != 0) {
+        Data storage self = load(marketId);
+        if (self.id != 0) {
             revert Zaros_PerpsMarket_MarketAlreadyExists(marketId, msg.sender);
         }
 
         // TODO: remember to test gas cost / number of sstores here
-        perpsMarket.id = marketId;
-        perpsMarket.name = name;
-        perpsMarket.symbol = symbol;
-        perpsMarket.priceFeed = priceFeed;
-        perpsMarket.minInitialMarginRate = minInitialMarginRate;
-        perpsMarket.maxOpenInterest = maxOpenInterest;
-        perpsMarket.orderFees = orderFees;
+        self.id = marketId;
+        self.name = name;
+        self.symbol = symbol;
+        self.streamId = streamId;
+        self.priceFeed = priceFeed;
+        self.maintenanceMarginRate = maintenanceMarginRate;
+        self.maxOpenInterest = maxOpenInterest;
+        self.minInitialMarginRate = minInitialMarginRate;
+        self.orderFees = orderFees;
     }
 
     /// @dev TODO: improve this

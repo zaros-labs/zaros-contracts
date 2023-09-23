@@ -17,10 +17,10 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     address private _zaros;
-    address private _zrsUsd;
+    address private _usdToken;
     address private _balancerVault;
     uint256 private _totalUsdcAllocated;
-    bytes32 private _zrsUsdUsdcPoolId;
+    bytes32 private _usdTokenUsdcPoolId;
 
     modifier onlyZaros() {
         if (msg.sender != _zaros) {
@@ -32,17 +32,17 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     constructor(
         address zaros,
         address usdc,
-        address zrsUsd,
+        address usdToken,
         address balancerVault,
-        bytes32 zrsUsdUsdcPoolId
+        bytes32 usdTokenUsdcPoolId
     )
         ERC4626(IERC20(usdc))
         ERC20("Zaros zrsUSD/USDC Balancer Strategy", "zrsUSD/USDC-BAL")
     {
         _zaros = zaros;
-        _zrsUsd = zrsUsd;
+        _usdToken = usdToken;
         _balancerVault = balancerVault;
-        _zrsUsdUsdcPoolId = zrsUsdUsdcPoolId;
+        _usdTokenUsdcPoolId = usdTokenUsdcPoolId;
     }
 
     function totalAssets() public view override(IERC4626, ERC4626) returns (uint256) {
@@ -53,14 +53,14 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
 
     function setAllowances(uint256 amount, bool shouldIncrease) external override onlyZaros {
         IERC20 usdc = IERC20(address(asset()));
-        IERC20 zrsUsd = IERC20(address(_zrsUsd));
+        IERC20 usdToken = IERC20(address(_usdToken));
         address balancerVault = _balancerVault;
         if (shouldIncrease) {
             usdc.safeIncreaseAllowance(balancerVault, amount);
-            zrsUsd.safeIncreaseAllowance(balancerVault, amount);
+            usdToken.safeIncreaseAllowance(balancerVault, amount);
         } else {
             usdc.safeDecreaseAllowance(balancerVault, amount);
-            zrsUsd.safeDecreaseAllowance(balancerVault, amount);
+            usdToken.safeDecreaseAllowance(balancerVault, amount);
         }
     }
 
@@ -124,19 +124,19 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     function addLiquidityToPool(uint256 minBptOut) external override onlyZaros {
         address usdc = asset();
         uint256 outstandingUsdc = IERC20(usdc).balanceOf(address(this));
-        uint256 zrsUsdAmountToBorrow = _normalizeAssetToZarosUsd(outstandingUsdc);
-        IZaros(_zaros).mintUsdToStrategy(usdc, zrsUsdAmountToBorrow);
+        uint256 usdTokenAmountToBorrow = _normalizeAssetToZarosUsd(outstandingUsdc);
+        IZaros(_zaros).mintUsdToStrategy(usdc, usdTokenAmountToBorrow);
 
         // Forms Balancer Join Pool Request
         IAsset[] memory assets = _getAssets();
 
         uint256[] memory maxAmountsIn = new uint256[](2);
         maxAmountsIn[0] = outstandingUsdc;
-        maxAmountsIn[1] = zrsUsdAmountToBorrow;
+        maxAmountsIn[1] = usdTokenAmountToBorrow;
 
         _totalUsdcAllocated += outstandingUsdc;
         IBalancerVault(_balancerVault).joinPool(
-            _zrsUsdUsdcPoolId,
+            _usdTokenUsdcPoolId,
             address(this),
             address(this),
             IBalancerVault.JoinPoolRequest(
@@ -161,7 +161,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
 
         _totalUsdcAllocated -= minAmountsOut[0];
         IBalancerVault(_balancerVault).exitPool(
-            _zrsUsdUsdcPoolId,
+            _usdTokenUsdcPoolId,
             address(this),
             payable(address(this)),
             IBalancerVault.ExitPoolRequest(
@@ -175,14 +175,14 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
 
     function _normalizeAssetToZarosUsd(uint256 assetAmount) internal view returns (uint256) {
         uint256 usdcDecimals = ERC20(asset()).decimals();
-        uint256 zrsUsdDecimals = ERC20(_zrsUsd).decimals();
-        return assetAmount * (10 ** zrsUsdDecimals) / (10 ** usdcDecimals);
+        uint256 usdTokenDecimals = ERC20(_usdToken).decimals();
+        return assetAmount * (10 ** usdTokenDecimals) / (10 ** usdcDecimals);
     }
 
     function _getAssets() internal view returns (IAsset[] memory) {
         IAsset[] memory assets = new IAsset[](2);
         assets[0] = IAsset(asset());
-        assets[1] = IAsset(_zrsUsd);
+        assets[1] = IAsset(_usdToken);
 
         return assets;
     }

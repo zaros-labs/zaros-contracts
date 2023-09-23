@@ -11,7 +11,7 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title Perps Engine Module.
 /// @notice The perps engine module is responsible by the state management of perps markets.
-interface IPerpsEngineModule {
+interface IPerpsMarketModule {
     /// @notice Returns the given perps market name.
     /// @param marketId The perps market id.
     function name(uint128 marketId) external view returns (string memory);

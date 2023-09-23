@@ -14,21 +14,21 @@ contract CreatePerpsAccount_Unit_Concrete_Test is Base_Test {
     function test_NoPreviousPerpsAccount() external {
         uint256 expectedAccountId = 1;
 
-        vm.expectEmit({ emitter: address(perpsExchange) });
+        vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
 
-        uint256 accountId = perpsExchange.createPerpsAccount();
+        uint256 accountId = perpsEngine.createPerpsAccount();
 
         assertEq(accountId, expectedAccountId, "createPerpsAccount");
     }
 
     function test_MultiplePerpsAccounts() external {
         uint256 expectedAccountId = 2;
-        perpsExchange.createPerpsAccount();
+        perpsEngine.createPerpsAccount();
 
-        vm.expectEmit({ emitter: address(perpsExchange) });
+        vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
-        uint256 accountId = perpsExchange.createPerpsAccount();
+        uint256 accountId = perpsEngine.createPerpsAccount();
 
         assertEq(accountId, expectedAccountId, "createPerpsAccount");
     }
