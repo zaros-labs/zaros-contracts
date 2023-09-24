@@ -35,6 +35,8 @@ abstract contract Base_Test is Test, Events {
     address internal mockZarosAddress = vm.addr({ privateKey: 0x02 });
     address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x03 });
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x04 });
+    /// @dev TODO: mock a real price feed
+    address internal mockUsdcUsdPriceFeed = vm.addr({ privateKey: 0x05 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -131,7 +133,7 @@ abstract contract Base_Test is Test, Events {
 
         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
 
-        perpsEngine.setIsCollateralEnabled(address(usdToken), true);
+        perpsEngine.setIsCollateralEnabled(address(usdToken), mockUsdcUsdPriceFeed, true);
     }
 
     function distributeTokens() internal {

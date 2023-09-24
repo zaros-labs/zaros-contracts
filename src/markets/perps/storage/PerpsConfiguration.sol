@@ -24,15 +24,13 @@ library PerpsConfiguration {
         keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
     /// @notice {PerpConfiguration} namespace storage structure.
-    /// @param enabledCollateralTypes The cross margin supported collateral types.
-    /// @param enabledMarketsIds The enabled perps markets ids.
     /// @param rewardDistributor The reward distributor contract address.
     /// @param perpsAccountToken The perps account token contract address.
-    /// @param nextAccountId The next account id to be used.
     /// @param zaros The Zaros protocol contract address.
+    /// @param nextAccountId The next account id to be used.
+    /// @param enabledCollateralTypes The cross margin supported collateral types.
+    /// @param enabledMarketsIds The enabled perps markets ids.
     struct Data {
-        EnumerableSet.AddressSet enabledCollateralTypes;
-        EnumerableSet.UintSet enabledMarketsIds;
         uint256 maxPositionsPerAccount;
         uint256 maxActiveOrders;
         address chainlinkVerifier;
@@ -41,6 +39,9 @@ library PerpsConfiguration {
         address usdToken;
         address zaros;
         uint96 nextAccountId;
+        mapping(address => address) collateralPriceFeeds;
+        EnumerableSet.AddressSet enabledCollateralTypes;
+        EnumerableSet.UintSet enabledMarketsIds;
     }
 
     /// @dev Loads the PerpsConfiguration entity.
@@ -63,14 +64,25 @@ library PerpsConfiguration {
 
     /// @dev Enables or disables a collateral type to be used as margin. If the given configuration
     /// is already set, the function reverts.
+    /// @dev If the collateral is being enabled, the price feed must be set.
     /// @param self The perps configuration storage pointer.
     /// @param collateralType The address of the collateral type.
+    /// @param priceFeed The address of the collateral price feed.
     /// @param shouldEnable `true` if the collateral type should be enabled, `false` if it should be disabled.
-    function setIsCollateralEnabled(Data storage self, address collateralType, bool shouldEnable) internal {
+    function setIsCollateralEnabled(
+        Data storage self,
+        address collateralType,
+        address priceFeed,
+        bool shouldEnable
+    )
+        internal
+    {
         bool success;
         if (shouldEnable) {
+            self.collateralPriceFeeds[collateralType] = priceFeed;
             success = self.enabledCollateralTypes.add(collateralType);
         } else {
+            delete self.collateralPriceFeeds[collateralType];
             success = self.enabledCollateralTypes.remove(collateralType);
         }
 

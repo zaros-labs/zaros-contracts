@@ -47,7 +47,15 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     /// @dev TODO: Implement Chainlink price feed.
-    function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) { }
+    function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+
+        // for (uint256 i = 0; i < perpsAccount.marginCollateralBalance.length(); i++) {
+        //     address collateralType = perpsAccount.marginCollateralBalance.at(i);
+        //     UD60x18 marginCollateral = perpsAccount.getMarginCollateral(collateralType);
+        //     // UD60x18 marginCollateralValue = perps
+        // }
+    }
 
     /// @inheritdoc IPerpsAccountModule
     /// @dev TODO: Implement Chainlink price feed.
@@ -98,9 +106,8 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         _requireCollateralEnabled(collateralType, perpsConfiguration.isCollateralEnabled(collateralType));
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
-        PerpsAccount.exists(accountId);
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.increaseMarginCollateral(collateralType, udAmount);
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), udAmount.intoUint256());
 

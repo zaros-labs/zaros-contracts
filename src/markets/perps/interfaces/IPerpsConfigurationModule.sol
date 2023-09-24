@@ -41,8 +41,9 @@ interface IPerpsConfigurationModule {
 
     /// @notice Enables or disables the given collateral type.
     /// @param collateralType The address of the collateral type.
+    /// @param priceFeed The address of the collateral price feed.
     /// @param shouldEnable `true` if the collateral type should be enabled, `false` if it should be disabled.
-    function setIsCollateralEnabled(address collateralType, bool shouldEnable) external;
+    function setIsCollateralEnabled(address collateralType, address priceFeed, bool shouldEnable) external;
 
     function setChainlinkVerifier(address chainlinkVerifier) external;
 

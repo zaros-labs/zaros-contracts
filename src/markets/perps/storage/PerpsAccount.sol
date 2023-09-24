@@ -52,7 +52,7 @@ library PerpsAccount {
     /// @dev Checks whether the given perps account exists.
     /// @param accountId The perps account id.
     /// @return perpsAccount if the perps account exists, its storage pointer is returned.
-    function exists(uint256 accountId) internal view returns (Data storage perpsAccount) {
+    function loadExisting(uint256 accountId) internal view returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         if (perpsAccount.owner == address(0)) {
             revert Zaros_PerpsAccount_AccountNotFound(accountId, msg.sender);

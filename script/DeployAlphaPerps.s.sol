@@ -31,6 +31,8 @@ contract DeployAlphaPerps is BaseScript {
     address internal mockZarosAddress = address(3);
     bytes32 internal ethUsdStreamId;
     address internal ethUsdPriceFeed;
+    /// @dev TODO: We need a zrsUSD price feed
+    address internal usdcUsdPriceFeed;
 
     uint128 internal constant ETH_USD_MARKET_ID = 1;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
@@ -53,6 +55,7 @@ contract DeployAlphaPerps is BaseScript {
         usdToken = ZarosUSD(vm.envAddress("ZRSUSD"));
         ethUsdStreamId = vm.envBytes32("ETH_USD_STREAM_ID");
         ethUsdPriceFeed = vm.envAddress("ETH_USD_PRICE_FEED");
+        usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
 
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
@@ -75,7 +78,7 @@ contract DeployAlphaPerps is BaseScript {
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
-        perpsEngine.setIsCollateralEnabled(address(usdToken), true);
+        perpsEngine.setIsCollateralEnabled(address(usdToken), usdcUsdPriceFeed, true);
 
         perpsEngine.createPerpsMarket(
             ETH_USD_MARKET_ID,
