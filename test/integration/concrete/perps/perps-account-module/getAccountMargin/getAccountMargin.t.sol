@@ -7,7 +7,8 @@ import { PerpsAccountModule_Integration_Shared_Test } from
     "test/integration/shared/perps-account-module/PerpsAccountModule.t.sol";
 
 // PRB Math dependencies
-import { ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract GetAccountMargin_Integration_Concrete_Test is PerpsAccountModule_Integration_Shared_Test {
     function setUp() public override {
@@ -16,26 +17,38 @@ contract GetAccountMargin_Integration_Concrete_Test is PerpsAccountModule_Integr
 
     function test_GetAccountMarginOneCollateral() external {
         uint256 amount = 100e18;
-        uint256 expectedMarginCollateralValue = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amount)).intoUint256();
+        uint256 expectedMarginBalance = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amount)).intoUint256();
+        uint256 expectedAvailableBalance = expectedMarginBalance;
+        uint256 expectedInitialMargin = 0;
+        uint256 expectedMaintenanceMargin = 0;
         uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
 
-        uint256 marginCollateralValue =
-            perpsEngine.getTotalAccountMarginCollateralValue({ accountId: perpsAccountId }).intoUint256();
+        (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
+            perpsEngine.getAccountMargin({ accountId: perpsAccountId });
 
-        assertEq(marginCollateralValue, expectedMarginCollateralValue, "getTotalAccountMarginCollateralValue");
+        assertEq(marginBalance.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalance");
+        assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
+        assertEq(initialMargin.intoUint256(), expectedInitialMargin, "getAccountMargin initialMargin");
+        assertEq(maintenanceMargin.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMargin");
     }
 
     function test_GetAccountMarginMultipleCollateral() external {
         uint256 amount = 100e18;
-        uint256 expectedMarginCollateralValue = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amount)).add(
+        uint256 expectedMarginBalance = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amount)).add(
             _getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amount))
         ).intoUint256();
+        uint256 expectedAvailableBalance = expectedMarginBalance;
+        uint256 expectedInitialMargin = 0;
+        uint256 expectedMaintenanceMargin = 0;
         uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amount);
 
-        uint256 marginCollateralValue =
-            perpsEngine.getTotalAccountMarginCollateralValue({ accountId: perpsAccountId }).intoUint256();
+        (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
+            perpsEngine.getAccountMargin({ accountId: perpsAccountId });
 
-        assertEq(marginCollateralValue, expectedMarginCollateralValue, "getTotalAccountMarginCollateralValue");
+        assertEq(marginBalance.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalance");
+        assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
+        assertEq(initialMargin.intoUint256(), expectedInitialMargin, "getAccountMargin initialMargin");
+        assertEq(maintenanceMargin.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMargin");
     }
 }
