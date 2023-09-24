@@ -30,6 +30,7 @@ contract PerpsEngine is
     UUPSUpgradeable
 {
     function initialize(
+        address chainlinkForwarder,
         address chainlinkVerifier,
         address perpsAccountToken,
         address rewardDistributor,
@@ -41,7 +42,7 @@ contract PerpsEngine is
     {
         __Ownable_init();
         PerpsConfigurationModule.__PerpsConfigurationModule_init(
-            chainlinkVerifier, perpsAccountToken, rewardDistributor, usdToken, zaros
+            chainlinkForwarder, chainlinkVerifier, perpsAccountToken, rewardDistributor, usdToken, zaros
         );
     }
 

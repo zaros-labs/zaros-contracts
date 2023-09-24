@@ -55,7 +55,7 @@ interface IPerpsConfigurationModule {
     /// @param priceFeed The address of the price feed.
     function configurePriceFeed(address collateralType, address priceFeed) external;
 
-    function setChainlinkVerifier(address chainlinkVerifier) external;
+    function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external;
 
     /// @notice Creates a new market with the requested market id.
     /// @param marketId The perps market id.

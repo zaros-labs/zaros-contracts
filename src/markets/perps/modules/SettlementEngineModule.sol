@@ -31,6 +31,14 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
     using SafeCast for uint256;
     using SafeCast for int256;
 
+    modifier onlyForwarder() {
+        address forwarder = PerpsConfiguration.load().chainlinkForwarder;
+        if (msg.sender != forwarder) {
+            revert Zaros_SettlementEngineModule_OnlyForwarder(msg.sender, forwarder);
+        }
+        _;
+    }
+
     function checkLog(
         AutomationLog calldata log,
         bytes calldata checkData
@@ -73,7 +81,7 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         return (true, abi.encode(values, extraData));
     }
 
-    function performUpkeep(bytes calldata performData) external {
+    function performUpkeep(bytes calldata performData) external onlyForwarder {
         IVerifierProxy chainlinkVerifier = IVerifierProxy(PerpsConfiguration.load().chainlinkVerifier);
         (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
         // implement

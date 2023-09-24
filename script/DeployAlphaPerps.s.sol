@@ -19,9 +19,10 @@ contract DeployAlphaPerps is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    address internal mockChainlinkVerifier = address(1);
-    address internal mockRewardDistributorAddress = address(2);
-    address internal mockZarosAddress = address(3);
+    address internal mockChainlinkForwarder = address(1);
+    address internal mockChainlinkVerifier = address(2);
+    address internal mockRewardDistributorAddress = address(3);
+    address internal mockZarosAddress = address(4);
     bytes32 internal ethUsdStreamId;
     address internal ethUsdPriceFeed;
     /// @dev TODO: We need a zrsUSD price feed
@@ -53,6 +54,7 @@ contract DeployAlphaPerps is BaseScript {
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
+            mockChainlinkForwarder,
             mockChainlinkVerifier,
             address(perpsAccountToken),
             mockRewardDistributorAddress,

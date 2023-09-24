@@ -39,6 +39,7 @@ library PerpsConfiguration {
     struct Data {
         uint256 maxPositionsPerAccount;
         uint256 maxActiveOrders;
+        address chainlinkForwarder;
         address chainlinkVerifier;
         address perpsAccountToken;
         address rewardDistributor;

@@ -32,6 +32,7 @@ abstract contract Base_Test is Test, Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     Users internal users;
+    address internal mockChainlinkForwarder = vm.addr({ privateKey: 0x01 });
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -81,6 +82,7 @@ abstract contract Base_Test is Test, Events {
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
+            mockChainlinkForwarder,
             mockChainlinkVerifier,
             address(perpsAccountToken),
             address(rewardDistributor),
