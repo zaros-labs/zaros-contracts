@@ -2,13 +2,6 @@
 
 pragma solidity 0.8.19;
 
-//       __________  _____ __________ ________    _________
-//       \____    / /  _  \\______   \\_____  \  /   _____/
-//         /     / /  /_\  \|       _/ /   |   \ \_____  \
-//        /     /_/    |    \    |   \/    |    \/        \
-//  _____/_______ \____|__  /____|_  /\_______  /_______  /_____
-// /_____/       \/       \/       \/         \/        \/_____/
-
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";

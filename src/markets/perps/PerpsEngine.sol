@@ -13,6 +13,13 @@ import { SettlementEngineModule } from "./modules/SettlementEngineModule.sol";
 // Open Zeppelin Upgradeable dependencies
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+// __________  _____ __________ ________    _________
+// \____    / /  _  \\______   \\_____  \  /   _____/
+//   /     / /  /_\  \|       _/ /   |   \ \_____  \
+//  /     /_/    |    \    |   \/    |    \/        \
+// /_______ \____|__  /____|_  /\_______  /_______  /
+//         \/       \/       \/         \/        \/
+
 contract PerpsEngine is
     IPerpsEngine,
     OrderModule,
