@@ -15,7 +15,7 @@ contract WithdrawMargin_Integration_Concrete_Test is PerpsAccountModule_Integrat
 
     function test_AmountZero() external {
         uint256 amount = 100e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount);
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
 
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
@@ -31,7 +31,7 @@ contract WithdrawMargin_Integration_Concrete_Test is PerpsAccountModule_Integrat
 
     function test_UnauthorizedSender() external whenAmountIsNotZero {
         uint256 amount = 100e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount);
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
 
         changePrank({ msgSender: users.sasuke });
         vm.expectRevert({
@@ -51,7 +51,7 @@ contract WithdrawMargin_Integration_Concrete_Test is PerpsAccountModule_Integrat
     function test_EnoughMarginAvailable() external whenAmountIsNotZero whenAuthorizedSender {
         uint256 amount = 100e18;
         uint256 amountToWithdraw = 50e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount);
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);

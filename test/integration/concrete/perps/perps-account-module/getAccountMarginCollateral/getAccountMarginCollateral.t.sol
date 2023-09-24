@@ -13,7 +13,7 @@ contract GetAccountMarginCollateral_Integration_Concrete_Test is PerpsAccountMod
 
     function test_GetAccountMarginCollateral() external {
         uint256 amount = 100e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount);
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
 
         uint256 marginCollateral = perpsEngine.getAccountMarginCollateral({
             accountId: perpsAccountId,

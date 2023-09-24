@@ -8,6 +8,8 @@ import { Zaros } from "@zaros/core/Zaros.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { MockERC20 } from "./mocks/MockERC20.sol";
+import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockZarosUSD } from "./mocks/MockZarosUSD.sol";
 import { Events } from "./utils/Events.sol";
 import { Users } from "./utils/Types.sol";
@@ -30,24 +32,27 @@ abstract contract Base_Test is Test, Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     Users internal users;
-
-    /// @dev TODO: deploy real contracts instead of mocking them
-    address internal mockZarosAddress = vm.addr({ privateKey: 0x02 });
-    address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x03 });
-    address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x04 });
-    /// @dev TODO: mock a real price feed
-    address internal mockUsdcUsdPriceFeed = vm.addr({ privateKey: 0x05 });
+    address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
     AccountNFT internal perpsAccountToken;
+    MockERC20 internal mockWstEth;
     MockZarosUSD internal usdToken;
     PerpsEngine internal perpsEngine;
     PerpsEngine internal perpsEngineImplementation;
     RewardDistributor internal rewardDistributor;
     Zaros internal zaros;
+    /// @dev TODO: think about forking tests
+    MockPriceFeed internal mockUsdcUsdPriceFeed;
+    MockPriceFeed internal mockWstEthUsdPriceFeed;
+    MockPriceFeed internal mockEthUsdPriceFeed;
+
+    /// @dev TODO: deploy real contracts instead of mocking them.
+    address internal mockZarosAddress = vm.addr({ privateKey: 0x03 });
+    address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x04 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -67,6 +72,9 @@ abstract contract Base_Test is Test, Events {
         usdToken = new MockZarosUSD({ ownerBalance: 100_000_000e18 });
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
+        mockUsdcUsdPriceFeed = new MockPriceFeed(6, 1e6);
+        mockEthUsdPriceFeed = new MockPriceFeed(18, 1900e18);
+        mockWstEthUsdPriceFeed = new MockPriceFeed(18, 2000e18);
 
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
@@ -135,7 +143,9 @@ abstract contract Base_Test is Test, Events {
 
         perpsEngine.setIsCollateralEnabled(address(usdToken), true);
 
-        perpsEngine.configurePriceFeed(address(usdToken), mockUsdcUsdPriceFeed);
+        perpsEngine.configurePriceFeed(address(usdToken), address(mockUsdcUsdPriceFeed));
+
+        perpsEngine.configurePriceFeed(address(mockWstEth), address(mockWstEthUsdPriceFeed));
     }
 
     function distributeTokens() internal {
