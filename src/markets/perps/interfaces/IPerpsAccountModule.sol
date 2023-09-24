@@ -7,6 +7,7 @@ import { Order } from "../storage/Order.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title Perps Account Module.
 /// @notice This moduled is used by users in order to mint perps account nfts
@@ -74,7 +75,7 @@ interface IPerpsAccountModule {
     function getAccountMargin(uint256 accountId)
         external
         view
-        returns (UD60x18 marginBalance, UD60x18 availableMargin);
+        returns (SD59x18 marginBalance, SD59x18 availableMargin);
 
     /// @notice Returns the account's current maintenance margin in open positions
     /// and the maintenance margin rate.

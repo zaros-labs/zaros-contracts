@@ -8,19 +8,28 @@ import { ParameterError } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
+import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { Position } from "../storage/Position.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpsAccountModule}.
 abstract contract PerpsAccountModule is IPerpsAccountModule {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableSet for EnumerableSet.UintSet;
     using PerpsAccount for PerpsAccount.Data;
+    using PerpsMarket for PerpsMarket.Data;
+    using Position for Position.Data;
+    using SafeCast for uint256;
     using SafeERC20 for IERC20;
     using PerpsConfiguration for PerpsConfiguration.Data;
 
@@ -53,7 +62,29 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountMargin(uint256 accountId) external view override returns (UD60x18, UD60x18) { }
+    function getAccountMargin(uint256 accountId) external view override returns (SD59x18, SD59x18) {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+
+        SD59x18 marginBalance = perpsAccount.getTotalMarginCollateralValue().intoSD59x18();
+        UD60x18 positionsInitialMargin;
+
+        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
+            uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
+            PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+            Position.Data storage position = perpsMarket.positions[accountId];
+
+            UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
+            SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(marketIndexPrice);
+            SD59x18 accruedFunding = position.getAccruedFunding(fundingFeePerUnit);
+
+            marginBalance = marginBalance.add(position.getUnrealizedPnl(marketIndexPrice, accruedFunding));
+            positionsInitialMargin = positionsInitialMargin.add(ud60x18(position.initialMargin));
+        }
+
+        SD59x18 availableBalance = marginBalance.sub(positionsInitialMargin.intoSD59x18());
+
+        return (marginBalance, availableBalance);
+    }
 
     /// @inheritdoc IPerpsAccountModule
     function getAccountMaintenanceMargin(uint256 accountId) external view returns (UD60x18, UD60x18) { }
