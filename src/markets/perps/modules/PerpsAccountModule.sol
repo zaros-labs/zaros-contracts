@@ -62,11 +62,12 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountMargin(uint256 accountId) external view override returns (SD59x18, SD59x18) {
+    function getAccountMargin(uint256 accountId) external view override returns (SD59x18, SD59x18, UD60x18, UD60x18) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
         SD59x18 marginBalance = perpsAccount.getTotalMarginCollateralValue().intoSD59x18();
-        UD60x18 positionsInitialMargin;
+        UD60x18 initialMargin;
+        UD60x18 maintenanceMargin;
 
         for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
@@ -76,18 +77,17 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
             UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
             SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(marketIndexPrice);
             SD59x18 accruedFunding = position.getAccruedFunding(fundingFeePerUnit);
+            UD60x18 notionalValue = position.getNotionalValue(marketIndexPrice);
 
             marginBalance = marginBalance.add(position.getUnrealizedPnl(marketIndexPrice, accruedFunding));
-            positionsInitialMargin = positionsInitialMargin.add(ud60x18(position.initialMargin));
+            initialMargin = initialMargin.add(ud60x18(position.initialMargin));
+            maintenanceMargin = maintenanceMargin.add(ud60x18(perpsMarket.maintenanceMarginRate).mul(notionalValue));
         }
 
-        SD59x18 availableBalance = marginBalance.sub(positionsInitialMargin.intoSD59x18());
+        SD59x18 availableBalance = marginBalance.sub(initialMargin.intoSD59x18());
 
-        return (marginBalance, availableBalance);
+        return (marginBalance, availableBalance, initialMargin, maintenanceMargin);
     }
-
-    /// @inheritdoc IPerpsAccountModule
-    function getAccountMaintenanceMargin(uint256 accountId) external view returns (UD60x18, UD60x18) { }
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint256) {
