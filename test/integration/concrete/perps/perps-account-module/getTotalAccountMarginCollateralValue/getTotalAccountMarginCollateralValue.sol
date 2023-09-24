@@ -26,4 +26,18 @@ contract GetTotalAccountMarginCollateralValue_Integration_Concrete_Test is
 
         assertEq(marginCollateralValue, expectedMarginCollateralValue, "getTotalAccountMarginCollateralValue");
     }
+
+    function test_GetTotalAccountMarginCollateralValueMultipleCollateral() external {
+        uint256 amount = 100e18;
+        uint256 expectedMarginCollateralValue = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amount)).add(
+            _getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amount))
+        ).intoUint256();
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
+        perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amount);
+
+        uint256 marginCollateralValue =
+            perpsEngine.getTotalAccountMarginCollateralValue({ accountId: perpsAccountId }).intoUint256();
+
+        assertEq(marginCollateralValue, expectedMarginCollateralValue, "getTotalAccountMarginCollateralValue");
+    }
 }

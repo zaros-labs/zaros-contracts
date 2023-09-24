@@ -70,6 +70,8 @@ abstract contract Base_Test is Test, Events {
 
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
         usdToken = new MockZarosUSD({ ownerBalance: 100_000_000e18 });
+        mockWstEth =
+        new MockERC20({ name: "Wrapped Staked Ether", symbol: "wstETH", decimals_: 18, ownerBalance: 100_000_000e18 });
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         mockUsdcUsdPriceFeed = new MockPriceFeed(6, 1e6);
@@ -116,15 +118,19 @@ abstract contract Base_Test is Test, Events {
     function approveContracts() internal {
         changePrank({ msgSender: users.naruto });
         usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sasuke });
         usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sakura });
         usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.madara });
         usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
 
         // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });
@@ -143,6 +149,8 @@ abstract contract Base_Test is Test, Events {
 
         perpsEngine.setIsCollateralEnabled(address(usdToken), true);
 
+        perpsEngine.setIsCollateralEnabled(address(mockWstEth), true);
+
         perpsEngine.configurePriceFeed(address(usdToken), address(mockUsdcUsdPriceFeed));
 
         perpsEngine.configurePriceFeed(address(mockWstEth), address(mockWstEthUsdPriceFeed));
@@ -150,12 +158,16 @@ abstract contract Base_Test is Test, Events {
 
     function distributeTokens() internal {
         deal({ token: address(usdToken), to: users.naruto, give: 1_000_000e18 });
+        deal({ token: address(mockWstEth), to: users.naruto, give: 1_000_000e18 });
 
         deal({ token: address(usdToken), to: users.sasuke, give: 1_000_000e18 });
+        deal({ token: address(mockWstEth), to: users.sasuke, give: 1_000_000e18 });
 
         deal({ token: address(usdToken), to: users.sakura, give: 1_000_000e18 });
+        deal({ token: address(mockWstEth), to: users.sakura, give: 1_000_000e18 });
 
         deal({ token: address(usdToken), to: users.madara, give: 1_000_000e18 });
+        deal({ token: address(mockWstEth), to: users.madara, give: 1_000_000e18 });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
