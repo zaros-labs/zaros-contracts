@@ -3,8 +3,13 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { Base_Test } from "test/Base.t.sol";
+import { PerpsAccountModule_Integration_Shared_Test } from
+    "test/integration/shared/perps-account-module/PerpsAccountModule.t.sol";
 
-contract GetAccountMarginCollateral_Integration_Concrete_Test is Base_Test {
+contract GetAccountMarginCollateral_Integration_Concrete_Test is PerpsAccountModule_Integration_Shared_Test {
+    function setUp() public override {
+        PerpsAccountModule_Integration_Shared_Test.setUp();
+    }
+
     function test_GetAccountMarginCollateral() external { }
 }

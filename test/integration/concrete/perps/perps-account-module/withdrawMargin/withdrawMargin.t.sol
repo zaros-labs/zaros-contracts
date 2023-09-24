@@ -3,15 +3,14 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { Base_Test } from "test/Base.t.sol";
+import { PerpsAccountModule_Integration_Shared_Test } from
+    "test/integration/shared/perps-account-module/PerpsAccountModule.t.sol";
 import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 
-contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
+contract WithdrawMargin_Integration_Concrete_Test is PerpsAccountModule_Integration_Shared_Test {
     function setUp() public override {
-        Base_Test.setUp();
-        approveContracts();
-        changePrank({ msgSender: users.naruto });
+        PerpsAccountModule_Integration_Shared_Test.setUp();
     }
 
     function test_AmountZero() external {
@@ -64,10 +63,5 @@ contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
             perpsEngine.getAccountMarginCollateral(perpsAccountId, address(usdToken)).intoUint256();
 
         assertEq(expectedMargin, newMarginCollateral);
-    }
-
-    function _createAccountAndDeposit(uint256 amount) internal returns (uint256 accountId) {
-        accountId = perpsEngine.createPerpsAccount();
-        perpsEngine.depositMargin(accountId, address(usdToken), amount);
     }
 }
