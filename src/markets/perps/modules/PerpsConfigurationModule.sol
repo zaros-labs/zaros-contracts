@@ -51,24 +51,21 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     }
 
     /// @inheritdoc IPerpsConfigurationModule
-    function setIsCollateralEnabled(
-        address collateralType,
-        address priceFeed,
-        bool shouldEnable
-    )
-        external
-        override
-        onlyOwner
-    {
+    function setIsCollateralEnabled(address collateralType, bool shouldEnable) external override onlyOwner {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
-        if (shouldEnable && priceFeed == address(0)) {
-            revert ParameterError.Zaros_InvalidParameter("priceFeed", "priceFeed can't be the zero address");
-        }
-
-        perpsConfiguration.setIsCollateralEnabled(collateralType, priceFeed, shouldEnable);
+        perpsConfiguration.setIsCollateralEnabled(collateralType, shouldEnable);
 
         emit LogSetSupportedCollateral(msg.sender, collateralType, shouldEnable);
+    }
+
+    /// @inheritdoc IPerpsConfigurationModule
+    function configurePriceFeed(address collateralType, address priceFeed) external override onlyOwner {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+
+        perpsConfiguration.configurePriceFeed(collateralType, priceFeed);
+
+        emit LogConfigurePriceFeed(msg.sender, collateralType, priceFeed);
     }
 
     /// @inheritdoc IPerpsConfigurationModule

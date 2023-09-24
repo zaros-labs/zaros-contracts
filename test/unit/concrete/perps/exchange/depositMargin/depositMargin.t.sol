@@ -17,7 +17,7 @@ contract DepositMargin_Unit_Concrete_Test is Base_Test {
 
     function test_CollateralNotEnabled() external {
         changePrank({ msgSender: users.owner });
-        perpsEngine.setIsCollateralEnabled(address(usdToken), address(0), false);
+        perpsEngine.setIsCollateralEnabled(address(usdToken), false);
         changePrank({ msgSender: users.naruto });
 
         uint256 amountToDeposit = 100e18;

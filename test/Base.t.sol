@@ -133,7 +133,7 @@ abstract contract Base_Test is Test, Events {
 
         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
 
-        perpsEngine.setIsCollateralEnabled(address(usdToken), mockUsdcUsdPriceFeed, true);
+        perpsEngine.setIsCollateralEnabled(address(usdToken), true);
     }
 
     function distributeTokens() internal {

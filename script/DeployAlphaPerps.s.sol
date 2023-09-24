@@ -78,7 +78,7 @@ contract DeployAlphaPerps is BaseScript {
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
-        perpsEngine.setIsCollateralEnabled(address(usdToken), usdcUsdPriceFeed, true);
+        perpsEngine.setIsCollateralEnabled(address(usdToken), true);
 
         perpsEngine.createPerpsMarket(
             ETH_USD_MARKET_ID,

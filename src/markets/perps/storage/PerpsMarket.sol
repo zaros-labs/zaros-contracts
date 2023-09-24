@@ -3,15 +3,14 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { Constants } from "@zaros/utils/Constants.sol";
 import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
-import { Order } from "../storage/Order.sol";
-import { OrderFees } from "../storage/OrderFees.sol";
-import { Position } from "../storage/Position.sol";
+import { Order } from "./Order.sol";
+import { OrderFees } from "./OrderFees.sol";
+import { PerpsConfiguration } from "./PerpsConfiguration.sol";
+import { Position } from "./Position.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -19,7 +18,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The PerpsMarket namespace.
 library PerpsMarket {
-    using SafeCast for int256;
+    using PerpsConfiguration for PerpsConfiguration.Data;
 
     /// @notice Thrown when a perps market id has already been used.
     error Zaros_PerpsMarket_MarketAlreadyExists(uint128 marketId, address sender);
@@ -81,17 +80,9 @@ library PerpsMarket {
         self.orderFees = orderFees;
     }
 
-    /// @dev TODO: improve this
-    function getIndexPrice(Data storage self) internal view returns (UD60x18) {
-        IAggregatorV3 priceFeed = IAggregatorV3(self.priceFeed);
-        uint8 decimals = priceFeed.decimals();
-        (, int256 answer,,,) = priceFeed.latestRoundData();
-
-        // should panic if decimals > 18
-        assert(decimals <= Constants.DECIMALS);
-        UD60x18 price = ud60x18(answer.toUint256() * 10 ** (Constants.DECIMALS - decimals));
-
-        return price;
+    function getIndexPrice(Data storage self) internal view returns (UD60x18 price) {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        price = perpsConfiguration.getPrice(IAggregatorV3(self.priceFeed));
     }
 
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {
