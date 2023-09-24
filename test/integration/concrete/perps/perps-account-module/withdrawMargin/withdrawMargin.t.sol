@@ -62,6 +62,6 @@ contract WithdrawMargin_Integration_Concrete_Test is PerpsAccountModule_Integrat
         uint256 newMarginCollateral =
             perpsEngine.getAccountMarginCollateral(perpsAccountId, address(usdToken)).intoUint256();
 
-        assertEq(expectedMargin, newMarginCollateral);
+        assertEq(expectedMargin, newMarginCollateral, "withdrawMargin");
     }
 }

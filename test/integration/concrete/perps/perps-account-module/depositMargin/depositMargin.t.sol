@@ -76,6 +76,6 @@ contract DepositMargin_Integration_Concrete_Test is PerpsAccountModule_Integrati
 
         uint256 newMarginCollateral =
             perpsEngine.getAccountMarginCollateral(userPerpsAccountId, address(usdToken)).intoUint256();
-        assertEq(newMarginCollateral, amountToDeposit);
+        assertEq(newMarginCollateral, amountToDeposit, "depositMargin");
     }
 }
