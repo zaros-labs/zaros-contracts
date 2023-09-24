@@ -47,13 +47,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) {
-        // PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        // for (uint256 i = 0; i < perpsAccount.marginCollateralBalance.length(); i++) {
-        //     address collateralType = perpsAccount.marginCollateralBalance.at(i);
-        //     UD60x18 marginCollateral = perpsAccount.getMarginCollateral(collateralType);
-        //     // UD60x18 marginCollateralValue =
-        // }
+        return perpsAccount.getTotalMarginCollateralValue();
     }
 
     /// @inheritdoc IPerpsAccountModule
