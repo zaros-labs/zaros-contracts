@@ -39,18 +39,26 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         view
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        // TODO: use order.settlementTimestamp
-        uint256 settlementTimestamp = log.timestamp;
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[1]), uint256(log.topics[2]).toUint128());
         bytes32 streamId = PerpsMarket.load(marketId).streamId;
         (Order.Data memory order) = abi.decode(log.data, (Order.Data));
+
+        // TODO: we should probably have orderType as an indexed parameter?
+        if (order.payload.orderType != Order.OrderType.MARKET) {
+            return (false, bytes(""));
+        }
+
         // TODO: add proper order.validate() check
         string[] memory feeds = new string[](1);
         feeds[0] = string(abi.encodePacked(streamId));
         bytes memory extraData = abi.encode(accountId, marketId, order.id);
 
         revert StreamsLookup(
-            Constants.DATA_STREAMS_FEED_LABEL, feeds, Constants.DATA_STREAMS_QUERY_LABEL, settlementTimestamp, extraData
+            Constants.DATA_STREAMS_FEED_LABEL,
+            feeds,
+            Constants.DATA_STREAMS_QUERY_LABEL,
+            order.settlementTimestamp,
+            extraData
         );
     }
 
