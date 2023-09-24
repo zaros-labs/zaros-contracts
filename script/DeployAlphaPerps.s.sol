@@ -80,6 +80,8 @@ contract DeployAlphaPerps is BaseScript {
 
         perpsEngine.setIsCollateralEnabled(address(usdToken), true);
 
+        perpsEngine.configurePriceFeed(address(usdToken), usdcUsdPriceFeed);
+
         perpsEngine.createPerpsMarket(
             ETH_USD_MARKET_ID,
             ETH_USD_MARKET_NAME,
