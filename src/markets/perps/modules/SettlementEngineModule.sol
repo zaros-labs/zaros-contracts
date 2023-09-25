@@ -84,20 +84,20 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
     function performUpkeep(bytes calldata performData) external onlyForwarder {
         IVerifierProxy chainlinkVerifier = IVerifierProxy(PerpsConfiguration.load().chainlinkVerifier);
         (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
-        // implement
-        uint256 chainlinkFee;
+
         bytes memory unverifiedReportData = signedReports[0];
-        BasicReport memory unverifiedReport = _getReport(unverifiedReportData);
+        BasicReport memory unverifiedReport = _decodeReport(unverifiedReportData);
         bytes memory verifiedReportData =
             chainlinkVerifier.verify{ value: unverifiedReport.nativeFee }(unverifiedReportData);
-        BasicReport memory verifiedReport = _getReport(verifiedReportData);
+        BasicReport memory verifiedReport = _decodeReport(verifiedReportData);
+
         (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
 
         _settleOrder(order, verifiedReport);
     }
 
-    function _getReport(bytes memory report) internal pure returns (BasicReport memory) {
+    function _decodeReport(bytes memory report) internal pure returns (BasicReport memory) {
         return abi.decode(report, (BasicReport));
     }
 
