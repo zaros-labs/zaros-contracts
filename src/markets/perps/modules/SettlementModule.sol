@@ -45,6 +45,7 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
     )
         external
         view
+        override
         returns (bool upkeepNeeded, bytes memory performData)
     {
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[1]), uint256(log.topics[2]).toUint128());
@@ -76,12 +77,13 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
     )
         external
         view
+        override
         returns (bool upkeepNeeded, bytes memory performData)
     {
         return (true, abi.encode(values, extraData));
     }
 
-    function performUpkeep(bytes calldata performData) external onlyForwarder {
+    function performUpkeep(bytes calldata performData) external override onlyForwarder {
         IVerifierProxy chainlinkVerifier = IVerifierProxy(PerpsConfiguration.load().chainlinkVerifier);
         (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
 
@@ -97,10 +99,6 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         _settleOrder(order, verifiedReport);
     }
 
-    function _decodeReport(bytes memory report) internal pure returns (BasicReport memory) {
-        return abi.decode(report, (BasicReport));
-    }
-
     function settleOrder(uint256 accountId, uint128 marketId, uint8 orderId, uint256 price) external {
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
         require(order.id != 0, "Zaros: order not found");
@@ -108,6 +106,10 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         BasicReport memory report;
         report.price = int192(int256(price));
         _settleOrder(order, report);
+    }
+
+    function _decodeReport(bytes memory report) internal pure returns (BasicReport memory) {
+        return abi.decode(report, (BasicReport));
     }
 
     // TODO: many validations pending

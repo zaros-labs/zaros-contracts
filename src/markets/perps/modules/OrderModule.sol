@@ -29,25 +29,33 @@ abstract contract OrderModule is IOrderModule {
     using Position for Position.Data;
 
     /// @inheritdoc IOrderModule
-    function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory) {
+    function getConfiguredOrderFees(uint128 marketId) external view override returns (OrderFees.Data memory) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         return perpsMarket.orderFees;
     }
 
     /// @inheritdoc IOrderModule
-    function estimateOrderFee(uint128 marketId, int128 sizeDelta) external view returns (UD60x18, UD60x18) { }
+    function estimateOrderFee(uint128 marketId, int128 sizeDelta) external view override returns (UD60x18, UD60x18) { }
 
     /// @inheritdoc IOrderModule
-    function getRequiredMarginForOrder(uint128 marketId, int128 sizeDelta) external view returns (UD60x18, UD60x18) { }
+    function getRequiredMarginForOrder(
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        override
+        returns (UD60x18, UD60x18)
+    { }
 
     /// @inheritdoc IOrderModule
-    function getOrders(uint256 accountId, uint128 marketId) external view returns (Order.Data[] memory) {
+    function getOrders(uint256 accountId, uint128 marketId) external view override returns (Order.Data[] memory) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         return perpsMarket.orders[accountId];
     }
 
     /// @inheritdoc IOrderModule
-    function createOrder(uint256 accountId, uint128 marketId, Order.Payload calldata payload) external {
+    function createOrder(uint256 accountId, uint128 marketId, Order.Payload calldata payload) external override {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
 
@@ -65,7 +73,7 @@ abstract contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external {
+    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external override {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         Order.Data storage order = perpsMarket.orders[accountId][orderId];
