@@ -3,16 +3,15 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { PerpsAccountModule_Integration_Shared_Test } from
-    "test/integration/shared/perps-account-module/PerpsAccountModule.t.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-contract GetAccountMargin_Integration_Concrete_Test is PerpsAccountModule_Integration_Shared_Test {
+contract GetAccountMargin_Integration_Concrete_Test is Base_Integration_Shared_Test {
     function setUp() public override {
-        PerpsAccountModule_Integration_Shared_Test.setUp();
+        Base_Integration_Shared_Test.setUp();
     }
 
     function test_GetAccountMarginOneCollateral() external {

@@ -11,7 +11,7 @@ import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { sd59x18 } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract PerpsAccountModule_Integration_Shared_Test is Base_Test {
+abstract contract Base_Integration_Shared_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         approveContracts();

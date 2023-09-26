@@ -3,15 +3,14 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { PerpsAccountModule_Integration_Shared_Test } from
-    "test/integration/shared/perps-account-module/PerpsAccountModule.t.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 
-contract DepositMargin_Integration_Concrete_Test is PerpsAccountModule_Integration_Shared_Test {
+contract DepositMargin_Integration_Concrete_Test is Base_Integration_Shared_Test {
     function setUp() public override {
-        PerpsAccountModule_Integration_Shared_Test.setUp();
+        Base_Integration_Shared_Test.setUp();
     }
 
     function test_CollateralNotEnabled() external {
