@@ -104,7 +104,8 @@ abstract contract Base_Test is Test, Events {
         (bool success,) = address(perpsEngineImplementation).call(initializeData);
         require(success, "perpsEngineImplementation.initialize failed");
 
-        perpsEngine = PerpsEngine(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData)));
+        perpsEngine =
+            PerpsEngine(payable(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData))));
 
         distributeTokens();
         configureContracts();

@@ -29,6 +29,8 @@ contract PerpsEngine is
     SettlementModule,
     UUPSUpgradeable
 {
+    receive() external payable { }
+
     function initialize(
         address chainlinkForwarder,
         address chainlinkVerifier,

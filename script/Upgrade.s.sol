@@ -48,7 +48,7 @@ contract DeployAlphaPerps is BaseScript {
         (bool success,) = address(perpsEngineImplementation).call(initializeData);
         require(success, "perpsEngineImplementation.initialize failed");
 
-        perpsEngine = PerpsEngine(vm.envAddress("PERPS_ENGINE"));
+        perpsEngine = PerpsEngine(payable(vm.envAddress("PERPS_ENGINE")));
         perpsEngine.upgradeTo(address(perpsEngineImplementation));
 
         logContracts();

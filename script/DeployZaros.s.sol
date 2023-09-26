@@ -62,7 +62,7 @@ pragma solidity 0.8.19;
 //         {
 //             // TODO: use correct accountNft
 //             PerpsEngine perpsEngine =
-//                 new PerpsEngine(address(accountNft), address(zaros), address(rewardDistributor));
+//                 new PerpsEngine(payable(address(accountNft), address(zaros), address(rewardDistributor));
 
 //             console.log("Perps Vault: ");
 //             console.log(address(perpsEngine));
