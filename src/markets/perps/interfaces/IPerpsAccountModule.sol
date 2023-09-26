@@ -7,6 +7,7 @@ import { Order } from "../storage/Order.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title Perps Account Module.
 /// @notice This moduled is used by users in order to mint perps account nfts
@@ -66,27 +67,19 @@ interface IPerpsAccountModule {
         view
         returns (UD60x18 totalMarginCollateralValue);
 
-    /// @notice Returns the account's total margin balance and available balance.
+    /// @notice Returns the account's total margin balance, available balance and maintenance margin.
     /// @dev This function does take open positions data such as unrealized pnl into account.
+    /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
+    /// the liquidation engine will be triggered.
     /// @param accountId The trading account id.
     /// @return marginBalance The account's total margin balance.
     /// @return availableMargin The account's withdrawable margin balance.
+    /// @return initialMargin The account's initial margin in positions.
+    /// @return maintenanceMargin The account's maintenance margin.
     function getAccountMargin(uint256 accountId)
         external
         view
-        returns (UD60x18 marginBalance, UD60x18 availableMargin);
-
-    /// @notice Returns the account's current maintenance margin in open positions
-    /// and the maintenance margin rate.
-    /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
-    /// the liquidation engine will be triggered.
-    /// @param accountId the trading account id.
-    /// @return maintenanceMargin The account's maintenance margin.
-    /// @return maintenanceMarginRate The account's maintenance margin rate (MMR).
-    function getAccountMaintenanceMargin(uint256 accountId)
-        external
-        view
-        returns (UD60x18 maintenanceMargin, UD60x18 maintenanceMarginRate);
+        returns (SD59x18 marginBalance, SD59x18 availableMargin, UD60x18 initialMargin, UD60x18 maintenanceMargin);
 
     /// @notice Creates a new trading account and mints its NFT
     /// @return accountId The trading account id.

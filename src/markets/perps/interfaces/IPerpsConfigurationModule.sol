@@ -20,6 +20,12 @@ interface IPerpsConfigurationModule {
     /// @param enabled `true` if the collateral type was enabled, `false` if it was disabled.
     event LogSetSupportedCollateral(address indexed sender, address indexed collateralType, bool enabled);
 
+    /// @notice Emitted when a new price feed is configured for a collateral type.
+    /// @param sender The address that configured the price feed.
+    /// @param collateralType The address of the collateral type.
+    /// @param priceFeed The address of the price feed.
+    event LogConfigurePriceFeed(address indexed sender, address indexed collateralType, address priceFeed);
+
     /// @notice Emitted when a new perps market is created.
     /// @param marketId The perps market id.
     /// @param name The perps market name.
@@ -44,7 +50,12 @@ interface IPerpsConfigurationModule {
     /// @param shouldEnable `true` if the collateral type should be enabled, `false` if it should be disabled.
     function setIsCollateralEnabled(address collateralType, bool shouldEnable) external;
 
-    function setChainlinkVerifier(address chainlinkVerifier) external;
+    /// @notice Sets a price feed contract address for the given margin collateral type.
+    /// @param collateralType The address of the collateral type.
+    /// @param priceFeed The address of the price feed.
+    function configurePriceFeed(address collateralType, address priceFeed) external;
+
+    function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external;
 
     /// @notice Creates a new market with the requested market id.
     /// @param marketId The perps market id.

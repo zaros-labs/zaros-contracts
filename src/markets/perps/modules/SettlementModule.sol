@@ -9,7 +9,7 @@ import {
 } from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/interfaces/chainlink/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
-import { ISettlementEngineModule } from "../interfaces/ISettlementEngineModule.sol";
+import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { Order } from "../storage/Order.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
@@ -23,7 +23,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomation, IStreamsLookupCompatible {
+abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStreamsLookupCompatible {
     using Order for Order.Data;
     using PerpsAccount for PerpsAccount.Data;
     using PerpsMarket for PerpsMarket.Data;
@@ -31,26 +31,43 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
     using SafeCast for uint256;
     using SafeCast for int256;
 
+    modifier onlyForwarder() {
+        address forwarder = PerpsConfiguration.load().chainlinkForwarder;
+        if (msg.sender != forwarder) {
+            revert Zaros_SettlementModule_OnlyForwarder(msg.sender, forwarder);
+        }
+        _;
+    }
+
     function checkLog(
         AutomationLog calldata log,
         bytes calldata checkData
     )
         external
         view
+        override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        // TODO: use order.settlementTimestamp
-        uint256 settlementTimestamp = log.timestamp;
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[1]), uint256(log.topics[2]).toUint128());
         bytes32 streamId = PerpsMarket.load(marketId).streamId;
         (Order.Data memory order) = abi.decode(log.data, (Order.Data));
+
+        // TODO: we should probably have orderType as an indexed parameter?
+        if (order.payload.orderType != Order.OrderType.MARKET) {
+            return (false, bytes(""));
+        }
+
         // TODO: add proper order.validate() check
         string[] memory feeds = new string[](1);
         feeds[0] = string(abi.encodePacked(streamId));
         bytes memory extraData = abi.encode(accountId, marketId, order.id);
 
         revert StreamsLookup(
-            Constants.DATA_STREAMS_FEED_LABEL, feeds, Constants.DATA_STREAMS_QUERY_LABEL, settlementTimestamp, extraData
+            Constants.DATA_STREAMS_FEED_LABEL,
+            feeds,
+            Constants.DATA_STREAMS_QUERY_LABEL,
+            order.settlementTimestamp,
+            extraData
         );
     }
 
@@ -60,28 +77,38 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
     )
         external
         view
+        override
         returns (bool upkeepNeeded, bytes memory performData)
     {
         return (true, abi.encode(values, extraData));
     }
 
-    function performUpkeep(bytes calldata performData) external {
+    function performUpkeep(bytes calldata performData) external override onlyForwarder {
         IVerifierProxy chainlinkVerifier = IVerifierProxy(PerpsConfiguration.load().chainlinkVerifier);
         (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
-        // implement
-        uint256 chainlinkFee;
+
         bytes memory unverifiedReportData = signedReports[0];
-        BasicReport memory unverifiedReport = _getReport(unverifiedReportData);
+        BasicReport memory unverifiedReport = _decodeReport(unverifiedReportData);
         bytes memory verifiedReportData =
             chainlinkVerifier.verify{ value: unverifiedReport.nativeFee }(unverifiedReportData);
-        BasicReport memory verifiedReport = _getReport(verifiedReportData);
+        BasicReport memory verifiedReport = _decodeReport(verifiedReportData);
+
         (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
 
         _settleOrder(order, verifiedReport);
     }
 
-    function _getReport(bytes memory report) internal pure returns (BasicReport memory) {
+    function settleOrder(uint256 accountId, uint128 marketId, uint8 orderId, uint256 price) external {
+        Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
+
+        BasicReport memory report;
+        report.price = int192(int256(price));
+
+        _settleOrder(order, report);
+    }
+
+    function _decodeReport(bytes memory report) internal pure returns (BasicReport memory) {
         return abi.decode(report, (BasicReport));
     }
 
@@ -127,6 +154,6 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
         perpsAccount.updateActiveOrders(runtime.marketId, order.id, false);
         oldPosition.update(runtime.newPosition);
 
-        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, order, runtime.newPosition);
+        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, order.id, runtime.newPosition);
     }
 }

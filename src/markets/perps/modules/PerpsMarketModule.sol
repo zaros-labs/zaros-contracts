@@ -18,22 +18,22 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     using Position for Position.Data;
 
     /// @inheritdoc IPerpsMarketModule
-    function name(uint128 marketId) external view returns (string memory) {
+    function name(uint128 marketId) external view override returns (string memory) {
         return PerpsMarket.load(marketId).name;
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function symbol(uint128 marketId) external view returns (string memory) {
+    function symbol(uint128 marketId) external view override returns (string memory) {
         return PerpsMarket.load(marketId).symbol;
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function skew(uint128 marketId) public view returns (SD59x18) {
+    function skew(uint128 marketId) public view override returns (SD59x18) {
         return sd59x18(PerpsMarket.load(marketId).skew);
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function maxOpenInterest(uint128 marketId) external view returns (UD60x18) {
+    function maxOpenInterest(uint128 marketId) external view override returns (UD60x18) {
         return ud60x18(PerpsMarket.load(marketId).maxOpenInterest);
     }
 
@@ -41,6 +41,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     function openInterest(uint128 marketId)
         external
         view
+        override
         returns (UD60x18 longsSize, UD60x18 shortsSize, UD60x18 totalSize)
     {
         SD59x18 currentSkew = skew(marketId);
@@ -54,31 +55,39 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function indexPrice(uint128 marketId) external view returns (UD60x18) {
+    function indexPrice(uint128 marketId) external view override returns (UD60x18) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
 
         return perpsMarket.getIndexPrice();
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function priceFeed(uint128 marketId) external view returns (address) {
+    function priceFeed(uint128 marketId) external view override returns (address) {
         return PerpsMarket.load(marketId).priceFeed;
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function fundingRate(uint128 marketId) external view returns (SD59x18) {
+    function fundingRate(uint128 marketId) external view override returns (SD59x18) {
         return PerpsMarket.load(marketId).getCurrentFundingRate();
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function fundingVelocity(uint128 marketId) external view returns (SD59x18) {
+    function fundingVelocity(uint128 marketId) external view override returns (SD59x18) {
         return PerpsMarket.load(marketId).getCurrentFundingVelocity();
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view returns (UD60x18 fillPrice) {
+    function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view override returns (UD60x18 fillPrice) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         fillPrice = perpsMarket.getIndexPrice();
+    }
+
+    function getPositionLeverage(uint256 accountId, uint128 marketId) external view override returns (UD60x18) {
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        Position.Data storage position = perpsMarket.positions[accountId];
+
+        UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
+        UD60x18 leverage = position.getNotionalValue(marketIndexPrice).div(ud60x18(position.initialMargin));
     }
 
     /// @inheritdoc IPerpsMarketModule
@@ -88,6 +97,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     )
         external
         view
+        override
         returns (
             SD59x18 size,
             UD60x18 initialMargin,

@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.19;
 
+// Zaros dependencies
+import { PerpsConfiguration } from "./PerpsConfiguration.sol";
+
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -15,6 +18,7 @@ library PerpsAccount {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
+    using PerpsConfiguration for PerpsConfiguration.Data;
 
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
     error Zaros_PerpsAccount_PermissionDenied(uint256 accountId, address sender);
@@ -52,7 +56,7 @@ library PerpsAccount {
     /// @dev Checks whether the given perps account exists.
     /// @param accountId The perps account id.
     /// @return perpsAccount if the perps account exists, its storage pointer is returned.
-    function exists(uint256 accountId) internal view returns (Data storage perpsAccount) {
+    function loadExisting(uint256 accountId) internal view returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         if (perpsAccount.owner == address(0)) {
             revert Zaros_PerpsAccount_AccountNotFound(accountId, msg.sender);
@@ -80,6 +84,25 @@ library PerpsAccount {
         (, uint256 marginCollateral) = self.marginCollateralBalance.tryGet(collateralType);
 
         return ud60x18(marginCollateral);
+    }
+
+    /// @dev Returns the notional value of all margin collateral in the account.
+    /// @param self The perps account storage pointer.
+    /// @return totalMarginCollateralValue The total margin collateral value.
+    function getTotalMarginCollateralValue(Data storage self)
+        internal
+        view
+        returns (UD60x18 totalMarginCollateralValue)
+    {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+
+        for (uint256 i = 0; i < self.marginCollateralBalance.length(); i++) {
+            (address collateralType, uint256 marginCollateral) = self.marginCollateralBalance.at(i);
+            UD60x18 marginCollateralValue =
+                perpsConfiguration.getCollateralPrice(collateralType).mul(ud60x18(marginCollateral));
+
+            totalMarginCollateralValue = totalMarginCollateralValue.add(marginCollateralValue);
+        }
     }
 
     /// @dev Verifies if the caller is authorized to perform actions on the given perps account.

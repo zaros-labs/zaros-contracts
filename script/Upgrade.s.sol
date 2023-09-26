@@ -21,42 +21,26 @@ contract DeployAlphaPerps is BaseScript {
     //////////////////////////////////////////////////////////////////////////*/
     address internal mockChainlinkForwarder = address(1);
     address internal mockChainlinkVerifier = address(2);
-    address internal mockRewardDistributorAddress = address(3);
-    address internal mockZarosAddress = address(4);
-    bytes32 internal ethUsdStreamId;
-    address internal ethUsdPriceFeed;
-    /// @dev TODO: We need a zrsUSD price feed
-    address internal usdcUsdPriceFeed;
-
-    uint128 internal constant ETH_USD_MARKET_ID = 1;
-    string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
-    string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
-    uint128 internal constant ETH_USD_MMR = 0.01e18;
-    uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
-    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
-    OrderFees.Data public orderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+    address internal mockPerpsAccountTokenAddress = address(3);
+    address internal mockRewardDistributorAddress = address(4);
+    address internal mockZarosAddress = address(5);
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
-    AccountNFT internal perpsAccountToken;
     ZarosUSD internal usdToken;
     PerpsEngine internal perpsEngine;
     PerpsEngine internal perpsEngineImplementation;
 
     function run() public broadcaster {
-        perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
         usdToken = ZarosUSD(vm.envAddress("ZRSUSD"));
-        ethUsdStreamId = vm.envBytes32("ETH_USD_STREAM_ID");
-        ethUsdPriceFeed = vm.envAddress("ETH_USD_PRICE_FEED");
-        usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
 
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
             mockChainlinkForwarder,
             mockChainlinkVerifier,
-            address(perpsAccountToken),
+            mockPerpsAccountTokenAddress,
             mockRewardDistributorAddress,
             address(usdToken),
             mockZarosAddress
@@ -64,38 +48,14 @@ contract DeployAlphaPerps is BaseScript {
         (bool success,) = address(perpsEngineImplementation).call(initializeData);
         require(success, "perpsEngineImplementation.initialize failed");
 
-        perpsEngine =
-            PerpsEngine(payable(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData))));
+        perpsEngine = PerpsEngine(payable(vm.envAddress("PERPS_ENGINE")));
+        perpsEngine.upgradeTo(address(perpsEngineImplementation));
 
-        configureContracts();
         logContracts();
     }
 
-    function configureContracts() internal {
-        perpsAccountToken.transferOwnership(address(perpsEngine));
-
-        perpsEngine.setIsCollateralEnabled(address(usdToken), true);
-
-        perpsEngine.configurePriceFeed(address(usdToken), usdcUsdPriceFeed);
-
-        perpsEngine.createPerpsMarket(
-            ETH_USD_MARKET_ID,
-            ETH_USD_MARKET_NAME,
-            ETH_USD_MARKET_SYMBOL,
-            ethUsdStreamId,
-            ethUsdPriceFeed,
-            ETH_USD_MMR,
-            ETH_USD_MAX_OI,
-            ETH_USD_MIN_IMR,
-            orderFees
-        );
-    }
-
     function logContracts() internal view {
-        console.log("Perps Account NFT: ");
-        console.log(address(perpsAccountToken));
-
-        console.log("Perps Engine Implementation: ");
+        console.log("New Perps Engine Implementation: ");
         console.log(address(perpsEngineImplementation));
 
         console.log("Perps Engine Proxy: ");

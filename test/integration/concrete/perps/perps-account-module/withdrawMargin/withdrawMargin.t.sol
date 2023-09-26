@@ -3,20 +3,18 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { Base_Test } from "test/Base.t.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 
-contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
+contract WithdrawMargin_Integration_Concrete_Test is Base_Integration_Shared_Test {
     function setUp() public override {
-        Base_Test.setUp();
-        approveContracts();
-        changePrank({ msgSender: users.naruto });
+        Base_Integration_Shared_Test.setUp();
     }
 
     function test_AmountZero() external {
         uint256 amount = 100e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount);
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
 
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
@@ -32,7 +30,7 @@ contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
 
     function test_UnauthorizedSender() external whenAmountIsNotZero {
         uint256 amount = 100e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount);
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
 
         changePrank({ msgSender: users.sasuke });
         vm.expectRevert({
@@ -52,7 +50,7 @@ contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
     function test_EnoughMarginAvailable() external whenAmountIsNotZero whenAuthorizedSender {
         uint256 amount = 100e18;
         uint256 amountToWithdraw = 50e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount);
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);
@@ -63,11 +61,6 @@ contract WithdrawMargin_Unit_Concrete_Test is Base_Test {
         uint256 newMarginCollateral =
             perpsEngine.getAccountMarginCollateral(perpsAccountId, address(usdToken)).intoUint256();
 
-        assertEq(expectedMargin, newMarginCollateral);
-    }
-
-    function _createAccountAndDeposit(uint256 amount) internal returns (uint256 accountId) {
-        accountId = perpsEngine.createPerpsAccount();
-        perpsEngine.depositMargin(accountId, address(usdToken), amount);
+        assertEq(expectedMargin, newMarginCollateral, "withdrawMargin");
     }
 }

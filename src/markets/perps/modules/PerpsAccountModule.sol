@@ -8,19 +8,28 @@ import { ParameterError } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
+import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { Position } from "../storage/Position.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpsAccountModule}.
 abstract contract PerpsAccountModule is IPerpsAccountModule {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableSet for EnumerableSet.UintSet;
     using PerpsAccount for PerpsAccount.Data;
+    using PerpsMarket for PerpsMarket.Data;
+    using Position for Position.Data;
+    using SafeCast for uint256;
     using SafeERC20 for IERC20;
     using PerpsConfiguration for PerpsConfiguration.Data;
 
@@ -46,15 +55,39 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    /// @dev TODO: Implement Chainlink price feed.
-    function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) { }
+    function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+
+        return perpsAccount.getTotalMarginCollateralValue();
+    }
 
     /// @inheritdoc IPerpsAccountModule
-    /// @dev TODO: Implement Chainlink price feed.
-    function getAccountMargin(uint256 accountId) external view override returns (UD60x18, UD60x18) { }
+    function getAccountMargin(uint256 accountId) external view override returns (SD59x18, SD59x18, UD60x18, UD60x18) {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-    /// @inheritdoc IPerpsAccountModule
-    function getAccountMaintenanceMargin(uint256 accountId) external view returns (UD60x18, UD60x18) { }
+        SD59x18 marginBalance = perpsAccount.getTotalMarginCollateralValue().intoSD59x18();
+        UD60x18 initialMargin;
+        UD60x18 maintenanceMargin;
+
+        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
+            uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
+            PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+            Position.Data storage position = perpsMarket.positions[accountId];
+
+            UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
+            SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(marketIndexPrice);
+            SD59x18 accruedFunding = position.getAccruedFunding(fundingFeePerUnit);
+            UD60x18 notionalValue = position.getNotionalValue(marketIndexPrice);
+
+            marginBalance = marginBalance.add(position.getUnrealizedPnl(marketIndexPrice, accruedFunding));
+            initialMargin = initialMargin.add(ud60x18(position.initialMargin));
+            maintenanceMargin = maintenanceMargin.add(ud60x18(perpsMarket.maintenanceMarginRate).mul(notionalValue));
+        }
+
+        SD59x18 availableBalance = marginBalance.sub(initialMargin.intoSD59x18());
+
+        return (marginBalance, availableBalance, initialMargin, maintenanceMargin);
+    }
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint256) {
@@ -98,9 +131,8 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         _requireCollateralEnabled(collateralType, perpsConfiguration.isCollateralEnabled(collateralType));
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
-        PerpsAccount.exists(accountId);
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.increaseMarginCollateral(collateralType, udAmount);
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), udAmount.intoUint256());
 

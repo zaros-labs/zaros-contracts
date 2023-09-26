@@ -45,8 +45,9 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         perpsConfiguration.zaros = zaros;
     }
 
-    function setChainlinkVerifier(address chainlinkVerifier) external override onlyOwner {
+    function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external override onlyOwner {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        perpsConfiguration.chainlinkForwarder = chainlinkForwarder;
         perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
     }
 
@@ -57,6 +58,15 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         perpsConfiguration.setIsCollateralEnabled(collateralType, shouldEnable);
 
         emit LogSetSupportedCollateral(msg.sender, collateralType, shouldEnable);
+    }
+
+    /// @inheritdoc IPerpsConfigurationModule
+    function configurePriceFeed(address collateralType, address priceFeed) external override onlyOwner {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+
+        perpsConfiguration.configurePriceFeed(collateralType, priceFeed);
+
+        emit LogConfigurePriceFeed(msg.sender, collateralType, priceFeed);
     }
 
     /// @inheritdoc IPerpsConfigurationModule
@@ -103,6 +113,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
 
     /// @dev {PerpsConfigurationModule} UUPS initializer.
     function __PerpsConfigurationModule_init(
+        address chainlinkForwader,
         address chainlinkVerifier,
         address perpsAccountToken,
         address rewardDistributor,
@@ -113,6 +124,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         onlyInitializing
     {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        perpsConfiguration.chainlinkForwarder = chainlinkForwader;
         perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
         perpsConfiguration.perpsAccountToken = perpsAccountToken;
         perpsConfiguration.rewardDistributor = rewardDistributor;
