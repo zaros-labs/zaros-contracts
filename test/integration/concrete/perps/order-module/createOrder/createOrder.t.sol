@@ -35,7 +35,7 @@ contract CreateOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
 
-        perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: payload });
+        perpsEngine.createOrder({ payload: payload });
     }
 
     function test_CreateOrderMultiple() external {
@@ -51,13 +51,13 @@ contract CreateOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
             orderType: Order.OrderType.MARKET
         });
 
-        perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: payload });
+        perpsEngine.createOrder({ payload: payload });
 
         Order.Data memory expectedOrder = Order.Data({ id: 1, payload: payload, settlementTimestamp: block.timestamp });
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
 
-        perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: payload });
+        perpsEngine.createOrder({ payload: payload });
     }
 }

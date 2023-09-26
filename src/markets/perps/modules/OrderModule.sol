@@ -56,7 +56,9 @@ abstract contract OrderModule is IOrderModule {
 
     /// @inheritdoc IOrderModule
     /// @dev TODO: remove accountId and marketId since they're already present in the payload
-    function createOrder(uint256 accountId, uint128 marketId, Order.Payload calldata payload) external override {
+    function createOrder(Order.Payload calldata payload) external override {
+        uint256 accountId = payload.accountId;
+        uint128 marketId = payload.marketId;
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
 

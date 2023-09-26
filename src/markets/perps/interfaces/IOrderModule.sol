@@ -40,7 +40,7 @@ interface IOrderModule {
         view
         returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin);
 
-    function createOrder(uint256 accountId, uint128 marketId, Order.Payload calldata orderPayload) external;
+    function createOrder(Order.Payload calldata orderPayload) external;
 
     // function settleOrder(bytes32 orderId) external;
 
