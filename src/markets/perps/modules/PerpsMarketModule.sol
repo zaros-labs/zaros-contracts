@@ -81,6 +81,14 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         fillPrice = perpsMarket.getIndexPrice();
     }
 
+    function getPositionLeverage(uint256 accountId, uint128 marketId) external view returns (UD60x18) {
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        Position.Data storage position = perpsMarket.positions[accountId];
+
+        UD60x18 indexPrice = perpsMarket.getIndexPrice();
+        UD60x18 leverage = position.getNotionalValue(indexPrice).div(ud60x18(position.initialMargin));
+    }
+
     /// @inheritdoc IPerpsMarketModule
     function getOpenPositionData(
         uint256 accountId,

@@ -64,6 +64,12 @@ interface IPerpsMarketModule {
     /// @return fillPrice The estimated order fill price.
     function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view returns (UD60x18 fillPrice);
 
+    /// @notice Returns the current leverage of an open position of the given account on the given market.
+    /// @param accountId The trading account id.
+    /// @param marketId The perps market id.
+    /// @return leverage The position current leverage (notional value / IM).
+    function getPositionLeverage(uint256 accountId, uint128 marketId) external view returns (UD60x18 leverage);
+
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.
