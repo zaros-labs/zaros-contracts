@@ -37,4 +37,27 @@ contract CreateOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: payload });
     }
+
+    function test_CreateOrderMultiple() external {
+        uint256 amount = 100_000e18;
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
+
+        Order.Payload memory payload = Order.Payload({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            initialMarginDelta: int128(10_000e18),
+            sizeDelta: int128(50e18),
+            acceptablePrice: uint128(MOCK_ETH_USD_PRICE),
+            orderType: Order.OrderType.MARKET
+        });
+
+        perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: payload });
+
+        Order.Data memory expectedOrder = Order.Data({ id: 1, payload: payload, settlementTimestamp: block.timestamp });
+
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit LogCreateOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
+
+        perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: payload });
+    }
 }
