@@ -11,8 +11,6 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 import { sd59x18 } from "@prb-math/SD59x18.sol";
 
-import "forge-std/console.sol";
-
 contract SettleOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
@@ -98,14 +96,11 @@ contract SettleOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
             lastInteractionFundingFeePerUnit: 0
         });
 
-        console.log("POSITION SIZE");
-        console.log(uint256(int256(expectedPosition.size)));
-        console.log(uint256((expectedPosition.initialMargin)));
-
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, sellOrder.id, expectedPosition);
 
-        perpsEngine.settleOrder({accountId: perpsAccountId,
+        perpsEngine.settleOrder({
+            accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             orderId: sellOrder.id,
             price: MOCK_ETH_USD_PRICE
