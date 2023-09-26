@@ -101,6 +101,15 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         return abi.decode(report, (BasicReport));
     }
 
+    function settleOrder(uint256 accountId, uint128 marketId, uint8 orderId, uint256 price) external {
+        Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
+        require(order.id != 0, "Zaros: order not found");
+
+        BasicReport memory report;
+        report.price = int192(int256(price));
+        _settleOrder(order, report);
+    }
+
     // TODO: many validations pending
     function _settleOrder(Order.Data storage order, BasicReport memory report) internal {
         SettlementRuntime memory runtime;
