@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
+import { Position } from "@zaros/markets/perps/storage/Position.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 // PRB Math dependencies
@@ -33,5 +34,23 @@ contract SettleOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
         });
 
         perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: payload });
+        Order.Data memory order = perpsEngine.getOrders({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID })[0];
+
+        Position.Data memory expectedPosition = Position.Data({
+            size: order.payload.sizeDelta,
+            initialMargin: uint128(uint256(int256(order.payload.initialMarginDelta))),
+            unrealizedPnlStored: 0,
+            lastInteractionPrice: uint128(MOCK_ETH_USD_PRICE),
+            lastInteractionFundingFeePerUnit: 0
+        });
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, order.id, expectedPosition);
+
+        perpsEngine.settleOrder({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            orderId: order.id,
+            price: MOCK_ETH_USD_PRICE
+        });
     }
 }

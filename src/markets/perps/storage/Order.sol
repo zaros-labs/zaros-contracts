@@ -35,5 +35,6 @@ library Order {
         self.payload.initialMarginDelta = 0;
         self.payload.sizeDelta = 0;
         self.payload.acceptablePrice = 0;
+        self.settlementTimestamp = 0;
     }
 }

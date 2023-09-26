@@ -101,10 +101,10 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
 
     function settleOrder(uint256 accountId, uint128 marketId, uint8 orderId, uint256 price) external {
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
-        require(order.id != 0, "Zaros: order not found");
 
         BasicReport memory report;
         report.price = int192(int256(price));
+
         _settleOrder(order, report);
     }
 
@@ -154,6 +154,6 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         perpsAccount.updateActiveOrders(runtime.marketId, order.id, false);
         oldPosition.update(runtime.newPosition);
 
-        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, order, runtime.newPosition);
+        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, order.id, runtime.newPosition);
     }
 }

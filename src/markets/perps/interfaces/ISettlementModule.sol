@@ -17,7 +17,7 @@ interface ISettlementModule {
         address indexed sender,
         uint256 indexed accountId,
         uint128 indexed marketId,
-        Order.Data order,
+        uint8 orderId,
         Position.Data newPosition
     );
 
