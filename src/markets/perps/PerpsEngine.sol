@@ -8,7 +8,7 @@ import { OrderModule } from "./modules/OrderModule.sol";
 import { PerpsAccountModule } from "./modules/PerpsAccountModule.sol";
 import { PerpsConfigurationModule } from "./modules/PerpsConfigurationModule.sol";
 import { PerpsMarketModule } from "./modules/PerpsMarketModule.sol";
-import { SettlementEngineModule } from "./modules/SettlementEngineModule.sol";
+import { SettlementModule } from "./modules/SettlementModule.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -26,7 +26,7 @@ contract PerpsEngine is
     PerpsAccountModule,
     PerpsConfigurationModule,
     PerpsMarketModule,
-    SettlementEngineModule,
+    SettlementModule,
     UUPSUpgradeable
 {
     function initialize(

@@ -9,7 +9,7 @@ import {
 } from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/interfaces/chainlink/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
-import { ISettlementEngineModule } from "../interfaces/ISettlementEngineModule.sol";
+import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { Order } from "../storage/Order.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
@@ -23,7 +23,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomation, IStreamsLookupCompatible {
+abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStreamsLookupCompatible {
     using Order for Order.Data;
     using PerpsAccount for PerpsAccount.Data;
     using PerpsMarket for PerpsMarket.Data;
@@ -34,7 +34,7 @@ abstract contract SettlementEngineModule is ISettlementEngineModule, ILogAutomat
     modifier onlyForwarder() {
         address forwarder = PerpsConfiguration.load().chainlinkForwarder;
         if (msg.sender != forwarder) {
-            revert Zaros_SettlementEngineModule_OnlyForwarder(msg.sender, forwarder);
+            revert Zaros_SettlementModule_OnlyForwarder(msg.sender, forwarder);
         }
         _;
     }

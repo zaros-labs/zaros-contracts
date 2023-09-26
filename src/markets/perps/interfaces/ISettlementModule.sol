@@ -10,8 +10,8 @@ import { Position } from "../storage/Position.sol";
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-interface ISettlementEngineModule {
-    error Zaros_SettlementEngineModule_OnlyForwarder(address sender, address forwarder);
+interface ISettlementModule {
+    error Zaros_SettlementModule_OnlyForwarder(address sender, address forwarder);
 
     event LogSettleOrder(
         address indexed sender,
