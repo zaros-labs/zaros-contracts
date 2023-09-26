@@ -113,7 +113,7 @@ abstract contract Base_Test is Test, Events {
         vm.label({ account: address(usdToken), newLabel: "Zaros USD" });
         vm.label({ account: address(zaros), newLabel: "Zaros" });
         vm.label({ account: address(rewardDistributor), newLabel: "Reward Distributor" });
-        vm.label({ account: address(perpsEngine), newLabel: "Perps Manager" });
+        vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
