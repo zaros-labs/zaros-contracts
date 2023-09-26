@@ -11,6 +11,8 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 import { sd59x18 } from "@prb-math/SD59x18.sol";
 
+import "forge-std/console.sol";
+
 contract SettleOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
@@ -32,7 +34,6 @@ contract SettleOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
             acceptablePrice: uint128(MOCK_ETH_USD_PRICE),
             orderType: Order.OrderType.MARKET
         });
-
         perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: payload });
         Order.Data memory order = perpsEngine.getOrders({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID })[0];
 
@@ -50,6 +51,63 @@ contract SettleOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             orderId: order.id,
+            price: MOCK_ETH_USD_PRICE
+        });
+    }
+
+    function test_SettleOrderReducingSize() external {
+        uint256 amount = 100_000e18;
+
+        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
+
+        Order.Payload memory payload = Order.Payload({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            initialMarginDelta: int128(10_000e18),
+            sizeDelta: int128(50e18),
+            acceptablePrice: uint128(MOCK_ETH_USD_PRICE),
+            orderType: Order.OrderType.MARKET
+        });
+
+        perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: payload });
+
+        perpsEngine.settleOrder({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            orderId: 0,
+            price: MOCK_ETH_USD_PRICE
+        });
+
+        Order.Payload memory newPayload = Order.Payload({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            initialMarginDelta: int128(0),
+            sizeDelta: int128(-25e18),
+            acceptablePrice: uint128(MOCK_ETH_USD_PRICE),
+            orderType: Order.OrderType.MARKET
+        });
+        perpsEngine.createOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, payload: newPayload });
+        Order.Data memory sellOrder =
+            perpsEngine.getOrders({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID })[1];
+
+        Position.Data memory expectedPosition = Position.Data({
+            size: payload.sizeDelta + sellOrder.payload.sizeDelta,
+            initialMargin: uint128(uint256(int256(payload.initialMarginDelta))),
+            unrealizedPnlStored: 0,
+            lastInteractionPrice: uint128(MOCK_ETH_USD_PRICE),
+            lastInteractionFundingFeePerUnit: 0
+        });
+
+        console.log("POSITION SIZE");
+        console.log(uint256(int256(expectedPosition.size)));
+        console.log(uint256((expectedPosition.initialMargin)));
+
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, sellOrder.id, expectedPosition);
+
+        perpsEngine.settleOrder({accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            orderId: sellOrder.id,
             price: MOCK_ETH_USD_PRICE
         });
     }
