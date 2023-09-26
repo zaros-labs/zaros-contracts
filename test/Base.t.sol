@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { Zaros } from "@zaros/core/Zaros.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
@@ -34,6 +35,17 @@ abstract contract Base_Test is Test, Events {
     Users internal users;
     address internal mockChainlinkForwarder = vm.addr({ privateKey: 0x01 });
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
+    uint128 internal constant ETH_USD_MARKET_ID = 1;
+    string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
+    string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
+    bytes32 internal constant mockEthUsdStreamId = keccak256(bytes("mockEthUsdStreamId"));
+    uint128 internal constant ETH_USD_MMR = 0.01e18;
+    uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
+    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
+    uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;
+    uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
+    uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
+    OrderFees.Data public orderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -47,9 +59,9 @@ abstract contract Base_Test is Test, Events {
     RewardDistributor internal rewardDistributor;
     Zaros internal zaros;
     /// @dev TODO: think about forking tests
+    MockPriceFeed internal mockEthUsdPriceFeed;
     MockPriceFeed internal mockUsdcUsdPriceFeed;
     MockPriceFeed internal mockWstEthUsdPriceFeed;
-    MockPriceFeed internal mockEthUsdPriceFeed;
 
     /// @dev TODO: deploy real contracts instead of mocking them.
     address internal mockZarosAddress = vm.addr({ privateKey: 0x03 });
@@ -75,9 +87,9 @@ abstract contract Base_Test is Test, Events {
         new MockERC20({ name: "Wrapped Staked Ether", symbol: "wstETH", decimals_: 18, ownerBalance: 100_000_000e18 });
         zaros = Zaros(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
-        mockUsdcUsdPriceFeed = new MockPriceFeed(6, 1e6);
-        mockEthUsdPriceFeed = new MockPriceFeed(18, 1900e18);
-        mockWstEthUsdPriceFeed = new MockPriceFeed(18, 2000e18);
+        mockUsdcUsdPriceFeed = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
+        mockEthUsdPriceFeed = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
+        mockWstEthUsdPriceFeed = new MockPriceFeed(18, int256(MOCK_WSTETH_USD_PRICE));
 
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
@@ -156,6 +168,20 @@ abstract contract Base_Test is Test, Events {
         perpsEngine.configurePriceFeed(address(usdToken), address(mockUsdcUsdPriceFeed));
 
         perpsEngine.configurePriceFeed(address(mockWstEth), address(mockWstEthUsdPriceFeed));
+    }
+
+    function createMarkets() internal {
+        perpsEngine.createPerpsMarket(
+            ETH_USD_MARKET_ID,
+            ETH_USD_MARKET_NAME,
+            ETH_USD_MARKET_SYMBOL,
+            mockEthUsdStreamId,
+            address(mockEthUsdPriceFeed),
+            ETH_USD_MMR,
+            ETH_USD_MAX_OI,
+            ETH_USD_MIN_IMR,
+            orderFees
+        );
     }
 
     function distributeTokens() internal {

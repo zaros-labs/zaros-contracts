@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.19;
 
+// Zaros dependencies
+import { Order } from "@zaros/markets/perps/storage/Order.sol";
+
 /// @notice Abstract contract containing all the events emitted by all modules.
 abstract contract Events {
     /*//////////////////////////////////////////////////////////////////////////
@@ -17,9 +20,15 @@ abstract contract Events {
     );
 
     /*//////////////////////////////////////////////////////////////////////////
-                                   SYSTEM PERPS MARKETS CONFIGURATION MODULE
+                                   PERPS CONFIGURATION MODULE
     //////////////////////////////////////////////////////////////////////////*/
 
     event LogSetSupportedMarket(address indexed perpsMarket, bool enabled);
     event LogSetSupportedCollateral(address indexed sender, address indexed collateralType, bool enabled);
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                   ORDER MODULE
+    //////////////////////////////////////////////////////////////////////////*/
+    event LogCreateOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Order.Data order);
+    event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
 }

@@ -28,7 +28,10 @@ library Order {
         uint256 settlementTimestamp;
     }
 
+    /// @dev TODO: should we just update account id to 0?
     function reset(Data storage self) internal {
+        self.payload.accountId = 0;
+        self.payload.marketId = 0;
         self.payload.initialMarginDelta = 0;
         self.payload.sizeDelta = 0;
         self.payload.acceptablePrice = 0;
