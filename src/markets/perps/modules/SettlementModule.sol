@@ -5,7 +5,9 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { ILogAutomation, Log as AutomationLog } from "@zaros/external/interfaces/chainlink/ILogAutomation.sol";
 import {
-    IStreamsLookupCompatible, BasicReport
+    IStreamsLookupCompatible,
+    BasicReport,
+    Quote
 } from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/interfaces/chainlink/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -87,11 +89,12 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         IVerifierProxy chainlinkVerifier = IVerifierProxy(PerpsConfiguration.load().chainlinkVerifier);
         (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
 
-        bytes memory unverifiedReportData = signedReports[0];
-        BasicReport memory unverifiedReport = _decodeReport(unverifiedReportData);
-        bytes memory verifiedReportData =
-            chainlinkVerifier.verify{ value: unverifiedReport.nativeFee }(unverifiedReportData);
-        BasicReport memory verifiedReport = _decodeReport(verifiedReportData);
+        bytes memory signedReport = signedReports[0];
+        bytes memory bundledReport = _bundleReport(signedReport);
+        BasicReport memory unverifiedReport = _getReportData(bundledReport);
+
+        bytes memory verifiedReportData = chainlinkVerifier.verify{ value: unverifiedReport.nativeFee }(bundledReport);
+        BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
 
         (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
@@ -103,13 +106,43 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
 
         BasicReport memory report;
-        report.price = int192(int256(price));
+        report.benchmark = int192(int256(price));
 
         _settleOrder(order, report);
     }
 
-    function _decodeReport(bytes memory report) internal pure returns (BasicReport memory) {
-        return abi.decode(report, (BasicReport));
+    function _bundleReport(bytes memory report) internal pure returns (bytes memory) {
+        Quote memory quote;
+        quote.quoteAddress = Constants.DATA_STREAMS_FEE_ADDRESS;
+        (
+            bytes32[3] memory reportContext,
+            bytes memory reportData,
+            bytes32[] memory rs,
+            bytes32[] memory ss,
+            bytes32 raw
+        ) = abi.decode(report, (bytes32[3], bytes, bytes32[], bytes32[], bytes32));
+        bytes memory bundledReport = abi.encode(reportContext, reportData, rs, ss, raw, abi.encode(quote));
+        return bundledReport;
+    }
+
+    /**
+     * @dev This function extracts the main report data from a signed report.
+     *      The process involves the below steps:
+     *      (1) It decodes the input signed report into its key attributes,
+     *          with a focus on "reportData" because that's where the essential feed data sits.
+     *      (2) It then re-decodes the "reportData" from its raw bytes format into a more
+     *          usable "BasicReport" struct format.
+     *      It's to note that, the decoded report data will include essential attributes of
+     *      a report such as feed ID, timestamps, and fees, and the feed value agreed upon in OCR round.
+     *      NOTE: these reports should always be passed into the verifier contract
+     * @param signedReport A signed report instance in bytes format.
+     * @return report The decoded report data in the form of a BasicReport struct.
+     */
+    function _getReportData(bytes memory signedReport) internal pure returns (BasicReport memory) {
+        (, bytes memory reportData,,,) = abi.decode(signedReport, (bytes32[3], bytes, bytes32[], bytes32[], bytes32));
+
+        BasicReport memory report = abi.decode(reportData, (BasicReport));
+        return report;
     }
 
     // TODO: many validations pending
@@ -124,7 +157,7 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         address usdToken = PerpsConfiguration.load().usdToken;
 
         // TODO: apply price impact
-        runtime.fillPrice = sd59x18(report.price).intoUD60x18();
+        runtime.fillPrice = sd59x18(report.benchmark).intoUD60x18();
         SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(runtime.fillPrice);
         SD59x18 accruedFunding = oldPosition.getAccruedFunding(fundingFeePerUnit);
         SD59x18 currentUnrealizedPnl = oldPosition.getUnrealizedPnl(runtime.fillPrice, accruedFunding);
