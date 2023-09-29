@@ -11,6 +11,8 @@ library Constants {
     /// @dev Chainlink Data Streams Lookup constants
     string internal constant DATA_STREAMS_FEED_LABEL = "feedIDs";
     string internal constant DATA_STREAMS_QUERY_LABEL = "timestamp";
+    string internal constant DATA_STREAMS_ETH_USD_STREAM_ID =
+        "0x00023496426b520583ae20a66d80484e0fc18544866a5b0bfee15ec771963274";
     address internal constant DATA_STREAMS_FEE_ADDRESS = 0xe39Ab88f8A4777030A534146A9Ca3B52bd5D43A3;
 
     /// @dev All Zaros users features

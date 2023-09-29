@@ -50,8 +50,8 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        (uint256 accountId, uint128 marketId) = (uint256(log.topics[1]), uint256(log.topics[2]).toUint128());
-        bytes32 streamId = PerpsMarket.load(marketId).streamId;
+        (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
+        // bytes32 streamId = PerpsMarket.load(marketId).streamId;
         (Order.Data memory order) = abi.decode(log.data, (Order.Data));
 
         // TODO: we should probably have orderType as an indexed parameter?
@@ -61,7 +61,8 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
 
         // TODO: add proper order.validate() check
         string[] memory feeds = new string[](1);
-        feeds[0] = string(abi.encodePacked(streamId));
+        feeds[0] = Constants.DATA_STREAMS_ETH_USD_STREAM_ID;
+
         bytes memory extraData = abi.encode(accountId, marketId, order.id);
 
         revert StreamsLookup(
