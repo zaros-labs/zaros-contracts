@@ -167,11 +167,11 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         runtime.unrealizedPnlToStore = sd59x18(0);
 
         // for now we'll realize the total uPnL, we should realize it proportionally in the future
-        if (runtime.pnl.lt(SD_ZERO)) {
-            perpsAccount.deductAccountMargin(runtime.pnl.intoUD60x18());
-        } else if (runtime.pnl.gt(SD_ZERO)) {
-            perpsAccount.increaseMarginCollateral(usdToken, runtime.pnl.intoUD60x18());
-        }
+        // if (runtime.pnl.lt(SD_ZERO)) {
+        //     perpsAccount.deductAccountMargin(runtime.pnl.intoUD60x18());
+        // } else if (runtime.pnl.gt(SD_ZERO)) {
+        //     perpsAccount.increaseMarginCollateral(usdToken, runtime.pnl.intoUD60x18());
+        // }
         UD60x18 initialMargin =
             ud60x18(oldPosition.initialMargin).add(sd59x18(order.payload.initialMarginDelta).intoUD60x18());
 
