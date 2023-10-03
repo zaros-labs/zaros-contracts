@@ -3,13 +3,18 @@
 pragma solidity 0.8.19;
 
 struct BasicReport {
-    bytes32 feedId;
-    uint192 linkFee;
-    uint192 nativeFee;
-    uint32 observationsTimestamp;
-    uint32 validFromTimestamp;
-    int192 price;
-    uint32 expiresAt;
+    // v0.3 Basic
+    bytes32 feedId; // The feed ID the report has data for
+    uint32 lowerTimestamp; // Lower timestamp for validity of report
+    uint32 observationsTimestamp; // The time the median value was observed on
+    uint192 nativeFee; // Base ETH/WETH fee to verify report
+    uint192 linkFee; // Base LINK fee to verify report
+    uint64 upperTimestamp; // Upper timestamp for validity of report
+    int192 benchmark; // The median value agreed in an OCR round
+}
+
+struct Quote {
+    address quoteAddress;
 }
 
 interface IStreamsLookupCompatible {
