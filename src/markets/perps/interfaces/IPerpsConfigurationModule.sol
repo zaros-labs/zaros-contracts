@@ -55,6 +55,9 @@ interface IPerpsConfigurationModule {
     /// @param priceFeed The address of the price feed.
     function configurePriceFeed(address collateralType, address priceFeed) external;
 
+    /// @notice Updates the CL Automation forwarder address and the Data Streams verifier address.
+    /// @param chainlinkForwarder The address of the Chainlink Automation forwarder.
+    /// @param chainlinkVerifier The address of the Chainlink Data Streams verifier.
     function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external;
 
     /// @notice Creates a new market with the requested market id.
