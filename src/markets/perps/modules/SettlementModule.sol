@@ -61,7 +61,13 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
 
         // TODO: add proper order.validate() check
         string[] memory feeds = new string[](1);
-        feeds[0] = Constants.DATA_STREAMS_ETH_USD_STREAM_ID;
+        if (marketId == 1) {
+            feeds[0] = Constants.DATA_STREAMS_ETH_USD_STREAM_ID;
+        } else if (marketId == 2) {
+            feeds[0] = Constants.DATA_STREAMS_LINK_USD_STREAM_ID;
+        } else {
+            revert();
+        }
 
         bytes memory extraData = abi.encode(accountId, marketId, order.id);
 

@@ -13,6 +13,8 @@ library Constants {
     string internal constant DATA_STREAMS_QUERY_LABEL = "timestamp";
     string internal constant DATA_STREAMS_ETH_USD_STREAM_ID =
         "0x00023496426b520583ae20a66d80484e0fc18544866a5b0bfee15ec771963274";
+    string internal constant DATA_STREAMS_LINK_USD_STREAM_ID =
+        "0x0002191c50b7bdaf2cb8672453141946eea123f8baeaa8d2afa4194b6955e683";
     address internal constant DATA_STREAMS_FEE_ADDRESS = 0xe39Ab88f8A4777030A534146A9Ca3B52bd5D43A3;
 
     /// @dev All Zaros users features
