@@ -194,11 +194,8 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         perpsAccount.updateActiveOrders(runtime.marketId, order.id, false);
         oldPosition.update(runtime.newPosition);
         perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(order.payload.sizeDelta)).intoInt256().toInt128();
-        perpsMarket.size = ud60x18(perpsMarket.size).add(
-            sd59x18(order.payload.sizeDelta).gt(SD_ZERO)
-                ? sd59x18(order.payload.sizeDelta).intoUD60x18()
-                : unary(sd59x18(order.payload.sizeDelta)).intoUD60x18()
-        ).intoUint128();
+        perpsMarket.size =
+            ud60x18(perpsMarket.size).add(sd59x18(order.payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
         emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, order.id, runtime.newPosition);
     }
