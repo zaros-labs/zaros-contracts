@@ -23,7 +23,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStreamsLookupCompatible {
     using Order for Order.Data;
@@ -193,6 +193,9 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         order.reset();
         perpsAccount.updateActiveOrders(runtime.marketId, order.id, false);
         oldPosition.update(runtime.newPosition);
+        perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(order.payload.sizeDelta)).intoInt256().toInt128();
+        perpsMarket.size =
+            ud60x18(perpsMarket.size).add(sd59x18(order.payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
         emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, order.id, runtime.newPosition);
     }
