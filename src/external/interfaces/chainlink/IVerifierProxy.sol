@@ -1,13 +1,17 @@
-// SPDX-License-Identifier: MIT
-
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+// Zaros dependencies
+import { IFeeManager } from "./IFeeManager.sol";
+
 interface IVerifierProxy {
-    /**
-     * @notice Verifies that the data encoded has been signed
-     * correctly by routing to the correct verifier.
-     * @param signedReport The encoded data to be verified.
-     * @return verifierResponse The encoded response from the verifier.
-     */
-    function verify(bytes memory signedReport) external payable returns (bytes memory verifierResponse);
+    function verify(
+        bytes calldata payload,
+        bytes calldata parameterPayload
+    )
+        external
+        payable
+        returns (bytes memory verifierResponse);
+
+    function s_feeManager() external view returns (IFeeManager);
 }
