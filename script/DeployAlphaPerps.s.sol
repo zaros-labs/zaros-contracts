@@ -69,6 +69,9 @@ contract DeployAlphaPerps is BaseScript {
         perpsEngine =
             PerpsEngine(payable(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData))));
 
+        // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
+        payable(address(perpsEngine)).transfer(1 ether);
+
         configureContracts();
         logContracts();
     }
