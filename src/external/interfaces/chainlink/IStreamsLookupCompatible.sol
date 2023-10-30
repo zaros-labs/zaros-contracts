@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-interface StreamsLookupCompatibleInterface {
+interface IStreamsLookupCompatible {
     error StreamsLookup(string feedParamKey, string[] feeds, string timeParamKey, uint256 time, bytes extraData);
 
     struct BasicReport {
