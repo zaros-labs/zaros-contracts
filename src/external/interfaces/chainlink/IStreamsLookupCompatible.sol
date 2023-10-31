@@ -6,18 +6,17 @@ interface IStreamsLookupCompatible {
     error StreamsLookup(string feedParamKey, string[] feeds, string timeParamKey, uint256 time, bytes extraData);
 
     struct BasicReport {
-        // v0.3 Basic
         bytes32 feedId; // The feed ID the report has data for
-        uint32 lowerTimestamp; // Lower timestamp for validity of report
-        uint32 observationsTimestamp; // The time the median value was observed on
-        uint192 nativeFee; // Base ETH/WETH fee to verify report
-        uint192 linkFee; // Base LINK fee to verify report
-        uint64 upperTimestamp; // Upper timestamp for validity of report
-        int192 benchmark; // The median value agreed in an OCR round
+        uint32 validFromTimestamp; // Earliest timestamp for which price is applicable
+        uint32 observationsTimestamp; // Latest timestamp for which price is applicable
+        uint192 nativeFee; // Base cost to validate a transaction using the report, denominated in the chain’s native
+            // token (WETH/ETH)
+        uint192 linkFee; // Base cost to validate a transaction using the report, denominated in LINK
+        uint64 expiresAt; // Latest timestamp where the report can be verified on-chain
+        int192 price; // DON consensus median price, carried to 8 decimal places
     }
 
     struct PremiumReport {
-        // v0.3 Premium
         bytes32 feedId; // The feed ID the report has data for
         uint32 validFromTimestamp; // Earliest timestamp for which price is applicable
         uint32 observationsTimestamp; // Latest timestamp for which price is applicable

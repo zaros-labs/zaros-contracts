@@ -117,7 +117,7 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
 
         BasicReport memory report;
-        report.benchmark = int192(int256(price));
+        report.price = int192(int256(price));
 
         _settleOrder(order, report);
     }
@@ -135,10 +135,10 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
         Position.Data storage oldPosition = perpsMarket.positions[runtime.accountId];
-        address usdToken = PerpsConfiguration.load().usdToken;
+        // address usdToken = PerpsConfiguration.load().usdToken;
 
         // TODO: apply price impact
-        runtime.fillPrice = sd59x18(report.benchmark).intoUD60x18();
+        runtime.fillPrice = sd59x18(report.price).intoUD60x18();
         SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(runtime.fillPrice);
         SD59x18 accruedFunding = oldPosition.getAccruedFunding(fundingFeePerUnit);
         SD59x18 currentUnrealizedPnl = oldPosition.getUnrealizedPnl(runtime.fillPrice, accruedFunding);
