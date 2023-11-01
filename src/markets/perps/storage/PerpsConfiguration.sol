@@ -41,10 +41,10 @@ library PerpsConfiguration {
         uint256 maxActiveOrders;
         address chainlinkForwarder;
         address chainlinkVerifier;
-        address perpsAccountToken;
         address rewardDistributor;
         address usdToken;
         address zaros;
+        address perpsAccountToken;
         uint96 nextAccountId;
         mapping(address => address) collateralPriceFeeds;
         EnumerableSet.AddressSet enabledCollateralTypes;
@@ -115,14 +115,5 @@ library PerpsConfiguration {
     /// @param marketId The id of the market to add.
     function addMarket(Data storage self, uint128 marketId) internal {
         self.enabledMarketsIds.add(uint256(marketId));
-    }
-
-    /// @dev Helper called when a perps account is created.
-    /// @return accountId The incremented account id of the new perps account.
-    /// @return perpsAccountToken The perps account token contract.
-    function onCreateAccount() internal returns (uint256 accountId, IAccountNFT perpsAccountToken) {
-        Data storage self = load();
-        accountId = ++self.nextAccountId;
-        perpsAccountToken = IAccountNFT(self.perpsAccountToken);
     }
 }

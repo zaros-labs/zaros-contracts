@@ -91,8 +91,10 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint256) {
-        (uint256 accountId, IAccountNFT perpsAccountTokenModule) = PerpsConfiguration.onCreateAccount();
-        perpsAccountTokenModule.mint(msg.sender, accountId);
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        uint256 accountId = ++perpsConfiguration.nextAccountId;
+        IAccountNFT perpsAccountToken = IAccountNFT(perpsConfiguration.perpsAccountToken);
+        perpsAccountToken.mint(msg.sender, accountId);
 
         PerpsAccount.create(accountId, msg.sender);
 
