@@ -34,7 +34,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using PerpsConfiguration for PerpsConfiguration.Data;
 
     /// @inheritdoc IPerpsAccountModule
-    function getPerpsAccountTokenAddress() public view override returns (address) {
+    function getPerpsAccountToken() public view override returns (address) {
         return PerpsConfiguration.load().perpsAccountToken;
     }
 
@@ -192,7 +192,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @dev Reverts if the caller is not the account owner.
     function _onlyPerpsAccountToken() internal view {
-        if (msg.sender != address(getPerpsAccountTokenAddress())) {
+        if (msg.sender != address(getPerpsAccountToken())) {
             revert Zaros_PerpsAccountModule_OnlyPerpsAccountToken(msg.sender);
         }
     }

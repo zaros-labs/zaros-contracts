@@ -42,7 +42,7 @@ contract CreatePerpsAccountAndMulticall_Integration_Concrete_Test is Base_Integr
     function test_ValidDataArray() external whenNonRevertingCall {
         bytes[] memory data = new bytes[](1);
         uint256 expectedAccountId = 1;
-        data[0] = abi.encodeWithSelector(IPerpsAccountModule.getPerpsAccountTokenAddress.selector);
+        data[0] = abi.encodeWithSelector(IPerpsAccountModule.getPerpsAccountToken.selector);
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
