@@ -11,7 +11,20 @@ contract CreatePerpsAccount_Unit_Concrete_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_NoPreviousPerpsAccount() external {
+    function test_RevertWhen_PerpsAccountTokenNotSet() external {
+        // how to make this DRY?
+        bytes32 slot = bytes32(uint256(keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"))) + uint256(7));
+        vm.store(address(perpsEngine), slot, bytes32(uint256(0)));
+
+        vm.expectRevert();
+        perpsEngine.createPerpsAccount();
+    }
+
+    modifier whenPerpsAccountTokenIsSet() {
+        _;
+    }
+
+    function test_NoPreviousPerpsAccount() external whenPerpsAccountTokenIsSet {
         uint256 expectedAccountId = 1;
 
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -22,7 +35,7 @@ contract CreatePerpsAccount_Unit_Concrete_Test is Base_Test {
         assertEq(accountId, expectedAccountId, "createPerpsAccount");
     }
 
-    function test_MultiplePerpsAccounts() external {
+    function test_MultiplePerpsAccounts() external whenPerpsAccountTokenIsSet {
         uint256 expectedAccountId = 2;
         perpsEngine.createPerpsAccount();
 
