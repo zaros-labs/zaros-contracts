@@ -26,8 +26,7 @@ library PerpsConfiguration {
     error Zaros_PerpsConfiguration_CollateralPriceFeedNotDefined(address collateralType);
 
     /// @dev PerpsConfiguration namespace storage slot.
-    bytes32 internal constant SYSTEM_PERPS_MARKET_CONFIGURATION_SLOT =
-        keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
+    bytes32 internal constant PERPS_CONFIGURATION_SLOT = keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
     /// @notice {PerpConfiguration} namespace storage structure.
     /// @param rewardDistributor The reward distributor contract address.
@@ -54,7 +53,7 @@ library PerpsConfiguration {
     /// @dev Loads the PerpsConfiguration entity.
     /// @return perpsConfiguration The perps configuration storage pointer.
     function load() internal pure returns (Data storage perpsConfiguration) {
-        bytes32 slot = SYSTEM_PERPS_MARKET_CONFIGURATION_SLOT;
+        bytes32 slot = PERPS_CONFIGURATION_SLOT;
 
         assembly {
             perpsConfiguration.slot := slot

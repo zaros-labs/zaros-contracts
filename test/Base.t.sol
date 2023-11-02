@@ -13,6 +13,7 @@ import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockZarosUSD } from "./mocks/MockZarosUSD.sol";
 import { Events } from "./utils/Events.sol";
+import { Storage } from "./utils/Storage.sol";
 import { Users } from "./utils/Types.sol";
 
 // Forge dependencies
@@ -27,7 +28,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract Base_Test is Test, Events {
+abstract contract Base_Test is Test, Events, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

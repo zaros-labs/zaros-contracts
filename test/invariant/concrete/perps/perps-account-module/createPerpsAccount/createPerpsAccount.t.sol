@@ -12,8 +12,7 @@ contract CreatePerpsAccount_Unit_Concrete_Test is Base_Test {
     }
 
     function test_RevertWhen_PerpsAccountTokenNotSet() external {
-        // how to make this DRY?
-        bytes32 slot = bytes32(uint256(keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"))) + uint256(7));
+        bytes32 slot = bytes32(uint256(PERPS_CONFIGURATION_SLOT) + uint256(7));
         vm.store(address(perpsEngine), slot, bytes32(uint256(0)));
 
         vm.expectRevert();
