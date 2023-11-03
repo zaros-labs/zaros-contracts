@@ -108,7 +108,6 @@ abstract contract Base_Test is Test, Events, Storage {
         perpsEngine =
             PerpsEngine(payable(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData))));
 
-        distributeTokens();
         configureContracts();
 
         vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account NFT" });
@@ -186,19 +185,19 @@ abstract contract Base_Test is Test, Events, Storage {
         );
     }
 
-    function distributeTokens() internal {
-        deal({ token: address(usdToken), to: users.naruto, give: 1_000_000e18 });
-        deal({ token: address(mockWstEth), to: users.naruto, give: 1_000_000e18 });
+    // function distributeTokens() internal {
+    //     deal({ token: address(usdToken), to: users.naruto, give: 1_000_000e18 });
+    //     deal({ token: address(mockWstEth), to: users.naruto, give: 1_000_000e18 });
 
-        deal({ token: address(usdToken), to: users.sasuke, give: 1_000_000e18 });
-        deal({ token: address(mockWstEth), to: users.sasuke, give: 1_000_000e18 });
+    //     deal({ token: address(usdToken), to: users.sasuke, give: 1_000_000e18 });
+    //     deal({ token: address(mockWstEth), to: users.sasuke, give: 1_000_000e18 });
 
-        deal({ token: address(usdToken), to: users.sakura, give: 1_000_000e18 });
-        deal({ token: address(mockWstEth), to: users.sakura, give: 1_000_000e18 });
+    //     deal({ token: address(usdToken), to: users.sakura, give: 1_000_000e18 });
+    //     deal({ token: address(mockWstEth), to: users.sakura, give: 1_000_000e18 });
 
-        deal({ token: address(usdToken), to: users.madara, give: 1_000_000e18 });
-        deal({ token: address(mockWstEth), to: users.madara, give: 1_000_000e18 });
-    }
+    //     deal({ token: address(usdToken), to: users.madara, give: 1_000_000e18 });
+    //     deal({ token: address(mockWstEth), to: users.madara, give: 1_000_000e18 });
+    // }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CALL EXPECTS

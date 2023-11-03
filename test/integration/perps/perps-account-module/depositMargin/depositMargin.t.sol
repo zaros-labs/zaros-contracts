@@ -13,12 +13,14 @@ contract DepositMargin_Integration_Concrete_Test is Base_Integration_Shared_Test
         Base_Integration_Shared_Test.setUp();
     }
 
-    function test_CollateralNotEnabled() external {
+    function testFuzz_CollateralNotEnabled(uint256 amountToDeposit) external {
+        vm.assume({ condition: amountToDeposit > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
         changePrank({ msgSender: users.owner });
         perpsEngine.setIsCollateralEnabled(address(usdToken), false);
         changePrank({ msgSender: users.naruto });
 
-        uint256 amountToDeposit = 100e18;
         uint256 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
         vm.expectRevert({
@@ -51,9 +53,16 @@ contract DepositMargin_Integration_Concrete_Test is Base_Integration_Shared_Test
         _;
     }
 
-    function test_PerpsAccountDoesNotExist() external whenCollateralIsEnabled givenAmountIsNotZero {
-        uint256 amountToDeposit = 100e18;
-        uint256 userPerpsAccountId = 0;
+    function testFuzz_PerpsAccountDoesNotExist(
+        uint256 amountToDeposit,
+        uint256 userPerpsAccountId
+    )
+        external
+        whenCollateralIsEnabled
+        givenAmountIsNotZero
+    {
+        vm.assume({ condition: amountToDeposit > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
@@ -64,8 +73,14 @@ contract DepositMargin_Integration_Concrete_Test is Base_Integration_Shared_Test
         perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
     }
 
-    function test_PerpsAccountExists() external whenCollateralIsEnabled givenAmountIsNotZero {
-        uint256 amountToDeposit = 100e18;
+    function testFuzz_PerpsAccountExists(uint256 amountToDeposit)
+        external
+        whenCollateralIsEnabled
+        givenAmountIsNotZero
+    {
+        vm.assume({ condition: amountToDeposit > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
         uint256 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
         vm.expectEmit({ emitter: address(perpsEngine) });

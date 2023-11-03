@@ -12,9 +12,11 @@ contract WithdrawMargin_Integration_Concrete_Test is Base_Integration_Shared_Tes
         Base_Integration_Shared_Test.setUp();
     }
 
-    function test_AmountZero() external {
-        uint256 amount = 100e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
+    function testFuzz_AmountZero(uint256 amountToDeposit) external {
+        vm.assume({ condition: amountToDeposit > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
@@ -28,9 +30,11 @@ contract WithdrawMargin_Integration_Concrete_Test is Base_Integration_Shared_Tes
         _;
     }
 
-    function test_UnauthorizedSender() external whenAmountIsNotZero {
-        uint256 amount = 100e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
+    function testFuzz_UnauthorizedSender(uint256 amountToDeposit) external whenAmountIsNotZero {
+        vm.assume({ condition: amountToDeposit > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         changePrank({ msgSender: users.sasuke });
         vm.expectRevert({
@@ -38,7 +42,7 @@ contract WithdrawMargin_Integration_Concrete_Test is Base_Integration_Shared_Tes
                 PerpsAccount.Zaros_PerpsAccount_PermissionDenied.selector, perpsAccountId, users.sasuke
                 )
         });
-        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), amount);
+        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), amountToDeposit);
     }
 
     modifier whenAuthorizedSender() {
@@ -47,17 +51,25 @@ contract WithdrawMargin_Integration_Concrete_Test is Base_Integration_Shared_Tes
 
     function test_NotEnoughMarginAvailable() external whenAmountIsNotZero whenAuthorizedSender { }
 
-    function test_EnoughMarginAvailable() external whenAmountIsNotZero whenAuthorizedSender {
-        uint256 amount = 100e18;
-        uint256 amountToWithdraw = 50e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
+    function testFuzz_EnoughMarginAvailable(
+        uint256 amountToDeposit,
+        uint256 amountToWithdraw
+    )
+        external
+        whenAmountIsNotZero
+        whenAuthorizedSender
+    {
+        vm.assume({ condition: amountToDeposit > 0 && amountToDeposit >= amountToWithdraw && amountToWithdraw > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);
         expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), amountToWithdraw);
 
-        uint256 expectedMargin = amount - amountToWithdraw;
+        uint256 expectedMargin = amountToDeposit - amountToWithdraw;
         uint256 newMarginCollateral =
             perpsEngine.getAccountMarginCollateral(perpsAccountId, address(usdToken)).intoUint256();
 
