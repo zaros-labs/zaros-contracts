@@ -8,7 +8,7 @@ import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccou
 import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 
-contract DepositMargin_Integration_Concrete_Test is Base_Integration_Shared_Test {
+contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
     }

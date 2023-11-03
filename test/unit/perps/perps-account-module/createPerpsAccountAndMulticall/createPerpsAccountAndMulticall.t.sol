@@ -3,13 +3,13 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 
-contract CreatePerpsAccountAndMulticall_Integration_Concrete_Test is Base_Integration_Shared_Test {
+contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
     }
 
     function test_RevertWhen_RevertingCallProvided() external {

@@ -115,6 +115,9 @@ abstract contract Base_Test is Test, Events, Storage {
         vm.label({ account: address(zaros), newLabel: "Zaros" });
         vm.label({ account: address(rewardDistributor), newLabel: "Reward Distributor" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
+
+        approveContracts();
+        changePrank({ msgSender: users.naruto });
     }
 
     /*//////////////////////////////////////////////////////////////////////////

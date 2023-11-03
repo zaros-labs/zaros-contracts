@@ -14,8 +14,6 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 abstract contract Base_Integration_Shared_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        approveContracts();
-        changePrank({ msgSender: users.naruto });
     }
 
     function _createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint256 accountId) {

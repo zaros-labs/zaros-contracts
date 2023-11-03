@@ -7,7 +7,7 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 
-contract WithdrawMargin_Integration_Concrete_Test is Base_Integration_Shared_Test {
+contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
     }

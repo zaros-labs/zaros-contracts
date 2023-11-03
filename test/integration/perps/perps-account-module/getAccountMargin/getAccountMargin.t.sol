@@ -9,18 +9,20 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-contract GetAccountMargin_Integration_Concrete_Test is Base_Integration_Shared_Test {
+contract GetAccountMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
     }
 
-    function test_GetAccountMarginOneCollateral() external {
-        uint256 amount = 100e18;
-        uint256 expectedMarginBalance = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amount)).intoUint256();
+    function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit) external {
+        vm.assume({ condition: amountToDeposit > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        uint256 expectedMarginBalance = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
+        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
             perpsEngine.getAccountMargin({ accountId: perpsAccountId });
@@ -31,16 +33,19 @@ contract GetAccountMargin_Integration_Concrete_Test is Base_Integration_Shared_T
         assertEq(maintenanceMargin.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMargin");
     }
 
-    function test_GetAccountMarginMultipleCollateral() external {
-        uint256 amount = 100e18;
-        uint256 expectedMarginBalance = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amount)).add(
-            _getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amount))
+    function testFuzz_GetAccountMarginMultipleCollateral(uint256 amountToDeposit) external {
+        vm.assume({ condition: amountToDeposit > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(mockWstEth), to: users.naruto, give: amountToDeposit });
+
+        uint256 expectedMarginBalance = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).add(
+            _getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amountToDeposit))
         ).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
-        perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amount);
+        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+        perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
         (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
             perpsEngine.getAccountMargin({ accountId: perpsAccountId });
