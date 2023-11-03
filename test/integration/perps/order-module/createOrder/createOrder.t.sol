@@ -10,7 +10,7 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 import { sd59x18 } from "@prb-math/SD59x18.sol";
 
-contract CreateOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
+contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -18,9 +18,11 @@ contract CreateOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_CreateOrder() external {
-        uint256 amount = 100_000e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
+    function testFuzz_CreateOrder(uint256 amountToDeposit) external {
+        vm.assume({ condition: amountToDeposit > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
@@ -38,9 +40,11 @@ contract CreateOrder_Integration_Concrete_Test is Base_Integration_Shared_Test {
         perpsEngine.createOrder({ payload: payload });
     }
 
-    function test_CreateOrderMultiple() external {
-        uint256 amount = 100_000e18;
-        uint256 perpsAccountId = _createAccountAndDeposit(amount, address(usdToken));
+    function testFuzz_CreateOrderMultiple(uint256 amountToDeposit) external {
+        vm.assume({ condition: amountToDeposit > 0 });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,

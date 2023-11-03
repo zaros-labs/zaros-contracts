@@ -13,7 +13,7 @@ abstract contract Constants {
     uint256 internal constant uMAX_UD60x18 = LIB_uMAX_UD60x18;
 
     /// @notice The maximum value that can be represented in a SD59x18.
-    int256 internal constant uMAX_SD59x18x18 = LIB_uMAX_SD59x18;
+    int256 internal constant uMAX_SD59x18 = LIB_uMAX_SD59x18;
 
     /// @notice The minimum value that can be represented in a SD59x18.
     int256 internal constant uMIN_SD59x18 = LIB_uMIN_SD59x18;
