@@ -25,6 +25,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         uint8 decimals = priceFeed.decimals();
         (, int256 answer,,,) = priceFeed.latestRoundData();
 
-        return ud60x18(uint256(answer) * 10 ** (Constants.DECIMALS - decimals));
+        return ud60x18(uint256(answer) * 10 ** (DEFAULT_DECIMALS - decimals));
     }
 }

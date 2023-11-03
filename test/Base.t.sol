@@ -8,10 +8,10 @@ import { Zaros } from "@zaros/core/Zaros.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockZarosUSD } from "./mocks/MockZarosUSD.sol";
+import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users } from "./utils/Types.sol";
@@ -28,7 +28,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract Base_Test is Test, Events, Storage {
+abstract contract Base_Test is Test, Constants, Events, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -157,13 +157,13 @@ abstract contract Base_Test is Test, Events, Storage {
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
-        usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
+        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(zaros));
 
-        usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
+        usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, address(zaros));
 
-        usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, users.owner);
+        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, users.owner);
 
-        usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
+        usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, users.owner);
 
         perpsEngine.setIsCollateralEnabled(address(usdToken), true);
 
