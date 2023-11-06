@@ -19,11 +19,11 @@ contract GetAccountMargin_Integration_Test is Base_Integration_Shared_Test {
         vm.assume({ condition: amountToDeposit > 0 });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 expectedMarginBalance = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
+        uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
             perpsEngine.getAccountMargin({ accountId: perpsAccountId });
@@ -39,13 +39,13 @@ contract GetAccountMargin_Integration_Test is Base_Integration_Shared_Test {
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
         deal({ token: address(mockWstEth), to: users.naruto, give: amountToDeposit });
 
-        uint256 expectedMarginBalance = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).add(
-            _getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amountToDeposit))
+        uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).add(
+            getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amountToDeposit))
         ).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
         (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =

@@ -19,8 +19,8 @@ contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integrati
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 expectedMarginCollateralValue =
-            _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
-        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+            getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
+        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         uint256 marginCollateralValue =
             perpsEngine.getTotalAccountMarginCollateralValue({ accountId: perpsAccountId }).intoUint256();
@@ -33,10 +33,10 @@ contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integrati
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
         deal({ token: address(mockWstEth), to: users.naruto, give: amountToDeposit });
 
-        uint256 expectedMarginCollateralValue = _getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).add(
-            _getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amountToDeposit))
+        uint256 expectedMarginCollateralValue = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).add(
+            getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amountToDeposit))
         ).intoUint256();
-        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
         uint256 marginCollateralValue =

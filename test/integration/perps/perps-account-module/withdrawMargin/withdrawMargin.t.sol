@@ -16,7 +16,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         vm.assume({ condition: amountToDeposit > 0 });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
@@ -34,7 +34,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         vm.assume({ condition: amountToDeposit > 0 });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         changePrank({ msgSender: users.sasuke });
         vm.expectRevert({
@@ -62,7 +62,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         vm.assume({ condition: amountToDeposit > 0 && amountToDeposit >= amountToWithdraw && amountToWithdraw > 0 });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);

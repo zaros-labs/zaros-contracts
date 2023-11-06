@@ -174,20 +174,6 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         perpsEngine.configurePriceFeed(address(mockWstEth), address(mockWstEthUsdPriceFeed));
     }
 
-    function createMarkets() internal {
-        perpsEngine.createPerpsMarket(
-            ETH_USD_MARKET_ID,
-            ETH_USD_MARKET_NAME,
-            ETH_USD_MARKET_SYMBOL,
-            mockEthUsdStreamId,
-            address(mockEthUsdPriceFeed),
-            ETH_USD_MMR,
-            ETH_USD_MAX_OI,
-            ETH_USD_MIN_IMR,
-            orderFees
-        );
-    }
-
     // function distributeTokens() internal {
     //     deal({ token: address(usdToken), to: users.naruto, give: 1_000_000e18 });
     //     deal({ token: address(mockWstEth), to: users.naruto, give: 1_000_000e18 });

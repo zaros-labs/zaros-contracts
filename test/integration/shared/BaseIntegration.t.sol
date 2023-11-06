@@ -16,12 +16,26 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         Base_Test.setUp();
     }
 
-    function _createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint256 accountId) {
+    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint256 accountId) {
         accountId = perpsEngine.createPerpsAccount();
         perpsEngine.depositMargin(accountId, collateralType, amount);
     }
 
-    function _getPrice(MockPriceFeed priceFeed) internal view returns (UD60x18) {
+    function createMarkets() internal {
+        perpsEngine.createPerpsMarket(
+            ETH_USD_MARKET_ID,
+            ETH_USD_MARKET_NAME,
+            ETH_USD_MARKET_SYMBOL,
+            mockEthUsdStreamId,
+            address(mockEthUsdPriceFeed),
+            ETH_USD_MMR,
+            ETH_USD_MAX_OI,
+            ETH_USD_MIN_IMR,
+            orderFees
+        );
+    }
+
+    function getPrice(MockPriceFeed priceFeed) internal view returns (UD60x18) {
         uint8 decimals = priceFeed.decimals();
         (, int256 answer,,,) = priceFeed.latestRoundData();
 

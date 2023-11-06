@@ -22,7 +22,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.assume({ condition: amountToDeposit > 0 });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
@@ -44,7 +44,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.assume({ condition: amountToDeposit > 0 });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 perpsAccountId = _createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
