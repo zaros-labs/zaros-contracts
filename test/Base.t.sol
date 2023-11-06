@@ -165,9 +165,9 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
         usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, users.owner);
 
-        perpsEngine.setIsCollateralEnabled(address(usdToken), true);
+        perpsEngine.configureCollateral(address(usdToken), type(uint256).max);
 
-        perpsEngine.setIsCollateralEnabled(address(mockWstEth), true);
+        perpsEngine.configureCollateral(address(mockWstEth), type(uint256).max);
 
         perpsEngine.configurePriceFeed(address(usdToken), address(mockUsdcUsdPriceFeed));
 

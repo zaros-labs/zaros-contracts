@@ -130,9 +130,11 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     /// @inheritdoc IPerpsAccountModule
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) external override {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        _requireCollateralEnabled(collateralType, perpsConfiguration.isCollateralEnabled(collateralType));
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
+        _requireEnoughDepositCap(
+            collateralType, udAmount, perpsConfiguration.getDepositCapForCollateralType(collateralType)
+        );
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.increaseMarginCollateral(collateralType, udAmount);
@@ -170,9 +172,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @dev Reverts if the collateral type is not supported.
-    function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
-        if (!isEnabled) {
-            revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
+    function _requireEnoughDepositCap(address collateralType, UD60x18 amount, UD60x18 depositCap) internal pure {
+        if (amount.gt(depositCap)) {
+            revert Zaros_PerpsAccountModule_DepositCap(collateralType, amount.intoUint256(), depositCap.intoUint256());
         }
     }
 

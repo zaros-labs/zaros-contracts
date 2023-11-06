@@ -13,16 +13,19 @@ import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
+// PRB Math dependencies
+import { ud60x18 } from "@prb-math/UD60x18.sol";
+
 /// @notice See {IPerpsConfigurationModule}.
 abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initializable, OwnableUpgradeable {
     using PerpsConfiguration for PerpsConfiguration.Data;
     using PerpsMarket for PerpsMarket.Data;
 
     /// @inheritdoc IPerpsConfigurationModule
-    function isCollateralEnabled(address collateralType) external view override returns (bool) {
+    function getDepositCapForCollateralType(address collateralType) external view override returns (uint256) {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
-        return perpsConfiguration.isCollateralEnabled(collateralType);
+        return perpsConfiguration.getDepositCapForCollateralType(collateralType).intoUint256();
     }
 
     /// @inheritdoc IPerpsConfigurationModule
@@ -52,12 +55,12 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     }
 
     /// @inheritdoc IPerpsConfigurationModule
-    function setIsCollateralEnabled(address collateralType, bool shouldEnable) external override onlyOwner {
+    function configureCollateral(address collateralType, uint256 depositCap) external override onlyOwner {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
-        perpsConfiguration.setIsCollateralEnabled(collateralType, shouldEnable);
+        perpsConfiguration.configureCollateral(collateralType, ud60x18(depositCap));
 
-        emit LogSetSupportedCollateral(msg.sender, collateralType, shouldEnable);
+        emit LogConfigureCollateral(msg.sender, collateralType, depositCap);
     }
 
     /// @inheritdoc IPerpsConfigurationModule

@@ -18,14 +18,14 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.setIsCollateralEnabled(address(usdToken), false);
+        perpsEngine.configureCollateral(address(usdToken), 0);
         changePrank({ msgSender: users.naruto });
 
         uint256 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                IPerpsAccountModule.Zaros_PerpsAccountModule_InvalidCollateralType.selector, address(usdToken)
+                IPerpsAccountModule.Zaros_PerpsAccountModule_DepositCap.selector, address(usdToken), amountToDeposit, 0
                 )
         });
 

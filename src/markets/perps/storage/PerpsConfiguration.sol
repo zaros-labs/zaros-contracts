@@ -8,6 +8,7 @@ import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 
 // Open Zeppelin dependencies
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
@@ -20,8 +21,6 @@ library PerpsConfiguration {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
 
-    /// @notice Thrown when the provided `collateralType` is already enabled or disabled.
-    error Zaros_PerpsConfiguration_InvalidCollateralConfig(address collateralType, bool shouldEnable);
     /// @notice Thrown when `collateralType` doesn't have a price feed defined to return its price.
     error Zaros_PerpsConfiguration_CollateralPriceFeedNotDefined(address collateralType);
 
@@ -46,7 +45,7 @@ library PerpsConfiguration {
         address perpsAccountToken;
         uint96 nextAccountId;
         mapping(address => address) collateralPriceFeeds;
-        EnumerableSet.AddressSet enabledCollateralTypes;
+        mapping(address => uint256) collateralCaps;
         EnumerableSet.UintSet enabledMarketsIds;
     }
 
@@ -60,31 +59,30 @@ library PerpsConfiguration {
         }
     }
 
-    /// @dev Returns whether the given collateral type is enabled.
+    /// @dev Returns the maximum amount that can be deposited as margin for a given
+    /// collateral type.
     /// @param self The perps configuration storage pointer.
     /// @param collateralType The address of the collateral type.
-    /// @return enabled `true` if the collateral type is enabled, `false` otherwise.
-    function isCollateralEnabled(Data storage self, address collateralType) internal view returns (bool) {
-        return self.enabledCollateralTypes.contains(collateralType);
+    /// @return depositCap The configured deposit cap for the given collateral type.
+    function getDepositCapForCollateralType(
+        Data storage self,
+        address collateralType
+    )
+        internal
+        view
+        returns (UD60x18 depositCap)
+    {
+        depositCap = ud60x18(self.collateralCaps[collateralType]);
     }
 
-    /// @dev Enables or disables a collateral type to be used as margin. If the given configuration
-    /// is already set, the function reverts.
-    /// @dev If the collateral is being enabled, the price feed must be set.
+    /// @dev Updates the deposit cap of a given collateral type. If zero, it is considered
+    /// disabled.
+    /// @dev If the collateral is enabled, a price feed must be set.
     /// @param self The perps configuration storage pointer.
     /// @param collateralType The address of the collateral type.
-    /// @param shouldEnable `true` if the collateral type should be enabled, `false` if it should be disabled.
-    function setIsCollateralEnabled(Data storage self, address collateralType, bool shouldEnable) internal {
-        bool success;
-        if (shouldEnable) {
-            success = self.enabledCollateralTypes.add(collateralType);
-        } else {
-            success = self.enabledCollateralTypes.remove(collateralType);
-        }
-
-        if (!success) {
-            revert Zaros_PerpsConfiguration_InvalidCollateralConfig(collateralType, shouldEnable);
-        }
+    /// @param depositCap The maximum amount of collateral that can be deposited.
+    function configureCollateral(Data storage self, address collateralType, UD60x18 depositCap) internal {
+        self.collateralCaps[collateralType] = depositCap.intoUint256();
     }
 
     function configurePriceFeed(Data storage self, address collateralType, address priceFeed) internal {

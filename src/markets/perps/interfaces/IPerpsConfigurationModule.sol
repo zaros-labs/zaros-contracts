@@ -17,8 +17,8 @@ interface IPerpsConfigurationModule {
     /// @notice Emitted when a new collateral type is enabled or disabled.
     /// @param sender The address that enabled or disabled the collateral type.
     /// @param collateralType The address of the collateral type.
-    /// @param enabled `true` if the collateral type was enabled, `false` if it was disabled.
-    event LogSetSupportedCollateral(address indexed sender, address indexed collateralType, bool enabled);
+    /// @param depositCap The maximum amount of collateral that can be deposited.
+    event LogConfigureCollateral(address indexed sender, address indexed collateralType, uint256 depositCap);
 
     /// @notice Emitted when a new price feed is configured for a collateral type.
     /// @param sender The address that configured the price feed.
@@ -32,10 +32,11 @@ interface IPerpsConfigurationModule {
     /// @param symbol The perps market symbol.
     event LogCreatePerpsMarket(uint128 indexed marketId, string name, string symbol);
 
-    /// @notice Returns whether the given collateral type is enabled or not.
+    /// @dev Returns the maximum amount that can be deposited as margin for a given
+    /// collateral type.
     /// @param collateralType The address of the collateral type.
-    /// @return enabled `true` if the collateral type is enabled, `false` otherwise.
-    function isCollateralEnabled(address collateralType) external view returns (bool enabled);
+    /// @return depositCap The configured deposit cap for the given collateral type.
+    function getDepositCapForCollateralType(address collateralType) external view returns (uint256 depositCap);
 
     /// @notice Sets the address of the account token NFT contract.
     /// @param perpsAccountToken The account token address.
@@ -47,8 +48,8 @@ interface IPerpsConfigurationModule {
 
     /// @notice Enables or disables the given collateral type.
     /// @param collateralType The address of the collateral type.
-    /// @param shouldEnable `true` if the collateral type should be enabled, `false` if it should be disabled.
-    function setIsCollateralEnabled(address collateralType, bool shouldEnable) external;
+    /// @param depositCap The maximum amount of collateral that can be deposited.
+    function configureCollateral(address collateralType, uint256 depositCap) external;
 
     /// @notice Sets a price feed contract address for the given margin collateral type.
     /// @param collateralType The address of the collateral type.

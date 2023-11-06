@@ -15,7 +15,7 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 /// trading on different perps markets.
 interface IPerpsAccountModule {
     /// @notice Thrown When the provided collateral is not supported.
-    error Zaros_PerpsAccountModule_InvalidCollateralType(address collateralType);
+    error Zaros_PerpsAccountModule_DepositCap(address collateralType, uint256 amount, uint256 depositCap);
     /// @notice Thrown When the caller is not the account token contract.
     error Zaros_PerpsAccountModule_OnlyPerpsAccountToken(address sender);
 
