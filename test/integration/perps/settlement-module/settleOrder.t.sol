@@ -20,7 +20,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_SettleOrder(uint256 amountToDeposit) external {
-        vm.assume({ condition: amountToDeposit > 0 });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
@@ -55,7 +55,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_SettleOrderReducingSize(uint256 amountToDeposit) external {
-        vm.assume({ condition: amountToDeposit > 0 });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));

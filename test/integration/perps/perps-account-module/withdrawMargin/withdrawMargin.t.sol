@@ -13,7 +13,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_AmountZero(uint256 amountToDeposit) external {
-        vm.assume({ condition: amountToDeposit > 0 });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
@@ -31,7 +31,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_UnauthorizedSender(uint256 amountToDeposit) external whenAmountIsNotZero {
-        vm.assume({ condition: amountToDeposit > 0 });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
@@ -59,7 +59,8 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         whenAmountIsNotZero
         whenAuthorizedSender
     {
-        vm.assume({ condition: amountToDeposit > 0 && amountToDeposit >= amountToWithdraw && amountToWithdraw > 0 });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
+        amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));

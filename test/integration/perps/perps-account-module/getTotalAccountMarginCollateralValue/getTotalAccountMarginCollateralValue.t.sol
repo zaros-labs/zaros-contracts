@@ -15,7 +15,7 @@ contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integrati
     }
 
     function testFuzz_GetTotalAccountMarginCollateralValueOneCollateral(uint256 amountToDeposit) external {
-        vm.assume({ condition: amountToDeposit > 0 });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 expectedMarginCollateralValue =
@@ -29,7 +29,8 @@ contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integrati
     }
 
     function testFuzz_GetTotalAccountMarginCollateralValueMultipleCollateral(uint256 amountToDeposit) external {
-        vm.assume({ condition: amountToDeposit > 0 });
+        // TODO: let's fuzz the tokens used here
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: WSTETH_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
         deal({ token: address(mockWstEth), to: users.naruto, give: amountToDeposit });
 

@@ -36,16 +36,6 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     Users internal users;
     address internal mockChainlinkForwarder = vm.addr({ privateKey: 0x01 });
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
-    uint128 internal constant ETH_USD_MARKET_ID = 1;
-    string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
-    string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
-    bytes32 internal constant mockEthUsdStreamId = keccak256(bytes("mockEthUsdStreamId"));
-    uint128 internal constant ETH_USD_MMR = 0.01e18;
-    uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
-    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
-    uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;
-    uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
-    uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
     OrderFees.Data public orderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -165,9 +155,9 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
         usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, users.owner);
 
-        perpsEngine.configureCollateral(address(usdToken), type(uint256).max);
+        perpsEngine.configureCollateral(address(usdToken), ZRSUSD_DEPOSIT_CAP);
 
-        perpsEngine.configureCollateral(address(mockWstEth), type(uint256).max);
+        perpsEngine.configureCollateral(address(mockWstEth), WSTETH_DEPOSIT_CAP);
 
         perpsEngine.configurePriceFeed(address(usdToken), address(mockUsdcUsdPriceFeed));
 

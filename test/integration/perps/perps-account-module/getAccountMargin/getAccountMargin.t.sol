@@ -9,14 +9,13 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-/// TODO: add margin caps to fix these tests
 contract GetAccountMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
     }
 
     function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit) external {
-        vm.assume({ condition: amountToDeposit > 0 });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
@@ -35,7 +34,7 @@ contract GetAccountMargin_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_GetAccountMarginMultipleCollateral(uint256 amountToDeposit) external {
-        vm.assume({ condition: amountToDeposit > 0 });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: WSTETH_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
         deal({ token: address(mockWstEth), to: users.naruto, give: amountToDeposit });
 

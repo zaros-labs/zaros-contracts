@@ -31,4 +31,23 @@ abstract contract Constants {
     /// @notice Zaros USD permissioned features.
     bytes32 internal constant BURN_FEATURE_FLAG = ProtocolConstants.BURN_FEATURE_FLAG;
     bytes32 internal constant MINT_FEATURE_FLAG = ProtocolConstants.MINT_FEATURE_FLAG;
+
+    /// @notice Margin collateral types configuration constants.
+    uint256 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
+    uint256 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
+    uint256 internal constant ZRSUSD_DEPOSIT_CAP = 50_000_000_000e18;
+
+    /// @notice ETH/USD market configuration constants.
+    uint128 internal constant ETH_USD_MARKET_ID = 1;
+    string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
+    string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
+    bytes32 internal constant MOCK_ETH_USD_STREAM_ID = keccak256(bytes("MOCK_ETH_USD_STREAM_ID"));
+    uint128 internal constant ETH_USD_MMR = 0.01e18;
+    uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
+    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
+
+    /// @notice Mocked prices.
+    uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;
+    uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
+    uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
 }
