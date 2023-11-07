@@ -8,11 +8,12 @@ import { Zaros } from "@zaros/core/Zaros.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockZarosUSD } from "./mocks/MockZarosUSD.sol";
+import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
+import { Storage } from "./utils/Storage.sol";
 import { Users } from "./utils/Types.sol";
 
 // Forge dependencies
@@ -27,7 +28,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract Base_Test is Test, Events {
+abstract contract Base_Test is Test, Constants, Events, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -35,16 +36,6 @@ abstract contract Base_Test is Test, Events {
     Users internal users;
     address internal mockChainlinkForwarder = vm.addr({ privateKey: 0x01 });
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
-    uint128 internal constant ETH_USD_MARKET_ID = 1;
-    string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
-    string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
-    bytes32 internal constant mockEthUsdStreamId = keccak256(bytes("mockEthUsdStreamId"));
-    uint128 internal constant ETH_USD_MMR = 0.01e18;
-    uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
-    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
-    uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;
-    uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
-    uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
     OrderFees.Data public orderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -107,7 +98,6 @@ abstract contract Base_Test is Test, Events {
         perpsEngine =
             PerpsEngine(payable(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData))));
 
-        distributeTokens();
         configureContracts();
 
         vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account NFT" });
@@ -115,6 +105,9 @@ abstract contract Base_Test is Test, Events {
         vm.label({ account: address(zaros), newLabel: "Zaros" });
         vm.label({ account: address(rewardDistributor), newLabel: "Reward Distributor" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
+
+        approveContracts();
+        changePrank({ msgSender: users.naruto });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -154,50 +147,36 @@ abstract contract Base_Test is Test, Events {
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
-        usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
+        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(zaros));
 
-        usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
+        usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, address(zaros));
 
-        usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, users.owner);
+        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, users.owner);
 
-        usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, users.owner);
+        usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, users.owner);
 
-        perpsEngine.setIsCollateralEnabled(address(usdToken), true);
+        perpsEngine.configureCollateral(address(usdToken), ZRSUSD_DEPOSIT_CAP);
 
-        perpsEngine.setIsCollateralEnabled(address(mockWstEth), true);
+        perpsEngine.configureCollateral(address(mockWstEth), WSTETH_DEPOSIT_CAP);
 
         perpsEngine.configurePriceFeed(address(usdToken), address(mockUsdcUsdPriceFeed));
 
         perpsEngine.configurePriceFeed(address(mockWstEth), address(mockWstEthUsdPriceFeed));
     }
 
-    function createMarkets() internal {
-        perpsEngine.createPerpsMarket(
-            ETH_USD_MARKET_ID,
-            ETH_USD_MARKET_NAME,
-            ETH_USD_MARKET_SYMBOL,
-            mockEthUsdStreamId,
-            address(mockEthUsdPriceFeed),
-            ETH_USD_MMR,
-            ETH_USD_MAX_OI,
-            ETH_USD_MIN_IMR,
-            orderFees
-        );
-    }
+    // function distributeTokens() internal {
+    //     deal({ token: address(usdToken), to: users.naruto, give: 1_000_000e18 });
+    //     deal({ token: address(mockWstEth), to: users.naruto, give: 1_000_000e18 });
 
-    function distributeTokens() internal {
-        deal({ token: address(usdToken), to: users.naruto, give: 1_000_000e18 });
-        deal({ token: address(mockWstEth), to: users.naruto, give: 1_000_000e18 });
+    //     deal({ token: address(usdToken), to: users.sasuke, give: 1_000_000e18 });
+    //     deal({ token: address(mockWstEth), to: users.sasuke, give: 1_000_000e18 });
 
-        deal({ token: address(usdToken), to: users.sasuke, give: 1_000_000e18 });
-        deal({ token: address(mockWstEth), to: users.sasuke, give: 1_000_000e18 });
+    //     deal({ token: address(usdToken), to: users.sakura, give: 1_000_000e18 });
+    //     deal({ token: address(mockWstEth), to: users.sakura, give: 1_000_000e18 });
 
-        deal({ token: address(usdToken), to: users.sakura, give: 1_000_000e18 });
-        deal({ token: address(mockWstEth), to: users.sakura, give: 1_000_000e18 });
-
-        deal({ token: address(usdToken), to: users.madara, give: 1_000_000e18 });
-        deal({ token: address(mockWstEth), to: users.madara, give: 1_000_000e18 });
-    }
+    //     deal({ token: address(usdToken), to: users.madara, give: 1_000_000e18 });
+    //     deal({ token: address(mockWstEth), to: users.madara, give: 1_000_000e18 });
+    // }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CALL EXPECTS

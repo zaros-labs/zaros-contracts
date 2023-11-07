@@ -14,19 +14,31 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 abstract contract Base_Integration_Shared_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        approveContracts();
-        changePrank({ msgSender: users.naruto });
     }
 
-    function _createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint256 accountId) {
+    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint256 accountId) {
         accountId = perpsEngine.createPerpsAccount();
         perpsEngine.depositMargin(accountId, collateralType, amount);
     }
 
-    function _getPrice(MockPriceFeed priceFeed) internal view returns (UD60x18) {
+    function createMarkets() internal {
+        perpsEngine.createPerpsMarket(
+            ETH_USD_MARKET_ID,
+            ETH_USD_MARKET_NAME,
+            ETH_USD_MARKET_SYMBOL,
+            MOCK_ETH_USD_STREAM_ID,
+            address(mockEthUsdPriceFeed),
+            ETH_USD_MMR,
+            ETH_USD_MAX_OI,
+            ETH_USD_MIN_IMR,
+            orderFees
+        );
+    }
+
+    function getPrice(MockPriceFeed priceFeed) internal view returns (UD60x18) {
         uint8 decimals = priceFeed.decimals();
         (, int256 answer,,,) = priceFeed.latestRoundData();
 
-        return ud60x18(uint256(answer) * 10 ** (Constants.DECIMALS - decimals));
+        return ud60x18(uint256(answer) * 10 ** (DEFAULT_DECIMALS - decimals));
     }
 }

@@ -1,0 +1,13 @@
+WithdrawMargin_Integration_Test
+├── when the amount is zero
+│   └── it should revert
+└── when the amount is not zero
+    ├── given the sender is not authorized
+    │   └── it should revert
+    └── given the sender is authorized
+        ├── given there is not enough margin available
+        │   └── it should revert
+        └── given there is available margin
+            ├── it should emit {LogWithdrawMargin}
+            ├── it should transfer the withdrawn amount to the sender
+            └── it should decrease the amount of margin collateral

@@ -34,7 +34,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using PerpsConfiguration for PerpsConfiguration.Data;
 
     /// @inheritdoc IPerpsAccountModule
-    function getPerpsAccountTokenAddress() public view override returns (address) {
+    function getPerpsAccountToken() public view override returns (address) {
         return PerpsConfiguration.load().perpsAccountToken;
     }
 
@@ -91,8 +91,10 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint256) {
-        (uint256 accountId, IAccountNFT perpsAccountTokenModule) = PerpsConfiguration.onCreateAccount();
-        perpsAccountTokenModule.mint(msg.sender, accountId);
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        uint256 accountId = ++perpsConfiguration.nextAccountId;
+        IAccountNFT perpsAccountToken = IAccountNFT(perpsConfiguration.perpsAccountToken);
+        perpsAccountToken.mint(msg.sender, accountId);
 
         PerpsAccount.create(accountId, msg.sender);
 
@@ -128,9 +130,11 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     /// @inheritdoc IPerpsAccountModule
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) external override {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        _requireCollateralEnabled(collateralType, perpsConfiguration.isCollateralEnabled(collateralType));
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
+        _requireEnoughDepositCap(
+            collateralType, udAmount, perpsConfiguration.getDepositCapForCollateralType(collateralType)
+        );
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.increaseMarginCollateral(collateralType, udAmount);
@@ -168,9 +172,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @dev Reverts if the collateral type is not supported.
-    function _requireCollateralEnabled(address collateralType, bool isEnabled) internal pure {
-        if (!isEnabled) {
-            revert Zaros_PerpsAccountModule_InvalidCollateralType(collateralType);
+    function _requireEnoughDepositCap(address collateralType, UD60x18 amount, UD60x18 depositCap) internal pure {
+        if (amount.gt(depositCap)) {
+            revert Zaros_PerpsAccountModule_DepositCap(collateralType, amount.intoUint256(), depositCap.intoUint256());
         }
     }
 
@@ -190,7 +194,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @dev Reverts if the caller is not the account owner.
     function _onlyPerpsAccountToken() internal view {
-        if (msg.sender != address(getPerpsAccountTokenAddress())) {
+        if (msg.sender != address(getPerpsAccountToken())) {
             revert Zaros_PerpsAccountModule_OnlyPerpsAccountToken(msg.sender);
         }
     }
