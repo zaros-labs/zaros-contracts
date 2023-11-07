@@ -12,9 +12,11 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
         Base_Test.setUp();
     }
 
-    function test_RevertWhen_RevertingCallProvided() external {
+    function test_RevertWhen_TheDataArrayProvidesARevertingCall() external {
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), uint256(0));
+
+        // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 ParameterError.Zaros_InvalidParameter.selector, "amount", "amount can't be zero"
@@ -23,33 +25,37 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
         perpsEngine.createPerpsAccountAndMulticall(data);
     }
 
-    modifier whenNonRevertingCall() {
+    modifier whenTheDataArrayDoesNotProvideARevertingCall() {
         _;
     }
 
-    function test_NullDataArray() external whenNonRevertingCall {
+    function test_WhenTheDataArrayIsNull() external whenTheDataArrayDoesNotProvideARevertingCall {
         bytes[] memory data = new bytes[](0);
         uint256 expectedAccountId = 1;
         uint256 expectedResultsLength = 0;
 
+        // it should emit {LogCreatePerpsAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
 
         bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
+        // it should return a null results array
         assertEq(results.length, expectedResultsLength, "createPerpsAccountAndMulticall");
     }
 
-    function test_ValidDataArray() external whenNonRevertingCall {
+    function test_WhenTheDataArrayIsNotNull() external whenTheDataArrayDoesNotProvideARevertingCall {
         bytes[] memory data = new bytes[](1);
         uint256 expectedAccountId = 1;
         data[0] = abi.encodeWithSelector(IPerpsAccountModule.getPerpsAccountToken.selector);
 
+        // it should emit {LogCreatePerpsAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
 
         bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
         address perpsAccountTokenReturned = abi.decode(results[0], (address));
 
+        // it should return a valid results array
         assertEq(perpsAccountTokenReturned, address(perpsAccountToken), "createPerpsAccountAndMulticall");
     }
 }

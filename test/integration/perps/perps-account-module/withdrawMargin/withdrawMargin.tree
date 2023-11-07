@@ -1,4 +1,4 @@
-withdrawMargin.t.sol
+WithdrawMargin_Integration_Test
 ├── when the amount is zero
 │   └── it should revert
 └── when the amount is not zero
@@ -7,7 +7,7 @@ withdrawMargin.t.sol
     └── given the sender is authorized
         ├── given there is not enough margin available
         │   └── it should revert
-        └── given there is margin available
-            ├── it should emit a {LogWithdrawMargin} event
-            ├── it should decrease the amount of margin collateral
-            └── it should transfer the withdrawn amount to the sender
+        └── given there is available margin
+            ├── it should emit {LogWithdrawMargin}
+            ├── it should transfer the withdrawn amount to the sender
+            └── it should decrease the amount of margin collateral

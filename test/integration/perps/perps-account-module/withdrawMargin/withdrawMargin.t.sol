@@ -12,12 +12,13 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         Base_Integration_Shared_Test.setUp();
     }
 
-    function testFuzz_AmountZero(uint256 amountToDeposit) external {
+    function testFuzz_RevertWhen_TheAmountIsZero(uint256 amountToDeposit) external {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
+        // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 ParameterError.Zaros_InvalidParameter.selector, "amount", "amount can't be zero"
@@ -26,17 +27,23 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), 0);
     }
 
-    modifier whenAmountIsNotZero() {
+    modifier whenTheAmountIsNotZero() {
         _;
     }
 
-    function testFuzz_UnauthorizedSender(uint256 amountToDeposit) external whenAmountIsNotZero {
+    function testFuzz_RevertGiven_ThereIsNotEnoughMarginAvailable(uint256 amountToDeposit)
+        external
+        whenTheAmountIsNotZero
+        givenTheSenderIsAuthorized
+    {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         changePrank({ msgSender: users.sasuke });
+
+        // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 PerpsAccount.Zaros_PerpsAccount_PermissionDenied.selector, perpsAccountId, users.sasuke
@@ -45,19 +52,23 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), amountToDeposit);
     }
 
-    modifier whenAuthorizedSender() {
+    modifier givenTheSenderIsAuthorized() {
         _;
     }
 
-    function test_NotEnoughMarginAvailable() external whenAmountIsNotZero whenAuthorizedSender { }
+    function test_RevertGiven_ThereIsNotEnoughMarginAvailable()
+        external
+        whenTheAmountIsNotZero
+        givenTheSenderIsAuthorized
+    { }
 
-    function testFuzz_EnoughMarginAvailable(
+    function testFuzz_GivenThereIsAvailableMargin(
         uint256 amountToDeposit,
         uint256 amountToWithdraw
     )
         external
-        whenAmountIsNotZero
-        whenAuthorizedSender
+        whenTheAmountIsNotZero
+        givenTheSenderIsAuthorized
     {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
@@ -65,8 +76,11 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
+        // it should emit {LogWithdrawMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);
+
+        // it should transfer the withdrawn amount to the sender
         expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), amountToWithdraw);
 
@@ -74,6 +88,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         uint256 newMarginCollateral =
             perpsEngine.getAccountMarginCollateral(perpsAccountId, address(usdToken)).intoUint256();
 
+        // it should decrease the amount of margin collateral
         assertEq(expectedMargin, newMarginCollateral, "withdrawMargin");
     }
 }

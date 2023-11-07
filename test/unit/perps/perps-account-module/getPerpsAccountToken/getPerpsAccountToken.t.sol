@@ -10,10 +10,11 @@ contract GetPerpsAccountToken_Unit_Test is Base_Test {
         Base_Test.setUp();
     }
 
-    function test_PerpsAccountTokenStored() external {
+    function test_GivenTheresAnAccountTokenStored() external {
         address expectedPerpsAccountToken = address(perpsAccountToken);
         address perpsAccountToken = perpsEngine.getPerpsAccountToken();
 
+        // it should return the stored account token
         assertEq(perpsAccountToken, expectedPerpsAccountToken, "getPerpsAccountToken");
     }
 }

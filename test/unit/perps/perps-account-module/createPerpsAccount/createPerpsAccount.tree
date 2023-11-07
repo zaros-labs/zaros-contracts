@@ -1,10 +1,10 @@
-createPerpsAccount.t.sol
-├── when the perps account token is not set
+CreatePerpsAccount_Unit_Test
+├── given the perps account token is not set
 │   └── it should revert
-└── when the perps account token is set
+└── given the perps account token is set
     ├── given the caller has no previous perps account
-    │   ├── it should emit a valid {LogCreatePerpsAccount}
+    │   ├── it should emit {LogCreatePerpsAccount}
     │   └── it should return a valid accountId2
     └── given the caller has a previously created perps account
-        ├── it should emit a valid {LogCreatePerpsAccount}
+        ├── it should emit {LogCreatePerpsAccount}
         └── it should return a valid accountId
