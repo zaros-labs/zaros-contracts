@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 library Constants {
     /// @notice Protocol wide standard decimals.
-    uint8 internal constant DECIMALS = 18;
+    uint8 internal constant SYSTEM_DECIMALS = 18;
     /// @notice Maximum minimum delegation time to markets.
     uint32 internal constant MAX_MIN_DELEGATE_TIME = 30 days;
 

@@ -21,9 +21,6 @@ library PerpsConfiguration {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
 
-    /// @notice Thrown when `collateralType` doesn't have a price feed defined to return its price.
-    error Zaros_PerpsConfiguration_CollateralPriceFeedNotDefined(address collateralType);
-
     /// @dev PerpsConfiguration namespace storage slot.
     bytes32 internal constant PERPS_CONFIGURATION_SLOT = keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
@@ -32,7 +29,6 @@ library PerpsConfiguration {
     /// @param perpsAccountToken The perps account token contract address.
     /// @param zaros The Zaros protocol contract address.
     /// @param nextAccountId The next account id to be used.
-    /// @param enabledCollateralTypes The cross margin supported collateral types.
     /// @param enabledMarketsIds The enabled perps markets ids.
     struct Data {
         uint256 maxPositionsPerAccount;
@@ -44,8 +40,6 @@ library PerpsConfiguration {
         address zaros;
         address perpsAccountToken;
         uint96 nextAccountId;
-        mapping(address => address) collateralPriceFeeds;
-        mapping(address => uint256) collateralCaps;
         EnumerableSet.UintSet enabledMarketsIds;
     }
 
@@ -57,54 +51,6 @@ library PerpsConfiguration {
         assembly {
             perpsConfiguration.slot := slot
         }
-    }
-
-    /// @dev Returns the maximum amount that can be deposited as margin for a given
-    /// collateral type.
-    /// @param self The perps configuration storage pointer.
-    /// @param collateralType The address of the collateral type.
-    /// @return depositCap The configured deposit cap for the given collateral type.
-    function getDepositCapForCollateralType(
-        Data storage self,
-        address collateralType
-    )
-        internal
-        view
-        returns (UD60x18 depositCap)
-    {
-        depositCap = ud60x18(self.collateralCaps[collateralType]);
-    }
-
-    /// @dev Updates the deposit cap of a given collateral type. If zero, it is considered
-    /// disabled.
-    /// @dev If the collateral is enabled, a price feed must be set.
-    /// @param self The perps configuration storage pointer.
-    /// @param collateralType The address of the collateral type.
-    /// @param depositCap The maximum amount of collateral that can be deposited.
-    function configureCollateral(Data storage self, address collateralType, UD60x18 depositCap) internal {
-        self.collateralCaps[collateralType] = depositCap.intoUint256();
-    }
-
-    function configurePriceFeed(Data storage self, address collateralType, address priceFeed) internal {
-        self.collateralPriceFeeds[collateralType] = priceFeed;
-    }
-
-    function getCollateralPrice(Data storage self, address collateralType) internal view returns (UD60x18) {
-        address priceFeed = self.collateralPriceFeeds[collateralType];
-        if (priceFeed == address(0)) {
-            revert Zaros_PerpsConfiguration_CollateralPriceFeedNotDefined(collateralType);
-        }
-
-        return getPrice(self, IAggregatorV3(priceFeed));
-    }
-
-    function getPrice(Data storage self, IAggregatorV3 priceFeed) internal view returns (UD60x18 price) {
-        uint8 decimals = priceFeed.decimals();
-        (, int256 answer,,,) = priceFeed.latestRoundData();
-
-        // should panic if decimals > 18
-        assert(decimals <= Constants.DECIMALS);
-        price = ud60x18(answer.toUint256() * 10 ** (Constants.DECIMALS - decimals));
     }
 
     /// @dev Adds a new perps market to the enabled markets set.

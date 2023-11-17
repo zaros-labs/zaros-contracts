@@ -19,7 +19,7 @@ abstract contract Constants {
     int256 internal constant uMIN_SD59x18 = LIB_uMIN_SD59x18;
 
     /// @notice The default decimals value used in the protocol.
-    uint8 internal constant DEFAULT_DECIMALS = ProtocolConstants.DECIMALS;
+    uint8 internal constant DEFAULT_DECIMALS = ProtocolConstants.SYSTEM_DECIMALS;
 
     /// @notice Feature flags for all permissionless features.
     bytes32 internal constant CREATE_ACCOUNT_FEATURE_FLAG = ProtocolConstants.CREATE_ACCOUNT_FEATURE_FLAG;
