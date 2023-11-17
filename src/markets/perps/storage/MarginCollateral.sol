@@ -6,10 +6,15 @@ pragma solidity 0.8.19;
 import { Constants } from "@zaros/utils/Constants.sol";
 import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
 
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 library MarginCollateral {
+    using SafeCast for int256;
+
     /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
     error CollateralPriceFeedNotDefined();
 

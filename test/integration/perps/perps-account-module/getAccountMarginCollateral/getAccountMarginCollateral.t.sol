@@ -16,10 +16,10 @@ contract GetAccountMarginCollateral_Integration_Test is Base_Integration_Shared_
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        uint256 marginCollateral = perpsEngine.getAccountMarginCollateral({
+        uint256 marginCollateralAmount = perpsEngine.getAccountMarginCollateral({
             accountId: perpsAccountId,
             collateralType: address(usdToken)
         }).intoUint256();
-        assertEq(marginCollateral, amountToDeposit, "getAccountMarginCollateral");
+        assertEq(marginCollateralAmount, amountToDeposit, "getAccountMarginCollateral");
     }
 }

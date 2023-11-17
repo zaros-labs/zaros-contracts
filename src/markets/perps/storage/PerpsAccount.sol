@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { PerpsConfiguration } from "./PerpsConfiguration.sol";
+import { MarginCollateral } from "./MarginCollateral.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -18,7 +18,7 @@ library PerpsAccount {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
-    using PerpsConfiguration for PerpsConfiguration.Data;
+    using MarginCollateral for MarginCollateral.Data;
 
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
     error Zaros_PerpsAccount_PermissionDenied(uint256 accountId, address sender);
@@ -79,11 +79,11 @@ library PerpsAccount {
     /// @notice Returns the amount of the given margin collateral type.
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
-    /// @return marginCollateral The amount of margin collateral for the given collateral type.
-    function getMarginCollateral(Data storage self, address collateralType) internal view returns (UD60x18) {
-        (, uint256 marginCollateral) = self.marginCollateralBalance.tryGet(collateralType);
+    /// @return marginCollateralBalance The margin collateral balance for the given collateral type.
+    function getMarginCollateralBalance(Data storage self, address collateralType) internal view returns (UD60x18) {
+        (, uint256 marginCollateralBalance) = self.marginCollateralBalance.tryGet(collateralType);
 
-        return ud60x18(marginCollateral);
+        return ud60x18(marginCollateralBalance);
     }
 
     /// @notice Returns the notional value of all margin collateral in the account.
@@ -94,12 +94,10 @@ library PerpsAccount {
         view
         returns (UD60x18 totalMarginCollateralValue)
     {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-
         for (uint256 i = 0; i < self.marginCollateralBalance.length(); i++) {
-            (address collateralType, uint256 marginCollateral) = self.marginCollateralBalance.at(i);
-            UD60x18 marginCollateralValue =
-                perpsConfiguration.getCollateralPrice(collateralType).mul(ud60x18(marginCollateral));
+            (address collateralType, uint256 marginCollateralAmount) = self.marginCollateralBalance.at(i);
+            MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
+            UD60x18 marginCollateralValue = marginCollateral.getPrice().mul(ud60x18(marginCollateralAmount));
 
             totalMarginCollateralValue = totalMarginCollateralValue.add(marginCollateralValue);
         }
@@ -130,9 +128,9 @@ library PerpsAccount {
     /// @param collateralType The address of the collateral type.
     /// @param amount The amount of margin collateral to be added.
     /// @dev TODO: normalize margin collateral decimals
-    function increaseMarginCollateral(Data storage self, address collateralType, UD60x18 amount) internal {
+    function increaseMarginCollateralBalance(Data storage self, address collateralType, UD60x18 amount) internal {
         EnumerableMap.AddressToUintMap storage marginCollateralBalance = self.marginCollateralBalance;
-        UD60x18 newMarginCollateralBalance = getMarginCollateral(self, collateralType).add(amount);
+        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).add(amount);
 
         if (self.collateralPriority.length() == 0) {
             self.collateralPriority.add(collateralType);
@@ -146,9 +144,9 @@ library PerpsAccount {
     /// @param collateralType The address of the collateral type.
     /// @param amount The amount of margin collateral to be removed.
     /// @dev TODO: denormalize margin collateral decimals
-    function decreaseMarginCollateral(Data storage self, address collateralType, UD60x18 amount) internal {
+    function decreaseMarginCollateralBalance(Data storage self, address collateralType, UD60x18 amount) internal {
         EnumerableMap.AddressToUintMap storage marginCollateralBalance = self.marginCollateralBalance;
-        UD60x18 newMarginCollateralBalance = getMarginCollateral(self, collateralType).sub(amount);
+        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).sub(amount);
 
         if (newMarginCollateralBalance.isZero()) {
             marginCollateralBalance.remove(collateralType);
@@ -161,12 +159,12 @@ library PerpsAccount {
     function deductAccountMargin(Data storage self, UD60x18 amount) internal {
         for (uint256 i = 0; i < self.collateralPriority.length(); i++) {
             address collateralType = self.collateralPriority.at(i);
-            UD60x18 marginCollateralBalance = getMarginCollateral(self, collateralType);
+            UD60x18 marginCollateralBalance = getMarginCollateralBalance(self, collateralType);
             if (marginCollateralBalance.gte(amount)) {
-                decreaseMarginCollateral(self, collateralType, amount);
+                decreaseMarginCollateralBalance(self, collateralType, amount);
                 break;
             } else {
-                decreaseMarginCollateral(self, collateralType, marginCollateralBalance);
+                decreaseMarginCollateralBalance(self, collateralType, marginCollateralBalance);
                 amount = amount.sub(marginCollateralBalance);
             }
         }
