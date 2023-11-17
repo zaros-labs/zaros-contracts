@@ -22,6 +22,16 @@ library MarginCollateral {
         address priceFeed;
     }
 
+    /// @notice Loads a {MarginCollateral} object.
+    /// @param collateralType The margin collateral type.
+    /// @return marginCollateral The loaded margin collateral storage pointer.
+    function load(address collateralType) internal pure returns (Data storage marginCollateral) {
+        bytes32 slot = keccak256(abi.encode(MARGIN_COLLATERAL_DOMAIN, collateralType));
+        assembly {
+            marginCollateral.slot := slot
+        }
+    }
+
     /// @notice Returns the maximum amount that can be deposited as margin.
     /// @param self The margin collateral type storage pointer.
     /// @return depositCap The configured deposit cap for the given collateral type.
@@ -48,13 +58,13 @@ library MarginCollateral {
     /// @notice Returns the price of the given margin collateral type.
     /// @param self The margin collateral type storage pointer.
     /// @return price The price of the given margin collateral type.
-    function getCollateralPrice(Data storage self) internal view returns (UD60x18) {
+    function getCollateralPrice(Data storage self) internal view returns (UD60x18 price) {
         address priceFeed = self.priceFeed;
         if (priceFeed == address(0)) {
             revert CollateralPriceFeedNotDefined(collateralType);
         }
 
-        return getPrice(self, IAggregatorV3(priceFeed));
+        price = getPrice(self, IAggregatorV3(priceFeed));
     }
 
     /// @notice Queries the Chainlink Price Feed for the margin collateral oracle price.

@@ -25,7 +25,7 @@ library PerpsAccount {
     /// @notice Thrown when the given `accountId` doesn't exist.
     error Zaros_PerpsAccount_AccountNotFound(uint256 accountId, address sender);
 
-    /// @dev Constant base domain used to access a given PerpsAccount's storage slot.
+    /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
 
     /// @notice {PerpsAccount} namespace storage structure.
@@ -43,7 +43,7 @@ library PerpsAccount {
         EnumerableSet.AddressSet collateralPriority;
     }
 
-    /// @dev Loads a PerpsAccount entity.
+    /// @notice Loads a {PerpsAccount} object.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
     function load(uint256 accountId) internal pure returns (Data storage perpsAccount) {
@@ -53,7 +53,7 @@ library PerpsAccount {
         }
     }
 
-    /// @dev Checks whether the given perps account exists.
+    /// @notice Checks whether the given perps account exists.
     /// @param accountId The perps account id.
     /// @return perpsAccount if the perps account exists, its storage pointer is returned.
     function loadExisting(uint256 accountId) internal view returns (Data storage perpsAccount) {
@@ -63,12 +63,12 @@ library PerpsAccount {
         }
     }
 
-    /// @dev TODO; implement
+    /// @notice TODO: implement
     function canBeLiquidated(Data storage self) internal view returns (bool) {
         return false;
     }
 
-    /// @dev Loads a perps account and checks if the `msg.sender` is authorized.
+    /// @notice Loads a perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
     function loadAccountAndValidatePermission(uint256 accountId) internal view returns (Data storage perpsAccount) {
@@ -76,7 +76,7 @@ library PerpsAccount {
         verifyCaller(perpsAccount);
     }
 
-    /// @dev Returns the amount of the given margin collateral type.
+    /// @notice Returns the amount of the given margin collateral type.
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @return marginCollateral The amount of margin collateral for the given collateral type.
@@ -86,7 +86,7 @@ library PerpsAccount {
         return ud60x18(marginCollateral);
     }
 
-    /// @dev Returns the notional value of all margin collateral in the account.
+    /// @notice Returns the notional value of all margin collateral in the account.
     /// @param self The perps account storage pointer.
     /// @return totalMarginCollateralValue The total margin collateral value.
     function getTotalMarginCollateralValue(Data storage self)
@@ -105,7 +105,7 @@ library PerpsAccount {
         }
     }
 
-    /// @dev Verifies if the caller is authorized to perform actions on the given perps account.
+    /// @notice Verifies if the caller is authorized to perform actions on the given perps account.
     /// @param self The perps account storage pointer.
     function verifyCaller(Data storage self) internal view {
         if (self.owner != msg.sender) {
@@ -113,7 +113,7 @@ library PerpsAccount {
         }
     }
 
-    /// @dev Creates a new perps account.
+    /// @notice Creates a new perps account.
     /// @param accountId The perps account id.
     /// @param owner The perps account owner.
     /// @return perpsAccount The created perps account storage pointer.
@@ -123,7 +123,7 @@ library PerpsAccount {
         perpsAccount.owner = owner;
     }
 
-    /// @dev Increases the margin collateral for the given collateral type.
+    /// @notice Increases the margin collateral for the given collateral type.
     /// @dev If there's no collateral priority defined yet, the first collateral type deposited will
     /// be included.
     /// @param self The perps account storage pointer.
@@ -141,7 +141,7 @@ library PerpsAccount {
         marginCollateralBalance.set(collateralType, newMarginCollateralBalance.intoUint256());
     }
 
-    /// @dev Decreases the margin collateral for the given collateral type.
+    /// @notice Decreases the margin collateral for the given collateral type.
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @param amount The amount of margin collateral to be removed.
@@ -172,7 +172,7 @@ library PerpsAccount {
         }
     }
 
-    /// @dev Updates the account's active markets ids.
+    /// @notice Updates the account's active markets ids.
     /// @param self The perps account storage pointer.
     /// @param marketId The perps market id.
     /// @param isActive `true` if the market is active, `false` otherwise.
