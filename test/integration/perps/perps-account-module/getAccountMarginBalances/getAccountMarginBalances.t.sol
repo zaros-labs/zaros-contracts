@@ -9,7 +9,7 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-contract GetAccountMargin_Integration_Test is Base_Integration_Shared_Test {
+contract GetAccountMarginBalances_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
     }
