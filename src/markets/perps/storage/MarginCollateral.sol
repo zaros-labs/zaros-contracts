@@ -3,18 +3,14 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { Constants } from "@zaros/utils/Constants.sol";
 import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
-
-// Open Zeppelin dependencies
-import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
+import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 library MarginCollateral {
-    using SafeCast for int256;
-
     /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
     error CollateralPriceFeedNotDefined();
 
@@ -95,20 +91,6 @@ library MarginCollateral {
             revert CollateralPriceFeedNotDefined();
         }
 
-        price = getPrice(self, IAggregatorV3(priceFeed));
-    }
-
-    /// @notice Queries the provided Chainlink Price Feed for the margin collateral oracle price.
-    /// @param self The margin collateral type storage pointer.
-    /// @param priceFeed The Chainlink Price Feed address.
-    /// @return price The price of the given margin collateral type.
-    function getPrice(Data storage self, IAggregatorV3 priceFeed) internal view returns (UD60x18 price) {
-        uint8 decimals = self.decimals;
-        uint8 priceDecimals = priceFeed.decimals();
-        (, int256 answer,,,) = priceFeed.latestRoundData();
-
-        // should panic if decimals > 18
-        assert(decimals <= Constants.SYSTEM_DECIMALS);
-        price = ud60x18(answer.toUint256() * 10 ** (Constants.SYSTEM_DECIMALS - decimals));
+        price = OracleUtil.getPrice(IAggregatorV3(priceFeed));
     }
 }

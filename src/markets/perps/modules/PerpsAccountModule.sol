@@ -49,7 +49,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         returns (UD60x18)
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        UD60x18 marginCollateralBalance = perpsAccount.getMarginCollateralAmount(collateralType);
+        UD60x18 marginCollateralBalance = perpsAccount.getMarginCollateralBalance(collateralType);
 
         return marginCollateralBalance;
     }
