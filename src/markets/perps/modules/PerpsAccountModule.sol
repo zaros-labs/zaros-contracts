@@ -10,6 +10,7 @@ import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
+import { MarginCollateral } from "../storage/MarginCollateral.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -32,6 +33,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
     using PerpsConfiguration for PerpsConfiguration.Data;
+    using MarginCollateral for MarginCollateral.Data;
 
     /// @inheritdoc IPerpsAccountModule
     function getPerpsAccountToken() public view override returns (address) {
@@ -134,12 +136,11 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function depositMargin(uint256 accountId, address collateralType, uint256 amount) external override {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        // PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
-        _requireEnoughDepositCap(
-            collateralType, udAmount, perpsConfiguration.getDepositCapForCollateralType(collateralType)
-        );
+        _requireEnoughDepositCap(collateralType, udAmount, marginCollateral.getDepositCap());
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.increaseMarginCollateralBalance(collateralType, udAmount);

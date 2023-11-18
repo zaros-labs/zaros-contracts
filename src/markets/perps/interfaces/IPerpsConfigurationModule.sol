@@ -13,6 +13,8 @@ interface IPerpsConfigurationModule {
     error Zaros_PerpsConfigurationModule_PerpsAccountTokenNotDefined();
     /// @notice Thrown when the provided `zaros` is the zero address.
     error Zaros_PerpsConfigurationModule_ZarosNotDefined();
+    /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
+    error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
 
     /// @notice Emitted when a new collateral type is enabled or disabled.
     /// @param sender The address that enabled or disabled the collateral type.
@@ -36,7 +38,7 @@ interface IPerpsConfigurationModule {
     /// collateral type.
     /// @param collateralType The address of the collateral type.
     /// @return depositCap The configured deposit cap for the given collateral type.
-    function getDepositCapForCollateralType(address collateralType) external view returns (uint256 depositCap);
+    function getDepositCapForMarginCollateral(address collateralType) external view returns (uint256 depositCap);
 
     /// @notice Sets the address of the account token NFT contract.
     /// @param perpsAccountToken The account token address.
@@ -46,15 +48,11 @@ interface IPerpsConfigurationModule {
     /// @param zaros The Zaros core address.
     function setZaros(address zaros) external;
 
-    /// @notice Enables or disables the given collateral type.
+    /// @notice Configures the settings of a given margin collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
-    function configureCollateral(address collateralType, uint256 depositCap) external;
-
-    /// @notice Sets a price feed contract address for the given margin collateral type.
-    /// @param collateralType The address of the collateral type.
-    /// @param priceFeed The address of the price feed.
-    function configurePriceFeed(address collateralType, address priceFeed) external;
+    /// @param priceFeed The price oracle address.
+    function configureMarginCollateral(address collateralType, uint248 depositCap, address priceFeed) external;
 
     /// @notice Updates the CL Automation forwarder address and the Data Streams verifier address.
     /// @param chainlinkForwarder The address of the Chainlink Automation forwarder.

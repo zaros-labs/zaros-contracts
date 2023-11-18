@@ -14,9 +14,6 @@ library MarginCollateral {
     /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
     error CollateralPriceFeedNotDefined();
 
-    /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
-    error InvalidMarginCollateralDecimals(uint8 decimals);
-
     /// @notice Constant base domain used to access a given MarginCollateral's storage slot.
     string internal constant MARGIN_COLLATERAL_DOMAIN = "fi.zaros.markets.MarginCollateral";
 
@@ -59,26 +56,11 @@ library MarginCollateral {
         return ud60x18(amount * 10 ** (Constants.SYSTEM_DECIMALS - self.decimals));
     }
 
-    /// @notice Updates the deposit cap of a given collateral type. If zero, it is considered
-    /// disabled.
-    /// @dev If the collateral is enabled, a price feed must be set.
-    /// @param self The margin collateral type storage pointer.
-    /// @param depositCap The maximum amount of collateral that can be deposited.
-    function setDepositCap(Data storage self, uint248 depositCap) internal {
+    function configure(address collateralType, uint248 depositCap, uint8 decimals, address priceFeed) internal {
+        Data storage self = load(collateralType);
+
         self.depositCap = depositCap;
-    }
-
-    function setDecimals(Data storage self, uint8 decimals) internal {
-        if (decimals > Constants.SYSTEM_DECIMALS) {
-            revert InvalidMarginCollateralDecimals(decimals);
-        }
         self.decimals = decimals;
-    }
-
-    /// @notice Configures the Chainlink Price Feed address of the given margin collateral type.
-    /// @param self The margin collateral type storage pointer.
-    /// @param priceFeed The Chainlink Price Feed address.
-    function configurePriceFeed(Data storage self, address priceFeed) internal {
         self.priceFeed = priceFeed;
     }
 
