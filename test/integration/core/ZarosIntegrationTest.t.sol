@@ -53,9 +53,9 @@ pragma solidity 0.8.19;
 //         accountNft.transferOwnership(address(zaros));
 
 //         RewardDistributor sFrxEthRewardDistributor =
-//             new RewardDistributor(address(zaros), address(usdToken), "sfrxETH Vault zrsUSD Distributor");
+//             new RewardDistributor(address(zaros), address(usdToken), "sfrxETH Vault USDz Distributor");
 //         RewardDistributor usdcRewardDistributor =
-//             new RewardDistributor(address(zaros), address(usdToken), "USDC Vault zrsUSD Distributor");
+//             new RewardDistributor(address(zaros), address(usdToken), "USDC Vault USDz Distributor");
 
 //         zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
 //         zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));

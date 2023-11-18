@@ -14,7 +14,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_RevertGiven_TheCollateralTypeHasInsufficientDepositCap(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         changePrank({ msgSender: users.owner });
@@ -63,7 +63,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         givenTheCollateralTypeHasSufficientDepositCap
         whenTheAmountIsNotZero
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         // it should revert
@@ -81,7 +81,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         givenTheCollateralTypeHasSufficientDepositCap
         whenTheAmountIsNotZero
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 userPerpsAccountId = perpsEngine.createPerpsAccount();

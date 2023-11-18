@@ -15,7 +15,7 @@ contract GetAccountMarginBalances_Integration_Test is Base_Integration_Shared_Te
     }
 
     function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();

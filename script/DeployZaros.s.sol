@@ -36,12 +36,12 @@ pragma solidity 0.8.19;
 //     function run() public broadcaster {
 //         IERC20 sFrxEth = IERC20(vm.envAddress("SFRXETH"));
 //         IERC20 usdc = IERC20(vm.envAddress("USDC"));
-//         ZarosUSD usdToken = ZarosUSD(vm.envAddress("ZRSUSD"));
+//         ZarosUSD usdToken = ZarosUSD(vm.envAddress("USDZ"));
 //         AccountNFT accountNft = new AccountNFT("Zaros Accounts", "ZRS-ACC");
 //         Zaros zaros = new Zaros(address(accountNft), address(usdToken));
 //         BalancerUSDCStrategy balancerUsdcStrategy =
 //         new BalancerUSDCStrategy(address(zaros), address(usdc), address(usdToken),
-//         vm.envAddress("BALANCER_VAULT"), vm.envBytes32("ZRSUSD_USDC_POOL_ID"));
+//         vm.envAddress("BALANCER_VAULT"), vm.envBytes32("USDZ_USDC_POOL_ID"));
 //         address ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
 //         address usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
 
@@ -52,7 +52,7 @@ pragma solidity 0.8.19;
 //         accountNft.transferOwnership(address(zaros));
 
 //         RewardDistributor rewardDistributor =
-//             new RewardDistributor(address(zaros), address(usdToken), "Zaros zrsUSD Distributor");
+//             new RewardDistributor(address(zaros), address(usdToken), "Zaros USDz Distributor");
 
 //         zaros.registerRewardDistributor(address(sFrxEth), address(rewardDistributor));
 //         zaros.registerRewardDistributor(address(usdc), address(rewardDistributor));

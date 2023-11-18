@@ -13,7 +13,7 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { ERC20, ERC20Permit } from "@openzeppelin/token/ERC20/extensions/ERC20Permit.sol";
 
 contract ZarosUSD is IZarosUSD, ERC20Permit, Ownable, FeatureFlagModule {
-    constructor() ERC20("Zaros USD", "zrsUSD") ERC20Permit("Zaros USD") { }
+    constructor() ERC20("Zaros USD", "USDz") ERC20Permit("Zaros USD") { }
 
     function mint(address to, uint256 amount) external {
         FeatureFlag.ensureAccessToFeature(Constants.MINT_FEATURE_FLAG);

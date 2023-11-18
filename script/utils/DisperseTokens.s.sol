@@ -10,7 +10,7 @@ import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract DisperseTokens is BaseScript {
     function run() public broadcaster returns (uint256) {
-        IERC20 token = IERC20(vm.envAddress("ZRSUSD"));
+        IERC20 token = IERC20(vm.envAddress("USDZ"));
         (bool success, bytes memory data) = address(token).call(abi.encodeWithSignature("decimals()"));
         require(success, "decimals() call failed");
         uint8 decimals = abi.decode(data, (uint8));

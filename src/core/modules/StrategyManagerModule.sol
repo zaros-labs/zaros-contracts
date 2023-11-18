@@ -46,7 +46,7 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
         emit LogRegisterStrategy(collateralType, strategy);
     }
 
-    /// @dev TODO: add input checks, and needed collateral credit and zrsUSD debt accounting
+    /// @dev TODO: add input checks, and needed collateral credit and USDz debt accounting
     function mintUsdToStrategy(address collateralType, uint256 amount) external override {
         Strategy.Data storage strategy = Strategy.load(collateralType);
         address strategyHandler = strategy.handler;
@@ -66,7 +66,7 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
         emit LogMintZrsUsdToStrategy(collateralType, strategyHandler, amount);
     }
 
-    /// @dev TODO: add needed collateral credit and zrsUSD debt accounting
+    /// @dev TODO: add needed collateral credit and USDz debt accounting
     function depositToStrategy(
         address collateralType,
         uint256 assetsAmount,
@@ -88,7 +88,7 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
         emit LogDepositToStrategy(msg.sender, collateralType, assetsAmount);
     }
 
-    /// @dev TODO: add needed collateral credit and zrsUSD debt accounting
+    /// @dev TODO: add needed collateral credit and USDz debt accounting
     function withdrawFromStrategy(
         address collateralType,
         uint256 sharesAmount,

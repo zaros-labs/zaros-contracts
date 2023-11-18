@@ -15,7 +15,7 @@ contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integrati
     }
 
     function testFuzz_GetTotalAccountMarginCollateralValueOneCollateral(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 expectedMarginCollateralValue =

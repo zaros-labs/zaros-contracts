@@ -13,7 +13,7 @@ import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract DistributeReward is BaseScript {
     function run() public broadcaster {
-        IZarosUSD usdToken = IZarosUSD(vm.envAddress("ZRSUSD"));
+        IZarosUSD usdToken = IZarosUSD(vm.envAddress("USDZ"));
         IRewardDistributor rewardDistributor = IRewardDistributor(vm.envAddress("REWARD_DISTRIBUTOR"));
         address sFrxEth = vm.envAddress("SFRXETH");
         address usdc = vm.envAddress("USDC");

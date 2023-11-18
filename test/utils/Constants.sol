@@ -35,7 +35,7 @@ abstract contract Constants {
     /// @notice Margin collateral types configuration constants.
     uint248 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
     uint248 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
-    uint248 internal constant ZRSUSD_DEPOSIT_CAP = 50_000_000_000e18;
+    uint248 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
 
     /// @notice ETH/USD market configuration constants.
     uint128 internal constant ETH_USD_MARKET_ID = 1;
