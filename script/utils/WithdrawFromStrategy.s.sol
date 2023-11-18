@@ -17,7 +17,7 @@ contract WithdrawFromStrategy is BaseScript {
         IZaros zaros = IZaros(vm.envAddress("ZAROS"));
         BalancerUSDCStrategy balancerUsdcStrategy = BalancerUSDCStrategy(vm.envAddress("BALANCER_USDC_STRATEGY"));
         IBalancerVault balancerVault = IBalancerVault(vm.envAddress("BALANCER_VAULT"));
-        bytes32 poolId = vm.envBytes32("ZRSUSD_USDC_POOL_ID");
+        bytes32 poolId = vm.envBytes32("USDZ_USDC_POOL_ID");
         (address bpt,) = balancerVault.getPool(poolId);
 
         uint256 strategyBptBalance = IERC20(bpt).balanceOf(address(balancerUsdcStrategy));

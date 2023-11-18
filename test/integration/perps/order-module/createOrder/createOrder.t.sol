@@ -19,7 +19,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_CreateOrder(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
@@ -41,7 +41,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_CreateOrderMultiple(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: ZRSUSD_DEPOSIT_CAP });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));

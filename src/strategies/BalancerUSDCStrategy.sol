@@ -37,7 +37,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         bytes32 usdTokenUsdcPoolId
     )
         ERC4626(IERC20(usdc))
-        ERC20("Zaros zrsUSD/USDC Balancer Strategy", "zrsUSD/USDC-BAL")
+        ERC20("Zaros USDz/USDC Balancer Strategy", "USDz/USDC-BAL")
     {
         _zaros = zaros;
         _usdToken = usdToken;

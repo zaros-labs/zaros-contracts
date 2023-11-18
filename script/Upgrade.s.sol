@@ -33,7 +33,7 @@ contract DeployAlphaPerps is BaseScript {
     PerpsEngine internal perpsEngineImplementation;
 
     function run() public broadcaster {
-        usdToken = ZarosUSD(vm.envAddress("ZRSUSD"));
+        usdToken = ZarosUSD(vm.envAddress("USDZ"));
 
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(

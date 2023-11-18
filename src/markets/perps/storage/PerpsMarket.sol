@@ -4,9 +4,9 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
+import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
 import { Order } from "./Order.sol";
 import { OrderFees } from "./OrderFees.sol";
-import { PerpsConfiguration } from "./PerpsConfiguration.sol";
 import { Position } from "./Position.sol";
 
 // Open Zeppelin dependencies
@@ -18,8 +18,6 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The PerpsMarket namespace.
 library PerpsMarket {
-    using PerpsConfiguration for PerpsConfiguration.Data;
-
     /// @notice Thrown when a perps market id has already been used.
     error Zaros_PerpsMarket_MarketAlreadyExists(uint128 marketId, address sender);
 
@@ -80,9 +78,9 @@ library PerpsMarket {
         self.orderFees = orderFees;
     }
 
+    /// @notice TODO: Call the OracleManager
     function getIndexPrice(Data storage self) internal view returns (UD60x18 price) {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        price = perpsConfiguration.getPrice(IAggregatorV3(self.priceFeed));
+        price = OracleUtil.getPrice(IAggregatorV3(self.priceFeed));
     }
 
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {

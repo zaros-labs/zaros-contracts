@@ -102,8 +102,8 @@ library CollateralConfig {
         (, int256 answer,,,) = oracle.latestRoundData();
 
         // should panic if decimals > 18
-        assert(decimals <= Constants.DECIMALS);
-        UD60x18 price = ud60x18(answer.toUint256() * 10 ** (Constants.DECIMALS - decimals));
+        assert(decimals <= Constants.SYSTEM_DECIMALS);
+        UD60x18 price = ud60x18(answer.toUint256() * 10 ** (Constants.SYSTEM_DECIMALS - decimals));
 
         return price;
     }
@@ -127,12 +127,12 @@ library CollateralConfig {
             revert Zaros_CollateralConfig_CollateralNotFound();
         }
 
-        if (self.decimals == Constants.DECIMALS) {
+        if (self.decimals == Constants.SYSTEM_DECIMALS) {
             wad = ud60x18(tokenAmount);
-        } else if (self.decimals < Constants.DECIMALS) {
+        } else if (self.decimals < Constants.SYSTEM_DECIMALS) {
             uint256 scalar;
             unchecked {
-                scalar = Constants.DECIMALS - self.decimals;
+                scalar = Constants.SYSTEM_DECIMALS - self.decimals;
             }
             wad = ud60x18(tokenAmount * 10 ** scalar);
         }

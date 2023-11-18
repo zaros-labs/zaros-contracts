@@ -3,13 +3,16 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Constants } from "@zaros/utils/Constants.sol";
 import { ParameterError } from "@zaros/utils/Errors.sol";
 import { IPerpsConfigurationModule } from "../interfaces/IPerpsConfigurationModule.sol";
-import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { MarginCollateral } from "../storage/MarginCollateral.sol";
+import { OrderFees } from "../storage/OrderFees.sol";
 
 // OpenZeppelin Upgradeable dependencies
+import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
@@ -20,12 +23,13 @@ import { ud60x18 } from "@prb-math/UD60x18.sol";
 abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initializable, OwnableUpgradeable {
     using PerpsConfiguration for PerpsConfiguration.Data;
     using PerpsMarket for PerpsMarket.Data;
+    using MarginCollateral for MarginCollateral.Data;
 
     /// @inheritdoc IPerpsConfigurationModule
-    function getDepositCapForCollateralType(address collateralType) external view override returns (uint256) {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+    function getDepositCapForMarginCollateral(address collateralType) external view override returns (uint256) {
+        MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
 
-        return perpsConfiguration.getDepositCapForCollateralType(collateralType).intoUint256();
+        return marginCollateral.getDepositCap().intoUint256();
     }
 
     /// @inheritdoc IPerpsConfigurationModule
@@ -55,21 +59,25 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     }
 
     /// @inheritdoc IPerpsConfigurationModule
-    function configureCollateral(address collateralType, uint256 depositCap) external override onlyOwner {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+    function configureMarginCollateral(
+        address collateralType,
+        uint248 depositCap,
+        address priceFeed
+    )
+        external
+        override
+        onlyOwner
+    {
+        try ERC20(collateralType).decimals() returns (uint8 decimals) {
+            if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0)) {
+                revert InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
+            }
+            MarginCollateral.configure(collateralType, depositCap, decimals, priceFeed);
 
-        perpsConfiguration.configureCollateral(collateralType, ud60x18(depositCap));
-
-        emit LogConfigureCollateral(msg.sender, collateralType, depositCap);
-    }
-
-    /// @inheritdoc IPerpsConfigurationModule
-    function configurePriceFeed(address collateralType, address priceFeed) external override onlyOwner {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-
-        perpsConfiguration.configurePriceFeed(collateralType, priceFeed);
-
-        emit LogConfigurePriceFeed(msg.sender, collateralType, priceFeed);
+            emit LogConfigureCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
+        } catch {
+            revert InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
+        }
     }
 
     /// @inheritdoc IPerpsConfigurationModule

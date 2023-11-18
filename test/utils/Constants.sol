@@ -19,7 +19,7 @@ abstract contract Constants {
     int256 internal constant uMIN_SD59x18 = LIB_uMIN_SD59x18;
 
     /// @notice The default decimals value used in the protocol.
-    uint8 internal constant DEFAULT_DECIMALS = ProtocolConstants.DECIMALS;
+    uint8 internal constant DEFAULT_DECIMALS = ProtocolConstants.SYSTEM_DECIMALS;
 
     /// @notice Feature flags for all permissionless features.
     bytes32 internal constant CREATE_ACCOUNT_FEATURE_FLAG = ProtocolConstants.CREATE_ACCOUNT_FEATURE_FLAG;
@@ -33,9 +33,9 @@ abstract contract Constants {
     bytes32 internal constant MINT_FEATURE_FLAG = ProtocolConstants.MINT_FEATURE_FLAG;
 
     /// @notice Margin collateral types configuration constants.
-    uint256 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
-    uint256 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
-    uint256 internal constant ZRSUSD_DEPOSIT_CAP = 50_000_000_000e18;
+    uint248 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
+    uint248 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
+    uint248 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
 
     /// @notice ETH/USD market configuration constants.
     uint128 internal constant ETH_USD_MARKET_ID = 1;

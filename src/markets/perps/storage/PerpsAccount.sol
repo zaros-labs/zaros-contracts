@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { PerpsConfiguration } from "./PerpsConfiguration.sol";
+import { MarginCollateral } from "./MarginCollateral.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -18,14 +18,14 @@ library PerpsAccount {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
-    using PerpsConfiguration for PerpsConfiguration.Data;
+    using MarginCollateral for MarginCollateral.Data;
 
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
     error Zaros_PerpsAccount_PermissionDenied(uint256 accountId, address sender);
     /// @notice Thrown when the given `accountId` doesn't exist.
     error Zaros_PerpsAccount_AccountNotFound(uint256 accountId, address sender);
 
-    /// @dev Constant base domain used to access a given PerpsAccount's storage slot.
+    /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
 
     /// @notice {PerpsAccount} namespace storage structure.
@@ -43,7 +43,7 @@ library PerpsAccount {
         EnumerableSet.AddressSet collateralPriority;
     }
 
-    /// @dev Loads a PerpsAccount entity.
+    /// @notice Loads a {PerpsAccount} object.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
     function load(uint256 accountId) internal pure returns (Data storage perpsAccount) {
@@ -53,7 +53,7 @@ library PerpsAccount {
         }
     }
 
-    /// @dev Checks whether the given perps account exists.
+    /// @notice Checks whether the given perps account exists.
     /// @param accountId The perps account id.
     /// @return perpsAccount if the perps account exists, its storage pointer is returned.
     function loadExisting(uint256 accountId) internal view returns (Data storage perpsAccount) {
@@ -63,12 +63,12 @@ library PerpsAccount {
         }
     }
 
-    /// @dev TODO; implement
+    /// @notice TODO: implement
     function canBeLiquidated(Data storage self) internal view returns (bool) {
         return false;
     }
 
-    /// @dev Loads a perps account and checks if the `msg.sender` is authorized.
+    /// @notice Loads a perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
     function loadAccountAndValidatePermission(uint256 accountId) internal view returns (Data storage perpsAccount) {
@@ -76,17 +76,17 @@ library PerpsAccount {
         verifyCaller(perpsAccount);
     }
 
-    /// @dev Returns the amount of the given margin collateral type.
+    /// @notice Returns the amount of the given margin collateral type.
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
-    /// @return marginCollateral The amount of margin collateral for the given collateral type.
-    function getMarginCollateral(Data storage self, address collateralType) internal view returns (UD60x18) {
-        (, uint256 marginCollateral) = self.marginCollateralBalance.tryGet(collateralType);
+    /// @return marginCollateralBalance The margin collateral balance for the given collateral type.
+    function getMarginCollateralBalance(Data storage self, address collateralType) internal view returns (UD60x18) {
+        (, uint256 marginCollateralBalance) = self.marginCollateralBalance.tryGet(collateralType);
 
-        return ud60x18(marginCollateral);
+        return ud60x18(marginCollateralBalance);
     }
 
-    /// @dev Returns the notional value of all margin collateral in the account.
+    /// @notice Returns the notional value of all margin collateral in the account.
     /// @param self The perps account storage pointer.
     /// @return totalMarginCollateralValue The total margin collateral value.
     function getTotalMarginCollateralValue(Data storage self)
@@ -94,18 +94,16 @@ library PerpsAccount {
         view
         returns (UD60x18 totalMarginCollateralValue)
     {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-
         for (uint256 i = 0; i < self.marginCollateralBalance.length(); i++) {
-            (address collateralType, uint256 marginCollateral) = self.marginCollateralBalance.at(i);
-            UD60x18 marginCollateralValue =
-                perpsConfiguration.getCollateralPrice(collateralType).mul(ud60x18(marginCollateral));
+            (address collateralType, uint256 marginCollateralAmount) = self.marginCollateralBalance.at(i);
+            MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
+            UD60x18 marginCollateralValue = marginCollateral.getPrice().mul(ud60x18(marginCollateralAmount));
 
             totalMarginCollateralValue = totalMarginCollateralValue.add(marginCollateralValue);
         }
     }
 
-    /// @dev Verifies if the caller is authorized to perform actions on the given perps account.
+    /// @notice Verifies if the caller is authorized to perform actions on the given perps account.
     /// @param self The perps account storage pointer.
     function verifyCaller(Data storage self) internal view {
         if (self.owner != msg.sender) {
@@ -113,7 +111,7 @@ library PerpsAccount {
         }
     }
 
-    /// @dev Creates a new perps account.
+    /// @notice Creates a new perps account.
     /// @param accountId The perps account id.
     /// @param owner The perps account owner.
     /// @return perpsAccount The created perps account storage pointer.
@@ -123,16 +121,16 @@ library PerpsAccount {
         perpsAccount.owner = owner;
     }
 
-    /// @dev Increases the margin collateral for the given collateral type.
+    /// @notice Increases the margin collateral for the given collateral type.
     /// @dev If there's no collateral priority defined yet, the first collateral type deposited will
     /// be included.
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @param amount The amount of margin collateral to be added.
     /// @dev TODO: normalize margin collateral decimals
-    function increaseMarginCollateral(Data storage self, address collateralType, UD60x18 amount) internal {
+    function increaseMarginCollateralBalance(Data storage self, address collateralType, UD60x18 amount) internal {
         EnumerableMap.AddressToUintMap storage marginCollateralBalance = self.marginCollateralBalance;
-        UD60x18 newMarginCollateralBalance = getMarginCollateral(self, collateralType).add(amount);
+        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).add(amount);
 
         if (self.collateralPriority.length() == 0) {
             self.collateralPriority.add(collateralType);
@@ -141,14 +139,14 @@ library PerpsAccount {
         marginCollateralBalance.set(collateralType, newMarginCollateralBalance.intoUint256());
     }
 
-    /// @dev Decreases the margin collateral for the given collateral type.
+    /// @notice Decreases the margin collateral for the given collateral type.
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @param amount The amount of margin collateral to be removed.
     /// @dev TODO: denormalize margin collateral decimals
-    function decreaseMarginCollateral(Data storage self, address collateralType, UD60x18 amount) internal {
+    function decreaseMarginCollateralBalance(Data storage self, address collateralType, UD60x18 amount) internal {
         EnumerableMap.AddressToUintMap storage marginCollateralBalance = self.marginCollateralBalance;
-        UD60x18 newMarginCollateralBalance = getMarginCollateral(self, collateralType).sub(amount);
+        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).sub(amount);
 
         if (newMarginCollateralBalance.isZero()) {
             marginCollateralBalance.remove(collateralType);
@@ -161,18 +159,18 @@ library PerpsAccount {
     function deductAccountMargin(Data storage self, UD60x18 amount) internal {
         for (uint256 i = 0; i < self.collateralPriority.length(); i++) {
             address collateralType = self.collateralPriority.at(i);
-            UD60x18 marginCollateralBalance = getMarginCollateral(self, collateralType);
+            UD60x18 marginCollateralBalance = getMarginCollateralBalance(self, collateralType);
             if (marginCollateralBalance.gte(amount)) {
-                decreaseMarginCollateral(self, collateralType, amount);
+                decreaseMarginCollateralBalance(self, collateralType, amount);
                 break;
             } else {
-                decreaseMarginCollateral(self, collateralType, marginCollateralBalance);
+                decreaseMarginCollateralBalance(self, collateralType, marginCollateralBalance);
                 amount = amount.sub(marginCollateralBalance);
             }
         }
     }
 
-    /// @dev Updates the account's active markets ids.
+    /// @notice Updates the account's active markets ids.
     /// @param self The perps account storage pointer.
     /// @param marketId The perps market id.
     /// @param isActive `true` if the market is active, `false` otherwise.
