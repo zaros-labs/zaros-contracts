@@ -69,9 +69,7 @@ contract DeployAlphaPerps is BaseScript {
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
-        perpsEngine.configureCollateral(address(usdToken), type(uint256).max);
-
-        perpsEngine.configurePriceFeed(address(usdToken), usdcUsdPriceFeed);
+        perpsEngine.configureMarginCollateral(address(usdToken), type(uint248).max, usdcUsdPriceFeed);
     }
 
     function logContracts() internal view {

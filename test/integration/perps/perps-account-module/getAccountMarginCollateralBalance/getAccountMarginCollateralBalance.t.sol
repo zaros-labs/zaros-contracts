@@ -16,7 +16,7 @@ contract GetAccountMarginCollateralBalance_Integration_Test is Base_Integration_
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        uint256 marginCollateralAmount = perpsEngine.getAccountMarginCollateral({
+        uint256 marginCollateralAmount = perpsEngine.getAccountMarginCollateralBalance({
             accountId: perpsAccountId,
             collateralType: address(usdToken)
         }).intoUint256();
