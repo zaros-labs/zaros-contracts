@@ -25,11 +25,6 @@ library PerpsConfiguration {
     bytes32 internal constant PERPS_CONFIGURATION_SLOT = keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
     /// @notice {PerpConfiguration} namespace storage structure.
-    /// @param rewardDistributor The reward distributor contract address.
-    /// @param perpsAccountToken The perps account token contract address.
-    /// @param zaros The Zaros protocol contract address.
-    /// @param nextAccountId The next account id to be used.
-    /// @param enabledMarketsIds The enabled perps markets ids.
     struct Data {
         uint256 maxPositionsPerAccount;
         uint256 maxActiveOrders;
