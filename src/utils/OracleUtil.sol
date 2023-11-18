@@ -24,7 +24,7 @@ library OracleUtil {
     function getPrice(IAggregatorV3 priceFeed) internal view returns (UD60x18 price) {
         uint8 priceDecimals = priceFeed.decimals();
         // should revert if priceDecimals > 18
-        if (priceDecimals <= Constants.SYSTEM_DECIMALS) {
+        if (priceDecimals > Constants.SYSTEM_DECIMALS) {
             revert InvalidOracleReturn();
         }
 
