@@ -74,7 +74,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             }
             MarginCollateral.configure(collateralType, depositCap, decimals, priceFeed);
 
-            emit LogConfigureCollateral(msg.sender, collateralType, depositCap);
+            emit LogConfigureCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
         } catch {
             revert InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }

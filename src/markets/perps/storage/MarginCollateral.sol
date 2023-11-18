@@ -56,6 +56,12 @@ library MarginCollateral {
         return ud60x18(amount * 10 ** (Constants.SYSTEM_DECIMALS - self.decimals));
     }
 
+    /// @notice Configures the settings of a given margin collateral type.
+    /// @dev A margin collateral type is considered disabled if `depositCap` == 0.
+    /// @param collateralType The address of the collateral type.
+    /// @param depositCap The maximum amount of  collateral that can be deposited.
+    /// @param decimals The amount of decimals of the given margin collateral type's ERC20 token.
+    /// @param priceFeed The price oracle address.
     function configure(address collateralType, uint248 depositCap, uint8 decimals, address priceFeed) internal {
         Data storage self = load(collateralType);
 

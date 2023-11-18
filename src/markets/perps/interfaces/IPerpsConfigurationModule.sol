@@ -20,7 +20,11 @@ interface IPerpsConfigurationModule {
     /// @param sender The address that enabled or disabled the collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
-    event LogConfigureCollateral(address indexed sender, address indexed collateralType, uint256 depositCap);
+    /// @param decimals The amount of decimals of the collateral type's ERC20 token.
+    /// @param priceFeed The price oracle address.
+    event LogConfigureCollateral(
+        address indexed sender, address indexed collateralType, uint248 depositCap, uint8 decimals, address priceFeed
+    );
 
     /// @notice Emitted when a new price feed is configured for a collateral type.
     /// @param sender The address that configured the price feed.
