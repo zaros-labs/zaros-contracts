@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { BaseScript } from "../Base.s.sol";
-import { IZaros } from "@zaros/core/interfaces/IZaros.sol";
+import { ILiquidityEngine } from "@zaros/liquidity/interfaces/ILiquidityEngine.sol";
 import { IRewardDistributor } from "@zaros/reward-distributor/interfaces/IRewardDistributor.sol";
 import { IUSDToken } from "@zaros/usd/interfaces/IUSDToken.sol";
 

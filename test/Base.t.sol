@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { Zaros } from "@zaros/core/Zaros.sol";
+import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
@@ -48,7 +48,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     PerpsEngine internal perpsEngine;
     PerpsEngine internal perpsEngineImplementation;
     RewardDistributor internal rewardDistributor;
-    Zaros internal zaros;
+    LiquidityEngine internal liquidityEngine;
     /// @dev TODO: think about forking tests
     MockPriceFeed internal mockEthUsdPriceFeed;
     MockPriceFeed internal mockUsdcUsdPriceFeed;
@@ -76,7 +76,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         usdToken = new MockUSDToken({ ownerBalance: 100_000_000e18 });
         mockWstEth =
         new MockERC20({ name: "Wrapped Staked Ether", symbol: "wstETH", decimals_: 18, ownerBalance: 100_000_000e18 });
-        zaros = Zaros(mockZarosAddress);
+        liquidityEngine = LiquidityEngine(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         mockUsdcUsdPriceFeed = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
         mockEthUsdPriceFeed = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
@@ -90,7 +90,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
             address(perpsAccountToken),
             address(rewardDistributor),
             address(usdToken),
-            address(zaros)
+            address(liquidityEngine)
         );
         (bool success,) = address(perpsEngineImplementation).call(initializeData);
         require(success, "perpsEngineImplementation.initialize failed");
@@ -102,7 +102,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
         vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account NFT" });
         vm.label({ account: address(usdToken), newLabel: "Zaros USD" });
-        vm.label({ account: address(zaros), newLabel: "Zaros" });
+        vm.label({ account: address(liquidityEngine), newLabel: "Zaros" });
         vm.label({ account: address(rewardDistributor), newLabel: "Reward Distributor" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
@@ -147,9 +147,9 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
-        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(zaros));
+        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(liquidityEngine));
 
-        usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, address(zaros));
+        usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, address(liquidityEngine));
 
         usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, users.owner);
 

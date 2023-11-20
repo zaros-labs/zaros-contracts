@@ -12,7 +12,7 @@ import { IRewardsManagerModule } from "./IRewardsManagerModule.sol";
 import { IStrategyManagerModule } from "./IStrategyManagerModule.sol";
 import { IVaultModule } from "./IVaultModule.sol";
 
-interface IZaros is
+interface ILiquidityEngine is
     IFeatureFlagModule,
     IAccountModule,
     ICollateralModule,

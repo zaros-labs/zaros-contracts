@@ -16,7 +16,7 @@ import { VaultModule } from "./modules/VaultModule.sol";
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
 // TODO: re-add MulticallModule, VaultModule, StrategyManagerModule
-contract Zaros is
+contract LiquidityEngine is
     Ownable,
     FeatureFlagModule,
     AccountModule,

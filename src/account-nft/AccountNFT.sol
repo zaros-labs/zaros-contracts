@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IZaros } from "@zaros/core/interfaces/IZaros.sol";
+import { ILiquidityEngine } from "@zaros/liquidity/interfaces/ILiquidityEngine.sol";
 
 // Open Zeppelin dependencies
 import { ERC721, ERC721Enumerable } from "@openzeppelin/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -28,6 +28,6 @@ contract AccountNFT is ERC721Enumerable, Ownable {
     {
         super._afterTokenTransfer(from, to, firstTokenId, batchSize);
 
-        IZaros(owner()).notifyAccountTransfer(to, uint128(firstTokenId));
+        ILiquidityEngine(owner()).notifyAccountTransfer(to, uint128(firstTokenId));
     }
 }

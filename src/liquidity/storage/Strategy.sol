@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 library Strategy {
-    string internal constant STRATEGY_DOMAIN = "fi.zaros.core.Strategy";
+    string internal constant STRATEGY_DOMAIN = "fi.liquidityEngine.core.Strategy";
 
     struct Data {
         address handler;

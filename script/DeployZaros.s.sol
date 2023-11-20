@@ -6,8 +6,8 @@ pragma solidity 0.8.19;
 // import { Constants } from "@zaros/utils/Constants.sol";
 // import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 // import { USDToken } from "@zaros/usd/USDToken.sol";
-// import { Zaros } from "@zaros/core/Zaros.sol";
-// import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
+// import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
+// import { CollateralConfig } from "@zaros/liquidity/storage/CollateralConfig.sol";
 // import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 // import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
 // import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
@@ -38,31 +38,31 @@ pragma solidity 0.8.19;
 //         IERC20 usdc = IERC20(vm.envAddress("USDC"));
 //         USDToken usdToken = USDToken(vm.envAddress("USDZ"));
 //         AccountNFT accountNft = new AccountNFT("Zaros Accounts", "ZRS-ACC");
-//         Zaros zaros = new Zaros(address(accountNft), address(usdToken));
+//         LiquidityEngine liquidityEngine = new LiquidityEngine(address(accountNft), address(usdToken));
 //         BalancerUSDCStrategy balancerUsdcStrategy =
-//         new BalancerUSDCStrategy(address(zaros), address(usdc), address(usdToken),
+//         new BalancerUSDCStrategy(address(liquidityEngine), address(usdc), address(usdToken),
 //         vm.envAddress("BALANCER_VAULT"), vm.envBytes32("USDZ_USDC_POOL_ID"));
 //         address ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
 //         address usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
 
-//         usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(zaros));
-//         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(zaros));
+//         usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, address(liquidityEngine));
+//         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, address(liquidityEngine));
 //         usdToken.addToFeatureFlagAllowlist(Constants.MINT_FEATURE_FLAG, deployer);
 //         usdToken.addToFeatureFlagAllowlist(Constants.BURN_FEATURE_FLAG, deployer);
-//         accountNft.transferOwnership(address(zaros));
+//         accountNft.transferOwnership(address(liquidityEngine));
 
 //         RewardDistributor rewardDistributor =
-//             new RewardDistributor(address(zaros), address(usdToken), "Zaros USDz Distributor");
+//             new RewardDistributor(address(liquidityEngine), address(usdToken), "Zaros USDz Distributor");
 
-//         zaros.registerRewardDistributor(address(sFrxEth), address(rewardDistributor));
-//         zaros.registerRewardDistributor(address(usdc), address(rewardDistributor));
+//         liquidityEngine.registerRewardDistributor(address(sFrxEth), address(rewardDistributor));
+//         liquidityEngine.registerRewardDistributor(address(usdc), address(rewardDistributor));
 //         // TODO: uncomment
-//         // zaros.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
+//         // liquidityEngine.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
 
 //         {
 //             // TODO: use correct accountNft
 //             PerpsEngine perpsEngine =
-//                 new PerpsEngine(payable(address(accountNft), address(zaros), address(rewardDistributor));
+//                 new PerpsEngine(payable(address(accountNft), address(liquidityEngine), address(rewardDistributor));
 
 //             console.log("Perps Vault: ");
 //             console.log(address(perpsEngine));
@@ -100,20 +100,20 @@ pragma solidity 0.8.19;
 //             depositCap: USDC_DEPOSIT_CAP
 //         });
 
-//         zaros.configureCollateral(sFrxEthCollateralConfig);
-//         zaros.configureCollateral(usdcCollateralConfig);
+//         liquidityEngine.configureCollateral(sFrxEthCollateralConfig);
+//         liquidityEngine.configureCollateral(usdcCollateralConfig);
 
 //         // TODO: configure markets
 
 //         // Enable Zaros' general features
-//         zaros.setFeatureFlagAllowAll(Constants.CREATE_ACCOUNT_FEATURE_FLAG, true);
-//         zaros.setFeatureFlagAllowAll(Constants.DEPOSIT_FEATURE_FLAG, true);
-//         zaros.setFeatureFlagAllowAll(Constants.WITHDRAW_FEATURE_FLAG, true);
-//         zaros.setFeatureFlagAllowAll(Constants.CLAIM_FEATURE_FLAG, true);
-//         zaros.setFeatureFlagAllowAll(Constants.DELEGATE_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.CREATE_ACCOUNT_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.DEPOSIT_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.WITHDRAW_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.CLAIM_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.DELEGATE_FEATURE_FLAG, true);
 
 //         console.log("Zaros: ");
-//         console.log(address(zaros));
+//         console.log(address(liquidityEngine));
 //         console.log("Account NFT: ");
 //         console.log(address(accountNft));
 //         console.log("Balancer USDC Strategy: ");

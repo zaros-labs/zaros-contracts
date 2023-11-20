@@ -8,22 +8,22 @@ pragma solidity 0.8.19;
 // import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 // import { Constants } from "@zaros/utils/Constants.sol";
 // import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-// import { Zaros } from "@zaros/core/Zaros.sol";
+// import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
 // import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
-// import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
+// import { CollateralConfig } from "@zaros/liquidity/storage/CollateralConfig.sol";
 
 // // Forge dependencies
 // import { Test } from "forge-std/Test.sol";
 
 // /// @dev TODO: update to BTT
-// contract ZarosIntegrationTest is Test {
+// contract LiquidityEngineIntegrationTest is Test {
 //     /// @dev Contract addresses
 //     address internal deployer = vm.addr(1);
 //     MockERC20 internal sFrxEth;
 //     MockERC20 internal usdc;
 //     MockUSDToken internal usdToken;
 //     AccountNFT internal accountNft;
-//     Zaros internal zaros;
+//     Zaros internal liquidityEngine;
 
 //     /// @dev Configuration constants
 //     uint80 public constant SFRXETH_ISSUANCE_RATIO = 200e18;
@@ -45,20 +45,20 @@ pragma solidity 0.8.19;
 //         usdc = new MockERC20("USD Coin", "USDC", 6);
 //         usdToken = new MockUSDToken(100_000_000e18);
 //         accountNft = new AccountNFT("Zaros Accounts", "ZRS-ACC");
-//         zaros = new Zaros(address(accountNft), address(usdToken));
+//         liquidityEngine = new LiquidityEngine(address(accountNft), address(usdToken));
 //         ethUsdOracle = address(new MockPriceFeed(8, 1000e8));
 //         usdcUsdOracle = address(new MockPriceFeed(8, 1e8));
 
-//         usdToken.transferOwnership(address(zaros));
-//         accountNft.transferOwnership(address(zaros));
+//         usdToken.transferOwnership(address(liquidityEngine));
+//         accountNft.transferOwnership(address(liquidityEngine));
 
 //         RewardDistributor sFrxEthRewardDistributor =
-//             new RewardDistributor(address(zaros), address(usdToken), "sfrxETH Vault USDz Distributor");
+//             new RewardDistributor(address(liquidityEngine), address(usdToken), "sfrxETH Vault USDz Distributor");
 //         RewardDistributor usdcRewardDistributor =
-//             new RewardDistributor(address(zaros), address(usdToken), "USDC Vault USDz Distributor");
+//             new RewardDistributor(address(liquidityEngine), address(usdToken), "USDC Vault USDz Distributor");
 
-//         zaros.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
-//         zaros.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));
+//         liquidityEngine.registerRewardDistributor(address(sFrxEth), address(sFrxEthRewardDistributor));
+//         liquidityEngine.registerRewardDistributor(address(usdc), address(usdcRewardDistributor));
 
 //         CollateralConfig.Data memory sFrxEthCollateralConfig = CollateralConfig.Data({
 //             depositingEnabled: true,
@@ -83,61 +83,63 @@ pragma solidity 0.8.19;
 //             depositCap: USDC_DEPOSIT_CAP
 //         });
 
-//         zaros.configureCollateral(sFrxEthCollateralConfig);
-//         zaros.configureCollateral(usdcCollateralConfig);
+//         liquidityEngine.configureCollateral(sFrxEthCollateralConfig);
+//         liquidityEngine.configureCollateral(usdcCollateralConfig);
 
 //         // TODO: configure markets
 
 //         // Enable Zaros' general features
-//         zaros.setFeatureFlagAllowAll(Constants.CREATE_ACCOUNT_FEATURE_FLAG, true);
-//         zaros.setFeatureFlagAllowAll(Constants.DEPOSIT_FEATURE_FLAG, true);
-//         zaros.setFeatureFlagAllowAll(Constants.WITHDRAW_FEATURE_FLAG, true);
-//         zaros.setFeatureFlagAllowAll(Constants.CLAIM_FEATURE_FLAG, true);
-//         zaros.setFeatureFlagAllowAll(Constants.DELEGATE_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.CREATE_ACCOUNT_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.DEPOSIT_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.WITHDRAW_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.CLAIM_FEATURE_FLAG, true);
+//         liquidityEngine.setFeatureFlagAllowAll(Constants.DELEGATE_FEATURE_FLAG, true);
 
 //         sFrxEth.mint(deployer, 100_000_000e18);
 //         usdc.mint(deployer, 100_000_000e6);
 
-//         require(sFrxEth.approve(address(zaros), type(uint256).max), "approve failed");
-//         require(usdc.approve(address(zaros), type(uint256).max), "approve failed");
+//         require(sFrxEth.approve(address(liquidityEngine), type(uint256).max), "approve failed");
+//         require(usdc.approve(address(liquidityEngine), type(uint256).max), "approve failed");
 //     }
 
 //     function test_Integration_LpsCanDepositAndWithdraw() public {
 //         uint256 amount = 100e18;
 //         _createAccountDepositAndDelegate(address(sFrxEth), amount);
 //         // Asserts that the Zaros account has the expected balance of sFrxEth
-//         assertEq(sFrxEth.balanceOf(address(zaros)), amount);
+//         assertEq(sFrxEth.balanceOf(address(liquidityEngine)), amount);
 //         // get account id of the user's first created account
 //         // TODO: improve handling account id query
 //         uint128 accountId = uint128(accountNft.tokenOfOwnerByIndex(deployer, 0));
 //         _undelegateAndWithdraw(accountId, address(sFrxEth), amount);
-//         assertEq(sFrxEth.balanceOf(address(zaros)), 0);
+//         assertEq(sFrxEth.balanceOf(address(liquidityEngine)), 0);
 //     }
 
 //     function _createAccountDepositAndDelegate(address collateralType, uint256 amount) internal {
-//         bytes memory depositData = abi.encodeWithSelector(zaros.deposit.selector, collateralType, amount);
+//         bytes memory depositData = abi.encodeWithSelector(liquidityEngine.deposit.selector, collateralType, amount);
 //         bytes memory delegateCollateralData =
-//             abi.encodeWithSelector(zaros.delegateCollateral.selector, collateralType, amount);
+//             abi.encodeWithSelector(liquidityEngine.delegateCollateral.selector, collateralType, amount);
 //         bytes[] memory data = new bytes[](2);
 //         data[0] = depositData;
 //         data[1] = delegateCollateralData;
 
 //         // Creates a new Zaros account and calls `deposit` and `delegateCollateral` in the same transaction
-//         zaros.createAccountAndMulticall(data);
+//         liquidityEngine.createAccountAndMulticall(data);
 //     }
 
 //     function _undelegateAndWithdraw(uint128 accountId, address collateralType, uint256 amount) internal {
-//         (uint256 positionCollateralAmount,) = zaros.getPositionCollateral(accountId, collateralType);
+//         (uint256 positionCollateralAmount,) = liquidityEngine.getPositionCollateral(accountId, collateralType);
 //         uint256 newAmount = positionCollateralAmount - amount;
 //         bytes memory delegateCollateralData =
-//             abi.encodeWithSelector(zaros.delegateCollateral.selector, accountId, collateralType, newAmount);
-//         bytes memory withdrawData = abi.encodeWithSelector(zaros.withdraw.selector, accountId, collateralType,
+//             abi.encodeWithSelector(liquidityEngine.delegateCollateral.selector, accountId, collateralType,
+// newAmount);
+//         bytes memory withdrawData = abi.encodeWithSelector(liquidityEngine.withdraw.selector, accountId,
+// collateralType,
 // amount);
 //         bytes[] memory data = new bytes[](2);
 //         data[0] = delegateCollateralData;
 //         data[1] = withdrawData;
 
 //         // Undelegates and withdraws the given amount of sFrxEth
-//         zaros.multicall(data);
+//         liquidityEngine.multicall(data);
 //     }
 // }

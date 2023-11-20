@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { AddressError } from "@zaros/utils/Errors.sol";
-import { IRewardsManagerModule } from "@zaros/core/interfaces/IRewardsManagerModule.sol";
+import { IRewardsManagerModule } from "@zaros/liquidity/interfaces/IRewardsManagerModule.sol";
 import { IRewardDistributor } from "./interfaces/IRewardDistributor.sol";
 
 // Open Zeppelin dependencies

@@ -17,7 +17,7 @@ library CollateralConfig {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeCast for int256;
 
-    string internal constant COLLATERAL_CONFIG_DOMAIN = "fi.zaros.core.CollateralConfig";
+    string internal constant COLLATERAL_CONFIG_DOMAIN = "fi.liquidityEngine.core.CollateralConfig";
     bytes32 internal constant SLOT_AVAILABLE_COLLATERALS =
         keccak256(abi.encode(COLLATERAL_CONFIG_DOMAIN, "_availableCollaterals"));
 
