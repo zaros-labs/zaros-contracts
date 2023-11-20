@@ -3,9 +3,9 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { ZarosUSD } from "@zaros/usd/ZarosUSD.sol";
+import { USDToken } from "@zaros/usd/USDToken.sol";
 
-contract MockZarosUSD is ZarosUSD {
+contract MockUSDToken is USDToken {
     constructor(uint256 ownerBalance) {
         _mint(msg.sender, ownerBalance);
     }

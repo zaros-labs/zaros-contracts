@@ -6,14 +6,14 @@ pragma solidity 0.8.19;
 import { BaseScript } from "../Base.s.sol";
 import { IZaros } from "@zaros/core/interfaces/IZaros.sol";
 import { IRewardDistributor } from "@zaros/reward-distributor/interfaces/IRewardDistributor.sol";
-import { IZarosUSD } from "@zaros/usd/interfaces/IZarosUSD.sol";
+import { IUSDToken } from "@zaros/usd/interfaces/IUSDToken.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract DistributeReward is BaseScript {
     function run() public broadcaster {
-        IZarosUSD usdToken = IZarosUSD(vm.envAddress("USDZ"));
+        IUSDToken usdToken = IUSDToken(vm.envAddress("USDZ"));
         IRewardDistributor rewardDistributor = IRewardDistributor(vm.envAddress("REWARD_DISTRIBUTOR"));
         address sFrxEth = vm.envAddress("SFRXETH");
         address usdc = vm.envAddress("USDC");

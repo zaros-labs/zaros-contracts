@@ -124,7 +124,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     function addLiquidityToPool(uint256 minBptOut) external override onlyZaros {
         address usdc = asset();
         uint256 outstandingUsdc = IERC20(usdc).balanceOf(address(this));
-        uint256 usdTokenAmountToBorrow = _normalizeAssetToZarosUsd(outstandingUsdc);
+        uint256 usdTokenAmountToBorrow = _normalizeAssetToUsdToken(outstandingUsdc);
         IZaros(_zaros).mintUsdToStrategy(usdc, usdTokenAmountToBorrow);
 
         // Forms Balancer Join Pool Request
@@ -173,7 +173,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         );
     }
 
-    function _normalizeAssetToZarosUsd(uint256 assetAmount) internal view returns (uint256) {
+    function _normalizeAssetToUsdToken(uint256 assetAmount) internal view returns (uint256) {
         uint256 usdcDecimals = ERC20(asset()).decimals();
         uint256 usdTokenDecimals = ERC20(_usdToken).decimals();
         return assetAmount * (10 ** usdTokenDecimals) / (10 ** usdcDecimals);

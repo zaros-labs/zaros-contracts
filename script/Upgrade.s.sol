@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
-import { ZarosUSD } from "@zaros/usd/ZarosUSD.sol";
+import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "./Base.s.sol";
 
 // Open Zeppelin Upgradeable dependencies
@@ -28,12 +28,12 @@ contract DeployAlphaPerps is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
-    ZarosUSD internal usdToken;
+    USDToken internal usdToken;
     PerpsEngine internal perpsEngine;
     PerpsEngine internal perpsEngineImplementation;
 
     function run() public broadcaster {
-        usdToken = ZarosUSD(vm.envAddress("USDZ"));
+        usdToken = USDToken(vm.envAddress("USDZ"));
 
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(

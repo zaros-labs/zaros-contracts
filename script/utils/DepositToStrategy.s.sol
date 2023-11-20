@@ -16,9 +16,9 @@ contract DepositToStrategy is BaseScript {
         IZaros zaros = IZaros(vm.envAddress("ZAROS"));
         BalancerUSDCStrategy balancerUsdcStrategy = BalancerUSDCStrategy(vm.envAddress("BALANCER_USDC_STRATEGY"));
 
-        uint256 zarosUsdcCollateralBalance = usdc.balanceOf(address(zaros));
+        uint256 usdTokencCollateralBalance = usdc.balanceOf(address(zaros));
         // TODO: add min amounts out
-        zaros.depositToStrategy(address(usdc), zarosUsdcCollateralBalance, 0);
+        zaros.depositToStrategy(address(usdc), usdTokencCollateralBalance, 0);
         balancerUsdcStrategy.addLiquidityToPool(0);
     }
 }

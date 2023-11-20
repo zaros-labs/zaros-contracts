@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
-import { ZarosUSD } from "@zaros/usd/ZarosUSD.sol";
+import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "./Base.s.sol";
 
 // Open Zeppelin Upgradeable dependencies
@@ -31,7 +31,7 @@ contract DeployAlphaPerps is BaseScript {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     AccountNFT internal perpsAccountToken;
-    ZarosUSD internal usdToken;
+    USDToken internal usdToken;
     PerpsEngine internal perpsEngine;
     PerpsEngine internal perpsEngineImplementation;
 
@@ -39,7 +39,7 @@ contract DeployAlphaPerps is BaseScript {
         chainlinkForwarder = vm.envAddress("CHAINLINK_FORWARDER");
         chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
-        usdToken = ZarosUSD(vm.envAddress("USDZ"));
+        usdToken = USDToken(vm.envAddress("USDZ"));
         ethUsdPriceFeed = vm.envAddress("ETH_USD_PRICE_FEED");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
 

@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 // // Zaros dependencies
 // import { MockERC20 } from "test/mocks/MockERC20.sol";
 // import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
-// import { MockZarosUSD } from "test/mocks/MockZarosUSD.sol";
+// import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 // import { Constants } from "@zaros/utils/Constants.sol";
 // import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 // import { Zaros } from "@zaros/core/Zaros.sol";
@@ -20,7 +20,7 @@ pragma solidity 0.8.19;
 //     address internal deployer;
 //     MockERC20 internal sFrxEth;
 //     MockERC20 internal usdc;
-//     MockZarosUSD internal usdToken;
+//     MockUSDToken internal usdToken;
 //     AccountNFT internal accountNft;
 //     Zaros internal zaros;
 //     uint256 internal goerliFork;
@@ -46,7 +46,7 @@ pragma solidity 0.8.19;
 
 //         sFrxEth = MockERC20(vm.envAddress("SFRXETH"));
 //         usdc = MockERC20(vm.envAddress("USDC"));
-//         usdToken = MockZarosUSD(vm.envAddress("USDZ"));
+//         usdToken = MockUSDToken(vm.envAddress("USDZ"));
 //         accountNft = AccountNFT(vm.envAddress("ACCOUNT_NFT"));
 //         zaros = Zaros(vm.envAddress("ZAROS"));
 //         ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");

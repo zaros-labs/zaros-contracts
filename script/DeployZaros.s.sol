@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 // import { BaseScript } from "./Base.s.sol";
 // import { Constants } from "@zaros/utils/Constants.sol";
 // import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-// import { ZarosUSD } from "@zaros/usd/ZarosUSD.sol";
+// import { USDToken } from "@zaros/usd/USDToken.sol";
 // import { Zaros } from "@zaros/core/Zaros.sol";
 // import { CollateralConfig } from "@zaros/core/storage/CollateralConfig.sol";
 // import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
@@ -36,7 +36,7 @@ pragma solidity 0.8.19;
 //     function run() public broadcaster {
 //         IERC20 sFrxEth = IERC20(vm.envAddress("SFRXETH"));
 //         IERC20 usdc = IERC20(vm.envAddress("USDC"));
-//         ZarosUSD usdToken = ZarosUSD(vm.envAddress("USDZ"));
+//         USDToken usdToken = USDToken(vm.envAddress("USDZ"));
 //         AccountNFT accountNft = new AccountNFT("Zaros Accounts", "ZRS-ACC");
 //         Zaros zaros = new Zaros(address(accountNft), address(usdToken));
 //         BalancerUSDCStrategy balancerUsdcStrategy =

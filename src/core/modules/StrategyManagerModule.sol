@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { IStrategy } from "@zaros/strategies/interfaces/IStrategy.sol";
-import { IZarosUSD } from "@zaros/usd/interfaces/IZarosUSD.sol";
+import { IUSDToken } from "@zaros/usd/interfaces/IUSDToken.sol";
 import { IStrategyManagerModule } from "../interfaces/IStrategyManagerModule.sol";
 import { MarketManager } from "../storage/MarketManager.sol";
 import { Strategy } from "../storage/Strategy.sol";
@@ -17,7 +17,7 @@ import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract StrategyManagerModule is IStrategyManagerModule, Ownable {
-    using SafeERC20 for IZarosUSD;
+    using SafeERC20 for IUSDToken;
     using SafeERC20 for IERC20;
     using MarketManager for MarketManager.Data;
     using Strategy for Strategy.Data;
@@ -60,10 +60,10 @@ contract StrategyManagerModule is IStrategyManagerModule, Ownable {
             revert Zaros_StrategyManagerModule_BorrowCapReached(borrowCap, borrowedUsd, amount);
         }
 
-        IZarosUSD usdToken = IZarosUSD(MarketManager.load().usdToken);
+        IUSDToken usdToken = IUSDToken(MarketManager.load().usdToken);
         usdToken.mint(strategyHandler, amount);
 
-        emit LogMintZrsUsdToStrategy(collateralType, strategyHandler, amount);
+        emit LogMintUsdTokenToStrategy(collateralType, strategyHandler, amount);
     }
 
     /// @dev TODO: add needed collateral credit and USDz debt accounting
