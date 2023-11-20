@@ -18,7 +18,7 @@ library FeatureFlag {
         address[] deniers;
     }
 
-    string internal constant FEATURE_FLAG_DOMAIN = "fi.zaros.utils.FeatureFlag";
+    string internal constant FEATURE_FLAG_DOMAIN = "fi.liquidityEngine.utils.FeatureFlag";
 
     function load(bytes32 featureName) internal pure returns (Data storage store) {
         bytes32 s = keccak256(abi.encode(FEATURE_FLAG_DOMAIN, featureName));

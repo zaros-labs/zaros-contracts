@@ -13,7 +13,7 @@ interface IStrategyManagerModule {
 
     event LogRegisterStrategy(address indexed collateralType, address indexed strategyHandler);
 
-    event LogMintZrsUsdToStrategy(address indexed collateralType, address indexed strategyHandler, uint256 amount);
+    event LogMintUsdTokenToStrategy(address indexed collateralType, address indexed strategyHandler, uint256 amount);
 
     event LogDepositToStrategy(address indexed sender, address indexed collateralType, uint256 amount);
 

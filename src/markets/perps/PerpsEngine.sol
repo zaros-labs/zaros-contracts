@@ -37,14 +37,14 @@ contract PerpsEngine is
         address perpsAccountToken,
         address rewardDistributor,
         address usdToken,
-        address zaros
+        address liquidityEngine
     )
         external
         initializer
     {
         __Ownable_init();
         PerpsConfigurationModule.__PerpsConfigurationModule_init(
-            chainlinkForwarder, chainlinkVerifier, perpsAccountToken, rewardDistributor, usdToken, zaros
+            chainlinkForwarder, chainlinkVerifier, perpsAccountToken, rewardDistributor, usdToken, liquidityEngine
         );
     }
 

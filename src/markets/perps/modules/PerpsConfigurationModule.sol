@@ -43,13 +43,13 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     }
 
     /// @inheritdoc IPerpsConfigurationModule
-    function setZaros(address zaros) external override {
-        if (zaros == address(0)) {
+    function setLiquidityEngine(address liquidityEngine) external override {
+        if (liquidityEngine == address(0)) {
             revert Zaros_PerpsConfigurationModule_ZarosNotDefined();
         }
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.zaros = zaros;
+        perpsConfiguration.liquidityEngine = liquidityEngine;
     }
 
     function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external override onlyOwner {
@@ -129,7 +129,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         address perpsAccountToken,
         address rewardDistributor,
         address usdToken,
-        address zaros
+        address liquidityEngine
     )
         internal
         onlyInitializing
@@ -140,6 +140,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         perpsConfiguration.perpsAccountToken = perpsAccountToken;
         perpsConfiguration.rewardDistributor = rewardDistributor;
         perpsConfiguration.usdToken = usdToken;
-        perpsConfiguration.zaros = zaros;
+        perpsConfiguration.liquidityEngine = liquidityEngine;
     }
 }

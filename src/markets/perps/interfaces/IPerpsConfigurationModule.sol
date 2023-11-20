@@ -48,9 +48,9 @@ interface IPerpsConfigurationModule {
     /// @param perpsAccountToken The account token address.
     function setPerpsAccountToken(address perpsAccountToken) external;
 
-    /// @notice Sets the address of the Zaros core contract.
-    /// @param zaros The Zaros core address.
-    function setZaros(address zaros) external;
+    /// @notice Sets the address of the Liquidity Engine contract.
+    /// @param liquidityEngine The Liquidity Engine proxy address.
+    function setLiquidityEngine(address liquidityEngine) external;
 
     /// @notice Configures the settings of a given margin collateral type.
     /// @param collateralType The address of the collateral type.

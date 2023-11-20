@@ -57,7 +57,7 @@ contract MarketManagerModule is IMarketManagerModule, Ownable {
         return Market.load(marketAddress).isCapacityLocked();
     }
 
-    function getZarosUsd() external view override returns (address) {
+    function getUsdToken() external view override returns (address) {
         return MarketManager.load().usdToken;
     }
 

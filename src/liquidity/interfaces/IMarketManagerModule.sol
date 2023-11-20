@@ -27,7 +27,7 @@ interface IMarketManagerModule {
 
     function isMarketCapacityLocked(address marketAddress) external view returns (bool isLocked);
 
-    function getZarosUsd() external view returns (address);
+    function getUsdToken() external view returns (address);
 
     function getMinLiquidityRatio(address marketAddress) external view returns (uint256 minRatio);
 

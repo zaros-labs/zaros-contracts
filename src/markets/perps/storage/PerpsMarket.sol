@@ -22,7 +22,7 @@ library PerpsMarket {
     error Zaros_PerpsMarket_MarketAlreadyExists(uint128 marketId, address sender);
 
     /// @dev Constant base domain used to access a given PerpsMarket's storage slot.
-    string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpsMarket";
+    string internal constant PERPS_MARKET_DOMAIN = "fi.liquidityEngine.markets.PerpsMarket";
 
     struct Data {
         string name;

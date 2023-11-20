@@ -26,7 +26,7 @@ library PerpsAccount {
     error Zaros_PerpsAccount_AccountNotFound(uint256 accountId, address sender);
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
-    string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
+    string internal constant PERPS_ACCOUNT_DOMAIN = "fi.liquidityEngine.markets.PerpsAccount";
 
     /// @notice {PerpsAccount} namespace storage structure.
     /// @param id The perps account id.

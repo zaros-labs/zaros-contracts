@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IZaros } from "@zaros/core/interfaces/IZaros.sol";
+import { ILiquidityEngine } from "@zaros/liquidity/interfaces/ILiquidityEngine.sol";
 import { IBalancerVault, IAsset } from "@zaros/external/interfaces/balancer/IBalancerVault.sol";
 import { AddressError } from "@zaros/utils/Errors.sol";
 import { IStrategy } from "./interfaces/IStrategy.sol";
@@ -16,21 +16,21 @@ import { ReentrancyGuard } from "@openzeppelin/security/ReentrancyGuard.sol";
 contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    address private _zaros;
+    address private _liquidityEngine;
     address private _usdToken;
     address private _balancerVault;
     uint256 private _totalUsdcAllocated;
     bytes32 private _usdTokenUsdcPoolId;
 
-    modifier onlyZaros() {
-        if (msg.sender != _zaros) {
+    modifier onlyLiquidityEngine() {
+        if (msg.sender != _liquidityEngine) {
             revert AddressError.Zaros_Unauthorized(msg.sender);
         }
         _;
     }
 
     constructor(
-        address zaros,
+        address liquidityEngine,
         address usdc,
         address usdToken,
         address balancerVault,
@@ -39,7 +39,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         ERC4626(IERC20(usdc))
         ERC20("Zaros USDz/USDC Balancer Strategy", "USDz/USDC-BAL")
     {
-        _zaros = zaros;
+        _liquidityEngine = liquidityEngine;
         _usdToken = usdToken;
         _balancerVault = balancerVault;
         _usdTokenUsdcPoolId = usdTokenUsdcPoolId;
@@ -51,7 +51,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         return super.totalAssets() + _totalUsdcAllocated;
     }
 
-    function setAllowances(uint256 amount, bool shouldIncrease) external override onlyZaros {
+    function setAllowances(uint256 amount, bool shouldIncrease) external override onlyLiquidityEngine {
         IERC20 usdc = IERC20(address(asset()));
         IERC20 usdToken = IERC20(address(_usdToken));
         address balancerVault = _balancerVault;
@@ -71,7 +71,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         public
         override(IERC4626, ERC4626)
         nonReentrant
-        onlyZaros
+        onlyLiquidityEngine
         returns (uint256)
     {
         return super.deposit(assets, receiver);
@@ -84,7 +84,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         public
         override(IERC4626, ERC4626)
         nonReentrant
-        onlyZaros
+        onlyLiquidityEngine
         returns (uint256)
     {
         return super.mint(shares, receiver);
@@ -98,7 +98,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         public
         override(IERC4626, ERC4626)
         nonReentrant
-        onlyZaros
+        onlyLiquidityEngine
         returns (uint256)
     {
         return super.withdraw(assets, receiver, owner);
@@ -112,20 +112,20 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         public
         override(IERC4626, ERC4626)
         nonReentrant
-        onlyZaros
+        onlyLiquidityEngine
         returns (uint256)
     {
         return super.redeem(shares, receiver, owner);
     }
 
     /// TODO: Implement in new async flow
-    function collectRewards(uint256[] calldata minAmountsOut) external override onlyZaros returns (uint256) { }
+    function collectRewards(uint256[] calldata minAmountsOut) external override onlyLiquidityEngine returns (uint256) { }
 
-    function addLiquidityToPool(uint256 minBptOut) external override onlyZaros {
+    function addLiquidityToPool(uint256 minBptOut) external override onlyLiquidityEngine {
         address usdc = asset();
         uint256 outstandingUsdc = IERC20(usdc).balanceOf(address(this));
-        uint256 usdTokenAmountToBorrow = _normalizeAssetToZarosUsd(outstandingUsdc);
-        IZaros(_zaros).mintUsdToStrategy(usdc, usdTokenAmountToBorrow);
+        uint256 usdTokenAmountToBorrow = _normalizeAssetToUsdToken(outstandingUsdc);
+        ILiquidityEngine(_liquidityEngine).mintUsdToStrategy(usdc, usdTokenAmountToBorrow);
 
         // Forms Balancer Join Pool Request
         IAsset[] memory assets = _getAssets();
@@ -154,7 +154,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     )
         external
         override
-        onlyZaros
+        onlyLiquidityEngine
     {
         // Forms Balancer Exit Pool Request
         IAsset[] memory assets = _getAssets();
@@ -173,7 +173,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
         );
     }
 
-    function _normalizeAssetToZarosUsd(uint256 assetAmount) internal view returns (uint256) {
+    function _normalizeAssetToUsdToken(uint256 assetAmount) internal view returns (uint256) {
         uint256 usdcDecimals = ERC20(asset()).decimals();
         uint256 usdTokenDecimals = ERC20(_usdToken).decimals();
         return assetAmount * (10 ** usdTokenDecimals) / (10 ** usdcDecimals);
