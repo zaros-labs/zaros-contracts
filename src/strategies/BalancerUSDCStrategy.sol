@@ -119,7 +119,9 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     }
 
     /// TODO: Implement in new async flow
-    function collectRewards(uint256[] calldata minAmountsOut) external override onlyLiquidityEngine returns (uint256) { }
+    function collectRewards(uint256[] calldata minAmountsOut) external override onlyLiquidityEngine returns (uint256) {
+        return 0;
+    }
 
     function addLiquidityToPool(uint256 minBptOut) external override onlyLiquidityEngine {
         address usdc = asset();
