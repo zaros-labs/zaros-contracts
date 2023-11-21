@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 import { IRewardDistributor } from "@zaros/reward-distributor/interfaces/IRewardDistributor.sol";
 import { IRewardsManagerModule } from "../interfaces/IRewardsManagerModule.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
-import { ParameterError } from "@zaros/utils/Errors.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
 import { Account } from "../storage/Account.sol";
 import { Distribution } from "../storage/Distribution.sol";
@@ -45,20 +45,20 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
         EnumerableSet.Bytes32Set storage rewardIds = vault.rewardIds;
 
         if (rewardIds.length() > _MAX_REWARD_DISTRIBUTIONS) {
-            revert ParameterError.Zaros_InvalidParameter("index", "too large");
+            revert Errors.InvalidParameter("index", "too large");
         }
 
         bytes32 rewardId = _getRewardId(collateralType, distributor);
         if (rewardIds.contains(rewardId)) {
-            revert ParameterError.Zaros_InvalidParameter("distributor", "is already registered");
+            revert Errors.InvalidParameter("distributor", "is already registered");
         }
         if (address(vault.rewards[rewardId].distributor) != address(0)) {
-            revert ParameterError.Zaros_InvalidParameter("distributor", "cant be re-registered");
+            revert Errors.InvalidParameter("distributor", "cant be re-registered");
         }
 
         rewardIds.add(rewardId);
         if (distributor == address(0)) {
-            revert ParameterError.Zaros_InvalidParameter("distributor", "must be non-zero");
+            revert Errors.InvalidParameter("distributor", "must be non-zero");
         }
         vault.rewards[rewardId].distributor = IRewardDistributor(distributor);
 
@@ -79,7 +79,7 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
 
         bytes32 rewardId = _getRewardId(collateralType, msg.sender);
         if (!rewardIds.contains(rewardId)) {
-            revert ParameterError.Zaros_InvalidParameter("collateralType-distributor", "reward is not registered");
+            revert Errors.InvalidParameter("collateralType-distributor", "reward is not registered");
         }
 
         RewardDistribution.Data storage reward = vault.rewards[rewardId];
@@ -122,7 +122,7 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
         bytes32 rewardId = keccak256(abi.encode(collateralType, distributor));
 
         if (address(vault.rewards[rewardId].distributor) != distributor) {
-            revert ParameterError.Zaros_InvalidParameter("invalid-params", "reward is not found");
+            revert Errors.InvalidParameter("invalid-params", "reward is not found");
         }
 
         uint256 rewardAmount = vault.updateReward(accountId, rewardId).intoUint256();
@@ -172,13 +172,13 @@ contract RewardsManagerModule is IRewardsManagerModule, Ownable {
         bytes32 rewardId = _getRewardId(collateralType, distributor);
 
         if (!rewardIds.contains(rewardId)) {
-            revert ParameterError.Zaros_InvalidParameter("distributor", "is not registered");
+            revert Errors.InvalidParameter("distributor", "is not registered");
         }
 
         rewardIds.remove(rewardId);
 
         if (distributor == address(0)) {
-            revert ParameterError.Zaros_InvalidParameter("distributor", "must be non-zero");
+            revert Errors.InvalidParameter("distributor", "must be non-zero");
         }
 
         RewardDistribution.Data storage reward = vault.rewards[rewardId];

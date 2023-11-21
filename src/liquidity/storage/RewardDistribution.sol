@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { ParameterError } from "../../utils/Errors.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IRewardDistributor } from "@zaros/reward-distributor/interfaces/IRewardDistributor.sol";
 import { Distribution } from "./Distribution.sol";
 import { RewardDistributionClaimStatus } from "./RewardDistributionClaimStatus.sol";
@@ -42,7 +42,7 @@ library RewardDistribution {
         UD60x18 totalShares = ud60x18(dist.totalShares);
 
         if (totalShares.isZero()) {
-            revert ParameterError.Zaros_InvalidParameter("amount", "can't distribute to empty distribution");
+            revert Errors.ZeroInput("amount");
         }
 
         uint256 currentTime = block.timestamp;

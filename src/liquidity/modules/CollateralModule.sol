@@ -7,7 +7,6 @@ import { Account } from "../storage/Account.sol";
 import { ICollateralModule } from "../interfaces/ICollateralModule.sol";
 import { Collateral } from "../storage/Collateral.sol";
 import { CollateralConfig } from "../storage/CollateralConfig.sol";
-import { ParameterError } from "../../utils/Errors.sol";
 import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 
 // Open Zeppelin dependencies

@@ -11,8 +11,6 @@ import { Position } from "../storage/Position.sol";
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 interface IOrderModule {
-    error Zaros_OrderModule_AccountLiquidatable(address sender, uint256 accountId);
-
     // event LogSettleOrder(
     //     address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
     // );

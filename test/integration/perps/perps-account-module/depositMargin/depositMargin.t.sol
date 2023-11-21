@@ -4,9 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
-import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
-import { ParameterError } from "@zaros/utils/Errors.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -25,9 +23,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                IPerpsAccountModule.Zaros_PerpsAccountModule_DepositCap.selector, address(usdToken), amountToDeposit, 0
-                )
+            revertData: abi.encodeWithSelector(Errors.DepositCap.selector, address(usdToken), amountToDeposit, 0)
         });
 
         perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
@@ -42,11 +38,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         uint256 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                ParameterError.Zaros_InvalidParameter.selector, "amount", "amount can't be zero"
-                )
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
 
         perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
     }
@@ -68,9 +60,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                PerpsAccount.Zaros_PerpsAccount_AccountNotFound.selector, userPerpsAccountId, users.naruto
-                )
+            revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, userPerpsAccountId, users.naruto)
         });
 
         perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);

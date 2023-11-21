@@ -9,13 +9,6 @@ import { OrderFees } from "../storage/OrderFees.sol";
 /// @notice This module is used by the protocol controller to configure the perps
 /// exchange system.
 interface IPerpsConfigurationModule {
-    /// @notice Thrown when the provided `accountToken` is the zero address.
-    error Zaros_PerpsConfigurationModule_PerpsAccountTokenNotDefined();
-    /// @notice Thrown when the provided `zaros` is the zero address.
-    error Zaros_PerpsConfigurationModule_ZarosNotDefined();
-    /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
-    error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
-
     /// @notice Emitted when a new collateral type is enabled or disabled.
     /// @param sender The address that enabled or disabled the collateral type.
     /// @param collateralType The address of the collateral type.

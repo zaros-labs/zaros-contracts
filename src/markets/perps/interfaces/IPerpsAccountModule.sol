@@ -14,11 +14,6 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 /// to use them as trading subaccounts, managing their cross margin collateral and
 /// trading on different perps markets.
 interface IPerpsAccountModule {
-    /// @notice Thrown When the provided collateral is not supported.
-    error Zaros_PerpsAccountModule_DepositCap(address collateralType, uint256 amount, uint256 depositCap);
-    /// @notice Thrown When the caller is not the account token contract.
-    error Zaros_PerpsAccountModule_OnlyPerpsAccountToken(address sender);
-
     /// @notice Emitted when a new perps account is created.
     /// @param accountId The trading account id.
     /// @param sender The `msg.sender` of the create account transaction.
