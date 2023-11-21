@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
-import { ParameterError } from "@zaros/utils/Errors.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
@@ -173,14 +173,14 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     /// @dev Reverts if the amount is zero.
     function _requireAmountNotZero(UD60x18 amount) internal pure {
         if (amount.isZero()) {
-            revert ParameterError.Zaros_InvalidParameter("amount", "amount can't be zero");
+            revert Errors.AmountZero();
         }
     }
 
     /// @dev Reverts if the collateral type is not supported.
     function _requireEnoughDepositCap(address collateralType, UD60x18 amount, UD60x18 depositCap) internal pure {
         if (amount.gt(depositCap)) {
-            revert Zaros_PerpsAccountModule_DepositCap(collateralType, amount.intoUint256(), depositCap.intoUint256());
+            revert Errors.DepositCap(collateralType, amount.intoUint256(), depositCap.intoUint256());
         }
     }
 
@@ -201,7 +201,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     /// @dev Reverts if the caller is not the account owner.
     function _onlyPerpsAccountToken() internal view {
         if (msg.sender != address(getPerpsAccountToken())) {
-            revert Zaros_PerpsAccountModule_OnlyPerpsAccountToken(msg.sender);
+            revert Errors.OnlyPerpsAccountToken(msg.sender);
         }
     }
 }
