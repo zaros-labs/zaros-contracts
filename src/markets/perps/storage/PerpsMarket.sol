@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
 import { Order } from "./Order.sol";
 import { OrderFees } from "./OrderFees.sol";
@@ -18,9 +19,6 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The PerpsMarket namespace.
 library PerpsMarket {
-    /// @notice Thrown when a perps market id has already been used.
-    error Zaros_PerpsMarket_MarketAlreadyExists(uint128 marketId, address sender);
-
     /// @dev Constant base domain used to access a given PerpsMarket's storage slot.
     string internal constant PERPS_MARKET_DOMAIN = "fi.liquidityEngine.markets.PerpsMarket";
 
@@ -63,7 +61,7 @@ library PerpsMarket {
     {
         Data storage self = load(marketId);
         if (self.id != 0) {
-            revert Zaros_PerpsMarket_MarketAlreadyExists(marketId, msg.sender);
+            revert Errors.MarketAlreadyExists(marketId, msg.sender);
         }
 
         // TODO: remember to test gas cost / number of sstores here
