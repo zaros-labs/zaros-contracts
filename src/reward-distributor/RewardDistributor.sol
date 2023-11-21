@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { AddressError } from "@zaros/utils/Errors.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IRewardsManagerModule } from "@zaros/liquidity/interfaces/IRewardsManagerModule.sol";
 import { IRewardDistributor } from "./interfaces/IRewardDistributor.sol";
 
@@ -35,7 +35,7 @@ contract RewardDistributor is IRewardDistributor {
 
     function payout(uint128, address, address sender, uint256 amount) external override returns (bool) {
         if (msg.sender != _rewardManager) {
-            revert AddressError.Zaros_Unauthorized(msg.sender);
+            revert Errors.Unauthorized(msg.sender);
         }
         IERC20(_rewardToken).transfer(sender, amount);
         return true;

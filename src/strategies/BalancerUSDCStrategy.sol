@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { ILiquidityEngine } from "@zaros/liquidity/interfaces/ILiquidityEngine.sol";
 import { IBalancerVault, IAsset } from "@zaros/external/interfaces/balancer/IBalancerVault.sol";
-import { AddressError } from "@zaros/utils/Errors.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IStrategy } from "./interfaces/IStrategy.sol";
 
 // Open Zeppelin dependencies
@@ -24,7 +24,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
 
     modifier onlyLiquidityEngine() {
         if (msg.sender != _liquidityEngine) {
-            revert AddressError.Zaros_Unauthorized(msg.sender);
+            revert Errors._Unauthorized(msg.sender);
         }
         _;
     }

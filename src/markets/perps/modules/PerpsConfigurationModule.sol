@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
-import { ParameterError } from "@zaros/utils/Errors.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsConfigurationModule } from "../interfaces/IPerpsConfigurationModule.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
@@ -35,7 +35,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     /// @inheritdoc IPerpsConfigurationModule
     function setPerpsAccountToken(address perpsAccountToken) external {
         if (perpsAccountToken == address(0)) {
-            revert Zaros_PerpsConfigurationModule_PerpsAccountTokenNotDefined();
+            revert Errors.PerpsAccountTokenNotDefined();
         }
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
@@ -45,7 +45,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     /// @inheritdoc IPerpsConfigurationModule
     function setLiquidityEngine(address liquidityEngine) external override {
         if (liquidityEngine == address(0)) {
-            revert Zaros_PerpsConfigurationModule_ZarosNotDefined();
+            revert Errors.LiquidityEngineNotDefined();
         }
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
@@ -70,13 +70,13 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     {
         try ERC20(collateralType).decimals() returns (uint8 decimals) {
             if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0)) {
-                revert InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
+                revert Errors.InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
             }
             MarginCollateral.configure(collateralType, depositCap, decimals, priceFeed);
 
             emit LogConfigureCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
         } catch {
-            revert InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
+            revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }
     }
 
@@ -97,11 +97,21 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         onlyOwner
     {
         if (marketId == 0) {
-            revert ParameterError.Zaros_InvalidParameter("marketId", "marketId can't be zero");
+            revert Errors.ZeroInput("marketId");
+        } else if (abi.encodePacked(name).length == 0) {
+            revert Errors.ZeroInput("name");
+        } else if (abi.encodePacked(symbol).length == 0) {
+            revert Errors.ZeroInput("symbol");
+        } else if (streamId == bytes32(0)) {
+            revert Errors.ZeroInput("streamId");
+        } else if (maintenanceMarginRate == 0) {
+            revert Errors.ZeroInput("maintenanceMarginRate");
+        } else if (maxOpenInterest == 0) {
+            revert Errors.ZeroInput("maxOpenInterest");
         } else if (priceFeed == address(0)) {
-            revert ParameterError.Zaros_InvalidParameter("priceFeed", "priceFeed can't be the zero address");
+            revert Errors.ZeroInput("priceFeed");
         } else if (minInitialMarginRate == 0) {
-            revert ParameterError.Zaros_InvalidParameter("minInitialMarginRate", "minInitialMarginRate can't be zero");
+            revert Errors.ZeroInput("minInitialMarginRate");
         }
 
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
