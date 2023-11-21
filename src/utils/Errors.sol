@@ -2,11 +2,17 @@
 
 pragma solidity 0.8.19;
 
-library AddressError {
-    error Zaros_ZeroAddress();
-    error Zaros_Unauthorized(address sender);
-}
+library Errors {
+    /// @notice Generic protocol errors
 
-library ParameterError {
-    error Zaros_InvalidParameter(string parameter, string reason);
+    /// @notice Thrown when the given address in a function is the zero address
+    error ZeroAddress();
+    /// @notice Thrown when the sender is not authorized to perform a given action
+    error Unauthorized(address sender);
+    error InvalidParameter(string parameter, string reason);
+
+    /// @notice OrderModule errors
+
+    /// @notice Thrown when an account is liquidatable and can't perform actions
+    error AccountLiquidatable(address sender, uint256 accountId);
 }

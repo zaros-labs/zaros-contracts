@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { Order } from "../storage/Order.sol";
@@ -63,7 +64,7 @@ abstract contract OrderModule is IOrderModule {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
 
         if (perpsAccount.canBeLiquidated()) {
-            revert Zaros_OrderModule_AccountLiquidatable(msg.sender, accountId);
+            revert Errors.AccountLiquidatable(msg.sender, accountId);
         }
 
         // TODO: validate order
