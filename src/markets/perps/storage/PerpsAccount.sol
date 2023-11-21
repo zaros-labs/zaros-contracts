@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
 import { MarginCollateral } from "./MarginCollateral.sol";
 
 // Open Zeppelin dependencies
@@ -19,11 +20,6 @@ library PerpsAccount {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
     using MarginCollateral for MarginCollateral.Data;
-
-    /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
-    error Zaros_PerpsAccount_PermissionDenied(uint256 accountId, address sender);
-    /// @notice Thrown when the given `accountId` doesn't exist.
-    error Zaros_PerpsAccount_AccountNotFound(uint256 accountId, address sender);
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.liquidityEngine.markets.PerpsAccount";
@@ -59,7 +55,7 @@ library PerpsAccount {
     function loadExisting(uint256 accountId) internal view returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         if (perpsAccount.owner == address(0)) {
-            revert Zaros_PerpsAccount_AccountNotFound(accountId, msg.sender);
+            revert Errors.AccountNotFound(accountId, msg.sender);
         }
     }
 
@@ -107,7 +103,7 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     function verifyCaller(Data storage self) internal view {
         if (self.owner != msg.sender) {
-            revert Zaros_PerpsAccount_PermissionDenied(self.id, msg.sender);
+            revert Errors.PermissionDenied(self.id, msg.sender);
         }
     }
 

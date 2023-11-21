@@ -3,9 +3,9 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { Base_Test } from "test/Base.t.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
-import { ParameterError } from "@zaros/utils/Errors.sol";
+import { Base_Test } from "test/Base.t.sol";
 
 contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
     function setUp() public override {
@@ -17,11 +17,7 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
         data[0] = abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), uint256(0));
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                ParameterError.Zaros_InvalidParameter.selector, "amount", "amount can't be zero"
-                )
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
         perpsEngine.createPerpsAccountAndMulticall(data);
     }
 

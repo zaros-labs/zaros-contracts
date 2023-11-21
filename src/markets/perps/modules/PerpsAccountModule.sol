@@ -173,7 +173,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     /// @dev Reverts if the amount is zero.
     function _requireAmountNotZero(UD60x18 amount) internal pure {
         if (amount.isZero()) {
-            revert Errors.ZeroValue("amount");
+            revert Errors.ZeroInput("amount");
         }
     }
 

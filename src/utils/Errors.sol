@@ -7,6 +7,8 @@ library Errors {
 
     /// @notice Thrown when the given input of a function is its zero value
     error ZeroInput(string parameter);
+    /// TODO: Remove this error in the future and add meaningful errors to the functions that throw it.
+    error InvalidParameter(string parameter, string reason);
     /// @notice Thrown when the sender is not authorized to perform a given action
     error Unauthorized(address sender);
 
@@ -15,12 +17,16 @@ library Errors {
     /// @notice Thrown when an account is liquidatable and can't perform actions
     error AccountLiquidatable(address sender, uint256 accountId);
 
-    /// @notice PerpsEngine.PerpsAccountModule errors
+    /// @notice PerpsEngine.PerpsAccountModule and PerpsEngine.PerpsAccount errors
 
     /// @notice Thrown When the provided collateral is not supported.
     error DepositCap(address collateralType, uint256 amount, uint256 depositCap);
     /// @notice Thrown When the caller is not the account token contract.
     error OnlyPerpsAccountToken(address sender);
+    /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
+    error PermissionDenied(uint256 accountId, address sender);
+    /// @notice Thrown when the given `accountId` doesn't exist.
+    error AccountNotFound(uint256 accountId, address sender);
 
     /// @notice PerpsEngine.PerpsConfigurationModule
 

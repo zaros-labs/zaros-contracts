@@ -24,7 +24,7 @@ contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
 
     modifier onlyLiquidityEngine() {
         if (msg.sender != _liquidityEngine) {
-            revert Errors._Unauthorized(msg.sender);
+            revert Errors.Unauthorized(msg.sender);
         }
         _;
     }

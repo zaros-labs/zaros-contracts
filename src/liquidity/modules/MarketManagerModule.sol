@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { Constants } from "../../utils/Constants.sol";
-import { ParameterError } from "../../utils/Errors.sol";
 import { FeatureFlag } from "../../utils/storage/FeatureFlag.sol";
 import { IMarketManagerModule } from "../interfaces/IMarketManagerModule.sol";
 import { Market } from "../storage/Market.sol";

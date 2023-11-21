@@ -4,8 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
-import { ParameterError } from "@zaros/utils/Errors.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -19,11 +18,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                ParameterError.Zaros_InvalidParameter.selector, "amount", "amount can't be zero"
-                )
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), 0);
     }
 
@@ -45,9 +40,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                PerpsAccount.Zaros_PerpsAccount_PermissionDenied.selector, perpsAccountId, users.sasuke
-                )
+            revertData: abi.encodeWithSelector(Errors.PermissionDenied.selector, perpsAccountId, users.sasuke)
         });
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), amountToDeposit);
     }
