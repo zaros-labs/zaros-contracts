@@ -98,19 +98,26 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     {
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
-        } else if (abi.encodePacked(name).length == 0) {
+        }
+        if (abi.encodePacked(name).length == 0) {
             revert Errors.ZeroInput("name");
-        } else if (abi.encodePacked(symbol).length == 0) {
+        }
+        if (abi.encodePacked(symbol).length == 0) {
             revert Errors.ZeroInput("symbol");
-        } else if (streamId == bytes32(0)) {
+        }
+        if (streamId == bytes32(0)) {
             revert Errors.ZeroInput("streamId");
-        } else if (maintenanceMarginRate == 0) {
+        }
+        if (maintenanceMarginRate == 0) {
             revert Errors.ZeroInput("maintenanceMarginRate");
-        } else if (maxOpenInterest == 0) {
+        }
+        if (maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
-        } else if (priceFeed == address(0)) {
+        }
+        if (priceFeed == address(0)) {
             revert Errors.ZeroInput("priceFeed");
-        } else if (minInitialMarginRate == 0) {
+        }
+        if (minInitialMarginRate == 0) {
             revert Errors.ZeroInput("minInitialMarginRate");
         }
 
