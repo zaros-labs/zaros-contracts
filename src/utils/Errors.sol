@@ -46,4 +46,9 @@ library Errors {
 
     /// @notice Thrown when a perps market id has already been used.
     error MarketAlreadyExists(uint128 marketId, address sender);
+
+    /// @notice PerpsEngine.MarginCollateral errors.
+
+    /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
+    error CollateralPriceFeedNotDefined();
 }

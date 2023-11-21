@@ -5,15 +5,13 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 library MarginCollateral {
-    /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
-    error CollateralPriceFeedNotDefined();
-
     /// @notice Constant base domain used to access a given MarginCollateral's storage slot.
     string internal constant MARGIN_COLLATERAL_DOMAIN = "fi.liquidityEngine.markets.MarginCollateral";
 
@@ -76,7 +74,7 @@ library MarginCollateral {
     function getPrice(Data storage self) internal view returns (UD60x18 price) {
         address priceFeed = self.priceFeed;
         if (priceFeed == address(0)) {
-            revert CollateralPriceFeedNotDefined();
+            revert Errors.CollateralPriceFeedNotDefined();
         }
 
         price = OracleUtil.getPrice(IAggregatorV3(priceFeed));
