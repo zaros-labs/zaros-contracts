@@ -36,4 +36,8 @@ library Errors {
     error LiquidityEngineNotDefined();
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
+
+    /// @notice PerpsEngine.SettlementModule
+
+    error OnlyForwarder(address sender, address forwarder);
 }

@@ -8,6 +8,7 @@ import { ILogAutomation, Log as AutomationLog } from "@zaros/external/interfaces
 import { IStreamsLookupCompatible } from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/interfaces/chainlink/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { Order } from "../storage/Order.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
@@ -33,7 +34,7 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
     modifier onlyForwarder() {
         address forwarder = PerpsConfiguration.load().chainlinkForwarder;
         if (msg.sender != forwarder) {
-            revert Zaros_SettlementModule_OnlyForwarder(msg.sender, forwarder);
+            revert Errors.OnlyForwarder(msg.sender, forwarder);
         }
         _;
     }
