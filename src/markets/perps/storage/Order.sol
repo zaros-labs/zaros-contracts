@@ -8,9 +8,7 @@ library Order {
     /// @notice Supported types of orders.
     enum OrderType {
         MARKET,
-        LIMIT,
-        TAKE_PROFIT,
-        STOP_LOSS
+        LIMIT
     }
 
     struct Payload {
@@ -24,8 +22,8 @@ library Order {
 
     struct Data {
         uint8 id;
+        uint248 settlementTimestamp;
         Payload payload;
-        uint256 settlementTimestamp;
     }
 
     /// @dev TODO: should we just update account id to 0?
