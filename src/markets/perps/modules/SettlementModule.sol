@@ -3,10 +3,10 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IFeeManager } from "@zaros/external/interfaces/chainlink/IFeeManager.sol";
-import { ILogAutomation, Log as AutomationLog } from "@zaros/external/interfaces/chainlink/ILogAutomation.sol";
-import { IStreamsLookupCompatible } from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
-import { IVerifierProxy } from "@zaros/external/interfaces/chainlink/IVerifierProxy.sol";
+import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { ILogAutomation, Log as AutomationLog } from "@zaros/external/chainlink/interfaces/ILogAutomation.sol";
+import { IStreamsLookupCompatible } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";

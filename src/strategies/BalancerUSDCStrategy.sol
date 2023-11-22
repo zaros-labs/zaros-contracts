@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 // Zaros dependencies
 import { ILiquidityEngine } from "@zaros/liquidity/interfaces/ILiquidityEngine.sol";
-import { IBalancerVault, IAsset } from "@zaros/external/interfaces/balancer/IBalancerVault.sol";
+import { IBalancerVault, IAsset } from "@zaros/external/balancer/interfaces/IBalancerVault.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IStrategy } from "./interfaces/IStrategy.sol";
 

@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 // Zaros dependencies
 import { BaseScript } from "../Base.s.sol";
 import { ILiquidityEngine } from "@zaros/liquidity/interfaces/ILiquidityEngine.sol";
-import { IBalancerVault } from "@zaros/external/interfaces/balancer/IBalancerVault.sol";
+import { IBalancerVault } from "@zaros/external/balancer/interfaces/IBalancerVault.sol";
 import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
 
 // Open Zeppelin dependencies

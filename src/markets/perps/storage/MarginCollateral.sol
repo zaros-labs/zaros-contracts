@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
+import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
