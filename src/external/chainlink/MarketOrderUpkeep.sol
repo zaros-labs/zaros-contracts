@@ -34,7 +34,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
     struct MarketOrderUpkeepStorage {
         IVerifierProxy chainlinkVerifier;
         address forwarder;
-        PerpsEngines perpsEngine;
+        PerpsEngine perpsEngine;
     }
 
     MarketOrderUpkeepStorage internal $;
@@ -58,17 +58,20 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
             revert Errors.ZeroInput("_perpsEngine");
         }
 
-        _chainlinkVerifier = chainlinkVerifier;
-        _forwarder = forwarder;
-        _perpsEngine = perpsEngine;
+        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+
+        self.chainlinkVerifier = chainlinkVerifier;
+        self.forwarder = forwarder;
+        self.perpsEngine = perpsEngine;
 
         __Ownable_init();
     }
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
     modifier onlyForwarder() {
-        if (msg.sender != _forwarder) {
-            revert Errors.OnlyForwarder(msg.sender, _forwarder);
+        address forwarder = _getMarketOrderUpkeepStorage().forwarder;
+        if (msg.sender != forwarder) {
+            revert Errors.OnlyForwarder(msg.sender, forwarder);
         }
         _;
     }
@@ -115,7 +118,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         bytes memory signedReport = values[0];
         bytes memory reportData = _getReportData(signedReport);
 
-        MarketOrderUpkeepStorage self = _getMarketOrderUpkeepStorage();
+        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) = (self.chainlinkVerifier, self.perpsEngine);
 
         IFeeManager chainlinkFeeManager = IFeeManager(chainlinkVerifier.s_feeManager());
@@ -157,7 +160,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
 
         bytes memory verifiedReportData =
-            _chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
+            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
         BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
 
         perpsEngine.settleOrder(accountId, marketId, orderId, verifiedReport);
