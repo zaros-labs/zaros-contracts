@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 abstract contract Storage {
     /// @dev PerpsConfiguration namespace storage slot.

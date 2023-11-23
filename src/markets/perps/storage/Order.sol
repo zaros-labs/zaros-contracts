@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 /// @dev TODO: Think on refactoring this to have Order pointers being calculated
 /// from the namespace (e.g load(accountId,orderId))

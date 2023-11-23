@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Balancer dependencies
 import { IGeneralPool, IBasePool } from "@balancer-labs/v2-interfaces/contracts/vault/IGeneralPool.sol";

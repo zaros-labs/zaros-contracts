@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // // Zaros dependencies
 // import { MockERC20 } from "test/mocks/MockERC20.sol";

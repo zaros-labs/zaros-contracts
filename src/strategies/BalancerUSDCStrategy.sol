@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { ILiquidityEngine } from "@zaros/liquidity/interfaces/ILiquidityEngine.sol";
@@ -11,7 +11,7 @@ import { IStrategy } from "./interfaces/IStrategy.sol";
 // Open Zeppelin dependencies
 import { ERC4626, IERC4626, ERC20, IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import { ReentrancyGuard } from "@openzeppelin/security/ReentrancyGuard.sol";
+import { ReentrancyGuard } from "@openzeppelin/utils/ReentrancyGuard.sol";
 
 contract BalancerUSDCStrategy is IStrategy, ERC4626, ReentrancyGuard {
     using SafeERC20 for IERC20;
