@@ -5,19 +5,12 @@ pragma solidity 0.8.19;
 /// @dev TODO: Think on refactoring this to have Order pointers being calculated
 /// from the namespace (e.g load(accountId,orderId))
 library Order {
-    /// @notice Supported types of orders.
-    enum OrderType {
-        MARKET,
-        LIMIT
-    }
-
     struct Payload {
         uint256 accountId;
         uint128 marketId;
         int128 initialMarginDelta;
         int128 sizeDelta;
         uint128 acceptablePrice;
-        OrderType orderType;
     }
 
     struct Data {

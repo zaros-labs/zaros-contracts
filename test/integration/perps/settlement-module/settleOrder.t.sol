@@ -31,8 +31,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(10_000e18),
             sizeDelta: int128(50e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE),
-            orderType: Order.OrderType.MARKET
+            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
         });
         perpsEngine.createOrder({ payload: payload });
         Order.Data memory order = perpsEngine.getOrders({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID })[0];
@@ -72,8 +71,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(10_000e18),
             sizeDelta: int128(50e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE),
-            orderType: Order.OrderType.MARKET
+            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
         });
 
         perpsEngine.createOrder({ payload: payload });
@@ -90,8 +88,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(0),
             sizeDelta: int128(-25e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE),
-            orderType: Order.OrderType.MARKET
+            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
         });
         perpsEngine.createOrder({ payload: newPayload });
         Order.Data memory sellOrder =

@@ -29,8 +29,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(10_000e18),
             sizeDelta: int128(50e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE),
-            orderType: Order.OrderType.MARKET
+            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
         });
         Order.Data memory expectedOrder =
             Order.Data({ id: 0, payload: payload, settlementTimestamp: uint248(block.timestamp) });
@@ -52,8 +51,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(10_000e18),
             sizeDelta: int128(50e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE),
-            orderType: Order.OrderType.MARKET
+            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
         });
 
         perpsEngine.createOrder({ payload: payload });
