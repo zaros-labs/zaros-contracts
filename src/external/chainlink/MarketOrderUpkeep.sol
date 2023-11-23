@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "@zaros/external/chainlink/interfaces/ILogAutomation.sol";
 import {
     IStreamsLookupCompatible, BasicReport
@@ -63,6 +63,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         _;
     }
 
+    /// TODO: add check if upkeep is turned on (check contract's ETH funding)
     /// @inheritdoc ILogAutomation
     function checkLog(
         AutomationLog calldata log,
@@ -95,32 +96,42 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         bytes memory extraData
     )
         external
-        pure
+        view
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        return (true, abi.encode(values, extraData));
+        bytes memory signedReport = values[0];
+        bytes memory reportData = _getReportData(signedReport);
+
+        IFeeManager chainlinkFeeManager = IFeeManager(chainlinkVerifier.s_feeManager());
+        // TODO: Store preferred fee token instead of querying i_nativeAddress?
+        address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
+
+        (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
+
+        upkeepNeeded = true;
+        performData =
+            abi.encode(signedReport, reportData, chainlinkFeeManager, feeTokenAddress, accountId, marketId, orderId);
     }
 
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
-        IFeeManager chainlinkFeeManager = IFeeManager(chainlinkVerifier.s_feeManager());
+        (
+            bytes memory signedReport,
+            bytes memory reportData,
+            IFeeManager chainlinkFeeManager,
+            address feeTokenAddress,
+            uint256 accountId,
+            uint128 marketId,
+            uint8 orderId
+        ) = abi.decode(performData, (bytes, bytes, IFeeManager, address, uint256, uint128, uint8));
 
-        (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
-
-        bytes memory signedReport = signedReports[0];
-        bytes memory reportData = _getReportData(signedReport);
-
-        // TODO: Store preferred fee token instead of querying i_nativeAddress
-        address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
-        (IFeeManager.PaymentAsset memory fee,,) =
-            chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
+        (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
 
         bytes memory verifiedReportData =
-            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(feeTokenAddress));
+            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
         BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
 
-        (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
         perpsEngine.settleOrder(accountId, marketId, orderId, verifiedReport);
     }
 
