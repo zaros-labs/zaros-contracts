@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
+import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
 import { Position } from "@zaros/markets/perps/storage/Position.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
@@ -46,17 +47,23 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, order.id, expectedPosition);
 
+        BasicReport memory mockReport;
+        mockReport.price = int192(int256(MOCK_ETH_USD_PRICE));
+
         perpsEngine.settleOrder({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             orderId: order.id,
-            price: MOCK_ETH_USD_PRICE
+            report: mockReport
         });
     }
 
     function testFuzz_SettleOrderReducingSize(uint256 amountToDeposit) external {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        BasicReport memory mockReport;
+        mockReport.price = int192(int256(MOCK_ETH_USD_PRICE));
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
@@ -75,7 +82,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             orderId: 0,
-            price: MOCK_ETH_USD_PRICE
+            report: mockReport
         });
 
         Order.Payload memory newPayload = Order.Payload({
@@ -105,7 +112,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             orderId: sellOrder.id,
-            price: MOCK_ETH_USD_PRICE
+            report: mockReport
         });
     }
 }

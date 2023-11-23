@@ -3,10 +3,7 @@
 pragma solidity 0.8.19;
 
 // Zaros dependencies
-import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
-import { ILogAutomation, Log as AutomationLog } from "@zaros/external/chainlink/interfaces/ILogAutomation.sol";
-import { IStreamsLookupCompatible } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
-import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
@@ -23,7 +20,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStreamsLookupCompatible {
+abstract contract SettlementModule is ISettlementModule {
     using Order for Order.Data;
     using PerpsAccount for PerpsAccount.Data;
     using PerpsMarket for PerpsMarket.Data;
@@ -31,100 +28,26 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    modifier onlyForwarder() {
-        address forwarder = PerpsConfiguration.load().chainlinkForwarder;
-        if (msg.sender != forwarder) {
-            revert Errors.OnlyForwarder(msg.sender, forwarder);
+    modifier onlyMarketOrderUpkeep() {
+        address marketOrderUpkeep;
+        if (msg.sender != marketOrderUpkeep) {
+            revert Errors.OnlyForwarder(msg.sender, marketOrderUpkeep);
         }
         _;
     }
 
-    function checkLog(
-        AutomationLog calldata log,
-        bytes calldata checkData
+    function settleOrder(
+        uint256 accountId,
+        uint128 marketId,
+        uint8 orderId,
+        BasicReport calldata report
     )
         external
-        view
-        override
-        returns (bool upkeepNeeded, bytes memory performData)
+        onlyMarketOrderUpkeep
     {
-        (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
-        // bytes32 streamId = PerpsMarket.load(marketId).streamId;
-        (Order.Data memory order) = abi.decode(log.data, (Order.Data));
-
-        // TODO: we should probably have orderType as an indexed parameter?
-        if (order.payload.orderType != Order.OrderType.MARKET) {
-            return (false, bytes(""));
-        }
-
-        // TODO: add proper order.validate() check
-        string[] memory feeds = new string[](1);
-        if (marketId == 1) {
-            feeds[0] = Constants.DATA_STREAMS_ETH_USD_STREAM_ID;
-        } else if (marketId == 2) {
-            feeds[0] = Constants.DATA_STREAMS_LINK_USD_STREAM_ID;
-        } else {
-            revert();
-        }
-
-        bytes memory extraData = abi.encode(accountId, marketId, order.id);
-
-        revert StreamsLookup(
-            Constants.DATA_STREAMS_FEED_LABEL,
-            feeds,
-            Constants.DATA_STREAMS_QUERY_LABEL,
-            order.settlementTimestamp,
-            extraData
-        );
-    }
-
-    function checkCallback(
-        bytes[] memory values,
-        bytes memory extraData
-    )
-        external
-        view
-        override
-        returns (bool upkeepNeeded, bytes memory performData)
-    {
-        return (true, abi.encode(values, extraData));
-    }
-
-    function performUpkeep(bytes calldata performData) external override onlyForwarder {
-        IVerifierProxy chainlinkVerifier = IVerifierProxy(PerpsConfiguration.load().chainlinkVerifier);
-        IFeeManager chainlinkFeeManager = IFeeManager(chainlinkVerifier.s_feeManager());
-
-        (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
-
-        bytes memory signedReport = signedReports[0];
-        bytes memory reportData = _getReportData(signedReport);
-
-        // TODO: Store preferred fee token instead of querying i_nativeAddress
-        address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
-        (IFeeManager.PaymentAsset memory fee,,) =
-            chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
-
-        bytes memory verifiedReportData =
-            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(feeTokenAddress));
-        BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
-
-        (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
-
-        _settleOrder(order, verifiedReport);
-    }
-
-    function settleOrder(uint256 accountId, uint128 marketId, uint8 orderId, uint256 price) external {
-        Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
-
-        BasicReport memory report;
-        report.price = int192(int256(price));
 
         _settleOrder(order, report);
-    }
-
-    function _getReportData(bytes memory signedReport) internal pure returns (bytes memory reportData) {
-        (, reportData) = abi.decode(signedReport, (bytes32[3], bytes));
     }
 
     // TODO: many validations pending
