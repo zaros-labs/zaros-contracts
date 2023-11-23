@@ -20,7 +20,8 @@ interface IOrderModule {
         uint256 indexed accountId,
         uint128 indexed marketId,
         uint8 orderId,
-        uint248 settlementTimestamp
+        uint248 settlementTimestamp,
+        bytes32 streamId
     );
     event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
 

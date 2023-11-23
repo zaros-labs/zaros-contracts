@@ -74,23 +74,18 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         returns (bool upkeepNeeded, bytes memory performData)
     {
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
-        // bytes32 streamId = PerpsMarket.load(marketId).streamId;
-        (uint8 orderId, uint248 settlementTimestamp) = abi.decode(log.data, (uint8, uint248));
+        (uint8 orderId, uint248 settlementTimestamp, bytes32 streamId) = abi.decode(log.data, (uint8, uint248, bytes32));
 
-        // TODO: add proper order.validate() check
-        string[] memory feeds = new string[](1);
-        if (marketId == 1) {
-            feeds[0] = Constants.DATA_STREAMS_ETH_USD_STREAM_ID;
-        } else if (marketId == 2) {
-            feeds[0] = Constants.DATA_STREAMS_LINK_USD_STREAM_ID;
-        } else {
-            revert();
-        }
-
+        string[] memory streams = new string[](1);
+        streams[0] = string(abi.encodePacked(streamId));
         bytes memory extraData = abi.encode(accountId, marketId, orderId);
 
         revert StreamsLookup(
-            Constants.DATA_STREAMS_FEED_LABEL, feeds, Constants.DATA_STREAMS_QUERY_LABEL, settlementTimestamp, extraData
+            Constants.DATA_STREAMS_FEED_LABEL,
+            streams,
+            Constants.DATA_STREAMS_QUERY_LABEL,
+            settlementTimestamp,
+            extraData
         );
     }
 

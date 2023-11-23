@@ -11,6 +11,7 @@ library Constants {
     /// @notice Chainlink Data Streams Lookup constants.
     string internal constant DATA_STREAMS_FEED_LABEL = "feedIDs";
     string internal constant DATA_STREAMS_QUERY_LABEL = "timestamp";
+    // TODO: remove both stream ids constants.
     string internal constant DATA_STREAMS_ETH_USD_STREAM_ID =
         "0x00029584363bcf642315133c335b3646513c20f049602fc7d933be0d3f6360d3";
     string internal constant DATA_STREAMS_LINK_USD_STREAM_ID =
