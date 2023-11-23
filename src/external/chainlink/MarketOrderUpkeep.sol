@@ -14,54 +14,66 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
 
-// Open Zeppelin Upgradeable dependencies
+// Open Zeppelin dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { SafeCastUpgradeable as SafeCast } from "@openzeppelin-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     using SafeCast for uint256;
 
-    /// @notice The address of the Chainlink Verifier contract.
-    IVerifierProxy public chainlinkVerifier;
-    /// @notice The address of the Upkeep forwarder contract.
-    address public forwarder;
-    /// @notice The address of the PerpsEngine contract.
-    PerpsEngine public perpsEngine;
+    /// @notice keccak256(abi.encode(uint256(keccak256("example.main")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 internal constant MARKET_ORDER_UPKEEP_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.MarketOrderUpkeep")) - 1)
+    ) & ~bytes32(uint256(0xff));
+
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
+    /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
+    /// @param forwarder The address of the Upkeep forwarder contract.
+    /// @param perpsEngine The address of the PerpsEngine contract.
+    struct MarketOrderUpkeepStorage {
+        IVerifierProxy chainlinkVerifier;
+        address forwarder;
+        PerpsEngines perpsEngine;
+    }
+
+    MarketOrderUpkeepStorage internal $;
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
     function initialize(
-        IVerifierProxy _chainlinkVerifier,
-        address _forwarder,
-        PerpsEngine _perpsEngine
+        IVerifierProxy chainlinkVerifier,
+        address forwarder,
+        PerpsEngine perpsEngine
     )
         external
         initializer
     {
-        if (address(_chainlinkVerifier) == address(0)) {
+        if (address(chainlinkVerifier) == address(0)) {
             revert Errors.ZeroInput("_chainlinkVerifier");
         }
-        if (_forwarder == address(0)) {
+        if (forwarder == address(0)) {
             revert Errors.ZeroInput("_forwarder");
         }
-        if (address(_perpsEngine) == address(0)) {
+        if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("_perpsEngine");
         }
 
-        chainlinkVerifier = _chainlinkVerifier;
-        forwarder = _forwarder;
-        perpsEngine = _perpsEngine;
+        _chainlinkVerifier = chainlinkVerifier;
+        _forwarder = forwarder;
+        _perpsEngine = perpsEngine;
 
         __Ownable_init();
     }
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
     modifier onlyForwarder() {
-        if (msg.sender != forwarder) {
-            revert Errors.OnlyForwarder(msg.sender, forwarder);
+        if (msg.sender != _forwarder) {
+            revert Errors.OnlyForwarder(msg.sender, _forwarder);
         }
         _;
     }
+
+    function getConfig() external view { }
 
     /// TODO: add check if upkeep is turned on (check contract's ETH funding)
     /// @inheritdoc ILogAutomation
@@ -103,6 +115,9 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         bytes memory signedReport = values[0];
         bytes memory reportData = _getReportData(signedReport);
 
+        MarketOrderUpkeepStorage self = _getMarketOrderUpkeepStorage();
+        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) = (self.chainlinkVerifier, self.perpsEngine);
+
         IFeeManager chainlinkFeeManager = IFeeManager(chainlinkVerifier.s_feeManager());
         // TODO: Store preferred fee token instead of querying i_nativeAddress?
         address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
@@ -110,8 +125,17 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
 
         upkeepNeeded = true;
-        performData =
-            abi.encode(signedReport, reportData, chainlinkFeeManager, feeTokenAddress, accountId, marketId, orderId);
+        performData = abi.encode(
+            signedReport,
+            reportData,
+            chainlinkVerifier,
+            chainlinkFeeManager,
+            perpsEngine,
+            feeTokenAddress,
+            accountId,
+            marketId,
+            orderId
+        );
     }
 
     /// @inheritdoc ILogAutomation
@@ -119,17 +143,21 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         (
             bytes memory signedReport,
             bytes memory reportData,
+            IVerifierProxy chainlinkVerifier,
             IFeeManager chainlinkFeeManager,
+            PerpsEngine perpsEngine,
             address feeTokenAddress,
             uint256 accountId,
             uint128 marketId,
             uint8 orderId
-        ) = abi.decode(performData, (bytes, bytes, IFeeManager, address, uint256, uint128, uint8));
+        ) = abi.decode(
+            performData, (bytes, bytes, IVerifierProxy, IFeeManager, PerpsEngine, address, uint256, uint128, uint8)
+        );
 
         (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
 
         bytes memory verifiedReportData =
-            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
+            _chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
         BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
 
         perpsEngine.settleOrder(accountId, marketId, orderId, verifiedReport);
@@ -138,6 +166,14 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
     /// @notice Decodes the signedReport object and returns the report data only.
     function _getReportData(bytes memory signedReport) internal pure returns (bytes memory reportData) {
         (, reportData) = abi.decode(signedReport, (bytes32[3], bytes));
+    }
+
+    function _getMarketOrderUpkeepStorage() internal view returns (MarketOrderUpkeepStorage storage self) {
+        bytes32 slot = MARKET_ORDER_UPKEEP_LOCATION;
+
+        assembly {
+            self.slot := slot
+        }
     }
 
     /// @inheritdoc UUPSUpgradeable
