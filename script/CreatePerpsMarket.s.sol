@@ -15,7 +15,7 @@ contract CreatePerpsMarket is BaseScript {
     string internal constant DATA_STREAMS_FEED_LABEL = "feedIDs";
     string internal constant DATA_STREAMS_QUERY_LABEL = "timestamp";
 
-    address internal defaultSettlementUpkeep;
+    address internal defaultBasicSettlementUpkeep;
 
     string internal ethUsdStreamId;
 
@@ -45,7 +45,7 @@ contract CreatePerpsMarket is BaseScript {
     PerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        defaultSettlementUpkeep = vm.envAddress("DEFAULT_SETTLEMENT_UPKEEP");
+        defaultBasicSettlementUpkeep = vm.envAddress("DEFAULT_SETTLEMENT_UPKEEP");
 
         ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
 
@@ -58,7 +58,7 @@ contract CreatePerpsMarket is BaseScript {
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_LABEL,
             queryLabel: DATA_STREAMS_QUERY_LABEL,
-            upkeep: defaultSettlementUpkeep,
+            upkeep: defaultBasicSettlementUpkeep,
             settlementDelay: ETH_USD_SETTLEMENT_DELAY
         });
         SettlementStrategy.Data memory ethUsdSettlementStrategy = SettlementStrategy.Data({
@@ -83,7 +83,7 @@ contract CreatePerpsMarket is BaseScript {
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_LABEL,
             queryLabel: DATA_STREAMS_QUERY_LABEL,
-            upkeep: defaultSettlementUpkeep,
+            upkeep: defaultBasicSettlementUpkeep,
             settlementDelay: LINK_USD_SETTLEMENT_DELAY
         });
         SettlementStrategy.Data memory linkUsdSettlementStrategy = SettlementStrategy.Data({

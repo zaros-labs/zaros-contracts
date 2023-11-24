@@ -12,7 +12,7 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
-import { Common } from "./Common.sol";
+import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -100,16 +100,18 @@ contract BasicSettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPS
         returns (bool upkeepNeeded, bytes memory performData)
     {
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
-        (uint8 orderId, uint248 settlementTimestamp, string memory streamId) =
-            abi.decode(log.data, (uint8, uint248, string));
+        (uint8 orderId, uint248 settlementTimestamp, SettlementStrategy.Data memory settlementStrategy) =
+            abi.decode(log.data, (uint8, uint248, SettlementStrategy.Data));
+
+        SettlementStrategy.DataStreamsBasicFeed memory strategy =
+            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
 
         string[] memory streams = new string[](1);
-        streams[0] = string(abi.encodePacked(streamId));
+        streams[0] = string(abi.encodePacked(strategy.streamId));
+        uint256 reportTimestamp = settlementTimestamp + strategy.settlementDelay;
         bytes memory extraData = abi.encode(accountId, marketId, orderId);
 
-        revert StreamsLookup(
-            Common.DATA_STREAMS_FEED_LABEL, streams, Common.DATA_STREAMS_QUERY_LABEL, settlementTimestamp, extraData
-        );
+        revert StreamsLookup(strategy.feedLabel, streams, strategy.queryLabel, reportTimestamp, extraData);
     }
 
     /// @inheritdoc IStreamsLookupCompatible
