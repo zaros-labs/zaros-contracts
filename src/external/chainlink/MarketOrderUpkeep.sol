@@ -32,22 +32,22 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
     /// @param forwarder The address of the Upkeep forwarder contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
     struct MarketOrderUpkeepStorage {
-        IVerifierProxy chainlinkVerifier;
+        address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
     }
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
     function initialize(
-        address owner,
-        IVerifierProxy chainlinkVerifier,
+        address initialOwner,
+        address chainlinkVerifier,
         address forwarder,
         PerpsEngine perpsEngine
     )
         external
         initializer
     {
-        if (address(chainlinkVerifier) == address(0)) {
+        if (chainlinkVerifier == address(0)) {
             revert Errors.ZeroInput("_chainlinkVerifier");
         }
         if (forwarder == address(0)) {
@@ -63,7 +63,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         self.forwarder = forwarder;
         self.perpsEngine = perpsEngine;
 
-        __Ownable_init(owner);
+        __Ownable_init(initialOwner);
     }
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
@@ -75,7 +75,18 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         _;
     }
 
-    function getConfig() external view { }
+    function getConfig()
+        external
+        view
+        returns (address upkeepOwner, address chainlinkVerifier, address forwarder, address perpsEngine)
+    {
+        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+
+        upkeepOwner = owner();
+        chainlinkVerifier = self.chainlinkVerifier;
+        forwarder = self.forwarder;
+        perpsEngine = address(self.perpsEngine);
+    }
 
     /// TODO: add check if upkeep is turned on (check contract's ETH funding)
     /// @inheritdoc ILogAutomation
@@ -118,9 +129,10 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         bytes memory reportData = _getReportData(signedReport);
 
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
-        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) = (self.chainlinkVerifier, self.perpsEngine);
+        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
+            (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine);
 
-        IFeeManager chainlinkFeeManager = IFeeManager(chainlinkVerifier.s_feeManager());
+        IFeeManager chainlinkFeeManager = chainlinkVerifier.s_feeManager();
         // TODO: Store preferred fee token instead of querying i_nativeAddress?
         address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
 
