@@ -27,7 +27,7 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
  * @title Module for connecting rewards distributors to vaults.
  * @dev See IRewardsManagerModule.
  */
-contract RewardsManagerModule is IRewardsManagerModule, Ownable {
+abstract contract RewardsManagerModule is IRewardsManagerModule, Ownable {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using SafeCast for uint256;
     using Vault for Vault.Data;

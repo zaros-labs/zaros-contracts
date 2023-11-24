@@ -10,24 +10,16 @@ import { ERC721, ERC721Enumerable } from "@openzeppelin/token/ERC721/extensions/
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
 contract AccountNFT is ERC721Enumerable, Ownable {
-    constructor(string memory name, string memory symbol) ERC721(name, symbol) { }
+    constructor(string memory name, string memory symbol, address owner) ERC721(name, symbol) Ownable(owner) { }
 
     function mint(address to, uint256 tokenId) external onlyOwner {
         _mint(to, tokenId);
     }
 
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 firstTokenId,
-        uint256 batchSize
-    )
-        internal
-        virtual
-        override
-    {
-        super._afterTokenTransfer(from, to, firstTokenId, batchSize);
+    function _update(address to, uint256 tokenId, address auth) internal virtual override returns (address) {
+        address previousOwner = super._update(to, tokenId, auth);
+        ILiquidityEngine(owner()).notifyAccountTransfer(to, uint128(tokenId));
 
-        ILiquidityEngine(owner()).notifyAccountTransfer(to, uint128(firstTokenId));
+        return previousOwner;
     }
 }

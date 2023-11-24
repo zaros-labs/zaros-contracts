@@ -32,6 +32,7 @@ contract PerpsEngine is
     receive() external payable { }
 
     function initialize(
+        address owner,
         address chainlinkForwarder,
         address chainlinkVerifier,
         address perpsAccountToken,
@@ -42,7 +43,7 @@ contract PerpsEngine is
         external
         initializer
     {
-        __Ownable_init();
+        __Ownable_init(owner);
         PerpsConfigurationModule.__PerpsConfigurationModule_init(
             chainlinkForwarder, chainlinkVerifier, perpsAccountToken, rewardDistributor, usdToken, liquidityEngine
         );

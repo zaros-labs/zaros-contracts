@@ -72,10 +72,10 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         });
         vm.startPrank({ msgSender: users.owner });
 
-        perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
-        usdToken = new MockUSDToken({ ownerBalance: 100_000_000e18 });
+        perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
+        usdToken = new MockUSDToken({ owner: users.owner, ownerBalance: 100_000_000e18 });
         mockWstEth =
-        new MockERC20({ name: "Wrapped Staked Ether", symbol: "wstETH", decimals_: 18, ownerBalance: 100_000_000e18 });
+        new MockERC20({ name: "Wrapped Staked Ether", symbol: "wstETH", decimals_: 18, owner: users.owner, ownerBalance: 100_000_000e18 });
         liquidityEngine = LiquidityEngine(mockZarosAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         mockUsdcUsdPriceFeed = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
@@ -85,6 +85,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
+            users.owner,
             mockChainlinkForwarder,
             mockChainlinkVerifier,
             address(perpsAccountToken),
@@ -125,20 +126,20 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
         changePrank({ msgSender: users.naruto });
-        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sasuke });
-        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sakura });
-        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.madara });
-        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });

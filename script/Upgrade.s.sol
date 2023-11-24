@@ -38,6 +38,7 @@ contract DeployAlphaPerps is BaseScript {
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
+            deployer,
             mockChainlinkForwarder,
             mockChainlinkVerifier,
             mockPerpsAccountTokenAddress,
@@ -49,7 +50,7 @@ contract DeployAlphaPerps is BaseScript {
         require(success, "perpsEngineImplementation.initialize failed");
 
         perpsEngine = PerpsEngine(payable(vm.envAddress("PERPS_ENGINE")));
-        perpsEngine.upgradeTo(address(perpsEngineImplementation));
+        perpsEngine.upgradeToAndCall(address(perpsEngineImplementation), bytes(""));
 
         logContracts();
     }

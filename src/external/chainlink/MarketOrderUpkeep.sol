@@ -37,10 +37,9 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         PerpsEngine perpsEngine;
     }
 
-    MarketOrderUpkeepStorage internal $;
-
     /// @notice {MarketOrderUpkeep} UUPS initializer.
     function initialize(
+        address owner,
         IVerifierProxy chainlinkVerifier,
         address forwarder,
         PerpsEngine perpsEngine
@@ -64,7 +63,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         self.forwarder = forwarder;
         self.perpsEngine = perpsEngine;
 
-        __Ownable_init();
+        __Ownable_init(owner);
     }
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
@@ -171,7 +170,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         (, reportData) = abi.decode(signedReport, (bytes32[3], bytes));
     }
 
-    function _getMarketOrderUpkeepStorage() internal view returns (MarketOrderUpkeepStorage storage self) {
+    function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {
         bytes32 slot = MARKET_ORDER_UPKEEP_LOCATION;
 
         assembly {

@@ -16,7 +16,7 @@ import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-contract StrategyManagerModule is IStrategyManagerModule, Ownable {
+abstract contract StrategyManagerModule is IStrategyManagerModule, Ownable {
     using SafeERC20 for IUSDToken;
     using SafeERC20 for IERC20;
     using MarketManager for MarketManager.Data;

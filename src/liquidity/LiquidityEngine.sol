@@ -24,8 +24,8 @@ contract LiquidityEngine is
     MarketManagerModule,
     RewardsManagerModule
 {
-    // TODO: switch to Diamonds
-    constructor(address accountToken, address usdToken) {
+    // TODO: switch to Cannon
+    constructor(address accountToken, address usdToken) Ownable(msg.sender) {
         AccountModule.__AccountModule_init(accountToken);
         MarketManagerModule.__MarketManagerModule_init(usdToken);
     }
