@@ -6,22 +6,19 @@ pragma solidity 0.8.23;
 import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 interface IOrderModule {
-    // event LogSettleOrder(
-    //     address indexed sender, uint256 indexed accountId, Order.Data order, Position.Data newPosition
-    // );
-
     event LogCreateOrder(
         address indexed sender,
         uint256 indexed accountId,
         uint128 indexed marketId,
         uint8 orderId,
         uint248 settlementTimestamp,
-        string streamId
+        SettlementStrategy.Data settlementStrategy
     );
     event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
 

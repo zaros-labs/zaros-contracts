@@ -7,6 +7,7 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
+import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
@@ -36,7 +37,22 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     Users internal users;
     address internal mockChainlinkForwarder = vm.addr({ privateKey: 0x01 });
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
-    OrderFees.Data public orderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+
+    /// @dev ETH / USD market configuration variables.
+    SettlementStrategy.DataStreamsBasicFeed internal ethUsdSettlementStrategyData = SettlementStrategy
+        .DataStreamsBasicFeed({
+        streamId: MOCK_ETH_USD_STREAM_ID,
+        feedLabel: DATA_STREAMS_FEED_LABEL,
+        queryLabel: DATA_STREAMS_QUERY_LABEL,
+        upkeep: mockDefaultSettlementUpkeep,
+        settlementDelay: ETH_USD_SETTLEMENT_DELAY
+    });
+    SettlementStrategy.Data internal ethUsdSettlementStrategy = SettlementStrategy.Data({
+        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_BASIC_FEED,
+        isEnabled: true,
+        strategyData: abi.encode(ethUsdSettlementStrategyData)
+    });
+    OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -49,14 +65,16 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     PerpsEngine internal perpsEngineImplementation;
     RewardDistributor internal rewardDistributor;
     LiquidityEngine internal liquidityEngine;
+
+    /// @dev TODO: deploy real contracts instead of mocking them.
+    address internal mockLiquidityEngineAddress = vm.addr({ privateKey: 0x03 });
+    address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x04 });
+
     /// @dev TODO: think about forking tests
+    address internal mockDefaultSettlementUpkeep = vm.addr({ privateKey: 0x05 });
     MockPriceFeed internal mockEthUsdPriceFeed;
     MockPriceFeed internal mockUsdcUsdPriceFeed;
     MockPriceFeed internal mockWstEthUsdPriceFeed;
-
-    /// @dev TODO: deploy real contracts instead of mocking them.
-    address internal mockZarosAddress = vm.addr({ privateKey: 0x03 });
-    address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x04 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -76,7 +94,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         usdToken = new MockUSDToken({ owner: users.owner, ownerBalance: 100_000_000e18 });
         mockWstEth =
         new MockERC20({ name: "Wrapped Staked Ether", symbol: "wstETH", decimals_: 18, owner: users.owner, ownerBalance: 100_000_000e18 });
-        liquidityEngine = LiquidityEngine(mockZarosAddress);
+        liquidityEngine = LiquidityEngine(mockLiquidityEngineAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         mockUsdcUsdPriceFeed = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
         mockEthUsdPriceFeed = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));

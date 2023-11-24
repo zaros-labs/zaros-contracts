@@ -10,6 +10,7 @@ import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { MarginCollateral } from "../storage/MarginCollateral.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 // OpenZeppelin Upgradeable dependencies
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -85,11 +86,11 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         uint128 marketId,
         string calldata name,
         string calldata symbol,
-        string calldata streamId,
         address priceFeed,
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
+        SettlementStrategy.Data calldata settlementStrategy,
         OrderFees.Data calldata orderFees
     )
         external
@@ -104,9 +105,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         }
         if (abi.encodePacked(symbol).length == 0) {
             revert Errors.ZeroInput("symbol");
-        }
-        if (abi.encodePacked(streamId).length == 0) {
-            revert Errors.ZeroInput("streamId");
         }
         if (maintenanceMarginRate == 0) {
             revert Errors.ZeroInput("maintenanceMarginRate");
@@ -127,11 +125,11 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             marketId,
             name,
             symbol,
-            streamId,
             priceFeed,
             maintenanceMarginRate,
             maxOpenInterest,
             minInitialMarginRate,
+            settlementStrategy,
             orderFees
         );
         perpsConfiguration.addMarket(marketId);

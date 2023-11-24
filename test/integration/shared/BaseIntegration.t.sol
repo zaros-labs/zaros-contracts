@@ -26,12 +26,12 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             ETH_USD_MARKET_ID,
             ETH_USD_MARKET_NAME,
             ETH_USD_MARKET_SYMBOL,
-            MOCK_ETH_USD_STREAM_ID,
             address(mockEthUsdPriceFeed),
             ETH_USD_MMR,
             ETH_USD_MAX_OI,
             ETH_USD_MIN_IMR,
-            orderFees
+            ethUsdSettlementStrategy,
+            ethUsdOrderFees
         );
     }
 

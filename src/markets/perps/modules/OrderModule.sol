@@ -11,6 +11,7 @@ import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -62,6 +63,7 @@ abstract contract OrderModule is IOrderModule {
         uint128 marketId = payload.marketId;
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        SettlementStrategy.Data storage settlementStrategy = perpsMarket.settlementStrategy;
 
         if (perpsAccount.canBeLiquidated()) {
             revert Errors.AccountLiquidatable(msg.sender, accountId);
@@ -74,8 +76,7 @@ abstract contract OrderModule is IOrderModule {
         perpsMarket.orders[accountId].push(order);
         perpsAccount.updateActiveOrders(marketId, orderId, true);
 
-        string memory streamId = perpsMarket.streamId;
-        emit LogCreateOrder(msg.sender, accountId, marketId, order.id, order.settlementTimestamp, streamId);
+        emit LogCreateOrder(msg.sender, accountId, marketId, order.id, order.settlementTimestamp, settlementStrategy);
     }
 
     /// @inheritdoc IOrderModule

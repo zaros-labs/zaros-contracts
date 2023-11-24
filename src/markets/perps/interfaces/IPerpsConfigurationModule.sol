@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { OrderFees } from "../storage/OrderFees.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 /// @title Perps Configuration Module.
 /// @notice This module is used by the protocol controller to configure the perps
@@ -60,21 +61,21 @@ interface IPerpsConfigurationModule {
     /// @param marketId The perps market id.
     /// @param name The perps market name.
     /// @param symbol The perps market symbol.
-    /// @param streamId The chainlink data streams feed id.
     /// @param priceFeed The perps market price feed address.
     /// @param maintenanceMarginRate The perps market maintenance margin rate.
     /// @param maxOpenInterest The perps market maximum open interest per side.
     /// @param minInitialMarginRate The perps market min initial margin rate, which defines the max leverage.
+    /// @param settlementStrategy The perps market settlement strategy.
     /// @param orderFees The perps market maker and taker fees.
     function createPerpsMarket(
         uint128 marketId,
         string calldata name,
         string calldata symbol,
-        string calldata streamId,
         address priceFeed,
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
+        SettlementStrategy.Data calldata settlementStrategy,
         OrderFees.Data calldata orderFees
     )
         external;
