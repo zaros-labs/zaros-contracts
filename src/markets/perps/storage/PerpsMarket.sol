@@ -9,6 +9,7 @@ import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
 import { Order } from "./Order.sol";
 import { OrderFees } from "./OrderFees.sol";
 import { Position } from "./Position.sol";
+import { SettlementStrategy } from "./SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -34,6 +35,7 @@ library PerpsMarket {
         uint128 size;
         address priceFeed;
         OrderFees.Data orderFees;
+        // SettlementStrategy.Data settlementStrategy;
         mapping(uint256 accountId => Position.Data) positions;
         mapping(uint256 accountId => Order.Data[]) orders;
     }
