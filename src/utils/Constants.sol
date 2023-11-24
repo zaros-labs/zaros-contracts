@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.23;
 
+/// @notice Constants used across the protocol.
 library Constants {
     /// @notice Protocol wide standard decimals.
     uint8 internal constant SYSTEM_DECIMALS = 18;
