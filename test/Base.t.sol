@@ -44,7 +44,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         streamId: MOCK_ETH_USD_STREAM_ID,
         feedLabel: DATA_STREAMS_FEED_LABEL,
         queryLabel: DATA_STREAMS_QUERY_LABEL,
-        upkeep: mockDefaultSettlementUpkeep,
+        upkeep: mockDefaultBasicSettlementUpkeep,
         settlementDelay: ETH_USD_SETTLEMENT_DELAY
     });
     SettlementStrategy.Data internal ethUsdSettlementStrategy = SettlementStrategy.Data({
@@ -71,7 +71,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x04 });
 
     /// @dev TODO: think about forking tests
-    address internal mockDefaultSettlementUpkeep = vm.addr({ privateKey: 0x05 });
+    address internal mockDefaultBasicSettlementUpkeep = vm.addr({ privateKey: 0x05 });
     MockPriceFeed internal mockUsdcUsdPriceFeed;
     MockPriceFeed internal mockWstEthUsdPriceFeed;
 

@@ -19,25 +19,25 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
+contract BasicSettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     using SafeCast for uint256;
 
     /// @notice keccak256(abi.encode(uint256(keccak256("example.main")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 internal constant SETTLEMENT_UPKEEP_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.SettlementUpkeep")) - 1)
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.BasicSettlementUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.SettlementUpkeep
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.BasicSettlementUpkeep
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param forwarder The address of the Upkeep forwarder contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
-    struct SettlementUpkeepStorage {
+    struct BasicSettlementUpkeepStorage {
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
     }
 
-    /// @notice {SettlementUpkeep} UUPS initializer.
+    /// @notice {BasicSettlementUpkeep} UUPS initializer.
     function initialize(
         address initialOwner,
         address chainlinkVerifier,
@@ -48,16 +48,16 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         initializer
     {
         if (chainlinkVerifier == address(0)) {
-            revert Errors.ZeroInput("_chainlinkVerifier");
+            revert Errors.ZeroInput("chainlinkVerifier");
         }
         if (forwarder == address(0)) {
-            revert Errors.ZeroInput("_forwarder");
+            revert Errors.ZeroInput("forwarder");
         }
         if (address(perpsEngine) == address(0)) {
-            revert Errors.ZeroInput("_perpsEngine");
+            revert Errors.ZeroInput("perpsEngine");
         }
 
-        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
+        BasicSettlementUpkeepStorage storage self = _getBasicSettlementUpkeepStorage();
 
         self.chainlinkVerifier = chainlinkVerifier;
         self.forwarder = forwarder;
@@ -68,7 +68,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
     modifier onlyForwarder() {
-        address forwarder = _getSettlementUpkeepStorage().forwarder;
+        address forwarder = _getBasicSettlementUpkeepStorage().forwarder;
         if (msg.sender != forwarder) {
             revert Errors.OnlyForwarder(msg.sender, forwarder);
         }
@@ -80,7 +80,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         view
         returns (address upkeepOwner, address chainlinkVerifier, address forwarder, address perpsEngine)
     {
-        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
+        BasicSettlementUpkeepStorage storage self = _getBasicSettlementUpkeepStorage();
 
         upkeepOwner = owner();
         chainlinkVerifier = self.chainlinkVerifier;
@@ -125,7 +125,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         bytes memory signedReport = values[0];
         bytes memory reportData = _getReportData(signedReport);
 
-        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
+        BasicSettlementUpkeepStorage storage self = _getBasicSettlementUpkeepStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
             (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine);
 
@@ -179,7 +179,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         (, reportData) = abi.decode(signedReport, (bytes32[3], bytes));
     }
 
-    function _getSettlementUpkeepStorage() internal pure returns (SettlementUpkeepStorage storage self) {
+    function _getBasicSettlementUpkeepStorage() internal pure returns (BasicSettlementUpkeepStorage storage self) {
         bytes32 slot = SETTLEMENT_UPKEEP_LOCATION;
 
         assembly {

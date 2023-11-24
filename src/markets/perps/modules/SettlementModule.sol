@@ -12,6 +12,7 @@ import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -28,10 +29,14 @@ abstract contract SettlementModule is ISettlementModule {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    modifier onlySettlementUpkeep() {
-        address settlementUpkeep;
-        if (msg.sender != settlementUpkeep) {
-            revert Errors.OnlyForwarder(msg.sender, settlementUpkeep);
+    modifier onlyBasicSettlementUpkeep(uint128 marketId) {
+        SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).settlementStrategy;
+        (SettlementStrategy.DataStreamsBasicFeed memory strategy) =
+            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
+        address basicSettlementUpkeep = strategy.upkeep;
+
+        if (msg.sender != basicSettlementUpkeep) {
+            revert Errors.OnlyForwarder(msg.sender, basicSettlementUpkeep);
         }
         _;
     }
@@ -43,7 +48,7 @@ abstract contract SettlementModule is ISettlementModule {
         BasicReport calldata report
     )
         external
-        onlySettlementUpkeep
+        onlyBasicSettlementUpkeep(marketId)
     {
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
 
