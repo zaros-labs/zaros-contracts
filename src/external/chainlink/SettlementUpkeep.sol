@@ -19,25 +19,25 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
+contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     using SafeCast for uint256;
 
     /// @notice keccak256(abi.encode(uint256(keccak256("example.main")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 internal constant MARKET_ORDER_UPKEEP_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.MarketOrderUpkeep")) - 1)
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.SettlementUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.SettlementUpkeep
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param forwarder The address of the Upkeep forwarder contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
-    struct MarketOrderUpkeepStorage {
+    struct SettlementUpkeepStorage {
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
     }
 
-    /// @notice {MarketOrderUpkeep} UUPS initializer.
+    /// @notice {SettlementUpkeep} UUPS initializer.
     function initialize(
         address initialOwner,
         address chainlinkVerifier,
@@ -57,7 +57,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
             revert Errors.ZeroInput("_perpsEngine");
         }
 
-        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
 
         self.chainlinkVerifier = chainlinkVerifier;
         self.forwarder = forwarder;
@@ -68,7 +68,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
     modifier onlyForwarder() {
-        address forwarder = _getMarketOrderUpkeepStorage().forwarder;
+        address forwarder = _getSettlementUpkeepStorage().forwarder;
         if (msg.sender != forwarder) {
             revert Errors.OnlyForwarder(msg.sender, forwarder);
         }
@@ -80,7 +80,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         view
         returns (address upkeepOwner, address chainlinkVerifier, address forwarder, address perpsEngine)
     {
-        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
 
         upkeepOwner = owner();
         chainlinkVerifier = self.chainlinkVerifier;
@@ -125,7 +125,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         bytes memory signedReport = values[0];
         bytes memory reportData = _getReportData(signedReport);
 
-        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
             (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine);
 
@@ -179,7 +179,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         (, reportData) = abi.decode(signedReport, (bytes32[3], bytes));
     }
 
-    function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {
+    function _getSettlementUpkeepStorage() internal pure returns (SettlementUpkeepStorage storage self) {
         bytes32 slot = MARKET_ORDER_UPKEEP_LOCATION;
 
         assembly {

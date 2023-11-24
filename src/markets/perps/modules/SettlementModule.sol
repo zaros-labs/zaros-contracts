@@ -28,10 +28,10 @@ abstract contract SettlementModule is ISettlementModule {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    modifier onlyMarketOrderUpkeep() {
-        address marketOrderUpkeep;
-        if (msg.sender != marketOrderUpkeep) {
-            revert Errors.OnlyForwarder(msg.sender, marketOrderUpkeep);
+    modifier onlySettlementUpkeep() {
+        address settlementUpkeep;
+        if (msg.sender != settlementUpkeep) {
+            revert Errors.OnlyForwarder(msg.sender, settlementUpkeep);
         }
         _;
     }
@@ -43,7 +43,7 @@ abstract contract SettlementModule is ISettlementModule {
         BasicReport calldata report
     )
         external
-        onlyMarketOrderUpkeep
+        onlySettlementUpkeep
     {
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
 
