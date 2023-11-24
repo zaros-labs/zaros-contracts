@@ -11,7 +11,7 @@ contract CreatePerpsMarket is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    bytes32 internal ethUsdStreamId;
+    string internal ethUsdStreamId;
     address internal ethUsdPriceFeed;
 
     uint128 internal constant ETH_USD_MARKET_ID = 1;
@@ -22,7 +22,7 @@ contract CreatePerpsMarket is BaseScript {
     uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
     OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
-    bytes32 internal linkUsdStreamId;
+    string internal linkUsdStreamId;
     address internal linkUsdPriceFeed;
 
     uint128 internal constant LINK_USD_MARKET_ID = 2;
@@ -39,10 +39,10 @@ contract CreatePerpsMarket is BaseScript {
     PerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        ethUsdStreamId = vm.envBytes32("ETH_USD_STREAM_ID");
+        ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
         ethUsdPriceFeed = vm.envAddress("ETH_USD_PRICE_FEED");
 
-        linkUsdStreamId = vm.envBytes32("LINK_USD_STREAM_ID");
+        linkUsdStreamId = vm.envString("LINK_USD_STREAM_ID");
         linkUsdPriceFeed = vm.envAddress("LINK_USD_PRICE_FEED");
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));

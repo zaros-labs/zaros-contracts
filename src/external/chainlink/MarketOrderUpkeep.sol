@@ -9,10 +9,10 @@ import {
     IStreamsLookupCompatible, BasicReport
 } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
+import { Common } from "./Common.sol";
 
 // Open Zeppelin dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -100,18 +100,15 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         returns (bool upkeepNeeded, bytes memory performData)
     {
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
-        (uint8 orderId, uint248 settlementTimestamp, bytes32 streamId) = abi.decode(log.data, (uint8, uint248, bytes32));
+        (uint8 orderId, uint248 settlementTimestamp, string memory streamId) =
+            abi.decode(log.data, (uint8, uint248, string));
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(streamId));
         bytes memory extraData = abi.encode(accountId, marketId, orderId);
 
         revert StreamsLookup(
-            Constants.DATA_STREAMS_FEED_LABEL,
-            streams,
-            Constants.DATA_STREAMS_QUERY_LABEL,
-            settlementTimestamp,
-            extraData
+            Common.DATA_STREAMS_FEED_LABEL, streams, Common.DATA_STREAMS_QUERY_LABEL, settlementTimestamp, extraData
         );
     }
 

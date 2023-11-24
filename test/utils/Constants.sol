@@ -41,7 +41,7 @@ abstract contract Constants {
     uint128 internal constant ETH_USD_MARKET_ID = 1;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
     string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
-    bytes32 internal constant MOCK_ETH_USD_STREAM_ID = keccak256(bytes("MOCK_ETH_USD_STREAM_ID"));
+    string internal constant MOCK_ETH_USD_STREAM_ID = "MOCK_ETH_USD_STREAM_ID";
     uint128 internal constant ETH_USD_MMR = 0.01e18;
     uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
     uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;

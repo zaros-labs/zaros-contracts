@@ -70,7 +70,7 @@ interface IPerpsConfigurationModule {
         uint128 marketId,
         string calldata name,
         string calldata symbol,
-        bytes32 streamId,
+        string calldata streamId,
         address priceFeed,
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,

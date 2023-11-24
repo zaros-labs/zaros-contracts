@@ -74,7 +74,7 @@ abstract contract OrderModule is IOrderModule {
         perpsMarket.orders[accountId].push(order);
         perpsAccount.updateActiveOrders(marketId, orderId, true);
 
-        bytes32 streamId = perpsMarket.streamId;
+        string memory streamId = perpsMarket.streamId;
         emit LogCreateOrder(msg.sender, accountId, marketId, order.id, order.settlementTimestamp, streamId);
     }
 

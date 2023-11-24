@@ -85,7 +85,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         uint128 marketId,
         string calldata name,
         string calldata symbol,
-        bytes32 streamId,
+        string calldata streamId,
         address priceFeed,
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
@@ -105,7 +105,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         if (abi.encodePacked(symbol).length == 0) {
             revert Errors.ZeroInput("symbol");
         }
-        if (streamId == bytes32(0)) {
+        if (abi.encodePacked(streamId).length == 0) {
             revert Errors.ZeroInput("streamId");
         }
         if (maintenanceMarginRate == 0) {
