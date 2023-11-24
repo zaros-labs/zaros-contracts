@@ -72,7 +72,6 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
     /// @dev TODO: think about forking tests
     address internal mockDefaultSettlementUpkeep = vm.addr({ privateKey: 0x05 });
-    MockPriceFeed internal mockEthUsdPriceFeed;
     MockPriceFeed internal mockUsdcUsdPriceFeed;
     MockPriceFeed internal mockWstEthUsdPriceFeed;
 
@@ -97,7 +96,6 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         liquidityEngine = LiquidityEngine(mockLiquidityEngineAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         mockUsdcUsdPriceFeed = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
-        mockEthUsdPriceFeed = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
         mockWstEthUsdPriceFeed = new MockPriceFeed(18, int256(MOCK_WSTETH_USD_PRICE));
 
         perpsEngineImplementation = new PerpsEngine();

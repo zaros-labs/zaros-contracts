@@ -32,7 +32,6 @@ library PerpsMarket {
         uint128 maxOpenInterest;
         int128 skew;
         uint128 size;
-        address priceFeed;
         OrderFees.Data orderFees;
         SettlementStrategy.Data settlementStrategy;
         mapping(uint256 accountId => Position.Data) positions;
@@ -51,7 +50,6 @@ library PerpsMarket {
         uint128 marketId,
         string memory name,
         string memory symbol,
-        address priceFeed,
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
@@ -69,7 +67,6 @@ library PerpsMarket {
         self.id = marketId;
         self.name = name;
         self.symbol = symbol;
-        self.priceFeed = priceFeed;
         self.maintenanceMarginRate = maintenanceMarginRate;
         self.maxOpenInterest = maxOpenInterest;
         self.minInitialMarginRate = minInitialMarginRate;
@@ -77,9 +74,9 @@ library PerpsMarket {
         self.orderFees = orderFees;
     }
 
-    /// @notice TODO: Call the OracleManager
+    /// @notice TODO: Use Settlement Strategy
     function getIndexPrice(Data storage self) internal view returns (UD60x18 price) {
-        price = OracleUtil.getPrice(IAggregatorV3(self.priceFeed));
+        return ud60x18(0);
     }
 
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {

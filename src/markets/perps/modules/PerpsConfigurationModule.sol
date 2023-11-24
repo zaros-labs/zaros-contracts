@@ -86,7 +86,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         uint128 marketId,
         string calldata name,
         string calldata symbol,
-        address priceFeed,
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
@@ -112,9 +111,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         if (maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
         }
-        if (priceFeed == address(0)) {
-            revert Errors.ZeroInput("priceFeed");
-        }
         if (minInitialMarginRate == 0) {
             revert Errors.ZeroInput("minInitialMarginRate");
         }
@@ -125,7 +121,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             marketId,
             name,
             symbol,
-            priceFeed,
             maintenanceMarginRate,
             maxOpenInterest,
             minInitialMarginRate,

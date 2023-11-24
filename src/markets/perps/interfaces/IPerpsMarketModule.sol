@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Position } from "../storage/Position.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -46,9 +47,9 @@ interface IPerpsMarketModule {
     /// @param marketId The perps market id.
     function indexPrice(uint128 marketId) external view returns (UD60x18);
 
-    /// @notice Returns the Chainlink price feed address for the given market id.
+    /// @notice Returns the Settlement Strategy used by the given market.
     /// @param marketId The perps market id.
-    function priceFeed(uint128 marketId) external view returns (address);
+    function settlementStrategy(uint128 marketId) external view returns (SettlementStrategy.Data memory);
 
     /// @notice Returns the given market's funding rate.
     /// @param marketId The perps market id.

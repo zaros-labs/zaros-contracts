@@ -23,7 +23,6 @@ contract DeployAlphaPerps is BaseScript {
     address internal chainlinkVerifier;
     address internal mockRewardDistributorAddress = address(3);
     address internal mockZarosAddress = address(4);
-    address internal ethUsdPriceFeed;
     /// @dev TODO: We need a USDz price feed
     address internal usdcUsdPriceFeed;
 
@@ -40,7 +39,6 @@ contract DeployAlphaPerps is BaseScript {
         chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
         usdToken = USDToken(vm.envAddress("USDZ"));
-        ethUsdPriceFeed = vm.envAddress("ETH_USD_PRICE_FEED");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
 
         perpsEngineImplementation = new PerpsEngine();

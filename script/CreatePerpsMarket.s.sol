@@ -18,7 +18,6 @@ contract CreatePerpsMarket is BaseScript {
     address internal defaultSettlementUpkeep;
 
     string internal ethUsdStreamId;
-    address internal ethUsdPriceFeed;
 
     uint128 internal constant ETH_USD_MARKET_ID = 1;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
@@ -30,7 +29,6 @@ contract CreatePerpsMarket is BaseScript {
     OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     string internal linkUsdStreamId;
-    address internal linkUsdPriceFeed;
 
     uint128 internal constant LINK_USD_MARKET_ID = 2;
     string internal constant LINK_USD_MARKET_NAME = "LINK/USD Perpetual";
@@ -50,10 +48,8 @@ contract CreatePerpsMarket is BaseScript {
         defaultSettlementUpkeep = vm.envAddress("DEFAULT_SETTLEMENT_UPKEEP");
 
         ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
-        ethUsdPriceFeed = vm.envAddress("ETH_USD_PRICE_FEED");
 
         linkUsdStreamId = vm.envString("LINK_USD_STREAM_ID");
-        linkUsdPriceFeed = vm.envAddress("LINK_USD_PRICE_FEED");
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
@@ -75,7 +71,6 @@ contract CreatePerpsMarket is BaseScript {
             ETH_USD_MARKET_ID,
             ETH_USD_MARKET_NAME,
             ETH_USD_MARKET_SYMBOL,
-            ethUsdPriceFeed,
             ETH_USD_MMR,
             ETH_USD_MAX_OI,
             ETH_USD_MIN_IMR,
@@ -101,7 +96,6 @@ contract CreatePerpsMarket is BaseScript {
             LINK_USD_MARKET_ID,
             LINK_USD_MARKET_NAME,
             LINK_USD_MARKET_SYMBOL,
-            linkUsdPriceFeed,
             LINK_USD_MMR,
             LINK_USD_MAX_OI,
             LINK_USD_MIN_IMR,
