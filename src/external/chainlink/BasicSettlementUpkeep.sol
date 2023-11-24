@@ -100,7 +100,7 @@ contract BasicSettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPS
         returns (bool upkeepNeeded, bytes memory performData)
     {
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
-        (uint8 orderId, uint248 orderTimestamp, SettlementStrategy.Data memory settlementStrategy) =
+        (uint8 orderId, uint248 timestamp, SettlementStrategy.Data memory settlementStrategy) =
             abi.decode(log.data, (uint8, uint248, SettlementStrategy.Data));
 
         SettlementStrategy.DataStreamsBasicFeed memory strategy =
@@ -108,7 +108,7 @@ contract BasicSettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPS
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(strategy.streamId));
-        uint256 settlementTimestamp = orderTimestamp + strategy.settlementDelay;
+        uint256 settlementTimestamp = timestamp + strategy.settlementDelay;
         bytes memory extraData = abi.encode(accountId, marketId, orderId);
 
         revert StreamsLookup(strategy.feedLabel, streams, strategy.queryLabel, settlementTimestamp, extraData);

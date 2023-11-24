@@ -31,8 +31,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
             sizeDelta: int128(50e18),
             acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
         });
-        Order.Data memory expectedOrder =
-            Order.Data({ id: 0, payload: payload, orderTimestamp: uint248(block.timestamp) });
+        Order.Data memory expectedOrder = Order.Data({ id: 0, payload: payload, timestamp: uint248(block.timestamp) });
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
@@ -56,8 +55,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createOrder({ payload: payload });
 
-        Order.Data memory expectedOrder =
-            Order.Data({ id: 1, payload: payload, orderTimestamp: uint248(block.timestamp) });
+        Order.Data memory expectedOrder = Order.Data({ id: 1, payload: payload, timestamp: uint248(block.timestamp) });
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);

@@ -17,7 +17,7 @@ interface IOrderModule {
         uint256 indexed accountId,
         uint128 indexed marketId,
         uint8 orderId,
-        uint248 orderTimestamp,
+        uint248 timestamp,
         SettlementStrategy.Data settlementStrategy
     );
     event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
