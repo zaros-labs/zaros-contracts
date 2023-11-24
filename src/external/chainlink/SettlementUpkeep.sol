@@ -23,7 +23,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
     using SafeCast for uint256;
 
     /// @notice keccak256(abi.encode(uint256(keccak256("example.main")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 internal constant MARKET_ORDER_UPKEEP_LOCATION = keccak256(
+    bytes32 internal constant SETTLEMENT_UPKEEP_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.SettlementUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
@@ -180,7 +180,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
     }
 
     function _getSettlementUpkeepStorage() internal pure returns (SettlementUpkeepStorage storage self) {
-        bytes32 slot = MARKET_ORDER_UPKEEP_LOCATION;
+        bytes32 slot = SETTLEMENT_UPKEEP_LOCATION;
 
         assembly {
             self.slot := slot
