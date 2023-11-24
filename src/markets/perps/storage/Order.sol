@@ -15,7 +15,7 @@ library Order {
 
     struct Data {
         uint8 id;
-        uint248 settlementTimestamp;
+        uint248 orderTimestamp;
         Payload payload;
     }
 
@@ -26,6 +26,6 @@ library Order {
         self.payload.initialMarginDelta = 0;
         self.payload.sizeDelta = 0;
         self.payload.acceptablePrice = 0;
-        self.settlementTimestamp = 0;
+        self.orderTimestamp = 0;
     }
 }
