@@ -44,12 +44,13 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         streamId: MOCK_ETH_USD_STREAM_ID,
         feedLabel: DATA_STREAMS_FEED_LABEL,
         queryLabel: DATA_STREAMS_QUERY_LABEL,
-        upkeep: mockDefaultSettlementUpkeep,
         settlementDelay: ETH_USD_SETTLEMENT_DELAY
     });
     SettlementStrategy.Data internal ethUsdSettlementStrategy = SettlementStrategy.Data({
         strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_BASIC_FEED,
         isEnabled: true,
+        settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
+        upkeep: mockDefaultSettlementUpkeep,
         strategyData: abi.encode(ethUsdSettlementStrategyData)
     });
     OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });

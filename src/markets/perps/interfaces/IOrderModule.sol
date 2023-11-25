@@ -44,7 +44,5 @@ interface IOrderModule {
 
     function createOrder(Order.Payload calldata orderPayload) external;
 
-    // function settleOrder(bytes32 orderId) external;
-
     function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external;
 }

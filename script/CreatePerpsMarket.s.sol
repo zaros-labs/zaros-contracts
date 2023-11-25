@@ -16,6 +16,7 @@ contract CreatePerpsMarket is BaseScript {
     string internal constant DATA_STREAMS_QUERY_LABEL = "timestamp";
 
     address internal defaultSettlementUpkeep;
+    uint256 internal defaultSettlementFee;
 
     string internal ethUsdStreamId;
 
@@ -46,6 +47,7 @@ contract CreatePerpsMarket is BaseScript {
 
     function run() public broadcaster {
         defaultSettlementUpkeep = vm.envAddress("DEFAULT_SETTLEMENT_UPKEEP");
+        defaultSettlementFee = vm.envUint("DEFAULT_SETTLEMENT_FEE");
 
         ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
 
@@ -58,12 +60,13 @@ contract CreatePerpsMarket is BaseScript {
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_LABEL,
             queryLabel: DATA_STREAMS_QUERY_LABEL,
-            upkeep: defaultSettlementUpkeep,
             settlementDelay: ETH_USD_SETTLEMENT_DELAY
         });
         SettlementStrategy.Data memory ethUsdSettlementStrategy = SettlementStrategy.Data({
             strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_BASIC_FEED,
             isEnabled: true,
+            settlementFee: uint80(defaultSettlementFee),
+            upkeep: defaultSettlementUpkeep,
             strategyData: abi.encode(ethUsdSettlementStrategyData)
         });
 
@@ -83,12 +86,13 @@ contract CreatePerpsMarket is BaseScript {
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_LABEL,
             queryLabel: DATA_STREAMS_QUERY_LABEL,
-            upkeep: defaultSettlementUpkeep,
             settlementDelay: LINK_USD_SETTLEMENT_DELAY
         });
         SettlementStrategy.Data memory linkUsdSettlementStrategy = SettlementStrategy.Data({
             strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_BASIC_FEED,
             isEnabled: true,
+            settlementFee: uint80(defaultSettlementFee),
+            upkeep: defaultSettlementUpkeep,
             strategyData: abi.encode(linkUsdSettlementStrategyData)
         });
 

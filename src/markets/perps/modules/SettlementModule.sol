@@ -31,12 +31,10 @@ abstract contract SettlementModule is ISettlementModule {
 
     modifier onlySettlementUpkeep(uint128 marketId) {
         SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).settlementStrategy;
-        (SettlementStrategy.DataStreamsBasicFeed memory strategy) =
-            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
-        address settlementUpkeep = strategy.upkeep;
+        address upkeep = settlementStrategy.upkeep;
 
-        if (msg.sender != settlementUpkeep) {
-            revert Errors.OnlyForwarder(msg.sender, settlementUpkeep);
+        if (msg.sender != upkeep && upkeep != address(0)) {
+            revert Errors.OnlyForwarder(msg.sender, upkeep);
         }
         _;
     }
@@ -64,7 +62,8 @@ abstract contract SettlementModule is ISettlementModule {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
         Position.Data storage oldPosition = perpsMarket.positions[runtime.accountId];
-        // address usdToken = PerpsConfiguration.load().usdToken;
+        runtime.settlementFee = ud60x18(perpsMarket.settlementStrategy.settlementFee);
+        address usdToken = PerpsConfiguration.load().usdToken;
 
         // TODO: apply price impact
         runtime.fillPrice = sd59x18(report.price).intoUD60x18();
@@ -76,11 +75,12 @@ abstract contract SettlementModule is ISettlementModule {
         runtime.unrealizedPnlToStore = sd59x18(0);
 
         // for now we'll realize the total uPnL, we should realize it proportionally in the future
-        // if (runtime.pnl.lt(SD_ZERO)) {
-        //     perpsAccount.deductAccountMargin(runtime.pnl.intoUD60x18());
-        // } else if (runtime.pnl.gt(SD_ZERO)) {
-        //     perpsAccount.increaseMarginCollateralBalance(usdToken, runtime.pnl.intoUD60x18());
-        // }
+        if (runtime.pnl.lt(SD_ZERO)) {
+            UD60x18 amountToDeduct = runtime.pnl.intoUD60x18().add((runtime.settlementFee));
+            perpsAccount.deductAccountMargin(amountToDeduct);
+        } else if (runtime.pnl.gt(SD_ZERO)) {
+            perpsAccount.increaseMarginCollateralBalance(usdToken, runtime.pnl.intoUD60x18());
+        }
         UD60x18 initialMargin =
             ud60x18(oldPosition.initialMargin).add(sd59x18(order.payload.initialMarginDelta).intoUD60x18());
 

@@ -40,6 +40,7 @@ abstract contract Constants {
     /// @notice General perps markets configuration constants.
     string internal constant DATA_STREAMS_FEED_LABEL = "feedIDs";
     string internal constant DATA_STREAMS_QUERY_LABEL = "timestamp";
+    uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
 
     /// @notice ETH/USD market configuration constants.
     uint128 internal constant ETH_USD_MARKET_ID = 1;
