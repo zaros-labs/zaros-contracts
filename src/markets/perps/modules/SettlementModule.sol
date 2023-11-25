@@ -53,7 +53,7 @@ abstract contract SettlementModule is ISettlementModule {
         _settleOrder(order, report);
     }
 
-    // TODO: many validations pending
+    // TODO: rework this
     function _settleOrder(Order.Data storage order, BasicReport memory report) internal {
         SettlementRuntime memory runtime;
         runtime.marketId = order.payload.marketId;
@@ -79,8 +79,11 @@ abstract contract SettlementModule is ISettlementModule {
             UD60x18 amountToDeduct = runtime.pnl.intoUD60x18().add((runtime.settlementFee));
             perpsAccount.deductAccountMargin(amountToDeduct);
         } else if (runtime.pnl.gt(SD_ZERO)) {
-            perpsAccount.increaseMarginCollateralBalance(usdToken, runtime.pnl.intoUD60x18());
+            UD60x18 amountToIncrease = runtime.pnl.intoUD60x18().sub((runtime.settlementFee));
+            perpsAccount.increaseMarginCollateralBalance(usdToken, amountToIncrease);
         }
+        // TODO: liquidityEngine.withdrawUsdToken(upkeep, runtime.marketId, runtime.settlementFee);
+
         UD60x18 initialMargin =
             ud60x18(oldPosition.initialMargin).add(sd59x18(order.payload.initialMarginDelta).intoUD60x18());
 
