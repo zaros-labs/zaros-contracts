@@ -29,14 +29,14 @@ abstract contract SettlementModule is ISettlementModule {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    modifier onlyBasicSettlementUpkeep(uint128 marketId) {
+    modifier onlySettlementUpkeep(uint128 marketId) {
         SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).settlementStrategy;
         (SettlementStrategy.DataStreamsBasicFeed memory strategy) =
             abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
-        address basicSettlementUpkeep = strategy.upkeep;
+        address settlementUpkeep = strategy.upkeep;
 
-        if (msg.sender != basicSettlementUpkeep) {
-            revert Errors.OnlyForwarder(msg.sender, basicSettlementUpkeep);
+        if (msg.sender != settlementUpkeep) {
+            revert Errors.OnlyForwarder(msg.sender, settlementUpkeep);
         }
         _;
     }
@@ -48,7 +48,7 @@ abstract contract SettlementModule is ISettlementModule {
         BasicReport calldata report
     )
         external
-        onlyBasicSettlementUpkeep(marketId)
+        onlySettlementUpkeep(marketId)
     {
         Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
 
