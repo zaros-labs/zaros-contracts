@@ -22,7 +22,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     using SafeCast for uint256;
 
-    /// @notice keccak256(abi.encode(uint256(keccak256("example.main")) - 1)) & ~bytes32(uint256(0xff));
+    /// @notice ERC7201 storage location.
     bytes32 internal constant SETTLEMENT_UPKEEP_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.SettlementUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
@@ -116,8 +116,8 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
 
     /// @inheritdoc IStreamsLookupCompatible
     function checkCallback(
-        bytes[] memory values,
-        bytes memory extraData
+        bytes[] calldata values,
+        bytes calldata extraData
     )
         external
         view

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-interface AutomationCompatibleInterface {
+interface IAutomationCompatible {
     /**
      * @notice method that is simulated by the keepers to see if any work actually
      * needs to be performed. This method does does not actually need to be

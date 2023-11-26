@@ -39,8 +39,8 @@ interface IStreamsLookupCompatible {
      */
 
     function checkCallback(
-        bytes[] memory values,
-        bytes memory extraData
+        bytes[] calldata values,
+        bytes calldata extraData
     )
         external
         view
