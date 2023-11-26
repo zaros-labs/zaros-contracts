@@ -10,11 +10,12 @@ library Order {
     }
 
     struct Market {
-        uint128 timestamp;
+        uint256 timestamp;
         Payload payload;
     }
 
     struct Limit {
+        uint128 id;
         uint128 price;
         Payload payload;
     }

@@ -102,6 +102,6 @@ abstract contract SettlementModule is ISettlementModule {
         perpsMarket.size =
             ud60x18(perpsMarket.size).add(sd59x18(marketOrder.payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
-        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, marketOrder.id, runtime.newPosition);
+        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, runtime.newPosition);
     }
 }

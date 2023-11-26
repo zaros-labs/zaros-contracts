@@ -92,6 +92,39 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     }
 
     /// @inheritdoc IPerpsMarketModule
+    function getMarketData(uint128 marketId)
+        external
+        view
+        returns (
+            string memory name,
+            string memory symbol,
+            uint128 minInitialMarginRate,
+            uint128 maintenanceMarginRate,
+            uint128 maxOpenInterest,
+            int128 skew,
+            uint128 size,
+            OrderFees.Data memory orderFees,
+            SettlementStrategy.Data memory settlementStrategy,
+            SD59x18 fundingRate,
+            SD59x18 fundingVelocity
+        )
+    {
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+
+        name = perpsMarket.name;
+        symbol = perpsMarket.symbol;
+        minInitialMarginRate = perpsMarket.minInitialMarginRate;
+        maintenanceMarginRate = perpsMarket.maintenanceMarginRate;
+        maxOpenInterest = perpsMarket.maxOpenInterest;
+        skew = perpsMarket.skew;
+        size = perpsMarket.size;
+        orderFees = perpsMarket.orderFees;
+        settlementStrategy = perpsMarket.settlementStrategy;
+        fundingRate = perpsMarket.getCurrentFundingRate();
+        fundingVelocity = perpsMarket.getCurrentFundingVelocity();
+    }
+
+    /// @inheritdoc IPerpsMarketModule
     function getOpenPositionData(
         uint256 accountId,
         uint128 marketId

@@ -71,6 +71,36 @@ interface IPerpsMarketModule {
     /// @return leverage The position current leverage (notional value / IM).
     function getPositionLeverage(uint256 accountId, uint128 marketId) external view returns (UD60x18 leverage);
 
+    /// @notice Returns the most relevant data of the given market.
+    /// @param marketId The perps market id.
+    /// @return name The market name.
+    /// @return symbol The market symbol.
+    /// @return minInitialMarginRate The minimum initial margin rate for the market.
+    /// @return maintenanceMarginRate The maintenance margin rate for the market.
+    /// @return maxOpenInterest The maximum open interest for the market.
+    /// @return skew The skew of the market.
+    /// @return size The size of the market
+    /// @return orderFees The configured maker and taker order fees of the market.
+    /// @return settlementStrategy The configured settlement strategy of the market.
+    /// @return fundingRate The current funding rate of the market.
+    /// @return fundingVelocity The current funding velocity of the market.
+    function getMarketData(uint128 marketId)
+        external
+        view
+        returns (
+            string memory name,
+            string memory symbol,
+            uint128 minInitialMarginRate,
+            uint128 maintenanceMarginRate,
+            uint128 maxOpenInterest,
+            int128 skew,
+            uint128 size,
+            OrderFees.Data memory orderFees,
+            SettlementStrategy.Data memory settlementStrategy,
+            SD59x18 fundingRate,
+            SD59x18 fundingVelocity
+        );
+
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.
