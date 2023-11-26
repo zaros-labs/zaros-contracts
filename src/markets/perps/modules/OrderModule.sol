@@ -51,9 +51,18 @@ abstract contract OrderModule is IOrderModule {
     { }
 
     /// @inheritdoc IOrderModule
-    function getOrders(uint256 accountId, uint128 marketId) external view override returns (Order.Market[] memory) {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        return perpsMarket.orders[accountId];
+    function getActiveMarketOrder(
+        uint256 accountId,
+        uint128 marketId
+    )
+        external
+        view
+        override
+        returns (Order.Market memory marketOrder)
+    {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+
+        marketOrder = perpsAccount.activeMarketOrder[marketId];
     }
 
     /// @inheritdoc IOrderModule
@@ -69,25 +78,27 @@ abstract contract OrderModule is IOrderModule {
             revert Errors.AccountLiquidatable(msg.sender, accountId);
         }
 
-        // TODO: validate order
-        uint8 orderId = (perpsMarket.orders[accountId].length).toUint8();
-        Order.Market memory order =
-            Order.Market({ id: orderId, payload: payload, timestamp: block.timestamp.toUint248() });
-        perpsMarket.orders[accountId].push(order);
-        perpsAccount.updateActiveOrders(marketId, orderId, true);
+        if (perpsAccount.activeMarketOrder[marketId].timestamp != 0) {
+            revert();
+        }
 
-        emit LogCreateMarketOrder(msg.sender, accountId, marketId, order.id, order.timestamp, settlementStrategy);
+        // TODO: validate order
+        Order.Market memory marketOrder = Order.Market({ payload: payload, timestamp: block.timestamp.toUint248() });
+        perpsAccount.activeMarketOrder[marketId] = marketOrder;
+        // perpsAccount.updateActiveOrders(marketId, orderId, true);
+
+        emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder.timestamp, settlementStrategy);
     }
 
     /// @inheritdoc IOrderModule
     function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external override {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        Order.Market storage order = perpsMarket.orders[accountId][orderId];
+        // PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
+        // PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        // Order.Market storage order = perpsMarket.orders[accountId][orderId];
 
-        perpsAccount.updateActiveOrders(marketId, orderId, false);
-        order.reset();
+        // // perpsAccount.updateActiveOrders(marketId, orderId, false);
+        // order.reset();
 
-        emit LogCancelOrder(msg.sender, accountId, marketId, orderId);
+        // emit LogCancelOrder(msg.sender, accountId, marketId, orderId);
     }
 }

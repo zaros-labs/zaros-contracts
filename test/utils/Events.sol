@@ -33,16 +33,12 @@ abstract contract Events {
     event LogCreateMarketOrder(
         address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Order.Market marketOrder
     );
-    event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
+    // event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
 
     /*//////////////////////////////////////////////////////////////////////////
                                    SETTLEMENT MODULE
     //////////////////////////////////////////////////////////////////////////*/
     event LogSettleOrder(
-        address indexed sender,
-        uint256 indexed accountId,
-        uint128 indexed marketId,
-        uint8 orderId,
-        Position.Data newPosition
+        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Position.Data newPosition
     );
 }

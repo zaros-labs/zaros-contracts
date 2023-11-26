@@ -12,11 +12,7 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 interface ISettlementModule {
     event LogSettleOrder(
-        address indexed sender,
-        uint256 indexed accountId,
-        uint128 indexed marketId,
-        uint8 orderId,
-        Position.Data newPosition
+        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Position.Data newPosition
     );
 
     struct SettlementRuntime {

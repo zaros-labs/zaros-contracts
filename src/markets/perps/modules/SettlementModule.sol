@@ -42,13 +42,12 @@ abstract contract SettlementModule is ISettlementModule {
     function settleOrder(
         uint256 accountId,
         uint128 marketId,
-        uint8 orderId,
         BasicReport calldata report
     )
         external
         onlySettlementUpkeep(marketId)
     {
-        Order.Market storage marketOrder = PerpsMarket.load(marketId).orders[accountId][orderId];
+        Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
 
         _settleOrder(marketOrder, report);
     }
@@ -97,7 +96,7 @@ abstract contract SettlementModule is ISettlementModule {
         });
 
         marketOrder.reset();
-        perpsAccount.updateActiveOrders(runtime.marketId, marketOrder.id, false);
+        // perpsAccount.updateActiveOrders(runtime.marketId, marketOrder.id, false);
         oldPosition.update(runtime.newPosition);
         perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(marketOrder.payload.sizeDelta)).intoInt256().toInt128();
         perpsMarket.size =

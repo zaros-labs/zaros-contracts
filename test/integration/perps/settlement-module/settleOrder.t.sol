@@ -44,17 +44,12 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
             lastInteractionFundingFeePerUnit: 0
         });
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, marketOrder.id, expectedPosition);
+        emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedPosition);
 
         BasicReport memory mockReport;
         mockReport.price = int192(int256(MOCK_ETH_USD_PRICE));
 
-        perpsEngine.settleOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            orderId: marketOrder.id,
-            report: mockReport
-        });
+        perpsEngine.settleOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport });
     }
 
     function testFuzz_SettleOrderReducingSize(uint256 amountToDeposit) external {
@@ -75,12 +70,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder({ payload: payload });
 
-        perpsEngine.settleOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            orderId: 0,
-            report: mockReport
-        });
+        perpsEngine.settleOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport });
 
         Order.Payload memory newPayload = Order.Payload({
             accountId: perpsAccountId,
@@ -101,13 +91,8 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         });
 
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, sellOrder.id, expectedPosition);
+        emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedPosition);
 
-        perpsEngine.settleOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            orderId: sellOrder.id,
-            report: mockReport
-        });
+        perpsEngine.settleOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport });
     }
 }

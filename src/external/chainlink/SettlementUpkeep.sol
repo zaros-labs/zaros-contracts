@@ -100,8 +100,8 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         returns (bool upkeepNeeded, bytes memory performData)
     {
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
-        (uint8 orderId, uint248 timestamp, SettlementStrategy.Data memory settlementStrategy) =
-            abi.decode(log.data, (uint8, uint248, SettlementStrategy.Data));
+        (uint248 timestamp, SettlementStrategy.Data memory settlementStrategy) =
+            abi.decode(log.data, (uint248, SettlementStrategy.Data));
 
         SettlementStrategy.DataStreamsBasicFeed memory strategy =
             abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
@@ -109,7 +109,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(strategy.streamId));
         uint256 settlementTimestamp = timestamp + strategy.settlementDelay;
-        bytes memory extraData = abi.encode(accountId, marketId, orderId);
+        bytes memory extraData = abi.encode(accountId, marketId);
 
         revert StreamsLookup(strategy.feedLabel, streams, strategy.queryLabel, settlementTimestamp, extraData);
     }
@@ -135,19 +135,9 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         // TODO: Store preferred fee token instead of querying i_nativeAddress?
         address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
 
-        (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
-
         upkeepNeeded = true;
         performData = abi.encode(
-            signedReport,
-            reportData,
-            chainlinkVerifier,
-            chainlinkFeeManager,
-            perpsEngine,
-            feeTokenAddress,
-            accountId,
-            marketId,
-            orderId
+            signedReport, reportData, chainlinkVerifier, chainlinkFeeManager, perpsEngine, feeTokenAddress, extraData
         );
     }
 
@@ -161,11 +151,8 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
             PerpsEngine perpsEngine,
             address feeTokenAddress,
             uint256 accountId,
-            uint128 marketId,
-            uint8 orderId
-        ) = abi.decode(
-            performData, (bytes, bytes, IVerifierProxy, IFeeManager, PerpsEngine, address, uint256, uint128, uint8)
-        );
+            uint128 marketId
+        ) = abi.decode(performData, (bytes, bytes, IVerifierProxy, IFeeManager, PerpsEngine, address, uint256, uint128));
 
         (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
 
@@ -173,7 +160,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
             chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
         BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
 
-        perpsEngine.settleOrder(accountId, marketId, orderId, verifiedReport);
+        perpsEngine.settleOrder(accountId, marketId, verifiedReport);
     }
 
     /// @notice Decodes the signedReport object and returns the report data only.

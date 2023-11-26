@@ -5,6 +5,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarginCollateral } from "./MarginCollateral.sol";
+import { Order } from "./Order.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -29,14 +30,18 @@ library PerpsAccount {
     /// @param owner The perps account owner.
     /// @param marginCollateralBalance The perps account margin collateral enumerable map.
     /// @param activeMarketsIds The perps account active markets ids enumerable set.
+    /// @param marketOrders The perps account's market orders with pending settlement.
+    /// @param limitOrders The perps account's active limit orders.
     /// @dev TODO: implement role based access control.
     struct Data {
         uint256 id;
         address owner;
         EnumerableMap.AddressToUintMap marginCollateralBalance;
-        EnumerableSet.Bytes32Set activeOrdersPerMarket;
+        // EnumerableSet.Bytes32Set activeOrdersPerMarket;
         EnumerableSet.UintSet activeMarketsIds;
         EnumerableSet.AddressSet collateralPriority;
+        mapping(uint256 accountId => Order.Market) activeMarketOrder;
+        mapping(uint256 accountId => Order.Limit[]) limitOrders;
     }
 
     /// @notice Loads a {PerpsAccount} object.
@@ -178,18 +183,18 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Updates the account's active orders ids per market.
-    /// @param self The perps account storage pointer.
-    /// @param marketId The perps market id.
-    /// @param orderId the order id.
-    /// @param isActive `true` if the order is being created, `false` otherwise.
-    function updateActiveOrders(Data storage self, uint128 marketId, uint8 orderId, bool isActive) internal {
-        bytes32 orderAndMarketIds = keccak256(abi.encode(marketId, orderId));
-        bool success;
-        if (isActive) {
-            success = self.activeOrdersPerMarket.add(orderAndMarketIds);
-        } else {
-            success = self.activeOrdersPerMarket.remove(orderAndMarketIds);
-        }
-    }
+    // /// @notice Updates the account's active orders ids per market.
+    // /// @param self The perps account storage pointer.
+    // /// @param marketId The perps market id.
+    // /// @param orderId the order id.
+    // /// @param isActive `true` if the order is being created, `false` otherwise.
+    // function updateActiveOrders(Data storage self, uint128 marketId, uint8 orderId, bool isActive) internal {
+    //     bytes32 orderAndMarketIds = keccak256(abi.encode(marketId, orderId));
+    //     bool success;
+    //     if (isActive) {
+    //         success = self.activeOrdersPerMarket.add(orderAndMarketIds);
+    //     } else {
+    //         success = self.activeOrdersPerMarket.remove(orderAndMarketIds);
+    //     }
+    // }
 }

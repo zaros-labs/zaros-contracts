@@ -16,11 +16,11 @@ interface IOrderModule {
         address indexed sender,
         uint256 indexed accountId,
         uint128 indexed marketId,
-        uint8 orderId,
         uint248 timestamp,
         SettlementStrategy.Data settlementStrategy
     );
-    event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
+    // event LogCancelLimitOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint128
+    // orderId);
 
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
@@ -44,5 +44,5 @@ interface IOrderModule {
 
     function createMarketOrder(Order.Payload calldata orderPayload) external;
 
-    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external;
+    function cancelOrder(uint256 accountId, uint128 marketId) external;
 }
