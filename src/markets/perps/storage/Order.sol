@@ -2,10 +2,11 @@
 pragma solidity 0.8.23;
 
 library Order {
+    string internal constant LIMIT_ORDER_DOMAIN = "fi.zaros.markets.perps.Order.Limit";
+
     struct Payload {
-        uint256 accountId;
+        uint128 accountId;
         uint128 marketId;
-        int128 initialMarginDelta;
         int128 sizeDelta;
     }
 
@@ -15,9 +16,22 @@ library Order {
     }
 
     struct Limit {
-        uint128 id;
-        uint128 price;
+        uint256 price;
         Payload payload;
+    }
+
+    function load(uint128 accountId, uint128 limitOrderId) internal pure returns (Limit storage limitOrder) {
+        bytes32 slot = keccak256(abi.encode(LIMIT_ORDER_DOMAIN, accountId, limitOrderId));
+        assembly {
+            limitOrder.slot := slot
+        }
+    }
+
+    function createLimit(uint128 id, uint256 price, Payload memory payload) internal returns (uint256 limitOrderSlot) {
+        Limit storage limitOrder = load(payload.accountId, id);
+
+        limitOrder.price = price;
+        limitOrder.payload = payload;
     }
 
     function reset(Market storage marketOrder) internal { }

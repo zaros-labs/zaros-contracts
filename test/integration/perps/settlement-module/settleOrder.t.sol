@@ -29,7 +29,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
-            initialMarginDelta: int128(10_000e18),
+            // initialMarginDelta: int128(10_000e18),
             sizeDelta: int128(50e18)
         });
         perpsEngine.createMarketOrder({ payload: payload });
@@ -64,7 +64,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
-            initialMarginDelta: int128(10_000e18),
+            // initialMarginDelta: int128(10_000e18),
             sizeDelta: int128(50e18)
         });
 
@@ -75,7 +75,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         Order.Payload memory newPayload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
-            initialMarginDelta: int128(0),
+            // initialMarginDelta: int128(0),
             sizeDelta: int128(-25e18)
         });
         perpsEngine.createMarketOrder({ payload: newPayload });
@@ -84,7 +84,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
         Position.Data memory expectedPosition = Position.Data({
             size: payload.sizeDelta + sellOrder.payload.sizeDelta,
-            initialMargin: uint128(uint256(int256(payload.initialMarginDelta))),
+            // initialMargin: uint128(uint256(int256(payload.initialMarginDelta))),
             unrealizedPnlStored: 0,
             lastInteractionPrice: uint128(MOCK_ETH_USD_PRICE),
             lastInteractionFundingFeePerUnit: 0

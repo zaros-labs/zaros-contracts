@@ -65,7 +65,7 @@ abstract contract OrderModule is IOrderModule {
         marketOrder = perpsAccount.activeMarketOrder[marketId];
     }
 
-    function createLimitOrder(Order.Payload calldata payload, uint128 price) override external {
+    function createLimitOrder(Order.Payload calldata payload, uint128 price) external override {
         uint256 accountId = payload.accountId;
         uint128 marketId = payload.marketId;
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);

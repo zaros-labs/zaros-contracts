@@ -17,6 +17,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableMap for EnumerableMap.UintToUintMap;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -31,18 +32,18 @@ library PerpsAccount {
     /// @param owner The perps account owner.
     /// @param marginCollateralBalance The perps account margin collateral enumerable map.
     /// @param activeMarketsIds The perps account active markets ids enumerable set.
-    /// @param marketOrders The perps account's market orders with pending settlement.
-    /// @param limitOrders The perps account's active limit orders.
+    /// @param activeMarketOrder The perps account's market orders with pending settlement per market.
     /// @dev TODO: implement role based access control.
     struct Data {
-        uint256 id;
+        uint128 id;
+        uint128 nextLimitOrderId;
         address owner;
         EnumerableMap.AddressToUintMap marginCollateralBalance;
         // EnumerableSet.Bytes32Set activeOrdersPerMarket;
         EnumerableSet.UintSet activeMarketsIds;
         EnumerableSet.AddressSet collateralPriority;
         mapping(uint128 marketId => Order.Market) activeMarketOrder;
-        mapping(uint128 marketId => EnumerableSet.Bytes32Set) limitOrdersPointersPerMarket;
+        mapping(uint128 marketId => EnumerableMap.UintToUintMap) limitOrdersSlotsPerMarket;
     }
 
     /// @notice Loads a {PerpsAccount} object.
@@ -123,8 +124,11 @@ library PerpsAccount {
         perpsAccount.owner = owner;
     }
 
-    function addLimitOrder(uint128 marketId, uint128 price, Order.Payload memory payload) internal {
+    function addLimitOrder(Data storage self, uint128 marketId, uint128 price, Order.Payload memory payload) internal {
+        uint128 nextLimitOrderId = ++self.nextLimitOrderId;
+        uint256 limitOrderSlot = Order.createLimit({ id: nextLimitOrderId, price: price, payload: payload });
 
+        self.limitOrdersSlotsPerMarket[marketId].set(uint256(nextLimitOrderId), limitOrderSlot);
     }
 
     /// @notice Increases the margin collateral for the given collateral type.

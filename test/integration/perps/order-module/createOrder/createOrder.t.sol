@@ -27,7 +27,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
-            initialMarginDelta: int128(10_000e18),
+            // initialMarginDelta: int128(10_000e18),
             sizeDelta: int128(50e18)
         });
         Order.Market memory expectedOrder = Order.Market({ payload: payload, timestamp: uint248(block.timestamp) });
@@ -47,7 +47,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
-            initialMarginDelta: int128(10_000e18),
+            // initialMarginDelta: int128(10_000e18),
             sizeDelta: int128(50e18)
         });
 

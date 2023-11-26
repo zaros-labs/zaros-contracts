@@ -83,13 +83,13 @@ abstract contract SettlementModule is ISettlementModule {
         }
         // TODO: liquidityEngine.withdrawUsdToken(upkeep, runtime.marketId, runtime.settlementFee);
 
-        UD60x18 initialMargin =
-            ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
+        // UD60x18 initialMargin =
+        //     ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
 
         // TODO: validate initial margin and size
         runtime.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(sd59x18(marketOrder.payload.sizeDelta)).intoInt256(),
-            initialMargin: initialMargin.intoUint128(),
+            // initialMargin: initialMargin.intoUint128(),
             unrealizedPnlStored: runtime.unrealizedPnlToStore.intoInt256().toInt128(),
             lastInteractionPrice: runtime.fillPrice.intoUint128(),
             lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
