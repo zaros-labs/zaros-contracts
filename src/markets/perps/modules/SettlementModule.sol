@@ -7,7 +7,7 @@ import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookup
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
-import { MarketOrder } from "../storage/MarketOrder.sol";
+import { Order } from "../storage/Order.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
@@ -22,7 +22,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 abstract contract SettlementModule is ISettlementModule {
-    using MarketOrder for MarketOrder.Data;
+    using Order for Order.Market;
     using PerpsAccount for PerpsAccount.Data;
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
@@ -48,13 +48,13 @@ abstract contract SettlementModule is ISettlementModule {
         external
         onlySettlementUpkeep(marketId)
     {
-        MarketOrder.Data storage marketOrder = PerpsMarket.load(marketId).orders[accountId][orderId];
+        Order.Market storage marketOrder = PerpsMarket.load(marketId).orders[accountId][orderId];
 
         _settleOrder(marketOrder, report);
     }
 
     // TODO: rework this
-    function _settleOrder(MarketOrder.Data storage marketOrder, BasicReport memory report) internal {
+    function _settleOrder(Order.Market storage marketOrder, BasicReport memory report) internal {
         SettlementRuntime memory runtime;
         runtime.marketId = marketOrder.payload.marketId;
         runtime.accountId = marketOrder.payload.accountId;

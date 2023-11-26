@@ -6,7 +6,7 @@ pragma solidity 0.8.23;
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
-import { MarketOrder } from "./MarketOrder.sol";
+import { Order } from "./Order.sol";
 import { OrderFees } from "./OrderFees.sol";
 import { Position } from "./Position.sol";
 import { SettlementStrategy } from "./SettlementStrategy.sol";
@@ -35,7 +35,7 @@ library PerpsMarket {
         OrderFees.Data orderFees;
         SettlementStrategy.Data settlementStrategy;
         mapping(uint256 accountId => Position.Data) positions;
-        mapping(uint256 accountId => MarketOrder.Data[]) orders;
+        mapping(uint256 accountId => Order.Market[]) orders;
     }
 
     /// @dev TODO: add function that only loads a valid / existing perps market

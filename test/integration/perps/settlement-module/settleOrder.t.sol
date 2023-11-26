@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
-import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
+import { Order } from "@zaros/markets/perps/storage/Order.sol";
 import { Position } from "@zaros/markets/perps/storage/Position.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
@@ -26,15 +26,14 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        MarketOrder.Payload memory payload = MarketOrder.Payload({
+        Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(10_000e18),
-            sizeDelta: int128(50e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
+            sizeDelta: int128(50e18)
         });
         perpsEngine.createMarketOrder({ payload: payload });
-        MarketOrder.Data memory marketOrder =
+        Order.Market memory marketOrder =
             perpsEngine.getOrders({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID })[0];
 
         Position.Data memory expectedPosition = Position.Data({
@@ -67,12 +66,11 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        MarketOrder.Payload memory payload = MarketOrder.Payload({
+        Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(10_000e18),
-            sizeDelta: int128(50e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
+            sizeDelta: int128(50e18)
         });
 
         perpsEngine.createMarketOrder({ payload: payload });
@@ -84,15 +82,14 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
             report: mockReport
         });
 
-        MarketOrder.Payload memory newPayload = MarketOrder.Payload({
+        Order.Payload memory newPayload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(0),
-            sizeDelta: int128(-25e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
+            sizeDelta: int128(-25e18)
         });
         perpsEngine.createMarketOrder({ payload: newPayload });
-        MarketOrder.Data memory sellOrder =
+        Order.Market memory sellOrder =
             perpsEngine.getOrders({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID })[1];
 
         Position.Data memory expectedPosition = Position.Data({

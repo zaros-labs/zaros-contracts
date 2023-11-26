@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
+import { Order } from "@zaros/markets/perps/storage/Order.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 // PRB Math dependencies
@@ -24,15 +24,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        MarketOrder.Payload memory payload = MarketOrder.Payload({
+        Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(10_000e18),
-            sizeDelta: int128(50e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
+            sizeDelta: int128(50e18)
         });
-        MarketOrder.Data memory expectedOrder =
-            MarketOrder.Data({ id: 0, payload: payload, timestamp: uint248(block.timestamp) });
+        Order.Market memory expectedOrder =
+            Order.Market({ id: 0, payload: payload, timestamp: uint248(block.timestamp) });
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
@@ -46,18 +45,17 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        MarketOrder.Payload memory payload = MarketOrder.Payload({
+        Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
             initialMarginDelta: int128(10_000e18),
-            sizeDelta: int128(50e18),
-            acceptablePrice: uint128(MOCK_ETH_USD_PRICE)
+            sizeDelta: int128(50e18)
         });
 
         perpsEngine.createMarketOrder({ payload: payload });
 
-        MarketOrder.Data memory expectedOrder =
-            MarketOrder.Data({ id: 1, payload: payload, timestamp: uint248(block.timestamp) });
+        Order.Market memory expectedOrder =
+            Order.Market({ id: 1, payload: payload, timestamp: uint248(block.timestamp) });
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);

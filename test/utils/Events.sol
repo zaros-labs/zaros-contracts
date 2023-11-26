@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
+import { Order } from "@zaros/markets/perps/storage/Order.sol";
 import { Position } from "@zaros/markets/perps/storage/Position.sol";
 
 /// @notice Abstract contract containing all the events emitted by all modules.
@@ -31,7 +31,7 @@ abstract contract Events {
                                    ORDER MODULE
     //////////////////////////////////////////////////////////////////////////*/
     event LogCreateMarketOrder(
-        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, MarketOrder.Data marketOrder
+        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Order.Market marketOrder
     );
     event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
 
