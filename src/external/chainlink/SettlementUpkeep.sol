@@ -99,16 +99,19 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
+        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
+        PerpsEngine perpsEngine = self.perpsEngine;
+
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
-        (uint248 timestamp, SettlementStrategy.Data memory settlementStrategy) =
-            abi.decode(log.data, (uint248, SettlementStrategy.Data));
+        (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
+        (,,,,,,,, SettlementStrategy.Data memory settlementStrategy,,) = perpsEngine.getMarketData(marketId);
 
         SettlementStrategy.DataStreamsBasicFeed memory strategy =
             abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(strategy.streamId));
-        uint256 settlementTimestamp = timestamp + strategy.settlementDelay;
+        uint256 settlementTimestamp = marketOrder.timestamp + strategy.settlementDelay;
         bytes memory extraData = abi.encode(accountId, marketId);
 
         revert StreamsLookup(strategy.feedLabel, streams, strategy.queryLabel, settlementTimestamp, extraData);

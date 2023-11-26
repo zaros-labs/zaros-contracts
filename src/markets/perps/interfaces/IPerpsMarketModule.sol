@@ -3,6 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
 import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
@@ -82,8 +83,6 @@ interface IPerpsMarketModule {
     /// @return size The size of the market
     /// @return orderFees The configured maker and taker order fees of the market.
     /// @return settlementStrategy The configured settlement strategy of the market.
-    /// @return fundingRate The current funding rate of the market.
-    /// @return fundingVelocity The current funding velocity of the market.
     function getMarketData(uint128 marketId)
         external
         view
@@ -96,9 +95,7 @@ interface IPerpsMarketModule {
             int128 skew,
             uint128 size,
             OrderFees.Data memory orderFees,
-            SettlementStrategy.Data memory settlementStrategy,
-            SD59x18 fundingRate,
-            SD59x18 fundingVelocity
+            SettlementStrategy.Data memory settlementStrategy
         );
 
     /// @notice Gets the given market's open position details.

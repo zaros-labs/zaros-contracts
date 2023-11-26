@@ -104,9 +104,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
             int128 skew,
             uint128 size,
             OrderFees.Data memory orderFees,
-            SettlementStrategy.Data memory settlementStrategy,
-            SD59x18 fundingRate,
-            SD59x18 fundingVelocity
+            SettlementStrategy.Data memory settlementStrategy
         )
     {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
@@ -120,8 +118,6 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         size = perpsMarket.size;
         orderFees = perpsMarket.orderFees;
         settlementStrategy = perpsMarket.settlementStrategy;
-        fundingRate = perpsMarket.getCurrentFundingRate();
-        fundingVelocity = perpsMarket.getCurrentFundingVelocity();
     }
 
     /// @inheritdoc IPerpsMarketModule
