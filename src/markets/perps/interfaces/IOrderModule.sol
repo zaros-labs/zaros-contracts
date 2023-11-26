@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { Order } from "../storage/Order.sol";
+import { MarketOrder } from "../storage/MarketOrder.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
 import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
@@ -24,7 +24,7 @@ interface IOrderModule {
 
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
-    function getOrders(uint256 accountId, uint128 marketId) external view returns (Order.Data[] memory orders);
+    function getOrders(uint256 accountId, uint128 marketId) external view returns (MarketOrder.Data[] memory orders);
 
     function estimateOrderFee(
         uint128 marketId,
@@ -42,7 +42,7 @@ interface IOrderModule {
         view
         returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin);
 
-    function createOrder(Order.Payload calldata orderPayload) external;
+    function createMarketOrder(MarketOrder.Payload calldata orderPayload) external;
 
     function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external;
 }

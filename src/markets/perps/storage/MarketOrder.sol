@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.23;
 
-/// @dev TODO: Think on refactoring this to have Order pointers being calculated
+/// @dev TODO: Think on refactoring this to have MarketOrder pointers being calculated
 /// from the namespace (e.g load(accountId,orderId))
-library Order {
+library MarketOrder {
     struct Payload {
         uint256 accountId;
         uint128 marketId;

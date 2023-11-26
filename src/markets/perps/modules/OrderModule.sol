@@ -6,7 +6,7 @@ pragma solidity 0.8.23;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
-import { Order } from "../storage/Order.sol";
+import { MarketOrder } from "../storage/MarketOrder.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
@@ -25,7 +25,7 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol"
 abstract contract OrderModule is IOrderModule {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
-    using Order for Order.Data;
+    using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
@@ -51,14 +51,22 @@ abstract contract OrderModule is IOrderModule {
     { }
 
     /// @inheritdoc IOrderModule
-    function getOrders(uint256 accountId, uint128 marketId) external view override returns (Order.Data[] memory) {
+    function getOrders(
+        uint256 accountId,
+        uint128 marketId
+    )
+        external
+        view
+        override
+        returns (MarketOrder.Data[] memory)
+    {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         return perpsMarket.orders[accountId];
     }
 
     /// @inheritdoc IOrderModule
     /// @dev TODO: remove accountId and marketId since they're already present in the payload
-    function createOrder(Order.Payload calldata payload) external override {
+    function createMarketOrder(MarketOrder.Payload calldata payload) external override {
         uint256 accountId = payload.accountId;
         uint128 marketId = payload.marketId;
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
@@ -71,7 +79,8 @@ abstract contract OrderModule is IOrderModule {
 
         // TODO: validate order
         uint8 orderId = (perpsMarket.orders[accountId].length).toUint8();
-        Order.Data memory order = Order.Data({ id: orderId, payload: payload, timestamp: block.timestamp.toUint248() });
+        MarketOrder.Data memory order =
+            MarketOrder.Data({ id: orderId, payload: payload, timestamp: block.timestamp.toUint248() });
         perpsMarket.orders[accountId].push(order);
         perpsAccount.updateActiveOrders(marketId, orderId, true);
 
@@ -82,7 +91,7 @@ abstract contract OrderModule is IOrderModule {
     function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external override {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        Order.Data storage order = perpsMarket.orders[accountId][orderId];
+        MarketOrder.Data storage order = perpsMarket.orders[accountId][orderId];
 
         perpsAccount.updateActiveOrders(marketId, orderId, false);
         order.reset();
