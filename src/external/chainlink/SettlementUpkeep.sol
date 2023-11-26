@@ -102,7 +102,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
         PerpsEngine perpsEngine = self.perpsEngine;
 
-        (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
+        (uint128 accountId, uint128 marketId) = (uint256(log.topics[2]).toUint128(), uint256(log.topics[3]).toUint128());
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
         SettlementStrategy.Data memory settlementStrategy = perpsEngine.settlementStrategy(marketId);
 
@@ -135,8 +135,8 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
 
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
-        (bytes[] memory signedReportsArray, uint256 accountId, uint128 marketId) =
-            abi.decode(performData, (bytes[], uint256, uint128));
+        (bytes[] memory signedReportsArray, uint128 accountId, uint128 marketId) =
+            abi.decode(performData, (bytes[], uint128, uint128));
 
         bytes memory signedReport = signedReportsArray[0];
         bytes memory reportData = _getReportData(signedReport);

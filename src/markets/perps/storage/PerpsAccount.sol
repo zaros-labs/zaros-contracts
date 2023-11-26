@@ -49,7 +49,7 @@ library PerpsAccount {
     /// @notice Loads a {PerpsAccount} object.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
-    function load(uint256 accountId) internal pure returns (Data storage perpsAccount) {
+    function load(uint128 accountId) internal pure returns (Data storage perpsAccount) {
         bytes32 slot = keccak256(abi.encode(PERPS_ACCOUNT_DOMAIN, accountId));
         assembly {
             perpsAccount.slot := slot
@@ -59,7 +59,7 @@ library PerpsAccount {
     /// @notice Checks whether the given perps account exists.
     /// @param accountId The perps account id.
     /// @return perpsAccount if the perps account exists, its storage pointer is returned.
-    function loadExisting(uint256 accountId) internal view returns (Data storage perpsAccount) {
+    function loadExisting(uint128 accountId) internal view returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         if (perpsAccount.owner == address(0)) {
             revert Errors.AccountNotFound(accountId, msg.sender);
@@ -74,7 +74,7 @@ library PerpsAccount {
     /// @notice Loads a perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
-    function loadAccountAndValidatePermission(uint256 accountId) internal view returns (Data storage perpsAccount) {
+    function loadAccountAndValidatePermission(uint128 accountId) internal view returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         verifyCaller(perpsAccount);
     }
@@ -118,7 +118,7 @@ library PerpsAccount {
     /// @param accountId The perps account id.
     /// @param owner The perps account owner.
     /// @return perpsAccount The created perps account storage pointer.
-    function create(uint256 accountId, address owner) internal returns (Data storage perpsAccount) {
+    function create(uint128 accountId, address owner) internal returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         perpsAccount.id = accountId;
         perpsAccount.owner = owner;

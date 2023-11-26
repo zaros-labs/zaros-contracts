@@ -16,7 +16,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         Base_Test.setUp();
     }
 
-    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint256 accountId) {
+    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
         accountId = perpsEngine.createPerpsAccount();
         perpsEngine.depositMargin(accountId, collateralType, amount);
     }

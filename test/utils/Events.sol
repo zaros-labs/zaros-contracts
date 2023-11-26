@@ -12,7 +12,7 @@ abstract contract Events {
                                    PERPS ACCOUNT MODULE
     //////////////////////////////////////////////////////////////////////////*/
 
-    event LogCreatePerpsAccount(uint256 accountId, address sender);
+    event LogCreatePerpsAccount(uint128 accountId, address sender);
     event LogDepositMargin(
         address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
     );

@@ -24,26 +24,26 @@ contract CreatePerpsAccount_Unit_Test is Base_Test {
     }
 
     function test_GivenTheCallerHasNoPreviousPerpsAccount() external givenThePerpsAccountTokenIsSet {
-        uint256 expectedAccountId = 1;
+        uint128 expectedAccountId = 1;
 
         // it should emit {LogCreatePerpsAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
 
-        uint256 accountId = perpsEngine.createPerpsAccount();
+        uint128 accountId = perpsEngine.createPerpsAccount();
 
         // it should return a valid accountId
         assertEq(accountId, expectedAccountId, "createPerpsAccount");
     }
 
     function test_GivenTheCallerHasAPreviouslyCreatedPerpsAccount() external givenThePerpsAccountTokenIsSet {
-        uint256 expectedAccountId = 2;
+        uint128 expectedAccountId = 2;
         perpsEngine.createPerpsAccount();
 
         // it should emit {LogCreatePerpsAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
-        uint256 accountId = perpsEngine.createPerpsAccount();
+        uint128 accountId = perpsEngine.createPerpsAccount();
 
         // it should return a valid accountId
         assertEq(accountId, expectedAccountId, "createPerpsAccount");

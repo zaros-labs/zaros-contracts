@@ -19,7 +19,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.configureMarginCollateral(address(usdToken), 0, address(mockUsdcUsdPriceFeed));
         changePrank({ msgSender: users.naruto });
 
-        uint256 userPerpsAccountId = perpsEngine.createPerpsAccount();
+        uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
         // it should revert
         vm.expectRevert({
@@ -35,7 +35,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
     function test_RevertWhen_TheAmountIsZero() external givenTheCollateralTypeHasSufficientDepositCap {
         uint256 amountToDeposit = 0;
-        uint256 userPerpsAccountId = perpsEngine.createPerpsAccount();
+        uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
@@ -48,7 +48,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_RevertGiven_ThePerpsAccountDoesNotExist(
-        uint256 userPerpsAccountId,
+        uint128 userPerpsAccountId,
         uint256 amountToDeposit
     )
         external
@@ -74,7 +74,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 userPerpsAccountId = perpsEngine.createPerpsAccount();
+        uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
         // it should emit {LogDepositMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });

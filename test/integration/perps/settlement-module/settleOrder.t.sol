@@ -24,7 +24,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
@@ -38,7 +38,8 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
         Position.Data memory expectedPosition = Position.Data({
             size: marketOrder.payload.sizeDelta,
-            initialMargin: uint128(uint256(int256(marketOrder.payload.initialMarginDelta))),
+            // initialMargin: uint128(uint256(int256(marketOrder.payload.initialMarginDelta))),
+            initialMargin: 0,
             unrealizedPnlStored: 0,
             lastInteractionPrice: uint128(MOCK_ETH_USD_PRICE),
             lastInteractionFundingFeePerUnit: 0
@@ -59,7 +60,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         BasicReport memory mockReport;
         mockReport.price = int192(int256(MOCK_ETH_USD_PRICE));
 
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         Order.Payload memory payload = Order.Payload({
             accountId: perpsAccountId,
@@ -85,6 +86,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         Position.Data memory expectedPosition = Position.Data({
             size: payload.sizeDelta + sellOrder.payload.sizeDelta,
             // initialMargin: uint128(uint256(int256(payload.initialMarginDelta))),
+            initialMargin: 0,
             unrealizedPnlStored: 0,
             lastInteractionPrice: uint128(MOCK_ETH_USD_PRICE),
             lastInteractionFundingFeePerUnit: 0

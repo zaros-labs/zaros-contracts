@@ -20,7 +20,7 @@ contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integrati
 
         uint256 expectedMarginCollateralValue =
             getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         uint256 marginCollateralValue =
             perpsEngine.getTotalAccountMarginCollateralValue({ accountId: perpsAccountId }).intoUint256();
@@ -37,7 +37,7 @@ contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integrati
         uint256 expectedMarginCollateralValue = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).add(
             getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amountToDeposit))
         ).intoUint256();
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
         uint256 marginCollateralValue =

@@ -27,7 +27,7 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
 
     function test_WhenTheDataArrayIsNull() external whenTheDataArrayDoesNotProvideARevertingCall {
         bytes[] memory data = new bytes[](0);
-        uint256 expectedAccountId = 1;
+        uint128 expectedAccountId = 1;
         uint256 expectedResultsLength = 0;
 
         // it should emit {LogCreatePerpsAccount}
@@ -41,7 +41,7 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
 
     function test_WhenTheDataArrayIsNotNull() external whenTheDataArrayDoesNotProvideARevertingCall {
         bytes[] memory data = new bytes[](1);
-        uint256 expectedAccountId = 1;
+        uint128 expectedAccountId = 1;
         data[0] = abi.encodeWithSelector(IPerpsAccountModule.getPerpsAccountToken.selector);
 
         // it should emit {LogCreatePerpsAccount}

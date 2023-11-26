@@ -70,7 +70,7 @@ interface IPerpsMarketModule {
     /// @param accountId The trading account id.
     /// @param marketId The perps market id.
     /// @return leverage The position current leverage (notional value / IM).
-    function getPositionLeverage(uint256 accountId, uint128 marketId) external view returns (UD60x18 leverage);
+    function getPositionLeverage(uint128 accountId, uint128 marketId) external view returns (UD60x18 leverage);
 
     /// @notice Returns the most relevant data of the given market.
     /// @param marketId The perps market id.
@@ -108,7 +108,7 @@ interface IPerpsMarketModule {
     /// @return accruedFunding The accrued funding fee.
     /// @return unrealizedPnl The current unrealized profit or loss of the position.
     function getOpenPositionData(
-        uint256 accountId,
+        uint128 accountId,
         uint128 marketId
     )
         external

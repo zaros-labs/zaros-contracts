@@ -21,7 +21,7 @@ interface IOrderModule {
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
     function getActiveMarketOrder(
-        uint256 accountId,
+        uint128 accountId,
         uint128 marketId
     )
         external
@@ -44,9 +44,9 @@ interface IOrderModule {
         view
         returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin);
 
-    function createLimitOrder(Order.Payload calldata payload, uint128 price) external override;
+    function createLimitOrder(Order.Payload calldata payload, uint128 price) external;
 
     function createMarketOrder(Order.Payload calldata orderPayload) external;
 
-    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external;
+    function cancelOrder(uint128 accountId, uint128 marketId, uint8 orderId) external;
 }

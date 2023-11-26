@@ -15,7 +15,7 @@ library Errors {
     /// @notice PerpsEngine.OrderModule errors
 
     /// @notice Thrown when an account is liquidatable and can't perform actions
-    error AccountLiquidatable(address sender, uint256 accountId);
+    error AccountLiquidatable(address sender, uint128 accountId);
 
     /// @notice PerpsEngine.PerpsAccountModule and PerpsEngine.PerpsAccount errors.
 
@@ -24,9 +24,9 @@ library Errors {
     /// @notice Thrown When the caller is not the account token contract.
     error OnlyPerpsAccountToken(address sender);
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
-    error PermissionDenied(uint256 accountId, address sender);
+    error PermissionDenied(uint128 accountId, address sender);
     /// @notice Thrown when the given `accountId` doesn't exist.
-    error AccountNotFound(uint256 accountId, address sender);
+    error AccountNotFound(uint128 accountId, address sender);
 
     /// @notice PerpsEngine.PerpsConfigurationModule
 

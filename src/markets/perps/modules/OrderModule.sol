@@ -52,7 +52,7 @@ abstract contract OrderModule is IOrderModule {
 
     /// @inheritdoc IOrderModule
     function getActiveMarketOrder(
-        uint256 accountId,
+        uint128 accountId,
         uint128 marketId
     )
         external
@@ -66,7 +66,7 @@ abstract contract OrderModule is IOrderModule {
     }
 
     function createLimitOrder(Order.Payload calldata payload, uint128 price) external override {
-        uint256 accountId = payload.accountId;
+        uint128 accountId = payload.accountId;
         uint128 marketId = payload.marketId;
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
@@ -81,7 +81,7 @@ abstract contract OrderModule is IOrderModule {
     /// @inheritdoc IOrderModule
     /// @dev TODO: remove accountId and marketId since they're already present in the payload
     function createMarketOrder(Order.Payload calldata payload) external override {
-        uint256 accountId = payload.accountId;
+        uint128 accountId = payload.accountId;
         uint128 marketId = payload.marketId;
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
@@ -103,7 +103,7 @@ abstract contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external override {
+    function cancelOrder(uint128 accountId, uint128 marketId, uint8 orderId) external override {
         // PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         // PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         // Order.Market storage order = perpsMarket.orders[accountId][orderId];

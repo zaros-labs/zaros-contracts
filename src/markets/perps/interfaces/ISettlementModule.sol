@@ -17,7 +17,7 @@ interface ISettlementModule {
 
     struct SettlementRuntime {
         uint128 marketId;
-        uint256 accountId;
+        uint128 accountId;
         UD60x18 settlementFee;
         UD60x18 fillPrice;
         SD59x18 unrealizedPnlToStore;

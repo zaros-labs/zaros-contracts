@@ -33,7 +33,7 @@ library PerpsMarket {
         uint128 size;
         OrderFees.Data orderFees;
         SettlementStrategy.Data settlementStrategy;
-        mapping(uint256 accountId => Position.Data) positions;
+        mapping(uint128 accountId => Position.Data) positions;
     }
 
     /// @dev TODO: add function that only loads a valid / existing perps market

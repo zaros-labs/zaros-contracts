@@ -42,7 +42,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function getAccountMarginCollateralBalance(
-        uint256 accountId,
+        uint128 accountId,
         address collateralType
     )
         external
@@ -57,14 +57,14 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) {
+    function getTotalAccountMarginCollateralValue(uint128 accountId) external view override returns (UD60x18) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
         return perpsAccount.getTotalMarginCollateralValue();
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountMarginBalances(uint256 accountId)
+    function getAccountMarginBalances(uint128 accountId)
         external
         view
         override
@@ -97,9 +97,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function createPerpsAccount() public override returns (uint256) {
+    function createPerpsAccount() public override returns (uint128) {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        uint256 accountId = ++perpsConfiguration.nextAccountId;
+        uint128 accountId = ++perpsConfiguration.nextAccountId;
         IAccountNFT perpsAccountToken = IAccountNFT(perpsConfiguration.perpsAccountToken);
         perpsAccountToken.mint(msg.sender, accountId);
 
@@ -116,7 +116,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         override
         returns (bytes[] memory results)
     {
-        uint256 accountId = createPerpsAccount();
+        uint128 accountId = createPerpsAccount();
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
@@ -135,7 +135,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function depositMargin(uint256 accountId, address collateralType, uint256 amount) external override {
+    function depositMargin(uint128 accountId, address collateralType, uint256 amount) external override {
         // PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
         MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
         UD60x18 udAmount = ud60x18(amount);
@@ -150,7 +150,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external override {
+    function withdrawMargin(uint128 accountId, address collateralType, uint256 amount) external override {
         UD60x18 udAmount = ud60x18(amount);
         _requireAmountNotZero(udAmount);
 

@@ -15,7 +15,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
@@ -34,7 +34,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         changePrank({ msgSender: users.sasuke });
 
@@ -67,7 +67,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         // it should emit {LogWithdrawMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });

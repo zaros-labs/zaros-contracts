@@ -22,7 +22,7 @@ contract GetAccountMarginBalances_Integration_Test is Base_Integration_Shared_Te
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
             perpsEngine.getAccountMarginBalances({ accountId: perpsAccountId });
@@ -44,7 +44,7 @@ contract GetAccountMarginBalances_Integration_Test is Base_Integration_Shared_Te
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
         (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
