@@ -65,6 +65,19 @@ abstract contract OrderModule is IOrderModule {
         marketOrder = perpsAccount.activeMarketOrder[marketId];
     }
 
+    function createLimitOrder(Order.Payload calldata payload, uint128 price) override external {
+        uint256 accountId = payload.accountId;
+        uint128 marketId = payload.marketId;
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+
+        if (perpsAccount.canBeLiquidated()) {
+            revert Errors.AccountLiquidatable(msg.sender, accountId);
+        }
+
+        perpsAccount.addLimitOrder(marketId, price, payload);
+    }
+
     /// @inheritdoc IOrderModule
     /// @dev TODO: remove accountId and marketId since they're already present in the payload
     function createMarketOrder(Order.Payload calldata payload) external override {
@@ -72,7 +85,6 @@ abstract contract OrderModule is IOrderModule {
         uint128 marketId = payload.marketId;
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        SettlementStrategy.Data storage settlementStrategy = perpsMarket.settlementStrategy;
 
         if (perpsAccount.canBeLiquidated()) {
             revert Errors.AccountLiquidatable(msg.sender, accountId);

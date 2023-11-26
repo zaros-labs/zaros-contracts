@@ -44,6 +44,8 @@ interface IOrderModule {
         view
         returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin);
 
+    function createLimitOrder(Order.Payload calldata payload, uint128 price) override external
+
     function createMarketOrder(Order.Payload calldata orderPayload) external;
 
     function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external;

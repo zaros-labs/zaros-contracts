@@ -20,6 +20,7 @@ library PerpsAccount {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
+    using Order for Order.Limit;
     using MarginCollateral for MarginCollateral.Data;
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
@@ -40,8 +41,8 @@ library PerpsAccount {
         // EnumerableSet.Bytes32Set activeOrdersPerMarket;
         EnumerableSet.UintSet activeMarketsIds;
         EnumerableSet.AddressSet collateralPriority;
-        mapping(uint256 accountId => Order.Market) activeMarketOrder;
-        mapping(uint256 accountId => Order.Limit[]) limitOrders;
+        mapping(uint128 marketId => Order.Market) activeMarketOrder;
+        mapping(uint128 marketId => EnumerableSet.Bytes32Set) limitOrdersPointersPerMarket;
     }
 
     /// @notice Loads a {PerpsAccount} object.
@@ -120,6 +121,10 @@ library PerpsAccount {
         perpsAccount = load(accountId);
         perpsAccount.id = accountId;
         perpsAccount.owner = owner;
+    }
+
+    function addLimitOrder(uint128 marketId, uint128 price, Order.Payload memory payload) internal {
+
     }
 
     /// @notice Increases the margin collateral for the given collateral type.
