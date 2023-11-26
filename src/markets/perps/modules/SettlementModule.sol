@@ -48,16 +48,16 @@ abstract contract SettlementModule is ISettlementModule {
         external
         onlySettlementUpkeep(marketId)
     {
-        MarketOrder.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
+        MarketOrder.Data storage marketOrder = PerpsMarket.load(marketId).orders[accountId][orderId];
 
-        _settleOrder(order, report);
+        _settleOrder(marketOrder, report);
     }
 
     // TODO: rework this
-    function _settleOrder(MarketOrder.Data storage order, BasicReport memory report) internal {
+    function _settleOrder(MarketOrder.Data storage marketOrder, BasicReport memory report) internal {
         SettlementRuntime memory runtime;
-        runtime.marketId = order.payload.marketId;
-        runtime.accountId = order.payload.accountId;
+        runtime.marketId = marketOrder.payload.marketId;
+        runtime.accountId = marketOrder.payload.accountId;
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
@@ -85,24 +85,24 @@ abstract contract SettlementModule is ISettlementModule {
         // TODO: liquidityEngine.withdrawUsdToken(upkeep, runtime.marketId, runtime.settlementFee);
 
         UD60x18 initialMargin =
-            ud60x18(oldPosition.initialMargin).add(sd59x18(order.payload.initialMarginDelta).intoUD60x18());
+            ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
 
         // TODO: validate initial margin and size
         runtime.newPosition = Position.Data({
-            size: sd59x18(oldPosition.size).add(sd59x18(order.payload.sizeDelta)).intoInt256(),
+            size: sd59x18(oldPosition.size).add(sd59x18(marketOrder.payload.sizeDelta)).intoInt256(),
             initialMargin: initialMargin.intoUint128(),
             unrealizedPnlStored: runtime.unrealizedPnlToStore.intoInt256().toInt128(),
             lastInteractionPrice: runtime.fillPrice.intoUint128(),
             lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        order.reset();
-        perpsAccount.updateActiveOrders(runtime.marketId, order.id, false);
+        marketOrder.reset();
+        perpsAccount.updateActiveOrders(runtime.marketId, marketOrder.id, false);
         oldPosition.update(runtime.newPosition);
-        perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(order.payload.sizeDelta)).intoInt256().toInt128();
+        perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(marketOrder.payload.sizeDelta)).intoInt256().toInt128();
         perpsMarket.size =
-            ud60x18(perpsMarket.size).add(sd59x18(order.payload.sizeDelta).abs().intoUD60x18()).intoUint128();
+            ud60x18(perpsMarket.size).add(sd59x18(marketOrder.payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
-        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, order.id, runtime.newPosition);
+        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, marketOrder.id, runtime.newPosition);
     }
 }

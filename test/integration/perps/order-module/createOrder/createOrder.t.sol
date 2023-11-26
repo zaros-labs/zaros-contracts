@@ -10,7 +10,7 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 import { sd59x18 } from "@prb-math/SD59x18.sol";
 
-contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
+contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -18,7 +18,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_CreateOrder(uint256 amountToDeposit) external {
+    function testFuzz_CreateMarketOrder(uint256 amountToDeposit) external {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
@@ -35,12 +35,12 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
             MarketOrder.Data({ id: 0, payload: payload, timestamp: uint248(block.timestamp) });
 
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogCreateOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
+        emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
 
         perpsEngine.createMarketOrder({ payload: payload });
     }
 
-    function testFuzz_CreateOrderMultiple(uint256 amountToDeposit) external {
+    function testFuzz_CreateMarketOrderMultiple(uint256 amountToDeposit) external {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
@@ -60,7 +60,7 @@ contract CreateOrder_Integration_Test is Base_Integration_Shared_Test {
             MarketOrder.Data({ id: 1, payload: payload, timestamp: uint248(block.timestamp) });
 
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogCreateOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
+        emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
 
         perpsEngine.createMarketOrder({ payload: payload });
     }

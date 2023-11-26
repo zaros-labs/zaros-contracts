@@ -1,5 +1,5 @@
-CreateOrder_Integration_Concrete_Test:test_CreateOrder() (gas: 594080)
-CreateOrder_Integration_Concrete_Test:test_CreateOrderMultiple() (gas: 761078)
+CreateMarketOrder_Integration_Concrete_Test:test_CreateMarketOrder() (gas: 594080)
+CreateMarketOrder_Integration_Concrete_Test:test_CreateMarketOrderMultiple() (gas: 761078)
 CreatePerpsAccountAndMulticall_Integration_Concrete_Test:test_NullDataArray() (gas: 198887)
 CreatePerpsAccountAndMulticall_Integration_Concrete_Test:test_RevertWhen_RevertingCallProvided() (gas: 204590)
 CreatePerpsAccountAndMulticall_Integration_Concrete_Test:test_ValidDataArray() (gas: 205858)

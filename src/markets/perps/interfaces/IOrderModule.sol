@@ -12,7 +12,7 @@ import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 interface IOrderModule {
-    event LogCreateOrder(
+    event LogCreateMarketOrder(
         address indexed sender,
         uint256 indexed accountId,
         uint128 indexed marketId,

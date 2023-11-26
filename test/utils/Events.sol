@@ -30,8 +30,8 @@ abstract contract Events {
     /*//////////////////////////////////////////////////////////////////////////
                                    ORDER MODULE
     //////////////////////////////////////////////////////////////////////////*/
-    event LogCreateOrder(
-        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, MarketOrder.Data order
+    event LogCreateMarketOrder(
+        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, MarketOrder.Data marketOrder
     );
     event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
 
