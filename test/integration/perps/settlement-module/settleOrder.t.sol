@@ -34,7 +34,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         });
         perpsEngine.createMarketOrder({ payload: payload });
         Order.Market memory marketOrder =
-            perpsEngine.getOrders({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID })[0];
+            perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID });
 
         Position.Data memory expectedPosition = Position.Data({
             size: marketOrder.payload.sizeDelta,
@@ -80,7 +80,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         });
         perpsEngine.createMarketOrder({ payload: newPayload });
         Order.Market memory sellOrder =
-            perpsEngine.getOrders({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID })[1];
+            perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID });
 
         Position.Data memory expectedPosition = Position.Data({
             size: payload.sizeDelta + sellOrder.payload.sizeDelta,

@@ -87,7 +87,7 @@ abstract contract OrderModule is IOrderModule {
         perpsAccount.activeMarketOrder[marketId] = marketOrder;
         // perpsAccount.updateActiveOrders(marketId, orderId, true);
 
-        emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder.timestamp, settlementStrategy);
+        emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
 
     /// @inheritdoc IOrderModule
@@ -100,5 +100,7 @@ abstract contract OrderModule is IOrderModule {
         // order.reset();
 
         // emit LogCancelOrder(msg.sender, accountId, marketId, orderId);
+
+        this;
     }
 }

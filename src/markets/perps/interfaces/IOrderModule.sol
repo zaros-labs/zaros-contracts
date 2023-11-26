@@ -26,7 +26,6 @@ interface IOrderModule {
     )
         external
         view
-        override
         returns (Order.Market memory marketOrder);
 
     function estimateOrderFee(
@@ -47,5 +46,5 @@ interface IOrderModule {
 
     function createMarketOrder(Order.Payload calldata orderPayload) external;
 
-    function cancelOrder(uint256 accountId, uint128 marketId) external;
+    function cancelOrder(uint256 accountId, uint128 marketId, uint8 orderId) external;
 }

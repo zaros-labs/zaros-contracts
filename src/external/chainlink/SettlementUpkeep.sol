@@ -95,7 +95,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         bytes calldata checkData
     )
         external
-        pure
+        view
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
@@ -104,7 +104,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
 
         (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
-        (,,,,,,,, SettlementStrategy.Data memory settlementStrategy,,) = perpsEngine.getMarketData(marketId);
+        SettlementStrategy.Data memory settlementStrategy = perpsEngine.settlementStrategy(marketId);
 
         SettlementStrategy.DataStreamsBasicFeed memory strategy =
             abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
@@ -117,6 +117,8 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         revert StreamsLookup(strategy.feedLabel, streams, strategy.queryLabel, settlementTimestamp, extraData);
     }
 
+    /// TODO: compare gas optimization pre-loading variables here vs in performUpkeep. Remember of Arbitrum's l1 gas
+    /// cost (calldata is the most expensive place).
     /// @inheritdoc IStreamsLookupCompatible
     function checkCallback(
         bytes[] calldata values,
@@ -127,7 +129,16 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        bytes memory signedReport = values[0];
+        upkeepNeeded = true;
+        performData = abi.encode(values, extraData);
+    }
+
+    /// @inheritdoc ILogAutomation
+    function performUpkeep(bytes calldata performData) external onlyForwarder {
+        (bytes[] memory signedReportsArray, uint256 accountId, uint128 marketId) =
+            abi.decode(performData, (bytes[], uint256, uint128));
+
+        bytes memory signedReport = signedReportsArray[0];
         bytes memory reportData = _getReportData(signedReport);
 
         SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
@@ -137,25 +148,6 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         IFeeManager chainlinkFeeManager = chainlinkVerifier.s_feeManager();
         // TODO: Store preferred fee token instead of querying i_nativeAddress?
         address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
-
-        upkeepNeeded = true;
-        performData = abi.encode(
-            signedReport, reportData, chainlinkVerifier, chainlinkFeeManager, perpsEngine, feeTokenAddress, extraData
-        );
-    }
-
-    /// @inheritdoc ILogAutomation
-    function performUpkeep(bytes calldata performData) external onlyForwarder {
-        (
-            bytes memory signedReport,
-            bytes memory reportData,
-            IVerifierProxy chainlinkVerifier,
-            IFeeManager chainlinkFeeManager,
-            PerpsEngine perpsEngine,
-            address feeTokenAddress,
-            uint256 accountId,
-            uint128 marketId
-        ) = abi.decode(performData, (bytes, bytes, IVerifierProxy, IFeeManager, PerpsEngine, address, uint256, uint128));
 
         (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
 
