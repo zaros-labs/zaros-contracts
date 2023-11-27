@@ -15,8 +15,6 @@ interface IOrderModule {
     event LogCreateMarketOrder(
         address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Order.Market marketOrder
     );
-    // event LogCancelLimitOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint128
-    // orderId);
 
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
@@ -43,8 +41,6 @@ interface IOrderModule {
         external
         view
         returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin);
-
-    function createLimitOrder(Order.Payload calldata payload, uint128 price) external;
 
     function createMarketOrder(Order.Payload calldata orderPayload) external;
 

@@ -21,7 +21,6 @@ library PerpsAccount {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
-    using Order for Order.Limit;
     using MarginCollateral for MarginCollateral.Data;
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
@@ -36,7 +35,6 @@ library PerpsAccount {
     /// @dev TODO: implement role based access control.
     struct Data {
         uint128 id;
-        uint128 nextLimitOrderId;
         address owner;
         EnumerableMap.AddressToUintMap marginCollateralBalance;
         // EnumerableSet.Bytes32Set activeOrdersPerMarket;
@@ -121,13 +119,6 @@ library PerpsAccount {
         perpsAccount = load(accountId);
         perpsAccount.id = accountId;
         perpsAccount.owner = owner;
-    }
-
-    function addLimitOrder(Data storage self, uint128 marketId, uint128 price, Order.Payload memory payload) internal {
-        uint128 nextLimitOrderId = ++self.nextLimitOrderId;
-        uint256 limitOrderSlot = Order.createLimit({ id: nextLimitOrderId, price: price, payload: payload });
-
-        self.limitOrdersSlotsPerMarket[marketId].set(uint256(nextLimitOrderId), limitOrderSlot);
     }
 
     /// @notice Increases the margin collateral for the given collateral type.

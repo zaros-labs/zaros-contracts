@@ -21,4 +21,12 @@ library LimitOrder {
             limitOrder.slot := slot
         }
     }
+
+    //  function addLimitOrder(Data storage self, uint128 marketId, uint128 price, Order.Payload memory payload)
+    // internal {
+    //     uint128 nextLimitOrderId = ++self.nextLimitOrderId;
+    //     uint256 limitOrderSlot = Order.createLimit({ id: nextLimitOrderId, price: price, payload: payload });
+
+    //     self.limitOrdersSlotsPerMarket[marketId].set(uint256(nextLimitOrderId), limitOrderSlot);
+    // }
 }
