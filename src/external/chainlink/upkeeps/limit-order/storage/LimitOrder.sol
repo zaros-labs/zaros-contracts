@@ -11,12 +11,19 @@ library LimitOrder {
     /// @param price The desired execution price.
     struct Data {
         uint128 price;
-        uint128 accountId;
         int128 sizeDelta;
     }
 
-    function load() internal pure returns (Data storage limitOrder) {
-        bytes32 slot = keccak256(abi.encode(LIMIT_ORDER_LOCATION));
+    function load(
+        uint128 marketId,
+        uint128 accountId,
+        uint128 orderId
+    )
+        internal
+        pure
+        returns (Data storage limitOrder)
+    {
+        bytes32 slot = keccak256(abi.encode(LIMIT_ORDER_LOCATION, marketId, accountId, orderId));
         assembly {
             limitOrder.slot := slot
         }

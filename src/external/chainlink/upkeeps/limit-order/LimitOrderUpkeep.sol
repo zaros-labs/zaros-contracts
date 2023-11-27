@@ -32,8 +32,11 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
+        EnumerableSet.UintSet accountsWithActiveOrders;
         EnumerableSet.UintSet supportedMarketsIds;
-        mapping(uint128 marketId => EnumerableSet.Bytes32Set) limitOrdersSlotsPerMarket;
+        uint256 nextOrderId;
+        mapping(uint128 marketId => mapping(uint128 accountId => EnumerableSet.UintSet))
+            limitOrdersIdsPerAccountPerMarket;
     }
 
     /// @notice {LimitOrderUpkeep} UUPS initializer.
@@ -65,15 +68,6 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         __Ownable_init(initialOwner);
     }
 
-    /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
-    modifier onlyForwarder() {
-        address forwarder = _getLimitOrderUpkeepStorage().forwarder;
-        if (msg.sender != forwarder) {
-            revert Errors.OnlyForwarder(msg.sender, forwarder);
-        }
-        _;
-    }
-
     function checkUpkeep(bytes calldata checkData)
         external
         override
@@ -92,6 +86,33 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         returns (bool upkeepNeeded, bytes memory performData)
     {
         this;
+    }
+
+    function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, uint128 sizeDelta) external {
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+
+        if (!self.supportedMarketIds.contains(marketId)) {
+            revert Errors.UnsupportedMarketId(marketId);
+        }
+
+        if (!self.accountsWithActiveOrders.contains(accountId)) {
+            self.accountsWithActiveOrders.add(accountId);
+        }
+        uint128 orderId = ++self.nextOrderId;
+
+        if (!self.limitOrdersIdsPerAccountPerMarket[marketId][accountId].contains(orderId)) {
+            self.limitOrdersIdsPerAccountPerMarket[marketId][accountId].add(orderId);
+        }
+
+        LimitOrder.create({
+            accountId: accountId,
+            marketId: marketId,
+            orderId: orderId,
+            price: price,
+            sizeDelta: sizeDelta
+        });
+
+        emit LogCreateLimitOrder(marketId, accountId, orderId, price, sizeDelta);
     }
 
     function performUpkeep(bytes calldata performData) external override {

@@ -11,6 +11,7 @@ library Errors {
     error InvalidParameter(string parameter, string reason);
     /// @notice Thrown when the sender is not authorized to perform a given action.
     error Unauthorized(address sender);
+    error UnsupportedMarketId(uint128 marketId);
 
     /// @notice PerpsEngine.OrderModule errors
 
