@@ -37,6 +37,8 @@ interface IPerpsAccountModule {
         address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
     );
 
+    function isAuthorized(uint128 accountId, address sender) external view returns (bool isAuthorized);
+
     /// @notice Gets the contract address of the trading accounts NFTs.
     /// @return perpsAccountToken The account token address.
     function getPerpsAccountToken() external view returns (address perpsAccountToken);

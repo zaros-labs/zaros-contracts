@@ -35,6 +35,12 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using PerpsConfiguration for PerpsConfiguration.Data;
     using MarginCollateral for MarginCollateral.Data;
 
+    function isAuthorized(uint128 accountId, address sender) external view returns (bool isAuthorized) {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        // TODO: add permission logic
+        isAuthorized = perpsAccount.owner == sender;
+    }
+
     /// @inheritdoc IPerpsAccountModule
     function getPerpsAccountToken() public view override returns (address) {
         return PerpsConfiguration.load().perpsAccountToken;
