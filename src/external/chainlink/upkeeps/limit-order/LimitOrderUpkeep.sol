@@ -7,6 +7,7 @@ import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
+import { LimitOrder } from "./storage/LimitOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
@@ -18,6 +19,8 @@ import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgra
 
 contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
+
+    event LogCreateLimitOrder(uint128 marketId, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta);
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant LIMIT_ORDER_UPKEEP_LOCATION = keccak256(
@@ -88,25 +91,30 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         this;
     }
 
-    function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, uint128 sizeDelta) external {
+    function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, int128 sizeDelta) external {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
 
-        if (!self.supportedMarketIds.contains(marketId)) {
+        if (!isSenderAuthorized) {
+            revert Errors.Unauthorized(msg.sender);
+        }
+
+        if (!self.supportedMarketsIds.contains(marketId)) {
             revert Errors.UnsupportedMarketId(marketId);
         }
 
         if (!self.accountsWithActiveOrders.contains(accountId)) {
             self.accountsWithActiveOrders.add(accountId);
         }
-        uint128 orderId = ++self.nextOrderId;
+        uint256 orderId = ++self.nextOrderId;
 
-        if (!self.limitOrdersIdsPerAccountPerMarket[marketId][accountId].contains(orderId)) {
-            self.limitOrdersIdsPerAccountPerMarket[marketId][accountId].add(orderId);
-        }
+        // There should never be a duplicate order id, but let's make sure anyway.
+        assert(!self.limitOrdersIdsPerAccountPerMarket[marketId][accountId].contains(orderId));
+        self.limitOrdersIdsPerAccountPerMarket[marketId][accountId].add(orderId);
 
         LimitOrder.create({
-            accountId: accountId,
             marketId: marketId,
+            accountId: accountId,
             orderId: orderId,
             price: price,
             sizeDelta: sizeDelta

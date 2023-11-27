@@ -17,7 +17,7 @@ library LimitOrder {
     function load(
         uint128 marketId,
         uint128 accountId,
-        uint128 orderId
+        uint256 orderId
     )
         internal
         pure
@@ -29,11 +29,10 @@ library LimitOrder {
         }
     }
 
-    //  function addLimitOrder(Data storage self, uint128 marketId, uint128 price, Order.Payload memory payload)
-    // internal {
-    //     uint128 nextLimitOrderId = ++self.nextLimitOrderId;
-    //     uint256 limitOrderSlot = Order.createLimit({ id: nextLimitOrderId, price: price, payload: payload });
+    function create(uint128 marketId, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta) internal {
+        Data storage self = load(marketId, accountId, orderId);
 
-    //     self.limitOrdersSlotsPerMarket[marketId].set(uint256(nextLimitOrderId), limitOrderSlot);
-    // }
+        self.price = price;
+        self.sizeDelta = sizeDelta;
+    }
 }

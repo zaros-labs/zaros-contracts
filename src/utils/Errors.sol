@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.23;
 
+/// TODO: Add require helpers in the lib.
 library Errors {
     /// @notice Generic protocol errors.
 

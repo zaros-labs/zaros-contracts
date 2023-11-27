@@ -103,8 +103,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
             uint128 maxOpenInterest,
             int128 skew,
             uint128 size,
-            OrderFees.Data memory orderFees,
-            SettlementStrategy.Data memory settlementStrategy
+            OrderFees.Data memory orderFees
         )
     {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
@@ -117,7 +116,6 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         skew = perpsMarket.skew;
         size = perpsMarket.size;
         orderFees = perpsMarket.orderFees;
-        settlementStrategy = perpsMarket.settlementStrategy;
     }
 
     /// @inheritdoc IPerpsMarketModule

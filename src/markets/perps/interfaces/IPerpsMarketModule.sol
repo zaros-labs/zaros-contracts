@@ -82,7 +82,6 @@ interface IPerpsMarketModule {
     /// @return skew The skew of the market.
     /// @return size The size of the market
     /// @return orderFees The configured maker and taker order fees of the market.
-    /// @return settlementStrategy The configured settlement strategy of the market.
     function getMarketData(uint128 marketId)
         external
         view
@@ -94,8 +93,7 @@ interface IPerpsMarketModule {
             uint128 maxOpenInterest,
             int128 skew,
             uint128 size,
-            OrderFees.Data memory orderFees,
-            SettlementStrategy.Data memory settlementStrategy
+            OrderFees.Data memory orderFees
         );
 
     /// @notice Gets the given market's open position details.
