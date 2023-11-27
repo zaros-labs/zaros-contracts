@@ -24,7 +24,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant SETTLEMENT_UPKEEP_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.SettlementUpkeep")) - 1)
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.SettlementUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.SettlementUpkeep

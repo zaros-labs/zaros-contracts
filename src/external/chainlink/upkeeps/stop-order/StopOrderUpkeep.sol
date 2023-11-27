@@ -17,23 +17,23 @@ import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrat
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
+contract StopOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice ERC7201 storage location.
-    bytes32 internal constant LIMIT_ORDER_UPKEEP_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.LimitOrderUpkeep")) - 1)
+    bytes32 internal constant STOP_ORDER_UPKEEP_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.StopOrderUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderUpkeep
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.StopOrderUpkeep
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param forwarder The address of the Upkeep forwarder contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
-    struct LimitOrderUpkeepStorage {
+    struct StopOrderUpkeepStorage {
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
     }
 
-    /// @notice {LimitOrderUpkeep} UUPS initializer.
+    /// @notice {StopOrderUpkeep} UUPS initializer.
     function initialize(
         address initialOwner,
         address chainlinkVerifier,
@@ -53,7 +53,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             revert Errors.ZeroInput("perpsEngine");
         }
 
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        StopOrderUpkeepStorage storage self = _getStopOrderUpkeepStorage();
 
         self.chainlinkVerifier = chainlinkVerifier;
         self.forwarder = forwarder;
@@ -64,7 +64,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
     modifier onlyForwarder() {
-        address forwarder = _getLimitOrderUpkeepStorage().forwarder;
+        address forwarder = _getStopOrderUpkeepStorage().forwarder;
         if (msg.sender != forwarder) {
             revert Errors.OnlyForwarder(msg.sender, forwarder);
         }
@@ -95,8 +95,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         this;
     }
 
-    function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {
-        bytes32 slot = LIMIT_ORDER_UPKEEP_LOCATION;
+    function _getStopOrderUpkeepStorage() internal pure returns (StopOrderUpkeepStorage storage self) {
+        bytes32 slot = STOP_ORDER_UPKEEP_LOCATION;
 
         assembly {
             self.slot := slot

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+/// TODO: create minimum order sizeDelta per market.
 library Order {
     string internal constant LIMIT_ORDER_DOMAIN = "fi.zaros.markets.perps.Order.Limit";
 
@@ -12,11 +13,6 @@ library Order {
 
     struct Market {
         uint256 timestamp;
-        Payload payload;
-    }
-
-    struct Limit {
-        uint256 price;
         Payload payload;
     }
 

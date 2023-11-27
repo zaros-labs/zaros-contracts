@@ -43,7 +43,6 @@ library PerpsAccount {
         EnumerableSet.UintSet activeMarketsIds;
         EnumerableSet.AddressSet collateralPriority;
         mapping(uint128 marketId => Order.Market) activeMarketOrder;
-        mapping(uint128 marketId => EnumerableMap.UintToUintMap) limitOrdersSlotsPerMarket;
     }
 
     /// @notice Loads a {PerpsAccount} object.
