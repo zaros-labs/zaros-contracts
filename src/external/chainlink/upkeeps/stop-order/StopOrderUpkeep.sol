@@ -2,13 +2,11 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IAutomationCompatible } from "./interfaces/IAutomationCompatible.sol";
-import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
-import { ILogAutomation, Log as AutomationLog } from "@zaros/external/chainlink/interfaces/ILogAutomation.sol";
-import {
-    IStreamsLookupCompatible, BasicReport
-} from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
-import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { IAutomationCompatible } from "../../interfaces/IAutomationCompatible.sol";
+import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
+import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
+import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
+import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";

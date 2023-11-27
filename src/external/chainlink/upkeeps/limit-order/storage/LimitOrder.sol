@@ -12,7 +12,13 @@ library LimitOrder {
     struct Data {
         uint128 price;
         uint128 accountId;
-        uint128 marketId;
         int128 sizeDelta;
+    }
+
+    function load() internal pure returns (Data storage limitOrder) {
+        bytes32 slot = keccak256(abi.encode(LIMIT_ORDER_LOCATION));
+        assembly {
+            limitOrder.slot := slot
+        }
     }
 }
