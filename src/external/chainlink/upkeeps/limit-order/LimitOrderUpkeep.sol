@@ -15,12 +15,12 @@ import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrat
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
-// import { SafeCast } from "@openzeppelin-upgradeable/utils/math/SafeCast.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
-    // using SafeCast for uint128;
+    using SafeCast for uint256;
 
     event LogCreateLimitOrder(uint128 marketId, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta);
 
@@ -37,8 +37,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
-        EnumerableSet.UintSet supportedMarketsIds;
-        EnumerableSet.UintSet accountsWithActiveOrders;
+        mapping(uint128 marketId => bool) isMarketSupported;
+        EnumerableSet.UintSet marketsWithActiveOrders;
         uint256 nextOrderId;
         EnumerableSet.UintSet limitOrdersIds;
     }
@@ -109,24 +109,22 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
 
         LimitOrder.Data[] memory pendingLimitOrders =
             new LimitOrder.Data[](amountOfPendingLimitOrders < upperBound ? amountOfPendingLimitOrders : upperBound);
-        EnumerableSet.UintSet memory limitOrdersMarketIds;
 
         for (uint256 i = lowerBound; i < upperBound; i++) {
             uint256 orderId = self.limitOrdersIds.at(i);
             LimitOrder.Data memory limitOrder = LimitOrder.load(orderId);
             pendingLimitOrders[i] = limitOrder;
-
-            if (!limitOrdersMarketIds.contains(limitOrder.marketId)) {
-                limitOrdersMarketIds.add(limitOrder.marketId);
-            }
         }
 
-        string[] memory limitOrdersStreamIds = new string[](limitOrdersMarketIds.length());
+        uint256 amountOfActiveMarkets = self.marketsWithActiveOrders.length();
+        string[] memory limitOrdersStreamIds = new string[](amountOfActiveMarkets);
 
-        for (uint256 i = 0; i < limitOrdersMarketIds.length(); i++) {
-            uint256 marketId = limitOrdersMarketIds.at(i);
-            SettlementStrategy.Data storage settlementStrategy = perpsEngine.settlementStrategy(marketId);
-            limitOrdersStreamIds[i] = settlementStrategy.streamId;
+        for (uint256 i = 0; i < amountOfActiveMarkets; i++) {
+            uint128 marketId = self.marketsWithActiveOrders.at(i).toUint128();
+            SettlementStrategy.Data memory settlementStrategy = perpsEngine.settlementStrategy(marketId);
+            SettlementStrategy.DataStreamsBasicFeed memory dataStreamsStrategy =
+                abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
+            limitOrdersStreamIds[i] = dataStreamsStrategy.streamId;
         }
 
         bytes memory extraData = abi.encode(pendingLimitOrders);
@@ -154,13 +152,19 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             revert Errors.Unauthorized(msg.sender);
         }
 
-        if (!self.supportedMarketsIds.contains(marketId)) {
+        if (!self.isMarketSupported[marketId]) {
             revert Errors.UnsupportedMarketId(marketId);
         }
 
-        if (!self.accountsWithActiveOrders.contains(accountId)) {
-            self.accountsWithActiveOrders.add(accountId);
+        if (!self.marketsWithActiveOrders.contains(marketId)) {
+            // we don't need to check the return value since we already checked if the market is in the set
+            self.marketsWithActiveOrders.add(marketId);
         }
+
+        // if (!self.accountsWithActiveOrders.contains(accountId)) {
+        //     // we don't need to check the return value since we already checked if the account is in the set
+        //     self.accountsWithActiveOrders.add(accountId);
+        // }
         uint256 orderId = ++self.nextOrderId;
 
         // There should never be a duplicate order id, but let's make sure anyway.
@@ -189,13 +193,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             uint128 marketId = marketIds[i];
             bool isMarketSupported = isSupported[i];
 
-            if (isMarketSupported) {
-                // we ignore the return value because the market might already be supported
-                self.supportedMarketsIds.add(marketId);
-            } else {
-                // we ignore the return value because the market might already be disabled
-                self.supportedMarketsIds.remove(marketId);
-            }
+            self.isMarketSupported[marketId] = isMarketSupported;
         }
     }
 
