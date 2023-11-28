@@ -15,6 +15,9 @@ library Errors {
     error UnsupportedMarketId(uint128 marketId);
     error ArrayLengthMismatch(uint256 expected, uint256 actual);
 
+    /// @notice Chainlink Upkeeps errors.
+    error InvalidBounds(uint256 lowerBound, uint256 upperBound);
+
     /// @notice PerpsEngine.OrderModule errors
 
     /// @notice Thrown when an account is liquidatable and can't perform actions

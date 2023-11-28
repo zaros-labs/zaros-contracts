@@ -13,12 +13,14 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
-import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { EnumerableSet } from "@openzeppelin-upgradeable/utils/structs/EnumerableSet.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
+// import { SafeCast } from "@openzeppelin-upgradeable/utils/math/SafeCast.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
+    // using SafeCast for uint128;
 
     event LogCreateLimitOrder(uint128 marketId, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta);
 
@@ -38,8 +40,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         EnumerableSet.UintSet supportedMarketsIds;
         EnumerableSet.UintSet accountsWithActiveOrders;
         uint256 nextOrderId;
-        mapping(uint128 marketId => mapping(uint128 accountId => EnumerableSet.UintSet))
-            limitOrdersIdsPerAccountPerMarket;
+        EnumerableSet.UintSet limitOrdersIds;
     }
 
     /// @notice {LimitOrderUpkeep} UUPS initializer.
@@ -70,7 +71,6 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
 
         __Ownable_init(initialOwner);
     }
-    /// Voltar aqui, terminar config de markets e getters, depois terminar lógica checkUpkeep e performUpkeep
 
     function getConfig()
         external
@@ -90,7 +90,29 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        this;
+        (uint256 lowerBound, uint256 upperBound) = abi.decode(checkData, (uint256, uint256));
+
+        if (lowerBound > upperBound) {
+            revert Errors.InvalidBounds(lowerBound, upperBound);
+        }
+
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        uint256 amountOfPendingLimitOrders = self.limitOrdersIds.length();
+
+        if (amountOfPendingLimitOrders == 0) {
+            upkeepNeeded = false;
+            performData = bytes("");
+
+            return (upkeepNeeded, peformData);
+        }
+
+        LimitOrder.Data[] memory pendingLimitOrders =
+            new LimitOrder.Data[](amountOfPendingLimitOrders < upperBound ? amountOfPendingLimitOrders : upperBound);
+
+        for (uint256 i = lowerBound; i < upperBound; i++) {
+            uint256 orderId = self.limitOrdersIds.at(i);
+            pendingLimitOrders[i] = LimitOrder.load(orderId);
+        }
     }
 
     function checkCallback(
@@ -123,8 +145,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         uint256 orderId = ++self.nextOrderId;
 
         // There should never be a duplicate order id, but let's make sure anyway.
-        assert(!self.limitOrdersIdsPerAccountPerMarket[marketId][accountId].contains(orderId));
-        self.limitOrdersIdsPerAccountPerMarket[marketId][accountId].add(orderId);
+        assert(!self.limitOrdersIds.contains(orderId));
+        self.limitOrdersIds.add(orderId);
 
         LimitOrder.create({
             marketId: marketId,
