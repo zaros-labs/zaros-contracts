@@ -35,8 +35,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
-        EnumerableSet.UintSet accountsWithActiveOrders;
         EnumerableSet.UintSet supportedMarketsIds;
+        EnumerableSet.UintSet accountsWithActiveOrders;
         uint256 nextOrderId;
         mapping(uint128 marketId => mapping(uint128 accountId => EnumerableSet.UintSet))
             limitOrdersIdsPerAccountPerMarket;
@@ -69,6 +69,20 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         self.perpsEngine = perpsEngine;
 
         __Ownable_init(initialOwner);
+    }
+    /// Voltar aqui, terminar config de markets e getters, depois terminar lógica checkUpkeep e performUpkeep
+
+    function getConfig()
+        external
+        view
+        returns (address upkeepOwner, address chainlinkVerifier, address forwarder, address perpsEngine)
+    {
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+
+        upkeepOwner = owner();
+        chainlinkVerifier = self.chainlinkVerifier;
+        forwarder = self.forwarder;
+        perpsEngine = address(self.perpsEngine);
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -121,6 +135,27 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         });
 
         emit LogCreateLimitOrder(marketId, accountId, orderId, price, sizeDelta);
+    }
+
+    function configureSupportedMarkets(uint128[] calldata marketIds, bool[] calldata isSupported) external onlyOwner {
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+
+        if (marketIds.length != isSupported.length) {
+            revert Errors.ArrayLengthMismatch(marketIds.length, isSupported.length);
+        }
+
+        for (uint256 i = 0; i < marketIds.length; i++) {
+            uint128 marketId = marketIds[i];
+            bool isMarketSupported = isSupported[i];
+
+            if (isMarketSupported) {
+                // we ignore the return value because the market might already be supported
+                self.supportedMarketsIds.add(marketId);
+            } else {
+                // we ignore the return value because the market might already be disabled
+                self.supportedMarketsIds.remove(marketId);
+            }
+        }
     }
 
     function performUpkeep(bytes calldata performData) external override {
