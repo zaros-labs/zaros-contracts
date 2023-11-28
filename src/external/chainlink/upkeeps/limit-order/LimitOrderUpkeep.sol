@@ -13,7 +13,7 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
-import { EnumerableSet } from "@openzeppelin-upgradeable/utils/structs/EnumerableSet.sol";
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 // import { SafeCast } from "@openzeppelin-upgradeable/utils/math/SafeCast.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -97,22 +97,41 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         }
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        PerpsEngine perpsEngine = self.perpsEngine;
         uint256 amountOfPendingLimitOrders = self.limitOrdersIds.length();
 
         if (amountOfPendingLimitOrders == 0) {
             upkeepNeeded = false;
             performData = bytes("");
 
-            return (upkeepNeeded, peformData);
+            return (upkeepNeeded, performData);
         }
 
         LimitOrder.Data[] memory pendingLimitOrders =
             new LimitOrder.Data[](amountOfPendingLimitOrders < upperBound ? amountOfPendingLimitOrders : upperBound);
+        EnumerableSet.UintSet memory limitOrdersMarketIds;
 
         for (uint256 i = lowerBound; i < upperBound; i++) {
             uint256 orderId = self.limitOrdersIds.at(i);
-            pendingLimitOrders[i] = LimitOrder.load(orderId);
+            LimitOrder.Data memory limitOrder = LimitOrder.load(orderId);
+            pendingLimitOrders[i] = limitOrder;
+
+            if (!limitOrdersMarketIds.contains(limitOrder.marketId)) {
+                limitOrdersMarketIds.add(limitOrder.marketId);
+            }
         }
+
+        string[] memory limitOrdersStreamIds = new string[](limitOrdersMarketIds.length());
+
+        for (uint256 i = 0; i < limitOrdersMarketIds.length(); i++) {
+            uint256 marketId = limitOrdersMarketIds.at(i);
+            SettlementStrategy.Data storage settlementStrategy = perpsEngine.settlementStrategy(marketId);
+            limitOrdersStreamIds[i] = settlementStrategy.streamId;
+        }
+
+        bytes memory extraData = abi.encode(pendingLimitOrders);
+
+        revert StreamsLookup("feedIDs", limitOrdersStreamIds, "timestamp", block.timestamp, extraData);
     }
 
     function checkCallback(

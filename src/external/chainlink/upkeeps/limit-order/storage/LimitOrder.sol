@@ -24,9 +24,10 @@ library LimitOrder {
     }
 
     function create(uint128 marketId, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta) internal {
-        Data storage self = load(marketId, accountId, orderId);
+        Data storage self = load(orderId);
 
         self.marketId = marketId;
+        self.accountId = accountId;
         self.price = price;
         self.sizeDelta = sizeDelta;
     }
