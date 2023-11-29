@@ -4,13 +4,8 @@ pragma solidity 0.8.23;
 /// @notice Settlement strategies supported by the protocol.
 library SettlementStrategy {
     /// @notice Strategies IDs supported.
-    /// @param DATA_STREAMS_BASIC_FEED The strategy ID that uses basic reports from CL Data Streams.
-    /// @param DATA_STREAMS_PREMIUM_FEED The strategy ID that uses premium reports from CL Data Streams.
-    enum StrategyId {
-        DATA_STREAMS_BASIC_FEED,
-        // TODO: implement
-        DATA_STREAMS_PREMIUM_FEED
-    }
+    /// @param DATA_STREAMS The strategy ID that uses basic or premium reports from CL Data Streams.
+    enum StrategyId { DATA_STREAMS }
 
     /// @notice The {SettlementStrategy} namespace storage structure.
     /// @param strategyId The strategy id active.
@@ -26,15 +21,16 @@ library SettlementStrategy {
         bytes strategyData;
     }
 
-    /// @notice Data structure used by the {DATA_STREAMS_BASIC_FEED} strategy.
+    /// @notice Data structure used by the {DATA_STREAMS} strategy.
     /// @param streamId The Chainlink Data Streams stream id.
     /// @param feedLabel The Chainlink Data Streams feed label.
     /// @param queryLabel The Chainlink Data Streams query label.
     /// @param settlementDelay The delay in seconds to wait for the settlement report.
-    struct DataStreamsBasicFeed {
+    struct DataStreamsStrategy {
         string streamId;
         string feedLabel;
         string queryLabel;
-        uint96 settlementDelay;
+        uint248 settlementDelay;
+        bool isPremium;
     }
 }

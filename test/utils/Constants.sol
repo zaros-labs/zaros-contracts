@@ -52,7 +52,7 @@ abstract contract Constants {
     uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
     uint128 internal constant ETH_USD_ORDER_MAKER_FEE = 0.04e18;
     uint128 internal constant ETH_USD_ORDER_TAKER_FEE = 0.08e18;
-    uint96 internal constant ETH_USD_SETTLEMENT_DELAY = 2 seconds;
+    uint248 internal constant ETH_USD_SETTLEMENT_DELAY = 2 seconds;
 
     /// @notice Mocked prices.
     uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;

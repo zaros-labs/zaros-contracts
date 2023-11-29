@@ -39,15 +39,16 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
 
     /// @dev ETH / USD market configuration variables.
-    SettlementStrategy.DataStreamsBasicFeed internal ethUsdSettlementStrategyData = SettlementStrategy
-        .DataStreamsBasicFeed({
+    SettlementStrategy.DataStreamsStrategy internal ethUsdSettlementStrategyData = SettlementStrategy
+        .DataStreamsStrategy({
         streamId: MOCK_ETH_USD_STREAM_ID,
         feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
         queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-        settlementDelay: ETH_USD_SETTLEMENT_DELAY
+        settlementDelay: ETH_USD_SETTLEMENT_DELAY,
+        isPremium: false
     });
     SettlementStrategy.Data internal ethUsdSettlementStrategy = SettlementStrategy.Data({
-        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_BASIC_FEED,
+        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
         isEnabled: true,
         settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
         upkeep: mockDefaultSettlementUpkeep,

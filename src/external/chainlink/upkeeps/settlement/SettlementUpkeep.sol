@@ -104,8 +104,8 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
         SettlementStrategy.Data memory settlementStrategy = perpsEngine.settlementStrategy(marketId);
 
-        SettlementStrategy.DataStreamsBasicFeed memory strategy =
-            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
+        SettlementStrategy.DataStreamsStrategy memory strategy =
+            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsStrategy));
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(strategy.streamId));

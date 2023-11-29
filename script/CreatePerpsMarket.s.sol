@@ -26,7 +26,7 @@ contract CreatePerpsMarket is BaseScript {
     uint128 internal constant ETH_USD_MMR = 0.01e18;
     uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
     uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
-    uint96 internal constant ETH_USD_SETTLEMENT_DELAY = 2 seconds;
+    uint248 internal constant ETH_USD_SETTLEMENT_DELAY = 2 seconds;
     OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     string internal linkUsdStreamId;
@@ -37,7 +37,7 @@ contract CreatePerpsMarket is BaseScript {
     uint128 internal constant LINK_USD_MMR = 0.01e18;
     uint128 internal constant LINK_USD_MAX_OI = 100_000_000e18;
     uint128 internal constant LINK_USD_MIN_IMR = 0.01e18;
-    uint96 internal constant LINK_USD_SETTLEMENT_DELAY = 2 seconds;
+    uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 2 seconds;
     OrderFees.Data internal linkUsdOrderFee = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -55,15 +55,16 @@ contract CreatePerpsMarket is BaseScript {
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        SettlementStrategy.DataStreamsBasicFeed memory ethUsdSettlementStrategyData = SettlementStrategy
-            .DataStreamsBasicFeed({
+        SettlementStrategy.DataStreamsStrategy memory ethUsdSettlementStrategyData = SettlementStrategy
+            .DataStreamsStrategy({
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-            settlementDelay: ETH_USD_SETTLEMENT_DELAY
+            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
+            isPremium: false
         });
         SettlementStrategy.Data memory ethUsdSettlementStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_BASIC_FEED,
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultSettlementUpkeep,
@@ -81,15 +82,16 @@ contract CreatePerpsMarket is BaseScript {
             ethUsdOrderFee
         );
 
-        SettlementStrategy.DataStreamsBasicFeed memory linkUsdSettlementStrategyData = SettlementStrategy
-            .DataStreamsBasicFeed({
+        SettlementStrategy.DataStreamsStrategy memory linkUsdSettlementStrategyData = SettlementStrategy
+            .DataStreamsStrategy({
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-            settlementDelay: LINK_USD_SETTLEMENT_DELAY
+            settlementDelay: LINK_USD_SETTLEMENT_DELAY,
+            isPremium: false
         });
         SettlementStrategy.Data memory linkUsdSettlementStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_BASIC_FEED,
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultSettlementUpkeep,

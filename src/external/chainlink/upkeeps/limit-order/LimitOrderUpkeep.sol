@@ -66,6 +66,12 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("perpsEngine");
         }
+        if (bytes(dataStreamsFeedParamKey).length == 0) {
+            revert Errors.ZeroInput("dataStreamsFeedParamKey");
+        }
+        if (bytes(dataStreamsTimeParamKey).length == 0) {
+            revert Errors.ZeroInput("dataStreamsTimeParamKey");
+        }
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
@@ -128,8 +134,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         for (uint256 i = 0; i < amountOfActiveMarkets; i++) {
             uint128 marketId = self.marketsWithActiveOrders.at(i).toUint128();
             SettlementStrategy.Data memory settlementStrategy = perpsEngine.settlementStrategy(marketId);
-            SettlementStrategy.DataStreamsBasicFeed memory dataStreamsStrategy =
-                abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsBasicFeed));
+            SettlementStrategy.DataStreamsStrategy memory dataStreamsStrategy =
+                abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsStrategy));
             limitOrdersStreamIds[i] = dataStreamsStrategy.streamId;
         }
 
