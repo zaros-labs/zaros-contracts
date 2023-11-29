@@ -144,28 +144,30 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     function depositMargin(uint128 accountId, address collateralType, uint256 amount) external override {
         // PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
         MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
-        UD60x18 udAmount = ud60x18(amount);
-        _requireAmountNotZero(udAmount);
-        _requireEnoughDepositCap(collateralType, udAmount, marginCollateral.getDepositCap());
+        UD60x18 ud60x18Amount = marginCollateral.convertTokenAmountToUd60x18(amount);
+        _requireAmountNotZero(ud60x18Amount);
+        _requireEnoughDepositCap(collateralType, ud60x18Amount, marginCollateral.getDepositCap());
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        perpsAccount.increaseMarginCollateralBalance(collateralType, udAmount);
-        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), udAmount.intoUint256());
+        perpsAccount.increaseMarginCollateralBalance(collateralType, ud60x18Amount);
+        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), ud60x18Amount.intoUint256());
 
-        emit LogDepositMargin(msg.sender, accountId, collateralType, udAmount.intoUint256());
+        emit LogDepositMargin(msg.sender, accountId, collateralType, amount);
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function withdrawMargin(uint128 accountId, address collateralType, uint256 amount) external override {
-        UD60x18 udAmount = ud60x18(amount);
-        _requireAmountNotZero(udAmount);
+    function withdrawMargin(uint128 accountId, address collateralType, UD60x18 ud60x18Amount) external override {
+        _requireAmountNotZero(ud60x18Amount);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
-        _checkMarginIsAvailable(perpsAccount, collateralType, udAmount);
-        perpsAccount.decreaseMarginCollateralBalance(collateralType, udAmount);
-        IERC20(collateralType).safeTransfer(msg.sender, udAmount.intoUint256());
+        _checkMarginIsAvailable(perpsAccount, collateralType, ud60x18Amount);
+        perpsAccount.decreaseMarginCollateralBalance(collateralType, ud60x18Amount);
 
-        emit LogWithdrawMargin(msg.sender, accountId, collateralType, udAmount.intoUint256());
+        MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
+        uint256 tokenAmount = marginCollateral.convertUd60x18ToTokenAmount(ud60x18Amount);
+        IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
+
+        emit LogWithdrawMargin(msg.sender, accountId, collateralType, tokenAmount);
     }
 
     /// @inheritdoc IPerpsAccountModule

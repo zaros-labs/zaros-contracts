@@ -23,7 +23,7 @@ interface IPerpsAccountModule {
     /// @param sender The `msg.sender`.
     /// @param accountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @param amount The amount of margin collateral deposited.
+    /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
     event LogDepositMargin(
         address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
     );
@@ -32,7 +32,7 @@ interface IPerpsAccountModule {
     /// @param sender The `msg.sender`.
     /// @param accountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @param amount The amount of margin collateral withdrawn.
+    /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
     event LogWithdrawMargin(
         address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
     );
@@ -96,8 +96,8 @@ interface IPerpsAccountModule {
     /// @notice Withdraws available margin collateral from the given trading account.
     /// @param accountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @param amount The amount of margin collateral to withdraw.
-    function withdrawMargin(uint128 accountId, address collateralType, uint256 amount) external;
+    /// @param ud60x18Amount The UD60x18 amount of margin collateral to withdraw.
+    function withdrawMargin(uint128 accountId, address collateralType, UD60x18 ud60x18Amount) external;
 
     /// @notice Used by the Account NFT contract to notify an account transfer.
     /// @dev Can only be called by the Account NFT contract.

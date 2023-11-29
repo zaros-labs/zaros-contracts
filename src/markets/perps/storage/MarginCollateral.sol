@@ -47,11 +47,19 @@ library MarginCollateral {
     /// @param self The margin collateral type storage pointer.
     /// @param amount The amount of margin collateral to convert.
     /// @return systemAmount The converted amount of margin collateral to the system's decimals.
-    function getSystemTokenAmount(Data storage self, uint256 amount) internal view returns (UD60x18) {
+    function convertTokenAmountToUd60x18(Data storage self, uint256 amount) internal view returns (UD60x18) {
         if (Constants.SYSTEM_DECIMALS == self.decimals) {
             return ud60x18(amount);
         }
         return ud60x18(amount * 10 ** (Constants.SYSTEM_DECIMALS - self.decimals));
+    }
+
+    function convertUd60x18ToTokenAmount(Data storage self, UD60x18 ud60x18Amount) internal view returns (uint256) {
+        if (Constants.SYSTEM_DECIMALS == self.decimals) {
+            return ud60x18Amount.intoUint256();
+        }
+
+        return ud60x18Amount.intoUint256() / (10 ** (Constants.SYSTEM_DECIMALS - self.decimals));
     }
 
     /// @notice Configures the settings of a given margin collateral type.

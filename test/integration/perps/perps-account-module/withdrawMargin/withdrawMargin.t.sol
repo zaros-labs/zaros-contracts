@@ -6,6 +6,9 @@ pragma solidity 0.8.23;
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
+// PRB Math dependencies
+import { ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+
 contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
@@ -19,7 +22,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
-        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), 0);
+        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), UD_ZERO);
     }
 
     modifier whenTheAmountIsNotZero() {
@@ -42,7 +45,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.PermissionDenied.selector, perpsAccountId, users.sasuke)
         });
-        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), amountToDeposit);
+        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToDeposit));
     }
 
     modifier givenTheSenderIsAuthorized() {
@@ -75,7 +78,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should transfer the withdrawn amount to the sender
         expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
-        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), amountToWithdraw);
+        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
 
         uint256 expectedMargin = amountToDeposit - amountToWithdraw;
         uint256 newMarginCollateral =
