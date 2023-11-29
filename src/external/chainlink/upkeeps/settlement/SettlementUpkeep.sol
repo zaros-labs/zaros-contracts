@@ -7,6 +7,7 @@ import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
+import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
@@ -137,7 +138,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
             abi.decode(performData, (bytes[], uint128, uint128));
 
         bytes memory signedReport = signedReportsArray[0];
-        bytes memory reportData = _getReportData(signedReport);
+        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
 
         SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
@@ -154,11 +155,6 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
 
         perpsEngine.settleOrder(accountId, marketId, verifiedReport);
-    }
-
-    /// @notice Decodes the signedReport object and returns the report data only.
-    function _getReportData(bytes memory signedReport) internal pure returns (bytes memory reportData) {
-        (, reportData) = abi.decode(signedReport, (bytes32[3], bytes));
     }
 
     function _getSettlementUpkeepStorage() internal pure returns (SettlementUpkeepStorage storage self) {

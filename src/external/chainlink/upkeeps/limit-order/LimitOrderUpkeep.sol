@@ -7,6 +7,7 @@ import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
+import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { LimitOrder } from "./storage/LimitOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
@@ -155,7 +156,13 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        this;
+        (bytes[] memory signedReportsArray, uint128 accountId, uint128 marketId) =
+            abi.decode(performData, (bytes[], uint128, uint128));
+
+        bytes memory signedReport = signedReportsArray[0];
+        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+        // TODO: handle premium reports
+        BasicReport memory report = abi.decode(reportData, (BasicReport));
     }
 
     function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, int128 sizeDelta) external {

@@ -42,7 +42,7 @@ library MarginCollateral {
         depositCap = ud60x18(self.depositCap);
     }
 
-    /// @notice Converts the provided denormalized amount of margin collateral to the system's decimals.
+    /// @notice Converts the provided denormalized amount of margin collateral to UD60x18.
     /// @dev We can assume self.decimals is always <= SYSTEM_DECIMALS, since it's a requirement at `setDecimals`.
     /// @param self The margin collateral type storage pointer.
     /// @param amount The amount of margin collateral to convert.
