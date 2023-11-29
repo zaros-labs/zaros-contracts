@@ -42,8 +42,8 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     SettlementStrategy.DataStreamsBasicFeed internal ethUsdSettlementStrategyData = SettlementStrategy
         .DataStreamsBasicFeed({
         streamId: MOCK_ETH_USD_STREAM_ID,
-        feedLabel: DATA_STREAMS_FEED_LABEL,
-        queryLabel: DATA_STREAMS_QUERY_LABEL,
+        feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+        queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
         settlementDelay: ETH_USD_SETTLEMENT_DELAY
     });
     SettlementStrategy.Data internal ethUsdSettlementStrategy = SettlementStrategy.Data({

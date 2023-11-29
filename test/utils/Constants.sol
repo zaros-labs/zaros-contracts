@@ -38,8 +38,8 @@ abstract contract Constants {
     uint248 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
 
     /// @notice General perps markets configuration constants.
-    string internal constant DATA_STREAMS_FEED_LABEL = "feedIDs";
-    string internal constant DATA_STREAMS_QUERY_LABEL = "timestamp";
+    string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
+    string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
     uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
 
     /// @notice ETH/USD market configuration constants.

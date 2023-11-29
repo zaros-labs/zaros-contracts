@@ -12,8 +12,8 @@ contract CreatePerpsMarket is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    string internal constant DATA_STREAMS_FEED_LABEL = "feedIDs";
-    string internal constant DATA_STREAMS_QUERY_LABEL = "timestamp";
+    string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
+    string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
 
     address internal defaultSettlementUpkeep;
     uint256 internal defaultSettlementFee;
@@ -58,8 +58,8 @@ contract CreatePerpsMarket is BaseScript {
         SettlementStrategy.DataStreamsBasicFeed memory ethUsdSettlementStrategyData = SettlementStrategy
             .DataStreamsBasicFeed({
             streamId: ethUsdStreamId,
-            feedLabel: DATA_STREAMS_FEED_LABEL,
-            queryLabel: DATA_STREAMS_QUERY_LABEL,
+            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
             settlementDelay: ETH_USD_SETTLEMENT_DELAY
         });
         SettlementStrategy.Data memory ethUsdSettlementStrategy = SettlementStrategy.Data({
@@ -84,8 +84,8 @@ contract CreatePerpsMarket is BaseScript {
         SettlementStrategy.DataStreamsBasicFeed memory linkUsdSettlementStrategyData = SettlementStrategy
             .DataStreamsBasicFeed({
             streamId: linkUsdStreamId,
-            feedLabel: DATA_STREAMS_FEED_LABEL,
-            queryLabel: DATA_STREAMS_QUERY_LABEL,
+            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
             settlementDelay: LINK_USD_SETTLEMENT_DELAY
         });
         SettlementStrategy.Data memory linkUsdSettlementStrategy = SettlementStrategy.Data({

@@ -36,6 +36,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
     struct LimitOrderUpkeepStorage {
         address chainlinkVerifier;
         address forwarder;
+        string dataStreamsFeedParamKey;
+        string dataStreamsTimeParamKey;
         PerpsEngine perpsEngine;
         mapping(uint128 marketId => bool) isMarketSupported;
         EnumerableSet.UintSet marketsWithActiveOrders;
@@ -48,7 +50,9 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         address initialOwner,
         address chainlinkVerifier,
         address forwarder,
-        PerpsEngine perpsEngine
+        PerpsEngine perpsEngine,
+        string calldata dataStreamsFeedParamKey,
+        string calldata dataStreamsTimeParamKey
     )
         external
         initializer
@@ -68,6 +72,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         self.chainlinkVerifier = chainlinkVerifier;
         self.forwarder = forwarder;
         self.perpsEngine = perpsEngine;
+        self.dataStreamsFeedParamKey = dataStreamsFeedParamKey;
+        self.dataStreamsTimeParamKey = dataStreamsTimeParamKey;
 
         __Ownable_init(initialOwner);
     }
@@ -129,7 +135,9 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
 
         bytes memory extraData = abi.encode(pendingLimitOrders);
 
-        revert StreamsLookup("feedIDs", limitOrdersStreamIds, "timestamp", block.timestamp, extraData);
+        revert StreamsLookup(
+            self.dataStreamsFeedParamKey, limitOrdersStreamIds, self.dataStreamsTimeParamKey, block.timestamp, extraData
+        );
     }
 
     function checkCallback(
