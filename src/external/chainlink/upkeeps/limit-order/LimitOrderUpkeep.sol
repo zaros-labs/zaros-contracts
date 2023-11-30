@@ -40,7 +40,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         string dataStreamsFeedParamKey;
         string dataStreamsTimeParamKey;
         PerpsEngine perpsEngine;
-        mapping(uint128 marketId => bool) isMarketSupported;
+        mapping(uint128 marketId => string) streamIdForMarket;
+        mapping(uint128 marketId => bool) isMarketEnabled;
         EnumerableSet.UintSet marketsWithActiveOrders;
         uint256 nextOrderId;
         EnumerableSet.UintSet limitOrdersIds;
@@ -120,16 +121,17 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             return (upkeepNeeded, performData);
         }
 
-        LimitOrder.Data[] memory pendingLimitOrders =
-            new LimitOrder.Data[](amountOfPendingLimitOrders < upperBound ? amountOfPendingLimitOrders : upperBound);
+        uint256 amountOfActiveMarkets = self.marketsWithActiveOrders.length();
+        uint256[][] memory pendingLimitOrdersIdsPerMarketId = new uint256[][](amountOfActiveMarkets);
 
         for (uint256 i = lowerBound; i < upperBound; i++) {
             uint256 orderId = self.limitOrdersIds.at(i);
             LimitOrder.Data memory limitOrder = LimitOrder.load(orderId);
-            pendingLimitOrders[i] = limitOrder;
+            uint128 marketId = limitOrder.marketId;
+
+            pendingLimitOrdersIdsPerMarketId[marketId][pendingLimitOrdersIdsPerMarketId[marketId].length] = orderId;
         }
 
-        uint256 amountOfActiveMarkets = self.marketsWithActiveOrders.length();
         string[] memory limitOrdersStreamIds = new string[](amountOfActiveMarkets);
 
         for (uint256 i = 0; i < amountOfActiveMarkets; i++) {
@@ -140,7 +142,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             limitOrdersStreamIds[i] = dataStreamsStrategy.streamId;
         }
 
-        bytes memory extraData = abi.encode(pendingLimitOrders);
+        bytes memory extraData = abi.encode(pendingLimitOrdersIdsPerMarketId);
 
         revert StreamsLookup(
             self.dataStreamsFeedParamKey, limitOrdersStreamIds, self.dataStreamsTimeParamKey, block.timestamp, extraData
@@ -156,13 +158,9 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        (bytes[] memory signedReportsArray, uint128 accountId, uint128 marketId) =
-            abi.decode(performData, (bytes[], uint128, uint128));
+        (LimitOrder.Data[] memory pendingLimitOrders) = abi.decode(extraData, (LimitOrder.Data[]));
 
-        bytes memory signedReport = signedReportsArray[0];
-        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        // TODO: handle premium reports
-        BasicReport memory report = abi.decode(reportData, (BasicReport));
+        // for (uint256 i = 0)
     }
 
     function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, int128 sizeDelta) external {
@@ -173,8 +171,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             revert Errors.Unauthorized(msg.sender);
         }
 
-        if (!self.isMarketSupported[marketId]) {
-            revert Errors.UnsupportedMarketId(marketId);
+        if (!self.isMarketEnabled[marketId]) {
+            revert Errors.DisabledMarketId(marketId);
         }
 
         if (!self.marketsWithActiveOrders.contains(marketId)) {
@@ -199,18 +197,30 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         emit LogCreateLimitOrder(marketId, accountId, orderId, price, sizeDelta);
     }
 
-    function configureSupportedMarkets(uint128[] calldata marketIds, bool[] calldata isSupported) external onlyOwner {
+    function configureSupportedMarkets(
+        uint128[] calldata marketIds,
+        string[] calldata streamIds,
+        bool[] calldata isEnabled
+    )
+        external
+        onlyOwner
+    {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
-        if (marketIds.length != isSupported.length) {
-            revert Errors.ArrayLengthMismatch(marketIds.length, isSupported.length);
+        if (marketIds.length != isEnabled.length) {
+            revert Errors.ArrayLengthMismatch(marketIds.length, isEnabled.length);
         }
 
         for (uint256 i = 0; i < marketIds.length; i++) {
             uint128 marketId = marketIds[i];
-            bool isMarketSupported = isSupported[i];
+            string memory streamId = streamIds[i];
+            bool isMarketEnabled = isEnabled[i];
 
-            self.isMarketSupported[marketId] = isMarketSupported;
+            if (isMarketEnabled && bytes(streamId).length == 0) {
+                revert Errors.ZeroInput("streamId");
+            }
+
+            self.isMarketEnabled[marketId] = isMarketEnabled;
         }
     }
 
