@@ -182,10 +182,6 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             self.marketsWithActiveOrders.add(marketId);
         }
 
-        // if (!self.accountsWithActiveOrders.contains(accountId)) {
-        //     // we don't need to check the return value since we already checked if the account is in the set
-        //     self.accountsWithActiveOrders.add(accountId);
-        // }
         uint256 orderId = ++self.nextOrderId;
 
         // There should never be a duplicate order id, but let's make sure anyway.
