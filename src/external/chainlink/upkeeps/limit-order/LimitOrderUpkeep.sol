@@ -40,11 +40,12 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         string dataStreamsFeedParamKey;
         string dataStreamsTimeParamKey;
         PerpsEngine perpsEngine;
-        mapping(uint128 marketId => string) streamIdForMarket;
+        mapping(string streamId => uint128) marketIdForStreamId;
+        mapping(uint128 marketId => string) streamIdForMarketId;
         mapping(uint128 marketId => bool) isMarketEnabled;
+        mapping(uint128 marketId => EnumerableSet.UintSet) limitOrdersIdsPerMarketId;
         EnumerableSet.UintSet marketsWithActiveOrders;
         uint256 nextOrderId;
-        EnumerableSet.UintSet limitOrdersIds;
     }
 
     /// @notice {LimitOrderUpkeep} UUPS initializer.
@@ -112,40 +113,33 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         PerpsEngine perpsEngine = self.perpsEngine;
-        uint256 amountOfPendingLimitOrders = self.limitOrdersIds.length();
+        uint256 amountOfActiveMarkets = self.marketsWithActiveOrders.length();
 
-        if (amountOfPendingLimitOrders == 0) {
+        if (amountOfActiveMarkets == 0) {
             upkeepNeeded = false;
             performData = bytes("");
 
             return (upkeepNeeded, performData);
         }
 
-        uint256 amountOfActiveMarkets = self.marketsWithActiveOrders.length();
-        uint256[][] memory pendingLimitOrdersIdsPerMarketId = new uint256[][](amountOfActiveMarkets);
-
-        for (uint256 i = lowerBound; i < upperBound; i++) {
-            uint256 orderId = self.limitOrdersIds.at(i);
-            LimitOrder.Data memory limitOrder = LimitOrder.load(orderId);
-            uint128 marketId = limitOrder.marketId;
-
-            pendingLimitOrdersIdsPerMarketId[marketId][pendingLimitOrdersIdsPerMarketId[marketId].length] = orderId;
-        }
-
-        string[] memory limitOrdersStreamIds = new string[](amountOfActiveMarkets);
+        string[] memory activeMarketsStreamIds;
 
         for (uint256 i = 0; i < amountOfActiveMarkets; i++) {
             uint128 marketId = self.marketsWithActiveOrders.at(i).toUint128();
-            SettlementStrategy.Data memory settlementStrategy = perpsEngine.settlementStrategy(marketId);
-            SettlementStrategy.DataStreamsStrategy memory dataStreamsStrategy =
-                abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsStrategy));
-            limitOrdersStreamIds[i] = dataStreamsStrategy.streamId;
+            string memory streamId = self.streamIdForMarketId[marketId];
+
+            activeMarketsStreamIds[i] = streamId;
         }
 
-        bytes memory extraData = abi.encode(pendingLimitOrdersIdsPerMarketId);
+        // bytes memory extraData = abi.encode(pendingLimitOrdersIdsPerMarketId);
+        bytes memory extraData;
 
         revert StreamsLookup(
-            self.dataStreamsFeedParamKey, limitOrdersStreamIds, self.dataStreamsTimeParamKey, block.timestamp, extraData
+            self.dataStreamsFeedParamKey,
+            activeMarketsStreamIds,
+            self.dataStreamsTimeParamKey,
+            block.timestamp,
+            extraData
         );
     }
 
@@ -158,9 +152,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        (LimitOrder.Data[] memory pendingLimitOrders) = abi.decode(extraData, (LimitOrder.Data[]));
-
-        // for (uint256 i = 0)
+        this;
     }
 
     function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, int128 sizeDelta) external {
@@ -183,15 +175,18 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         uint256 orderId = ++self.nextOrderId;
 
         // There should never be a duplicate order id, but let's make sure anyway.
-        assert(!self.limitOrdersIds.contains(orderId));
-        self.limitOrdersIds.add(orderId);
+        assert(!self.limitOrdersIdsPerMarketId[marketId].contains(orderId));
+        self.limitOrdersIdsPerMarketId[marketId].add(orderId);
+
+        string memory streamId = self.streamIdForMarketId[marketId];
 
         LimitOrder.create({
             marketId: marketId,
             accountId: accountId,
             orderId: orderId,
             price: price,
-            sizeDelta: sizeDelta
+            sizeDelta: sizeDelta,
+            streamId: streamId
         });
 
         emit LogCreateLimitOrder(marketId, accountId, orderId, price, sizeDelta);
@@ -221,6 +216,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             }
 
             self.isMarketEnabled[marketId] = isMarketEnabled;
+            self.marketIdForStreamId[streamId] = marketId;
+            self.streamIdForMarketId[marketId] = streamId;
         }
     }
 
