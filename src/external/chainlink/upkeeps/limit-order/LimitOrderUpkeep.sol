@@ -19,6 +19,9 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+
 contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
@@ -152,7 +155,29 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        this;
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        LimitOrder.Data[] memory inRangeOrders = new LimitOrder.Data[]();
+
+        for (uint256 i = 0; i < values.length; i++) {
+            BasicReport memory report = abi.decode(ChainlinkUtil.getReportData(values[i]), (BasicReport));
+            uint128 marketId = self.marketIdForStreamId[report.feedId];
+            uint256 amountOfOrders = self.limitOrdersIdsPerMarketId[marketId].length();
+
+            for (uint256 j = 0; j < amountOfOrders; j++) {
+                uint256 orderId = self.limitOrdersIdsPerMarketId[marketId].at(i);
+                // TODO: store decimals per market?
+                UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
+                LimitOrder.Data memory limitOrder = LimitOrder.load(orderId);
+                bool isOrderInRange = (
+                    limitOrder.sizeDelta > 0 && reportPrice.lte(ud60x18(limitOrder.price))
+                        || (limitOrder.sizeDelta < 0 && reportPrice.gte(ud60x18(limitOrder.price)))
+                );
+
+                if (isOrderInRange) {
+                    inRangeOrders[inRangeOrders.length] = limitOrder;
+                }
+            }
+        }
     }
 
     function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, int128 sizeDelta) external {
