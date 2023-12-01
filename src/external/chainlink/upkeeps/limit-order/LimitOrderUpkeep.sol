@@ -128,42 +128,35 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        // (uint256 lowerBound, uint256 upperBound) = abi.decode(checkData, (uint256, uint256));
+        (uint256 lowerBound, uint256 upperBound) = abi.decode(checkData, (uint256, uint256));
 
-        // if (lowerBound > upperBound) {
-        //     revert Errors.InvalidBounds(lowerBound, upperBound);
-        // }
+        if (lowerBound > upperBound) {
+            revert Errors.InvalidBounds(lowerBound, upperBound);
+        }
 
-        // LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        // PerpsEngine perpsEngine = self.perpsEngine;
-        // uint256 amountOfActiveMarkets = self.marketsWithActiveOrders.length();
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        PerpsEngine perpsEngine = self.perpsEngine;
 
-        // if (amountOfActiveMarkets == 0) {
-        //     upkeepNeeded = false;
-        //     performData = bytes("");
+        uint256 amountOfOrders = self.limitOrdersIds.length() > upperBound ? upperBound : self.limitOrdersIds.length();
 
-        //     return (upkeepNeeded, performData);
-        // }
+        if (amountOfOrders == 0) {
+            return (upkeepNeeded, performData);
+        }
 
-        // string[] memory activeMarketsStreamIds;
+        LimitOrder.Data[] memory limitOrders = new LimitOrder.Data[](amountOfOrders);
 
-        // for (uint256 i = 0; i < amountOfActiveMarkets; i++) {
-        //     uint128 marketId = self.marketsWithActiveOrders.at(i).toUint128();
-        //     string memory streamId = self.streamIdForMarketId[marketId];
+        for (uint256 i = lowerBound; i < amountOfOrders; i++) {
+            uint256 orderId = self.limitOrdersIds.at(i);
+            limitOrders[i] = LimitOrder.load(orderId);
+        }
 
-        //     activeMarketsStreamIds[i] = streamId;
-        // }
+        string[] memory feedsParam = new string[](1);
+        feedsParam[0] = self.streamId;
+        bytes memory extraData = abi.encode(limitOrders);
 
-        // // bytes memory extraData = abi.encode(pendingLimitOrdersIdsPerMarketId);
-        // bytes memory extraData;
-
-        // revert StreamsLookup(
-        //     self.dataStreamsFeedParamKey,
-        //     activeMarketsStreamIds,
-        //     self.dataStreamsTimeParamKey,
-        //     block.timestamp,
-        //     extraData
-        // );
+        revert StreamsLookup(
+            self.dataStreamsFeedParamKey, feedsParam, self.dataStreamsTimeParamKey, block.timestamp, extraData
+        );
     }
 
     function checkCallback(
@@ -175,29 +168,33 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        // LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        // LimitOrder.Data[] memory inRangeOrders = new LimitOrder.Data[]();
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        LimitOrder.Data[] memory inRangeOrders = new LimitOrder.Data[](0);
 
-        // for (uint256 i = 0; i < values.length; i++) {
-        //     BasicReport memory report = abi.decode(ChainlinkUtil.getReportData(values[i]), (BasicReport));
-        //     uint128 marketId = self.marketIdForStreamId[report.feedId];
-        //     uint256 amountOfOrders = self.limitOrdersIdsPerMarketId[marketId].length();
+        bytes memory signedReport = values[0];
+        BasicReport memory report = abi.decode(ChainlinkUtil.getReportData(signedReport), (BasicReport));
+        (LimitOrder.Data[] memory limitOrders) = abi.decode(extraData, (LimitOrder.Data[]));
 
-        //     for (uint256 j = 0; j < amountOfOrders; j++) {
-        //         uint256 orderId = self.limitOrdersIdsPerMarketId[marketId].at(i);
-        //         // TODO: store decimals per market?
-        //         UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
-        //         LimitOrder.Data memory limitOrder = LimitOrder.load(orderId);
-        //         bool isOrderInRange = (
-        //             limitOrder.sizeDelta > 0 && reportPrice.lte(ud60x18(limitOrder.price))
-        //                 || (limitOrder.sizeDelta < 0 && reportPrice.gte(ud60x18(limitOrder.price)))
-        //         );
+        for (uint256 i = 0; i < limitOrders.length; i++) {
+            LimitOrder.Data memory limitOrder = limitOrders[i];
+            // TODO: store decimals per market?
+            UD60x18 orderPrice = ud60x18(limitOrder.price);
+            UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
 
-        //         if (isOrderInRange) {
-        //             inRangeOrders[inRangeOrders.length] = limitOrder;
-        //         }
-        //     }
-        // }
+            bool isOrderInRange = (
+                limitOrder.sizeDelta > 0 && reportPrice.lte(orderPrice)
+                    || (limitOrder.sizeDelta < 0 && reportPrice.gte(orderPrice))
+            );
+
+            if (isOrderInRange) {
+                inRangeOrders[inRangeOrders.length] = limitOrder;
+            }
+        }
+
+        if (inRangeOrders.length > 0) {
+            upkeepNeeded = true;
+            performData = abi.encode(signedReport, inRangeOrders);
+        }
     }
 
     function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, int128 sizeDelta) external {
