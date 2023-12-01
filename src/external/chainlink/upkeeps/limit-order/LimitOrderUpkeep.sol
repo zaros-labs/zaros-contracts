@@ -40,29 +40,30 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
     struct LimitOrderUpkeepStorage {
         address chainlinkVerifier;
         address forwarder;
+        PerpsEngine perpsEngine;
+        uint128 nextOrderId;
+        uint128 marketId;
         string dataStreamsFeedParamKey;
         string dataStreamsTimeParamKey;
-        PerpsEngine perpsEngine;
-        mapping(string streamId => uint128) marketIdForStreamId;
-        mapping(uint128 marketId => string) streamIdForMarketId;
-        mapping(uint128 marketId => bool) isMarketEnabled;
-        mapping(uint128 marketId => EnumerableSet.UintSet) limitOrdersIdsPerMarketId;
-        EnumerableSet.UintSet marketsWithActiveOrders;
-        uint256 nextOrderId;
+        string streamId;
+        EnumerableSet.UintSet limitOrdersIds;
     }
 
     /// @notice {LimitOrderUpkeep} UUPS initializer.
     function initialize(
-        address initialOwner,
         address chainlinkVerifier,
         address forwarder,
         PerpsEngine perpsEngine,
+        uint128 marketId,
         string calldata dataStreamsFeedParamKey,
-        string calldata dataStreamsTimeParamKey
+        string calldata dataStreamsTimeParamKey,
+        string calldata streamId
     )
         external
         initializer
     {
+        __Ownable_init(msg.sender);
+
         if (chainlinkVerifier == address(0)) {
             revert Errors.ZeroInput("chainlinkVerifier");
         }
@@ -72,11 +73,17 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("perpsEngine");
         }
+        if (marketId == 0) {
+            revert Errors.ZeroInput("marketId");
+        }
         if (bytes(dataStreamsFeedParamKey).length == 0) {
             revert Errors.ZeroInput("dataStreamsFeedParamKey");
         }
         if (bytes(dataStreamsTimeParamKey).length == 0) {
             revert Errors.ZeroInput("dataStreamsTimeParamKey");
+        }
+        if (bytes(streamId).length == 0) {
+            revert Errors.ZeroInput("streamId");
         }
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
@@ -84,16 +91,25 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         self.chainlinkVerifier = chainlinkVerifier;
         self.forwarder = forwarder;
         self.perpsEngine = perpsEngine;
+        self.marketId = marketId;
         self.dataStreamsFeedParamKey = dataStreamsFeedParamKey;
         self.dataStreamsTimeParamKey = dataStreamsTimeParamKey;
-
-        __Ownable_init(initialOwner);
+        self.streamId = streamId;
     }
 
     function getConfig()
         external
         view
-        returns (address upkeepOwner, address chainlinkVerifier, address forwarder, address perpsEngine)
+        returns (
+            address upkeepOwner,
+            address chainlinkVerifier,
+            address forwarder,
+            address perpsEngine,
+            uint128 marketId,
+            string memory dataStreamsFeedParamKey,
+            string memory dataStreamsTimeParamKey,
+            string memory streamId
+        )
     {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
@@ -101,6 +117,10 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         chainlinkVerifier = self.chainlinkVerifier;
         forwarder = self.forwarder;
         perpsEngine = address(self.perpsEngine);
+        marketId = self.marketId;
+        dataStreamsFeedParamKey = self.dataStreamsFeedParamKey;
+        dataStreamsTimeParamKey = self.dataStreamsTimeParamKey;
+        streamId = self.streamId;
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -108,42 +128,42 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        (uint256 lowerBound, uint256 upperBound) = abi.decode(checkData, (uint256, uint256));
+        // (uint256 lowerBound, uint256 upperBound) = abi.decode(checkData, (uint256, uint256));
 
-        if (lowerBound > upperBound) {
-            revert Errors.InvalidBounds(lowerBound, upperBound);
-        }
+        // if (lowerBound > upperBound) {
+        //     revert Errors.InvalidBounds(lowerBound, upperBound);
+        // }
 
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        PerpsEngine perpsEngine = self.perpsEngine;
-        uint256 amountOfActiveMarkets = self.marketsWithActiveOrders.length();
+        // LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        // PerpsEngine perpsEngine = self.perpsEngine;
+        // uint256 amountOfActiveMarkets = self.marketsWithActiveOrders.length();
 
-        if (amountOfActiveMarkets == 0) {
-            upkeepNeeded = false;
-            performData = bytes("");
+        // if (amountOfActiveMarkets == 0) {
+        //     upkeepNeeded = false;
+        //     performData = bytes("");
 
-            return (upkeepNeeded, performData);
-        }
+        //     return (upkeepNeeded, performData);
+        // }
 
-        string[] memory activeMarketsStreamIds;
+        // string[] memory activeMarketsStreamIds;
 
-        for (uint256 i = 0; i < amountOfActiveMarkets; i++) {
-            uint128 marketId = self.marketsWithActiveOrders.at(i).toUint128();
-            string memory streamId = self.streamIdForMarketId[marketId];
+        // for (uint256 i = 0; i < amountOfActiveMarkets; i++) {
+        //     uint128 marketId = self.marketsWithActiveOrders.at(i).toUint128();
+        //     string memory streamId = self.streamIdForMarketId[marketId];
 
-            activeMarketsStreamIds[i] = streamId;
-        }
+        //     activeMarketsStreamIds[i] = streamId;
+        // }
 
-        // bytes memory extraData = abi.encode(pendingLimitOrdersIdsPerMarketId);
-        bytes memory extraData;
+        // // bytes memory extraData = abi.encode(pendingLimitOrdersIdsPerMarketId);
+        // bytes memory extraData;
 
-        revert StreamsLookup(
-            self.dataStreamsFeedParamKey,
-            activeMarketsStreamIds,
-            self.dataStreamsTimeParamKey,
-            block.timestamp,
-            extraData
-        );
+        // revert StreamsLookup(
+        //     self.dataStreamsFeedParamKey,
+        //     activeMarketsStreamIds,
+        //     self.dataStreamsTimeParamKey,
+        //     block.timestamp,
+        //     extraData
+        // );
     }
 
     function checkCallback(
@@ -155,66 +175,66 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        LimitOrder.Data[] memory inRangeOrders = new LimitOrder.Data[]();
+        // LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        // LimitOrder.Data[] memory inRangeOrders = new LimitOrder.Data[]();
 
-        for (uint256 i = 0; i < values.length; i++) {
-            BasicReport memory report = abi.decode(ChainlinkUtil.getReportData(values[i]), (BasicReport));
-            uint128 marketId = self.marketIdForStreamId[report.feedId];
-            uint256 amountOfOrders = self.limitOrdersIdsPerMarketId[marketId].length();
+        // for (uint256 i = 0; i < values.length; i++) {
+        //     BasicReport memory report = abi.decode(ChainlinkUtil.getReportData(values[i]), (BasicReport));
+        //     uint128 marketId = self.marketIdForStreamId[report.feedId];
+        //     uint256 amountOfOrders = self.limitOrdersIdsPerMarketId[marketId].length();
 
-            for (uint256 j = 0; j < amountOfOrders; j++) {
-                uint256 orderId = self.limitOrdersIdsPerMarketId[marketId].at(i);
-                // TODO: store decimals per market?
-                UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
-                LimitOrder.Data memory limitOrder = LimitOrder.load(orderId);
-                bool isOrderInRange = (
-                    limitOrder.sizeDelta > 0 && reportPrice.lte(ud60x18(limitOrder.price))
-                        || (limitOrder.sizeDelta < 0 && reportPrice.gte(ud60x18(limitOrder.price)))
-                );
+        //     for (uint256 j = 0; j < amountOfOrders; j++) {
+        //         uint256 orderId = self.limitOrdersIdsPerMarketId[marketId].at(i);
+        //         // TODO: store decimals per market?
+        //         UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
+        //         LimitOrder.Data memory limitOrder = LimitOrder.load(orderId);
+        //         bool isOrderInRange = (
+        //             limitOrder.sizeDelta > 0 && reportPrice.lte(ud60x18(limitOrder.price))
+        //                 || (limitOrder.sizeDelta < 0 && reportPrice.gte(ud60x18(limitOrder.price)))
+        //         );
 
-                if (isOrderInRange) {
-                    inRangeOrders[inRangeOrders.length] = limitOrder;
-                }
-            }
-        }
+        //         if (isOrderInRange) {
+        //             inRangeOrders[inRangeOrders.length] = limitOrder;
+        //         }
+        //     }
+        // }
     }
 
     function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, int128 sizeDelta) external {
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
+        // LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        // bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
 
-        if (!isSenderAuthorized) {
-            revert Errors.Unauthorized(msg.sender);
-        }
+        // if (!isSenderAuthorized) {
+        //     revert Errors.Unauthorized(msg.sender);
+        // }
 
-        if (!self.isMarketEnabled[marketId]) {
-            revert Errors.DisabledMarketId(marketId);
-        }
+        // if (!self.isMarketEnabled[marketId]) {
+        //     revert Errors.DisabledMarketId(marketId);
+        // }
 
-        if (!self.marketsWithActiveOrders.contains(marketId)) {
-            // we don't need to check the return value since we already checked if the market is in the set
-            self.marketsWithActiveOrders.add(marketId);
-        }
+        // if (!self.marketsWithActiveOrders.contains(marketId)) {
+        //     // we don't need to check the return value since we already checked if the market is in the set
+        //     self.marketsWithActiveOrders.add(marketId);
+        // }
 
-        uint256 orderId = ++self.nextOrderId;
+        // uint256 orderId = ++self.nextOrderId;
 
-        // There should never be a duplicate order id, but let's make sure anyway.
-        assert(!self.limitOrdersIdsPerMarketId[marketId].contains(orderId));
-        self.limitOrdersIdsPerMarketId[marketId].add(orderId);
+        // // There should never be a duplicate order id, but let's make sure anyway.
+        // assert(!self.limitOrdersIdsPerMarketId[marketId].contains(orderId));
+        // self.limitOrdersIdsPerMarketId[marketId].add(orderId);
 
-        string memory streamId = self.streamIdForMarketId[marketId];
+        // string memory streamId = self.streamIdForMarketId[marketId];
 
-        LimitOrder.create({
-            marketId: marketId,
-            accountId: accountId,
-            orderId: orderId,
-            price: price,
-            sizeDelta: sizeDelta,
-            streamId: streamId
-        });
+        // LimitOrder.create({
+        //     marketId: marketId,
+        //     accountId: accountId,
+        //     orderId: orderId,
+        //     price: price,
+        //     sizeDelta: sizeDelta,
+        //     streamId: streamId
+        // });
 
-        emit LogCreateLimitOrder(marketId, accountId, orderId, price, sizeDelta);
+        // emit LogCreateLimitOrder(marketId, accountId, orderId, price, sizeDelta);
     }
 
     function configureSupportedMarkets(
@@ -225,25 +245,25 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         external
         onlyOwner
     {
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        // LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
-        if (marketIds.length != isEnabled.length) {
-            revert Errors.ArrayLengthMismatch(marketIds.length, isEnabled.length);
-        }
+        // if (marketIds.length != isEnabled.length) {
+        //     revert Errors.ArrayLengthMismatch(marketIds.length, isEnabled.length);
+        // }
 
-        for (uint256 i = 0; i < marketIds.length; i++) {
-            uint128 marketId = marketIds[i];
-            string memory streamId = streamIds[i];
-            bool isMarketEnabled = isEnabled[i];
+        // for (uint256 i = 0; i < marketIds.length; i++) {
+        //     uint128 marketId = marketIds[i];
+        //     string memory streamId = streamIds[i];
+        //     bool isMarketEnabled = isEnabled[i];
 
-            if (isMarketEnabled && bytes(streamId).length == 0) {
-                revert Errors.ZeroInput("streamId");
-            }
+        //     if (isMarketEnabled && bytes(streamId).length == 0) {
+        //         revert Errors.ZeroInput("streamId");
+        //     }
 
-            self.isMarketEnabled[marketId] = isMarketEnabled;
-            self.marketIdForStreamId[streamId] = marketId;
-            self.streamIdForMarketId[marketId] = streamId;
-        }
+        //     self.isMarketEnabled[marketId] = isMarketEnabled;
+        //     self.marketIdForStreamId[streamId] = marketId;
+        //     self.streamIdForMarketId[marketId] = streamId;
+        // }
     }
 
     function performUpkeep(bytes calldata performData) external override {
