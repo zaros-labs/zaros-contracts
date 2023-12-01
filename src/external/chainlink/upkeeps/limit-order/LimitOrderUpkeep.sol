@@ -169,7 +169,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         returns (bool upkeepNeeded, bytes memory performData)
     {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        LimitOrder.Data[] memory inRangeOrders = new LimitOrder.Data[](0);
+        LimitOrder.Data[] memory fillableOrders = new LimitOrder.Data[](0);
 
         bytes memory signedReport = values[0];
         BasicReport memory report = abi.decode(ChainlinkUtil.getReportData(signedReport), (BasicReport));
@@ -181,19 +181,19 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             UD60x18 orderPrice = ud60x18(limitOrder.price);
             UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
 
-            bool isOrderInRange = (
+            bool isOrderFillable = (
                 limitOrder.sizeDelta > 0 && reportPrice.lte(orderPrice)
                     || (limitOrder.sizeDelta < 0 && reportPrice.gte(orderPrice))
             );
 
-            if (isOrderInRange) {
-                inRangeOrders[inRangeOrders.length] = limitOrder;
+            if (isOrderFillable) {
+                fillableOrders[fillableOrders.length] = limitOrder;
             }
         }
 
-        if (inRangeOrders.length > 0) {
+        if (fillableOrders.length > 0) {
             upkeepNeeded = true;
-            performData = abi.encode(signedReport, inRangeOrders);
+            performData = abi.encode(signedReport, fillableOrders);
         }
     }
 
@@ -217,7 +217,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
     }
 
     function performUpkeep(bytes calldata performData) external override {
-        this;
+        (bytes memory signedReport, LimitOrder.Data[] memory fillableOrders) =
+            abi.decode(performData, (bytes, LimitOrder.Data[]));
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {

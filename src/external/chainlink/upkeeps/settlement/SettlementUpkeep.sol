@@ -124,20 +124,21 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         bytes calldata extraData
     )
         external
-        view
+        pure
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
+        bytes memory signedReport = values[0];
+
         upkeepNeeded = true;
-        performData = abi.encode(values, extraData);
+        performData = abi.encode(signedReport, extraData);
     }
 
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
-        (bytes[] memory signedReportsArray, uint128 accountId, uint128 marketId) =
-            abi.decode(performData, (bytes[], uint128, uint128));
+        (bytes memory signedReport, uint128 accountId, uint128 marketId) =
+            abi.decode(performData, (bytes, uint128, uint128));
 
-        bytes memory signedReport = signedReportsArray[0];
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
 
         SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
