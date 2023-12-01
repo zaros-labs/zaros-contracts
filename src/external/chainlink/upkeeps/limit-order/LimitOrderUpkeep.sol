@@ -26,7 +26,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
-    event LogCreateLimitOrder(uint128 marketId, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta);
+    event LogCreateLimitOrder(uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta);
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant LIMIT_ORDER_UPKEEP_LOCATION = keccak256(
@@ -198,69 +198,22 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
     }
 
     function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, int128 sizeDelta) external {
-        // LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        // bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
 
-        // if (!isSenderAuthorized) {
-        //     revert Errors.Unauthorized(msg.sender);
-        // }
+        if (!isSenderAuthorized) {
+            revert Errors.Unauthorized(msg.sender);
+        }
 
-        // if (!self.isMarketEnabled[marketId]) {
-        //     revert Errors.DisabledMarketId(marketId);
-        // }
+        uint256 orderId = ++self.nextOrderId;
 
-        // if (!self.marketsWithActiveOrders.contains(marketId)) {
-        //     // we don't need to check the return value since we already checked if the market is in the set
-        //     self.marketsWithActiveOrders.add(marketId);
-        // }
+        // There should never be a duplicate order id, but let's make sure anyway.
+        assert(!self.limitOrdersIds.contains(orderId));
+        self.limitOrdersIds.add(orderId);
 
-        // uint256 orderId = ++self.nextOrderId;
+        LimitOrder.create({ accountId: accountId, orderId: orderId, price: price, sizeDelta: sizeDelta });
 
-        // // There should never be a duplicate order id, but let's make sure anyway.
-        // assert(!self.limitOrdersIdsPerMarketId[marketId].contains(orderId));
-        // self.limitOrdersIdsPerMarketId[marketId].add(orderId);
-
-        // string memory streamId = self.streamIdForMarketId[marketId];
-
-        // LimitOrder.create({
-        //     marketId: marketId,
-        //     accountId: accountId,
-        //     orderId: orderId,
-        //     price: price,
-        //     sizeDelta: sizeDelta,
-        //     streamId: streamId
-        // });
-
-        // emit LogCreateLimitOrder(marketId, accountId, orderId, price, sizeDelta);
-    }
-
-    function configureSupportedMarkets(
-        uint128[] calldata marketIds,
-        string[] calldata streamIds,
-        bool[] calldata isEnabled
-    )
-        external
-        onlyOwner
-    {
-        // LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-
-        // if (marketIds.length != isEnabled.length) {
-        //     revert Errors.ArrayLengthMismatch(marketIds.length, isEnabled.length);
-        // }
-
-        // for (uint256 i = 0; i < marketIds.length; i++) {
-        //     uint128 marketId = marketIds[i];
-        //     string memory streamId = streamIds[i];
-        //     bool isMarketEnabled = isEnabled[i];
-
-        //     if (isMarketEnabled && bytes(streamId).length == 0) {
-        //         revert Errors.ZeroInput("streamId");
-        //     }
-
-        //     self.isMarketEnabled[marketId] = isMarketEnabled;
-        //     self.marketIdForStreamId[streamId] = marketId;
-        //     self.streamIdForMarketId[marketId] = streamId;
-        // }
+        emit LogCreateLimitOrder(accountId, orderId, price, sizeDelta);
     }
 
     function performUpkeep(bytes calldata performData) external override {
