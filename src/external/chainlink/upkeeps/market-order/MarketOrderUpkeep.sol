@@ -141,21 +141,14 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         (bytes memory signedReport, uint128 accountId, uint128 marketId) =
             abi.decode(performData, (bytes, uint128, uint128));
 
-        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
             (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine);
 
-        IFeeManager chainlinkFeeManager = chainlinkVerifier.s_feeManager();
-        // TODO: Store preferred fee token instead of querying i_nativeAddress?
-        address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
+        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
 
-        (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
-
-        bytes memory verifiedReportData =
-            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
-        BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
+        BasicReport memory verifiedReport = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
 
         perpsEngine.settleMarketOrder(accountId, marketId, verifiedReport);
     }

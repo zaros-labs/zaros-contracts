@@ -3,6 +3,9 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { IFeeManager, FeeAsset } from "./interfaces/IFeeManager.sol";
+import { BasicReport } from "./interfaces/IStreamsLookupCompatible.sol";
+import { IVerifierProxy } from "./interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 
 // Open Zeppelin dependencies
@@ -35,5 +38,34 @@ library ChainlinkUtil {
     /// @param price The price to convert.
     function reportPriceToUint256(int192 price) internal view returns (uint256) {
         return int256(price).toUint256();
+    }
+
+    function getEthVericationFee(
+        IVerifierProxy chainlinkVerifier,
+        bytes memory reportData
+    )
+        internal
+        view
+        returns (FeeAsset memory)
+    {
+        IFeeManager chainlinkFeeManager = chainlinkVerifier.s_feeManager();
+        // TODO: Store preferred fee token instead of querying i_nativeAddress?
+        address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
+        (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
+    }
+
+    function verifyReport(
+        IVerifierProxy chainlinkVerifier,
+        FeeAsset memory fee,
+        bytes memory signedReport
+    )
+        internal
+        returns (BasicReport memory)
+    {
+        bytes memory verifiedReportData =
+            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
+        BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
+
+        return verifiedReport;
     }
 }

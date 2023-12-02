@@ -16,6 +16,10 @@ library Errors {
     error ArrayLengthMismatch(uint256 expected, uint256 actual);
 
     /// @notice Chainlink Upkeeps errors.
+
+    /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
+    error OnlyForwarder(address sender, address forwarder);
+    /// @notice Thrown when the upkeep provided checkData bounds are invalid.
     error InvalidBounds(uint256 lowerBound, uint256 upperBound);
 
     /// @notice PerpsEngine.OrderModule errors
@@ -45,8 +49,8 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementModule errors
 
-    /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
-    error OnlyForwarder(address sender, address forwarder);
+    /// @notice Thrown when the caller is not the registered Upkeep contract.
+    error OnlyUpkeep(address sender, address upkeep);
 
     /// @notice PerpsEngine.PerpsMarketModule and PerpsEngine.PerpsMarket errors.
 

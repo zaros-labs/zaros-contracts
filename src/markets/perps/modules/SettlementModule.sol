@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
+import { LimitOrder } from "@zaros/external/chainlink/upkeeps/limit-order/storage/LimitOrder.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
@@ -29,27 +30,39 @@ abstract contract SettlementModule is ISettlementModule {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    modifier onlySettlementUpkeep(uint128 marketId) {
-        SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).marketOrderStrategy;
+    modifier onlyLimitOrderUpkeep(uint128 marketId) {
+        SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).limitOrderStrategy;
         address upkeep = settlementStrategy.upkeep;
 
-        if (msg.sender != upkeep && upkeep != address(0)) {
-            revert Errors.OnlyForwarder(msg.sender, upkeep);
-        }
+        _requireIsUpkeep(msg.sender, upkeep);
         _;
     }
 
+    modifier onlyMarketOrderUpkeep(uint128 marketId) {
+        SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).marketOrderStrategy;
+        address upkeep = settlementStrategy.upkeep;
+
+        _requireIsUpkeep(msg.sender, upkeep);
+        _;
+    }
+
+    // modifier onlyStopOrderUpkeep(uint128 marketId) {
+    //     SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).stopOrderStrategy;
+    //     address upkeep = settlementStrategy.upkeep;
+
+    //     _requireIsUpkeep(msg.sender, upkeep);
+    //     _;
+    // }
     function settleLimitOrder(
         uint128 accountId,
         uint128 marketId,
-        BasicReport calldata report
+        BasicReport calldata report,
+        LimitOrder.Data calldata limitOrder
     )
         external
-        onlySettlementUpkeep(marketId)
+        onlyLimitOrderUpkeep(marketId)
     {
-        // Order.Limit storage limitOrder = PerpsAccount.load(accountId).activeLimitOrder[marketId];
-
-        // _settleLimitOrder(limitOrder, report);
+        // TODO: settlement logic
     }
 
     function settleMarketOrder(
@@ -58,12 +71,24 @@ abstract contract SettlementModule is ISettlementModule {
         BasicReport calldata report
     )
         external
-        onlySettlementUpkeep(marketId)
+        onlyMarketOrderUpkeep(marketId)
     {
         Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
 
         _settleMarketOrder(marketOrder, report);
     }
+
+    // function settleStopOrder(
+    //     uint128 accountId,
+    //     uint128 marketId,
+    //     BasicReport calldata report,
+    //     LimitOrder.Data calldata limitOrder
+    // )
+    //     external
+    //     onlyStopOrderUpkeep(marketId)
+    // {
+    //     // TODO: settlement logic
+    // }
 
     // TODO: rework this
     function _settleMarketOrder(Order.Market storage marketOrder, BasicReport memory report) internal {
@@ -117,5 +142,11 @@ abstract contract SettlementModule is ISettlementModule {
             ud60x18(perpsMarket.size).add(sd59x18(marketOrder.payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
         emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, runtime.newPosition);
+    }
+
+    function _requireIsUpkeep(address sender, address upkeep) internal pure {
+        if (sender != upkeep && upkeep != address(0)) {
+            revert Errors.OnlyUpkeep(sender, upkeep);
+        }
     }
 }

@@ -219,6 +219,9 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
     function performUpkeep(bytes calldata performData) external override {
         (bytes memory signedReport, LimitOrder.Data[] memory fillableOrders) =
             abi.decode(performData, (bytes, LimitOrder.Data[]));
+
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        PerpsEngine perpsEngine = self.perpsEngine;
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {
