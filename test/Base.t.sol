@@ -47,6 +47,14 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         settlementDelay: ETH_USD_SETTLEMENT_DELAY,
         isPremium: false
     });
+    // TODO: update limit order strategy
+    SettlementStrategy.Data internal ethUsdLimitOrderStrategy = SettlementStrategy.Data({
+        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
+        isEnabled: true,
+        settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
+        upkeep: mockDefaultMarketOrderUpkeep,
+        strategyData: abi.encode(ethUsdMarketOrderStrategyData)
+    });
     SettlementStrategy.Data internal ethUsdMarketOrderStrategy = SettlementStrategy.Data({
         strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
         isEnabled: true,
