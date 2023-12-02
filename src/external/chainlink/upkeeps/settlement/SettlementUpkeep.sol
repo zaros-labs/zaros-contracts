@@ -105,8 +105,8 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
         SettlementStrategy.Data memory settlementStrategy = perpsEngine.settlementStrategy(marketId);
 
-        SettlementStrategy.DataStreamsStrategy memory strategy =
-            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsStrategy));
+        SettlementStrategy.DataStreamsMarketStrategy memory strategy =
+            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsMarketStrategy));
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(strategy.streamId));
@@ -155,7 +155,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
             chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
         BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
 
-        perpsEngine.settleOrder(accountId, marketId, verifiedReport);
+        perpsEngine.settleMarketOrder(accountId, marketId, verifiedReport);
     }
 
     function _getSettlementUpkeepStorage() internal pure returns (SettlementUpkeepStorage storage self) {

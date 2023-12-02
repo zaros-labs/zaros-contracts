@@ -50,7 +50,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         BasicReport memory mockReport;
         mockReport.price = int192(int256(MOCK_ETH_USD_PRICE));
 
-        perpsEngine.settleOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport });
+        perpsEngine.settleMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport });
     }
 
     function testFuzz_SettleOrderReducingSize(uint256 amountToDeposit) external {
@@ -71,7 +71,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder({ payload: payload });
 
-        perpsEngine.settleOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport });
+        perpsEngine.settleMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport });
 
         Order.Payload memory newPayload = Order.Payload({
             accountId: perpsAccountId,
@@ -95,6 +95,6 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedPosition);
 
-        perpsEngine.settleOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport });
+        perpsEngine.settleMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport });
     }
 }

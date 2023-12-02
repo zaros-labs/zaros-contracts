@@ -39,7 +39,7 @@ abstract contract SettlementModule is ISettlementModule {
         _;
     }
 
-    function settleOrder(
+    function settleMarketOrder(
         uint128 accountId,
         uint128 marketId,
         BasicReport calldata report
@@ -49,11 +49,11 @@ abstract contract SettlementModule is ISettlementModule {
     {
         Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
 
-        _settleOrder(marketOrder, report);
+        _settleMarketOrder(marketOrder, report);
     }
 
     // TODO: rework this
-    function _settleOrder(Order.Market storage marketOrder, BasicReport memory report) internal {
+    function _settleMarketOrder(Order.Market storage marketOrder, BasicReport memory report) internal {
         SettlementRuntime memory runtime;
         runtime.marketId = marketOrder.payload.marketId;
         runtime.accountId = marketOrder.payload.accountId;

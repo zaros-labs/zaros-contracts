@@ -55,8 +55,8 @@ contract CreatePerpsMarket is BaseScript {
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        SettlementStrategy.DataStreamsStrategy memory ethUsdSettlementStrategyData = SettlementStrategy
-            .DataStreamsStrategy({
+        SettlementStrategy.DataStreamsMarketStrategy memory ethUsdSettlementStrategyData = SettlementStrategy
+            .DataStreamsMarketStrategy({
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -64,7 +64,7 @@ contract CreatePerpsMarket is BaseScript {
             isPremium: false
         });
         SettlementStrategy.Data memory ethUsdSettlementStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultSettlementUpkeep,
@@ -82,8 +82,8 @@ contract CreatePerpsMarket is BaseScript {
             ethUsdOrderFee
         );
 
-        SettlementStrategy.DataStreamsStrategy memory linkUsdSettlementStrategyData = SettlementStrategy
-            .DataStreamsStrategy({
+        SettlementStrategy.DataStreamsMarketStrategy memory linkUsdSettlementStrategyData = SettlementStrategy
+            .DataStreamsMarketStrategy({
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -91,7 +91,7 @@ contract CreatePerpsMarket is BaseScript {
             isPremium: false
         });
         SettlementStrategy.Data memory linkUsdSettlementStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultSettlementUpkeep,
