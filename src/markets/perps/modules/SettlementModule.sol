@@ -53,11 +53,10 @@ abstract contract SettlementModule is ISettlementModule {
     //     _requireIsUpkeep(msg.sender, upkeep);
     //     _;
     // }
-    function settleLimitOrder(
-        uint128 accountId,
+    function settleLimitOrders(
         uint128 marketId,
         BasicReport calldata report,
-        LimitOrder.Data calldata limitOrder
+        LimitOrder.Data[] calldata fillableOrders
     )
         external
         onlyLimitOrderUpkeep(marketId)

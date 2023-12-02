@@ -221,7 +221,15 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             abi.decode(performData, (bytes, LimitOrder.Data[]));
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        PerpsEngine perpsEngine = self.perpsEngine;
+        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine, uint128 marketId) =
+            (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine, self.marketId);
+
+        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
+
+        BasicReport memory verifiedReport = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
+
+        perpsEngine.settleLimitOrders(marketId, verifiedReport, fillableOrders);
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {
