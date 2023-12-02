@@ -64,7 +64,7 @@ interface IPerpsConfigurationModule {
     /// @param maintenanceMarginRate The perps market maintenance margin rate.
     /// @param maxOpenInterest The perps market maximum open interest per side.
     /// @param minInitialMarginRate The perps market min initial margin rate, which defines the max leverage.
-    /// @param settlementStrategy The perps market settlement strategy.
+    /// @param marketOrderStrategy The perps market settlement strategy.
     /// @param orderFees The perps market maker and taker fees.
     function createPerpsMarket(
         uint128 marketId,
@@ -73,7 +73,7 @@ interface IPerpsConfigurationModule {
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
-        SettlementStrategy.Data calldata settlementStrategy,
+        SettlementStrategy.Data calldata marketOrderStrategy,
         OrderFees.Data calldata orderFees
     )
         external;

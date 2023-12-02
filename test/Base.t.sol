@@ -51,7 +51,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
         isEnabled: true,
         settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
-        upkeep: mockDefaultSettlementUpkeep,
+        upkeep: mockDefaultMarketOrderUpkeep,
         strategyData: abi.encode(ethUsdSettlementStrategyData)
     });
     OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
@@ -73,7 +73,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x04 });
 
     /// @dev TODO: think about forking tests
-    address internal mockDefaultSettlementUpkeep = vm.addr({ privateKey: 0x05 });
+    address internal mockDefaultMarketOrderUpkeep = vm.addr({ privateKey: 0x05 });
     MockPriceFeed internal mockUsdcUsdPriceFeed;
     MockPriceFeed internal mockWstEthUsdPriceFeed;
 

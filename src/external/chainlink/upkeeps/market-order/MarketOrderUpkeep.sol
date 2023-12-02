@@ -18,25 +18,25 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
+contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.
-    bytes32 internal constant SETTLEMENT_UPKEEP_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.SettlementUpkeep")) - 1)
+    bytes32 internal constant MARKET_ORDER_UPKEEP_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.MarketOrderUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.SettlementUpkeep
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param forwarder The address of the Upkeep forwarder contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
-    struct SettlementUpkeepStorage {
+    struct MarketOrderUpkeepStorage {
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
     }
 
-    /// @notice {SettlementUpkeep} UUPS initializer.
+    /// @notice {MarketOrderUpkeep} UUPS initializer.
     function initialize(
         address initialOwner,
         address chainlinkVerifier,
@@ -56,7 +56,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
             revert Errors.ZeroInput("perpsEngine");
         }
 
-        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
+        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
         self.chainlinkVerifier = chainlinkVerifier;
         self.forwarder = forwarder;
@@ -67,7 +67,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
     modifier onlyForwarder() {
-        address forwarder = _getSettlementUpkeepStorage().forwarder;
+        address forwarder = _getMarketOrderUpkeepStorage().forwarder;
         if (msg.sender != forwarder) {
             revert Errors.OnlyForwarder(msg.sender, forwarder);
         }
@@ -79,7 +79,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         view
         returns (address upkeepOwner, address chainlinkVerifier, address forwarder, address perpsEngine)
     {
-        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
+        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
         upkeepOwner = owner();
         chainlinkVerifier = self.chainlinkVerifier;
@@ -98,15 +98,15 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
+        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
         PerpsEngine perpsEngine = self.perpsEngine;
 
         (uint128 accountId, uint128 marketId) = (uint256(log.topics[2]).toUint128(), uint256(log.topics[3]).toUint128());
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
-        SettlementStrategy.Data memory settlementStrategy = perpsEngine.settlementStrategy(marketId);
+        SettlementStrategy.Data memory marketOrderStrategy = perpsEngine.marketOrderStrategy(marketId);
 
         SettlementStrategy.DataStreamsMarketStrategy memory strategy =
-            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsMarketStrategy));
+            abi.decode(marketOrderStrategy.strategyData, (SettlementStrategy.DataStreamsMarketStrategy));
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(strategy.streamId));
@@ -141,7 +141,7 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
 
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
 
-        SettlementUpkeepStorage storage self = _getSettlementUpkeepStorage();
+        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
             (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine);
 
@@ -158,8 +158,8 @@ contract SettlementUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgra
         perpsEngine.settleMarketOrder(accountId, marketId, verifiedReport);
     }
 
-    function _getSettlementUpkeepStorage() internal pure returns (SettlementUpkeepStorage storage self) {
-        bytes32 slot = SETTLEMENT_UPKEEP_LOCATION;
+    function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {
+        bytes32 slot = MARKET_ORDER_UPKEEP_LOCATION;
 
         assembly {
             self.slot := slot

@@ -63,8 +63,8 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function settlementStrategy(uint128 marketId) external view override returns (SettlementStrategy.Data memory) {
-        return PerpsMarket.load(marketId).settlementStrategy;
+    function marketOrderStrategy(uint128 marketId) external view override returns (SettlementStrategy.Data memory) {
+        return PerpsMarket.load(marketId).marketOrderStrategy;
     }
 
     /// @inheritdoc IPerpsMarketModule

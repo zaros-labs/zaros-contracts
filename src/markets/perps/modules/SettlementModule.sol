@@ -29,9 +29,9 @@ abstract contract SettlementModule is ISettlementModule {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    modifier onlySettlementUpkeep(uint128 marketId) {
-        SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).settlementStrategy;
-        address upkeep = settlementStrategy.upkeep;
+    modifier onlyMarketOrderUpkeep(uint128 marketId) {
+        SettlementStrategy.Data storage marketOrderStrategy = PerpsMarket.load(marketId).marketOrderStrategy;
+        address upkeep = marketOrderStrategy.upkeep;
 
         if (msg.sender != upkeep && upkeep != address(0)) {
             revert Errors.OnlyForwarder(msg.sender, upkeep);
@@ -45,7 +45,7 @@ abstract contract SettlementModule is ISettlementModule {
         BasicReport calldata report
     )
         external
-        onlySettlementUpkeep(marketId)
+        onlyMarketOrderUpkeep(marketId)
     {
         Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
 
@@ -61,7 +61,7 @@ abstract contract SettlementModule is ISettlementModule {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
         Position.Data storage oldPosition = perpsMarket.positions[runtime.accountId];
-        runtime.settlementFee = ud60x18(perpsMarket.settlementStrategy.settlementFee);
+        runtime.settlementFee = ud60x18(perpsMarket.marketOrderStrategy.settlementFee);
         address usdToken = PerpsConfiguration.load().usdToken;
 
         // TODO: apply price impact

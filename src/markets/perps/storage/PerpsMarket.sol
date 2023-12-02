@@ -32,7 +32,7 @@ library PerpsMarket {
         int128 skew;
         uint128 size;
         OrderFees.Data orderFees;
-        SettlementStrategy.Data settlementStrategy;
+        SettlementStrategy.Data marketOrderStrategy;
         SettlementStrategy.Data limitOrderStrategy;
         mapping(uint128 accountId => Position.Data) positions;
     }
@@ -52,7 +52,7 @@ library PerpsMarket {
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
-        SettlementStrategy.Data memory settlementStrategy,
+        SettlementStrategy.Data memory marketOrderStrategy,
         OrderFees.Data memory orderFees
     )
         internal
@@ -69,7 +69,7 @@ library PerpsMarket {
         self.maintenanceMarginRate = maintenanceMarginRate;
         self.maxOpenInterest = maxOpenInterest;
         self.minInitialMarginRate = minInitialMarginRate;
-        self.settlementStrategy = settlementStrategy;
+        self.marketOrderStrategy = marketOrderStrategy;
         self.orderFees = orderFees;
     }
 

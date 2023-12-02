@@ -89,7 +89,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
-        SettlementStrategy.Data calldata settlementStrategy,
+        SettlementStrategy.Data calldata marketOrderStrategy,
         OrderFees.Data calldata orderFees
     )
         external
@@ -124,7 +124,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             maintenanceMarginRate,
             maxOpenInterest,
             minInitialMarginRate,
-            settlementStrategy,
+            marketOrderStrategy,
             orderFees
         );
         perpsConfiguration.addMarket(marketId);
