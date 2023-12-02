@@ -8,6 +8,7 @@ import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
 import { BaseScript } from "./Base.s.sol";
 
+// TODO: update limit order strategies
 contract CreatePerpsMarket is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
@@ -55,7 +56,7 @@ contract CreatePerpsMarket is BaseScript {
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        SettlementStrategy.DataStreamsMarketStrategy memory ethUsdSettlementStrategyData = SettlementStrategy
+        SettlementStrategy.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData = SettlementStrategy
             .DataStreamsMarketStrategy({
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
@@ -63,12 +64,19 @@ contract CreatePerpsMarket is BaseScript {
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
-        SettlementStrategy.Data memory ethUsdSettlementStrategy = SettlementStrategy.Data({
+        SettlementStrategy.Data memory ethUsdMarketOrderStrategy = SettlementStrategy.Data({
             strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
-            strategyData: abi.encode(ethUsdSettlementStrategyData)
+            strategyData: abi.encode(ethUsdMarketOrderStrategyData)
+        });
+        SettlementStrategy.Data memory ethUsdLimitOrderStrategy = SettlementStrategy.Data({
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
+            isEnabled: true,
+            settlementFee: uint80(defaultSettlementFee),
+            upkeep: defaultMarketOrderUpkeep,
+            strategyData: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
         perpsEngine.createPerpsMarket(
@@ -78,11 +86,12 @@ contract CreatePerpsMarket is BaseScript {
             ETH_USD_MMR,
             ETH_USD_MAX_OI,
             ETH_USD_MIN_IMR,
-            ethUsdSettlementStrategy,
+            ethUsdMarketOrderStrategy,
+            ethUsdLimitOrderStrategy,
             ethUsdOrderFee
         );
 
-        SettlementStrategy.DataStreamsMarketStrategy memory linkUsdSettlementStrategyData = SettlementStrategy
+        SettlementStrategy.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData = SettlementStrategy
             .DataStreamsMarketStrategy({
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
@@ -90,12 +99,20 @@ contract CreatePerpsMarket is BaseScript {
             settlementDelay: LINK_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
-        SettlementStrategy.Data memory linkUsdSettlementStrategy = SettlementStrategy.Data({
+        SettlementStrategy.Data memory linkUsdMarketOrderStrategy = SettlementStrategy.Data({
             strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
-            strategyData: abi.encode(linkUsdSettlementStrategyData)
+            strategyData: abi.encode(linkUsdMarketOrderStrategyData)
+        });
+
+        SettlementStrategy.Data memory linkUsdLimitOrderStrategy = SettlementStrategy.Data({
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
+            isEnabled: true,
+            settlementFee: uint80(defaultSettlementFee),
+            upkeep: defaultMarketOrderUpkeep,
+            strategyData: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
         perpsEngine.createPerpsMarket(
@@ -105,7 +122,8 @@ contract CreatePerpsMarket is BaseScript {
             LINK_USD_MMR,
             LINK_USD_MAX_OI,
             LINK_USD_MIN_IMR,
-            linkUsdSettlementStrategy,
+            linkUsdMarketOrderStrategy,
+            linkUsdLimitOrderStrategy,
             linkUsdOrderFee
         );
     }

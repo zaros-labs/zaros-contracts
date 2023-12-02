@@ -30,7 +30,17 @@ interface IPerpsConfigurationModule {
     /// @param marketId The perps market id.
     /// @param name The perps market name.
     /// @param symbol The perps market symbol.
-    event LogCreatePerpsMarket(uint128 indexed marketId, string name, string symbol);
+    event LogCreatePerpsMarket(
+        uint128 indexed marketId,
+        string name,
+        string symbol,
+        uint128 maintenanceMarginRate,
+        uint128 maxOpenInterest,
+        uint128 minInitialMarginRate,
+        SettlementStrategy.Data marketOrderStrategy,
+        SettlementStrategy.Data limitOrderStrategy,
+        OrderFees.Data orderFees
+    );
 
     /// @dev Returns the maximum amount that can be deposited as margin for a given
     /// collateral type.
@@ -74,6 +84,7 @@ interface IPerpsConfigurationModule {
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
         SettlementStrategy.Data calldata marketOrderStrategy,
+        SettlementStrategy.Data calldata limitOrderStrategy,
         OrderFees.Data calldata orderFees
     )
         external;

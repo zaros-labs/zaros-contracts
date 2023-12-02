@@ -53,6 +53,7 @@ library PerpsMarket {
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
         SettlementStrategy.Data memory marketOrderStrategy,
+        SettlementStrategy.Data memory limitOrderStrategy,
         OrderFees.Data memory orderFees
     )
         internal
@@ -70,6 +71,7 @@ library PerpsMarket {
         self.maxOpenInterest = maxOpenInterest;
         self.minInitialMarginRate = minInitialMarginRate;
         self.marketOrderStrategy = marketOrderStrategy;
+        self.limitOrderStrategy = limitOrderStrategy;
         self.orderFees = orderFees;
     }
 

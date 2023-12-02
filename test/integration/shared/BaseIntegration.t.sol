@@ -29,7 +29,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             ETH_USD_MMR,
             ETH_USD_MAX_OI,
             ETH_USD_MIN_IMR,
-            ethUsdSettlementStrategy,
+            ethUsdMarketOrderStrategy,
             ethUsdOrderFees
         );
     }

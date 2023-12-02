@@ -90,6 +90,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
         SettlementStrategy.Data calldata marketOrderStrategy,
+        SettlementStrategy.Data calldata limitOrderStrategy,
         OrderFees.Data calldata orderFees
     )
         external
@@ -125,11 +126,22 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             maxOpenInterest,
             minInitialMarginRate,
             marketOrderStrategy,
+            limitOrderStrategy,
             orderFees
         );
         perpsConfiguration.addMarket(marketId);
 
-        emit LogCreatePerpsMarket(marketId, name, symbol);
+        emit LogCreatePerpsMarket(
+            marketId,
+            name,
+            symbol,
+            maintenanceMarginRate,
+            maxOpenInterest,
+            minInitialMarginRate,
+            marketOrderStrategy,
+            limitOrderStrategy,
+            orderFees
+        );
     }
 
     /// @dev {PerpsConfigurationModule} UUPS initializer.
