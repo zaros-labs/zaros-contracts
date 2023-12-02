@@ -103,17 +103,19 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
 
         (uint128 accountId, uint128 marketId) = (uint256(log.topics[2]).toUint128(), uint256(log.topics[3]).toUint128());
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
-        SettlementStrategy.Data memory marketOrderStrategy = perpsEngine.marketOrderStrategy(marketId);
+        SettlementStrategy.Data memory settlementStrategy = perpsEngine.marketOrderStrategy(marketId);
 
-        SettlementStrategy.DataStreamsMarketStrategy memory strategy =
-            abi.decode(marketOrderStrategy.strategyData, (SettlementStrategy.DataStreamsMarketStrategy));
+        SettlementStrategy.DataStreamsMarketStrategy memory marketOrderStrategy =
+            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsMarketStrategy));
 
         string[] memory streams = new string[](1);
-        streams[0] = string(abi.encodePacked(strategy.streamId));
-        uint256 settlementTimestamp = marketOrder.timestamp + strategy.settlementDelay;
+        streams[0] = string(abi.encodePacked(marketOrderStrategy.streamId));
+        uint256 settlementTimestamp = marketOrder.timestamp + marketOrderStrategy.settlementDelay;
         bytes memory extraData = abi.encode(accountId, marketId);
 
-        revert StreamsLookup(strategy.feedLabel, streams, strategy.queryLabel, settlementTimestamp, extraData);
+        revert StreamsLookup(
+            marketOrderStrategy.feedLabel, streams, marketOrderStrategy.queryLabel, settlementTimestamp, extraData
+        );
     }
 
     /// TODO: compare gas optimization pre-loading variables here vs in performUpkeep. Remember of Arbitrum's l1 gas

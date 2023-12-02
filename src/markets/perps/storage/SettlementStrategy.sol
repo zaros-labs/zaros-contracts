@@ -34,4 +34,8 @@ library SettlementStrategy {
         uint248 settlementDelay;
         bool isPremium;
     }
+
+    struct DataStreamsLimitStrategy {
+        bool isPremium;
+    }
 }

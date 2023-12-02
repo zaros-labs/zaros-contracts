@@ -29,14 +29,27 @@ abstract contract SettlementModule is ISettlementModule {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    modifier onlyMarketOrderUpkeep(uint128 marketId) {
-        SettlementStrategy.Data storage marketOrderStrategy = PerpsMarket.load(marketId).marketOrderStrategy;
-        address upkeep = marketOrderStrategy.upkeep;
+    modifier onlySettlementUpkeep(uint128 marketId) {
+        SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).marketOrderStrategy;
+        address upkeep = settlementStrategy.upkeep;
 
         if (msg.sender != upkeep && upkeep != address(0)) {
             revert Errors.OnlyForwarder(msg.sender, upkeep);
         }
         _;
+    }
+
+    function settleLimitOrder(
+        uint128 accountId,
+        uint128 marketId,
+        BasicReport calldata report
+    )
+        external
+        onlySettlementUpkeep(marketId)
+    {
+        // Order.Limit storage limitOrder = PerpsAccount.load(accountId).activeLimitOrder[marketId];
+
+        // _settleLimitOrder(limitOrder, report);
     }
 
     function settleMarketOrder(
@@ -45,7 +58,7 @@ abstract contract SettlementModule is ISettlementModule {
         BasicReport calldata report
     )
         external
-        onlyMarketOrderUpkeep(marketId)
+        onlySettlementUpkeep(marketId)
     {
         Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
 
