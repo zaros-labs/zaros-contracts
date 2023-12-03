@@ -74,7 +74,21 @@ abstract contract SettlementModule is ISettlementModule {
     {
         Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
 
-        _settleMarketOrder(marketOrder, report);
+        _settle(marketOrder, report);
+    }
+
+    struct DataStreamsSettlementPayload {
+        uint128 accountId;
+        uint128 marketId;
+        uint128 sizeDelta;
+        uint128 initialMarginDelta;
+        bool isMarketOrder;
+        bool isPremium;
+        bytes report;
+    }
+
+    function settle(DataStreamsSettlementPayload calldata payload) external onlySettlementStrategy {
+
     }
 
     // function settleStopOrder(
