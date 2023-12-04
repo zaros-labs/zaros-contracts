@@ -60,22 +60,27 @@ abstract contract SettlementModule is ISettlementModule {
     {
         Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
 
-        SettlementPayload memory payload = SettlementPayload({
-            accountId: accountId,
-            marketId: marketId,
-            sizeDelta: marketOrder.payload.sizeDelta,
-            extraData: verifiedReportData
-        });
-        _settle(payload);
+        SettlementPayload memory payload =
+            SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.payload.sizeDelta });
+        _settle(marketId, payload, verifiedReportData);
 
         marketOrder.clear();
     }
 
-    function settleCustomTriggers(SettlementPayload[] calldata payloads) external onlyValidCustomTriggerUpkeep {
+    function settleCustomTriggers(
+        uint128 marketId,
+        SettlementPayload[] calldata payloads,
+        bytes calldata extraData
+    )
+        external
+        onlyValidCustomTriggerUpkeep
+    {
+        // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the position's
+        // validations and updates.
         for (uint256 i = 0; i < payloads.length; i++) {
             SettlementPayload memory payload = payloads[i];
 
-            _settle(payload);
+            _settle(marketId, payload, extraData);
         }
     }
 
@@ -92,9 +97,9 @@ abstract contract SettlementModule is ISettlementModule {
     // }
 
     // TODO: rework this
-    function _settle(SettlementPayload memory payload) internal {
+    function _settle(uint128 marketId, SettlementPayload memory payload, bytes memory extraData) internal {
         SettlementRuntime memory runtime;
-        runtime.marketId = payload.marketId;
+        runtime.marketId = marketId;
         runtime.accountId = payload.accountId;
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
@@ -104,7 +109,7 @@ abstract contract SettlementModule is ISettlementModule {
         address usdToken = PerpsConfiguration.load().usdToken;
 
         // TODO: apply price impact
-        runtime.fillPrice = perpsMarket.getMarkPrice(payload.extraData);
+        runtime.fillPrice = perpsMarket.getMarkPrice(extraData);
 
         SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(runtime.fillPrice);
         SD59x18 accruedFunding = oldPosition.getAccruedFunding(fundingFeePerUnit);

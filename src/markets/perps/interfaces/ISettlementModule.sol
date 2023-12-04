@@ -17,9 +17,7 @@ interface ISettlementModule {
 
     struct SettlementPayload {
         uint128 accountId;
-        uint128 marketId;
         int128 sizeDelta;
-        bytes extraData;
     }
 
     struct SettlementRuntime {
@@ -34,5 +32,10 @@ interface ISettlementModule {
 
     function settleMarketOrder(uint128 accountId, uint128 marketId, bytes calldata verifiedReportData) external;
 
-    function settleCustomTriggers(SettlementPayload[] calldata payloads) external;
+    function settleCustomTriggers(
+        uint128 marketId,
+        SettlementPayload[] calldata payloads,
+        bytes calldata verifiedReportData
+    )
+        external;
 }

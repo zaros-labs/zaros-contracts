@@ -11,6 +11,7 @@ import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { LimitOrder } from "./storage/LimitOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
@@ -169,10 +170,11 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         returns (bool upkeepNeeded, bytes memory performData)
     {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        LimitOrder.Data[] memory fillableOrders = new LimitOrder.Data[](0);
+        ISettlementModule.SettlementPayload[] memory payloads = new ISettlementModule.SettlementPayload[](0);
 
         bytes memory signedReport = values[0];
-        BasicReport memory report = abi.decode(ChainlinkUtil.getReportData(signedReport), (BasicReport));
+        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+        BasicReport memory report = abi.decode(reportData, (BasicReport));
         (LimitOrder.Data[] memory limitOrders) = abi.decode(extraData, (LimitOrder.Data[]));
 
         for (uint256 i = 0; i < limitOrders.length; i++) {
@@ -187,17 +189,20 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             );
 
             if (isOrderFillable) {
-                fillableOrders[fillableOrders.length] = limitOrder;
+                payloads[payloads.length] = ISettlementModule.SettlementPayload({
+                    accountId: limitOrder.accountId,
+                    sizeDelta: limitOrder.sizeDelta
+                });
             }
         }
 
-        if (fillableOrders.length > 0) {
+        if (payloads.length > 0) {
             upkeepNeeded = true;
-            performData = abi.encode(signedReport, fillableOrders);
+            performData = abi.encode(signedReport, payloads);
         }
     }
 
-    function createLimitOrder(uint128 accountId, uint128 marketId, uint128 price, int128 sizeDelta) external {
+    function createLimitOrder(uint128 accountId, uint128 marketId, int128 sizeDelta, uint128 price) external {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
 
@@ -211,14 +216,14 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         assert(!self.limitOrdersIds.contains(orderId));
         self.limitOrdersIds.add(orderId);
 
-        LimitOrder.create({ accountId: accountId, orderId: orderId, price: price, sizeDelta: sizeDelta });
+        LimitOrder.create({ accountId: accountId, orderId: orderId, sizeDelta: sizeDelta, price: price });
 
         emit LogCreateLimitOrder(accountId, orderId, price, sizeDelta);
     }
 
     function performUpkeep(bytes calldata performData) external override {
-        (bytes memory signedReport, LimitOrder.Data[] memory fillableOrders) =
-            abi.decode(performData, (bytes, LimitOrder.Data[]));
+        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
+            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine, uint128 marketId) =
@@ -229,7 +234,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
 
         bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
 
-        // perpsEngine.settleCustomTriggers();
+        perpsEngine.settleCustomTriggers(marketId, payloads, verifiedReportData);
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {

@@ -11,8 +11,8 @@ library LimitOrder {
     /// @param price The desired execution price.
     struct Data {
         uint128 accountId;
-        uint128 price;
         int128 sizeDelta;
+        uint128 price;
     }
 
     function load(uint256 orderId) internal pure returns (Data storage limitOrder) {
@@ -22,11 +22,11 @@ library LimitOrder {
         }
     }
 
-    function create(uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta) internal {
+    function create(uint128 accountId, uint256 orderId, int128 sizeDelta, uint128 price) internal {
         Data storage self = load(orderId);
 
         self.accountId = accountId;
-        self.price = price;
         self.sizeDelta = sizeDelta;
+        self.price = price;
     }
 }
