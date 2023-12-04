@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IFeeManager, FeeAsset } from "./interfaces/IFeeManager.sol";
-import { BasicReport } from "./interfaces/IStreamsLookupCompatible.sol";
+import { BasicReport, PremiumReport } from "./interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "./interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 
@@ -60,12 +60,8 @@ library ChainlinkUtil {
         bytes memory signedReport
     )
         internal
-        returns (BasicReport memory)
+        returns (bytes memory verifiedReportData)
     {
-        bytes memory verifiedReportData =
-            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
-        BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
-
-        return verifiedReport;
+        verifiedReportData = chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
     }
 }

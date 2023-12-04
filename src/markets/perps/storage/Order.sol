@@ -14,5 +14,5 @@ library Order {
         Payload payload;
     }
 
-    function reset(Market storage marketOrder) internal { }
+    function clear(Market storage marketOrder) internal { }
 }

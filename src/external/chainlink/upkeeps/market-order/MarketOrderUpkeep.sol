@@ -148,9 +148,9 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
 
-        BasicReport memory verifiedReport = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
+        bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
 
-        perpsEngine.settleMarketOrder(accountId, marketId, verifiedReport);
+        perpsEngine.settleMarketOrder(accountId, marketId, verifiedReportData);
     }
 
     function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {

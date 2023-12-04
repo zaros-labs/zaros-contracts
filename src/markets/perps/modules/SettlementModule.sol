@@ -30,11 +30,7 @@ abstract contract SettlementModule is ISettlementModule {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    modifier onlyLimitOrderUpkeep(uint128 marketId) {
-        SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).limitOrderStrategy;
-        address upkeep = settlementStrategy.upkeep;
-
-        _requireIsUpkeep(msg.sender, upkeep);
+    modifier onlyValidCustomTriggerUpkeep() {
         _;
     }
 
@@ -53,42 +49,41 @@ abstract contract SettlementModule is ISettlementModule {
     //     _requireIsUpkeep(msg.sender, upkeep);
     //     _;
     // }
-    function settleLimitOrders(
-        uint128 marketId,
-        BasicReport calldata report,
-        LimitOrder.Data[] calldata fillableOrders
-    )
-        external
-        onlyLimitOrderUpkeep(marketId)
-    {
-        // TODO: settlement logic
-    }
 
     function settleMarketOrder(
         uint128 accountId,
         uint128 marketId,
-        BasicReport calldata report
+        bytes calldata verifiedReportData
     )
         external
         onlyMarketOrderUpkeep(marketId)
     {
         Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
 
-        _settle(marketOrder, report);
+        SettlementPayload memory payload = SettlementPayload({
+            accountId: accountId,
+            marketId: marketId,
+            sizeDelta: marketOrder.payload.sizeDelta,
+            extraData: verifiedReportData
+        });
+        _settle(payload);
+
+        marketOrder.clear();
     }
 
-    struct DataStreamsSettlementPayload {
+    struct SettlementPayload {
         uint128 accountId;
         uint128 marketId;
-        uint128 sizeDelta;
-        uint128 initialMarginDelta;
-        bool isMarketOrder;
-        bool isPremium;
-        bytes report;
+        int128 sizeDelta;
+        bytes extraData;
     }
 
-    function settle(DataStreamsSettlementPayload calldata payload) external onlySettlementStrategy {
+    function settleCustomTriggers(SettlementPayload[] calldata payloads) external onlyValidCustomTriggerUpkeep {
+        for (uint256 i = 0; i < payloads.length; i++) {
+            SettlementPayload memory payload = payloads[i];
 
+            _settle(payload);
+        }
     }
 
     // function settleStopOrder(
@@ -104,10 +99,10 @@ abstract contract SettlementModule is ISettlementModule {
     // }
 
     // TODO: rework this
-    function _settleMarketOrder(Order.Market storage marketOrder, BasicReport memory report) internal {
+    function _settle(SettlementPayload memory payload) internal {
         SettlementRuntime memory runtime;
-        runtime.marketId = marketOrder.payload.marketId;
-        runtime.accountId = marketOrder.payload.accountId;
+        runtime.marketId = payload.marketId;
+        runtime.accountId = payload.accountId;
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
@@ -116,7 +111,8 @@ abstract contract SettlementModule is ISettlementModule {
         address usdToken = PerpsConfiguration.load().usdToken;
 
         // TODO: apply price impact
-        runtime.fillPrice = sd59x18(report.price).intoUD60x18();
+        runtime.fillPrice = perpsMarket.getMarkPrice(payload.extraData);
+
         SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(runtime.fillPrice);
         SD59x18 accruedFunding = oldPosition.getAccruedFunding(fundingFeePerUnit);
         SD59x18 currentUnrealizedPnl = oldPosition.getUnrealizedPnl(runtime.fillPrice, accruedFunding);
@@ -139,7 +135,7 @@ abstract contract SettlementModule is ISettlementModule {
 
         // TODO: validate initial margin and size
         runtime.newPosition = Position.Data({
-            size: sd59x18(oldPosition.size).add(sd59x18(marketOrder.payload.sizeDelta)).intoInt256(),
+            size: sd59x18(oldPosition.size).add(sd59x18(payload.sizeDelta)).intoInt256(),
             // initialMargin: initialMargin.intoUint128(),
             initialMargin: 0,
             unrealizedPnlStored: runtime.unrealizedPnlToStore.intoInt256().toInt128(),
@@ -147,12 +143,9 @@ abstract contract SettlementModule is ISettlementModule {
             lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        marketOrder.reset();
-        // perpsAccount.updateActiveOrders(runtime.marketId, marketOrder.id, false);
         oldPosition.update(runtime.newPosition);
-        perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(marketOrder.payload.sizeDelta)).intoInt256().toInt128();
-        perpsMarket.size =
-            ud60x18(perpsMarket.size).add(sd59x18(marketOrder.payload.sizeDelta).abs().intoUD60x18()).intoUint128();
+        perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(payload.sizeDelta)).intoInt256().toInt128();
+        perpsMarket.size = ud60x18(perpsMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
         emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, runtime.newPosition);
     }

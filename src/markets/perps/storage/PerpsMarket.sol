@@ -80,6 +80,11 @@ library PerpsMarket {
         return ud60x18(0);
     }
 
+    function getMarkPrice(Data storage self, bytes memory data) internal view returns (UD60x18) {
+        // TODO: load settlement strategy and return the mark price based on the report data and report type
+        return ud60x18(0);
+    }
+
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {
         return sd59x18(0);
     }
