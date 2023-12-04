@@ -15,6 +15,13 @@ interface ISettlementModule {
         address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Position.Data newPosition
     );
 
+    struct SettlementPayload {
+        uint128 accountId;
+        uint128 marketId;
+        int128 sizeDelta;
+        bytes extraData;
+    }
+
     struct SettlementRuntime {
         uint128 marketId;
         uint128 accountId;
@@ -24,4 +31,8 @@ interface ISettlementModule {
         SD59x18 pnl;
         Position.Data newPosition;
     }
+
+    function settleMarketOrder(uint128 accountId, uint128 marketId, bytes calldata verifiedReportData) external;
+
+    function settleCustomTriggers(SettlementPayload[] calldata payloads) external;
 }

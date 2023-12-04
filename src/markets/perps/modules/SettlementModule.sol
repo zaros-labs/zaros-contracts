@@ -71,13 +71,6 @@ abstract contract SettlementModule is ISettlementModule {
         marketOrder.clear();
     }
 
-    struct SettlementPayload {
-        uint128 accountId;
-        uint128 marketId;
-        int128 sizeDelta;
-        bytes extraData;
-    }
-
     function settleCustomTriggers(SettlementPayload[] calldata payloads) external onlyValidCustomTriggerUpkeep {
         for (uint256 i = 0; i < payloads.length; i++) {
             SettlementPayload memory payload = payloads[i];
