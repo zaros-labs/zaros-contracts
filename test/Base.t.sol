@@ -39,8 +39,8 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
 
     /// @dev ETH / USD market configuration variables.
-    SettlementStrategy.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData = SettlementStrategy
-        .DataStreamsMarketStrategy({
+    SettlementStrategy.DataStreamsStrategy internal ethUsdMarketOrderStrategyData = SettlementStrategy
+        .DataStreamsStrategy({
         streamId: MOCK_ETH_USD_STREAM_ID,
         feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
         queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -49,14 +49,14 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     });
     // TODO: update limit order strategy
     SettlementStrategy.Data internal ethUsdLimitOrderStrategy = SettlementStrategy.Data({
-        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
+        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
         isEnabled: true,
         settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
         upkeep: mockDefaultMarketOrderUpkeep,
         strategyData: abi.encode(ethUsdMarketOrderStrategyData)
     });
     SettlementStrategy.Data internal ethUsdMarketOrderStrategy = SettlementStrategy.Data({
-        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
+        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
         isEnabled: true,
         settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
         upkeep: mockDefaultMarketOrderUpkeep,

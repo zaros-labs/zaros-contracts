@@ -56,8 +56,8 @@ contract CreatePerpsMarket is BaseScript {
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        SettlementStrategy.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData = SettlementStrategy
-            .DataStreamsMarketStrategy({
+        SettlementStrategy.DataStreamsStrategy memory ethUsdMarketOrderStrategyData = SettlementStrategy
+            .DataStreamsStrategy({
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -65,14 +65,14 @@ contract CreatePerpsMarket is BaseScript {
             isPremium: false
         });
         SettlementStrategy.Data memory ethUsdMarketOrderStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
             strategyData: abi.encode(ethUsdMarketOrderStrategyData)
         });
         SettlementStrategy.Data memory ethUsdLimitOrderStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
@@ -91,8 +91,8 @@ contract CreatePerpsMarket is BaseScript {
             ethUsdOrderFee
         );
 
-        SettlementStrategy.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData = SettlementStrategy
-            .DataStreamsMarketStrategy({
+        SettlementStrategy.DataStreamsStrategy memory linkUsdMarketOrderStrategyData = SettlementStrategy
+            .DataStreamsStrategy({
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -100,7 +100,7 @@ contract CreatePerpsMarket is BaseScript {
             isPremium: false
         });
         SettlementStrategy.Data memory linkUsdMarketOrderStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
@@ -108,7 +108,7 @@ contract CreatePerpsMarket is BaseScript {
         });
 
         SettlementStrategy.Data memory linkUsdLimitOrderStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS_MARKET,
+            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
