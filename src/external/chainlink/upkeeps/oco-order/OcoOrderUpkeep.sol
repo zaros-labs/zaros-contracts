@@ -15,23 +15,23 @@ import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrat
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract StopOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
+contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
     /// @notice ERC7201 storage location.
     bytes32 internal constant STOP_ORDER_UPKEEP_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.StopOrderUpkeep")) - 1)
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.OcoOrderUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.StopOrderUpkeep
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.OcoOrderUpkeep
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param forwarder The address of the Upkeep forwarder contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
-    struct StopOrderUpkeepStorage {
+    struct OcoOrderUpkeepStorage {
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
     }
 
-    /// @notice {StopOrderUpkeep} UUPS initializer.
+    /// @notice {OcoOrderUpkeep} UUPS initializer.
     function initialize(
         address initialOwner,
         address chainlinkVerifier,
@@ -51,7 +51,7 @@ contract StopOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUP
             revert Errors.ZeroInput("perpsEngine");
         }
 
-        StopOrderUpkeepStorage storage self = _getStopOrderUpkeepStorage();
+        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
 
         self.chainlinkVerifier = chainlinkVerifier;
         self.forwarder = forwarder;
@@ -62,7 +62,7 @@ contract StopOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUP
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
     modifier onlyForwarder() {
-        address forwarder = _getStopOrderUpkeepStorage().forwarder;
+        address forwarder = _getOcoOrderUpkeepStorage().forwarder;
         if (msg.sender != forwarder) {
             revert Errors.OnlyForwarder(msg.sender, forwarder);
         }
@@ -93,7 +93,7 @@ contract StopOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUP
         this;
     }
 
-    function _getStopOrderUpkeepStorage() internal pure returns (StopOrderUpkeepStorage storage self) {
+    function _getOcoOrderUpkeepStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {
         bytes32 slot = STOP_ORDER_UPKEEP_LOCATION;
 
         assembly {

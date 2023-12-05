@@ -43,14 +43,6 @@ abstract contract SettlementModule is ISettlementModule {
         _;
     }
 
-    // modifier onlyStopOrderUpkeep(uint128 marketId) {
-    //     SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).stopOrderStrategy;
-    //     address upkeep = settlementStrategy.upkeep;
-
-    //     _requireIsUpkeep(msg.sender, upkeep);
-    //     _;
-    // }
-
     function settleMarketOrder(
         uint128 accountId,
         uint128 marketId,
@@ -86,14 +78,14 @@ abstract contract SettlementModule is ISettlementModule {
         }
     }
 
-    // function settleStopOrder(
+    // function settleOcoOrder(
     //     uint128 accountId,
     //     uint128 marketId,
     //     BasicReport calldata report,
     //     LimitOrder.Data calldata limitOrder
     // )
     //     external
-    //     onlyStopOrderUpkeep(marketId)
+    //     onlyOcoOrderUpkeep(marketId)
     // {
     //     // TODO: settlement logic
     // }
