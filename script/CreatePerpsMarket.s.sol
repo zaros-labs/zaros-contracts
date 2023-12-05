@@ -56,8 +56,8 @@ contract CreatePerpsMarket is BaseScript {
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        SettlementStrategy.DataStreamsStrategy memory ethUsdMarketOrderStrategyData = SettlementStrategy
-            .DataStreamsStrategy({
+        SettlementStrategy.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData = SettlementStrategy
+            .DataStreamsMarketStrategy({
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -67,17 +67,20 @@ contract CreatePerpsMarket is BaseScript {
         SettlementStrategy.Data memory ethUsdMarketOrderStrategy = SettlementStrategy.Data({
             strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
             isEnabled: true,
-            settlementFee: uint80(defaultSettlementFee),
+            fee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
-            strategyData: abi.encode(ethUsdMarketOrderStrategyData)
+            data: abi.encode(ethUsdMarketOrderStrategyData)
         });
         SettlementStrategy.Data memory ethUsdLimitOrderStrategy = SettlementStrategy.Data({
             strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
             isEnabled: true,
-            settlementFee: uint80(defaultSettlementFee),
+            fee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
-            strategyData: abi.encode(ethUsdMarketOrderStrategyData)
+            data: abi.encode(ethUsdMarketOrderStrategyData)
         });
+
+        SettlementStrategy.Data[] memory ethUsdCustomTriggerStrategies = new SettlementStrategy.Data[](1);
+        ethUsdCustomTriggerStrategies[0] = ethUsdLimitOrderStrategy;
 
         perpsEngine.createPerpsMarket(
             ETH_USD_MARKET_ID,
@@ -87,12 +90,12 @@ contract CreatePerpsMarket is BaseScript {
             ETH_USD_MAX_OI,
             ETH_USD_MIN_IMR,
             ethUsdMarketOrderStrategy,
-            ethUsdLimitOrderStrategy,
+            ethUsdCustomTriggerStrategies,
             ethUsdOrderFee
         );
 
-        SettlementStrategy.DataStreamsStrategy memory linkUsdMarketOrderStrategyData = SettlementStrategy
-            .DataStreamsStrategy({
+        SettlementStrategy.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData = SettlementStrategy
+            .DataStreamsMarketStrategy({
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -102,18 +105,21 @@ contract CreatePerpsMarket is BaseScript {
         SettlementStrategy.Data memory linkUsdMarketOrderStrategy = SettlementStrategy.Data({
             strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
             isEnabled: true,
-            settlementFee: uint80(defaultSettlementFee),
+            fee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
-            strategyData: abi.encode(linkUsdMarketOrderStrategyData)
+            data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
         SettlementStrategy.Data memory linkUsdLimitOrderStrategy = SettlementStrategy.Data({
             strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
             isEnabled: true,
-            settlementFee: uint80(defaultSettlementFee),
+            fee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
-            strategyData: abi.encode(linkUsdMarketOrderStrategyData)
+            data: abi.encode(linkUsdMarketOrderStrategyData)
         });
+
+        SettlementStrategy.Data[] memory linkUsdCustomTriggerStrategies = new SettlementStrategy.Data[](1);
+        linkUsdCustomTriggerStrategies[0] = linkUsdLimitOrderStrategy;
 
         perpsEngine.createPerpsMarket(
             LINK_USD_MARKET_ID,
@@ -123,7 +129,7 @@ contract CreatePerpsMarket is BaseScript {
             LINK_USD_MAX_OI,
             LINK_USD_MIN_IMR,
             linkUsdMarketOrderStrategy,
-            linkUsdLimitOrderStrategy,
+            linkUsdCustomTriggerStrategies,
             linkUsdOrderFee
         );
     }

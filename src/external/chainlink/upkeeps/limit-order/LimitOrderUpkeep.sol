@@ -44,9 +44,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         PerpsEngine perpsEngine;
         uint128 nextOrderId;
         uint128 marketId;
-        string dataStreamsFeedParamKey;
-        string dataStreamsTimeParamKey;
-        string streamId;
+        uint128 strategyId;
         EnumerableSet.UintSet limitOrdersIds;
     }
 
@@ -56,9 +54,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         address forwarder,
         PerpsEngine perpsEngine,
         uint128 marketId,
-        string calldata dataStreamsFeedParamKey,
-        string calldata dataStreamsTimeParamKey,
-        string calldata streamId
+        uint128 strategyId
     )
         external
         initializer
@@ -77,14 +73,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
-        if (bytes(dataStreamsFeedParamKey).length == 0) {
-            revert Errors.ZeroInput("dataStreamsFeedParamKey");
-        }
-        if (bytes(dataStreamsTimeParamKey).length == 0) {
-            revert Errors.ZeroInput("dataStreamsTimeParamKey");
-        }
-        if (bytes(streamId).length == 0) {
-            revert Errors.ZeroInput("streamId");
+        if (strategyId == 0) {
+            revert Errors.ZeroInput("strategyId");
         }
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
@@ -93,9 +83,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         self.forwarder = forwarder;
         self.perpsEngine = perpsEngine;
         self.marketId = marketId;
-        self.dataStreamsFeedParamKey = dataStreamsFeedParamKey;
-        self.dataStreamsTimeParamKey = dataStreamsTimeParamKey;
-        self.streamId = streamId;
+        self.strategyId = strategyId;
     }
 
     function getConfig()
@@ -107,9 +95,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             address forwarder,
             address perpsEngine,
             uint128 marketId,
-            string memory dataStreamsFeedParamKey,
-            string memory dataStreamsTimeParamKey,
-            string memory streamId
+            uint128 strategyId
         )
     {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
@@ -119,9 +105,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         forwarder = self.forwarder;
         perpsEngine = address(self.perpsEngine);
         marketId = self.marketId;
-        dataStreamsFeedParamKey = self.dataStreamsFeedParamKey;
-        dataStreamsTimeParamKey = self.dataStreamsTimeParamKey;
-        streamId = self.streamId;
+        strategyId = self.strategyId;
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -151,12 +135,21 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             limitOrders[i] = LimitOrder.load(orderId);
         }
 
+        SettlementStrategy.Data memory settlementStrategy =
+            perpsEngine.getSettlementStrategy(self.marketId, self.strategyId);
+        SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+            abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
+
         string[] memory feedsParam = new string[](1);
-        feedsParam[0] = self.streamId;
+        feedsParam[0] = dataStreamsCustomStrategy.streamId;
         bytes memory extraData = abi.encode(limitOrders);
 
         revert StreamsLookup(
-            self.dataStreamsFeedParamKey, feedsParam, self.dataStreamsTimeParamKey, block.timestamp, extraData
+            dataStreamsCustomStrategy.feedLabel,
+            feedsParam,
+            dataStreamsCustomStrategy.queryLabel,
+            block.timestamp,
+            extraData
         );
     }
 
@@ -226,15 +219,15 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine, uint128 marketId) =
-            (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine, self.marketId);
+        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine, uint128 marketId, uint128 strategyId) =
+            (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine, self.marketId, self.strategyId);
 
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
 
         bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
 
-        perpsEngine.settleCustomTriggers(marketId, payloads, verifiedReportData);
+        perpsEngine.settleCustomTriggers(marketId, strategyId, payloads, verifiedReportData);
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {

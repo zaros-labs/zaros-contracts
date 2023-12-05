@@ -35,7 +35,8 @@ abstract contract SettlementModule is ISettlementModule {
     }
 
     modifier onlyMarketOrderUpkeep(uint128 marketId) {
-        SettlementStrategy.Data storage settlementStrategy = PerpsMarket.load(marketId).marketOrderStrategy;
+        SettlementStrategy.Data storage settlementStrategy =
+            SettlementStrategy.load(marketId, SettlementStrategy.MARKET_ORDER_STRATEGY_ID);
         address upkeep = settlementStrategy.upkeep;
 
         _requireIsUpkeep(msg.sender, upkeep);
@@ -62,13 +63,14 @@ abstract contract SettlementModule is ISettlementModule {
 
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.payload.sizeDelta });
-        _settle(marketId, payload, verifiedReportData);
+        _settle(marketId, SettlementStrategy.MARKET_ORDER_STRATEGY_ID, payload, verifiedReportData);
 
         marketOrder.clear();
     }
 
     function settleCustomTriggers(
         uint128 marketId,
+        uint128 strategyId,
         SettlementPayload[] calldata payloads,
         bytes calldata extraData
     )
@@ -80,7 +82,7 @@ abstract contract SettlementModule is ISettlementModule {
         for (uint256 i = 0; i < payloads.length; i++) {
             SettlementPayload memory payload = payloads[i];
 
-            _settle(marketId, payload, extraData);
+            _settle(marketId, strategyId, payload, extraData);
         }
     }
 
@@ -97,7 +99,14 @@ abstract contract SettlementModule is ISettlementModule {
     // }
 
     // TODO: rework this
-    function _settle(uint128 marketId, SettlementPayload memory payload, bytes memory extraData) internal {
+    function _settle(
+        uint128 marketId,
+        uint128 strategyId,
+        SettlementPayload memory payload,
+        bytes memory extraData
+    )
+        internal
+    {
         SettlementRuntime memory runtime;
         runtime.marketId = marketId;
         runtime.accountId = payload.accountId;
@@ -105,7 +114,8 @@ abstract contract SettlementModule is ISettlementModule {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
         Position.Data storage oldPosition = perpsMarket.positions[runtime.accountId];
-        runtime.settlementFee = ud60x18(perpsMarket.marketOrderStrategy.settlementFee);
+        SettlementStrategy.Data storage settlementStrategy = SettlementStrategy.load(marketId, strategyId);
+        runtime.fee = ud60x18(settlementStrategy.fee);
         address usdToken = PerpsConfiguration.load().usdToken;
 
         // TODO: apply price impact
@@ -120,13 +130,13 @@ abstract contract SettlementModule is ISettlementModule {
 
         // for now we'll realize the total uPnL, we should realize it proportionally in the future
         if (runtime.pnl.lt(SD_ZERO)) {
-            UD60x18 amountToDeduct = runtime.pnl.intoUD60x18().add((runtime.settlementFee));
+            UD60x18 amountToDeduct = runtime.pnl.intoUD60x18().add((runtime.fee));
             perpsAccount.deductAccountMargin(amountToDeduct);
         } else if (runtime.pnl.gt(SD_ZERO)) {
-            UD60x18 amountToIncrease = runtime.pnl.intoUD60x18().sub((runtime.settlementFee));
+            UD60x18 amountToIncrease = runtime.pnl.intoUD60x18().sub((runtime.fee));
             perpsAccount.increaseMarginCollateralBalance(usdToken, amountToIncrease);
         }
-        // TODO: liquidityEngine.withdrawUsdToken(upkeep, runtime.marketId, runtime.settlementFee);
+        // TODO: liquidityEngine.withdrawUsdToken(upkeep, runtime.marketId, runtime.fee);
 
         // UD60x18 initialMargin =
         //     ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());

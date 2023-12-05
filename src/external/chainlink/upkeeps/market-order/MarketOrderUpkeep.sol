@@ -8,6 +8,7 @@ import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutom
 import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
@@ -103,10 +104,11 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
 
         (uint128 accountId, uint128 marketId) = (uint256(log.topics[2]).toUint128(), uint256(log.topics[3]).toUint128());
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
-        SettlementStrategy.Data memory settlementStrategy = perpsEngine.marketOrderStrategy(marketId);
+        SettlementStrategy.Data memory settlementStrategy =
+            perpsEngine.getSettlementStrategy(marketId, SettlementStrategy.MARKET_ORDER_STRATEGY_ID);
 
-        SettlementStrategy.DataStreamsStrategy memory marketOrderStrategy =
-            abi.decode(settlementStrategy.strategyData, (SettlementStrategy.DataStreamsStrategy));
+        SettlementStrategy.DataStreamsMarketStrategy memory marketOrderStrategy =
+            abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsMarketStrategy));
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(marketOrderStrategy.streamId));

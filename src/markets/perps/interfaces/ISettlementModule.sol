@@ -23,7 +23,7 @@ interface ISettlementModule {
     struct SettlementRuntime {
         uint128 marketId;
         uint128 accountId;
-        UD60x18 settlementFee;
+        UD60x18 fee;
         UD60x18 fillPrice;
         SD59x18 unrealizedPnlToStore;
         SD59x18 pnl;
@@ -34,6 +34,7 @@ interface ISettlementModule {
 
     function settleCustomTriggers(
         uint128 marketId,
+        uint128 strategyId,
         SettlementPayload[] calldata payloads,
         bytes calldata verifiedReportData
     )

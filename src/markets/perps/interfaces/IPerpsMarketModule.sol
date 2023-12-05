@@ -48,9 +48,16 @@ interface IPerpsMarketModule {
     /// @param marketId The perps market id.
     function indexPrice(uint128 marketId) external view returns (UD60x18);
 
-    /// @notice Returns the Settlement Strategy used by the given market.
+    /// @notice Returns a Settlement Strategy used by the given market.
     /// @param marketId The perps market id.
-    function marketOrderStrategy(uint128 marketId) external view returns (SettlementStrategy.Data memory);
+    /// @param strategyId The perps market settlement strategy id
+    function getSettlementStrategy(
+        uint128 marketId,
+        uint128 strategyId
+    )
+        external
+        view
+        returns (SettlementStrategy.Data memory);
 
     /// @notice Returns the given market's funding rate.
     /// @param marketId The perps market id.

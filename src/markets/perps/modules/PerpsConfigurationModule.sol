@@ -139,6 +139,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             maxOpenInterest,
             minInitialMarginRate,
             marketOrderStrategy,
+            customTriggerStrategies,
             orderFees
         );
     }

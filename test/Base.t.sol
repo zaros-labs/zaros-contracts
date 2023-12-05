@@ -39,29 +39,32 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
 
     /// @dev ETH / USD market configuration variables.
-    SettlementStrategy.DataStreamsStrategy internal ethUsdMarketOrderStrategyData = SettlementStrategy
-        .DataStreamsStrategy({
+    SettlementStrategy.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData = SettlementStrategy
+        .DataStreamsMarketStrategy({
         streamId: MOCK_ETH_USD_STREAM_ID,
         feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
         queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
         settlementDelay: ETH_USD_SETTLEMENT_DELAY,
         isPremium: false
     });
-    // TODO: update limit order strategy
-    SettlementStrategy.Data internal ethUsdLimitOrderStrategy = SettlementStrategy.Data({
-        strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
-        isEnabled: true,
-        settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
-        upkeep: mockDefaultMarketOrderUpkeep,
-        strategyData: abi.encode(ethUsdMarketOrderStrategyData)
-    });
     SettlementStrategy.Data internal ethUsdMarketOrderStrategy = SettlementStrategy.Data({
         strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
         isEnabled: true,
-        settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
+        fee: DATA_STREAMS_SETTLEMENT_FEE,
         upkeep: mockDefaultMarketOrderUpkeep,
-        strategyData: abi.encode(ethUsdMarketOrderStrategyData)
+        data: abi.encode(ethUsdMarketOrderStrategyData)
     });
+
+    // TODO: update limit order strategy and move the market's strategies definition to a separate file.
+    SettlementStrategy.Data internal ethUsdLimitOrderStrategy = SettlementStrategy.Data({
+        strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
+        isEnabled: true,
+        fee: DATA_STREAMS_SETTLEMENT_FEE,
+        upkeep: mockDefaultMarketOrderUpkeep,
+        data: abi.encode(ethUsdMarketOrderStrategyData)
+    });
+    SettlementStrategy.Data[] internal ethUsdCustomTriggerStrategies;
+
     OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -98,6 +101,8 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
             madara: createUser({ name: "Madara Uchiha" })
         });
         vm.startPrank({ msgSender: users.owner });
+
+        ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderStrategy);
 
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
         usdToken = new MockUSDToken({ owner: users.owner, ownerBalance: 100_000_000e18 });
