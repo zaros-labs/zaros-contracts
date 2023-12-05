@@ -27,7 +27,9 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
-    event LogCreateLimitOrder(uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta);
+    event LogCreateLimitOrder(
+        address indexed sender, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta
+    );
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant LIMIT_ORDER_UPKEEP_LOCATION = keccak256(
@@ -195,7 +197,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         }
     }
 
-    function createLimitOrder(uint128 accountId, uint128 marketId, int128 sizeDelta, uint128 price) external {
+    function createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) external {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
 
@@ -211,7 +213,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
 
         LimitOrder.create({ accountId: accountId, orderId: orderId, sizeDelta: sizeDelta, price: price });
 
-        emit LogCreateLimitOrder(accountId, orderId, price, sizeDelta);
+        emit LogCreateLimitOrder(msg.sender, accountId, orderId, price, sizeDelta);
     }
 
     function performUpkeep(bytes calldata performData) external override {

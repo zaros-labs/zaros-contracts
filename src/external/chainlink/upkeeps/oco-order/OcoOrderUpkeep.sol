@@ -27,10 +27,12 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
-    event LogCreateOcoOrder(uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta);
+    event LogCreateOcoOrder(
+        address indexed sender, uint128 accountId, OcoOrder.TakeProfit takeProfit, OcoOrder.StopLoss stopLoss
+    );
 
     /// @notice ERC7201 storage location.
-    bytes32 internal constant LIMIT_ORDER_UPKEEP_LOCATION = keccak256(
+    bytes32 internal constant OCO_ORDER_UPKEEP_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.OcoOrderUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
@@ -42,10 +44,9 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
-        uint128 nextOrderId;
         uint128 marketId;
         uint128 strategyId;
-        EnumerableSet.UintSet ocoOrdersIds;
+        mapping(uint128 accountId => OcoOrder.Data) accountActiveOcoOrder;
     }
 
     /// @notice {OcoOrderUpkeep} UUPS initializer.
@@ -113,44 +114,44 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        (uint256 lowerBound, uint256 upperBound) = abi.decode(checkData, (uint256, uint256));
+        // (uint256 lowerBound, uint256 upperBound) = abi.decode(checkData, (uint256, uint256));
 
-        if (lowerBound > upperBound) {
-            revert Errors.InvalidBounds(lowerBound, upperBound);
-        }
+        // if (lowerBound > upperBound) {
+        //     revert Errors.InvalidBounds(lowerBound, upperBound);
+        // }
 
-        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        PerpsEngine perpsEngine = self.perpsEngine;
+        // OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
+        // PerpsEngine perpsEngine = self.perpsEngine;
 
-        uint256 amountOfOrders = self.ocoOrdersIds.length() > upperBound ? upperBound : self.ocoOrdersIds.length();
+        // uint256 amountOfOrders = self.ocoOrdersIds.length() > upperBound ? upperBound : self.ocoOrdersIds.length();
 
-        if (amountOfOrders == 0) {
-            return (upkeepNeeded, performData);
-        }
+        // if (amountOfOrders == 0) {
+        //     return (upkeepNeeded, performData);
+        // }
 
-        OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
+        // OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
 
-        for (uint256 i = lowerBound; i < amountOfOrders; i++) {
-            uint256 orderId = self.ocoOrdersIds.at(i);
-            ocoOrders[i] = OcoOrder.load(orderId);
-        }
+        // for (uint256 i = lowerBound; i < amountOfOrders; i++) {
+        //     uint256 orderId = self.ocoOrdersIds.at(i);
+        //     ocoOrders[i] = OcoOrder.load(orderId);
+        // }
 
-        SettlementStrategy.Data memory settlementStrategy =
-            perpsEngine.getSettlementStrategy(self.marketId, self.strategyId);
-        SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-            abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
+        // SettlementStrategy.Data memory settlementStrategy =
+        //     perpsEngine.getSettlementStrategy(self.marketId, self.strategyId);
+        // SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+        //     abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
 
-        string[] memory feedsParam = new string[](1);
-        feedsParam[0] = dataStreamsCustomStrategy.streamId;
-        bytes memory extraData = abi.encode(ocoOrders);
+        // string[] memory feedsParam = new string[](1);
+        // feedsParam[0] = dataStreamsCustomStrategy.streamId;
+        // bytes memory extraData = abi.encode(ocoOrders);
 
-        revert StreamsLookup(
-            dataStreamsCustomStrategy.feedLabel,
-            feedsParam,
-            dataStreamsCustomStrategy.queryLabel,
-            block.timestamp,
-            extraData
-        );
+        // revert StreamsLookup(
+        //     dataStreamsCustomStrategy.feedLabel,
+        //     feedsParam,
+        //     dataStreamsCustomStrategy.queryLabel,
+        //     block.timestamp,
+        //     extraData
+        // );
     }
 
     function checkCallback(
@@ -162,40 +163,46 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        ISettlementModule.SettlementPayload[] memory payloads = new ISettlementModule.SettlementPayload[](0);
+        // OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
+        // ISettlementModule.SettlementPayload[] memory payloads = new ISettlementModule.SettlementPayload[](0);
 
-        bytes memory signedReport = values[0];
-        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        BasicReport memory report = abi.decode(reportData, (BasicReport));
-        (OcoOrder.Data[] memory ocoOrders) = abi.decode(extraData, (OcoOrder.Data[]));
+        // bytes memory signedReport = values[0];
+        // bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+        // BasicReport memory report = abi.decode(reportData, (BasicReport));
+        // (OcoOrder.Data[] memory ocoOrders) = abi.decode(extraData, (OcoOrder.Data[]));
 
-        for (uint256 i = 0; i < ocoOrders.length; i++) {
-            OcoOrder.Data memory ocoOrder = ocoOrders[i];
-            // TODO: store decimals per market?
-            UD60x18 orderPrice = ud60x18(ocoOrder.price);
-            UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
+        // for (uint256 i = 0; i < ocoOrders.length; i++) {
+        //     OcoOrder.Data memory ocoOrder = ocoOrders[i];
+        //     // TODO: store decimals per market?
+        //     UD60x18 orderPrice = ud60x18(ocoOrder.price);
+        //     UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
 
-            bool isOrderFillable = (
-                ocoOrder.sizeDelta > 0 && reportPrice.lte(orderPrice)
-                    || (ocoOrder.sizeDelta < 0 && reportPrice.gte(orderPrice))
-            );
+        //     bool isOrderFillable = (
+        //         ocoOrder.sizeDelta > 0 && reportPrice.lte(orderPrice)
+        //             || (ocoOrder.sizeDelta < 0 && reportPrice.gte(orderPrice))
+        //     );
 
-            if (isOrderFillable) {
-                payloads[payloads.length] = ISettlementModule.SettlementPayload({
-                    accountId: ocoOrder.accountId,
-                    sizeDelta: ocoOrder.sizeDelta
-                });
-            }
-        }
+        //     if (isOrderFillable) {
+        //         payloads[payloads.length] = ISettlementModule.SettlementPayload({
+        //             accountId: ocoOrder.accountId,
+        //             sizeDelta: ocoOrder.sizeDelta
+        //         });
+        //     }
+        // }
 
-        if (payloads.length > 0) {
-            upkeepNeeded = true;
-            performData = abi.encode(signedReport, payloads);
-        }
+        // if (payloads.length > 0) {
+        //     upkeepNeeded = true;
+        //     performData = abi.encode(signedReport, payloads);
+        // }
     }
 
-    function createOcoOrder(uint128 accountId, uint128 marketId, int128 sizeDelta, uint128 price) external {
+    function updateOcoOrder(
+        uint128 accountId,
+        OcoOrder.TakeProfit calldata takeProfit,
+        OcoOrder.StopLoss calldata stopLoss
+    )
+        external
+    {
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
         bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
 
@@ -203,35 +210,29 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
             revert Errors.Unauthorized(msg.sender);
         }
 
-        uint256 orderId = ++self.nextOrderId;
+        self.accountActiveOcoOrder[accountId] = OcoOrder.Data({ takeProfit: takeProfit, stopLoss: stopLoss });
 
-        // There should never be a duplicate order id, but let's make sure anyway.
-        assert(!self.ocoOrdersIds.contains(orderId));
-        self.ocoOrdersIds.add(orderId);
-
-        OcoOrder.create({ accountId: accountId, orderId: orderId, sizeDelta: sizeDelta, price: price });
-
-        emit LogCreateOcoOrder(accountId, orderId, price, sizeDelta);
+        emit LogCreateOcoOrder(msg.sender, accountId, takeProfit, stopLoss);
     }
 
     function performUpkeep(bytes calldata performData) external override {
-        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
-            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
+        // (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
+        //     abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
-        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine, uint128 marketId, uint128 strategyId) =
-            (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine, self.marketId, self.strategyId);
+        // OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
+        // (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine, uint128 marketId, uint128 strategyId) =
+        //     (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine, self.marketId, self.strategyId);
 
-        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
+        // bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+        // FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
 
-        bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
+        // bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
 
-        perpsEngine.settleCustomTriggers(marketId, strategyId, payloads, verifiedReportData);
+        // perpsEngine.settleCustomTriggers(marketId, strategyId, payloads, verifiedReportData);
     }
 
     function _getOcoOrderUpkeepStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {
-        bytes32 slot = LIMIT_ORDER_UPKEEP_LOCATION;
+        bytes32 slot = OCO_ORDER_UPKEEP_LOCATION;
 
         assembly {
             self.slot := slot
