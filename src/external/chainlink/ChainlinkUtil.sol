@@ -45,7 +45,6 @@ library ChainlinkUtil {
         bytes memory reportData
     )
         internal
-        view
         returns (FeeAsset memory)
     {
         IFeeManager chainlinkFeeManager = chainlinkVerifier.s_feeManager();
