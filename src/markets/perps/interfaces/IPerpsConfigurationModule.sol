@@ -38,7 +38,7 @@ interface IPerpsConfigurationModule {
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
         SettlementStrategy.Data marketOrderStrategy,
-        SettlementStrategy.Data limitOrderStrategy,
+        SettlementStrategy.Data[] customTriggerStrategies,
         OrderFees.Data orderFees
     );
 
@@ -84,7 +84,7 @@ interface IPerpsConfigurationModule {
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
         SettlementStrategy.Data calldata marketOrderStrategy,
-        SettlementStrategy.Data calldata limitOrderStrategy,
+        SettlementStrategy.Data[] calldata customTriggerStrategies,
         OrderFees.Data calldata orderFees
     )
         external;

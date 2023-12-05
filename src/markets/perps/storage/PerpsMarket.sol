@@ -31,9 +31,8 @@ library PerpsMarket {
         uint128 maxOpenInterest;
         int128 skew;
         uint128 size;
+        uint128 nextStrategyId;
         OrderFees.Data orderFees;
-        SettlementStrategy.Data marketOrderStrategy;
-        SettlementStrategy.Data[] customTriggerStrategies;
         mapping(uint128 accountId => Position.Data) positions;
     }
 
@@ -53,7 +52,7 @@ library PerpsMarket {
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
         SettlementStrategy.Data memory marketOrderStrategy,
-        SettlementStrategy.Data memory limitOrderStrategy,
+        SettlementStrategy.Data[] memory customTriggerStrategies,
         OrderFees.Data memory orderFees
     )
         internal
@@ -70,9 +69,16 @@ library PerpsMarket {
         self.maintenanceMarginRate = maintenanceMarginRate;
         self.maxOpenInterest = maxOpenInterest;
         self.minInitialMarginRate = minInitialMarginRate;
-        self.marketOrderStrategy = marketOrderStrategy;
-        self.limitOrderStrategy = limitOrderStrategy;
         self.orderFees = orderFees;
+
+        SettlementStrategy.create(marketId, 0, marketOrderStrategy);
+
+        if (customTriggerStrategies.length > 0) {
+            for (uint256 i = 0; i < customTriggerStrategies.length; i++) {
+                uint128 nextStrategyId = ++self.nextStrategyId;
+                SettlementStrategy.create(marketId, nextStrategyId, customTriggerStrategies[i]);
+            }
+        }
     }
 
     /// @notice TODO: Use Settlement Strategy
