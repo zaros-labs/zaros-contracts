@@ -6,16 +6,16 @@ library SettlementStrategy {
     /// @notice Strategies IDs supported.
     /// @param DATA_STREAMS The strategy ID that uses basic or premium reports from CL Data Streams to settle
     /// market orders.
-    enum StrategyId { DATA_STREAMS }
+    enum StrategyType { DATA_STREAMS }
 
     /// @notice The {SettlementStrategy} namespace storage structure.
-    /// @param strategyId The strategy id active.
+    /// @param strategyType The strategy id active.
     /// @param isEnabled Whether the strategy is enabled or not. May be used to pause trading in a market.
     /// @param settlementFee The settlement cost in USD charged from the trader.
     /// @param upkeep The address of the responsible Upkeep contract (address(0) means anyone can settle).
     /// @param strategyData Data structure required for the settlement strategy, varies for each strategy.
     struct Data {
-        StrategyId strategyId;
+        StrategyType strategyType;
         bool isEnabled;
         uint80 settlementFee;
         address upkeep;

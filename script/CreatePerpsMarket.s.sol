@@ -65,14 +65,14 @@ contract CreatePerpsMarket is BaseScript {
             isPremium: false
         });
         SettlementStrategy.Data memory ethUsdMarketOrderStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
+            strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
             strategyData: abi.encode(ethUsdMarketOrderStrategyData)
         });
         SettlementStrategy.Data memory ethUsdLimitOrderStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
+            strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
@@ -100,7 +100,7 @@ contract CreatePerpsMarket is BaseScript {
             isPremium: false
         });
         SettlementStrategy.Data memory linkUsdMarketOrderStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
+            strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
@@ -108,7 +108,7 @@ contract CreatePerpsMarket is BaseScript {
         });
 
         SettlementStrategy.Data memory linkUsdLimitOrderStrategy = SettlementStrategy.Data({
-            strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
+            strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
             isEnabled: true,
             settlementFee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,

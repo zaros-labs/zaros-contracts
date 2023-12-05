@@ -33,7 +33,7 @@ library PerpsMarket {
         uint128 size;
         OrderFees.Data orderFees;
         SettlementStrategy.Data marketOrderStrategy;
-        SettlementStrategy.Data limitOrderStrategy;
+        SettlementStrategy.Data[] customTriggerStrategies;
         mapping(uint128 accountId => Position.Data) positions;
     }
 

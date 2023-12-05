@@ -49,14 +49,14 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     });
     // TODO: update limit order strategy
     SettlementStrategy.Data internal ethUsdLimitOrderStrategy = SettlementStrategy.Data({
-        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
+        strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
         isEnabled: true,
         settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
         upkeep: mockDefaultMarketOrderUpkeep,
         strategyData: abi.encode(ethUsdMarketOrderStrategyData)
     });
     SettlementStrategy.Data internal ethUsdMarketOrderStrategy = SettlementStrategy.Data({
-        strategyId: SettlementStrategy.StrategyId.DATA_STREAMS,
+        strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
         isEnabled: true,
         settlementFee: DATA_STREAMS_SETTLEMENT_FEE,
         upkeep: mockDefaultMarketOrderUpkeep,
