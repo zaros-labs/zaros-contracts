@@ -5,21 +5,21 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
-import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
+import { IStreamsLookupCompatible } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
+import { BaseUpkeepUpgradeable } from "../BaseUpkeepUpgradeable.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
 import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
-import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
+contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpkeepUpgradeable {
     using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.
@@ -64,15 +64,6 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         self.perpsEngine = perpsEngine;
 
         __Ownable_init(initialOwner);
-    }
-
-    /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
-    modifier onlyForwarder() {
-        address forwarder = _getMarketOrderUpkeepStorage().forwarder;
-        if (msg.sender != forwarder) {
-            revert Errors.OnlyForwarder(msg.sender, forwarder);
-        }
-        _;
     }
 
     function getConfig()
@@ -138,6 +129,10 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
         performData = abi.encode(signedReport, extraData);
     }
 
+    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
+
+    function afterSettlement() external override onlyPerpsEngine { }
+
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
         (bytes memory signedReport, uint128 accountId, uint128 marketId) =
@@ -162,7 +157,4 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, UUPSUpgr
             self.slot := slot
         }
     }
-
-    /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address) internal override onlyOwner { }
 }

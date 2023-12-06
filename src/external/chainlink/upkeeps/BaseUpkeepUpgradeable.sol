@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 
 // Open Zeppelin dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -28,6 +29,7 @@ abstract contract BaseUpkeepUpgradeable is UUPSUpgradeable, OwnableUpgradeable {
         PerpsEngine perpsEngine;
     }
 
+    /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
     modifier onlyForwarder() {
         BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
         bool isSenderForwarder = msg.sender == self.forwarder;
@@ -47,6 +49,10 @@ abstract contract BaseUpkeepUpgradeable is UUPSUpgradeable, OwnableUpgradeable {
         }
         _;
     }
+
+    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external virtual;
+
+    function afterSettlement() external virtual;
 
     /// @notice {BaseUpkeep} UUPS initializer.
     function __BaseUpkeep_init(
