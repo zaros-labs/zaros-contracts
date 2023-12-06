@@ -130,7 +130,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;
-        bytes memory extraData = abi.encode(ocoOrders);
+        bytes memory extraData = abi.encode(ocoOrders, performLowerBound, performUpperBound);
 
         revert StreamsLookup(
             dataStreamsCustomStrategy.feedLabel,
