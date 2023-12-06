@@ -101,17 +101,19 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        (uint256 lowerBound, uint256 upperBound) = abi.decode(checkData, (uint256, uint256));
+        (uint256 checkLowerBound, uint256 checkUpperBound, uint256 performLowerBound, uint256 peformUpperBound) =
+            abi.decode(checkData, (uint256, uint256, uint256, uint256));
 
-        if (lowerBound > upperBound) {
-            revert Errors.InvalidBounds(lowerBound, upperBound);
+        if (checkLowerBound > checkUpperBound || performLowerBound > peformUpperBound) {
+            revert Errors.InvalidBounds();
         }
 
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         PerpsEngine perpsEngine = baseUpkeepStorage.perpsEngine;
 
-        uint256 amountOfOrders = self.limitOrdersIds.length() > upperBound ? upperBound : self.limitOrdersIds.length();
+        uint256 amountOfOrders =
+            self.limitOrdersIds.length() > checkUpperBound ? checkUpperBound : self.limitOrdersIds.length();
 
         if (amountOfOrders == 0) {
             return (upkeepNeeded, performData);
@@ -119,7 +121,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
         LimitOrder.Data[] memory limitOrders = new LimitOrder.Data[](amountOfOrders);
 
-        for (uint256 i = lowerBound; i < amountOfOrders; i++) {
+        for (uint256 i = checkLowerBound; i < amountOfOrders; i++) {
             uint256 orderId = self.limitOrdersIds.at(i);
             limitOrders[i] = LimitOrder.load(orderId);
         }
@@ -131,7 +133,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;
-        bytes memory extraData = abi.encode(limitOrders);
+        bytes memory extraData = abi.encode(limitOrders, performLowerBound, peformUpperBound);
 
         revert StreamsLookup(
             dataStreamsCustomStrategy.feedLabel,
@@ -157,9 +159,12 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         bytes memory signedReport = values[0];
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         BasicReport memory report = abi.decode(reportData, (BasicReport));
-        (LimitOrder.Data[] memory limitOrders) = abi.decode(extraData, (LimitOrder.Data[]));
 
-        for (uint256 i = 0; i < limitOrders.length; i++) {
+        (LimitOrder.Data[] memory limitOrders, uint256 performLowerBound, uint256 performUpperBound) =
+            abi.decode(extraData, (LimitOrder.Data[], uint256, uint256));
+        uint256 ordersToIterate = limitOrders.length > performUpperBound ? performUpperBound : limitOrders.length;
+
+        for (uint256 i = performLowerBound; i < ordersToIterate; i++) {
             LimitOrder.Data memory limitOrder = limitOrders[i];
             // TODO: store decimals per market?
             UD60x18 orderPrice = ud60x18(limitOrder.price);
