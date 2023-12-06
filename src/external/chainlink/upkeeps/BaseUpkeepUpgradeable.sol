@@ -9,7 +9,7 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
+abstract contract BaseUpkeepUpgradeable is UUPSUpgradeable, OwnableUpgradeable {
     /// @notice ERC7201 storage location.
     bytes32 internal constant BASE_UPKEEP_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.BaseUpkeep")) - 1)
@@ -25,6 +25,16 @@ abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
         PerpsEngine perpsEngine;
     }
 
+    modifier onlyForwarder() {
+        BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
+        bool isSenderForwarder = msg.sender == self.forwarder;
+
+        if (!isSenderForwarder) {
+            revert Errors.Unauthorized(msg.sender);
+        }
+        _;
+    }
+
     modifier onlyPerpsEngine() {
         BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
         bool isSenderPerpsEngine = msg.sender == address(self.perpsEngine);
@@ -36,7 +46,14 @@ abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /// @notice {BaseUpkeep} UUPS initializer.
-    function initialize(address chainlinkVerifier, address forwarder, PerpsEngine perpsEngine) external initializer {
+    function __BaseUpkeep_init(
+        address chainlinkVerifier,
+        address forwarder,
+        PerpsEngine perpsEngine
+    )
+        internal
+        onlyInitializing
+    {
         __Ownable_init(msg.sender);
 
         if (chainlinkVerifier == address(0)) {
@@ -54,19 +71,6 @@ abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
         self.chainlinkVerifier = chainlinkVerifier;
         self.forwarder = forwarder;
         self.perpsEngine = perpsEngine;
-    }
-
-    function getConfig()
-        external
-        view
-        returns (address upkeepOwner, address chainlinkVerifier, address forwarder, address perpsEngine)
-    {
-        BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
-
-        upkeepOwner = owner();
-        chainlinkVerifier = self.chainlinkVerifier;
-        forwarder = self.forwarder;
-        perpsEngine = address(self.perpsEngine);
     }
 
     function _getBaseUpkeepStorage() internal pure returns (BaseUpkeepStorage storage self) {

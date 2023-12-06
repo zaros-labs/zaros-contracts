@@ -7,6 +7,7 @@ import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
+import { BaseUpkeepUpgradeable } from "../BaseUpkeepUpgradeable.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { LimitOrder } from "./storage/LimitOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
@@ -16,14 +17,12 @@ import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrat
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
-import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
+contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeepUpgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
@@ -37,27 +36,15 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderUpkeep
-    /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
-    /// @param forwarder The address of the Upkeep forwarder contract.
-    /// @param perpsEngine The address of the PerpsEngine contract.
+    /// @param nextOrderId The id that will be used for the next limit order stored.
+    /// @param marketId The upkeep's linked Zaros market id.
+    /// @param strategyId The upkeep's linked Zaros market's settlement strategy id.
+    /// @param limitOrdersIds The set of limit orders ids, used to find the limit orders to be settled.
     struct LimitOrderUpkeepStorage {
-        address chainlinkVerifier;
-        address forwarder;
-        PerpsEngine perpsEngine;
         uint128 nextOrderId;
         uint128 marketId;
         uint128 strategyId;
         EnumerableSet.UintSet limitOrdersIds;
-    }
-
-    modifier onlyPerpsEngine() {
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        bool isSenderPerpsEngine = msg.sender == address(self.perpsEngine);
-
-        if (!isSenderPerpsEngine) {
-            revert Errors.Unauthorized(msg.sender);
-        }
-        _;
     }
 
     /// @notice {LimitOrderUpkeep} UUPS initializer.
@@ -71,17 +58,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         external
         initializer
     {
-        __Ownable_init(msg.sender);
+        __BaseUpkeep_init(chainlinkVerifier, forwarder, perpsEngine);
 
-        if (chainlinkVerifier == address(0)) {
-            revert Errors.ZeroInput("chainlinkVerifier");
-        }
-        if (forwarder == address(0)) {
-            revert Errors.ZeroInput("forwarder");
-        }
-        if (address(perpsEngine) == address(0)) {
-            revert Errors.ZeroInput("perpsEngine");
-        }
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
@@ -91,15 +69,12 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
-        self.chainlinkVerifier = chainlinkVerifier;
-        self.forwarder = forwarder;
-        self.perpsEngine = perpsEngine;
         self.marketId = marketId;
         self.strategyId = strategyId;
     }
 
     function getConfig()
-        external
+        public
         view
         returns (
             address upkeepOwner,
@@ -110,12 +85,13 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             uint128 strategyId
         )
     {
+        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
         upkeepOwner = owner();
-        chainlinkVerifier = self.chainlinkVerifier;
-        forwarder = self.forwarder;
-        perpsEngine = address(self.perpsEngine);
+        chainlinkVerifier = baseUpkeepStorage.chainlinkVerifier;
+        forwarder = baseUpkeepStorage.forwarder;
+        perpsEngine = address(baseUpkeepStorage.perpsEngine);
         marketId = self.marketId;
         strategyId = self.strategyId;
     }
@@ -131,8 +107,9 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             revert Errors.InvalidBounds(lowerBound, upperBound);
         }
 
+        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        PerpsEngine perpsEngine = self.perpsEngine;
+        PerpsEngine perpsEngine = baseUpkeepStorage.perpsEngine;
 
         uint256 amountOfOrders = self.limitOrdersIds.length() > upperBound ? upperBound : self.limitOrdersIds.length();
 
@@ -221,13 +198,15 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         emit LogCreateLimitOrder(msg.sender, accountId, orderId, price, sizeDelta);
     }
 
-    function performUpkeep(bytes calldata performData) external override {
+    function performUpkeep(bytes calldata performData) external override onlyForwarder {
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
+        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine, uint128 marketId, uint128 strategyId) =
-            (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine, self.marketId, self.strategyId);
+        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
+            (IVerifierProxy(baseUpkeepStorage.chainlinkVerifier), baseUpkeepStorage.perpsEngine);
+        (uint128 marketId, uint128 strategyId) = (self.marketId, self.strategyId);
 
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
@@ -244,7 +223,4 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
             self.slot := slot
         }
     }
-
-    /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address) internal override onlyOwner { }
 }

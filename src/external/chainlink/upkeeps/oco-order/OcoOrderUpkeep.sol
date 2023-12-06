@@ -7,6 +7,7 @@ import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
+import { BaseUpkeepUpgradeable } from "../BaseUpkeepUpgradeable.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { OcoOrder } from "./storage/OcoOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
@@ -16,14 +17,12 @@ import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrat
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
-import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPSUpgradeable, OwnableUpgradeable {
+contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeepUpgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
@@ -37,26 +36,10 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.OcoOrderUpkeep
-    /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
-    /// @param forwarder The address of the Upkeep forwarder contract.
-    /// @param perpsEngine The address of the PerpsEngine contract.
     struct OcoOrderUpkeepStorage {
-        address chainlinkVerifier;
-        address forwarder;
-        PerpsEngine perpsEngine;
         uint128 marketId;
         uint128 strategyId;
         mapping(uint128 accountId => OcoOrder.Data) accountActiveOcoOrder;
-    }
-
-    modifier onlyPerpsEngine() {
-        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        bool isSenderPerpsEngine = msg.sender == address(self.perpsEngine);
-
-        if (!isSenderPerpsEngine) {
-            revert Errors.Unauthorized(msg.sender);
-        }
-        _;
     }
 
     /// @notice {OcoOrderUpkeep} UUPS initializer.
@@ -70,17 +53,8 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
         external
         initializer
     {
-        __Ownable_init(msg.sender);
+        __BaseUpkeep_init(chainlinkVerifier, forwarder, perpsEngine);
 
-        if (chainlinkVerifier == address(0)) {
-            revert Errors.ZeroInput("chainlinkVerifier");
-        }
-        if (forwarder == address(0)) {
-            revert Errors.ZeroInput("forwarder");
-        }
-        if (address(perpsEngine) == address(0)) {
-            revert Errors.ZeroInput("perpsEngine");
-        }
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
@@ -90,15 +64,12 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
 
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
 
-        self.chainlinkVerifier = chainlinkVerifier;
-        self.forwarder = forwarder;
-        self.perpsEngine = perpsEngine;
         self.marketId = marketId;
         self.strategyId = strategyId;
     }
 
     function getConfig()
-        external
+        public
         view
         returns (
             address upkeepOwner,
@@ -109,12 +80,13 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
             uint128 strategyId
         )
     {
+        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
 
         upkeepOwner = owner();
-        chainlinkVerifier = self.chainlinkVerifier;
-        forwarder = self.forwarder;
-        perpsEngine = address(self.perpsEngine);
+        chainlinkVerifier = baseUpkeepStorage.chainlinkVerifier;
+        forwarder = baseUpkeepStorage.forwarder;
+        perpsEngine = address(baseUpkeepStorage.perpsEngine);
         marketId = self.marketId;
         strategyId = self.strategyId;
     }
@@ -225,7 +197,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
         emit LogCreateOcoOrder(msg.sender, accountId, takeProfit, stopLoss);
     }
 
-    function performUpkeep(bytes calldata performData) external override {
+    function performUpkeep(bytes calldata performData) external override onlyForwarder {
         // (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
         //     abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
@@ -248,7 +220,4 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
             self.slot := slot
         }
     }
-
-    /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address) internal override onlyOwner { }
 }
