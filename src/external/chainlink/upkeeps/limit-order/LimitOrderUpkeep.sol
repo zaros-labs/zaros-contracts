@@ -50,6 +50,16 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         EnumerableSet.UintSet limitOrdersIds;
     }
 
+    modifier onlyPerpsEngine() {
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        bool isSenderPerpsEngine = msg.sender == address(self.perpsEngine);
+
+        if (!isSenderPerpsEngine) {
+            revert Errors.Unauthorized(msg.sender);
+        }
+        _;
+    }
+
     /// @notice {LimitOrderUpkeep} UUPS initializer.
     function initialize(
         address chainlinkVerifier,
@@ -197,13 +207,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UU
         }
     }
 
-    function createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) external {
+    function createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) external onlyPerpsEngine {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
-
-        if (!isSenderAuthorized) {
-            revert Errors.Unauthorized(msg.sender);
-        }
 
         uint256 orderId = ++self.nextOrderId;
 

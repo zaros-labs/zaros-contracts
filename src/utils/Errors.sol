@@ -21,6 +21,8 @@ library Errors {
     error OnlyForwarder(address sender, address forwarder);
     /// @notice Thrown when the upkeep provided checkData bounds are invalid.
     error InvalidBounds(uint256 lowerBound, uint256 upperBound);
+    /// @notice Thrown when the provided take profit price is lower than the stop loss price.
+    error InvalidOcoOrder();
 
     /// @notice PerpsEngine.OrderModule errors
 

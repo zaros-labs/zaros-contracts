@@ -49,6 +49,16 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
         mapping(uint128 accountId => OcoOrder.Data) accountActiveOcoOrder;
     }
 
+    modifier onlyPerpsEngine() {
+        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
+        bool isSenderPerpsEngine = msg.sender == address(self.perpsEngine);
+
+        if (!isSenderPerpsEngine) {
+            revert Errors.Unauthorized(msg.sender);
+        }
+        _;
+    }
+
     /// @notice {OcoOrderUpkeep} UUPS initializer.
     function initialize(
         address chainlinkVerifier,
@@ -202,12 +212,12 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, UUPS
         OcoOrder.StopLoss calldata stopLoss
     )
         external
+        onlyPerpsEngine
     {
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        bool isSenderAuthorized = self.perpsEngine.isAuthorized(accountId, msg.sender);
 
-        if (!isSenderAuthorized) {
-            revert Errors.Unauthorized(msg.sender);
+        if (takeProfit.price != 0 && takeProfit.price < stopLoss.price) {
+            revert Errors.InvalidOcoOrder();
         }
 
         self.accountActiveOcoOrder[accountId] = OcoOrder.Data({ takeProfit: takeProfit, stopLoss: stopLoss });
