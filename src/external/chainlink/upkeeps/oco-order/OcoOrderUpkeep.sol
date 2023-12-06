@@ -39,7 +39,8 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
     struct OcoOrderUpkeepStorage {
         uint128 marketId;
         uint128 strategyId;
-        mapping(uint128 accountId => OcoOrder.Data) accountActiveOcoOrder;
+        EnumerableSet.UintSet accountIdsWithActiveOrders;
+        mapping(uint128 accountId => OcoOrder.Data) ocoOrderOfAccount;
     }
 
     /// @notice {OcoOrderUpkeep} UUPS initializer.
@@ -96,16 +97,18 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        // (uint256 lowerBound, uint256 upperBound) = abi.decode(checkData, (uint256, uint256));
+        (uint256 checkLowerBound, uint256 checkUpperBound, uint256 performLowerBound, uint256 performUpperBound) =
+            abi.decode(checkData, (uint256, uint256, uint256, uint256));
 
-        // if (lowerBound > upperBound) {
-        //     revert Errors.InvalidBounds(lowerBound, upperBound);
-        // }
+        if (checkLowerBound > checkUpperBound || performLowerBound > performUpperBound) {
+            revert Errors.InvalidBounds();
+        }
 
-        // OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        // PerpsEngine perpsEngine = self.perpsEngine;
+        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
+        PerpsEngine perpsEngine = baseUpkeepStorage.perpsEngine;
 
-        // uint256 amountOfOrders = self.ocoOrdersIds.length() > upperBound ? upperBound : self.ocoOrdersIds.length();
+        // uint256 amountOfOrders =
+        //     self.ocoOrdersIds.length() > checkUpperBound ? checkUpperBound : self.ocoOrdersIds.length();
 
         // if (amountOfOrders == 0) {
         //     return (upkeepNeeded, performData);
@@ -113,7 +116,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
 
         // OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
 
-        // for (uint256 i = lowerBound; i < amountOfOrders; i++) {
+        // for (uint256 i = checkLowerBound; i < amountOfOrders; i++) {
         //     uint256 orderId = self.ocoOrdersIds.at(i);
         //     ocoOrders[i] = OcoOrder.load(orderId);
         // }
@@ -151,7 +154,9 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         // bytes memory signedReport = values[0];
         // bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         // BasicReport memory report = abi.decode(reportData, (BasicReport));
-        // (OcoOrder.Data[] memory ocoOrders) = abi.decode(extraData, (OcoOrder.Data[]));
+        (OcoOrder.Data[] memory ocoOrders, uint256 performLowerBound, uint256 performUpperBound) =
+            abi.decode(extraData, (OcoOrder.Data[], uint256, uint256));
+        uint256 ordersToIterate = ocoOrders.length > performUpperBound ? performUpperBound : ocoOrders.length;
 
         // for (uint256 i = 0; i < ocoOrders.length; i++) {
         //     OcoOrder.Data memory ocoOrder = ocoOrders[i];
@@ -192,7 +197,18 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             revert Errors.InvalidOcoOrder();
         }
 
-        self.accountActiveOcoOrder[accountId] = OcoOrder.Data({ takeProfit: takeProfit, stopLoss: stopLoss });
+        bool isAccountWithNewOcoOrder =
+            takeProfit.price != 0 && stopLoss.price != 0 && !self.accountIdsWithActiveOrders.contains(accountId);
+        bool isAccountCancellingOcoOrder =
+            takeProfit.price == 0 && stopLoss.price == 0 && self.accountIdsWithActiveOrders.contains(accountId);
+
+        if (isAccountWithNewOcoOrder) {
+            self.accountIdsWithActiveOrders.add(accountId);
+        } else if (isAccountCancellingOcoOrder) {
+            self.accountIdsWithActiveOrders.remove(accountId);
+        }
+
+        self.ocoOrderOfAccount[accountId] = OcoOrder.Data({ takeProfit: takeProfit, stopLoss: stopLoss });
 
         emit LogCreateOcoOrder(msg.sender, accountId, takeProfit, stopLoss);
     }
