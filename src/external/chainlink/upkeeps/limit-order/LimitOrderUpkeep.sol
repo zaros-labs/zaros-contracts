@@ -208,6 +208,10 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         emit LogCreateLimitOrder(msg.sender, accountId, orderId, price, sizeDelta);
     }
 
+    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
+
+    function afterSettlement() external override onlyPerpsEngine { }
+
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));

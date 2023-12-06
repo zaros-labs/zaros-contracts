@@ -163,29 +163,25 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
 
         UD60x18 reportPrice = ChainlinkUtil.getReportPriceUd60x18(reportData, REPORT_PRICE_DECIMALS, isPremiumReport);
 
-        // for (uint256 i = 0; i < ocoOrders.length; i++) {
-        //     OcoOrder.Data memory ocoOrder = ocoOrders[i];
-        //     // TODO: store decimals per market?
-        //     UD60x18 orderPrice = ud60x18(ocoOrder.price);
-        //     UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
+        for (uint256 i = 0; i < ocoOrders.length; i++) {
+            OcoOrder.TakeProfit memory takeProfit = ocoOrders[i].takeProfit;
+            OcoOrder.StopLoss memory stopLoss = ocoOrders[i].stopLoss;
 
-        //     bool isOrderFillable = (
-        //         ocoOrder.sizeDelta > 0 && reportPrice.lte(orderPrice)
-        //             || (ocoOrder.sizeDelta < 0 && reportPrice.gte(orderPrice))
-        //     );
+            // bool isOrderFillable;
 
-        //     if (isOrderFillable) {
-        //         payloads[payloads.length] = ISettlementModule.SettlementPayload({
-        //             accountId: ocoOrder.accountId,
-        //             sizeDelta: ocoOrder.sizeDelta
-        //         });
-        //     }
-        // }
+            // if (isOrderFillable) {
+            //     int128 sizeDelta =
+            //     payloads[payloads.length] = ISettlementModule.SettlementPayload({
+            //         accountId:
+            //         sizeDelta:
+            //     });
+            // }
+        }
 
-        // if (payloads.length > 0) {
-        //     upkeepNeeded = true;
-        //     performData = abi.encode(signedReport, payloads);
-        // }
+        if (payloads.length > 0) {
+            upkeepNeeded = true;
+            performData = abi.encode(signedReport, payloads);
+        }
     }
 
     function updateOcoOrder(
@@ -217,6 +213,10 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
 
         emit LogCreateOcoOrder(msg.sender, accountId, takeProfit, stopLoss);
     }
+
+    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
+
+    function afterSettlement() external override onlyPerpsEngine { }
 
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
         // (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
