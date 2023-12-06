@@ -39,7 +39,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
     struct OcoOrderUpkeepStorage {
         uint128 marketId;
         uint128 strategyId;
-        EnumerableSet.UintSet accountIdsWithActiveOrders;
+        EnumerableSet.UintSet accountsWithActiveOrders;
         mapping(uint128 accountId => OcoOrder.Data) ocoOrderOfAccount;
     }
 
@@ -105,38 +105,40 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         }
 
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
+        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
         PerpsEngine perpsEngine = baseUpkeepStorage.perpsEngine;
 
-        // uint256 amountOfOrders =
-        //     self.ocoOrdersIds.length() > checkUpperBound ? checkUpperBound : self.ocoOrdersIds.length();
+        uint256 amountOfOrders = self.accountsWithActiveOrders.length() > checkUpperBound
+            ? checkUpperBound
+            : self.accountsWithActiveOrders.length();
 
-        // if (amountOfOrders == 0) {
-        //     return (upkeepNeeded, performData);
-        // }
+        if (amountOfOrders == 0) {
+            return (upkeepNeeded, performData);
+        }
 
-        // OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
+        OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
 
-        // for (uint256 i = checkLowerBound; i < amountOfOrders; i++) {
-        //     uint256 orderId = self.ocoOrdersIds.at(i);
-        //     ocoOrders[i] = OcoOrder.load(orderId);
-        // }
+        for (uint256 i = checkLowerBound; i < amountOfOrders; i++) {
+            uint128 accountId = self.accountsWithActiveOrders.at(i).toUint128();
+            ocoOrders[i] = self.ocoOrderOfAccount[accountId];
+        }
 
-        // SettlementStrategy.Data memory settlementStrategy =
-        //     perpsEngine.getSettlementStrategy(self.marketId, self.strategyId);
-        // SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-        //     abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
+        SettlementStrategy.Data memory settlementStrategy =
+            perpsEngine.getSettlementStrategy(self.marketId, self.strategyId);
+        SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+            abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
 
-        // string[] memory feedsParam = new string[](1);
-        // feedsParam[0] = dataStreamsCustomStrategy.streamId;
-        // bytes memory extraData = abi.encode(ocoOrders);
+        string[] memory feedsParam = new string[](1);
+        feedsParam[0] = dataStreamsCustomStrategy.streamId;
+        bytes memory extraData = abi.encode(ocoOrders);
 
-        // revert StreamsLookup(
-        //     dataStreamsCustomStrategy.feedLabel,
-        //     feedsParam,
-        //     dataStreamsCustomStrategy.queryLabel,
-        //     block.timestamp,
-        //     extraData
-        // );
+        revert StreamsLookup(
+            dataStreamsCustomStrategy.feedLabel,
+            feedsParam,
+            dataStreamsCustomStrategy.queryLabel,
+            block.timestamp,
+            extraData
+        );
     }
 
     function checkCallback(
@@ -198,14 +200,14 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         }
 
         bool isAccountWithNewOcoOrder =
-            takeProfit.price != 0 && stopLoss.price != 0 && !self.accountIdsWithActiveOrders.contains(accountId);
+            takeProfit.price != 0 && stopLoss.price != 0 && !self.accountsWithActiveOrders.contains(accountId);
         bool isAccountCancellingOcoOrder =
-            takeProfit.price == 0 && stopLoss.price == 0 && self.accountIdsWithActiveOrders.contains(accountId);
+            takeProfit.price == 0 && stopLoss.price == 0 && self.accountsWithActiveOrders.contains(accountId);
 
         if (isAccountWithNewOcoOrder) {
-            self.accountIdsWithActiveOrders.add(accountId);
+            self.accountsWithActiveOrders.add(accountId);
         } else if (isAccountCancellingOcoOrder) {
-            self.accountIdsWithActiveOrders.remove(accountId);
+            self.accountsWithActiveOrders.remove(accountId);
         }
 
         self.ocoOrderOfAccount[accountId] = OcoOrder.Data({ takeProfit: takeProfit, stopLoss: stopLoss });
