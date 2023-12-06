@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 import { IAutomationCompatible } from "../../interfaces/IAutomationCompatible.sol";
 import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
-import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
+import { IStreamsLookupCompatible, BasicReport, PremiumReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
 import { BaseUpkeepUpgradeable } from "../BaseUpkeepUpgradeable.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
@@ -133,7 +133,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;
-        bytes memory extraData = abi.encode(limitOrders, performLowerBound, peformUpperBound);
+        bytes memory extraData =
+            abi.encode(limitOrders, performLowerBound, peformUpperBound, dataStreamsCustomStrategy.isPremium);
 
         revert StreamsLookup(
             dataStreamsCustomStrategy.feedLabel,
@@ -156,19 +157,23 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         ISettlementModule.SettlementPayload[] memory payloads = new ISettlementModule.SettlementPayload[](0);
 
+        (
+            LimitOrder.Data[] memory limitOrders,
+            uint256 performLowerBound,
+            uint256 performUpperBound,
+            bool isPremiumReport
+        ) = abi.decode(extraData, (LimitOrder.Data[], uint256, uint256, bool));
+        uint256 ordersToIterate = limitOrders.length > performUpperBound ? performUpperBound : limitOrders.length;
+
         bytes memory signedReport = values[0];
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        BasicReport memory report = abi.decode(reportData, (BasicReport));
 
-        (LimitOrder.Data[] memory limitOrders, uint256 performLowerBound, uint256 performUpperBound) =
-            abi.decode(extraData, (LimitOrder.Data[], uint256, uint256));
-        uint256 ordersToIterate = limitOrders.length > performUpperBound ? performUpperBound : limitOrders.length;
+        UD60x18 reportPrice = ChainlinkUtil.getReportPriceUd60x18(reportData, REPORT_PRICE_DECIMALS, isPremiumReport);
 
         for (uint256 i = performLowerBound; i < ordersToIterate; i++) {
             LimitOrder.Data memory limitOrder = limitOrders[i];
             // TODO: store decimals per market?
             UD60x18 orderPrice = ud60x18(limitOrder.price);
-            UD60x18 reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, 8);
 
             bool isOrderFillable = (
                 limitOrder.sizeDelta > 0 && reportPrice.lte(orderPrice)

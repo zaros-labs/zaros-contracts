@@ -15,6 +15,9 @@ abstract contract BaseUpkeepUpgradeable is UUPSUpgradeable, OwnableUpgradeable {
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.BaseUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
+    /// @notice Chainlink Data Streams Reports default decimals (both Basic and Premium).
+    uint8 internal constant REPORT_PRICE_DECIMALS = 8;
+
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.BaseUpkeep
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param forwarder The address of the Upkeep forwarder contract.

@@ -24,9 +24,33 @@ library ChainlinkUtil {
 
     /// @notice Converts the provided report price to UD60x18.
     /// @dev Reports' prices at the current Data Streams version have 8 decimals.
+    /// @param reportData The raw report data byte array.
+    /// @param decimals The report price's decimals.
+    /// @param isPremium Whether the report is premium or not.
+    /// @return reportPrice The converted price to UD60x18.
+    function getReportPriceUd60x18(
+        bytes memory reportData,
+        uint8 decimals,
+        bool isPremium
+    )
+        internal
+        view
+        returns (UD60x18 reportPrice)
+    {
+        if (isPremium) {
+            PremiumReport memory report = abi.decode(reportData, (PremiumReport));
+            reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, decimals);
+        } else {
+            BasicReport memory report = abi.decode(reportData, (BasicReport));
+            reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, decimals);
+        }
+    }
+
+    /// @notice Converts the provided report price to UD60x18.
+    /// @dev Reports' prices at the current Data Streams version have 8 decimals.
     /// @param price The price to convert.
     /// @param decimals The report price's decimals.
-    /// @return ud60x18Price The converted price to UD60x18.
+    /// @return priceUd60x18 The converted price to UD60x18.
     function convertReportPriceToUd60x18(int192 price, uint8 decimals) internal view returns (UD60x18) {
         if (Constants.SYSTEM_DECIMALS == decimals) {
             return ud60x18(reportPriceToUint256(price));

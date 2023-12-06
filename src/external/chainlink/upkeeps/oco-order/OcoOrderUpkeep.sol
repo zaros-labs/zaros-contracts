@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 import { IAutomationCompatible } from "../../interfaces/IAutomationCompatible.sol";
 import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
-import { IStreamsLookupCompatible, BasicReport } from "../../interfaces/IStreamsLookupCompatible.sol";
+import { IStreamsLookupCompatible, BasicReport, PremiumReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
 import { BaseUpkeepUpgradeable } from "../BaseUpkeepUpgradeable.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
@@ -130,7 +130,8 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;
-        bytes memory extraData = abi.encode(ocoOrders, performLowerBound, performUpperBound);
+        bytes memory extraData =
+            abi.encode(ocoOrders, performLowerBound, performUpperBound, dataStreamsCustomStrategy.isPremium);
 
         revert StreamsLookup(
             dataStreamsCustomStrategy.feedLabel,
@@ -150,15 +151,17 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        // OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        // ISettlementModule.SettlementPayload[] memory payloads = new ISettlementModule.SettlementPayload[](0);
+        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
+        ISettlementModule.SettlementPayload[] memory payloads = new ISettlementModule.SettlementPayload[](0);
 
-        // bytes memory signedReport = values[0];
-        // bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        // BasicReport memory report = abi.decode(reportData, (BasicReport));
-        (OcoOrder.Data[] memory ocoOrders, uint256 performLowerBound, uint256 performUpperBound) =
-            abi.decode(extraData, (OcoOrder.Data[], uint256, uint256));
+        (OcoOrder.Data[] memory ocoOrders, uint256 performLowerBound, uint256 performUpperBound, bool isPremiumReport) =
+            abi.decode(extraData, (OcoOrder.Data[], uint256, uint256, bool));
         uint256 ordersToIterate = ocoOrders.length > performUpperBound ? performUpperBound : ocoOrders.length;
+
+        bytes memory signedReport = values[0];
+        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+
+        UD60x18 reportPrice = ChainlinkUtil.getReportPriceUd60x18(reportData, REPORT_PRICE_DECIMALS, isPremiumReport);
 
         // for (uint256 i = 0; i < ocoOrders.length; i++) {
         //     OcoOrder.Data memory ocoOrder = ocoOrders[i];
