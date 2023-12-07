@@ -32,7 +32,7 @@
 //             // initialMarginDelta: int128(10_000e18),
 //             sizeDelta: int128(50e18)
 //         });
-//         perpsEngine.createMarketOrder({ payload: payload });
+//         perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
 //         Order.Market memory marketOrder =
 //             perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID });
 
@@ -70,7 +70,7 @@
 //             sizeDelta: int128(50e18)
 //         });
 
-//         perpsEngine.createMarketOrder({ payload: payload });
+//         perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
 
 //         perpsEngine.settleMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport
 // });

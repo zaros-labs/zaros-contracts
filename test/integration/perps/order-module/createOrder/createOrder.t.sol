@@ -35,7 +35,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
 
-        perpsEngine.createMarketOrder({ payload: payload });
+        perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
     }
 
     function testFuzz_CreateMarketOrderMultiple(uint256 amountToDeposit) external {
@@ -51,13 +51,13 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             sizeDelta: int128(50e18)
         });
 
-        perpsEngine.createMarketOrder({ payload: payload });
+        perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
 
         Order.Market memory expectedOrder = Order.Market({ payload: payload, timestamp: uint248(block.timestamp) });
 
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
 
-        perpsEngine.createMarketOrder({ payload: payload });
+        perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
     }
 }

@@ -65,9 +65,15 @@ abstract contract OrderModule is IOrderModule {
         marketOrder = perpsAccount.activeMarketOrder[marketId];
     }
 
+    // TODO: apply this to all upkeeps and rename them to something like "Settlement Strategy Contract"
+    struct InvokeSettlementStrategyPayload {
+        uint128 accountId;
+        bytes extraData;
+    }
+
     /// @inheritdoc IOrderModule
     /// @dev TODO: remove accountId and marketId since they're already present in the payload
-    function createMarketOrder(Order.Payload calldata payload) external override {
+    function createMarketOrder(Order.Payload calldata payload, bytes memory extraData) external override {
         uint128 accountId = payload.accountId;
         uint128 marketId = payload.marketId;
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
@@ -89,8 +95,41 @@ abstract contract OrderModule is IOrderModule {
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
 
+    function invokeCustomSettlementStrategy(
+        uint128 accountId,
+        uint128 marketId,
+        uint128 strategyId,
+        bytes calldata extraData
+    )
+        external
+        override
+        returns (bytes memory)
+    {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        perpsAccount.verifyCaller();
+
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        SettlementStrategy.Data storage settlementStrategy = SettlementStrategy.load(marketId, strategyId);
+
+        address upkeep = settlementStrategy.upkeep;
+        bytes4 selector = bytes4(extraData[0:4]);
+        bytes memory payload = extraData[4:extraData.length];
+        bytes memory callData = abi.encodeWithSelector(selector, abi.encodePacked(accountId, payload));
+
+        (bool success, bytes memory returnData) = upkeep.call(callData);
+
+        if (!success) {
+            if (returnData.length == 0) revert Errors.FailedInvokeCustomSettlementStrategy();
+            assembly {
+                revert(add(returnData, 0x20), mload(returnData))
+            }
+        }
+
+        return returnData;
+    }
+
     /// @inheritdoc IOrderModule
-    function cancelOrder(uint128 accountId, uint128 marketId, uint8 orderId) external override {
+    function cancelMarketOrder(uint128 accountId, uint128 marketId, uint8 orderId) external override {
         // PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
         // PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         // Order.Market storage order = perpsMarket.orders[accountId][orderId];
@@ -98,7 +137,7 @@ abstract contract OrderModule is IOrderModule {
         // // perpsAccount.updateActiveOrders(marketId, orderId, false);
         // order.reset();
 
-        // emit LogCancelOrder(msg.sender, accountId, marketId, orderId);
+        // emit LogCancelMarketOrder(msg.sender, accountId, marketId, orderId);
 
         this;
     }
