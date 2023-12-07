@@ -4,12 +4,12 @@ pragma solidity 0.8.23;
 library OcoOrder {
     struct TakeProfit {
         uint128 price;
-        bool isLongPosition;
+        int128 sizeDelta;
     }
 
     struct StopLoss {
         uint128 price;
-        bool isLongPosition;
+        int128 sizeDelta;
     }
 
     struct Data {

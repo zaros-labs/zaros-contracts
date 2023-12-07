@@ -199,9 +199,20 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         }
 
         bool isAccountWithNewOcoOrder =
-            takeProfit.price != 0 && stopLoss.price != 0 && !self.accountsWithActiveOrders.contains(accountId);
+            takeProfit.price != 0 || stopLoss.price != 0 && !self.accountsWithActiveOrders.contains(accountId);
         bool isAccountCancellingOcoOrder =
             takeProfit.price == 0 && stopLoss.price == 0 && self.accountsWithActiveOrders.contains(accountId);
+
+        bool isLongPosition = takeProfit.sizeDelta < 0 || stopLoss.sizeDelta < 0;
+        bool isValidOcoOrder = !isAccountCancellingOcoOrder
+            && (
+                (isLongPosition && takeProfit.price > stopLoss.price)
+                    || (!isLongPosition && takeProfit.price < stopLoss.price)
+            );
+
+        if (!isValidOcoOrder) {
+            revert Errors.InvalidOcoOrder();
+        }
 
         if (isAccountWithNewOcoOrder) {
             self.accountsWithActiveOrders.add(accountId);
