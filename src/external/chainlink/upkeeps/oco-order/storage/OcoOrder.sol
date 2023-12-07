@@ -13,6 +13,7 @@ library OcoOrder {
     }
 
     struct Data {
+        uint128 accountId;
         TakeProfit takeProfit;
         StopLoss stopLoss;
     }
