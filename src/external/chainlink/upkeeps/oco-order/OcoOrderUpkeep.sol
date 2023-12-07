@@ -239,16 +239,13 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
-        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
-            (IVerifierProxy(baseUpkeepStorage.chainlinkVerifier), baseUpkeepStorage.perpsEngine);
         (uint128 marketId, uint128 strategyId) = (self.marketId, self.strategyId);
-
-        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
-
-        bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
+        (
+            PerpsEngine perpsEngine,
+            ISettlementModule.SettlementPayload[] memory payloads,
+            bytes memory verifiedReportData
+        ) = _preparePerformData(marketId, performData);
 
         perpsEngine.settleCustomTriggers(marketId, strategyId, payloads, verifiedReportData);
     }

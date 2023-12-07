@@ -2,6 +2,9 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { IFeeManager, FeeAsset } from "../interfaces/IFeeManager.sol";
+import { IVerifierProxy } from "../interfaces/IVerifierProxy.sol";
+import { ChainlinkUtil } from "../ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
@@ -88,6 +91,29 @@ abstract contract BaseUpkeepUpgradeable is UUPSUpgradeable, OwnableUpgradeable {
         assembly {
             self.slot := slot
         }
+    }
+
+    function _preparePerformData(
+        uint128 marketId,
+        bytes memory performData
+    )
+        internal
+        view
+        returns (PerpsEngine, ISettlementModule.SettlementPayload[] memory, bytes memory)
+    {
+        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
+            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
+
+        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
+        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
+            (IVerifierProxy(baseUpkeepStorage.chainlinkVerifier), baseUpkeepStorage.perpsEngine);
+
+        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
+
+        bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
+
+        return (perpsEngine, payloads, verifiedReportData);
     }
 
     /// @inheritdoc UUPSUpgradeable
