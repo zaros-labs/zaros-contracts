@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -46,9 +48,16 @@ interface IPerpsMarketModule {
     /// @param marketId The perps market id.
     function indexPrice(uint128 marketId) external view returns (UD60x18);
 
-    /// @notice Returns the Chainlink price feed address for the given market id.
+    /// @notice Returns a Settlement Strategy used by the given market.
     /// @param marketId The perps market id.
-    function priceFeed(uint128 marketId) external view returns (address);
+    /// @param strategyId The perps market settlement strategy id
+    function getSettlementStrategy(
+        uint128 marketId,
+        uint128 strategyId
+    )
+        external
+        view
+        returns (SettlementStrategy.Data memory);
 
     /// @notice Returns the given market's funding rate.
     /// @param marketId The perps market id.
@@ -68,7 +77,31 @@ interface IPerpsMarketModule {
     /// @param accountId The trading account id.
     /// @param marketId The perps market id.
     /// @return leverage The position current leverage (notional value / IM).
-    function getPositionLeverage(uint256 accountId, uint128 marketId) external view returns (UD60x18 leverage);
+    function getPositionLeverage(uint128 accountId, uint128 marketId) external view returns (UD60x18 leverage);
+
+    /// @notice Returns the most relevant data of the given market.
+    /// @param marketId The perps market id.
+    /// @return name The market name.
+    /// @return symbol The market symbol.
+    /// @return minInitialMarginRate The minimum initial margin rate for the market.
+    /// @return maintenanceMarginRate The maintenance margin rate for the market.
+    /// @return maxOpenInterest The maximum open interest for the market.
+    /// @return skew The skew of the market.
+    /// @return size The size of the market
+    /// @return orderFees The configured maker and taker order fees of the market.
+    function getMarketData(uint128 marketId)
+        external
+        view
+        returns (
+            string memory name,
+            string memory symbol,
+            uint128 minInitialMarginRate,
+            uint128 maintenanceMarginRate,
+            uint128 maxOpenInterest,
+            int128 skew,
+            uint128 size,
+            OrderFees.Data memory orderFees
+        );
 
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.
@@ -80,7 +113,7 @@ interface IPerpsMarketModule {
     /// @return accruedFunding The accrued funding fee.
     /// @return unrealizedPnl The current unrealized profit or loss of the position.
     function getOpenPositionData(
-        uint256 accountId,
+        uint128 accountId,
         uint128 marketId
     )
         external

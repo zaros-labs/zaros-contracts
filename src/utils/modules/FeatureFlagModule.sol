@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IFeatureFlagModule } from "../interfaces/IFeatureFlagModule.sol";
@@ -10,7 +10,7 @@ import { FeatureFlag } from "../storage/FeatureFlag.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
-contract FeatureFlagModule is IFeatureFlagModule, Ownable {
+abstract contract FeatureFlagModule is IFeatureFlagModule, Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using FeatureFlag for FeatureFlag.Data;
 

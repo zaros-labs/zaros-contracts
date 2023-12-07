@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -10,6 +10,7 @@ import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { MarginCollateral } from "../storage/MarginCollateral.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 // OpenZeppelin Upgradeable dependencies
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -85,11 +86,11 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         uint128 marketId,
         string calldata name,
         string calldata symbol,
-        bytes32 streamId,
-        address priceFeed,
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
+        SettlementStrategy.Data calldata marketOrderStrategy,
+        SettlementStrategy.Data[] calldata customTriggerStrategies,
         OrderFees.Data calldata orderFees
     )
         external
@@ -105,17 +106,11 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         if (abi.encodePacked(symbol).length == 0) {
             revert Errors.ZeroInput("symbol");
         }
-        if (streamId == bytes32(0)) {
-            revert Errors.ZeroInput("streamId");
-        }
         if (maintenanceMarginRate == 0) {
             revert Errors.ZeroInput("maintenanceMarginRate");
         }
         if (maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
-        }
-        if (priceFeed == address(0)) {
-            revert Errors.ZeroInput("priceFeed");
         }
         if (minInitialMarginRate == 0) {
             revert Errors.ZeroInput("minInitialMarginRate");
@@ -127,16 +122,26 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             marketId,
             name,
             symbol,
-            streamId,
-            priceFeed,
             maintenanceMarginRate,
             maxOpenInterest,
             minInitialMarginRate,
+            marketOrderStrategy,
+            customTriggerStrategies,
             orderFees
         );
         perpsConfiguration.addMarket(marketId);
 
-        emit LogCreatePerpsMarket(marketId, name, symbol);
+        emit LogCreatePerpsMarket(
+            marketId,
+            name,
+            symbol,
+            maintenanceMarginRate,
+            maxOpenInterest,
+            minInitialMarginRate,
+            marketOrderStrategy,
+            customTriggerStrategies,
+            orderFees
+        );
     }
 
     /// @dev {PerpsConfigurationModule} UUPS initializer.

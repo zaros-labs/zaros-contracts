@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { FeatureFlagModule } from "@zaros/utils/modules/FeatureFlagModule.sol";
@@ -24,8 +24,8 @@ contract LiquidityEngine is
     MarketManagerModule,
     RewardsManagerModule
 {
-    // TODO: switch to Diamonds
-    constructor(address accountToken, address usdToken) {
+    // TODO: switch to Cannon
+    constructor(address accountToken, address usdToken) Ownable(msg.sender) {
         AccountModule.__AccountModule_init(accountToken);
         MarketManagerModule.__MarketManagerModule_init(usdToken);
     }

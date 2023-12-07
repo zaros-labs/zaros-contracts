@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
+import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
@@ -36,7 +37,35 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     Users internal users;
     address internal mockChainlinkForwarder = vm.addr({ privateKey: 0x01 });
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
-    OrderFees.Data public orderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+
+    /// @dev ETH / USD market configuration variables.
+    SettlementStrategy.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData = SettlementStrategy
+        .DataStreamsMarketStrategy({
+        streamId: MOCK_ETH_USD_STREAM_ID,
+        feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+        queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
+        settlementDelay: ETH_USD_SETTLEMENT_DELAY,
+        isPremium: false
+    });
+    SettlementStrategy.Data internal ethUsdMarketOrderStrategy = SettlementStrategy.Data({
+        strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
+        isEnabled: true,
+        fee: DATA_STREAMS_SETTLEMENT_FEE,
+        upkeep: mockDefaultMarketOrderUpkeep,
+        data: abi.encode(ethUsdMarketOrderStrategyData)
+    });
+
+    // TODO: update limit order strategy and move the market's strategies definition to a separate file.
+    SettlementStrategy.Data internal ethUsdLimitOrderStrategy = SettlementStrategy.Data({
+        strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
+        isEnabled: true,
+        fee: DATA_STREAMS_SETTLEMENT_FEE,
+        upkeep: mockDefaultMarketOrderUpkeep,
+        data: abi.encode(ethUsdMarketOrderStrategyData)
+    });
+    SettlementStrategy.Data[] internal ethUsdCustomTriggerStrategies;
+
+    OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -49,14 +78,15 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     PerpsEngine internal perpsEngineImplementation;
     RewardDistributor internal rewardDistributor;
     LiquidityEngine internal liquidityEngine;
-    /// @dev TODO: think about forking tests
-    MockPriceFeed internal mockEthUsdPriceFeed;
-    MockPriceFeed internal mockUsdcUsdPriceFeed;
-    MockPriceFeed internal mockWstEthUsdPriceFeed;
 
     /// @dev TODO: deploy real contracts instead of mocking them.
-    address internal mockZarosAddress = vm.addr({ privateKey: 0x03 });
+    address internal mockLiquidityEngineAddress = vm.addr({ privateKey: 0x03 });
     address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x04 });
+
+    /// @dev TODO: think about forking tests
+    address internal mockDefaultMarketOrderUpkeep = vm.addr({ privateKey: 0x05 });
+    MockPriceFeed internal mockUsdcUsdPriceFeed;
+    MockPriceFeed internal mockWstEthUsdPriceFeed;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -72,19 +102,21 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         });
         vm.startPrank({ msgSender: users.owner });
 
-        perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
-        usdToken = new MockUSDToken({ ownerBalance: 100_000_000e18 });
+        ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderStrategy);
+
+        perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
+        usdToken = new MockUSDToken({ owner: users.owner, ownerBalance: 100_000_000e18 });
         mockWstEth =
-        new MockERC20({ name: "Wrapped Staked Ether", symbol: "wstETH", decimals_: 18, ownerBalance: 100_000_000e18 });
-        liquidityEngine = LiquidityEngine(mockZarosAddress);
+        new MockERC20({ name: "Wrapped Staked Ether", symbol: "wstETH", decimals_: 18, owner: users.owner, ownerBalance: 100_000_000e18 });
+        liquidityEngine = LiquidityEngine(mockLiquidityEngineAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         mockUsdcUsdPriceFeed = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
-        mockEthUsdPriceFeed = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
         mockWstEthUsdPriceFeed = new MockPriceFeed(18, int256(MOCK_WSTETH_USD_PRICE));
 
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
+            users.owner,
             mockChainlinkForwarder,
             mockChainlinkVerifier,
             address(perpsAccountToken),
@@ -125,20 +157,20 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
         changePrank({ msgSender: users.naruto });
-        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sasuke });
-        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sakura });
-        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.madara });
-        usdToken.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), amount: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });

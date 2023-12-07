@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
@@ -12,7 +12,7 @@ abstract contract Events {
                                    PERPS ACCOUNT MODULE
     //////////////////////////////////////////////////////////////////////////*/
 
-    event LogCreatePerpsAccount(uint256 accountId, address sender);
+    event LogCreatePerpsAccount(uint128 accountId, address sender);
     event LogDepositMargin(
         address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
     );
@@ -30,17 +30,16 @@ abstract contract Events {
     /*//////////////////////////////////////////////////////////////////////////
                                    ORDER MODULE
     //////////////////////////////////////////////////////////////////////////*/
-    event LogCreateOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Order.Data order);
-    event LogCancelOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8 orderId);
+    event LogCreateMarketOrder(
+        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Order.Market marketOrder
+    );
+    // event LogCancelMarketOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId, uint8
+    // orderId);
 
     /*//////////////////////////////////////////////////////////////////////////
                                    SETTLEMENT MODULE
     //////////////////////////////////////////////////////////////////////////*/
     event LogSettleOrder(
-        address indexed sender,
-        uint256 indexed accountId,
-        uint128 indexed marketId,
-        uint8 orderId,
-        Position.Data newPosition
+        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Position.Data newPosition
     );
 }

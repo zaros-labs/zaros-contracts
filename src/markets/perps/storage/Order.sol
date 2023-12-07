@@ -1,40 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.23;
 
-pragma solidity 0.8.19;
-
-/// @dev TODO: Think on refactoring this to have Order pointers being calculated
-/// from the namespace (e.g load(accountId,orderId))
+/// TODO: create minimum order sizeDelta per market.
 library Order {
-    /// @notice Supported types of orders.
-    enum OrderType {
-        MARKET,
-        LIMIT,
-        TAKE_PROFIT,
-        STOP_LOSS
-    }
-
     struct Payload {
-        uint256 accountId;
+        uint128 accountId;
         uint128 marketId;
-        int128 initialMarginDelta;
         int128 sizeDelta;
-        uint128 acceptablePrice;
-        OrderType orderType;
     }
 
-    struct Data {
-        uint8 id;
+    struct Market {
+        uint256 timestamp;
         Payload payload;
-        uint256 settlementTimestamp;
     }
 
-    /// @dev TODO: should we just update account id to 0?
-    function reset(Data storage self) internal {
-        self.payload.accountId = 0;
-        self.payload.marketId = 0;
-        self.payload.initialMarginDelta = 0;
-        self.payload.sizeDelta = 0;
-        self.payload.acceptablePrice = 0;
-        self.settlementTimestamp = 0;
-    }
+    function clear(Market storage marketOrder) internal { }
 }

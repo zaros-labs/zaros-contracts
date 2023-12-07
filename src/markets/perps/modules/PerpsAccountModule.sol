@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
@@ -35,6 +35,12 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using PerpsConfiguration for PerpsConfiguration.Data;
     using MarginCollateral for MarginCollateral.Data;
 
+    function isAuthorized(uint128 accountId, address sender) external view returns (bool isAuthorized) {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        // TODO: add permission logic
+        isAuthorized = perpsAccount.owner == sender;
+    }
+
     /// @inheritdoc IPerpsAccountModule
     function getPerpsAccountToken() public view override returns (address) {
         return PerpsConfiguration.load().perpsAccountToken;
@@ -42,7 +48,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function getAccountMarginCollateralBalance(
-        uint256 accountId,
+        uint128 accountId,
         address collateralType
     )
         external
@@ -57,14 +63,14 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getTotalAccountMarginCollateralValue(uint256 accountId) external view override returns (UD60x18) {
+    function getTotalAccountMarginCollateralValue(uint128 accountId) external view override returns (UD60x18) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
         return perpsAccount.getTotalMarginCollateralValue();
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountMarginBalances(uint256 accountId)
+    function getAccountMarginBalances(uint128 accountId)
         external
         view
         override
@@ -97,9 +103,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function createPerpsAccount() public override returns (uint256) {
+    function createPerpsAccount() public override returns (uint128) {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        uint256 accountId = ++perpsConfiguration.nextAccountId;
+        uint128 accountId = ++perpsConfiguration.nextAccountId;
         IAccountNFT perpsAccountToken = IAccountNFT(perpsConfiguration.perpsAccountToken);
         perpsAccountToken.mint(msg.sender, accountId);
 
@@ -116,7 +122,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         override
         returns (bytes[] memory results)
     {
-        uint256 accountId = createPerpsAccount();
+        uint128 accountId = createPerpsAccount();
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
@@ -135,31 +141,33 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function depositMargin(uint256 accountId, address collateralType, uint256 amount) external override {
+    function depositMargin(uint128 accountId, address collateralType, uint256 amount) external override {
         // PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
         MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
-        UD60x18 udAmount = ud60x18(amount);
-        _requireAmountNotZero(udAmount);
-        _requireEnoughDepositCap(collateralType, udAmount, marginCollateral.getDepositCap());
+        UD60x18 ud60x18Amount = marginCollateral.convertTokenAmountToUd60x18(amount);
+        _requireAmountNotZero(ud60x18Amount);
+        _requireEnoughDepositCap(collateralType, ud60x18Amount, marginCollateral.getDepositCap());
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        perpsAccount.increaseMarginCollateralBalance(collateralType, udAmount);
-        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), udAmount.intoUint256());
+        perpsAccount.increaseMarginCollateralBalance(collateralType, ud60x18Amount);
+        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), ud60x18Amount.intoUint256());
 
-        emit LogDepositMargin(msg.sender, accountId, collateralType, udAmount.intoUint256());
+        emit LogDepositMargin(msg.sender, accountId, collateralType, amount);
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function withdrawMargin(uint256 accountId, address collateralType, uint256 amount) external override {
-        UD60x18 udAmount = ud60x18(amount);
-        _requireAmountNotZero(udAmount);
+    function withdrawMargin(uint128 accountId, address collateralType, UD60x18 ud60x18Amount) external override {
+        _requireAmountNotZero(ud60x18Amount);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
-        _checkMarginIsAvailable(perpsAccount, collateralType, udAmount);
-        perpsAccount.decreaseMarginCollateralBalance(collateralType, udAmount);
-        IERC20(collateralType).safeTransfer(msg.sender, udAmount.intoUint256());
+        _checkMarginIsAvailable(perpsAccount, collateralType, ud60x18Amount);
+        perpsAccount.decreaseMarginCollateralBalance(collateralType, ud60x18Amount);
 
-        emit LogWithdrawMargin(msg.sender, accountId, collateralType, udAmount.intoUint256());
+        MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
+        uint256 tokenAmount = marginCollateral.convertUd60x18ToTokenAmount(ud60x18Amount);
+        IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
+
+        emit LogWithdrawMargin(msg.sender, accountId, collateralType, tokenAmount);
     }
 
     /// @inheritdoc IPerpsAccountModule

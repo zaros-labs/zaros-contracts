@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IPerpsMarketModule } from "../interfaces/IPerpsMarketModule.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -62,8 +63,16 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function priceFeed(uint128 marketId) external view override returns (address) {
-        return PerpsMarket.load(marketId).priceFeed;
+    function getSettlementStrategy(
+        uint128 marketId,
+        uint128 strategyId
+    )
+        external
+        view
+        override
+        returns (SettlementStrategy.Data memory)
+    {
+        return SettlementStrategy.load(marketId, strategyId);
     }
 
     /// @inheritdoc IPerpsMarketModule
@@ -82,7 +91,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         fillPrice = perpsMarket.getIndexPrice();
     }
 
-    function getPositionLeverage(uint256 accountId, uint128 marketId) external view override returns (UD60x18) {
+    function getPositionLeverage(uint128 accountId, uint128 marketId) external view override returns (UD60x18) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         Position.Data storage position = perpsMarket.positions[accountId];
 
@@ -91,8 +100,35 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     }
 
     /// @inheritdoc IPerpsMarketModule
+    function getMarketData(uint128 marketId)
+        external
+        view
+        returns (
+            string memory name,
+            string memory symbol,
+            uint128 minInitialMarginRate,
+            uint128 maintenanceMarginRate,
+            uint128 maxOpenInterest,
+            int128 skew,
+            uint128 size,
+            OrderFees.Data memory orderFees
+        )
+    {
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+
+        name = perpsMarket.name;
+        symbol = perpsMarket.symbol;
+        minInitialMarginRate = perpsMarket.minInitialMarginRate;
+        maintenanceMarginRate = perpsMarket.maintenanceMarginRate;
+        maxOpenInterest = perpsMarket.maxOpenInterest;
+        skew = perpsMarket.skew;
+        size = perpsMarket.size;
+        orderFees = perpsMarket.orderFees;
+    }
+
+    /// @inheritdoc IPerpsMarketModule
     function getOpenPositionData(
-        uint256 accountId,
+        uint128 accountId,
         uint128 marketId
     )
         external

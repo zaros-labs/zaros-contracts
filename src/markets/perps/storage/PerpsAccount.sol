@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarginCollateral } from "./MarginCollateral.sol";
+import { Order } from "./Order.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -16,6 +17,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableMap for EnumerableMap.UintToUintMap;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -29,20 +31,22 @@ library PerpsAccount {
     /// @param owner The perps account owner.
     /// @param marginCollateralBalance The perps account margin collateral enumerable map.
     /// @param activeMarketsIds The perps account active markets ids enumerable set.
+    /// @param activeMarketOrder The perps account's market orders with pending settlement per market.
     /// @dev TODO: implement role based access control.
     struct Data {
-        uint256 id;
+        uint128 id;
         address owner;
         EnumerableMap.AddressToUintMap marginCollateralBalance;
-        EnumerableSet.Bytes32Set activeOrdersPerMarket;
+        // EnumerableSet.Bytes32Set activeOrdersPerMarket;
         EnumerableSet.UintSet activeMarketsIds;
         EnumerableSet.AddressSet collateralPriority;
+        mapping(uint128 marketId => Order.Market) activeMarketOrder;
     }
 
     /// @notice Loads a {PerpsAccount} object.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
-    function load(uint256 accountId) internal pure returns (Data storage perpsAccount) {
+    function load(uint128 accountId) internal pure returns (Data storage perpsAccount) {
         bytes32 slot = keccak256(abi.encode(PERPS_ACCOUNT_DOMAIN, accountId));
         assembly {
             perpsAccount.slot := slot
@@ -52,7 +56,7 @@ library PerpsAccount {
     /// @notice Checks whether the given perps account exists.
     /// @param accountId The perps account id.
     /// @return perpsAccount if the perps account exists, its storage pointer is returned.
-    function loadExisting(uint256 accountId) internal view returns (Data storage perpsAccount) {
+    function loadExisting(uint128 accountId) internal view returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         if (perpsAccount.owner == address(0)) {
             revert Errors.AccountNotFound(accountId, msg.sender);
@@ -67,7 +71,7 @@ library PerpsAccount {
     /// @notice Loads a perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
-    function loadAccountAndValidatePermission(uint256 accountId) internal view returns (Data storage perpsAccount) {
+    function loadAccountAndValidatePermission(uint128 accountId) internal view returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         verifyCaller(perpsAccount);
     }
@@ -111,7 +115,7 @@ library PerpsAccount {
     /// @param accountId The perps account id.
     /// @param owner The perps account owner.
     /// @return perpsAccount The created perps account storage pointer.
-    function create(uint256 accountId, address owner) internal returns (Data storage perpsAccount) {
+    function create(uint128 accountId, address owner) internal returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
         perpsAccount.id = accountId;
         perpsAccount.owner = owner;
@@ -178,18 +182,18 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Updates the account's active orders ids per market.
-    /// @param self The perps account storage pointer.
-    /// @param marketId The perps market id.
-    /// @param orderId the order id.
-    /// @param isActive `true` if the order is being created, `false` otherwise.
-    function updateActiveOrders(Data storage self, uint128 marketId, uint8 orderId, bool isActive) internal {
-        bytes32 orderAndMarketIds = keccak256(abi.encode(marketId, orderId));
-        bool success;
-        if (isActive) {
-            success = self.activeOrdersPerMarket.add(orderAndMarketIds);
-        } else {
-            success = self.activeOrdersPerMarket.remove(orderAndMarketIds);
-        }
-    }
+    // /// @notice Updates the account's active orders ids per market.
+    // /// @param self The perps account storage pointer.
+    // /// @param marketId The perps market id.
+    // /// @param orderId the order id.
+    // /// @param isActive `true` if the order is being created, `false` otherwise.
+    // function updateActiveOrders(Data storage self, uint128 marketId, uint8 orderId, bool isActive) internal {
+    //     bytes32 orderAndMarketIds = keccak256(abi.encode(marketId, orderId));
+    //     bool success;
+    //     if (isActive) {
+    //         success = self.activeOrdersPerMarket.add(orderAndMarketIds);
+    //     } else {
+    //         success = self.activeOrdersPerMarket.remove(orderAndMarketIds);
+    //     }
+    // }
 }

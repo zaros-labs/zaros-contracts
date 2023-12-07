@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -13,7 +13,7 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { ERC20, ERC20Permit } from "@openzeppelin/token/ERC20/extensions/ERC20Permit.sol";
 
 contract USDToken is IUSDToken, ERC20Permit, Ownable, FeatureFlagModule {
-    constructor() ERC20("Zaros USD", "USDz") ERC20Permit("Zaros USD") { }
+    constructor(address owner) ERC20("Zaros USD", "USDz") ERC20Permit("Zaros USD") Ownable(owner) { }
 
     function mint(address to, uint256 amount) external {
         FeatureFlag.ensureAccessToFeature(Constants.MINT_FEATURE_FLAG);

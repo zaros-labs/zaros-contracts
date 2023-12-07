@@ -1,10 +1,10 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { CollateralConfig } from "./CollateralConfig.sol";
-import { IMarket } from "@zaros/external/interfaces/IMarket.sol";
+import { IMarket } from "@zaros/external/synthetix/interfaces/IMarket.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";

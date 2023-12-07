@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Constants } from "../../utils/Constants.sol";
@@ -19,7 +19,7 @@ import { ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // TODO: implement fees
-contract MarketManagerModule is IMarketManagerModule, Ownable {
+abstract contract MarketManagerModule is IMarketManagerModule, Ownable {
     using Market for Market.Data;
     using MarketManager for MarketManager.Data;
     using SafeCast for uint256;

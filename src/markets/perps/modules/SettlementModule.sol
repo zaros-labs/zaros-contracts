@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IFeeManager } from "@zaros/external/interfaces/chainlink/IFeeManager.sol";
-import { ILogAutomation, Log as AutomationLog } from "@zaros/external/interfaces/chainlink/ILogAutomation.sol";
-import { IStreamsLookupCompatible } from "@zaros/external/interfaces/chainlink/IStreamsLookupCompatible.sol";
-import { IVerifierProxy } from "@zaros/external/interfaces/chainlink/IVerifierProxy.sol";
+import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
+import { LimitOrder } from "@zaros/external/chainlink/upkeeps/limit-order/storage/LimitOrder.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
@@ -15,6 +13,7 @@ import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
+import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -23,123 +22,97 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStreamsLookupCompatible {
-    using Order for Order.Data;
+abstract contract SettlementModule is ISettlementModule {
+    using Order for Order.Market;
     using PerpsAccount for PerpsAccount.Data;
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    modifier onlyForwarder() {
-        address forwarder = PerpsConfiguration.load().chainlinkForwarder;
-        if (msg.sender != forwarder) {
-            revert Errors.OnlyForwarder(msg.sender, forwarder);
-        }
+    modifier onlyValidCustomTriggerUpkeep() {
         _;
     }
 
-    function checkLog(
-        AutomationLog calldata log,
-        bytes calldata checkData
-    )
-        external
-        view
-        override
-        returns (bool upkeepNeeded, bytes memory performData)
-    {
-        (uint256 accountId, uint128 marketId) = (uint256(log.topics[2]), uint256(log.topics[3]).toUint128());
-        // bytes32 streamId = PerpsMarket.load(marketId).streamId;
-        (Order.Data memory order) = abi.decode(log.data, (Order.Data));
+    modifier onlyMarketOrderUpkeep(uint128 marketId) {
+        SettlementStrategy.Data storage settlementStrategy =
+            SettlementStrategy.load(marketId, SettlementStrategy.MARKET_ORDER_STRATEGY_ID);
+        address upkeep = settlementStrategy.upkeep;
 
-        // TODO: we should probably have orderType as an indexed parameter?
-        if (order.payload.orderType != Order.OrderType.MARKET) {
-            return (false, bytes(""));
-        }
-
-        // TODO: add proper order.validate() check
-        string[] memory feeds = new string[](1);
-        if (marketId == 1) {
-            feeds[0] = Constants.DATA_STREAMS_ETH_USD_STREAM_ID;
-        } else if (marketId == 2) {
-            feeds[0] = Constants.DATA_STREAMS_LINK_USD_STREAM_ID;
-        } else {
-            revert();
-        }
-
-        bytes memory extraData = abi.encode(accountId, marketId, order.id);
-
-        revert StreamsLookup(
-            Constants.DATA_STREAMS_FEED_LABEL,
-            feeds,
-            Constants.DATA_STREAMS_QUERY_LABEL,
-            order.settlementTimestamp,
-            extraData
-        );
+        _requireIsUpkeep(msg.sender, upkeep);
+        _;
     }
 
-    function checkCallback(
-        bytes[] memory values,
+    function settleMarketOrder(
+        uint128 accountId,
+        uint128 marketId,
+        bytes calldata verifiedReportData
+    )
+        external
+        onlyMarketOrderUpkeep(marketId)
+    {
+        Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
+
+        SettlementPayload memory payload =
+            SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.payload.sizeDelta });
+        _settle(marketId, SettlementStrategy.MARKET_ORDER_STRATEGY_ID, payload, verifiedReportData);
+
+        marketOrder.clear();
+    }
+
+    function settleCustomTriggers(
+        uint128 marketId,
+        uint128 strategyId,
+        SettlementPayload[] calldata payloads,
+        bytes calldata extraData
+    )
+        external
+        onlyValidCustomTriggerUpkeep
+    {
+        // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the position's
+        // validations and updates.
+        for (uint256 i = 0; i < payloads.length; i++) {
+            SettlementPayload memory payload = payloads[i];
+
+            _settle(marketId, strategyId, payload, extraData);
+        }
+    }
+
+    // function settleOcoOrder(
+    //     uint128 accountId,
+    //     uint128 marketId,
+    //     BasicReport calldata report,
+    //     LimitOrder.Data calldata limitOrder
+    // )
+    //     external
+    //     onlyOcoOrderUpkeep(marketId)
+    // {
+    //     // TODO: settlement logic
+    // }
+
+    // TODO: rework this
+    function _settle(
+        uint128 marketId,
+        uint128 strategyId,
+        SettlementPayload memory payload,
         bytes memory extraData
     )
-        external
-        view
-        override
-        returns (bool upkeepNeeded, bytes memory performData)
+        internal
     {
-        return (true, abi.encode(values, extraData));
-    }
-
-    function performUpkeep(bytes calldata performData) external override onlyForwarder {
-        IVerifierProxy chainlinkVerifier = IVerifierProxy(PerpsConfiguration.load().chainlinkVerifier);
-        IFeeManager chainlinkFeeManager = IFeeManager(chainlinkVerifier.s_feeManager());
-
-        (bytes[] memory signedReports, bytes memory extraData) = abi.decode(performData, (bytes[], bytes));
-
-        bytes memory signedReport = signedReports[0];
-        bytes memory reportData = _getReportData(signedReport);
-
-        // TODO: Store preferred fee token instead of querying i_nativeAddress
-        address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
-        (IFeeManager.PaymentAsset memory fee,,) =
-            chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
-
-        bytes memory verifiedReportData =
-            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(feeTokenAddress));
-        BasicReport memory verifiedReport = abi.decode(verifiedReportData, (BasicReport));
-
-        (uint256 accountId, uint128 marketId, uint8 orderId) = abi.decode(extraData, (uint256, uint128, uint8));
-        Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
-
-        _settleOrder(order, verifiedReport);
-    }
-
-    function settleOrder(uint256 accountId, uint128 marketId, uint8 orderId, uint256 price) external {
-        Order.Data storage order = PerpsMarket.load(marketId).orders[accountId][orderId];
-
-        BasicReport memory report;
-        report.price = int192(int256(price));
-
-        _settleOrder(order, report);
-    }
-
-    function _getReportData(bytes memory signedReport) internal pure returns (bytes memory reportData) {
-        (, reportData) = abi.decode(signedReport, (bytes32[3], bytes));
-    }
-
-    // TODO: many validations pending
-    function _settleOrder(Order.Data storage order, BasicReport memory report) internal {
         SettlementRuntime memory runtime;
-        runtime.marketId = order.payload.marketId;
-        runtime.accountId = order.payload.accountId;
+        runtime.marketId = marketId;
+        runtime.accountId = payload.accountId;
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
         Position.Data storage oldPosition = perpsMarket.positions[runtime.accountId];
-        // address usdToken = PerpsConfiguration.load().usdToken;
+        SettlementStrategy.Data storage settlementStrategy = SettlementStrategy.load(marketId, strategyId);
+        runtime.fee = ud60x18(settlementStrategy.fee);
+        address usdToken = PerpsConfiguration.load().usdToken;
 
         // TODO: apply price impact
-        runtime.fillPrice = sd59x18(report.price).intoUD60x18();
+        runtime.fillPrice = perpsMarket.getMarkPrice(extraData);
+
         SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(runtime.fillPrice);
         SD59x18 accruedFunding = oldPosition.getAccruedFunding(fundingFeePerUnit);
         SD59x18 currentUnrealizedPnl = oldPosition.getUnrealizedPnl(runtime.fillPrice, accruedFunding);
@@ -148,30 +121,38 @@ abstract contract SettlementModule is ISettlementModule, ILogAutomation, IStream
         runtime.unrealizedPnlToStore = sd59x18(0);
 
         // for now we'll realize the total uPnL, we should realize it proportionally in the future
-        // if (runtime.pnl.lt(SD_ZERO)) {
-        //     perpsAccount.deductAccountMargin(runtime.pnl.intoUD60x18());
-        // } else if (runtime.pnl.gt(SD_ZERO)) {
-        //     perpsAccount.increaseMarginCollateralBalance(usdToken, runtime.pnl.intoUD60x18());
-        // }
-        UD60x18 initialMargin =
-            ud60x18(oldPosition.initialMargin).add(sd59x18(order.payload.initialMarginDelta).intoUD60x18());
+        if (runtime.pnl.lt(SD_ZERO)) {
+            UD60x18 amountToDeduct = runtime.pnl.intoUD60x18().add((runtime.fee));
+            perpsAccount.deductAccountMargin(amountToDeduct);
+        } else if (runtime.pnl.gt(SD_ZERO)) {
+            UD60x18 amountToIncrease = runtime.pnl.intoUD60x18().sub((runtime.fee));
+            perpsAccount.increaseMarginCollateralBalance(usdToken, amountToIncrease);
+        }
+        // TODO: liquidityEngine.withdrawUsdToken(upkeep, runtime.marketId, runtime.fee);
+
+        // UD60x18 initialMargin =
+        //     ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
 
         // TODO: validate initial margin and size
         runtime.newPosition = Position.Data({
-            size: sd59x18(oldPosition.size).add(sd59x18(order.payload.sizeDelta)).intoInt256(),
-            initialMargin: initialMargin.intoUint128(),
+            size: sd59x18(oldPosition.size).add(sd59x18(payload.sizeDelta)).intoInt256(),
+            // initialMargin: initialMargin.intoUint128(),
+            initialMargin: 0,
             unrealizedPnlStored: runtime.unrealizedPnlToStore.intoInt256().toInt128(),
             lastInteractionPrice: runtime.fillPrice.intoUint128(),
             lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        order.reset();
-        perpsAccount.updateActiveOrders(runtime.marketId, order.id, false);
         oldPosition.update(runtime.newPosition);
-        perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(order.payload.sizeDelta)).intoInt256().toInt128();
-        perpsMarket.size =
-            ud60x18(perpsMarket.size).add(sd59x18(order.payload.sizeDelta).abs().intoUD60x18()).intoUint128();
+        perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(payload.sizeDelta)).intoInt256().toInt128();
+        perpsMarket.size = ud60x18(perpsMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
-        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, order.id, runtime.newPosition);
+        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, runtime.newPosition);
+    }
+
+    function _requireIsUpkeep(address sender, address upkeep) internal pure {
+        if (sender != upkeep && upkeep != address(0)) {
+            revert Errors.OnlyUpkeep(sender, upkeep);
+        }
     }
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
@@ -23,7 +23,6 @@ contract DeployAlphaPerps is BaseScript {
     address internal chainlinkVerifier;
     address internal mockRewardDistributorAddress = address(3);
     address internal mockZarosAddress = address(4);
-    address internal ethUsdPriceFeed;
     /// @dev TODO: We need a USDz price feed
     address internal usdcUsdPriceFeed;
 
@@ -38,14 +37,14 @@ contract DeployAlphaPerps is BaseScript {
     function run() public broadcaster {
         chainlinkForwarder = vm.envAddress("CHAINLINK_FORWARDER");
         chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
-        perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC");
+        perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
         usdToken = USDToken(vm.envAddress("USDZ"));
-        ethUsdPriceFeed = vm.envAddress("ETH_USD_PRICE_FEED");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
 
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
+            deployer,
             chainlinkForwarder,
             chainlinkVerifier,
             address(perpsAccountToken),

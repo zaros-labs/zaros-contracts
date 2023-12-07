@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Account } from "../storage/Account.sol";
@@ -22,7 +22,7 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
  * @title Module for managing user collateral.
  * @dev See ICollateralModule.
  */
-contract CollateralModule is ICollateralModule, Ownable {
+abstract contract CollateralModule is ICollateralModule, Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using CollateralConfig for CollateralConfig.Data;
     using Account for Account.Data;

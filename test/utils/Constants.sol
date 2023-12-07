@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Constants as ProtocolConstants } from "@zaros/utils/Constants.sol";
@@ -37,14 +37,22 @@ abstract contract Constants {
     uint248 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
     uint248 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
 
+    /// @notice General perps markets configuration constants.
+    string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
+    string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
+    uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
+
     /// @notice ETH/USD market configuration constants.
     uint128 internal constant ETH_USD_MARKET_ID = 1;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
     string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
-    bytes32 internal constant MOCK_ETH_USD_STREAM_ID = keccak256(bytes("MOCK_ETH_USD_STREAM_ID"));
+    string internal constant MOCK_ETH_USD_STREAM_ID = "MOCK_ETH_USD_STREAM_ID";
     uint128 internal constant ETH_USD_MMR = 0.01e18;
     uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
     uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
+    uint128 internal constant ETH_USD_ORDER_MAKER_FEE = 0.04e18;
+    uint128 internal constant ETH_USD_ORDER_TAKER_FEE = 0.08e18;
+    uint248 internal constant ETH_USD_SETTLEMENT_DELAY = 2 seconds;
 
     /// @notice Mocked prices.
     uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;

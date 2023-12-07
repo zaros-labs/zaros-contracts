@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IPerpsEngine } from "./interfaces/IPerpsEngine.sol";
@@ -32,6 +32,7 @@ contract PerpsEngine is
     receive() external payable { }
 
     function initialize(
+        address owner,
         address chainlinkForwarder,
         address chainlinkVerifier,
         address perpsAccountToken,
@@ -42,7 +43,7 @@ contract PerpsEngine is
         external
         initializer
     {
-        __Ownable_init();
+        __Ownable_init(owner);
         PerpsConfigurationModule.__PerpsConfigurationModule_init(
             chainlinkForwarder, chainlinkVerifier, perpsAccountToken, rewardDistributor, usdToken, liquidityEngine
         );

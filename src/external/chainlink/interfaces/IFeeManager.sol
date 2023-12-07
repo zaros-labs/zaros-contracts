@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
+
+struct FeeAsset {
+    address assetAddress;
+    uint256 amount;
+}
 
 interface IFeeManager {
-    struct PaymentAsset {
-        address assetAddress;
-        uint256 amount;
-    }
-
     function getFeeAndReward(
         address subscriber,
         bytes memory report,
         address quoteAddress
     )
         external
-        returns (PaymentAsset memory, PaymentAsset memory, uint256);
+        returns (FeeAsset memory, FeeAsset memory, uint256);
 
     function i_linkAddress() external view returns (address);
 

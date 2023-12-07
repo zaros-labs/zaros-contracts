@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -16,7 +16,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         Base_Test.setUp();
     }
 
-    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint256 accountId) {
+    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
         accountId = perpsEngine.createPerpsAccount();
         perpsEngine.depositMargin(accountId, collateralType, amount);
     }
@@ -26,12 +26,12 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             ETH_USD_MARKET_ID,
             ETH_USD_MARKET_NAME,
             ETH_USD_MARKET_SYMBOL,
-            MOCK_ETH_USD_STREAM_ID,
-            address(mockEthUsdPriceFeed),
             ETH_USD_MMR,
             ETH_USD_MAX_OI,
             ETH_USD_MIN_IMR,
-            orderFees
+            ethUsdMarketOrderStrategy,
+            ethUsdCustomTriggerStrategies,
+            ethUsdOrderFees
         );
     }
 

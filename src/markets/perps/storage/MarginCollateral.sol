@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
+import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
@@ -42,16 +42,24 @@ library MarginCollateral {
         depositCap = ud60x18(self.depositCap);
     }
 
-    /// @notice Converts the provided denormalized amount of margin collateral to the system's decimals.
+    /// @notice Converts the provided denormalized amount of margin collateral to UD60x18.
     /// @dev We can assume self.decimals is always <= SYSTEM_DECIMALS, since it's a requirement at `setDecimals`.
     /// @param self The margin collateral type storage pointer.
     /// @param amount The amount of margin collateral to convert.
     /// @return systemAmount The converted amount of margin collateral to the system's decimals.
-    function getSystemTokenAmount(Data storage self, uint256 amount) internal view returns (UD60x18) {
+    function convertTokenAmountToUd60x18(Data storage self, uint256 amount) internal view returns (UD60x18) {
         if (Constants.SYSTEM_DECIMALS == self.decimals) {
             return ud60x18(amount);
         }
         return ud60x18(amount * 10 ** (Constants.SYSTEM_DECIMALS - self.decimals));
+    }
+
+    function convertUd60x18ToTokenAmount(Data storage self, UD60x18 ud60x18Amount) internal view returns (uint256) {
+        if (Constants.SYSTEM_DECIMALS == self.decimals) {
+            return ud60x18Amount.intoUint256();
+        }
+
+        return ud60x18Amount.intoUint256() / (10 ** (Constants.SYSTEM_DECIMALS - self.decimals));
     }
 
     /// @notice Configures the settings of a given margin collateral type.

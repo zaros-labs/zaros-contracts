@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IAggregatorV3 } from "@zaros/external/interfaces/chainlink/IAggregatorV3.sol";
+import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
-import { Order } from "./Order.sol";
 import { OrderFees } from "./OrderFees.sol";
 import { Position } from "./Position.sol";
+import { SettlementStrategy } from "./SettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -25,17 +25,15 @@ library PerpsMarket {
     struct Data {
         string name;
         string symbol;
-        bytes32 streamId;
         uint128 id;
         uint128 minInitialMarginRate;
         uint128 maintenanceMarginRate;
         uint128 maxOpenInterest;
         int128 skew;
         uint128 size;
-        address priceFeed;
+        uint128 nextStrategyId;
         OrderFees.Data orderFees;
-        mapping(uint256 accountId => Position.Data) positions;
-        mapping(uint256 accountId => Order.Data[]) orders;
+        mapping(uint128 accountId => Position.Data) positions;
     }
 
     /// @dev TODO: add function that only loads a valid / existing perps market
@@ -50,11 +48,11 @@ library PerpsMarket {
         uint128 marketId,
         string memory name,
         string memory symbol,
-        bytes32 streamId,
-        address priceFeed,
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
+        SettlementStrategy.Data memory marketOrderStrategy,
+        SettlementStrategy.Data[] memory customTriggerStrategies,
         OrderFees.Data memory orderFees
     )
         internal
@@ -68,17 +66,29 @@ library PerpsMarket {
         self.id = marketId;
         self.name = name;
         self.symbol = symbol;
-        self.streamId = streamId;
-        self.priceFeed = priceFeed;
         self.maintenanceMarginRate = maintenanceMarginRate;
         self.maxOpenInterest = maxOpenInterest;
         self.minInitialMarginRate = minInitialMarginRate;
         self.orderFees = orderFees;
+
+        SettlementStrategy.create(marketId, 0, marketOrderStrategy);
+
+        if (customTriggerStrategies.length > 0) {
+            for (uint256 i = 0; i < customTriggerStrategies.length; i++) {
+                uint128 nextStrategyId = ++self.nextStrategyId;
+                SettlementStrategy.create(marketId, nextStrategyId, customTriggerStrategies[i]);
+            }
+        }
     }
 
-    /// @notice TODO: Call the OracleManager
+    /// @notice TODO: Use Settlement Strategy
     function getIndexPrice(Data storage self) internal view returns (UD60x18 price) {
-        price = OracleUtil.getPrice(IAggregatorV3(self.priceFeed));
+        return ud60x18(0);
+    }
+
+    function getMarkPrice(Data storage self, bytes memory data) internal view returns (UD60x18) {
+        // TODO: load settlement strategy and return the mark price based on the report data and report type
+        return ud60x18(0);
     }
 
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {

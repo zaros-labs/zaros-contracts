@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
+/// TODO: Add require helpers in the lib.
 library Errors {
     /// @notice Generic protocol errors.
 
@@ -11,11 +12,24 @@ library Errors {
     error InvalidParameter(string parameter, string reason);
     /// @notice Thrown when the sender is not authorized to perform a given action.
     error Unauthorized(address sender);
+    // error DisabledMarketId(uint128 marketId);
+    error ArrayLengthMismatch(uint256 expected, uint256 actual);
+
+    /// @notice Chainlink Upkeeps errors.
+
+    /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
+    error OnlyForwarder(address sender, address forwarder);
+    /// @notice Thrown when the upkeep provided checkData bounds are invalid.
+    error InvalidBounds();
+    /// @notice Thrown when the provided take profit price is lower than the stop loss price.
+    error InvalidOcoOrder();
 
     /// @notice PerpsEngine.OrderModule errors
 
     /// @notice Thrown when an account is liquidatable and can't perform actions
-    error AccountLiquidatable(address sender, uint256 accountId);
+    error AccountLiquidatable(address sender, uint128 accountId);
+    /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
+    error FailedInvokeCustomSettlementStrategy();
 
     /// @notice PerpsEngine.PerpsAccountModule and PerpsEngine.PerpsAccount errors.
 
@@ -24,9 +38,9 @@ library Errors {
     /// @notice Thrown When the caller is not the account token contract.
     error OnlyPerpsAccountToken(address sender);
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
-    error PermissionDenied(uint256 accountId, address sender);
+    error PermissionDenied(uint128 accountId, address sender);
     /// @notice Thrown when the given `accountId` doesn't exist.
-    error AccountNotFound(uint256 accountId, address sender);
+    error AccountNotFound(uint128 accountId, address sender);
 
     /// @notice PerpsEngine.PerpsConfigurationModule
 
@@ -39,8 +53,8 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementModule errors
 
-    /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
-    error OnlyForwarder(address sender, address forwarder);
+    /// @notice Thrown when the caller is not the registered Upkeep contract.
+    error OnlyUpkeep(address sender, address upkeep);
 
     /// @notice PerpsEngine.PerpsMarketModule and PerpsEngine.PerpsMarket errors.
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
@@ -8,7 +8,6 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 // PRB Math dependencies
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 
-/// TODO: add margin caps to fix these tests
 contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
@@ -20,7 +19,7 @@ contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integrati
 
         uint256 expectedMarginCollateralValue =
             getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         uint256 marginCollateralValue =
             perpsEngine.getTotalAccountMarginCollateralValue({ accountId: perpsAccountId }).intoUint256();
@@ -37,7 +36,7 @@ contract GetTotalAccountMarginCollateralValue_Integration_Test is Base_Integrati
         uint256 expectedMarginCollateralValue = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).add(
             getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amountToDeposit))
         ).intoUint256();
-        uint256 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
         uint256 marginCollateralValue =
