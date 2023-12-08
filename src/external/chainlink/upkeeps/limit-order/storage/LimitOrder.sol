@@ -29,4 +29,10 @@ library LimitOrder {
         self.sizeDelta = sizeDelta;
         self.price = price;
     }
+
+    function reset(Data storage self) internal {
+        self.accountId = 0;
+        self.sizeDelta = 0;
+        self.price = 0;
+    }
 }

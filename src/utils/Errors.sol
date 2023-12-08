@@ -21,10 +21,17 @@ library Errors {
     error OnlyForwarder(address sender, address forwarder);
     /// @notice Thrown when the upkeep provided checkData bounds are invalid.
     error InvalidBounds();
-    /// @notice Thrown when the provided take profit price is lower than the stop loss price.
-    error InvalidOcoOrder();
     /// @notice Thrown when a Settlement Strategy contract invoke function receives an invalid action.
     error InvalidSettlementStrategyAction();
+
+    /// @notice LimitOrderUpkeep errors.
+
+    error LimitOrderInvalidAccountId(uint128 providedAccountId, uint128 expectedAccountId);
+
+    /// @notice OcoOrderUpkeep errors.
+
+    /// @notice Thrown when the provided take profit price is lower than the stop loss price.
+    error InvalidOcoOrder();
 
     /// @notice PerpsEngine.OrderModule errors
 
