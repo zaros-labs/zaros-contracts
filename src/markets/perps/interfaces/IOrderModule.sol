@@ -49,7 +49,7 @@ interface IOrderModule {
     function invokeCustomSettlementStrategy(
         uint128 accountId,
         uint128 marketId,
-        uint128 strategyId,
+        uint128 settlementStrategyId,
         bool isAccountStrategy,
         bytes calldata extraData
     )

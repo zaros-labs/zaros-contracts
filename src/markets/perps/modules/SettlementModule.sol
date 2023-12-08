@@ -62,7 +62,7 @@ abstract contract SettlementModule is ISettlementModule {
 
     function settleCustomTriggers(
         uint128 marketId,
-        uint128 strategyId,
+        uint128 settlementStrategyId,
         SettlementPayload[] calldata payloads,
         bytes calldata extraData
     )
@@ -74,7 +74,7 @@ abstract contract SettlementModule is ISettlementModule {
         for (uint256 i = 0; i < payloads.length; i++) {
             SettlementPayload memory payload = payloads[i];
 
-            _settle(marketId, strategyId, payload, extraData);
+            _settle(marketId, settlementStrategyId, payload, extraData);
         }
     }
 
@@ -93,7 +93,7 @@ abstract contract SettlementModule is ISettlementModule {
     // TODO: rework this
     function _settle(
         uint128 marketId,
-        uint128 strategyId,
+        uint128 settlementStrategyId,
         SettlementPayload memory payload,
         bytes memory extraData
     )
@@ -106,7 +106,7 @@ abstract contract SettlementModule is ISettlementModule {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
         Position.Data storage oldPosition = perpsMarket.positions[runtime.accountId];
-        SettlementStrategy.Data storage settlementStrategy = SettlementStrategy.load(marketId, strategyId);
+        SettlementStrategy.Data storage settlementStrategy = SettlementStrategy.load(marketId, settlementStrategyId);
         runtime.fee = ud60x18(settlementStrategy.fee);
         address usdToken = PerpsConfiguration.load().usdToken;
 

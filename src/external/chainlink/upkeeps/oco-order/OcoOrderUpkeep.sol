@@ -41,7 +41,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.OcoOrderUpkeep
     struct OcoOrderUpkeepStorage {
         uint128 marketId;
-        uint128 strategyId;
+        uint128 settlementStrategyId;
         EnumerableSet.UintSet accountsWithActiveOrders;
         mapping(uint128 accountId => OcoOrder.Data) ocoOrderOfAccount;
     }
@@ -52,7 +52,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         address forwarder,
         PerpsEngine perpsEngine,
         uint128 marketId,
-        uint128 strategyId
+        uint128 settlementStrategyId
     )
         external
         initializer
@@ -62,14 +62,14 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
-        if (strategyId == 0) {
-            revert Errors.ZeroInput("strategyId");
+        if (settlementStrategyId == 0) {
+            revert Errors.ZeroInput("settlementStrategyId");
         }
 
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
 
         self.marketId = marketId;
-        self.strategyId = strategyId;
+        self.settlementStrategyId = settlementStrategyId;
     }
 
     function getConfig()
@@ -81,7 +81,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             address forwarder,
             address perpsEngine,
             uint128 marketId,
-            uint128 strategyId
+            uint128 settlementStrategyId
         )
     {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
@@ -92,7 +92,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         forwarder = baseUpkeepStorage.forwarder;
         perpsEngine = address(baseUpkeepStorage.perpsEngine);
         marketId = self.marketId;
-        strategyId = self.strategyId;
+        settlementStrategyId = self.settlementStrategyId;
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -127,7 +127,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         }
 
         SettlementStrategy.Data memory settlementStrategy =
-            perpsEngine.getSettlementStrategy(self.marketId, self.strategyId);
+            perpsEngine.getSettlementStrategy(self.marketId, self.settlementStrategyId);
         SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
             abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
 
@@ -214,14 +214,14 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        (uint128 marketId, uint128 strategyId) = (self.marketId, self.strategyId);
+        (uint128 marketId, uint128 settlementStrategyId) = (self.marketId, self.settlementStrategyId);
         (
             PerpsEngine perpsEngine,
             ISettlementModule.SettlementPayload[] memory payloads,
             bytes memory verifiedReportData
         ) = _preparePerformData(marketId, performData);
 
-        perpsEngine.settleCustomTriggers(marketId, strategyId, payloads, verifiedReportData);
+        perpsEngine.settleCustomTriggers(marketId, settlementStrategyId, payloads, verifiedReportData);
     }
 
     function _getOcoOrderUpkeepStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {

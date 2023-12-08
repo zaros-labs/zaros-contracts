@@ -43,12 +43,12 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderUpkeep
     /// @param nextOrderId The id that will be used for the next limit order stored.
     /// @param marketId The upkeep's linked Zaros market id.
-    /// @param strategyId The upkeep's linked Zaros market's settlement strategy id.
+    /// @param settlementStrategyId The upkeep's linked Zaros market's settlement strategy id.
     /// @param limitOrdersIds The set of limit orders ids, used to find the limit orders to be settled.
     struct LimitOrderUpkeepStorage {
         uint128 nextOrderId;
         uint128 marketId;
-        uint128 strategyId;
+        uint128 settlementStrategyId;
         EnumerableSet.UintSet limitOrdersIds;
     }
 
@@ -58,7 +58,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         address forwarder,
         PerpsEngine perpsEngine,
         uint128 marketId,
-        uint128 strategyId
+        uint128 settlementStrategyId
     )
         external
         initializer
@@ -68,14 +68,14 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
-        if (strategyId == 0) {
-            revert Errors.ZeroInput("strategyId");
+        if (settlementStrategyId == 0) {
+            revert Errors.ZeroInput("settlementStrategyId");
         }
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
         self.marketId = marketId;
-        self.strategyId = strategyId;
+        self.settlementStrategyId = settlementStrategyId;
     }
 
     function getConfig()
@@ -87,7 +87,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             address forwarder,
             address perpsEngine,
             uint128 marketId,
-            uint128 strategyId
+            uint128 settlementStrategyId
         )
     {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
@@ -98,7 +98,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         forwarder = baseUpkeepStorage.forwarder;
         perpsEngine = address(baseUpkeepStorage.perpsEngine);
         marketId = self.marketId;
-        strategyId = self.strategyId;
+        settlementStrategyId = self.settlementStrategyId;
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -132,7 +132,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         }
 
         SettlementStrategy.Data memory settlementStrategy =
-            perpsEngine.getSettlementStrategy(self.marketId, self.strategyId);
+            perpsEngine.getSettlementStrategy(self.marketId, self.settlementStrategyId);
         SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
             abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
 
@@ -220,14 +220,14 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        (uint128 marketId, uint128 strategyId) = (self.marketId, self.strategyId);
+        (uint128 marketId, uint128 settlementStrategyId) = (self.marketId, self.settlementStrategyId);
         (
             PerpsEngine perpsEngine,
             ISettlementModule.SettlementPayload[] memory payloads,
             bytes memory verifiedReportData
         ) = _preparePerformData(marketId, performData);
 
-        perpsEngine.settleCustomTriggers(marketId, strategyId, payloads, verifiedReportData);
+        perpsEngine.settleCustomTriggers(marketId, settlementStrategyId, payloads, verifiedReportData);
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {

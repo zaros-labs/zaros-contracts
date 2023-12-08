@@ -34,7 +34,7 @@ interface ISettlementModule {
 
     function settleCustomTriggers(
         uint128 marketId,
-        uint128 strategyId,
+        uint128 settlementStrategyId,
         SettlementPayload[] calldata payloads,
         bytes calldata verifiedReportData
     )
