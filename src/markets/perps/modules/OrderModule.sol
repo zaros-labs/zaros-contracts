@@ -3,6 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { BaseUpkeepUpgradeable } from "@zaros/external/chainlink/upkeeps/BaseUpkeepUpgradeable.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
@@ -98,7 +99,8 @@ abstract contract OrderModule is IOrderModule {
     function invokeCustomSettlementStrategy(
         uint128 accountId,
         uint128 marketId,
-        uint128 strategyId,
+        uint128 settlementStrategyId,
+        bool isAccountStrategy,
         bytes calldata extraData
     )
         external
@@ -109,12 +111,19 @@ abstract contract OrderModule is IOrderModule {
         perpsAccount.verifyCaller();
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        SettlementStrategy.Data storage settlementStrategy = SettlementStrategy.load(marketId, strategyId);
+        SettlementStrategy.Data storage settlementStrategy;
+
+        if (!isAccountStrategy) {
+            settlementStrategy = SettlementStrategy.load(marketId, settlementStrategyId);
+        } else {
+            // TODO: Implement
+            // settlementStrategy = SettlementStrategy.load(accountId, marketId, settlementStrategyId);
+        }
 
         address upkeep = settlementStrategy.upkeep;
-        bytes4 selector = bytes4(extraData[0:4]);
-        bytes memory payload = extraData[4:extraData.length];
-        bytes memory callData = abi.encodeWithSelector(selector, abi.encodePacked(accountId, payload));
+
+        // TODO: use interface selector
+        bytes memory callData = abi.encodeWithSelector(BaseUpkeepUpgradeable.invoke.selector, accountId, extraData);
 
         (bool success, bytes memory returnData) = upkeep.call(callData);
 

@@ -26,6 +26,11 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
+    enum Actions {
+        CREATE_LIMIT_ORDER,
+        CANCEL_LIMIT_ORDER
+    }
+
     event LogCreateLimitOrder(
         address indexed sender, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta
     );
@@ -38,12 +43,12 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderUpkeep
     /// @param nextOrderId The id that will be used for the next limit order stored.
     /// @param marketId The upkeep's linked Zaros market id.
-    /// @param strategyId The upkeep's linked Zaros market's settlement strategy id.
+    /// @param settlementStrategyId The upkeep's linked Zaros market's settlement strategy id.
     /// @param limitOrdersIds The set of limit orders ids, used to find the limit orders to be settled.
     struct LimitOrderUpkeepStorage {
         uint128 nextOrderId;
         uint128 marketId;
-        uint128 strategyId;
+        uint128 settlementStrategyId;
         EnumerableSet.UintSet limitOrdersIds;
     }
 
@@ -53,7 +58,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         address forwarder,
         PerpsEngine perpsEngine,
         uint128 marketId,
-        uint128 strategyId
+        uint128 settlementStrategyId
     )
         external
         initializer
@@ -63,14 +68,14 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
-        if (strategyId == 0) {
-            revert Errors.ZeroInput("strategyId");
+        if (settlementStrategyId == 0) {
+            revert Errors.ZeroInput("settlementStrategyId");
         }
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
         self.marketId = marketId;
-        self.strategyId = strategyId;
+        self.settlementStrategyId = settlementStrategyId;
     }
 
     function getConfig()
@@ -82,7 +87,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             address forwarder,
             address perpsEngine,
             uint128 marketId,
-            uint128 strategyId
+            uint128 settlementStrategyId
         )
     {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
@@ -93,7 +98,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         forwarder = baseUpkeepStorage.forwarder;
         perpsEngine = address(baseUpkeepStorage.perpsEngine);
         marketId = self.marketId;
-        strategyId = self.strategyId;
+        settlementStrategyId = self.settlementStrategyId;
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -127,7 +132,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         }
 
         SettlementStrategy.Data memory settlementStrategy =
-            perpsEngine.getSettlementStrategy(self.marketId, self.strategyId);
+            perpsEngine.getSettlementStrategy(self.marketId, self.settlementStrategyId);
         SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
             abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
 
@@ -194,7 +199,46 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         }
     }
 
-    function createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) external onlyPerpsEngine {
+    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
+
+    function afterSettlement() external override onlyPerpsEngine { }
+
+    function invoke(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
+        (Actions action) = abi.decode(extraData[0:8], (Actions));
+
+        if (action == Actions.CREATE_LIMIT_ORDER) {
+            (int128 sizeDelta, uint128 price) = abi.decode(extraData[8:], (int128, uint128));
+
+            _createLimitOrder(accountId, sizeDelta, price);
+        } else {
+            revert Errors.InvalidSettlementStrategyAction();
+        }
+    }
+
+    function performUpkeep(bytes calldata performData) external override onlyForwarder {
+        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
+            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
+
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        (uint128 marketId, uint128 settlementStrategyId) = (self.marketId, self.settlementStrategyId);
+        (
+            PerpsEngine perpsEngine,
+            ISettlementModule.SettlementPayload[] memory payloads,
+            bytes memory verifiedReportData
+        ) = _preparePerformData(marketId, performData);
+
+        perpsEngine.settleCustomTriggers(marketId, settlementStrategyId, payloads, verifiedReportData);
+    }
+
+    function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {
+        bytes32 slot = LIMIT_ORDER_UPKEEP_LOCATION;
+
+        assembly {
+            self.slot := slot
+        }
+    }
+
+    function _createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) internal {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
         uint256 orderId = ++self.nextOrderId;
@@ -206,32 +250,5 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         LimitOrder.create({ accountId: accountId, orderId: orderId, sizeDelta: sizeDelta, price: price });
 
         emit LogCreateLimitOrder(msg.sender, accountId, orderId, price, sizeDelta);
-    }
-
-    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
-
-    function afterSettlement() external override onlyPerpsEngine { }
-
-    function performUpkeep(bytes calldata performData) external override onlyForwarder {
-        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
-            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
-
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        (uint128 marketId, uint128 strategyId) = (self.marketId, self.strategyId);
-        (
-            PerpsEngine perpsEngine,
-            ISettlementModule.SettlementPayload[] memory payloads,
-            bytes memory verifiedReportData
-        ) = _preparePerformData(marketId, performData);
-
-        perpsEngine.settleCustomTriggers(marketId, strategyId, payloads, verifiedReportData);
-    }
-
-    function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {
-        bytes32 slot = LIMIT_ORDER_UPKEEP_LOCATION;
-
-        assembly {
-            self.slot := slot
-        }
     }
 }

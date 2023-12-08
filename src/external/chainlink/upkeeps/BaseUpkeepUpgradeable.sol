@@ -57,6 +57,8 @@ abstract contract BaseUpkeepUpgradeable is UUPSUpgradeable, OwnableUpgradeable {
 
     function afterSettlement() external virtual;
 
+    function invoke(uint128 account, bytes calldata extraData) external virtual;
+
     /// @notice {BaseUpkeep} UUPS initializer.
     function __BaseUpkeep_init(
         address chainlinkVerifier,
