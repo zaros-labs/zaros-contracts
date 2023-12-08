@@ -23,6 +23,8 @@ library Errors {
     error InvalidBounds();
     /// @notice Thrown when the provided take profit price is lower than the stop loss price.
     error InvalidOcoOrder();
+    /// @notice Thrown when a Settlement Strategy contract invoke function receives an invalid action.
+    error InvalidSettlementStrategyAction();
 
     /// @notice PerpsEngine.OrderModule errors
 

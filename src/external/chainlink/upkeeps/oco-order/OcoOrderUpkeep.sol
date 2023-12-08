@@ -27,6 +27,8 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
+    enum Actions { UPDATE_OCO_ORDER }
+
     event LogCreateOcoOrder(
         address indexed sender, uint128 accountId, OcoOrder.TakeProfit takeProfit, OcoOrder.StopLoss stopLoss
     );
@@ -190,13 +192,24 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         }
     }
 
-    function updateOcoOrder(
+    function invoke(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
+        (Actions action) = abi.decode(extraData[0:8], (Actions));
+
+        if (action == Actions.UPDATE_OCO_ORDER) {
+            (uint128 accountId, OcoOrder.TakeProfit memory takeProfit, OcoOrder.StopLoss memory stopLoss) =
+                abi.decode(extraData[8:], (uint128, OcoOrder.TakeProfit, OcoOrder.StopLoss));
+            _updateOcoOrder(accountId, takeProfit, stopLoss);
+        } else {
+            revert Errors.InvalidSettlementStrategyAction();
+        }
+    }
+
+    function _updateOcoOrder(
         uint128 accountId,
-        OcoOrder.TakeProfit calldata takeProfit,
-        OcoOrder.StopLoss calldata stopLoss
+        OcoOrder.TakeProfit memory takeProfit,
+        OcoOrder.StopLoss memory stopLoss
     )
-        external
-        onlyPerpsEngine
+        internal
     {
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
 
