@@ -50,8 +50,9 @@ interface IOrderModule {
         uint128 accountId,
         uint128 marketId,
         uint128 strategyId,
+        bool isAccountStrategy,
         bytes calldata extraData
     )
         external
-        returns (bytes memory returnData);
+        returns (bytes memory);
 }

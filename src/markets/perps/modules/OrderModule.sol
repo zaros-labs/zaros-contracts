@@ -99,6 +99,7 @@ abstract contract OrderModule is IOrderModule {
         uint128 accountId,
         uint128 marketId,
         uint128 strategyId,
+        bool isAccountStrategy,
         bytes calldata extraData
     )
         external
@@ -109,12 +110,19 @@ abstract contract OrderModule is IOrderModule {
         perpsAccount.verifyCaller();
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        SettlementStrategy.Data storage settlementStrategy = SettlementStrategy.load(marketId, strategyId);
+        SettlementStrategy.Data storage settlementStrategy;
+
+        if (!isAccountStrategy) {
+            settlementStrategy = SettlementStrategy.load(marketId, strategyId);
+        } else {
+            // TODO: Implement
+            // settlementStrategy = SettlementStrategy.load(accountId, marketId, strategyId);
+        }
 
         address upkeep = settlementStrategy.upkeep;
-        bytes4 selector = bytes4(extraData[0:4]);
-        bytes memory payload = extraData[4:extraData.length];
-        bytes memory callData = abi.encodeWithSelector(selector, abi.encodePacked(accountId, payload));
+
+        // TODO: use interface selector
+        bytes memory callData = abi.encodeWithSignature("invoke(uint128,bytes)", accountId, extraData);
 
         (bool success, bytes memory returnData) = upkeep.call(callData);
 
