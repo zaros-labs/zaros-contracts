@@ -26,6 +26,11 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
+    enum Actions {
+        CREATE_LIMIT_ORDER,
+        CANCEL_LIMIT_ORDER
+    }
+
     event LogCreateLimitOrder(
         address indexed sender, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta
     );
@@ -194,23 +199,21 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         }
     }
 
-    function createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) external onlyPerpsEngine {
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-
-        uint256 orderId = ++self.nextOrderId;
-
-        // There should never be a duplicate order id, but let's make sure anyway.
-        assert(!self.limitOrdersIds.contains(orderId));
-        self.limitOrdersIds.add(orderId);
-
-        LimitOrder.create({ accountId: accountId, orderId: orderId, sizeDelta: sizeDelta, price: price });
-
-        emit LogCreateLimitOrder(msg.sender, accountId, orderId, price, sizeDelta);
-    }
-
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
 
     function afterSettlement() external override onlyPerpsEngine { }
+
+    function invoke(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
+        (Actions action) = abi.decode(extraData[0:8], (Actions));
+
+        if (action == Actions.CREATE_LIMIT_ORDER) {
+            (int128 sizeDelta, uint128 price) = abi.decode(extraData[8:], (int128, uint128));
+
+            _createLimitOrder(accountId, sizeDelta, price);
+        } else {
+            revert Errors.InvalidSettlementStrategyAction();
+        }
+    }
 
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
@@ -233,5 +236,19 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         assembly {
             self.slot := slot
         }
+    }
+
+    function _createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) internal {
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+
+        uint256 orderId = ++self.nextOrderId;
+
+        // There should never be a duplicate order id, but let's make sure anyway.
+        assert(!self.limitOrdersIds.contains(orderId));
+        self.limitOrdersIds.add(orderId);
+
+        LimitOrder.create({ accountId: accountId, orderId: orderId, sizeDelta: sizeDelta, price: price });
+
+        emit LogCreateLimitOrder(msg.sender, accountId, orderId, price, sizeDelta);
     }
 }

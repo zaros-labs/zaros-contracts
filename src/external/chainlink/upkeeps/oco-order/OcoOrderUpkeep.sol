@@ -196,11 +196,39 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         (Actions action) = abi.decode(extraData[0:8], (Actions));
 
         if (action == Actions.UPDATE_OCO_ORDER) {
-            (uint128 accountId, OcoOrder.TakeProfit memory takeProfit, OcoOrder.StopLoss memory stopLoss) =
-                abi.decode(extraData[8:], (uint128, OcoOrder.TakeProfit, OcoOrder.StopLoss));
+            (OcoOrder.TakeProfit memory takeProfit, OcoOrder.StopLoss memory stopLoss) =
+                abi.decode(extraData[8:], (OcoOrder.TakeProfit, OcoOrder.StopLoss));
+
             _updateOcoOrder(accountId, takeProfit, stopLoss);
         } else {
             revert Errors.InvalidSettlementStrategyAction();
+        }
+    }
+
+    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
+
+    function afterSettlement() external override onlyPerpsEngine { }
+
+    function performUpkeep(bytes calldata performData) external override onlyForwarder {
+        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
+            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
+
+        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
+        (uint128 marketId, uint128 strategyId) = (self.marketId, self.strategyId);
+        (
+            PerpsEngine perpsEngine,
+            ISettlementModule.SettlementPayload[] memory payloads,
+            bytes memory verifiedReportData
+        ) = _preparePerformData(marketId, performData);
+
+        perpsEngine.settleCustomTriggers(marketId, strategyId, payloads, verifiedReportData);
+    }
+
+    function _getOcoOrderUpkeepStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {
+        bytes32 slot = OCO_ORDER_UPKEEP_LOCATION;
+
+        assembly {
+            self.slot := slot
         }
     }
 
@@ -242,32 +270,5 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             OcoOrder.Data({ accountId: accountId, takeProfit: takeProfit, stopLoss: stopLoss });
 
         emit LogCreateOcoOrder(msg.sender, accountId, takeProfit, stopLoss);
-    }
-
-    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
-
-    function afterSettlement() external override onlyPerpsEngine { }
-
-    function performUpkeep(bytes calldata performData) external override onlyForwarder {
-        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
-            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
-
-        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        (uint128 marketId, uint128 strategyId) = (self.marketId, self.strategyId);
-        (
-            PerpsEngine perpsEngine,
-            ISettlementModule.SettlementPayload[] memory payloads,
-            bytes memory verifiedReportData
-        ) = _preparePerformData(marketId, performData);
-
-        perpsEngine.settleCustomTriggers(marketId, strategyId, payloads, verifiedReportData);
-    }
-
-    function _getOcoOrderUpkeepStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {
-        bytes32 slot = OCO_ORDER_UPKEEP_LOCATION;
-
-        assembly {
-            self.slot := slot
-        }
     }
 }
