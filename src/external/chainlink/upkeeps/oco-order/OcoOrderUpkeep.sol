@@ -210,9 +210,6 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
     function afterSettlement() external override onlyPerpsEngine { }
 
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
-        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
-            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
-
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
         (uint128 marketId, uint128 settlementStrategyId) = (self.marketId, self.settlementStrategyId);
         (

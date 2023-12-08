@@ -24,6 +24,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeepUpgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
+    using LimitOrder for LimitOrder.Data;
     using SafeCast for uint256;
 
     enum Actions {
@@ -31,9 +32,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         CANCEL_LIMIT_ORDER
     }
 
-    event LogCreateLimitOrder(
-        address indexed sender, uint128 accountId, uint256 orderId, uint128 price, int128 sizeDelta
-    );
+    event LogCreateLimitOrder(uint128 indexed accountId, uint256 orderId, uint128 price, int128 sizeDelta);
+    event LogCancelLimitOrder(uint128 indexed accountId, uint256 orderId);
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant LIMIT_ORDER_UPKEEP_LOCATION = keccak256(
@@ -205,20 +205,22 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
     function invoke(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
         (Actions action) = abi.decode(extraData[0:8], (Actions));
+        bytes memory functionData = extraData[8:];
 
         if (action == Actions.CREATE_LIMIT_ORDER) {
-            (int128 sizeDelta, uint128 price) = abi.decode(extraData[8:], (int128, uint128));
+            (int128 sizeDelta, uint128 price) = abi.decode(functionData, (int128, uint128));
 
             _createLimitOrder(accountId, sizeDelta, price);
+        } else if (action == Actions.CANCEL_LIMIT_ORDER) {
+            (uint256 orderId) = abi.decode(functionData, (uint256));
+
+            _cancelLimitOrder(accountId, orderId);
         } else {
             revert Errors.InvalidSettlementStrategyAction();
         }
     }
 
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
-        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
-            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
-
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         (uint128 marketId, uint128 settlementStrategyId) = (self.marketId, self.settlementStrategyId);
         (
@@ -249,6 +251,20 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
         LimitOrder.create({ accountId: accountId, orderId: orderId, sizeDelta: sizeDelta, price: price });
 
-        emit LogCreateLimitOrder(msg.sender, accountId, orderId, price, sizeDelta);
+        emit LogCreateLimitOrder(accountId, orderId, price, sizeDelta);
+    }
+
+    function _cancelLimitOrder(uint128 accountId, uint256 orderId) internal {
+        LimitOrder.Data storage limitOrder = LimitOrder.load(orderId);
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+
+        if (accountId != limitOrder.accountId) {
+            revert Errors.LimitOrderInvalidAccountId(accountId, limitOrder.accountId);
+        }
+
+        limitOrder.reset();
+        self.limitOrdersIds.remove(orderId);
+
+        emit LogCancelLimitOrder(accountId, orderId);
     }
 }

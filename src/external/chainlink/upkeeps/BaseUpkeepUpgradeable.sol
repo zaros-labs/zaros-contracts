@@ -100,7 +100,6 @@ abstract contract BaseUpkeepUpgradeable is UUPSUpgradeable, OwnableUpgradeable {
         bytes memory performData
     )
         internal
-        view
         returns (PerpsEngine, ISettlementModule.SettlementPayload[] memory, bytes memory)
     {
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =

@@ -118,6 +118,7 @@ abstract contract OrderModule is IOrderModule {
         } else {
             // TODO: Implement
             // settlementStrategy = SettlementStrategy.load(accountId, marketId, settlementStrategyId);
+            settlementStrategy = SettlementStrategy.load(marketId, settlementStrategyId);
         }
 
         address upkeep = settlementStrategy.upkeep;
