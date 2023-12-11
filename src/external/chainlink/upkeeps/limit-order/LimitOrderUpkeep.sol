@@ -14,6 +14,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
+import { ISettlementStrategy } from "@zaros/settlement-strategies/interfaces/ISettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -27,24 +28,15 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
     using LimitOrder for LimitOrder.Data;
     using SafeCast for uint256;
 
-
-
-
     /// @notice ERC7201 storage location.
     bytes32 internal constant LIMIT_ORDER_UPKEEP_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.LimitOrderUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderUpkeep
-    /// @param nextOrderId The id that will be used for the next limit order stored.
-    /// @param marketId The upkeep's linked Zaros market id.
-    /// @param settlementStrategyId The upkeep's linked Zaros market's settlement strategy id.
-    /// @param limitOrdersIds The set of limit orders ids, used to find the limit orders to be settled.
+    /// @param settlementStrategy The settlement strategy contract.
     struct LimitOrderUpkeepStorage {
-        uint128 nextOrderId;
-        uint128 marketId;
-        uint128 settlementStrategyId;
-        EnumerableSet.UintSet limitOrdersIds;
+        ISettlementStrategy settlementStrategy;
     }
 
     /// @notice {LimitOrderUpkeep} UUPS initializer.
@@ -193,7 +185,6 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             performData = abi.encode(signedReport, payloads);
         }
     }
-
 
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
