@@ -131,7 +131,6 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         ISettlementModule.SettlementPayload[] memory payloads = new ISettlementModule.SettlementPayload[](0);
 
         (
