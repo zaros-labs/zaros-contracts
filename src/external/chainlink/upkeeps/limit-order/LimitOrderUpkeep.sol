@@ -100,27 +100,13 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             revert Errors.InvalidBounds();
         }
 
-        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
-        PerpsEngine perpsEngine = baseUpkeepStorage.perpsEngine;
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        ISettlementStrategy settlementStrategy = self.settlementStrategy;
 
-        uint256 amountOfOrders =
-            self.limitOrdersIds.length() > checkUpperBound ? checkUpperBound : self.limitOrdersIds.length();
+        LimitOrder.Data[] memory limitOrders = settlementStrategy.getLimitOrders(checkLowerBound, checkUpperBound);
 
-        if (amountOfOrders == 0) {
-            return (upkeepNeeded, performData);
-        }
-
-        LimitOrder.Data[] memory limitOrders = new LimitOrder.Data[](amountOfOrders);
-
-        for (uint256 i = checkLowerBound; i < amountOfOrders; i++) {
-            uint256 orderId = self.limitOrdersIds.at(i);
-            limitOrders[i] = LimitOrder.load(orderId);
-        }
-
-        SettlementConfiguration.Data memory settlementConfiguration =
-            perpsEngine.getSettlementConfiguration(self.marketId, self.settlementId);
         SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
+            settlementStrategy.getZarosSettlementConfiguration();
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;

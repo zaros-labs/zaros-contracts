@@ -27,7 +27,7 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         abi.encode(uint256(keccak256("fi.zaros.markets.settlement.LimitOrderSettlementStrategy")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderSettlementStrategy
+    /// @custom:storage-location erc7201:fi.zaros.markets.settlement.LimitOrderSettlementStrategy
     /// @param nextOrderId The id that will be used for the next limit order stored.
     /// @param marketId The Zaros perp market id which is using this strategy.
     /// @param settlementId The Zaros perp market settlement strategy id linked to this contract.
@@ -89,16 +89,41 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         settlementId = self.settlementId;
     }
 
-    function getZarosSettlementConfiguration() external view returns (DataStreamsCustomStrategy memory) {
+    function getZarosSettlementConfiguration()
+        external
+        view
+        returns (SettlementConfiguration.DataStreamsCustomStrategy memory)
+    {
         BaseSettlementStrategy storage baseSettlementStrategyStorage = _getBaseSettlementStrategyStorage();
         PerpsEngine perpsEngine = baseSettlementStrategyStorage.perpsEngine;
         uint128 marketId = baseSettlementStrategyStorage.marketId;
         uint128 settlementId = baseSettlementStrategyStorage.settlementId;
 
-        SettlementConfiguration memory settlementConfiguration =
+        SettlementConfiguration.Data memory settlementConfiguration =
             perpsEngine.getSettlementConfiguration(marketId, settlementId);
+        SettlementConfiguration.DataStreamsCustomStrategt memory settlementConfiguration =
+            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
 
         return settlementConfiguration;
+    }
+
+    function getLimitOrders(uint256 lowerBound, uint256 upperBound) external view returns (LimitOrder.Data[] memory) {
+        LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
+        uint256 amountOfOrders =
+            self.limitOrdersIds.length() > checkUpperBound ? checkUpperBound : self.limitOrdersIds.length();
+
+        if (amountOfOrders == 0) {
+            return (upkeepNeeded, performData);
+        }
+
+        LimitOrder.Data[] memory limitOrders = new LimitOrder.Data[](amountOfOrders);
+
+        for (uint256 i = checkLowerBound; i < amountOfOrders; i++) {
+            uint256 orderId = self.limitOrdersIds.at(i);
+            limitOrders[i] = LimitOrder.load(orderId);
+        }
+
+        return limitOrders;
     }
 
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external { }
@@ -148,5 +173,17 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         self.limitOrdersIds.remove(orderId);
 
         emit LogCancelLimitOrder(accountId, orderId);
+    }
+
+    function _getLimitOrderSettlementStrategyStorage()
+        internal
+        pure
+        returns (LimitOrderSettlementStrategyStorage storage self)
+    {
+        bytes32 slot = LIMIT_ORDER_SETTLEMENT_STRATEGY_LOCATION;
+
+        assembly {
+            self.slot := slot
+        }
     }
 }
