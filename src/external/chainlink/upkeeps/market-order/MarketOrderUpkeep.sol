@@ -95,11 +95,11 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
 
         (uint128 accountId, uint128 marketId) = (uint256(log.topics[2]).toUint128(), uint256(log.topics[3]).toUint128());
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
-        SettlementConfiguration.Data memory settlementStrategy =
-            perpsEngine.getSettlementStrategy(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID);
+        SettlementConfiguration.Data memory settlementConfiguration =
+            perpsEngine.getSettlementConfiguration(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID);
 
         SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderStrategy =
-            abi.decode(settlementStrategy.data, (SettlementConfiguration.DataStreamsMarketStrategy));
+            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsMarketStrategy));
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(marketOrderStrategy.streamId));

@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
 import { BaseSettlementStrategy } from "./BaseSettlementStrategy.sol";
 
@@ -87,6 +88,8 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         marketId = self.marketId;
         settlementId = self.settlementId;
     }
+
+    function getZarosSettlementConfiguration() external view returns (SettlementConfiguration.Data memory) { }
 
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external { }
 

@@ -126,10 +126,10 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             ocoOrders[i] = self.ocoOrderOfAccount[accountId];
         }
 
-        SettlementConfiguration.Data memory settlementStrategy =
-            perpsEngine.getSettlementStrategy(self.marketId, self.settlementId);
+        SettlementConfiguration.Data memory settlementConfiguration =
+            perpsEngine.getSettlementConfiguration(self.marketId, self.settlementId);
         SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-            abi.decode(settlementStrategy.data, (SettlementConfiguration.DataStreamsCustomStrategy));
+            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;

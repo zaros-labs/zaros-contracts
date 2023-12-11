@@ -63,7 +63,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function getSettlementStrategy(
+    function getSettlementConfiguration(
         uint128 marketId,
         uint128 settlementId
     )

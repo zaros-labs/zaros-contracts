@@ -21,6 +21,9 @@ library Errors {
     error OnlyForwarder(address sender, address forwarder);
     /// @notice Thrown when the upkeep provided checkData bounds are invalid.
     error InvalidBounds();
+
+    /// @notice Settlement Strategies errors.
+
     /// @notice Thrown when a Settlement Strategy contract invoke function receives an invalid action.
     error InvalidSettlementStrategyAction();
 
@@ -28,7 +31,7 @@ library Errors {
 
     error LimitOrderInvalidAccountId(uint128 providedAccountId, uint128 expectedAccountId);
 
-    /// @notice OcoOrderUpkeep errors.
+    /// @notice OcoOrderSettlementStrategy errors.
 
     /// @notice Thrown when the provided take profit price is lower than the stop loss price.
     error InvalidOcoOrder();

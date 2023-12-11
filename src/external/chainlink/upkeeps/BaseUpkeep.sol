@@ -37,14 +37,7 @@ abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /// @notice {BaseUpkeep} UUPS initializer.
-    function __BaseUpkeep_init(
-        address chainlinkVerifier,
-        address forwarder,
-        PerpsEngine perpsEngine
-    )
-        internal
-        onlyInitializing
-    {
+    function __BaseUpkeep_init(address forwarder) internal onlyInitializing {
         __Ownable_init(msg.sender);
 
         if (forwarder == address(0)) {
