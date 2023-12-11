@@ -11,5 +11,5 @@ interface ISettlementStrategy {
 
     function invoke(uint128 accountId, bytes calldata extraData) external;
 
-    function settle(bytes calldata reportData, ISettlementModule.SettlementPayload[] calldata payloads) external;
+    function settle(bytes calldata signedReport, ISettlementModule.SettlementPayload[] calldata payloads) external;
 }

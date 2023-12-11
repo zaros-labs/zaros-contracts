@@ -46,7 +46,7 @@ abstract contract SettlementModule is ISettlementModule {
     function settleMarketOrder(
         uint128 accountId,
         uint128 marketId,
-        bytes calldata verifiedReportData
+        bytes calldata extraData
     )
         external
         onlyMarketOrderUpkeep(marketId)
@@ -55,7 +55,7 @@ abstract contract SettlementModule is ISettlementModule {
 
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.payload.sizeDelta });
-        _settle(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID, payload, verifiedReportData);
+        _settle(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID, payload, extraData);
 
         marketOrder.clear();
     }

@@ -93,16 +93,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
         }
     }
 
-    function _preparePerformData(
-        uint128 marketId,
-        bytes memory performData
-    )
-        internal
-        returns (PerpsEngine, ISettlementModule.SettlementPayload[] memory, bytes memory)
-    {
-        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
-            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
-
+    function _prepareDataStreamsSettlement(bytes memory signedReport) internal returns (PerpsEngine, bytes memory) {
         BaseSettlementStrategyStorage storage baseSettlementStrategyStorage = _getBaseSettlementStrategyStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
             (IVerifierProxy(baseSettlementStrategyStorage.chainlinkVerifier), baseSettlementStrategyStorage.perpsEngine);
@@ -112,7 +103,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
 
         bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
 
-        return (perpsEngine, payloads, verifiedReportData);
+        return (perpsEngine, verifiedReportData);
     }
 
     /// @inheritdoc UUPSUpgradeable

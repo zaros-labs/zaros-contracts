@@ -174,18 +174,10 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         ISettlementStrategy settlementStrategy = self.settlementStrategy;
 
-        (
-            bytes memory signedReport,
-            ISettlementModule.SettlementPayload[] memory payloads
-        ) = abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
-        (
-            bytes memory reportData,
-            ISettlementModule.SettlementPayload[] memory payloads
-        ) = _preparePerformData(performData);
+        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
+            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
-        settlementStrategy.settle(reportData, payloads);
-
-        // perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);
+        settlementStrategy.settle(signedReport, payloads);
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {

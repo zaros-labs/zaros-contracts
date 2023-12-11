@@ -129,12 +129,6 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         performData = abi.encode(signedReport, extraData);
     }
 
-    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
-
-    function afterSettlement() external override onlyPerpsEngine { }
-
-    function invoke(uint128 accountId, bytes calldata extraData) external override { }
-
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
         (bytes memory signedReport, uint128 accountId, uint128 marketId) =
