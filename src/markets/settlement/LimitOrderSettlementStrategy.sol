@@ -77,13 +77,13 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
             uint128 settlementStrategyId
         )
     {
-        BaseSettlementStrategyStorage storage Storage = _getBaseSettlementStrategyStorage();
+        BaseSettlementStrategyStorage storage baseSettlementStrategyStorage = _getBaseSettlementStrategyStorage();
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
         keeperOwner = owner();
-        chainlinkVerifier = Storage.chainlinkVerifier;
-        forwarder = Storage.forwarder;
-        perpsEngine = address(Storage.perpsEngine);
+        chainlinkVerifier = baseSettlementStrategyStorage.chainlinkVerifier;
+        forwarder = baseSettlementStrategyStorage.forwarder;
+        perpsEngine = address(baseSettlementStrategyStorage.perpsEngine);
         marketId = self.marketId;
         settlementStrategyId = self.settlementStrategyId;
     }

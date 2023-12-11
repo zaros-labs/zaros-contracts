@@ -103,9 +103,9 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
-        BaseSettlementStrategyStorage storage Storage = _getBaseSettlementStrategyStorage();
+        BaseSettlementStrategyStorage storage baseSettlementStrategyStorage = _getBaseSettlementStrategyStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
-            (IVerifierProxy(Storage.chainlinkVerifier), Storage.perpsEngine);
+            (IVerifierProxy(baseSettlementStrategyStorage.chainlinkVerifier), baseSettlementStrategyStorage.perpsEngine);
 
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);

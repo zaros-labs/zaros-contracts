@@ -101,7 +101,6 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         }
 
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
         PerpsEngine perpsEngine = baseUpkeepStorage.perpsEngine;
 
         uint256 amountOfOrders =
