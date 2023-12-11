@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 library LimitOrder {
     /// @notice ERC7201 storage location.
     bytes32 internal constant LIMIT_ORDER_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.LimitOrder")) - 1)
+        abi.encode(uint256(keccak256("fi.zaros.markets.settlement.storage.LimitOrder")) - 1)
     ) & ~bytes32(uint256(0xff));
 
     /// @notice The Limit Order data structure.
