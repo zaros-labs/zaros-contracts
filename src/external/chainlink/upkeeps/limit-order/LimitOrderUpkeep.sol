@@ -66,7 +66,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
     function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
-        OcoOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
         upkeepOwner = owner();
         forwarder = baseUpkeepStorage.forwarder;
@@ -89,6 +89,10 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         LimitOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
         LimitOrder.Data[] memory limitOrders = settlementStrategy.getLimitOrders(checkLowerBound, checkUpperBound);
+
+        if (limitOrders.length == 0) {
+            return (false, bytes(""));
+        }
 
         SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
             settlementStrategy.getZarosSettlementConfiguration();

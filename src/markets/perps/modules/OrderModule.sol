@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { DataStreamsSettlementStrategy } from "@zaros/markets/settlement/DataStreamsSettlementStrategy.sol";
+import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
@@ -124,8 +124,7 @@ abstract contract OrderModule is IOrderModule {
         address upkeep = settlementConfiguration.upkeep;
 
         // TODO: use interface selector
-        bytes memory callData =
-            abi.encodeWithSelector(DataStreamsSettlementStrategy.invoke.selector, accountId, extraData);
+        bytes memory callData = abi.encodeWithSelector(ISettlementStrategy.invoke.selector, accountId, extraData);
 
         (bool success, bytes memory returnData) = upkeep.call(callData);
 

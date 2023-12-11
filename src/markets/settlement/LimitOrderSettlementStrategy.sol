@@ -97,7 +97,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
         view
         returns (SettlementConfiguration.DataStreamsCustomStrategy memory)
     {
-        DataStreamsSettlementStrategy storage dataStreamsSettlementStrategyStorage =
+        DataStreamsSettlementStrategyStorage storage dataStreamsSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
         PerpsEngine perpsEngine = dataStreamsSettlementStrategyStorage.perpsEngine;
         uint128 marketId = dataStreamsSettlementStrategyStorage.marketId;
@@ -113,13 +113,13 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
 
     function getLimitOrders(uint256 lowerBound, uint256 upperBound) external view returns (LimitOrder.Data[] memory) {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
+
         uint256 amountOfOrders = self.limitOrdersIds.length() > lowerBound ? upperBound : self.limitOrdersIds.length();
+        LimitOrder.Data[] memory limitOrders = new LimitOrder.Data[](amountOfOrders);
 
         if (amountOfOrders == 0) {
-            return (upkeepNeeded, performData);
+            return limitOrders;
         }
-
-        LimitOrder.Data[] memory limitOrders = new LimitOrder.Data[](amountOfOrders);
 
         for (uint256 i = lowerBound; i < amountOfOrders; i++) {
             uint256 orderId = self.limitOrdersIds.at(i);

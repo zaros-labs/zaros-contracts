@@ -14,6 +14,7 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
+import { OcoOrder } from "@zaros/markets/settlement/storage/OcoOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -25,10 +26,6 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeep {
     using SafeCast for uint256;
-
-    event LogCreateOcoOrder(
-        address indexed sender, uint128 accountId, OcoOrder.TakeProfit takeProfit, OcoOrder.StopLoss stopLoss
-    );
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant OCO_ORDER_UPKEEP_LOCATION = keccak256(
@@ -87,16 +84,17 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             revert Errors.InvalidBounds();
         }
 
-        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        PerpsEngine perpsEngine = baseUpkeepStorage.perpsEngine;
+        OcoOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
         OcoOrder.Data[] memory ocoOrders = settlementStrategy.getOcoOrders(checkLowerBound, checkUpperBound);
 
-        SettlementConfiguration.Data memory settlementConfiguration =
-            perpsEngine.getSettlementConfiguration(self.marketId, self.settlementId);
+        if (ocoOrders.length == 0) {
+            return (false, bytes(""));
+        }
+
         SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
+            settlementStrategy.getZarosSettlementConfiguration();
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;

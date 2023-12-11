@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
+import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
@@ -15,6 +17,10 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
     using EnumerableSet for EnumerableSet.UintSet;
 
     enum Actions { UPDATE_OCO_ORDER }
+
+    event LogCreateOcoOrder(
+        address indexed sender, uint128 accountId, OcoOrder.TakeProfit takeProfit, OcoOrder.StopLoss stopLoss
+    );
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant OCO_ORDER_SETTLEMENT_STRATEGY_LOCATION = keccak256(
@@ -67,8 +73,8 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
             uint128 settlementId
         )
     {
-        BaseUpkeepStorage storage baseUpkeepStorage = _getDataStreamsSettlementStrategyStorage();
-        OcoOrderUpkeepStorage storage self = _getOcoOrderSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage baseUpkeepStorage = _getDataStreamsSettlementStrategyStorage();
+        OcoOrderSettlementStrategyStorage storage self = _getOcoOrderSettlementStrategyStorage();
 
         settlementStrategyOwner = owner();
         chainlinkVerifier = baseUpkeepStorage.chainlinkVerifier;
@@ -79,14 +85,15 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
     }
 
     function getOcoOrders(uint256 lowerBound, uint256 upperBound) external view returns (OcoOrder.Data[] memory) {
+        OcoOrderSettlementStrategyStorage storage self = _getOcoOrderSettlementStrategyStorage();
+
         uint256 amountOfOrders =
             self.accountsWithActiveOrders.length() > upperBound ? upperBound : self.accountsWithActiveOrders.length();
+        OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
 
         if (amountOfOrders == 0) {
-            return (upkeepNeeded, performData);
+            return ocoOrders;
         }
-
-        OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
 
         for (uint256 i = lowerBound; i < amountOfOrders; i++) {
             uint128 accountId = self.accountsWithActiveOrders.at(i).toUint128();
@@ -113,7 +120,11 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
         }
     }
 
-    function _getOcoOrderSettlementStrategyStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {
+    function _getOcoOrderSettlementStrategyStorage()
+        internal
+        pure
+        returns (OcoOrderSettlementStrategyStorage storage self)
+    {
         bytes32 slot = OCO_ORDER_SETTLEMENT_STRATEGY_LOCATION;
 
         assembly {
@@ -128,7 +139,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
     )
         internal
     {
-        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
+        OcoOrderSettlementStrategyStorage storage self = _getOcoOrderSettlementStrategyStorage();
 
         if (takeProfit.price != 0 && takeProfit.price < stopLoss.price) {
             revert Errors.InvalidOcoOrder();
