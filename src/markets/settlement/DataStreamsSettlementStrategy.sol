@@ -10,26 +10,29 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 
 // Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     /// @notice Chainlink Data Streams Reports default decimals (both Basic and Premium).
     uint8 internal constant REPORT_PRICE_DECIMALS = 8;
 
     /// @notice ERC7201 storage location.
-    bytes32 internal constant BASE_SETTLEMENT_STRATEGY_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.DataStreamsSettlementStrategy")) - 1)
+    bytes32 internal constant DATA_STREAMS_SETTLEMENT_STRATEGY_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.markets.settlement.DataStreamsSettlementStrategy")) - 1)
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.DataStreamsSettlementStrategy
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
-    /// @param forwarder The address of the Upkeep forwarder contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
+    /// @param keepers The set of registered keepers addresses.
     struct DataStreamsSettlementStrategyStorage {
-        address chainlinkVerifier;
-        address forwarder;
+        IVerifierProxy chainlinkVerifier;
         PerpsEngine perpsEngine;
+        EnumerableSet.AddressSet keepers;
     }
 
     /// @notice Ensures that only a registered keeper is able to call a function.
@@ -55,7 +58,7 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
 
     /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
     function __DataStreamsSettlementStrategy_init(
-        address chainlinkVerifier,
+        IVerifierProxy chainlinkVerifier,
         PerpsEngine perpsEngine,
         address[] calldata keepers
     )
@@ -64,7 +67,7 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
     {
         __Ownable_init(msg.sender);
 
-        if (chainlinkVerifier == address(0)) {
+        if (address(chainlinkVerifier) == address(0)) {
             revert Errors.ZeroInput("chainlinkVerifier");
         }
 
@@ -90,7 +93,7 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
         pure
         returns (DataStreamsSettlementStrategyStorage storage self)
     {
-        bytes32 slot = BASE_SETTLEMENT_STRATEGY_LOCATION;
+        bytes32 slot = DATA_STREAMS_SETTLEMENT_STRATEGY_LOCATION;
 
         assembly {
             self.slot := slot

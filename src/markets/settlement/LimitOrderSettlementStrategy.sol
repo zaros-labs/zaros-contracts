@@ -9,11 +9,7 @@ import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
 import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
 import { LimitOrder } from "./storage/LimitOrder.sol";
 
-// Open Zeppelin dependencies
-import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-
 contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlementStrategy {
-    using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using LimitOrder for LimitOrder.Data;
 
@@ -39,7 +35,6 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
         uint128 nextOrderId;
         uint128 marketId;
         uint128 settlementId;
-        EnumerableSet.AddressSet keepers;
         EnumerableSet.UintSet limitOrdersIds;
     }
 
