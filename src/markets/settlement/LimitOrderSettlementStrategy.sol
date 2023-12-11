@@ -147,6 +147,13 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         }
     }
 
+    function execute(bytes calldata reportData, ISettlementModule.SettlementPayload[] calldata payloads) external onlyRegisteredKeeper {
+        LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
+        ( PerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (self.perpsEngine, self.marketId, self.settlementId);
+
+        perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, reportData);
+    }
+
     function _createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) internal {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 

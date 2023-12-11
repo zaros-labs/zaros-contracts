@@ -32,12 +32,12 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
         PerpsEngine perpsEngine;
     }
 
-    /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
+    /// @notice Ensures that only a registered keeper is able to call a function.
     modifier onlyRegisteredKeeper() {
         BaseSettlementStrategyStorage storage self = _getBaseSettlementStrategyStorage();
-        bool isSenderForwarder = msg.sender == self.forwarder;
+        bool isValidSender = self.keepers.contains(msg.sender);
 
-        if (!isSenderForwarder) {
+        if (!isValidSender) {
             revert Errors.Unauthorized(msg.sender);
         }
         _;
