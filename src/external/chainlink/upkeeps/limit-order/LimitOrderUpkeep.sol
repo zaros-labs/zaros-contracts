@@ -33,7 +33,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderUpkeep
-    /// @param settlementStrategy The settlement strategy contract.
+    /// @param settlementStrategy The limit order settlement strategy contract.
     struct LimitOrderUpkeepStorage {
         LimitOrderSettlementStrategy settlementStrategy;
     }

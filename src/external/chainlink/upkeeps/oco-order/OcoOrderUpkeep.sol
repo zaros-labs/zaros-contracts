@@ -33,6 +33,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.OcoOrderUpkeep
+    /// @param settlementStrategy The OCO order settlement strategy contract.
     struct OcoOrderUpkeepStorage {
         OcoOrderSettlementStrategy settlementStrategy;
     }

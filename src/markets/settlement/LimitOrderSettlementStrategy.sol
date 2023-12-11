@@ -158,6 +158,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
         ISettlementModule.SettlementPayload[] calldata payloads
     )
         external
+        override
         onlyRegisteredKeeper
     {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();

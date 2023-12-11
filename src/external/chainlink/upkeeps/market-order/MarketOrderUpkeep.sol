@@ -29,13 +29,9 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
-    /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
-    /// @param forwarder The address of the Upkeep forwarder contract.
-    /// @param perpsEngine The address of the PerpsEngine contract.
+    /// @param settlementStrategy The market order settlement strategy contract.
     struct MarketOrderUpkeepStorage {
-        address chainlinkVerifier;
-        address forwarder;
-        PerpsEngine perpsEngine;
+        MarketOrderSettlementStrategy settlementStrategy;
     }
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
