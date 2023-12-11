@@ -8,13 +8,13 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
-import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
+import { DataStreamsCustomSettlementStrategy } from "./DataStreamsCustomSettlementStrategy.sol";
 import { LimitOrder } from "./storage/LimitOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
-contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlementStrategy {
+contract LimitOrderSettlementStrategy is DataStreamsCustomSettlementStrategy, ISettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using LimitOrder for LimitOrder.Data;
 
@@ -54,7 +54,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
         external
         initializer
     {
-        __DataStreamsSettlementStrategy_init(chainlinkVerifier, perpsEngine, keepers, marketId, settlementId);
+        __DataStreamsCustomSettlementStrategy_init(chainlinkVerifier, perpsEngine, keepers, marketId, settlementId);
     }
 
     function getConfig()
@@ -69,15 +69,15 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
             uint128 settlementId
         )
     {
-        DataStreamsSettlementStrategyStorage storage dataStreamsSettlementStrategyStorage =
-            _getDataStreamsSettlementStrategyStorage();
+        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+            _getDataStreamsCustomSettlementStrategyStorage();
 
         settlementStrategyOwner = owner();
-        chainlinkVerifier = address(dataStreamsSettlementStrategyStorage.chainlinkVerifier);
+        chainlinkVerifier = address(dataStreamsCustomSettlementStrategyStorage.chainlinkVerifier);
         keepers = _getKeepers();
-        perpsEngine = address(dataStreamsSettlementStrategyStorage.perpsEngine);
-        marketId = dataStreamsSettlementStrategyStorage.marketId;
-        settlementId = dataStreamsSettlementStrategyStorage.settlementId;
+        perpsEngine = address(dataStreamsCustomSettlementStrategyStorage.perpsEngine);
+        marketId = dataStreamsCustomSettlementStrategyStorage.marketId;
+        settlementId = dataStreamsCustomSettlementStrategyStorage.settlementId;
     }
 
     function getLimitOrders(uint256 lowerBound, uint256 upperBound) external view returns (LimitOrder.Data[] memory) {
@@ -127,10 +127,11 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
         override
         onlyRegisteredKeeper
     {
-        DataStreamsSettlementStrategyStorage storage dataStreamsSettlementStrategyStorage =
-            _getDataStreamsSettlementStrategyStorage();
-        (uint128 marketId, uint128 settlementId) =
-            (dataStreamsSettlementStrategyStorage.marketId, dataStreamsSettlementStrategyStorage.settlementId);
+        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+            _getDataStreamsCustomSettlementStrategyStorage();
+        (uint128 marketId, uint128 settlementId) = (
+            dataStreamsCustomSettlementStrategyStorage.marketId, dataStreamsCustomSettlementStrategyStorage.settlementId
+        );
         (PerpsEngine perpsEngine, bytes memory verifiedReportData) = _prepareDataStreamsSettlement(signedReport);
 
         perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);

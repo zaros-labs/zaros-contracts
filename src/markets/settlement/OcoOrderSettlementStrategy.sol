@@ -8,14 +8,14 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
-import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
+import { DataStreamsCustomSettlementStrategy } from "./DataStreamsCustomSettlementStrategy.sol";
 import { OcoOrder } from "./storage/OcoOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlementStrategy {
+contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy, ISettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
@@ -47,7 +47,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
         external
         initializer
     {
-        __DataStreamsSettlementStrategy_init(chainlinkVerifier, perpsEngine, keepers, marketId, settlementId);
+        __DataStreamsCustomSettlementStrategy_init(chainlinkVerifier, perpsEngine, keepers, marketId, settlementId);
     }
 
     function getConfig()
@@ -62,15 +62,15 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
             uint128 settlementId
         )
     {
-        DataStreamsSettlementStrategyStorage storage dataStreamsSettlementStrategyStorage =
-            _getDataStreamsSettlementStrategyStorage();
+        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+            _getDataStreamsCustomSettlementStrategyStorage();
 
         settlementStrategyOwner = owner();
-        chainlinkVerifier = address(dataStreamsSettlementStrategyStorage.chainlinkVerifier);
+        chainlinkVerifier = address(dataStreamsCustomSettlementStrategyStorage.chainlinkVerifier);
         keepers = _getKeepers();
-        perpsEngine = address(dataStreamsSettlementStrategyStorage.perpsEngine);
-        marketId = dataStreamsSettlementStrategyStorage.marketId;
-        settlementId = dataStreamsSettlementStrategyStorage.settlementId;
+        perpsEngine = address(dataStreamsCustomSettlementStrategyStorage.perpsEngine);
+        marketId = dataStreamsCustomSettlementStrategyStorage.marketId;
+        settlementId = dataStreamsCustomSettlementStrategyStorage.settlementId;
     }
 
     function getOcoOrders(uint256 lowerBound, uint256 upperBound) external view returns (OcoOrder.Data[] memory) {
@@ -117,10 +117,11 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
         override
         onlyRegisteredKeeper
     {
-        DataStreamsSettlementStrategyStorage storage dataStreamsSettlementStrategyStorage =
-            _getDataStreamsSettlementStrategyStorage();
-        (uint128 marketId, uint128 settlementId) =
-            (dataStreamsSettlementStrategyStorage.marketId, dataStreamsSettlementStrategyStorage.settlementId);
+        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+            _getDataStreamsCustomSettlementStrategyStorage();
+        (uint128 marketId, uint128 settlementId) = (
+            dataStreamsCustomSettlementStrategyStorage.marketId, dataStreamsCustomSettlementStrategyStorage.settlementId
+        );
         (PerpsEngine perpsEngine, bytes memory verifiedReportData) = _prepareDataStreamsSettlement(signedReport);
 
         perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);
