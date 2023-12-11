@@ -27,13 +27,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
     using LimitOrder for LimitOrder.Data;
     using SafeCast for uint256;
 
-    enum Actions {
-        CREATE_LIMIT_ORDER,
-        CANCEL_LIMIT_ORDER
-    }
 
-    event LogCreateLimitOrder(uint128 indexed accountId, uint256 orderId, uint128 price, int128 sizeDelta);
-    event LogCancelLimitOrder(uint128 indexed accountId, uint256 orderId);
+
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant LIMIT_ORDER_UPKEEP_LOCATION = keccak256(
@@ -199,26 +194,6 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         }
     }
 
-    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
-
-    function afterSettlement() external override onlyPerpsEngine { }
-
-    function invoke(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
-        (Actions action) = abi.decode(extraData[0:8], (Actions));
-        bytes memory functionData = extraData[8:];
-
-        if (action == Actions.CREATE_LIMIT_ORDER) {
-            (int128 sizeDelta, uint128 price) = abi.decode(functionData, (int128, uint128));
-
-            _createLimitOrder(accountId, sizeDelta, price);
-        } else if (action == Actions.CANCEL_LIMIT_ORDER) {
-            (uint256 orderId) = abi.decode(functionData, (uint256));
-
-            _cancelLimitOrder(accountId, orderId);
-        } else {
-            revert Errors.InvalidSettlementStrategyAction();
-        }
-    }
 
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
@@ -238,33 +213,5 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         assembly {
             self.slot := slot
         }
-    }
-
-    function _createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) internal {
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-
-        uint256 orderId = ++self.nextOrderId;
-
-        // There should never be a duplicate order id, but let's make sure anyway.
-        assert(!self.limitOrdersIds.contains(orderId));
-        self.limitOrdersIds.add(orderId);
-
-        LimitOrder.create({ accountId: accountId, orderId: orderId, sizeDelta: sizeDelta, price: price });
-
-        emit LogCreateLimitOrder(accountId, orderId, price, sizeDelta);
-    }
-
-    function _cancelLimitOrder(uint128 accountId, uint256 orderId) internal {
-        LimitOrder.Data storage limitOrder = LimitOrder.load(orderId);
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-
-        if (accountId != limitOrder.accountId) {
-            revert Errors.LimitOrderInvalidAccountId(accountId, limitOrder.accountId);
-        }
-
-        limitOrder.reset();
-        self.limitOrdersIds.remove(orderId);
-
-        emit LogCancelLimitOrder(accountId, orderId);
     }
 }
