@@ -88,6 +88,8 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
         }
     }
 
+    function settle(bytes calldata signedReport, ISettlementModule.SettlementPayload[] calldata payloads) external;
+
     function _getDataStreamsSettlementStrategyStorage()
         internal
         pure

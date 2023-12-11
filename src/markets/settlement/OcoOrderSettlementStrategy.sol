@@ -120,6 +120,20 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
         }
     }
 
+    function settle(
+        bytes calldata signedReport,
+        ISettlementModule.SettlementPayload[] calldata payloads
+    )
+        external
+        onlyRegisteredKeeper
+    {
+        OcoOrderSettlementStrategyStorage storage self = _getOcoOrderSettlementStrategyStorage();
+        (uint128 marketId, uint128 settlementId) = (self.marketId, self.settlementId);
+        (PerpsEngine perpsEngine, bytes memory verifiedReportData) = _prepareDataStreamsSettlement(signedReport);
+
+        perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);
+    }
+
     function _getOcoOrderSettlementStrategyStorage()
         internal
         pure
