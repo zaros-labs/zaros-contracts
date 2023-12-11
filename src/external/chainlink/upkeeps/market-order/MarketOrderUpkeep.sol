@@ -14,7 +14,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
-import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -95,11 +95,11 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
 
         (uint128 accountId, uint128 marketId) = (uint256(log.topics[2]).toUint128(), uint256(log.topics[3]).toUint128());
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
-        SettlementStrategy.Data memory settlementStrategy =
-            perpsEngine.getSettlementStrategy(marketId, SettlementStrategy.MARKET_ORDER_STRATEGY_ID);
+        SettlementConfiguration.Data memory settlementStrategy =
+            perpsEngine.getSettlementStrategy(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID);
 
-        SettlementStrategy.DataStreamsMarketStrategy memory marketOrderStrategy =
-            abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsMarketStrategy));
+        SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderStrategy =
+            abi.decode(settlementStrategy.data, (SettlementConfiguration.DataStreamsMarketStrategy));
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(marketOrderStrategy.streamId));

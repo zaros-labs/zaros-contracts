@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
-import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
 
 // TODO: update limit order strategies
@@ -56,7 +56,7 @@ contract CreatePerpsMarket is BaseScript {
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        SettlementStrategy.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData = SettlementStrategy
+        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData = SettlementConfiguration
             .DataStreamsMarketStrategy({
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
@@ -64,22 +64,22 @@ contract CreatePerpsMarket is BaseScript {
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
-        SettlementStrategy.Data memory ethUsdMarketOrderStrategy = SettlementStrategy.Data({
-            strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
+        SettlementConfiguration.Data memory ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
-        SettlementStrategy.Data memory ethUsdLimitOrderStrategy = SettlementStrategy.Data({
-            strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
+        SettlementConfiguration.Data memory ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
-        SettlementStrategy.Data[] memory ethUsdCustomTriggerStrategies = new SettlementStrategy.Data[](1);
+        SettlementConfiguration.Data[] memory ethUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
         ethUsdCustomTriggerStrategies[0] = ethUsdLimitOrderStrategy;
 
         perpsEngine.createPerpsMarket(
@@ -94,31 +94,31 @@ contract CreatePerpsMarket is BaseScript {
             ethUsdOrderFee
         );
 
-        SettlementStrategy.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData = SettlementStrategy
-            .DataStreamsMarketStrategy({
+        SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData =
+        SettlementConfiguration.DataStreamsMarketStrategy({
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
             settlementDelay: LINK_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
-        SettlementStrategy.Data memory linkUsdMarketOrderStrategy = SettlementStrategy.Data({
-            strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
+        SettlementConfiguration.Data memory linkUsdMarketOrderStrategy = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
-        SettlementStrategy.Data memory linkUsdLimitOrderStrategy = SettlementStrategy.Data({
-            strategyType: SettlementStrategy.StrategyType.DATA_STREAMS,
+        SettlementConfiguration.Data memory linkUsdLimitOrderStrategy = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             upkeep: defaultMarketOrderUpkeep,
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
-        SettlementStrategy.Data[] memory linkUsdCustomTriggerStrategies = new SettlementStrategy.Data[](1);
+        SettlementConfiguration.Data[] memory linkUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
         linkUsdCustomTriggerStrategies[0] = linkUsdLimitOrderStrategy;
 
         perpsEngine.createPerpsMarket(

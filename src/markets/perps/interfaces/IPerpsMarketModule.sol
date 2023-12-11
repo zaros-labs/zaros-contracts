@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
-import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -50,14 +50,14 @@ interface IPerpsMarketModule {
 
     /// @notice Returns a Settlement Strategy used by the given market.
     /// @param marketId The perps market id.
-    /// @param settlementStrategyId The perps market settlement strategy id
+    /// @param settlementId The perps market settlement strategy id
     function getSettlementStrategy(
         uint128 marketId,
-        uint128 settlementStrategyId
+        uint128 settlementId
     )
         external
         view
-        returns (SettlementStrategy.Data memory);
+        returns (SettlementConfiguration.Data memory);
 
     /// @notice Returns the given market's funding rate.
     /// @param marketId The perps market id.

@@ -29,12 +29,12 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderSettlementStrategy
     /// @param nextOrderId The id that will be used for the next limit order stored.
     /// @param marketId The Zaros perp market id which is using this strategy.
-    /// @param settlementStrategyId The Zaros perp market settlement strategy id linked to this contract.
+    /// @param settlementId The Zaros perp market settlement strategy id linked to this contract.
     /// @param limitOrdersIds The set of limit orders ids, used to find the limit orders to be settled.
     struct LimitOrderSettlementStrategyStorage {
         uint128 nextOrderId;
         uint128 marketId;
-        uint128 settlementStrategyId;
+        uint128 settlementId;
         EnumerableSet.AddressSet keepers;
         EnumerableSet.UintSet limitOrdersIds;
     }
@@ -45,7 +45,7 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         PerpsEngine perpsEngine,
         address[] calldata keepers,
         uint128 marketId,
-        uint128 settlementStrategyId
+        uint128 settlementId
     )
         external
         initializer
@@ -55,14 +55,14 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
-        if (settlementStrategyId == 0) {
-            revert Errors.ZeroInput("settlementStrategyId");
+        if (settlementId == 0) {
+            revert Errors.ZeroInput("settlementId");
         }
 
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
         self.marketId = marketId;
-        self.settlementStrategyId = settlementStrategyId;
+        self.settlementId = settlementId;
     }
 
     function getConfig()
@@ -74,7 +74,7 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
             address forwarder,
             address perpsEngine,
             uint128 marketId,
-            uint128 settlementStrategyId
+            uint128 settlementId
         )
     {
         BaseSettlementStrategyStorage storage baseSettlementStrategyStorage = _getBaseSettlementStrategyStorage();
@@ -85,7 +85,7 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         forwarder = baseSettlementStrategyStorage.forwarder;
         perpsEngine = address(baseSettlementStrategyStorage.perpsEngine);
         marketId = self.marketId;
-        settlementStrategyId = self.settlementStrategyId;
+        settlementId = self.settlementId;
     }
 
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external { }

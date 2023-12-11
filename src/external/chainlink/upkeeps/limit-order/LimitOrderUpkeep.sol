@@ -13,7 +13,7 @@ import { LimitOrder } from "./storage/LimitOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
-import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
 
 // Open Zeppelin dependencies
@@ -45,7 +45,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         address forwarder,
         PerpsEngine perpsEngine,
         uint128 marketId,
-        uint128 settlementStrategyId
+        uint128 settlementId
     )
         external
         initializer
@@ -55,14 +55,14 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
-        if (settlementStrategyId == 0) {
-            revert Errors.ZeroInput("settlementStrategyId");
+        if (settlementId == 0) {
+            revert Errors.ZeroInput("settlementId");
         }
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
         self.marketId = marketId;
-        self.settlementStrategyId = settlementStrategyId;
+        self.settlementId = settlementId;
     }
 
     function getConfig()
@@ -74,7 +74,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             address forwarder,
             address perpsEngine,
             uint128 marketId,
-            uint128 settlementStrategyId
+            uint128 settlementId
         )
     {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
@@ -85,7 +85,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         forwarder = baseUpkeepStorage.forwarder;
         perpsEngine = address(baseUpkeepStorage.perpsEngine);
         marketId = self.marketId;
-        settlementStrategyId = self.settlementStrategyId;
+        settlementId = self.settlementId;
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -117,10 +117,10 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             limitOrders[i] = LimitOrder.load(orderId);
         }
 
-        SettlementStrategy.Data memory settlementStrategy =
-            perpsEngine.getSettlementStrategy(self.marketId, self.settlementStrategyId);
-        SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-            abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
+        SettlementConfiguration.Data memory settlementStrategy =
+            perpsEngine.getSettlementStrategy(self.marketId, self.settlementId);
+        SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+            abi.decode(settlementStrategy.data, (SettlementConfiguration.DataStreamsCustomStrategy));
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;
@@ -187,14 +187,14 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        (uint128 marketId, uint128 settlementStrategyId) = (self.marketId, self.settlementStrategyId);
+        (uint128 marketId, uint128 settlementId) = (self.marketId, self.settlementId);
         (
             PerpsEngine perpsEngine,
             ISettlementModule.SettlementPayload[] memory payloads,
             bytes memory verifiedReportData
         ) = _preparePerformData(marketId, performData);
 
-        perpsEngine.settleCustomTriggers(marketId, settlementStrategyId, payloads, verifiedReportData);
+        perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {

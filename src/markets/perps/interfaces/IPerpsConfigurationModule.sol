@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { OrderFees } from "../storage/OrderFees.sol";
-import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 /// @title Perps Configuration Module.
 /// @notice This module is used by the protocol controller to configure the perps
@@ -37,8 +37,8 @@ interface IPerpsConfigurationModule {
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
-        SettlementStrategy.Data marketOrderStrategy,
-        SettlementStrategy.Data[] customTriggerStrategies,
+        SettlementConfiguration.Data marketOrderStrategy,
+        SettlementConfiguration.Data[] customTriggerStrategies,
         OrderFees.Data orderFees
     );
 
@@ -83,8 +83,8 @@ interface IPerpsConfigurationModule {
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
-        SettlementStrategy.Data calldata marketOrderStrategy,
-        SettlementStrategy.Data[] calldata customTriggerStrategies,
+        SettlementConfiguration.Data calldata marketOrderStrategy,
+        SettlementConfiguration.Data[] calldata customTriggerStrategies,
         OrderFees.Data calldata orderFees
     )
         external;

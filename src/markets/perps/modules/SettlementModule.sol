@@ -13,7 +13,7 @@ import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
-import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -35,9 +35,9 @@ abstract contract SettlementModule is ISettlementModule {
     }
 
     modifier onlyMarketOrderUpkeep(uint128 marketId) {
-        SettlementStrategy.Data storage settlementStrategy =
-            SettlementStrategy.load(marketId, SettlementStrategy.MARKET_ORDER_STRATEGY_ID);
-        address upkeep = settlementStrategy.upkeep;
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID);
+        address upkeep = settlementConfiguration.upkeep;
 
         _requireIsUpkeep(msg.sender, upkeep);
         _;
@@ -55,14 +55,14 @@ abstract contract SettlementModule is ISettlementModule {
 
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.payload.sizeDelta });
-        _settle(marketId, SettlementStrategy.MARKET_ORDER_STRATEGY_ID, payload, verifiedReportData);
+        _settle(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID, payload, verifiedReportData);
 
         marketOrder.clear();
     }
 
     function settleCustomTriggers(
         uint128 marketId,
-        uint128 settlementStrategyId,
+        uint128 settlementId,
         SettlementPayload[] calldata payloads,
         bytes calldata extraData
     )
@@ -74,7 +74,7 @@ abstract contract SettlementModule is ISettlementModule {
         for (uint256 i = 0; i < payloads.length; i++) {
             SettlementPayload memory payload = payloads[i];
 
-            _settle(marketId, settlementStrategyId, payload, extraData);
+            _settle(marketId, settlementId, payload, extraData);
         }
     }
 
@@ -93,7 +93,7 @@ abstract contract SettlementModule is ISettlementModule {
     // TODO: rework this
     function _settle(
         uint128 marketId,
-        uint128 settlementStrategyId,
+        uint128 settlementId,
         SettlementPayload memory payload,
         bytes memory extraData
     )
@@ -106,8 +106,9 @@ abstract contract SettlementModule is ISettlementModule {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
         Position.Data storage oldPosition = perpsMarket.positions[runtime.accountId];
-        SettlementStrategy.Data storage settlementStrategy = SettlementStrategy.load(marketId, settlementStrategyId);
-        runtime.fee = ud60x18(settlementStrategy.fee);
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, settlementId);
+        runtime.fee = ud60x18(settlementConfiguration.fee);
         address usdToken = PerpsConfiguration.load().usdToken;
 
         // TODO: apply price impact

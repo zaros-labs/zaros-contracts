@@ -12,7 +12,7 @@ import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
-import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -99,7 +99,7 @@ abstract contract OrderModule is IOrderModule {
     function invokeCustomSettlementStrategy(
         uint128 accountId,
         uint128 marketId,
-        uint128 settlementStrategyId,
+        uint128 settlementId,
         bool isAccountStrategy,
         bytes calldata extraData
     )
@@ -111,17 +111,17 @@ abstract contract OrderModule is IOrderModule {
         perpsAccount.verifyCaller();
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        SettlementStrategy.Data storage settlementStrategy;
+        SettlementConfiguration.Data storage settlementConfiguration;
 
         if (!isAccountStrategy) {
-            settlementStrategy = SettlementStrategy.load(marketId, settlementStrategyId);
+            settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
         } else {
             // TODO: Implement
-            // settlementStrategy = SettlementStrategy.load(accountId, marketId, settlementStrategyId);
-            settlementStrategy = SettlementStrategy.load(marketId, settlementStrategyId);
+            // settlementConfiguration = SettlementConfiguration.load(accountId, marketId, settlementId);
+            settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
         }
 
-        address upkeep = settlementStrategy.upkeep;
+        address upkeep = settlementConfiguration.upkeep;
 
         // TODO: use interface selector
         bytes memory callData = abi.encodeWithSelector(BaseSettlementStrategy.invoke.selector, accountId, extraData);

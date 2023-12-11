@@ -2,9 +2,9 @@
 pragma solidity 0.8.23;
 
 /// @notice Settlement strategies supported by the protocol.
-library SettlementStrategy {
-    /// @notice Constant base domain used to access a given SettlementStrategy's storage slot.
-    string internal constant SETTLEMENT_STRATEGY_DOMAIN = "fi.zaros.markets.PerpsMarket.SettlementStrategy";
+library SettlementConfiguration {
+    /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
+    string internal constant SETTLEMENT_STRATEGY_DOMAIN = "fi.zaros.markets.PerpsMarket.SettlementConfiguration";
     /// @notice The default strategy id for a given market's market orders strategy.
     uint128 internal constant MARKET_ORDER_STRATEGY_ID = 0;
 
@@ -13,7 +13,7 @@ library SettlementStrategy {
     /// market orders.
     enum StrategyType { DATA_STREAMS }
 
-    /// @notice The {SettlementStrategy} namespace storage structure.
+    /// @notice The {SettlementConfiguration} namespace storage structure.
     /// @param strategyType The strategy id active.
     /// @param isEnabled Whether the strategy is enabled or not. May be used to pause trading in a market.
     /// @param fee The settlement cost in USD charged from the trader.
@@ -48,16 +48,16 @@ library SettlementStrategy {
     }
 
     /// @dev The market order strategy id is always 0.
-    function load(uint128 marketId, uint128 settlementStrategyId) internal pure returns (Data storage strategy) {
-        bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementStrategyId));
+    function load(uint128 marketId, uint128 settlementId) internal pure returns (Data storage strategy) {
+        bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementId));
         assembly {
             strategy.slot := slot
         }
     }
 
-    function create(uint128 marketId, uint128 settlementStrategyId, Data memory strategy) internal {
-        bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementStrategyId));
-        Data storage self = load(marketId, settlementStrategyId);
+    function create(uint128 marketId, uint128 settlementId, Data memory strategy) internal {
+        bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementId));
+        Data storage self = load(marketId, settlementId);
 
         self.strategyType = strategy.strategyType;
         self.isEnabled = strategy.isEnabled;
