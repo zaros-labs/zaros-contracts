@@ -89,7 +89,17 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         settlementId = self.settlementId;
     }
 
-    function getZarosSettlementConfiguration() external view returns (SettlementConfiguration.Data memory) { }
+    function getZarosSettlementConfiguration() external view returns (DataStreamsCustomStrategy memory) {
+        BaseSettlementStrategy storage baseSettlementStrategyStorage = _getBaseSettlementStrategyStorage();
+        PerpsEngine perpsEngine = baseSettlementStrategyStorage.perpsEngine;
+        uint128 marketId = baseSettlementStrategyStorage.marketId;
+        uint128 settlementId = baseSettlementStrategyStorage.settlementId;
+
+        SettlementConfiguration memory settlementConfiguration =
+            perpsEngine.getSettlementConfiguration(marketId, settlementId);
+
+        return settlementConfiguration;
+    }
 
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external { }
 
