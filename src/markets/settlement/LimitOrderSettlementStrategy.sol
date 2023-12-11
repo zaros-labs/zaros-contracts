@@ -33,13 +33,9 @@ contract LimitOrderSettlementStrategy is DataStreamsCustomSettlementStrategy, IS
 
     /// @custom:storage-location erc7201:fi.zaros.markets.settlement.LimitOrderSettlementStrategy
     /// @param nextOrderId The id that will be used for the next limit order stored.
-    /// @param marketId The Zaros perp market id which is using this strategy.
-    /// @param settlementId The Zaros perp market settlement strategy id linked to this contract.
     /// @param limitOrdersIds The set of limit orders ids, used to find the limit orders to be settled.
     struct LimitOrderSettlementStrategyStorage {
         uint128 nextOrderId;
-        uint128 marketId;
-        uint128 settlementId;
         EnumerableSet.UintSet limitOrdersIds;
     }
 

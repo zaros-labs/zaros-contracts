@@ -30,6 +30,8 @@ abstract contract DataStreamsCustomSettlementStrategy is OwnableUpgradeable, UUP
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param keepers The set of registered keepers addresses.
+    /// @param marketId The Zaros perp market id which is using this strategy.
+    /// @param settlementId The Zaros perp market settlement strategy id linked to this contract.
     struct DataStreamsCustomSettlementStrategyStorage {
         IVerifierProxy chainlinkVerifier;
         PerpsEngine perpsEngine;
