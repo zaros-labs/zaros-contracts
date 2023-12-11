@@ -66,17 +66,13 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         __Ownable_init(initialOwner);
     }
 
-    function getConfig()
-        external
-        view
-        returns (address upkeepOwner, address chainlinkVerifier, address forwarder, address perpsEngine)
-    {
+    function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
+        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
         upkeepOwner = owner();
-        chainlinkVerifier = self.chainlinkVerifier;
-        forwarder = self.forwarder;
-        perpsEngine = address(self.perpsEngine);
+        forwarder = baseUpkeepStorage.forwarder;
+        settlementStrategy = address(self.settlementStrategy);
     }
 
     /// TODO: add check if upkeep is turned on (check contract's ETH funding)

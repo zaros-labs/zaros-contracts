@@ -64,27 +64,13 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         self.settlementId = settlementId;
     }
 
-    function getConfig()
-        public
-        view
-        returns (
-            address upkeepOwner,
-            address chainlinkVerifier,
-            address forwarder,
-            address perpsEngine,
-            uint128 marketId,
-            uint128 settlementId
-        )
-    {
+    function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        OcoOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
         upkeepOwner = owner();
-        chainlinkVerifier = baseUpkeepStorage.chainlinkVerifier;
         forwarder = baseUpkeepStorage.forwarder;
-        perpsEngine = address(baseUpkeepStorage.perpsEngine);
-        marketId = self.marketId;
-        settlementId = self.settlementId;
+        settlementStrategy = address(self.settlementStrategy);
     }
 
     function checkUpkeep(bytes calldata checkData)

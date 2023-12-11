@@ -24,10 +24,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeep {
-    using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
-
-    enum Actions { UPDATE_OCO_ORDER }
 
     event LogCreateOcoOrder(
         address indexed sender, uint128 accountId, OcoOrder.TakeProfit takeProfit, OcoOrder.StopLoss stopLoss
@@ -40,10 +37,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.OcoOrderUpkeep
     struct OcoOrderUpkeepStorage {
-        uint128 marketId;
-        uint128 settlementId;
-        EnumerableSet.UintSet accountsWithActiveOrders;
-        mapping(uint128 accountId => OcoOrder.Data) ocoOrderOfAccount;
+        ISettlementStrategy settlementStrategy;
     }
 
     /// @notice {OcoOrderUpkeep} UUPS initializer.
@@ -72,27 +66,13 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         self.settlementId = settlementId;
     }
 
-    function getConfig()
-        public
-        view
-        returns (
-            address upkeepOwner,
-            address chainlinkVerifier,
-            address forwarder,
-            address perpsEngine,
-            uint128 marketId,
-            uint128 settlementId
-        )
-    {
+    function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
 
         upkeepOwner = owner();
-        chainlinkVerifier = baseUpkeepStorage.chainlinkVerifier;
         forwarder = baseUpkeepStorage.forwarder;
-        perpsEngine = address(baseUpkeepStorage.perpsEngine);
-        marketId = self.marketId;
-        settlementId = self.settlementId;
+        settlementStrategy = address(self.settlementStrategy);
     }
 
     function checkUpkeep(bytes calldata checkData)
