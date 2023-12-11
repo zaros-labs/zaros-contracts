@@ -13,7 +13,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
-import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
+import { LimitOrderSettlementStrategy } from "@zaros/markets/settlement/LimitOrderSettlementStrategy.sol";
 import { LimitOrder } from "@zaros/markets/settlement/storage/LimitOrder.sol";
 
 // Open Zeppelin dependencies
@@ -35,7 +35,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderUpkeep
     /// @param settlementStrategy The settlement strategy contract.
     struct LimitOrderUpkeepStorage {
-        ISettlementStrategy settlementStrategy;
+        LimitOrderSettlementStrategy settlementStrategy;
     }
 
     /// @notice {LimitOrderUpkeep} UUPS initializer.
@@ -86,7 +86,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         }
 
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        ISettlementStrategy settlementStrategy = self.settlementStrategy;
+        LimitOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
         LimitOrder.Data[] memory limitOrders = settlementStrategy.getLimitOrders(checkLowerBound, checkUpperBound);
 
@@ -157,7 +157,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
-        ISettlementStrategy settlementStrategy = self.settlementStrategy;
+        LimitOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));

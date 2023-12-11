@@ -2,12 +2,16 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
 import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
 import { LimitOrder } from "./storage/LimitOrder.sol";
+
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -101,7 +105,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
 
         SettlementConfiguration.Data memory settlementConfiguration =
             perpsEngine.getSettlementConfiguration(marketId, settlementId);
-        SettlementConfiguration.DataStreamsCustomStrategt memory settlementConfiguration =
+        SettlementConfiguration.DataStreamsCustomStrategy memory settlementConfiguration =
             abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
 
         return settlementConfiguration;
@@ -117,7 +121,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
 
         LimitOrder.Data[] memory limitOrders = new LimitOrder.Data[](amountOfOrders);
 
-        for (uint256 i = checkLowerBound; i < amountOfOrders; i++) {
+        for (uint256 i = lowerBound; i < amountOfOrders; i++) {
             uint256 orderId = self.limitOrdersIds.at(i);
             limitOrders[i] = LimitOrder.load(orderId);
         }
@@ -160,6 +164,18 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
         perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);
     }
 
+    function _getLimitOrderSettlementStrategyStorage()
+        internal
+        pure
+        returns (LimitOrderSettlementStrategyStorage storage self)
+    {
+        bytes32 slot = LIMIT_ORDER_SETTLEMENT_STRATEGY_LOCATION;
+
+        assembly {
+            self.slot := slot
+        }
+    }
+
     function _createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) internal {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
@@ -186,17 +202,5 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
         self.limitOrdersIds.remove(orderId);
 
         emit LogCancelLimitOrder(accountId, orderId);
-    }
-
-    function _getLimitOrderSettlementStrategyStorage()
-        internal
-        pure
-        returns (LimitOrderSettlementStrategyStorage storage self)
-    {
-        bytes32 slot = LIMIT_ORDER_SETTLEMENT_STRATEGY_LOCATION;
-
-        assembly {
-            self.slot := slot
-        }
     }
 }

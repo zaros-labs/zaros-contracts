@@ -6,6 +6,7 @@ import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementMo
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
 import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
+import { OcoOrder } from "./storage/OcoOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -77,6 +78,24 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
         settlementId = self.settlementId;
     }
 
+    function getOcoOrders(uint256 lowerBound, uint256 upperBound) external view returns (OcoOrder.Data[] memory) {
+        uint256 amountOfOrders =
+            self.accountsWithActiveOrders.length() > upperBound ? upperBound : self.accountsWithActiveOrders.length();
+
+        if (amountOfOrders == 0) {
+            return (upkeepNeeded, performData);
+        }
+
+        OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
+
+        for (uint256 i = lowerBound; i < amountOfOrders; i++) {
+            uint128 accountId = self.accountsWithActiveOrders.at(i).toUint128();
+            ocoOrders[i] = self.ocoOrderOfAccount[accountId];
+        }
+
+        return ocoOrders;
+    }
+
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
 
     function afterSettlement() external override onlyPerpsEngine { }
@@ -92,5 +111,53 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
         } else {
             revert Errors.InvalidSettlementStrategyAction();
         }
+    }
+
+    function _getOcoOrderSettlementStrategyStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {
+        bytes32 slot = OCO_ORDER_SETTLEMENT_STRATEGY_LOCATION;
+
+        assembly {
+            self.slot := slot
+        }
+    }
+
+    function _updateOcoOrder(
+        uint128 accountId,
+        OcoOrder.TakeProfit memory takeProfit,
+        OcoOrder.StopLoss memory stopLoss
+    )
+        internal
+    {
+        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
+
+        if (takeProfit.price != 0 && takeProfit.price < stopLoss.price) {
+            revert Errors.InvalidOcoOrder();
+        }
+
+        bool isAccountWithNewOcoOrder =
+            takeProfit.price != 0 || stopLoss.price != 0 && !self.accountsWithActiveOrders.contains(accountId);
+        bool isAccountCancellingOcoOrder =
+            takeProfit.price == 0 && stopLoss.price == 0 && self.accountsWithActiveOrders.contains(accountId);
+
+        bool isLongPosition = takeProfit.sizeDelta < 0 || stopLoss.sizeDelta < 0;
+
+        bool isValidOcoOrder = !isAccountCancellingOcoOrder && isLongPosition
+            ? takeProfit.price > stopLoss.price
+            : takeProfit.price < stopLoss.price;
+
+        if (!isValidOcoOrder) {
+            revert Errors.InvalidOcoOrder();
+        }
+
+        if (isAccountWithNewOcoOrder) {
+            self.accountsWithActiveOrders.add(accountId);
+        } else if (isAccountCancellingOcoOrder) {
+            self.accountsWithActiveOrders.remove(accountId);
+        }
+
+        self.ocoOrderOfAccount[accountId] =
+            OcoOrder.Data({ accountId: accountId, takeProfit: takeProfit, stopLoss: stopLoss });
+
+        emit LogCreateOcoOrder(msg.sender, accountId, takeProfit, stopLoss);
     }
 }
