@@ -15,7 +15,6 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
-import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -31,29 +30,29 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
     /// @param settlementStrategy The market order settlement strategy contract.
     struct MarketOrderUpkeepStorage {
-        MarketOrderSettlementStrategy settlementStrategy;
+        PerpsEngine perpsEngine;
     }
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
-    function initialize(address forwarder, MarketOrderSettlementStrategy settlementStrategy) external initializer {
+    function initialize(address forwarder, PerpsEngine perpsEngine) external initializer {
         __BaseUpkeep_init(forwarder);
 
-        if (address(settlementStrategy) == address(0)) {
+        if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("settlementStrategy");
         }
 
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
-        self.settlementStrategy = settlementStrategy;
+        self.perpsEngine = perpsEngine;
     }
 
-    function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
+    function getConfig() public view returns (address upkeepOwner, address forwarder, address perpsEngine) {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
         upkeepOwner = owner();
         forwarder = baseUpkeepStorage.forwarder;
-        settlementStrategy = address(self.settlementStrategy);
+        perpsEngine = address(self.perpsEngine);
     }
 
     /// TODO: add check if upkeep is turned on (check contract's ETH funding)
@@ -72,9 +71,9 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
 
         (uint128 accountId, uint128 marketId) = (uint256(log.topics[2]).toUint128(), uint256(log.topics[3]).toUint128());
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
-        SettlementConfiguration.Data memory settlementConfiguration =
-            perpsEngine.getSettlementConfiguration(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID);
 
+        SettlementConfiguration.Data memory settlementConfiguration =
+            perpsEngine.getSettlementConfiguration(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID);
         SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderStrategy =
             abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsMarketStrategy));
 
@@ -112,15 +111,9 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
             abi.decode(performData, (bytes, uint128, uint128));
 
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
-        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
-            (IVerifierProxy(self.chainlinkVerifier), self.perpsEngine);
+        (PerpsEngine perpsEngine) = (self.perpsEngine);
 
-        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
-
-        bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
-
-        perpsEngine.settleMarketOrder(accountId, marketId, verifiedReportData);
+        perpsEngine.settleMarketOrder(accountId, marketId, signedReport);
     }
 
     function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {

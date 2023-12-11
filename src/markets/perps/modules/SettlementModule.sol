@@ -35,7 +35,7 @@ abstract contract SettlementModule is ISettlementModule {
 
     modifier onlyMarketOrderUpkeep(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID);
+            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID);
         address upkeep = settlementConfiguration.upkeep;
 
         _requireIsUpkeep(msg.sender, upkeep);
@@ -54,7 +54,7 @@ abstract contract SettlementModule is ISettlementModule {
 
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.payload.sizeDelta });
-        _settle(marketId, SettlementConfiguration.MARKET_ORDER_STRATEGY_ID, payload, extraData);
+        _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, extraData);
 
         marketOrder.clear();
     }

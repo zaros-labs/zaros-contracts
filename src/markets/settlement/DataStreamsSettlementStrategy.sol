@@ -8,6 +8,7 @@ import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -33,6 +34,8 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
         IVerifierProxy chainlinkVerifier;
         PerpsEngine perpsEngine;
         EnumerableSet.AddressSet keepers;
+        uint128 marketId;
+        uint128 settlementId;
     }
 
     /// @notice Ensures that only a registered keeper is able to call a function.
@@ -56,6 +59,26 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
         _;
     }
 
+    function getZarosSettlementConfiguration()
+        external
+        view
+        returns (SettlementConfiguration.DataStreamsCustomStrategy memory)
+    {
+        DataStreamsSettlementStrategyStorage storage dataStreamsSettlementStrategyStorage =
+            _getDataStreamsSettlementStrategyStorage();
+
+        PerpsEngine perpsEngine = dataStreamsSettlementStrategyStorage.perpsEngine;
+        uint128 marketId = dataStreamsSettlementStrategyStorage.marketId;
+        uint128 settlementId = dataStreamsSettlementStrategyStorage.settlementId;
+
+        SettlementConfiguration.Data memory settlementConfiguration =
+            perpsEngine.getSettlementConfiguration(marketId, settlementId);
+        SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
+
+        return dataStreamsCustomStrategy;
+    }
+
     function settle(
         bytes calldata signedReport,
         ISettlementModule.SettlementPayload[] calldata payloads
@@ -67,7 +90,9 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
     function __DataStreamsSettlementStrategy_init(
         IVerifierProxy chainlinkVerifier,
         PerpsEngine perpsEngine,
-        address[] calldata keepers
+        address[] calldata keepers,
+        uint128 marketId,
+        uint128 settlementId
     )
         internal
         onlyInitializing
@@ -85,10 +110,19 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
             revert Errors.ZeroInput("keepers");
         }
 
+        if (marketId == 0) {
+            revert Errors.ZeroInput("marketId");
+        }
+        if (settlementId == 0) {
+            revert Errors.ZeroInput("settlementId");
+        }
+
         DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
 
         self.chainlinkVerifier = chainlinkVerifier;
         self.perpsEngine = perpsEngine;
+        self.marketId = marketId;
+        self.settlementId = settlementId;
 
         for (uint256 i = 0; i < keepers.length; i++) {
             self.keepers.add(keepers[i]);

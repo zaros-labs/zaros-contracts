@@ -18,15 +18,12 @@ import { OcoOrder } from "@zaros/markets/settlement/storage/OcoOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeep {
-    using SafeCast for uint256;
-
     /// @notice ERC7201 storage location.
     bytes32 internal constant OCO_ORDER_UPKEEP_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.OcoOrderUpkeep")) - 1)
