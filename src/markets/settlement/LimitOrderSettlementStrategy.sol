@@ -5,12 +5,12 @@ pragma solidity 0.8.23;
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
-import { BaseSettlementStrategy } from "./BaseSettlementStrategy.sol";
+import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
-contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStrategy {
+contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlementStrategy {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -51,7 +51,7 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         external
         initializer
     {
-        __BaseSettlementStrategy_init(chainlinkVerifier, perpsEngine, keepers);
+        __DataStreamsSettlementStrategy_init(chainlinkVerifier, perpsEngine, keepers);
 
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
@@ -78,13 +78,14 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
             uint128 settlementId
         )
     {
-        BaseSettlementStrategyStorage storage baseSettlementStrategyStorage = _getBaseSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage dataStreamsSettlementStrategyStorage =
+            _getDataStreamsSettlementStrategyStorage();
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
         keeperOwner = owner();
-        chainlinkVerifier = baseSettlementStrategyStorage.chainlinkVerifier;
-        forwarder = baseSettlementStrategyStorage.forwarder;
-        perpsEngine = address(baseSettlementStrategyStorage.perpsEngine);
+        chainlinkVerifier = dataStreamsSettlementStrategyStorage.chainlinkVerifier;
+        forwarder = dataStreamsSettlementStrategyStorage.forwarder;
+        perpsEngine = address(dataStreamsSettlementStrategyStorage.perpsEngine);
         marketId = self.marketId;
         settlementId = self.settlementId;
     }
@@ -94,10 +95,11 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         view
         returns (SettlementConfiguration.DataStreamsCustomStrategy memory)
     {
-        BaseSettlementStrategy storage baseSettlementStrategyStorage = _getBaseSettlementStrategyStorage();
-        PerpsEngine perpsEngine = baseSettlementStrategyStorage.perpsEngine;
-        uint128 marketId = baseSettlementStrategyStorage.marketId;
-        uint128 settlementId = baseSettlementStrategyStorage.settlementId;
+        DataStreamsSettlementStrategy storage dataStreamsSettlementStrategyStorage =
+            _getDataStreamsSettlementStrategyStorage();
+        PerpsEngine perpsEngine = dataStreamsSettlementStrategyStorage.perpsEngine;
+        uint128 marketId = dataStreamsSettlementStrategyStorage.marketId;
+        uint128 settlementId = dataStreamsSettlementStrategyStorage.settlementId;
 
         SettlementConfiguration.Data memory settlementConfiguration =
             perpsEngine.getSettlementConfiguration(marketId, settlementId);
@@ -147,7 +149,7 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
         }
     }
 
-    function execute(
+    function settle(
         bytes calldata signedReport,
         ISettlementModule.SettlementPayload[] calldata payloads
     )

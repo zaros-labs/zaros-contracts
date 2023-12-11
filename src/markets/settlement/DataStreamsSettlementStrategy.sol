@@ -13,20 +13,20 @@ import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementMo
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable {
+abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Chainlink Data Streams Reports default decimals (both Basic and Premium).
     uint8 internal constant REPORT_PRICE_DECIMALS = 8;
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant BASE_SETTLEMENT_STRATEGY_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.BaseSettlementStrategy")) - 1)
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.DataStreamsSettlementStrategy")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.BaseSettlementStrategy
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.DataStreamsSettlementStrategy
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param forwarder The address of the Upkeep forwarder contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
-    struct BaseSettlementStrategyStorage {
+    struct DataStreamsSettlementStrategyStorage {
         address chainlinkVerifier;
         address forwarder;
         PerpsEngine perpsEngine;
@@ -34,7 +34,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
 
     /// @notice Ensures that only a registered keeper is able to call a function.
     modifier onlyRegisteredKeeper() {
-        BaseSettlementStrategyStorage storage self = _getBaseSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
         bool isValidSender = self.keepers.contains(msg.sender);
 
         if (!isValidSender) {
@@ -44,7 +44,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
     }
 
     modifier onlyPerpsEngine() {
-        BaseSettlementStrategyStorage storage self = _getBaseSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
         bool isSenderPerpsEngine = msg.sender == address(self.perpsEngine);
 
         if (!isSenderPerpsEngine) {
@@ -53,8 +53,8 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
         _;
     }
 
-    /// @notice {BaseSettlementStrategy} UUPS initializer.
-    function __BaseSettlementStrategy_init(
+    /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
+    function __DataStreamsSettlementStrategy_init(
         address chainlinkVerifier,
         PerpsEngine perpsEngine,
         address[] calldata keepers
@@ -75,7 +75,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
             revert Errors.ZeroInput("keepers");
         }
 
-        BaseSettlementStrategyStorage storage self = _getBaseSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
 
         self.chainlinkVerifier = chainlinkVerifier;
         self.perpsEngine = perpsEngine;
@@ -85,7 +85,11 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
         }
     }
 
-    function _getBaseSettlementStrategyStorage() internal pure returns (BaseSettlementStrategyStorage storage self) {
+    function _getDataStreamsSettlementStrategyStorage()
+        internal
+        pure
+        returns (DataStreamsSettlementStrategyStorage storage self)
+    {
         bytes32 slot = BASE_SETTLEMENT_STRATEGY_LOCATION;
 
         assembly {
@@ -94,9 +98,12 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
     }
 
     function _prepareDataStreamsSettlement(bytes memory signedReport) internal returns (PerpsEngine, bytes memory) {
-        BaseSettlementStrategyStorage storage baseSettlementStrategyStorage = _getBaseSettlementStrategyStorage();
-        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
-            (IVerifierProxy(baseSettlementStrategyStorage.chainlinkVerifier), baseSettlementStrategyStorage.perpsEngine);
+        DataStreamsSettlementStrategyStorage storage dataStreamsSettlementStrategyStorage =
+            _getDataStreamsSettlementStrategyStorage();
+        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) = (
+            IVerifierProxy(dataStreamsSettlementStrategyStorage.chainlinkVerifier),
+            dataStreamsSettlementStrategyStorage.perpsEngine
+        );
 
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);

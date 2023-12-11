@@ -14,6 +14,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -192,33 +193,14 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         }
     }
 
-    function invoke(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
-        (Actions action) = abi.decode(extraData[0:8], (Actions));
-
-        if (action == Actions.UPDATE_OCO_ORDER) {
-            (OcoOrder.TakeProfit memory takeProfit, OcoOrder.StopLoss memory stopLoss) =
-                abi.decode(extraData[8:], (OcoOrder.TakeProfit, OcoOrder.StopLoss));
-
-            _updateOcoOrder(accountId, takeProfit, stopLoss);
-        } else {
-            revert Errors.InvalidSettlementStrategyAction();
-        }
-    }
-
-    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
-
-    function afterSettlement() external override onlyPerpsEngine { }
-
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        (uint128 marketId, uint128 settlementId) = (self.marketId, self.settlementId);
-        (
-            PerpsEngine perpsEngine,
-            ISettlementModule.SettlementPayload[] memory payloads,
-            bytes memory verifiedReportData
-        ) = _preparePerformData(marketId, performData);
+        ISettlementStrategy settlementStrategy = self.settlementStrategy;
 
-        perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);
+        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
+            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
+
+        settlementStrategy.settle(signedReport, payloads);
     }
 
     function _getOcoOrderUpkeepStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {
