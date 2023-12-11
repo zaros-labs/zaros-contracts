@@ -7,7 +7,7 @@ import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible, BasicReport, PremiumReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
-import { BaseUpkeepUpgradeable } from "../BaseUpkeepUpgradeable.sol";
+import { BaseUpkeep } from "../BaseUpkeep.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { OcoOrder } from "./storage/OcoOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
@@ -23,7 +23,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeepUpgradeable {
+contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeep {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 

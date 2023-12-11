@@ -22,7 +22,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.BaseSettlementStrategy")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.BaseUpkeep
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.BaseSettlementStrategy
     /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param forwarder The address of the Upkeep forwarder contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
@@ -34,7 +34,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
 
     /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
     modifier onlyRegisteredKeeper() {
-        BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
+        BaseSettlementStrategyStorage storage self = _getBaseSettlementStrategyStorage();
         bool isSenderForwarder = msg.sender == self.forwarder;
 
         if (!isSenderForwarder) {
@@ -44,7 +44,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
     }
 
     modifier onlyPerpsEngine() {
-        BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
+        BaseSettlementStrategyStorage storage self = _getBaseSettlementStrategyStorage();
         bool isSenderPerpsEngine = msg.sender == address(self.perpsEngine);
 
         if (!isSenderPerpsEngine) {
@@ -53,7 +53,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
         _;
     }
 
-    /// @notice {BaseUpkeep} UUPS initializer.
+    /// @notice {BaseSettlementStrategy} UUPS initializer.
     function __BaseSettlementStrategy_init(
         address chainlinkVerifier,
         PerpsEngine perpsEngine,
@@ -85,7 +85,7 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
         }
     }
 
-    function _getBaseSettlementStrategyStorage() internal pure returns (BaseUpkeepStorage storage self) {
+    function _getBaseSettlementStrategyStorage() internal pure returns (BaseSettlementStrategyStorage storage self) {
         bytes32 slot = BASE_SETTLEMENT_STRATEGY_LOCATION;
 
         assembly {
@@ -103,9 +103,9 @@ abstract contract BaseSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable 
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
 
-        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
+        BaseSettlementStrategyStorage storage Storage = _getBaseSettlementStrategyStorage();
         (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) =
-            (IVerifierProxy(baseUpkeepStorage.chainlinkVerifier), baseUpkeepStorage.perpsEngine);
+            (IVerifierProxy(Storage.chainlinkVerifier), Storage.perpsEngine);
 
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);

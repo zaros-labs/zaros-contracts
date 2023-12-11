@@ -23,13 +23,13 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant LIMIT_ORDER_SETTLEMENT_STRATEGY_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.LimitOrderSettlementStrategy")) - 1)
+        abi.encode(uint256(keccak256("fi.zaros.markets.settlement.LimitOrderSettlementStrategy")) - 1)
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LimitOrderSettlementStrategy
     /// @param nextOrderId The id that will be used for the next limit order stored.
-    /// @param marketId The upkeep's linked Zaros market id.
-    /// @param settlementStrategyId The upkeep's linked Zaros market's settlement strategy id.
+    /// @param marketId The Zaros perp market id which is using this strategy.
+    /// @param settlementStrategyId The Zaros perp market settlement strategy id linked to this contract.
     /// @param limitOrdersIds The set of limit orders ids, used to find the limit orders to be settled.
     struct LimitOrderSettlementStrategyStorage {
         uint128 nextOrderId;
@@ -43,14 +43,14 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
     function initialize(
         address chainlinkVerifier,
         PerpsEngine perpsEngine,
-        address[] calldata upkeeps,
+        address[] calldata keepers,
         uint128 marketId,
         uint128 settlementStrategyId
     )
         external
         initializer
     {
-        __BaseUpkeep_init(chainlinkVerifier, perpsEngine, upkeeps);
+        __BaseSettlementStrategy_init(chainlinkVerifier, perpsEngine, keepers);
 
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
@@ -59,34 +59,34 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
             revert Errors.ZeroInput("settlementStrategyId");
         }
 
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
         self.marketId = marketId;
         self.settlementStrategyId = settlementStrategyId;
     }
 
-    // function getConfig()
-    //     public
-    //     view
-    //     returns (
-    //         address upkeepOwner,
-    //         address chainlinkVerifier,
-    //         address forwarder,
-    //         address perpsEngine,
-    //         uint128 marketId,
-    //         uint128 settlementStrategyId
-    //     )
-    // {
-    //     BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
-    //     LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+    function getConfig()
+        public
+        view
+        returns (
+            address keeperOwner,
+            address chainlinkVerifier,
+            address forwarder,
+            address perpsEngine,
+            uint128 marketId,
+            uint128 settlementStrategyId
+        )
+    {
+        BaseSettlementStrategyStorage storage Storage = _getBaseSettlementStrategyStorage();
+        LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
-    //     upkeepOwner = owner();
-    //     chainlinkVerifier = baseUpkeepStorage.chainlinkVerifier;
-    //     forwarder = baseUpkeepStorage.forwarder;
-    //     perpsEngine = address(baseUpkeepStorage.perpsEngine);
-    //     marketId = self.marketId;
-    //     settlementStrategyId = self.settlementStrategyId;
-    // }
+        keeperOwner = owner();
+        chainlinkVerifier = Storage.chainlinkVerifier;
+        forwarder = Storage.forwarder;
+        perpsEngine = address(Storage.perpsEngine);
+        marketId = self.marketId;
+        settlementStrategyId = self.settlementStrategyId;
+    }
 
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external { }
 
@@ -110,7 +110,7 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
     }
 
     function _createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) internal {
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
         uint256 orderId = ++self.nextOrderId;
 
@@ -125,7 +125,7 @@ contract LimitOrderSettlementStrategy is BaseSettlementStrategy, ISettlementStra
 
     function _cancelLimitOrder(uint128 accountId, uint256 orderId) internal {
         LimitOrder.Data storage limitOrder = LimitOrder.load(orderId);
-        LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
+        LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
         if (accountId != limitOrder.accountId) {
             revert Errors.LimitOrderInvalidAccountId(accountId, limitOrder.accountId);

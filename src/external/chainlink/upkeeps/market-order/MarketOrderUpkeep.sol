@@ -7,7 +7,7 @@ import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
-import { BaseUpkeepUpgradeable } from "../BaseUpkeepUpgradeable.sol";
+import { BaseUpkeep } from "../BaseUpkeep.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
@@ -19,7 +19,7 @@ import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrat
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpkeepUpgradeable {
+contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpkeep {
     using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.

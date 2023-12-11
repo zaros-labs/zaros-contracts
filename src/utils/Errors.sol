@@ -24,7 +24,7 @@ library Errors {
     /// @notice Thrown when a Settlement Strategy contract invoke function receives an invalid action.
     error InvalidSettlementStrategyAction();
 
-    /// @notice LimitOrderUpkeep errors.
+    /// @notice LimitOrderSettlementStrategy errors.
 
     error LimitOrderInvalidAccountId(uint128 providedAccountId, uint128 expectedAccountId);
 

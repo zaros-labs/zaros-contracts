@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { BaseUpkeepUpgradeable } from "@zaros/external/chainlink/upkeeps/BaseUpkeepUpgradeable.sol";
+import { BaseSettlementStrategy } from "@zaros/markets/settlement/BaseSettlementStrategy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
@@ -124,7 +124,7 @@ abstract contract OrderModule is IOrderModule {
         address upkeep = settlementStrategy.upkeep;
 
         // TODO: use interface selector
-        bytes memory callData = abi.encodeWithSelector(BaseUpkeepUpgradeable.invoke.selector, accountId, extraData);
+        bytes memory callData = abi.encodeWithSelector(BaseSettlementStrategy.invoke.selector, accountId, extraData);
 
         (bool success, bytes memory returnData) = upkeep.call(callData);
 

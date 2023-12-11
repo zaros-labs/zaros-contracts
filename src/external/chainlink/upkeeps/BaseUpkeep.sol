@@ -13,7 +13,7 @@ import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementMo
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-abstract contract BaseUpkeepUpgradeable is UUPSUpgradeable, OwnableUpgradeable {
+abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
     /// @notice ERC7201 storage location.
     bytes32 internal constant BASE_UPKEEP_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.BaseUpkeep")) - 1)
