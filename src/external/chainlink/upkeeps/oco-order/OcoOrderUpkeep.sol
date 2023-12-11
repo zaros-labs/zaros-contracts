@@ -9,7 +9,6 @@ import { IStreamsLookupCompatible, BasicReport, PremiumReport } from "../../inte
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
 import { BaseUpkeep } from "../BaseUpkeep.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
-import { OcoOrder } from "./storage/OcoOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";

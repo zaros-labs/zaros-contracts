@@ -9,12 +9,12 @@ import { IStreamsLookupCompatible, BasicReport, PremiumReport } from "../../inte
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
 import { BaseUpkeep } from "../BaseUpkeep.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
-import { LimitOrder } from "./storage/LimitOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
+import { LimitOrder } from "@zaros/markets/settlement/storage/LimitOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -25,7 +25,6 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeep {
     using EnumerableSet for EnumerableSet.UintSet;
-    using LimitOrder for LimitOrder.Data;
     using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.

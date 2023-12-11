@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
-import { LimitOrder } from "@zaros/external/chainlink/upkeeps/limit-order/storage/LimitOrder.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";

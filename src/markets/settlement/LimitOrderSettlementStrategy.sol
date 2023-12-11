@@ -2,10 +2,12 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
 import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
+import { LimitOrder } from "./storage/LimitOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -13,6 +15,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlementStrategy {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
+    using LimitOrder for LimitOrder.Data;
 
     enum Actions {
         CREATE_LIMIT_ORDER,
@@ -111,8 +114,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
 
     function getLimitOrders(uint256 lowerBound, uint256 upperBound) external view returns (LimitOrder.Data[] memory) {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
-        uint256 amountOfOrders =
-            self.limitOrdersIds.length() > checkUpperBound ? checkUpperBound : self.limitOrdersIds.length();
+        uint256 amountOfOrders = self.limitOrdersIds.length() > lowerBound ? upperBound : self.limitOrdersIds.length();
 
         if (amountOfOrders == 0) {
             return (upkeepNeeded, performData);
@@ -158,7 +160,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
     {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
         (uint128 marketId, uint128 settlementId) = (self.marketId, self.settlementId);
-        (PerpsEngine perpsEngine, bytes memory verifiedReportData) = _prepareDataStreamsSettlement(performData);
+        (PerpsEngine perpsEngine, bytes memory verifiedReportData) = _prepareDataStreamsSettlement(signedReport);
 
         perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);
     }
