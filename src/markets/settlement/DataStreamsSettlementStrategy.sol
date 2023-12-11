@@ -56,7 +56,12 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
         _;
     }
 
-    function settle(bytes calldata signedReport, ISettlementModule.SettlementPayload[] calldata payloads) external;
+    function settle(
+        bytes calldata signedReport,
+        ISettlementModule.SettlementPayload[] calldata payloads
+    )
+        external
+        virtual;
 
     /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
     function __DataStreamsSettlementStrategy_init(

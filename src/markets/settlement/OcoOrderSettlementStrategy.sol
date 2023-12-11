@@ -125,6 +125,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlemen
         ISettlementModule.SettlementPayload[] calldata payloads
     )
         external
+        override
         onlyRegisteredKeeper
     {
         OcoOrderSettlementStrategyStorage storage self = _getOcoOrderSettlementStrategyStorage();

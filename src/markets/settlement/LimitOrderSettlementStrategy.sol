@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
@@ -44,7 +45,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
 
     /// @notice {LimitOrderSettlementStrategy} UUPS initializer.
     function initialize(
-        address chainlinkVerifier,
+        IVerifierProxy chainlinkVerifier,
         PerpsEngine perpsEngine,
         address[] calldata keepers,
         uint128 marketId,
@@ -85,7 +86,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
         settlementStrategyOwner = owner();
-        chainlinkVerifier = dataStreamsSettlementStrategyStorage.chainlinkVerifier;
+        chainlinkVerifier = address(dataStreamsSettlementStrategyStorage.chainlinkVerifier);
         keepers = _getKeepers();
         perpsEngine = address(dataStreamsSettlementStrategyStorage.perpsEngine);
         marketId = self.marketId;
@@ -99,16 +100,18 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
     {
         DataStreamsSettlementStrategyStorage storage dataStreamsSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
+        LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
+
         PerpsEngine perpsEngine = dataStreamsSettlementStrategyStorage.perpsEngine;
-        uint128 marketId = dataStreamsSettlementStrategyStorage.marketId;
-        uint128 settlementId = dataStreamsSettlementStrategyStorage.settlementId;
+        uint128 marketId = self.marketId;
+        uint128 settlementId = self.settlementId;
 
         SettlementConfiguration.Data memory settlementConfiguration =
             perpsEngine.getSettlementConfiguration(marketId, settlementId);
-        SettlementConfiguration.DataStreamsCustomStrategy memory settlementConfiguration =
+        SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
             abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
 
-        return settlementConfiguration;
+        return dataStreamsCustomStrategy;
     }
 
     function getLimitOrders(uint256 lowerBound, uint256 upperBound) external view returns (LimitOrder.Data[] memory) {
