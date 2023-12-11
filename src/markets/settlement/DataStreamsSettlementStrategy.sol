@@ -90,6 +90,16 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
         }
     }
 
+    function _getKeepers() internal view returns (address[] memory keepers) {
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
+
+        keepers = new address[](self.keepers.length());
+
+        for (uint256 i = 0; i < self.keepers.length(); i++) {
+            keepers[i] = self.keepers.at(i);
+        }
+    }
+
     function _getDataStreamsSettlementStrategyStorage()
         internal
         pure

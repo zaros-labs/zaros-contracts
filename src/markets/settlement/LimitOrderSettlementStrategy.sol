@@ -72,9 +72,9 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
         public
         view
         returns (
-            address keeperOwner,
+            address settlementStrategyOwner,
             address chainlinkVerifier,
-            address forwarder,
+            address[] memory keepers,
             address perpsEngine,
             uint128 marketId,
             uint128 settlementId
@@ -84,9 +84,9 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy, ISettlem
             _getDataStreamsSettlementStrategyStorage();
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
-        keeperOwner = owner();
+        settlementStrategyOwner = owner();
         chainlinkVerifier = dataStreamsSettlementStrategyStorage.chainlinkVerifier;
-        forwarder = dataStreamsSettlementStrategyStorage.forwarder;
+        keepers = _getKeepers();
         perpsEngine = address(dataStreamsSettlementStrategyStorage.perpsEngine);
         marketId = self.marketId;
         settlementId = self.settlementId;
