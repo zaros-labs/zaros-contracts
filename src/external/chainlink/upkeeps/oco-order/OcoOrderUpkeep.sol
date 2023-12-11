@@ -38,29 +38,16 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
     }
 
     /// @notice {OcoOrderUpkeep} UUPS initializer.
-    function initialize(
-        address chainlinkVerifier,
-        address forwarder,
-        PerpsEngine perpsEngine,
-        uint128 marketId,
-        uint128 settlementId
-    )
-        external
-        initializer
-    {
-        __BaseUpkeep_init(chainlinkVerifier, forwarder, perpsEngine);
+    function initialize(address forwarder, OcoOrderSettlementStrategy settlementStrategy) external initializer {
+        __BaseUpkeep_init(forwarder);
 
-        if (marketId == 0) {
-            revert Errors.ZeroInput("marketId");
-        }
-        if (settlementId == 0) {
-            revert Errors.ZeroInput("settlementId");
+        if (address(settlementStrategy) == address(0)) {
+            revert Errors.ZeroInput("settlementStrategy");
         }
 
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
 
-        self.marketId = marketId;
-        self.settlementId = settlementId;
+        self.settlementStrategy = settlementStrategy;
     }
 
     function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {

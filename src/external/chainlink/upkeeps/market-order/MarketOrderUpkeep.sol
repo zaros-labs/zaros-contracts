@@ -15,6 +15,7 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -38,32 +39,16 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     }
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
-    function initialize(
-        address initialOwner,
-        address chainlinkVerifier,
-        address forwarder,
-        PerpsEngine perpsEngine
-    )
-        external
-        initializer
-    {
-        if (chainlinkVerifier == address(0)) {
-            revert Errors.ZeroInput("chainlinkVerifier");
-        }
-        if (forwarder == address(0)) {
-            revert Errors.ZeroInput("forwarder");
-        }
-        if (address(perpsEngine) == address(0)) {
-            revert Errors.ZeroInput("perpsEngine");
+    function initialize(address forwarder, MarketOrderSettlementStrategy settlementStrategy) external initializer {
+        __BaseUpkeep_init(forwarder);
+
+        if (address(settlementStrategy) == address(0)) {
+            revert Errors.ZeroInput("settlementStrategy");
         }
 
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
-        self.chainlinkVerifier = chainlinkVerifier;
-        self.forwarder = forwarder;
-        self.perpsEngine = perpsEngine;
-
-        __Ownable_init(initialOwner);
+        self.settlementStrategy = settlementStrategy;
     }
 
     function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {

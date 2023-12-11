@@ -56,6 +56,8 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
         _;
     }
 
+    function settle(bytes calldata signedReport, ISettlementModule.SettlementPayload[] calldata payloads) external;
+
     /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
     function __DataStreamsSettlementStrategy_init(
         IVerifierProxy chainlinkVerifier,
@@ -87,8 +89,6 @@ abstract contract DataStreamsSettlementStrategy is OwnableUpgradeable, UUPSUpgra
             self.keepers.add(keepers[i]);
         }
     }
-
-    function settle(bytes calldata signedReport, ISettlementModule.SettlementPayload[] calldata payloads) external;
 
     function _getDataStreamsSettlementStrategyStorage()
         internal
