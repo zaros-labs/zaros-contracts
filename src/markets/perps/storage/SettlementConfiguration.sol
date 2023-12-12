@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+// Zaros dependencies
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
+
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
     /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
@@ -33,6 +38,7 @@ library SettlementConfiguration {
     /// @param queryLabel The Chainlink Data Streams query label.
     /// @param settlementDelay The delay in seconds to wait for the settlement report.
     struct DataStreamsMarketStrategy {
+        IVerifierProxy chainlinkVerifier;
         string streamId;
         string feedLabel;
         string queryLabel;
@@ -41,6 +47,7 @@ library SettlementConfiguration {
     }
 
     struct DataStreamsCustomStrategy {
+        IVerifierProxy chainlinkVerifier;
         string streamId;
         string feedLabel;
         string queryLabel;
@@ -64,5 +71,42 @@ library SettlementConfiguration {
         self.fee = strategy.fee;
         self.upkeep = strategy.upkeep;
         self.data = strategy.data;
+    }
+
+    function verifyDataStreamsReport(
+        DataStreamsMarketStrategy storage self,
+        bytes memory signedReport
+    )
+        internal
+        returns (bytes memory verifiedReportData)
+    {
+        IVerifierProxy chainlinkVerifier = self.chainlinkVerifier;
+
+        verifiedReportData = verifyDataStreamsReport(chainlinkVerifier, signedReport);
+    }
+
+    function verifyDataStreamsReport(
+        DataStreamsCustomStrategy storage self,
+        bytes memory signedReport
+    )
+        internal
+        returns (bytes memory verifiedReportData)
+    {
+        IVerifierProxy chainlinkVerifier = self.chainlinkVerifier;
+
+        verifiedReportData = verifyDataStreamsReport(chainlinkVerifier, signedReport);
+    }
+
+    function verifyDataStreamsReport(
+        IVerifierProxy chainlinkVerifier,
+        bytes memory signedReport
+    )
+        internal
+        returns (bytes memory verifiedReportData)
+    {
+        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
+
+        verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
     }
 }

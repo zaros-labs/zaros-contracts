@@ -23,6 +23,9 @@ contract MarketOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
         );
     }
 
+    // TODO: Implement
+    // function getConfig() external view;
+
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
 
     function afterSettlement() external override { }

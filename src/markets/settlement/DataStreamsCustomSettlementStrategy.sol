@@ -2,8 +2,6 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
-import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
@@ -133,22 +131,6 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
             self.slot := slot
         }
     }
-
-    // function _prepareDataStreamsSettlement(bytes memory signedReport) internal returns (PerpsEngine, bytes memory) {
-    //     DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
-    //         _getDataStreamsCustomSettlementStrategyStorage();
-    //     (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) = (
-    //         IVerifierProxy(dataStreamsCustomSettlementStrategyStorage.chainlinkVerifier),
-    //         dataStreamsCustomSettlementStrategyStorage.perpsEngine
-    //     );
-
-    //     bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-    //     FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
-
-    //     bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
-
-    //     return (perpsEngine, verifiedReportData);
-    // }
 
     /// @inheritdoc UUPSUpgradeable
     function _authorizeUpgrade(address) internal override onlyOwner { }
