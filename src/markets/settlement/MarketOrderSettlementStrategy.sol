@@ -22,5 +22,5 @@ contract MarketOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
         perpsEngine.settleMarketOrder(accountId, marketId, signedReport);
     }
 
-    function invoke(uint128, bytes calldata) external override { }
+    function dispatch(uint128, bytes calldata) external override { }
 }

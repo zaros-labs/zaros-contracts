@@ -24,7 +24,7 @@ library Errors {
 
     /// @notice Settlement Strategies errors.
 
-    /// @notice Thrown when a Settlement Strategy contract invoke function receives an invalid action.
+    /// @notice Thrown when a Settlement Strategy contract dispatch function receives an invalid action.
     error InvalidSettlementStrategyAction();
 
     /// @notice LimitOrderSettlementStrategy errors.
@@ -41,7 +41,7 @@ library Errors {
     /// @notice Thrown when an account is liquidatable and can't perform actions
     error AccountLiquidatable(address sender, uint128 accountId);
     /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
-    error FailedInvokeCustomSettlementStrategy();
+    error FaileddispatchCustomSettlementStrategy();
 
     /// @notice PerpsEngine.PerpsAccountModule and PerpsEngine.PerpsAccount errors.
 

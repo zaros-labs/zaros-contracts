@@ -67,7 +67,7 @@ abstract contract OrderModule is IOrderModule {
     }
 
     // TODO: apply this to all upkeeps and rename them to something like "Settlement Strategy Contract"
-    struct InvokeSettlementStrategyPayload {
+    struct dispatchSettlementStrategyPayload {
         uint128 accountId;
         bytes extraData;
     }
@@ -96,7 +96,7 @@ abstract contract OrderModule is IOrderModule {
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
 
-    function invokeCustomSettlementStrategy(
+    function dispatchCustomSettlementStrategy(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
@@ -124,12 +124,12 @@ abstract contract OrderModule is IOrderModule {
         address upkeep = settlementConfiguration.upkeep;
 
         // TODO: use interface selector
-        bytes memory callData = abi.encodeWithSelector(ISettlementStrategy.invoke.selector, accountId, extraData);
+        bytes memory callData = abi.encodeWithSelector(ISettlementStrategy.dispatch.selector, accountId, extraData);
 
         (bool success, bytes memory returnData) = upkeep.call(callData);
 
         if (!success) {
-            if (returnData.length == 0) revert Errors.FailedInvokeCustomSettlementStrategy();
+            if (returnData.length == 0) revert Errors.FaileddispatchCustomSettlementStrategy();
             assembly {
                 revert(add(returnData, 0x20), mload(returnData))
             }

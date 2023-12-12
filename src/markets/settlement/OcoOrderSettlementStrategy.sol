@@ -95,7 +95,7 @@ contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
 
     function afterSettlement() external override onlyPerpsEngine { }
 
-    function invoke(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
+    function dispatch(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
         (Actions action) = abi.decode(extraData[0:8], (Actions));
 
         if (action == Actions.UPDATE_OCO_ORDER) {

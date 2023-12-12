@@ -97,7 +97,7 @@ contract LimitOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
 
     function afterSettlement() external { }
 
-    function invoke(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
+    function dispatch(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
         (Actions action) = abi.decode(extraData[0:8], (Actions));
         bytes memory functionData = extraData[8:];
 
