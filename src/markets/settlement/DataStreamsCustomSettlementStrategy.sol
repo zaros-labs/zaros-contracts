@@ -9,13 +9,14 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-abstract contract DataStreamsCustomSettlementStrategy is OwnableUpgradeable, UUPSUpgradeable {
+abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, OwnableUpgradeable, UUPSUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     /// @notice Chainlink Data Streams Reports default decimals (both Basic and Premium).
@@ -61,11 +62,7 @@ abstract contract DataStreamsCustomSettlementStrategy is OwnableUpgradeable, UUP
         _;
     }
 
-    function getZarosSettlementConfiguration()
-        external
-        view
-        returns (SettlementConfiguration.DataStreamsCustomStrategy memory)
-    {
+    function getZarosSettlementConfiguration() external view returns (SettlementConfiguration.Data memory) {
         DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsCustomSettlementStrategyStorage();
 
@@ -75,18 +72,11 @@ abstract contract DataStreamsCustomSettlementStrategy is OwnableUpgradeable, UUP
 
         SettlementConfiguration.Data memory settlementConfiguration =
             perpsEngine.getSettlementConfiguration(marketId, settlementId);
-        SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
 
-        return dataStreamsCustomStrategy;
+        return settlementConfiguration;
     }
 
-    function settle(
-        bytes calldata signedReport,
-        ISettlementModule.SettlementPayload[] calldata payloads
-    )
-        external
-        virtual;
+    function settle(bytes calldata signedReport, bytes calldata extraData) external virtual;
 
     /// @notice {DataStreamsCustomSettlementStrategy} UUPS initializer.
     function __DataStreamsCustomSettlementStrategy_init(

@@ -11,10 +11,10 @@ import { BaseUpkeep } from "../BaseUpkeep.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { Order } from "@zaros/markets/perps/storage/Order.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -30,29 +30,29 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
     /// @param settlementStrategy The market order settlement strategy contract.
     struct MarketOrderUpkeepStorage {
-        PerpsEngine perpsEngine;
+        MarketOrderSettlementStrategy settlementStrategy;
     }
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
-    function initialize(address forwarder, PerpsEngine perpsEngine) external initializer {
+    function initialize(address forwarder, MarketOrderSettlementStrategy settlementStrategy) external initializer {
         __BaseUpkeep_init(forwarder);
 
-        if (address(perpsEngine) == address(0)) {
+        if (address(settlementStrategy) == address(0)) {
             revert Errors.ZeroInput("settlementStrategy");
         }
 
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
-        self.perpsEngine = perpsEngine;
+        self.settlementStrategy = settlementStrategy;
     }
 
-    function getConfig() public view returns (address upkeepOwner, address forwarder, address perpsEngine) {
+    function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
         upkeepOwner = owner();
         forwarder = baseUpkeepStorage.forwarder;
-        perpsEngine = address(self.perpsEngine);
+        settlementStrategy = address(self.settlementStrategy);
     }
 
     /// TODO: add check if upkeep is turned on (check contract's ETH funding)
@@ -67,20 +67,20 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         returns (bool upkeepNeeded, bytes memory performData)
     {
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
-        PerpsEngine perpsEngine = self.perpsEngine;
+        MarketOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
-        (uint128 accountId, uint128 marketId) = (uint256(log.topics[2]).toUint128(), uint256(log.topics[3]).toUint128());
+        uint128 accountId = uint256(log.topics[2]).toUint128();
         (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
 
         SettlementConfiguration.Data memory settlementConfiguration =
-            perpsEngine.getSettlementConfiguration(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID);
+            settlementStrategy.getZarosSettlementConfiguration();
         SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderStrategy =
             abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsMarketStrategy));
 
         string[] memory streams = new string[](1);
         streams[0] = string(abi.encodePacked(marketOrderStrategy.streamId));
         uint256 settlementTimestamp = marketOrder.timestamp + marketOrderStrategy.settlementDelay;
-        bytes memory extraData = abi.encode(accountId, marketId);
+        bytes memory extraData = abi.encode(accountId);
 
         revert StreamsLookup(
             marketOrderStrategy.feedLabel, streams, marketOrderStrategy.queryLabel, settlementTimestamp, extraData
@@ -107,13 +107,14 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
 
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
-        (bytes memory signedReport, uint128 accountId, uint128 marketId) =
-            abi.decode(performData, (bytes, uint128, uint128));
+        (bytes memory signedReport, uint128 accountId) = abi.decode(performData, (bytes, uint128));
 
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
-        (PerpsEngine perpsEngine) = (self.perpsEngine);
+        MarketOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
-        perpsEngine.settleMarketOrder(accountId, marketId, signedReport);
+        bytes memory extraData = abi.encode(accountId);
+
+        settlementStrategy.settle(signedReport, extraData);
     }
 
     function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {

@@ -7,7 +7,6 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
-import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
 import { DataStreamsCustomSettlementStrategy } from "./DataStreamsCustomSettlementStrategy.sol";
 import { OcoOrder } from "./storage/OcoOrder.sol";
 
@@ -15,7 +14,7 @@ import { OcoOrder } from "./storage/OcoOrder.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy, ISettlementStrategy {
+contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
@@ -109,19 +108,16 @@ contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy, ISet
         }
     }
 
-    function settle(
-        bytes calldata signedReport,
-        ISettlementModule.SettlementPayload[] calldata payloads
-    )
-        external
-        override
-        onlyRegisteredKeeper
-    {
+    function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
         DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsCustomSettlementStrategyStorage();
         (uint128 marketId, uint128 settlementId) = (
             dataStreamsCustomSettlementStrategyStorage.marketId, dataStreamsCustomSettlementStrategyStorage.settlementId
         );
+
+        ISettlementModule.SettlementPayload[] memory payloads =
+            abi.decode(extraData, (ISettlementModule.SettlementPayload[]));
+
         (PerpsEngine perpsEngine, bytes memory verifiedReportData) = _prepareDataStreamsSettlement(signedReport);
 
         perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);

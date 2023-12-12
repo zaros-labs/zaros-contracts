@@ -78,8 +78,10 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             return (false, bytes(""));
         }
 
-        SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+        SettlementConfiguration.Data memory settlementConfiguration =
             settlementStrategy.getZarosSettlementConfiguration();
+        SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;
@@ -148,8 +150,9 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
 
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
+        bytes memory extraData = abi.encode(payloads);
 
-        settlementStrategy.settle(signedReport, payloads);
+        settlementStrategy.settle(signedReport, extraData);
     }
 
     function _getOcoOrderUpkeepStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {

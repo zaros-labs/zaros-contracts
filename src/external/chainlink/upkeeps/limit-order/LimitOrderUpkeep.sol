@@ -81,8 +81,10 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             return (false, bytes(""));
         }
 
-        SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+        SettlementConfiguration.Data memory settlementConfiguration =
             settlementStrategy.getZarosSettlementConfiguration();
+        SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;
@@ -152,8 +154,9 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
         (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
+        bytes memory extraData = abi.encode(payloads);
 
-        settlementStrategy.settle(signedReport, payloads);
+        settlementStrategy.settle(signedReport, extraData);
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {
