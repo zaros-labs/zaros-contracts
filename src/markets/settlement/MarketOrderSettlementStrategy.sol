@@ -4,9 +4,25 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { DataStreamsCustomSettlementStrategy } from "./DataStreamsCustomSettlementStrategy.sol";
 
 contract MarketOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
+    /// @notice {MarketOrderSettlementStrategy} UUPS initializer.
+    function initialize(
+        PerpsEngine perpsEngine,
+        address[] calldata keepers,
+        uint128 marketId,
+        uint128 settlementId
+    )
+        external
+        initializer
+    {
+        __DataStreamsCustomSettlementStrategy_init(
+            perpsEngine, keepers, marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID
+        );
+    }
+
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
 
     function afterSettlement() external override { }

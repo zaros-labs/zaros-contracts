@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
-import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
@@ -28,13 +27,11 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.DataStreamsCustomSettlementStrategy
-    /// @param chainlinkVerifier The address of the Chainlink Verifier contract.
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param keepers The set of registered keepers addresses.
     /// @param marketId The Zaros perp market id which is using this strategy.
     /// @param settlementId The Zaros perp market settlement strategy id linked to this contract.
     struct DataStreamsCustomSettlementStrategyStorage {
-        IVerifierProxy chainlinkVerifier;
         PerpsEngine perpsEngine;
         EnumerableSet.AddressSet keepers;
         uint128 marketId;
@@ -80,7 +77,6 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
 
     /// @notice {DataStreamsCustomSettlementStrategy} UUPS initializer.
     function __DataStreamsCustomSettlementStrategy_init(
-        IVerifierProxy chainlinkVerifier,
         PerpsEngine perpsEngine,
         address[] calldata keepers,
         uint128 marketId,
@@ -90,10 +86,6 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
         onlyInitializing
     {
         __Ownable_init(msg.sender);
-
-        if (address(chainlinkVerifier) == address(0)) {
-            revert Errors.ZeroInput("chainlinkVerifier");
-        }
 
         if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("perpsEngine");
@@ -111,7 +103,6 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
 
         DataStreamsCustomSettlementStrategyStorage storage self = _getDataStreamsCustomSettlementStrategyStorage();
 
-        self.chainlinkVerifier = chainlinkVerifier;
         self.perpsEngine = perpsEngine;
         self.marketId = marketId;
         self.settlementId = settlementId;
@@ -143,21 +134,21 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
         }
     }
 
-    function _prepareDataStreamsSettlement(bytes memory signedReport) internal returns (PerpsEngine, bytes memory) {
-        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
-            _getDataStreamsCustomSettlementStrategyStorage();
-        (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) = (
-            IVerifierProxy(dataStreamsCustomSettlementStrategyStorage.chainlinkVerifier),
-            dataStreamsCustomSettlementStrategyStorage.perpsEngine
-        );
+    // function _prepareDataStreamsSettlement(bytes memory signedReport) internal returns (PerpsEngine, bytes memory) {
+    //     DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+    //         _getDataStreamsCustomSettlementStrategyStorage();
+    //     (IVerifierProxy chainlinkVerifier, PerpsEngine perpsEngine) = (
+    //         IVerifierProxy(dataStreamsCustomSettlementStrategyStorage.chainlinkVerifier),
+    //         dataStreamsCustomSettlementStrategyStorage.perpsEngine
+    //     );
 
-        bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
+    //     bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
+    //     FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
 
-        bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
+    //     bytes memory verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
 
-        return (perpsEngine, verifiedReportData);
-    }
+    //     return (perpsEngine, verifiedReportData);
+    // }
 
     /// @inheritdoc UUPSUpgradeable
     function _authorizeUpgrade(address) internal override onlyOwner { }

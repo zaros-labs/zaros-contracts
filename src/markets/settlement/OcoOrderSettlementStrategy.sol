@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
@@ -37,7 +36,6 @@ contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
 
     /// @notice {OcoOrderSettlementStrategy} UUPS initializer.
     function initialize(
-        IVerifierProxy chainlinkVerifier,
         PerpsEngine perpsEngine,
         address[] calldata keepers,
         uint128 marketId,
@@ -46,7 +44,7 @@ contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
         external
         initializer
     {
-        __DataStreamsCustomSettlementStrategy_init(chainlinkVerifier, perpsEngine, keepers, marketId, settlementId);
+        __DataStreamsCustomSettlementStrategy_init(perpsEngine, keepers, marketId, settlementId);
     }
 
     function getConfig()
@@ -54,7 +52,6 @@ contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
         view
         returns (
             address settlementStrategyOwner,
-            address chainlinkVerifier,
             address[] memory keepers,
             address perpsEngine,
             uint128 marketId,
@@ -65,7 +62,6 @@ contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
             _getDataStreamsCustomSettlementStrategyStorage();
 
         settlementStrategyOwner = owner();
-        chainlinkVerifier = address(dataStreamsCustomSettlementStrategyStorage.chainlinkVerifier);
         keepers = _getKeepers();
         perpsEngine = address(dataStreamsCustomSettlementStrategyStorage.perpsEngine);
         marketId = dataStreamsCustomSettlementStrategyStorage.marketId;
@@ -111,16 +107,16 @@ contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
     function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
         DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsCustomSettlementStrategyStorage();
-        (uint128 marketId, uint128 settlementId) = (
-            dataStreamsCustomSettlementStrategyStorage.marketId, dataStreamsCustomSettlementStrategyStorage.settlementId
+        (PerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (
+            dataStreamsCustomSettlementStrategyStorage.perpsEngine,
+            dataStreamsCustomSettlementStrategyStorage.marketId,
+            dataStreamsCustomSettlementStrategyStorage.settlementId
         );
 
         ISettlementModule.SettlementPayload[] memory payloads =
             abi.decode(extraData, (ISettlementModule.SettlementPayload[]));
 
-        (PerpsEngine perpsEngine, bytes memory verifiedReportData) = _prepareDataStreamsSettlement(signedReport);
-
-        perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, verifiedReportData);
+        perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, signedReport);
     }
 
     function _getOcoOrderSettlementStrategyStorage()
