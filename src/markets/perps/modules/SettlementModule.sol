@@ -77,18 +77,6 @@ abstract contract SettlementModule is ISettlementModule {
         }
     }
 
-    // function settleOcoOrder(
-    //     uint128 accountId,
-    //     uint128 marketId,
-    //     BasicReport calldata report,
-    //     LimitOrder.Data calldata limitOrder
-    // )
-    //     external
-    //     onlyOcoOrderUpkeep(marketId)
-    // {
-    //     // TODO: settlement logic
-    // }
-
     // TODO: rework this
     function _settle(
         uint128 marketId,
