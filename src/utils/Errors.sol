@@ -63,7 +63,7 @@ library Errors {
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
 
-    /// @notice PerpsEngine.SettlementModule errors
+    /// @notice PerpsEngine.SettlementModule errors.
 
     /// @notice Thrown when the caller is not the registered Upkeep contract.
     error OnlyUpkeep(address sender, address upkeep);
@@ -77,4 +77,9 @@ library Errors {
 
     /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
     error CollateralPriceFeedNotDefined();
+
+    /// @notice PerpsEngine.SettlementConfiguration errors.
+
+    /// @notice Thrown when the provided `settlementId` is not a valid settlement strategy id.
+    error InvalidSettlementStrategyType(uint8 settlementId);
 }

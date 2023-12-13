@@ -28,6 +28,7 @@ abstract contract SettlementModule is ISettlementModule {
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeCast for int256;
+    using SettlementConfiguration for SettlementConfiguration.Data;
 
     modifier onlyValidCustomTriggerUpkeep() {
         _;
@@ -98,8 +99,13 @@ abstract contract SettlementModule is ISettlementModule {
         runtime.fee = ud60x18(settlementConfiguration.fee);
         address usdToken = PerpsConfiguration.load().usdToken;
 
-        // TODO: apply price impact
-        runtime.fillPrice = perpsMarket.getMarkPrice(extraData);
+        // TODO: Let's find a better and defintitive way to avoid stack too deep.
+        {
+            bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
+
+            // TODO: apply price impact
+            runtime.fillPrice = perpsMarket.getMarkPrice(extraData);
+        }
 
         SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(runtime.fillPrice);
         SD59x18 accruedFunding = oldPosition.getAccruedFunding(fundingFeePerUnit);

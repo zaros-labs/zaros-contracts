@@ -5,6 +5,7 @@ pragma solidity 0.8.23;
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
@@ -14,9 +15,15 @@ library SettlementConfiguration {
     uint128 internal constant MARKET_ORDER_SETTLEMENT_ID = 0;
 
     /// @notice Strategies IDs supported.
-    /// @param DATA_STREAMS The strategy ID that uses basic or premium reports from CL Data Streams to settle
+    /// @param DATA_STREAMS_MARKET The strategy ID that uses basic or premium reports from CL Data Streams to settle
     /// market orders.
-    enum StrategyType { DATA_STREAMS }
+    /// market orders.
+    /// @param DATA_STREAMS_CUSTOM The strategy ID that uses basic or premium reports from CL Data Streams to settle any
+    /// sort of custom order.
+    enum StrategyType {
+        DATA_STREAMS_MARKET,
+        DATA_STREAMS_CUSTOM
+    }
 
     /// @notice The {SettlementConfiguration} namespace storage structure.
     /// @param strategyType The strategy id active.
@@ -80,26 +87,46 @@ library SettlementConfiguration {
         self.data = settlementConfiguration.data;
     }
 
+    function verifyExtraData(
+        Data storage self,
+        bytes memory extraData
+    )
+        internal
+        returns (bytes memory verifiedExtraData)
+    {
+        if (self.strategyType == StrategyType.DATA_STREAMS_MARKET) {
+            DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
+                abi.decode(self.data, (DataStreamsMarketStrategy));
+            verifiedExtraData = verifyDataStreamsReport(dataStreamsMarketStrategy, extraData);
+        } else if (self.strategyType == StrategyType.DATA_STREAMS_CUSTOM) {
+            DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+                abi.decode(self.data, (DataStreamsCustomStrategy));
+            verifiedExtraData = verifyDataStreamsReport(dataStreamsCustomStrategy, extraData);
+        } else {
+            revert Errors.InvalidSettlementStrategyType(uint8(self.strategyType));
+        }
+    }
+
     function verifyDataStreamsReport(
-        DataStreamsMarketStrategy storage self,
+        DataStreamsMarketStrategy memory settlementStrategy,
         bytes memory signedReport
     )
         internal
         returns (bytes memory verifiedReportData)
     {
-        IVerifierProxy chainlinkVerifier = self.chainlinkVerifier;
+        IVerifierProxy chainlinkVerifier = settlementStrategy.chainlinkVerifier;
 
         verifiedReportData = verifyDataStreamsReport(chainlinkVerifier, signedReport);
     }
 
     function verifyDataStreamsReport(
-        DataStreamsCustomStrategy storage self,
+        DataStreamsCustomStrategy memory settlementStrategy,
         bytes memory signedReport
     )
         internal
         returns (bytes memory verifiedReportData)
     {
-        IVerifierProxy chainlinkVerifier = self.chainlinkVerifier;
+        IVerifierProxy chainlinkVerifier = settlementStrategy.chainlinkVerifier;
 
         verifiedReportData = verifyDataStreamsReport(chainlinkVerifier, signedReport);
     }

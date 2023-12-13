@@ -50,7 +50,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         isPremium: false
     });
     SettlementConfiguration.Data internal ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
+        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
         isEnabled: true,
         fee: DATA_STREAMS_SETTLEMENT_FEE,
         settlementStrategy: mockDefaultMarketOrderUpkeep,
@@ -59,7 +59,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
     // TODO: update limit order strategy and move the market's strategies definition to a separate file.
     SettlementConfiguration.Data internal ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
+        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
         isEnabled: true,
         fee: DATA_STREAMS_SETTLEMENT_FEE,
         settlementStrategy: mockDefaultMarketOrderUpkeep,
