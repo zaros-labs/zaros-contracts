@@ -50,7 +50,6 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         isPremium: false
     });
     SettlementConfiguration.Data internal ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
-        chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
         strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
         isEnabled: true,
         fee: DATA_STREAMS_SETTLEMENT_FEE,

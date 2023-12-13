@@ -63,6 +63,7 @@ contract CreatePerpsMarket is BaseScript {
 
         SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData = SettlementConfiguration
             .DataStreamsMarketStrategy({
+            chainlinkVerifier: chainlinkVerifier,
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -73,14 +74,14 @@ contract CreatePerpsMarket is BaseScript {
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
-            upkeep: defaultMarketOrderUpkeep,
+            settlementStrategy: defaultMarketOrderSettlementStrategy,
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
         SettlementConfiguration.Data memory ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
-            upkeep: defaultMarketOrderUpkeep,
+            settlementStrategy: defaultMarketOrderSettlementStrategy,
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
@@ -101,6 +102,7 @@ contract CreatePerpsMarket is BaseScript {
 
         SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData =
         SettlementConfiguration.DataStreamsMarketStrategy({
+            chainlinkVerifier: chainlinkVerifier,
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -108,20 +110,18 @@ contract CreatePerpsMarket is BaseScript {
             isPremium: false
         });
         SettlementConfiguration.Data memory linkUsdMarketOrderStrategy = SettlementConfiguration.Data({
-            chainlinkVerifier: chainlinkVerifier,
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
-            upkeep: defaultMarketOrderUpkeep,
+            settlementStrategy: defaultMarketOrderSettlementStrategy,
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
         SettlementConfiguration.Data memory linkUsdLimitOrderStrategy = SettlementConfiguration.Data({
-            chainlinkVerifier: chainlinkVerifier,
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
-            upkeep: defaultMarketOrderUpkeep,
+            settlementStrategy: defaultMarketOrderSettlementStrategy,
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 

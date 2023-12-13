@@ -36,9 +36,9 @@ abstract contract SettlementModule is ISettlementModule {
     modifier onlyMarketOrderUpkeep(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID);
-        address upkeep = settlementConfiguration.upkeep;
+        address settlementStrategy = settlementConfiguration.settlementStrategy;
 
-        _requireIsUpkeep(msg.sender, upkeep);
+        _requireIsSettlementStrategy(msg.sender, settlementStrategy);
         _;
     }
 
@@ -138,7 +138,7 @@ abstract contract SettlementModule is ISettlementModule {
         emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, runtime.newPosition);
     }
 
-    function _requireIsUpkeep(address sender, address upkeep) internal pure {
+    function _requireIsSettlementStrategy(address sender, address upkeep) internal pure {
         if (sender != upkeep && upkeep != address(0)) {
             revert Errors.OnlyUpkeep(sender, upkeep);
         }
