@@ -6,13 +6,13 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
-import { DataStreamsCustomSettlementStrategy } from "./DataStreamsCustomSettlementStrategy.sol";
+import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
 import { LimitOrder } from "./storage/LimitOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
-contract LimitOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
+contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using LimitOrder for LimitOrder.Data;
 
@@ -47,7 +47,7 @@ contract LimitOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
         external
         initializer
     {
-        __DataStreamsCustomSettlementStrategy_init(perpsEngine, keepers, marketId, settlementId);
+        __DataStreamsSettlementStrategy_init(perpsEngine, keepers, marketId, settlementId);
     }
 
     function getLimitOrders(uint256 lowerBound, uint256 upperBound) external view returns (LimitOrder.Data[] memory) {
@@ -90,8 +90,8 @@ contract LimitOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
     }
 
     function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
-        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
-            _getDataStreamsCustomSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+            _getDataStreamsSettlementStrategyStorage();
         (PerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (
             dataStreamsCustomSettlementStrategyStorage.perpsEngine,
             dataStreamsCustomSettlementStrategyStorage.marketId,

@@ -13,7 +13,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, OwnableUpgradeable, UUPSUpgradeable {
+abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableUpgradeable, UUPSUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     /// @notice Chainlink Data Streams Reports default decimals (both Basic and Premium).
@@ -21,15 +21,15 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant DATA_STREAMS_SETTLEMENT_STRATEGY_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.markets.settlement.DataStreamsCustomSettlementStrategy")) - 1)
+        abi.encode(uint256(keccak256("fi.zaros.markets.settlement.DataStreamsSettlementStrategy")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.DataStreamsCustomSettlementStrategy
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.DataStreamsSettlementStrategy
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param keepers The set of registered keepers addresses.
     /// @param marketId The Zaros perp market id which is using this strategy.
     /// @param settlementId The Zaros perp market settlement strategy id linked to this contract.
-    struct DataStreamsCustomSettlementStrategyStorage {
+    struct DataStreamsSettlementStrategyStorage {
         PerpsEngine perpsEngine;
         EnumerableSet.AddressSet keepers;
         uint128 marketId;
@@ -38,7 +38,7 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
 
     /// @notice Ensures that only a registered keeper is able to call a function.
     modifier onlyRegisteredKeeper() {
-        DataStreamsCustomSettlementStrategyStorage storage self = _getDataStreamsCustomSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
         bool isValidSender = self.keepers.contains(msg.sender);
 
         if (!isValidSender) {
@@ -48,7 +48,7 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
     }
 
     modifier onlyPerpsEngine() {
-        DataStreamsCustomSettlementStrategyStorage storage self = _getDataStreamsCustomSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
         bool isSenderPerpsEngine = msg.sender == address(self.perpsEngine);
 
         if (!isSenderPerpsEngine) {
@@ -69,7 +69,7 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
             uint128 settlementId
         )
     {
-        DataStreamsCustomSettlementStrategyStorage storage self = _getDataStreamsCustomSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
 
         settlementStrategyOwner = owner();
         keepers = _getKeepers();
@@ -79,8 +79,8 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
     }
 
     function getZarosSettlementConfiguration() external view returns (SettlementConfiguration.Data memory) {
-        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
-            _getDataStreamsCustomSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+            _getDataStreamsSettlementStrategyStorage();
 
         PerpsEngine perpsEngine = dataStreamsCustomSettlementStrategyStorage.perpsEngine;
         uint128 marketId = dataStreamsCustomSettlementStrategyStorage.marketId;
@@ -94,8 +94,8 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
 
     function settle(bytes calldata signedReport, bytes calldata extraData) external virtual;
 
-    /// @notice {DataStreamsCustomSettlementStrategy} UUPS initializer.
-    function __DataStreamsCustomSettlementStrategy_init(
+    /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
+    function __DataStreamsSettlementStrategy_init(
         PerpsEngine perpsEngine,
         address[] calldata keepers,
         uint128 marketId,
@@ -120,7 +120,7 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
             revert Errors.ZeroInput("settlementId");
         }
 
-        DataStreamsCustomSettlementStrategyStorage storage self = _getDataStreamsCustomSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
 
         self.perpsEngine = perpsEngine;
         self.marketId = marketId;
@@ -132,7 +132,7 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
     }
 
     function _getKeepers() internal view returns (address[] memory keepers) {
-        DataStreamsCustomSettlementStrategyStorage storage self = _getDataStreamsCustomSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
 
         keepers = new address[](self.keepers.length());
 
@@ -141,10 +141,10 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
         }
     }
 
-    function _getDataStreamsCustomSettlementStrategyStorage()
+    function _getDataStreamsSettlementStrategyStorage()
         internal
         pure
-        returns (DataStreamsCustomSettlementStrategyStorage storage self)
+        returns (DataStreamsSettlementStrategyStorage storage self)
     {
         bytes32 slot = DATA_STREAMS_SETTLEMENT_STRATEGY_LOCATION;
 

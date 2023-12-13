@@ -6,14 +6,14 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
-import { DataStreamsCustomSettlementStrategy } from "./DataStreamsCustomSettlementStrategy.sol";
+import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
 import { OcoOrder } from "./storage/OcoOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
+contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
@@ -44,7 +44,7 @@ contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
         external
         initializer
     {
-        __DataStreamsCustomSettlementStrategy_init(perpsEngine, keepers, marketId, settlementId);
+        __DataStreamsSettlementStrategy_init(perpsEngine, keepers, marketId, settlementId);
     }
 
     function getOcoOrders(uint256 lowerBound, uint256 upperBound) external view returns (OcoOrder.Data[] memory) {
@@ -84,8 +84,8 @@ contract OcoOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
     }
 
     function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
-        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
-            _getDataStreamsCustomSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+            _getDataStreamsSettlementStrategyStorage();
         (PerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (
             dataStreamsCustomSettlementStrategyStorage.perpsEngine,
             dataStreamsCustomSettlementStrategyStorage.marketId,

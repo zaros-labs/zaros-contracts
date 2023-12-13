@@ -5,12 +5,12 @@ pragma solidity 0.8.23;
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
-import { DataStreamsCustomSettlementStrategy } from "./DataStreamsCustomSettlementStrategy.sol";
+import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
 
-contract MarketOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
+contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
     /// @notice {MarketOrderSettlementStrategy} UUPS initializer.
     function initialize(PerpsEngine perpsEngine, address[] calldata keepers, uint128 marketId) external initializer {
-        __DataStreamsCustomSettlementStrategy_init(
+        __DataStreamsSettlementStrategy_init(
             perpsEngine, keepers, marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID
         );
     }
@@ -24,8 +24,8 @@ contract MarketOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
 
     function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
         uint128 accountId = abi.decode(extraData, (uint128));
-        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
-            _getDataStreamsCustomSettlementStrategyStorage();
+        DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+            _getDataStreamsSettlementStrategyStorage();
         (uint128 marketId, PerpsEngine perpsEngine) = (
             dataStreamsCustomSettlementStrategyStorage.marketId, dataStreamsCustomSettlementStrategyStorage.perpsEngine
         );
