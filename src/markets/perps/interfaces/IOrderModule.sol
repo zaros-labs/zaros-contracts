@@ -46,7 +46,7 @@ interface IOrderModule {
 
     function cancelMarketOrder(uint128 accountId, uint128 marketId, uint8 orderId) external;
 
-    function dispatchCustomSettlementStrategy(
+    function dispatchCustomSettlementRequest(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,

@@ -3,6 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
@@ -41,6 +42,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     /// @dev ETH / USD market configuration variables.
     SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData = SettlementConfiguration
         .DataStreamsMarketStrategy({
+        chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
         streamId: MOCK_ETH_USD_STREAM_ID,
         feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
         queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -48,10 +50,11 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         isPremium: false
     });
     SettlementConfiguration.Data internal ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
+        chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
         strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
         isEnabled: true,
         fee: DATA_STREAMS_SETTLEMENT_FEE,
-        upkeep: mockDefaultMarketOrderUpkeep,
+        settlementStrategy: mockDefaultMarketOrderUpkeep,
         data: abi.encode(ethUsdMarketOrderStrategyData)
     });
 
@@ -60,7 +63,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS,
         isEnabled: true,
         fee: DATA_STREAMS_SETTLEMENT_FEE,
-        upkeep: mockDefaultMarketOrderUpkeep,
+        settlementStrategy: mockDefaultMarketOrderUpkeep,
         data: abi.encode(ethUsdMarketOrderStrategyData)
     });
     SettlementConfiguration.Data[] internal ethUsdCustomTriggerStrategies;
@@ -84,7 +87,8 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x04 });
 
     /// @dev TODO: think about forking tests
-    address internal mockDefaultMarketOrderUpkeep = vm.addr({ privateKey: 0x05 });
+    address internal mockDefaultMarketOrderSettlementStrategy = vm.addr({ privateKey: 0x05 });
+    address internal mockDefaultMarketOrderUpkeep = vm.addr({ privateKey: 0x06 });
     MockPriceFeed internal mockUsdcUsdPriceFeed;
     MockPriceFeed internal mockWstEthUsdPriceFeed;
 

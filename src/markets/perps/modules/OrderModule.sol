@@ -66,12 +66,6 @@ abstract contract OrderModule is IOrderModule {
         marketOrder = perpsAccount.activeMarketOrder[marketId];
     }
 
-    // TODO: apply this to all upkeeps and rename them to something like "Settlement Strategy Contract"
-    struct dispatchSettlementStrategyPayload {
-        uint128 accountId;
-        bytes extraData;
-    }
-
     /// @inheritdoc IOrderModule
     /// @dev TODO: remove accountId and marketId since they're already present in the payload
     function createMarketOrder(Order.Payload calldata payload, bytes memory extraData) external override {
@@ -96,7 +90,7 @@ abstract contract OrderModule is IOrderModule {
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
 
-    function dispatchCustomSettlementStrategy(
+    function dispatchCustomSettlementRequest(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
@@ -121,15 +115,13 @@ abstract contract OrderModule is IOrderModule {
             settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
         }
 
-        address upkeep = settlementConfiguration.upkeep;
+        address settlementStrategy = settlementConfiguration.settlementStrategy;
 
-        // TODO: use interface selector
         bytes memory callData = abi.encodeWithSelector(ISettlementStrategy.dispatch.selector, accountId, extraData);
-
-        (bool success, bytes memory returnData) = upkeep.call(callData);
+        (bool success, bytes memory returnData) = settlementStrategy.call(callData);
 
         if (!success) {
-            if (returnData.length == 0) revert Errors.FaileddispatchCustomSettlementStrategy();
+            if (returnData.length == 0) revert Errors.FailedDispatchCustomSettlementRequest();
             assembly {
                 revert(add(returnData, 0x20), mload(returnData))
             }

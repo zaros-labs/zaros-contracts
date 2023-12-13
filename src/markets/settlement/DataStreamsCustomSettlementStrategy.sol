@@ -57,6 +57,27 @@ abstract contract DataStreamsCustomSettlementStrategy is ISettlementStrategy, Ow
         _;
     }
 
+    function getConfig()
+        public
+        view
+        virtual
+        returns (
+            address settlementStrategyOwner,
+            address[] memory keepers,
+            address perpsEngine,
+            uint128 marketId,
+            uint128 settlementId
+        )
+    {
+        DataStreamsCustomSettlementStrategyStorage storage self = _getDataStreamsCustomSettlementStrategyStorage();
+
+        settlementStrategyOwner = owner();
+        keepers = _getKeepers();
+        perpsEngine = address(self.perpsEngine);
+        marketId = self.marketId;
+        settlementId = self.settlementId;
+    }
+
     function getZarosSettlementConfiguration() external view returns (SettlementConfiguration.Data memory) {
         DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsCustomSettlementStrategyStorage();

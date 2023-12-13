@@ -10,7 +10,7 @@ import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 library SettlementConfiguration {
     /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
     string internal constant SETTLEMENT_STRATEGY_DOMAIN = "fi.zaros.markets.PerpsMarket.SettlementConfiguration";
-    /// @notice The default strategy id for a given market's market orders strategy.
+    /// @notice The default strategy id for a given market's market orders settlementConfiguration.
     uint128 internal constant MARKET_ORDER_SETTLEMENT_ID = 0;
 
     /// @notice Strategies IDs supported.
@@ -22,17 +22,17 @@ library SettlementConfiguration {
     /// @param strategyType The strategy id active.
     /// @param isEnabled Whether the strategy is enabled or not. May be used to pause trading in a market.
     /// @param fee The settlement cost in USD charged from the trader.
-    /// @param upkeep The address of the responsible Upkeep contract (address(0) means anyone can settle).
-    /// @param data Data structure required for the settlement strategy, varies for each strategy.
+    /// @param settlementStrategy The address of the configured SettlementStrategy contract.
+    /// @param data Data structure required for the settlement strategy, varies for each settlementConfiguration.
     struct Data {
         StrategyType strategyType;
         bool isEnabled;
         uint80 fee;
-        address upkeep;
+        address settlementStrategy;
         bytes data;
     }
 
-    /// @notice Data structure used by the {DATA_STREAMS} strategy.
+    /// @notice Data structure used by the {DATA_STREAMS} settlementConfiguration.
     /// @param streamId The Chainlink Data Streams stream id.
     /// @param feedLabel The Chainlink Data Streams feed label.
     /// @param queryLabel The Chainlink Data Streams query label.
@@ -58,19 +58,19 @@ library SettlementConfiguration {
     function load(uint128 marketId, uint128 settlementId) internal pure returns (Data storage strategy) {
         bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementId));
         assembly {
-            strategy.slot := slot
+            settlementConfiguration.slot := slot
         }
     }
 
-    function create(uint128 marketId, uint128 settlementId, Data memory strategy) internal {
+    function create(uint128 marketId, uint128 settlementId, Data memory settlementConfiguration) internal {
         bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementId));
         Data storage self = load(marketId, settlementId);
 
-        self.strategyType = strategy.strategyType;
-        self.isEnabled = strategy.isEnabled;
-        self.fee = strategy.fee;
-        self.upkeep = strategy.upkeep;
-        self.data = strategy.data;
+        self.strategyType = settlementConfiguration.strategyType;
+        self.isEnabled = settlementConfiguration.isEnabled;
+        self.fee = settlementConfiguration.fee;
+        self.settlementStrategy = settlementConfiguration.settlementStrategy;
+        self.data = settlementConfiguration.data;
     }
 
     function verifyDataStreamsReport(

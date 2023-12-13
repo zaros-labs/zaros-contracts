@@ -50,27 +50,6 @@ contract LimitOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
         __DataStreamsCustomSettlementStrategy_init(perpsEngine, keepers, marketId, settlementId);
     }
 
-    function getConfig()
-        public
-        view
-        returns (
-            address settlementStrategyOwner,
-            address[] memory keepers,
-            address perpsEngine,
-            uint128 marketId,
-            uint128 settlementId
-        )
-    {
-        DataStreamsCustomSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
-            _getDataStreamsCustomSettlementStrategyStorage();
-
-        settlementStrategyOwner = owner();
-        keepers = _getKeepers();
-        perpsEngine = address(dataStreamsCustomSettlementStrategyStorage.perpsEngine);
-        marketId = dataStreamsCustomSettlementStrategyStorage.marketId;
-        settlementId = dataStreamsCustomSettlementStrategyStorage.settlementId;
-    }
-
     function getLimitOrders(uint256 lowerBound, uint256 upperBound) external view returns (LimitOrder.Data[] memory) {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 

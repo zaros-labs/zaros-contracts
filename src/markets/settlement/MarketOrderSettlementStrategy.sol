@@ -9,15 +9,7 @@ import { DataStreamsCustomSettlementStrategy } from "./DataStreamsCustomSettleme
 
 contract MarketOrderSettlementStrategy is DataStreamsCustomSettlementStrategy {
     /// @notice {MarketOrderSettlementStrategy} UUPS initializer.
-    function initialize(
-        PerpsEngine perpsEngine,
-        address[] calldata keepers,
-        uint128 marketId,
-        uint128 settlementId
-    )
-        external
-        initializer
-    {
+    function initialize(PerpsEngine perpsEngine, address[] calldata keepers, uint128 marketId) external initializer {
         __DataStreamsCustomSettlementStrategy_init(
             perpsEngine, keepers, marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID
         );
