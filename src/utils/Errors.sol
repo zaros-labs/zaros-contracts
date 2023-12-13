@@ -21,14 +21,17 @@ library Errors {
     error OnlyForwarder(address sender, address forwarder);
     /// @notice Thrown when the upkeep provided checkData bounds are invalid.
     error InvalidBounds();
-    /// @notice Thrown when a Settlement Strategy contract invoke function receives an invalid action.
+
+    /// @notice Settlement Strategies errors.
+
+    /// @notice Thrown when a Settlement Strategy contract dispatch function receives an invalid action.
     error InvalidSettlementStrategyAction();
 
-    /// @notice LimitOrderUpkeep errors.
+    /// @notice LimitOrderSettlementStrategy errors.
 
     error LimitOrderInvalidAccountId(uint128 providedAccountId, uint128 expectedAccountId);
 
-    /// @notice OcoOrderUpkeep errors.
+    /// @notice OcoOrderSettlementStrategy errors.
 
     /// @notice Thrown when the provided take profit price is lower than the stop loss price.
     error InvalidOcoOrder();
@@ -38,7 +41,7 @@ library Errors {
     /// @notice Thrown when an account is liquidatable and can't perform actions
     error AccountLiquidatable(address sender, uint128 accountId);
     /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
-    error FailedInvokeCustomSettlementStrategy();
+    error FailedDispatchCustomSettlementRequest();
 
     /// @notice PerpsEngine.PerpsAccountModule and PerpsEngine.PerpsAccount errors.
 
@@ -60,7 +63,7 @@ library Errors {
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
 
-    /// @notice PerpsEngine.SettlementModule errors
+    /// @notice PerpsEngine.SettlementModule errors.
 
     /// @notice Thrown when the caller is not the registered Upkeep contract.
     error OnlyUpkeep(address sender, address upkeep);
@@ -74,4 +77,9 @@ library Errors {
 
     /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
     error CollateralPriceFeedNotDefined();
+
+    /// @notice PerpsEngine.SettlementConfiguration errors.
+
+    /// @notice Thrown when the provided `settlementId` is not a valid settlement strategy id.
+    error InvalidSettlementStrategyType(uint8 settlementId);
 }

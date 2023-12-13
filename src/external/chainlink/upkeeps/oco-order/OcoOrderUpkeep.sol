@@ -7,92 +7,54 @@ import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible, BasicReport, PremiumReport } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
-import { BaseUpkeepUpgradeable } from "../BaseUpkeepUpgradeable.sol";
+import { BaseUpkeep } from "../BaseUpkeep.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
-import { OcoOrder } from "./storage/OcoOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
-import { SettlementStrategy } from "@zaros/markets/perps/storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
+import { OcoOrder } from "@zaros/markets/settlement/storage/OcoOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeepUpgradeable {
-    using EnumerableSet for EnumerableSet.UintSet;
-    using SafeCast for uint256;
-
-    enum Actions { UPDATE_OCO_ORDER }
-
-    event LogCreateOcoOrder(
-        address indexed sender, uint128 accountId, OcoOrder.TakeProfit takeProfit, OcoOrder.StopLoss stopLoss
-    );
-
+contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, BaseUpkeep {
     /// @notice ERC7201 storage location.
     bytes32 internal constant OCO_ORDER_UPKEEP_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.OcoOrderUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.OcoOrderUpkeep
+    /// @param settlementStrategy The OCO order settlement strategy contract.
     struct OcoOrderUpkeepStorage {
-        uint128 marketId;
-        uint128 settlementStrategyId;
-        EnumerableSet.UintSet accountsWithActiveOrders;
-        mapping(uint128 accountId => OcoOrder.Data) ocoOrderOfAccount;
+        OcoOrderSettlementStrategy settlementStrategy;
     }
 
     /// @notice {OcoOrderUpkeep} UUPS initializer.
-    function initialize(
-        address chainlinkVerifier,
-        address forwarder,
-        PerpsEngine perpsEngine,
-        uint128 marketId,
-        uint128 settlementStrategyId
-    )
-        external
-        initializer
-    {
-        __BaseUpkeep_init(chainlinkVerifier, forwarder, perpsEngine);
+    function initialize(address forwarder, OcoOrderSettlementStrategy settlementStrategy) external initializer {
+        __BaseUpkeep_init(forwarder);
 
-        if (marketId == 0) {
-            revert Errors.ZeroInput("marketId");
-        }
-        if (settlementStrategyId == 0) {
-            revert Errors.ZeroInput("settlementStrategyId");
+        if (address(settlementStrategy) == address(0)) {
+            revert Errors.ZeroInput("settlementStrategy");
         }
 
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
 
-        self.marketId = marketId;
-        self.settlementStrategyId = settlementStrategyId;
+        self.settlementStrategy = settlementStrategy;
     }
 
-    function getConfig()
-        public
-        view
-        returns (
-            address upkeepOwner,
-            address chainlinkVerifier,
-            address forwarder,
-            address perpsEngine,
-            uint128 marketId,
-            uint128 settlementStrategyId
-        )
-    {
+    function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
 
         upkeepOwner = owner();
-        chainlinkVerifier = baseUpkeepStorage.chainlinkVerifier;
         forwarder = baseUpkeepStorage.forwarder;
-        perpsEngine = address(baseUpkeepStorage.perpsEngine);
-        marketId = self.marketId;
-        settlementStrategyId = self.settlementStrategyId;
+        settlementStrategy = address(self.settlementStrategy);
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -107,29 +69,19 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             revert Errors.InvalidBounds();
         }
 
-        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        PerpsEngine perpsEngine = baseUpkeepStorage.perpsEngine;
+        OcoOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
-        uint256 amountOfOrders = self.accountsWithActiveOrders.length() > checkUpperBound
-            ? checkUpperBound
-            : self.accountsWithActiveOrders.length();
+        OcoOrder.Data[] memory ocoOrders = settlementStrategy.getOcoOrders(checkLowerBound, checkUpperBound);
 
-        if (amountOfOrders == 0) {
-            return (upkeepNeeded, performData);
+        if (ocoOrders.length == 0) {
+            return (false, bytes(""));
         }
 
-        OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
-
-        for (uint256 i = checkLowerBound; i < amountOfOrders; i++) {
-            uint128 accountId = self.accountsWithActiveOrders.at(i).toUint128();
-            ocoOrders[i] = self.ocoOrderOfAccount[accountId];
-        }
-
-        SettlementStrategy.Data memory settlementStrategy =
-            perpsEngine.getSettlementStrategy(self.marketId, self.settlementStrategyId);
-        SettlementStrategy.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-            abi.decode(settlementStrategy.data, (SettlementStrategy.DataStreamsCustomStrategy));
+        SettlementConfiguration.Data memory settlementConfiguration =
+            settlementStrategy.getZarosSettlementConfiguration();
+        SettlementConfiguration.DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsCustomStrategy));
 
         string[] memory feedsParam = new string[](1);
         feedsParam[0] = dataStreamsCustomStrategy.streamId;
@@ -192,33 +144,15 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         }
     }
 
-    function invoke(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
-        (Actions action) = abi.decode(extraData[0:8], (Actions));
-
-        if (action == Actions.UPDATE_OCO_ORDER) {
-            (OcoOrder.TakeProfit memory takeProfit, OcoOrder.StopLoss memory stopLoss) =
-                abi.decode(extraData[8:], (OcoOrder.TakeProfit, OcoOrder.StopLoss));
-
-            _updateOcoOrder(accountId, takeProfit, stopLoss);
-        } else {
-            revert Errors.InvalidSettlementStrategyAction();
-        }
-    }
-
-    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
-
-    function afterSettlement() external override onlyPerpsEngine { }
-
     function performUpkeep(bytes calldata performData) external override onlyForwarder {
         OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-        (uint128 marketId, uint128 settlementStrategyId) = (self.marketId, self.settlementStrategyId);
-        (
-            PerpsEngine perpsEngine,
-            ISettlementModule.SettlementPayload[] memory payloads,
-            bytes memory verifiedReportData
-        ) = _preparePerformData(marketId, performData);
+        OcoOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
-        perpsEngine.settleCustomTriggers(marketId, settlementStrategyId, payloads, verifiedReportData);
+        (bytes memory signedReport, ISettlementModule.SettlementPayload[] memory payloads) =
+            abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
+        bytes memory extraData = abi.encode(payloads);
+
+        settlementStrategy.settle(signedReport, extraData);
     }
 
     function _getOcoOrderUpkeepStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {
@@ -227,45 +161,5 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         assembly {
             self.slot := slot
         }
-    }
-
-    function _updateOcoOrder(
-        uint128 accountId,
-        OcoOrder.TakeProfit memory takeProfit,
-        OcoOrder.StopLoss memory stopLoss
-    )
-        internal
-    {
-        OcoOrderUpkeepStorage storage self = _getOcoOrderUpkeepStorage();
-
-        if (takeProfit.price != 0 && takeProfit.price < stopLoss.price) {
-            revert Errors.InvalidOcoOrder();
-        }
-
-        bool isAccountWithNewOcoOrder =
-            takeProfit.price != 0 || stopLoss.price != 0 && !self.accountsWithActiveOrders.contains(accountId);
-        bool isAccountCancellingOcoOrder =
-            takeProfit.price == 0 && stopLoss.price == 0 && self.accountsWithActiveOrders.contains(accountId);
-
-        bool isLongPosition = takeProfit.sizeDelta < 0 || stopLoss.sizeDelta < 0;
-
-        bool isValidOcoOrder = !isAccountCancellingOcoOrder && isLongPosition
-            ? takeProfit.price > stopLoss.price
-            : takeProfit.price < stopLoss.price;
-
-        if (!isValidOcoOrder) {
-            revert Errors.InvalidOcoOrder();
-        }
-
-        if (isAccountWithNewOcoOrder) {
-            self.accountsWithActiveOrders.add(accountId);
-        } else if (isAccountCancellingOcoOrder) {
-            self.accountsWithActiveOrders.remove(accountId);
-        }
-
-        self.ocoOrderOfAccount[accountId] =
-            OcoOrder.Data({ accountId: accountId, takeProfit: takeProfit, stopLoss: stopLoss });
-
-        emit LogCreateOcoOrder(msg.sender, accountId, takeProfit, stopLoss);
     }
 }

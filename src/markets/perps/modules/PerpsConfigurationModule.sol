@@ -10,7 +10,7 @@ import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { MarginCollateral } from "../storage/MarginCollateral.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
-import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // OpenZeppelin Upgradeable dependencies
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -89,8 +89,8 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
-        SettlementStrategy.Data calldata marketOrderStrategy,
-        SettlementStrategy.Data[] calldata customTriggerStrategies,
+        SettlementConfiguration.Data calldata marketOrderStrategy,
+        SettlementConfiguration.Data[] calldata customTriggerStrategies,
         OrderFees.Data calldata orderFees
     )
         external

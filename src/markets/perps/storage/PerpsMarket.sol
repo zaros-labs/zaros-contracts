@@ -8,7 +8,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
 import { OrderFees } from "./OrderFees.sol";
 import { Position } from "./Position.sol";
-import { SettlementStrategy } from "./SettlementStrategy.sol";
+import { SettlementConfiguration } from "./SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -51,8 +51,8 @@ library PerpsMarket {
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRate,
-        SettlementStrategy.Data memory marketOrderStrategy,
-        SettlementStrategy.Data[] memory customTriggerStrategies,
+        SettlementConfiguration.Data memory marketOrderStrategy,
+        SettlementConfiguration.Data[] memory customTriggerStrategies,
         OrderFees.Data memory orderFees
     )
         internal
@@ -71,12 +71,12 @@ library PerpsMarket {
         self.minInitialMarginRate = minInitialMarginRate;
         self.orderFees = orderFees;
 
-        SettlementStrategy.create(marketId, 0, marketOrderStrategy);
+        SettlementConfiguration.create(marketId, 0, marketOrderStrategy);
 
         if (customTriggerStrategies.length > 0) {
             for (uint256 i = 0; i < customTriggerStrategies.length; i++) {
                 uint128 nextStrategyId = ++self.nextStrategyId;
-                SettlementStrategy.create(marketId, nextStrategyId, customTriggerStrategies[i]);
+                SettlementConfiguration.create(marketId, nextStrategyId, customTriggerStrategies[i]);
             }
         }
     }

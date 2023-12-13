@@ -6,7 +6,7 @@ pragma solidity 0.8.23;
 import { Order } from "../storage/Order.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
-import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -46,10 +46,10 @@ interface IOrderModule {
 
     function cancelMarketOrder(uint128 accountId, uint128 marketId, uint8 orderId) external;
 
-    function invokeCustomSettlementStrategy(
+    function dispatchCustomSettlementRequest(
         uint128 accountId,
         uint128 marketId,
-        uint128 settlementStrategyId,
+        uint128 settlementId,
         bool isAccountStrategy,
         bytes calldata extraData
     )

@@ -7,7 +7,7 @@ import { IPerpsMarketModule } from "../interfaces/IPerpsMarketModule.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
-import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -63,16 +63,16 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function getSettlementStrategy(
+    function getSettlementConfiguration(
         uint128 marketId,
-        uint128 settlementStrategyId
+        uint128 settlementId
     )
         external
         view
         override
-        returns (SettlementStrategy.Data memory)
+        returns (SettlementConfiguration.Data memory)
     {
-        return SettlementStrategy.load(marketId, settlementStrategyId);
+        return SettlementConfiguration.load(marketId, settlementId);
     }
 
     /// @inheritdoc IPerpsMarketModule

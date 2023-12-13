@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { BaseUpkeepUpgradeable } from "@zaros/external/chainlink/upkeeps/BaseUpkeepUpgradeable.sol";
+import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
@@ -12,7 +12,7 @@ import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
-import { SettlementStrategy } from "../storage/SettlementStrategy.sol";
+import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -66,12 +66,6 @@ abstract contract OrderModule is IOrderModule {
         marketOrder = perpsAccount.activeMarketOrder[marketId];
     }
 
-    // TODO: apply this to all upkeeps and rename them to something like "Settlement Strategy Contract"
-    struct InvokeSettlementStrategyPayload {
-        uint128 accountId;
-        bytes extraData;
-    }
-
     /// @inheritdoc IOrderModule
     /// @dev TODO: remove accountId and marketId since they're already present in the payload
     function createMarketOrder(Order.Payload calldata payload, bytes memory extraData) external override {
@@ -96,10 +90,10 @@ abstract contract OrderModule is IOrderModule {
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
 
-    function invokeCustomSettlementStrategy(
+    function dispatchCustomSettlementRequest(
         uint128 accountId,
         uint128 marketId,
-        uint128 settlementStrategyId,
+        uint128 settlementId,
         bool isAccountStrategy,
         bytes calldata extraData
     )
@@ -111,25 +105,23 @@ abstract contract OrderModule is IOrderModule {
         perpsAccount.verifyCaller();
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        SettlementStrategy.Data storage settlementStrategy;
+        SettlementConfiguration.Data storage settlementConfiguration;
 
         if (!isAccountStrategy) {
-            settlementStrategy = SettlementStrategy.load(marketId, settlementStrategyId);
+            settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
         } else {
             // TODO: Implement
-            // settlementStrategy = SettlementStrategy.load(accountId, marketId, settlementStrategyId);
-            settlementStrategy = SettlementStrategy.load(marketId, settlementStrategyId);
+            // settlementConfiguration = SettlementConfiguration.load(accountId, marketId, settlementId);
+            settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
         }
 
-        address upkeep = settlementStrategy.upkeep;
+        address settlementStrategy = settlementConfiguration.settlementStrategy;
 
-        // TODO: use interface selector
-        bytes memory callData = abi.encodeWithSelector(BaseUpkeepUpgradeable.invoke.selector, accountId, extraData);
-
-        (bool success, bytes memory returnData) = upkeep.call(callData);
+        bytes memory callData = abi.encodeWithSelector(ISettlementStrategy.dispatch.selector, accountId, extraData);
+        (bool success, bytes memory returnData) = settlementStrategy.call(callData);
 
         if (!success) {
-            if (returnData.length == 0) revert Errors.FailedInvokeCustomSettlementStrategy();
+            if (returnData.length == 0) revert Errors.FailedDispatchCustomSettlementRequest();
             assembly {
                 revert(add(returnData, 0x20), mload(returnData))
             }
