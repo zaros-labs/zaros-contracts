@@ -75,12 +75,15 @@ library Errors {
     /// @notice PerpsEngine.PerpsMarketModule errors.
     // TODO: create errors
 
+    /// @notice PerpsEngine.PerpsConfiguration errors.
+
+    /// @notice Thrown when the provided marketId doesn't exist or is currently disabled.
+    error PerpMarketDisabled(uint128 marketId);
+
     /// @notice PerpsEngine.PerpsMarket errors.
 
     /// @notice Thrown when a perps market id has already been used.
     error MarketAlreadyExists(uint128 marketId);
-    /// @notice Thrown when the provided marketId doesn't exist or is currently disabled.
-    error PerpMarketDisabled(uint128 marketId);
 
     /// @notice PerpsEngine.MarginCollateral errors.
 

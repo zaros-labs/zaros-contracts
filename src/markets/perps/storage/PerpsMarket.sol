@@ -32,7 +32,6 @@ library PerpsMarket {
         int128 skew;
         uint128 size;
         uint128 nextStrategyId;
-        bool isEnabled;
         OrderFees.Data orderFees;
     }
 
@@ -45,12 +44,6 @@ library PerpsMarket {
 
     function loadActive(uint128 marketId) internal view returns (Data storage perpsMarket) {
         perpsMarket = load(marketId);
-    }
-
-    function checkIsActive(Data storage self) internal view {
-        if (self.id == 0 || !self.isEnabled) {
-            revert Errors.PerpMarketDisabled(self.id);
-        }
     }
 
     function create(

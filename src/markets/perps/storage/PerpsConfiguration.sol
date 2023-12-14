@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 
@@ -54,5 +55,14 @@ library PerpsConfiguration {
     /// @param marketId The id of the market to add.
     function addMarket(Data storage self, uint128 marketId) internal {
         self.enabledMarketsIds.add(uint256(marketId));
+    }
+
+    /// @notice Reverts if the provided `marketId` is not enabled.
+    /// @param self The perps configuration storage pointer.
+    /// @param marketId The id of the market to check.
+    function checkMarketIsNotDisabled(Data storage self, uint128 marketId) internal view {
+        if (!self.enabledMarketsIds.contains(marketId)) {
+            revert Errors.PerpMarketDisabled(marketId);
+        }
     }
 }

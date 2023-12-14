@@ -9,6 +9,7 @@ import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
+import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
@@ -27,6 +28,7 @@ abstract contract OrderModule is IOrderModule {
     using SafeERC20 for IERC20;
     using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
+    using PerpsConfiguration for PerpsConfiguration.Data;
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
 
@@ -79,6 +81,7 @@ abstract contract OrderModule is IOrderModule {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
         Position.Data storage position = Position.load(accountId, marketId);
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
         if (sizeDelta == 0) {
             revert Errors.ZeroInput("sizeDelta");
@@ -93,7 +96,7 @@ abstract contract OrderModule is IOrderModule {
             perpsAccount.checkActivePositionsLimit();
         }
 
-        perpsMarket.checkIsActive();
+        perpsConfiguration.checkMarketIsNotDisabled(marketId);
         marketOrder.checkPendingOrder();
 
         MarketOrder.Data memory marketOrder =
