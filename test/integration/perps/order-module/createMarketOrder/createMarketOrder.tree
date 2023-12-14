@@ -11,14 +11,17 @@ CreateMarketOrder_Integration_Test
             ├── given the account is liquidatable
             │   └── it should revert
             └── given the account is not liquidatable
-                ├── given the account will reach the positions limit
+                ├── given the account does not have enough margin
                 │   └── it should revert
-                └── given the account will not reach the positions limit
-                    ├── given the perp market is not active
+                └── given the account has enough margin
+                    ├── given the account will reach the positions limit
                     │   └── it should revert
-                    └── given the perp market is active
-                        ├── given there is a pending market order
+                    └── given the account will not reach the positions limit
+                        ├── given the perp market is not active
                         │   └── it should revert
-                        └── given there is no pending market order
-                            ├── it should create the market order
-                            └── it should emit a {LogCreateMarketOrder} event
+                        └── given the perp market is active
+                            ├── given there is a pending market order
+                            │   └── it should revert
+                            └── given there is no pending market order
+                                ├── it should create the market order
+                                └── it should emit a {LogCreateMarketOrder} event

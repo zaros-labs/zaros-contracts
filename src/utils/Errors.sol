@@ -50,7 +50,7 @@ library Errors {
     /// @notice Thrown When the caller is not the account token contract.
     error OnlyPerpsAccountToken(address sender);
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
-    error PermissionDenied(uint128 accountId, address sender);
+    error AccountPermissionDenied(uint128 accountId, address sender);
     /// @notice Thrown when the given `accountId` doesn't exist.
     error AccountNotFound(uint128 accountId, address sender);
     /// @notice Thrown when the given `accountId` tries to open a new position but it has already reached the limit.

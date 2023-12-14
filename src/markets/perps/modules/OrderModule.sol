@@ -86,6 +86,8 @@ abstract contract OrderModule is IOrderModule {
 
         perpsAccount.checkIsNotLiquidatable();
 
+        // TODO: Simulate new position and verify if there's enough margin available
+
         bool isMarketWithActivePosition = perpsAccount.activeMarketIds.contains(marketId);
         if (!isMarketWithActivePosition) {
             perpsAccount.checkActivePositionsLimit();

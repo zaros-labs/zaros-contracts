@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
@@ -17,16 +18,26 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertWhen_TheAccountIdDoesNotExist() external {
+    function testFuzz_RevertWhen_TheAccountIdDoesNotExist(uint128 perpsAccountId, int128 sizeDelta) external {
         // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.AccountNotFound, perpsAccountId, users.naruto) });
+        perpsEngine.createMarketOrdder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, sizeDelta: sizeDelta });
     }
 
     modifier whenTheAccountIdExists() {
         _;
     }
 
-    function test_RevertGiven_TheSenderIsNotAuthorized() external whenTheAccountIdExists {
+    function testFuzz_RevertGiven_TheSenderIsNotAuthorized(int128 sizeDelta) external whenTheAccountIdExists {
+        uint128 perpsAccountId = perpsEngine.createAccount();
+
+        changePrank({ msgSender: users.sasuke });
+
         // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied, perpsAccountId, users.sasuke)
+        });
+        perpsEngine.createMarketOrdder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, sizeDelta: sizeDelta });
     }
 
     modifier givenTheSenderIsAuthorized() {
@@ -34,13 +45,18 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function test_RevertWhen_TheSizeDeltaIsZero() external whenTheAccountIdExists givenTheSenderIsAuthorized {
+        uint128 perpsAccountId = perpsEngine.createAccount();
+
         // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput, "sizeDelta") });
+        perpsEngine.createMarketOrdder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, sizeDelta: 0 });
     }
 
     modifier whenTheSizeDeltaIsNotZero() {
         _;
     }
 
+    // TODO: Implement
     function test_RevertGiven_TheAccountIsLiquidatable()
         external
         whenTheAccountIdExists
@@ -54,12 +70,28 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
+    // TODO: Implement
+    function test_RevertGiven_TheAccountDoesNotHaveEnoughMargin()
+        external
+        whenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+        givenTheAccountIsNotLiquidatable
+    {
+        // it should revert
+    }
+
+    modifier givenTheAccountHasEnoughMargin() {
+        _;
+    }
+
     function test_RevertGiven_TheAccountWillReachThePositionsLimit()
         external
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
         givenTheAccountIsNotLiquidatable
+        givenTheAccountHasEnoughMargin
     {
         // it should revert
     }
@@ -74,6 +106,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
         givenTheAccountIsNotLiquidatable
+        givenTheAccountHasEnoughMargin
         givenTheAccountWillNotReachThePositionsLimit
     {
         // it should revert
@@ -89,6 +122,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
         givenTheAccountIsNotLiquidatable
+        givenTheAccountHasEnoughMargin
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {
@@ -101,6 +135,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
         givenTheAccountIsNotLiquidatable
+        givenTheAccountHasEnoughMargin
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {

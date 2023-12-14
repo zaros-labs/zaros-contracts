@@ -128,7 +128,7 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     function verifySender(Data storage self) internal view {
         if (self.owner != msg.sender) {
-            revert Errors.PermissionDenied(self.id, msg.sender);
+            revert Errors.AccountPermissionDenied(self.id, msg.sender);
         }
     }
 
