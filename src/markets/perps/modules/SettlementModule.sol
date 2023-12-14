@@ -93,7 +93,7 @@ abstract contract SettlementModule is ISettlementModule {
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
-        Position.Data storage oldPosition = perpsMarket.positions[runtime.accountId];
+        Position.Data storage oldPosition = Position.load(runtime.accountId, runtime.marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         runtime.fee = ud60x18(settlementConfiguration.fee);

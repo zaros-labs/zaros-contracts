@@ -78,6 +78,11 @@ abstract contract OrderModule is IOrderModule {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
+        Position.Data storage position = Position.load(accountId, marketId);
+
+        if (sizeDelta == 0) {
+            revert Errors.ZeroInput("sizeDelta");
+        }
 
         perpsAccount.checkIsNotLiquidatable();
 
@@ -87,7 +92,7 @@ abstract contract OrderModule is IOrderModule {
         }
 
         perpsMarket.checkIsActive();
-        marketOrder.checkIsValid();
+        marketOrder.checkPendingOrder();
 
         MarketOrder.Data memory marketOrder =
             MarketOrder.Data({ sizeDelta: sizeDelta, acceptablePrice: acceptablePrice, timestamp: block.timestamp });

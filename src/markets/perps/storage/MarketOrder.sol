@@ -27,7 +27,7 @@ library MarketOrder {
 
     function clear(Data storage self) internal { }
 
-    function checkIsValid(Data storage self) internal view {
+    function checkPendingOrder(Data storage self) internal view {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
         (uint128 marketOrderMinLifetime, uint128 maxPositionsPerAccount) =
             (perpsConfiguration.marketOrderMinLifetime, perpsConfiguration.maxPositionsPerAccount);

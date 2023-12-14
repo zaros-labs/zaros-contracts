@@ -8,6 +8,9 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The Position namespace.
 library Position {
+    /// @notice Constant base domain used to access a given Position's storage slot.
+    string internal constant POSITION_DOMAIN = "fi.zaros.markets.perps.storage.Position";
+
     /// @notice The {Position} namespace storage structure.
     /// @param size The position size in asset units, i.e amount of purchased contracts.
     /// @param initialMargin The notional value of the initial margin allocated by the account.
@@ -20,6 +23,14 @@ library Position {
         int128 unrealizedPnlStored;
         uint128 lastInteractionPrice;
         int128 lastInteractionFundingFeePerUnit;
+    }
+
+    function load(uint128 accountId, uint128 marketId) internal pure returns (Data storage position) {
+        bytes32 slot = keccak256(abi.encode(POSITION_DOMAIN, accountId, marketId));
+
+        assembly {
+            position.slot := slot
+        }
     }
 
     /// @dev Updates the current position with the new one.

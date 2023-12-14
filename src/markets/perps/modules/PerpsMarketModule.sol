@@ -93,7 +93,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
 
     function getPositionLeverage(uint128 accountId, uint128 marketId) external view override returns (UD60x18) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        Position.Data storage position = perpsMarket.positions[accountId];
+        Position.Data storage position = Position.load(accountId, marketId);
 
         UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
         UD60x18 leverage = position.getNotionalValue(marketIndexPrice).div(ud60x18(position.initialMargin));
@@ -144,7 +144,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         )
     {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        Position.Data storage position = perpsMarket.positions[accountId];
+        Position.Data storage position = Position.load(accountId, marketId);
 
         // UD60x18 maintenanceMarginRate = ud60x18(perpsMarket.maintenanceMarginRate);
         UD60x18 price = perpsMarket.getIndexPrice();

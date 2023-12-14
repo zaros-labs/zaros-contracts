@@ -85,7 +85,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
             PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-            Position.Data storage position = perpsMarket.positions[accountId];
+            Position.Data storage position = Position.load(accountId, marketId);
 
             UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
             SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(marketIndexPrice);

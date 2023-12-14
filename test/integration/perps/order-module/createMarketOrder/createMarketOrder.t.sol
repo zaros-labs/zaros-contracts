@@ -17,18 +17,105 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
+    function test_RevertWhen_TheAccountIdDoesNotExist() external {
+        // it should revert
+    }
+
+    modifier whenTheAccountIdExists() {
+        _;
+    }
+
+    function test_RevertGiven_TheSenderIsNotAuthorized() external whenTheAccountIdExists {
+        // it should revert
+    }
+
+    modifier givenTheSenderIsAuthorized() {
+        _;
+    }
+
+    function test_RevertWhen_TheSizeDeltaIsZero() external whenTheAccountIdExists givenTheSenderIsAuthorized {
+        // it should revert
+    }
+
+    modifier whenTheSizeDeltaIsNotZero() {
+        _;
+    }
+
+    function test_RevertGiven_TheAccountIsLiquidatable()
+        external
+        whenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+    {
+        // it should revert
+    }
+
+    modifier givenTheAccountIsNotLiquidatable() {
+        _;
+    }
+
+    function test_RevertGiven_TheAccountWillReachThePositionsLimit()
+        external
+        whenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+        givenTheAccountIsNotLiquidatable
+    {
+        // it should revert
+    }
+
+    modifier givenTheAccountWillNotReachThePositionsLimit() {
+        _;
+    }
+
+    function test_RevertGiven_ThePerpMarketIsNotActive()
+        external
+        whenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+        givenTheAccountIsNotLiquidatable
+        givenTheAccountWillNotReachThePositionsLimit
+    {
+        // it should revert
+    }
+
+    modifier givenThePerpMarketIsActive() {
+        _;
+    }
+
+    function test_RevertGiven_ThereIsAPendingMarketOrder()
+        external
+        whenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+        givenTheAccountIsNotLiquidatable
+        givenTheAccountWillNotReachThePositionsLimit
+        givenThePerpMarketIsActive
+    {
+        // it should revert
+    }
+
+    function test_GivenThereIsNoPendingMarketOrder()
+        external
+        whenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+        givenTheAccountIsNotLiquidatable
+        givenTheAccountWillNotReachThePositionsLimit
+        givenThePerpMarketIsActive
+    {
+        // it should create the market order
+        // it should emit a {LogCreateMarketOrder} event
+    }
+
     function testFuzz_CreateMarketOrder(uint256 amountToDeposit) external {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        MarketOrder.Payload memory payload = MarketOrder.Payload({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            // initialMarginDelta: int128(10_000e18),
-            sizeDelta: int128(50e18)
-        });
+        MarketOrder.Payload memory payload =
+            MarketOrder.Payload({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, sizeDelta: int128(50e18) });
         MarketOrder.Data memory expectedOrder =
             MarketOrder.Data({ payload: payload, timestamp: uint248(block.timestamp) });
 
@@ -44,12 +131,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        MarketOrder.Payload memory payload = MarketOrder.Payload({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            // initialMarginDelta: int128(10_000e18),
-            sizeDelta: int128(50e18)
-        });
+        MarketOrder.Payload memory payload =
+            MarketOrder.Payload({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, sizeDelta: int128(50e18) });
 
         perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
 

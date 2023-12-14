@@ -34,7 +34,6 @@ library PerpsMarket {
         uint128 nextStrategyId;
         bool isEnabled;
         OrderFees.Data orderFees;
-        mapping(uint128 accountId => Position.Data) positions;
     }
 
     function load(uint128 marketId) internal pure returns (Data storage perpsMarket) {
