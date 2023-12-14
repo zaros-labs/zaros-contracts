@@ -107,7 +107,6 @@ interface IPerpsMarketModule {
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.
     /// @return size The position size in asset units, i.e amount of purchased contracts.
-    /// @return initialMargin The notional value of the initial margin allocated by the account.
     /// @return notionalValue The notional value of the position.
     /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
     /// @return accruedFunding The accrued funding fee.
@@ -120,7 +119,6 @@ interface IPerpsMarketModule {
         view
         returns (
             SD59x18 size,
-            UD60x18 initialMargin,
             UD60x18 notionalValue,
             UD60x18 maintenanceMargin,
             SD59x18 accruedFunding,
