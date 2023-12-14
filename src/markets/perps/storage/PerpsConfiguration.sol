@@ -22,8 +22,7 @@ library PerpsConfiguration {
     using SafeCast for int256;
 
     /// @dev PerpsConfiguration namespace storage slot.
-    bytes32 internal constant PERPS_CONFIGURATION_SLOT =
-        keccak256(abi.encode("fi.liquidityEngine.markets.PerpsConfiguration"));
+    bytes32 internal constant PERPS_CONFIGURATION_SLOT = keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
 
     /// @notice {PerpConfiguration} namespace storage structure.
     struct Data {

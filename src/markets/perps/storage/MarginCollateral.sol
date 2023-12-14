@@ -13,7 +13,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 library MarginCollateral {
     /// @notice Constant base domain used to access a given MarginCollateral's storage slot.
-    string internal constant MARGIN_COLLATERAL_DOMAIN = "fi.liquidityEngine.markets.MarginCollateral";
+    string internal constant MARGIN_COLLATERAL_DOMAIN = "fi.zaros.markets.MarginCollateral";
 
     /// @notice {MarginCollateral} namespace storage structure.
     /// @param depositCap The maximum deposit cap of the given margin collateral type

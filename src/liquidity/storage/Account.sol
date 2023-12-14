@@ -21,7 +21,7 @@ library Account {
     using SafeCast for uint256;
 
     /// @dev Constant base domain used to access a given account's storage slot
-    string internal constant ACCOUNT_DOMAIN = "fi.liquidityEngine.core.Account";
+    string internal constant ACCOUNT_DOMAIN = "fi.zaros.core.Account";
 
     error Zaros_Account_PermissionDenied(uint128 accountId, address sender);
 

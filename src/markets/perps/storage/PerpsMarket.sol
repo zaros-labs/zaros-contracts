@@ -20,7 +20,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 /// @title The PerpsMarket namespace.
 library PerpsMarket {
     /// @dev Constant base domain used to access a given PerpsMarket's storage slot.
-    string internal constant PERPS_MARKET_DOMAIN = "fi.liquidityEngine.markets.PerpsMarket";
+    string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpsMarket";
 
     struct Data {
         string name;

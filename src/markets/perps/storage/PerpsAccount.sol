@@ -24,7 +24,7 @@ library PerpsAccount {
     using MarginCollateral for MarginCollateral.Data;
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
-    string internal constant PERPS_ACCOUNT_DOMAIN = "fi.liquidityEngine.markets.PerpsAccount";
+    string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
 
     /// @notice {PerpsAccount} namespace storage structure.
     /// @param id The perps account id.

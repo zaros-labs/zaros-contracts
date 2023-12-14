@@ -26,7 +26,7 @@ library MarketManager {
 
     error Zaros_MarketManager_MinDelegationTimeoutPending(uint32 timeRemaining);
 
-    bytes32 private constant MARKET_MANAGER_SLOT = keccak256(abi.encode("fi.liquidityEngine.core.MarketManager"));
+    bytes32 private constant MARKET_MANAGER_SLOT = keccak256(abi.encode("fi.zaros.core.MarketManager"));
 
     struct Data {
         uint128 minLiquidityRatio;
