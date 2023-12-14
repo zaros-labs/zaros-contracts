@@ -159,7 +159,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     function withdrawMargin(uint128 accountId, address collateralType, UD60x18 ud60x18Amount) external override {
         _requireAmountNotZero(ud60x18Amount);
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
         _checkMarginIsAvailable(perpsAccount, collateralType, ud60x18Amount);
         perpsAccount.decreaseMarginCollateralBalance(collateralType, ud60x18Amount);
 

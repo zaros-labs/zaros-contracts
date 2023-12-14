@@ -101,7 +101,7 @@ contract VaultModule is IVaultModule {
         override
     {
         FeatureFlag.ensureAccessToFeature(Constants.DELEGATE_FEATURE_FLAG);
-        Account.loadAccountAndValidatePermission(accountId);
+        Account.loadExistingAccountAndVerifySender(accountId);
 
         if (newCollateralAmount.gt(UD_ZERO)) {
             CollateralConfig.requireSufficientDelegation(collateralType, newCollateralAmount);

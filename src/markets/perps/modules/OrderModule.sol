@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.23;
 
 // Zaros dependencies
@@ -7,7 +6,7 @@ import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettl
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsEngine } from "../interfaces/IPerpsEngine.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
-import { Order } from "../storage/Order.sol";
+import { MarketOrder } from "../storage/MarketOrder.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
@@ -26,7 +25,7 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol"
 abstract contract OrderModule is IOrderModule {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
-    using Order for Order.Market;
+    using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
@@ -59,7 +58,7 @@ abstract contract OrderModule is IOrderModule {
         external
         view
         override
-        returns (Order.Market memory marketOrder)
+        returns (MarketOrder.Data memory marketOrder)
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
@@ -67,25 +66,33 @@ abstract contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    /// @dev TODO: remove accountId and marketId since they're already present in the payload
-    function createMarketOrder(Order.Payload calldata payload, bytes memory extraData) external override {
-        uint128 accountId = payload.accountId;
-        uint128 marketId = payload.marketId;
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
+    function createMarketOrder(
+        uint128 accountId,
+        uint128 marketId,
+        int128 sizeDelta,
+        uint256 acceptablePrice
+    )
+        external
+        override
+    {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
 
-        if (perpsAccount.canBeLiquidated()) {
-            revert Errors.AccountLiquidatable(msg.sender, accountId);
+        perpsAccount.checkIsNotLiquidatable();
+
+        bool isMarketWithActivePosition = perpsAccount.activeMarketIds.contains(marketId);
+        if (!isMarketWithActivePosition) {
+            perpsAccount.checkActivePositionsLimit();
         }
 
-        if (perpsAccount.activeMarketOrder[marketId].timestamp != 0) {
-            revert();
-        }
+        perpsMarket.checkIsActive();
+        marketOrder.checkIsValid();
 
-        // TODO: validate order
-        Order.Market memory marketOrder = Order.Market({ payload: payload, timestamp: block.timestamp.toUint248() });
+        MarketOrder.Data memory marketOrder =
+            MarketOrder.Data({ sizeDelta: sizeDelta, acceptablePrice: acceptablePrice, timestamp: block.timestamp });
+
         perpsAccount.activeMarketOrder[marketId] = marketOrder;
-        // perpsAccount.updateActiveOrders(marketId, orderId, true);
 
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
@@ -101,10 +108,9 @@ abstract contract OrderModule is IOrderModule {
         override
         returns (bytes memory)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        perpsAccount.verifyCaller();
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
 
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        PerpsMarket.Data storage perpsMarket = PerpsMarket.loadActive(marketId);
         SettlementConfiguration.Data storage settlementConfiguration;
 
         if (!isAccountStrategy) {
@@ -132,9 +138,9 @@ abstract contract OrderModule is IOrderModule {
 
     /// @inheritdoc IOrderModule
     function cancelMarketOrder(uint128 accountId, uint128 marketId, uint8 orderId) external override {
-        // PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
+        // PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
         // PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        // Order.Market storage order = perpsMarket.orders[accountId][orderId];
+        // MarketOrder.Data storage order = perpsMarket.orders[accountId][orderId];
 
         // // perpsAccount.updateActiveOrders(marketId, orderId, false);
         // order.reset();

@@ -39,7 +39,7 @@ library Errors {
     /// @notice PerpsEngine.OrderModule errors
 
     /// @notice Thrown when an account is liquidatable and can't perform actions
-    error AccountLiquidatable(address sender, uint128 accountId);
+    error AccountLiquidatable(uint128 accountId);
     /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
     error FailedDispatchCustomSettlementRequest();
 
@@ -53,6 +53,10 @@ library Errors {
     error PermissionDenied(uint128 accountId, address sender);
     /// @notice Thrown when the given `accountId` doesn't exist.
     error AccountNotFound(uint128 accountId, address sender);
+    /// @notice Thrown when the given `accountId` tries to open a new position but it has already reached the limit.
+    error MaxPositionsPerAccountReached(
+        uint128 accountId, uint256 activePositionsLength, uint256 maxPositionsPerAccount
+    );
 
     /// @notice PerpsEngine.PerpsConfigurationModule
 
@@ -68,15 +72,26 @@ library Errors {
     /// @notice Thrown when the caller is not the registered Upkeep contract.
     error OnlyUpkeep(address sender, address upkeep);
 
-    /// @notice PerpsEngine.PerpsMarketModule and PerpsEngine.PerpsMarket errors.
+    /// @notice PerpsEngine.PerpsMarketModule errors.
+    // TODO: create errors
+
+    /// @notice PerpsEngine.PerpsMarket errors.
 
     /// @notice Thrown when a perps market id has already been used.
-    error MarketAlreadyExists(uint128 marketId, address sender);
+    error MarketAlreadyExists(uint128 marketId);
+    /// @notice Thrown when the provided marketId doesn't exist or is currently disabled.
+    error PerpMarketDisabled(uint128 marketId);
 
     /// @notice PerpsEngine.MarginCollateral errors.
 
     /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
     error CollateralPriceFeedNotDefined();
+
+    /// @notice PerpsEngine.MarketOrder errors.
+
+    /// @notice Thrown when the `accountId` tries to create a new market order at the `marketId`, and there's already an
+    /// existing order with pending settlement.
+    error MarketOrderAlreadyPending(uint128 accountId, uint128 marketId, uint256 timestamp);
 
     /// @notice PerpsEngine.SettlementConfiguration errors.
 

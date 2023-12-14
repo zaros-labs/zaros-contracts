@@ -32,15 +32,25 @@ library PerpsMarket {
         int128 skew;
         uint128 size;
         uint128 nextStrategyId;
+        bool isEnabled;
         OrderFees.Data orderFees;
         mapping(uint128 accountId => Position.Data) positions;
     }
 
-    /// @dev TODO: add function that only loads a valid / existing perps market
     function load(uint128 marketId) internal pure returns (Data storage perpsMarket) {
         bytes32 slot = keccak256(abi.encode(PERPS_MARKET_DOMAIN, marketId));
         assembly {
             perpsMarket.slot := slot
+        }
+    }
+
+    function loadActive(uint128 marketId) internal view returns (Data storage perpsMarket) {
+        perpsMarket = load(marketId);
+    }
+
+    function checkIsActive(Data storage self) internal view {
+        if (self.id == 0 || !self.isEnabled) {
+            revert Errors.PerpMarketDisabled(self.id);
         }
     }
 
@@ -59,7 +69,7 @@ library PerpsMarket {
     {
         Data storage self = load(marketId);
         if (self.id != 0) {
-            revert Errors.MarketAlreadyExists(marketId, msg.sender);
+            revert Errors.MarketAlreadyExists(marketId);
         }
 
         // TODO: remember to test gas cost / number of sstores here

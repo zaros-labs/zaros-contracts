@@ -86,14 +86,14 @@ library Account {
         self.lastInteraction = uint64(block.timestamp);
     }
 
-    function loadAccountAndValidatePermission(uint128 accountId) internal returns (Data storage account) {
+    function loadExistingAccountAndVerifySender(uint128 accountId) internal returns (Data storage account) {
         account = load(accountId);
-        verifyCaller(account);
+        verifySender(account);
 
         recordInteraction(account);
     }
 
-    function loadAccountAndValidatePermissionAndTimeout(
+    function loadExistingAccountAndVerifySenderAndTimeout(
         uint128 accountId,
         uint256 timeout
     )
@@ -102,7 +102,7 @@ library Account {
         returns (Data storage account)
     {
         account = Account.load(accountId);
-        verifyCaller(account);
+        verifySender(account);
 
         uint256 endWaitingPeriod = account.lastInteraction + timeout;
         if (block.timestamp < endWaitingPeriod) {
@@ -110,7 +110,7 @@ library Account {
         }
     }
 
-    function verifyCaller(Data storage self) internal view {
+    function verifySender(Data storage self) internal view {
         if (self.owner != msg.sender) {
             revert Zaros_Account_PermissionDenied(self.id, msg.sender);
         }

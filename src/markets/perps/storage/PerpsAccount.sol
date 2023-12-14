@@ -5,7 +5,8 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarginCollateral } from "./MarginCollateral.sol";
-import { Order } from "./Order.sol";
+import { MarketOrder } from "./MarketOrder.sol";
+import { PerpsConfiguration } from "./PerpsConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -22,6 +23,7 @@ library PerpsAccount {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
     using MarginCollateral for MarginCollateral.Data;
+    using PerpsConfiguration for PerpsConfiguration.Data;
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
@@ -40,7 +42,7 @@ library PerpsAccount {
         // EnumerableSet.Bytes32Set activeOrdersPerMarket;
         EnumerableSet.UintSet activeMarketsIds;
         EnumerableSet.AddressSet collateralPriority;
-        mapping(uint128 marketId => Order.Market) activeMarketOrder;
+        mapping(uint128 marketId => MarketOrder.Data) activeMarketOrder;
     }
 
     /// @notice Loads a {PerpsAccount} object.
@@ -68,12 +70,31 @@ library PerpsAccount {
         return false;
     }
 
+    function checkIsNotLiquidatable(Data storage self) internal view {
+        if (canBeLiquidated(self)) {
+            revert Errors.AccountLiquidatable(self.id);
+        }
+    }
+
+    /// @dev This function must be called when the perps account is going to open a new position. If called in a context
+    /// of an already active market, the check may be misleading.
+    function checkCanCreateNewPosition(Data storage self) internal view {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+
+        uint256 maxPositionsPerAccount = perpsConfiguration.maxPositionsPerAccount;
+        uint256 activePositionsLength = self.activeMarketIds.length();
+
+        if (activePositionsLength >= maxPositionsPerAccount) {
+            revert Errors.MaxPositionsPerAccountReached(self.id, activePositionsLength, maxPositionsPerAccount);
+        }
+    }
+
     /// @notice Loads a perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
-    function loadAccountAndValidatePermission(uint128 accountId) internal view returns (Data storage perpsAccount) {
+    function loadExistingAccountAndVerifySender(uint128 accountId) internal view returns (Data storage perpsAccount) {
         perpsAccount = load(accountId);
-        verifyCaller(perpsAccount);
+        verifySender(perpsAccount);
     }
 
     /// @notice Returns the amount of the given margin collateral type.
@@ -103,9 +124,9 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Verifies if the caller is authorized to perform actions on the given perps account.
+    /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account.
     /// @param self The perps account storage pointer.
-    function verifyCaller(Data storage self) internal view {
+    function verifySender(Data storage self) internal view {
         if (self.owner != msg.sender) {
             revert Errors.PermissionDenied(self.id, msg.sender);
         }

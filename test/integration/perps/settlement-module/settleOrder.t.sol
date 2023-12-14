@@ -4,7 +4,7 @@
 
 // // Zaros dependencies
 // import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
-// import { Order } from "@zaros/markets/perps/storage/Order.sol";
+// import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 // import { Position } from "@zaros/markets/perps/storage/Position.sol";
 // import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
@@ -26,14 +26,14 @@
 
 //         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-//         Order.Payload memory payload = Order.Payload({
+//         MarketOrder.Payload memory payload = MarketOrder.Payload({
 //             accountId: perpsAccountId,
 //             marketId: ETH_USD_MARKET_ID,
 //             // initialMarginDelta: int128(10_000e18),
 //             sizeDelta: int128(50e18)
 //         });
 //         perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
-//         Order.Market memory marketOrder =
+//         MarketOrder.Data memory marketOrder =
 //             perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID });
 
 //         Position.Data memory expectedPosition = Position.Data({
@@ -63,7 +63,7 @@
 
 //         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-//         Order.Payload memory payload = Order.Payload({
+//         MarketOrder.Payload memory payload = MarketOrder.Payload({
 //             accountId: perpsAccountId,
 //             marketId: ETH_USD_MARKET_ID,
 //             // initialMarginDelta: int128(10_000e18),
@@ -75,14 +75,14 @@
 //         perpsEngine.settleMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport
 // });
 
-//         Order.Payload memory newPayload = Order.Payload({
+//         MarketOrder.Payload memory newPayload = MarketOrder.Payload({
 //             accountId: perpsAccountId,
 //             marketId: ETH_USD_MARKET_ID,
 //             // initialMarginDelta: int128(0),
 //             sizeDelta: int128(-25e18)
 //         });
 //         perpsEngine.createMarketOrder({ payload: newPayload });
-//         Order.Market memory sellOrder =
+//         MarketOrder.Data memory sellOrder =
 //             perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID });
 
 //         Position.Data memory expectedPosition = Position.Data({
