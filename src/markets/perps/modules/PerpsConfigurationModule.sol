@@ -53,7 +53,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         perpsConfiguration.liquidityEngine = liquidityEngine;
     }
 
-    /// @inheirtdoc IPerpsConfigurationModule
+    /// @inheritdoc IPerpsConfigurationModule
     function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external override onlyOwner {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
         perpsConfiguration.chainlinkForwarder = chainlinkForwarder;

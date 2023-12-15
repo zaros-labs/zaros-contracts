@@ -29,11 +29,10 @@ library MarketOrder {
 
     function checkPendingOrder(Data storage self) internal view {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        (uint128 marketOrderMinLifetime, uint128 maxPositionsPerAccount) =
-            (perpsConfiguration.marketOrderMinLifetime, perpsConfiguration.maxPositionsPerAccount);
+        uint128 marketOrderMaxLifetime = perpsConfiguration.marketOrderMaxLifetime;
 
-        if (self.timestamp != 0 && block.timestamp - self.timestamp <= marketOrderMinLifetime) {
-            revert Errors.MarketOrderAlreadyPending(self.timestamp);
+        if (self.timestamp != 0 && block.timestamp - self.timestamp <= marketOrderMaxLifetime) {
+            revert Errors.MarketOrderStillPending(self.timestamp);
         }
     }
 }
