@@ -21,7 +21,26 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         perpsEngine.depositMargin(accountId, collateralType, amount);
     }
 
+    function configureSystemParameters() internal {
+        perpsEngine.configureSystemParameters({
+            maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
+            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME
+        });
+    }
+
     function createMarkets() internal {
+        perpsEngine.createPerpsMarket(
+            BTC_USD_MARKET_ID,
+            BTC_USD_MARKET_NAME,
+            BTC_USD_MARKET_SYMBOL,
+            BTC_USD_MMR,
+            BTC_USD_MAX_OI,
+            BTC_USD_MIN_IMR,
+            btcUsdMarketOrderStrategy,
+            btcUsdCustomTriggerStrategies,
+            btcUsdOrderFees
+        );
+
         perpsEngine.createPerpsMarket(
             ETH_USD_MARKET_ID,
             ETH_USD_MARKET_NAME,

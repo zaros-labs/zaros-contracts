@@ -39,6 +39,36 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     address internal mockChainlinkForwarder = vm.addr({ privateKey: 0x01 });
     address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
 
+    /// @dev BTC / USD market configuration variables.
+    SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderStrategyData = SettlementConfiguration
+        .DataStreamsMarketStrategy({
+        chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
+        streamId: MOCK_ETH_USD_STREAM_ID,
+        feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+        queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
+        settlementDelay: ETH_USD_SETTLEMENT_DELAY,
+        isPremium: false
+    });
+    SettlementConfiguration.Data internal btcUsdMarketOrderStrategy = SettlementConfiguration.Data({
+        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+        isEnabled: true,
+        fee: DATA_STREAMS_SETTLEMENT_FEE,
+        settlementStrategy: mockDefaultMarketOrderUpkeep,
+        data: abi.encode(btcUsdMarketOrderStrategyData)
+    });
+
+    // TODO: update limit order strategy and move the market's strategies definition to a separate file.
+    SettlementConfiguration.Data internal btcUsdLimitOrderStrategy = SettlementConfiguration.Data({
+        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
+        isEnabled: true,
+        fee: DATA_STREAMS_SETTLEMENT_FEE,
+        settlementStrategy: mockDefaultMarketOrderUpkeep,
+        data: abi.encode(btcUsdMarketOrderStrategyData)
+    });
+    SettlementConfiguration.Data[] internal btcUsdCustomTriggerStrategies;
+
+    OrderFees.Data internal btcUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+
     /// @dev ETH / USD market configuration variables.
     SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData = SettlementConfiguration
         .DataStreamsMarketStrategy({
@@ -54,7 +84,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         isEnabled: true,
         fee: DATA_STREAMS_SETTLEMENT_FEE,
         settlementStrategy: mockDefaultMarketOrderUpkeep,
-        data: abi.encode(ethUsdMarketOrderStrategyData)
+        data: abi.encode(btcUsdMarketOrderStrategyData)
     });
 
     // TODO: update limit order strategy and move the market's strategies definition to a separate file.

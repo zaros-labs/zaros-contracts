@@ -89,7 +89,7 @@ abstract contract OrderModule is IOrderModule {
 
         perpsAccount.checkIsNotLiquidatable();
 
-        bool isMarketWithActivePosition = perpsAccount.activeMarketIds.contains(marketId);
+        bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
         if (!isMarketWithActivePosition) {
             perpsAccount.checkCanCreateNewPosition();
         }

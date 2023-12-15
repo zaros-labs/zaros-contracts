@@ -93,7 +93,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
             UD60x18 notionalValue = position.getNotionalValue(marketIndexPrice);
 
             marginBalance = marginBalance.add(position.getUnrealizedPnl(marketIndexPrice, accruedFunding));
-            initialMargin = initialMargin.add(ud60x18(position.initialMargin));
+            // initialMargin = initialMargin.add(ud60x18(position.initialMargin));
             maintenanceMargin = maintenanceMargin.add(ud60x18(perpsMarket.maintenanceMarginRate).mul(notionalValue));
         }
 

@@ -82,7 +82,7 @@ library PerpsAccount {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
 
         uint256 maxPositionsPerAccount = perpsConfiguration.maxPositionsPerAccount;
-        uint256 activePositionsLength = self.activeMarketIds.length();
+        uint256 activePositionsLength = self.activeMarketsIds.length();
 
         if (activePositionsLength >= maxPositionsPerAccount) {
             revert Errors.MaxPositionsPerAccountReached(self.id, activePositionsLength, maxPositionsPerAccount);
@@ -130,6 +130,10 @@ library PerpsAccount {
         if (self.owner != msg.sender) {
             revert Errors.AccountPermissionDenied(self.id, msg.sender);
         }
+    }
+
+    function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {
+        return self.activeMarketsIds.contains(marketId);
     }
 
     /// @notice Creates a new perps account.
