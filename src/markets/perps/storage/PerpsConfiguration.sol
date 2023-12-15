@@ -27,9 +27,8 @@ library PerpsConfiguration {
 
     /// @notice {PerpConfiguration} namespace storage structure.
     struct Data {
-        uint256 maxPositionsPerAccount;
-        uint256 maxActiveOrders;
-        uint256 marketOrderMaxLifetime;
+        uint128 maxPositionsPerAccount;
+        uint128 marketOrderMaxLifetime;
         address chainlinkForwarder;
         address chainlinkVerifier;
         address rewardDistributor;

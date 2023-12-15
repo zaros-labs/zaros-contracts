@@ -53,6 +53,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         perpsConfiguration.liquidityEngine = liquidityEngine;
     }
 
+    /// @inheirtdoc IPerpsConfigurationModule
     function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external override onlyOwner {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
         perpsConfiguration.chainlinkForwarder = chainlinkForwarder;
@@ -79,6 +80,24 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         } catch {
             revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }
+    }
+
+    function configureSystemParameters(
+        uint128 maxPositionsPerAccount,
+        uint128 marketOrderMaxLifetime
+    )
+        external
+        override
+        onlyOwner
+    {
+        if (maxPositionsPerAccount == 0) {
+            revert Errors.ZeroInput("maxPositionsPerAccount");
+        }
+
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+
+        perpsConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
+        perpsConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
     }
 
     /// @inheritdoc IPerpsConfigurationModule
