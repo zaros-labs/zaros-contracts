@@ -92,9 +92,9 @@ library Errors {
 
     /// @notice PerpsEngine.MarketOrder errors.
 
-    /// @notice Thrown when the `accountId` tries to create a new market order at the `marketId`, and there's already an
+    /// @notice Thrown when an account tries to create a new market order, and there's already an
     /// existing order with pending settlement.
-    error MarketOrderStillPending(uint128 accountId, uint128 marketId, uint256 timestamp);
+    error MarketOrderStillPending(uint256 timestamp);
 
     /// @notice PerpsEngine.SettlementConfiguration errors.
 

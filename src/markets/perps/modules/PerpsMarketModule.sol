@@ -136,7 +136,6 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         override
         returns (
             SD59x18 size,
-            UD60x18 initialMargin,
             UD60x18 notionalValue,
             UD60x18 maintenanceMargin,
             SD59x18 accruedFunding,
@@ -150,7 +149,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         UD60x18 price = perpsMarket.getIndexPrice();
         SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(price);
 
-        (size, initialMargin, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) =
+        (size, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) =
             position.getPositionData(ud60x18(perpsMarket.maintenanceMarginRate), price, fundingFeePerUnit);
     }
 }

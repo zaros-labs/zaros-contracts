@@ -72,7 +72,7 @@ abstract contract OrderModule is IOrderModule {
         uint128 accountId,
         uint128 marketId,
         int128 sizeDelta,
-        uint256 acceptablePrice
+        uint128 acceptablePrice
     )
         external
         override
@@ -97,10 +97,10 @@ abstract contract OrderModule is IOrderModule {
         perpsConfiguration.checkMarketIsNotDisabled(marketId);
         marketOrder.checkPendingOrder();
 
-        MarketOrder.Data memory marketOrder =
+        MarketOrder.Data memory newMarketOrder =
             MarketOrder.Data({ sizeDelta: sizeDelta, acceptablePrice: acceptablePrice, timestamp: block.timestamp });
 
-        perpsAccount.activeMarketOrder[marketId] = marketOrder;
+        perpsAccount.activeMarketOrder[marketId] = newMarketOrder;
 
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }

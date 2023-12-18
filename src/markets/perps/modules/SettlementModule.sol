@@ -129,8 +129,6 @@ abstract contract SettlementModule is ISettlementModule {
         // TODO: validate initial margin and size
         runtime.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(sd59x18(payload.sizeDelta)).intoInt256(),
-            // initialMargin: initialMargin.intoUint128(),
-            initialMargin: 0,
             unrealizedPnlStored: runtime.unrealizedPnlToStore.intoInt256().toInt128(),
             lastInteractionPrice: runtime.fillPrice.intoUint128(),
             lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
