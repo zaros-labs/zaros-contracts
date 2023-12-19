@@ -3,6 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -59,5 +60,43 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         (, int256 answer,,,) = priceFeed.latestRoundData();
 
         return ud60x18(uint256(answer) * 10 ** (DEFAULT_DECIMALS - decimals));
+    }
+
+    function getMockedReportData(
+        bytes32 streamId,
+        uint256 price,
+        bool isPremium
+    )
+        internal
+        view
+        returns (bytes memory reportData)
+    {
+        if (isPremium) {
+            PremiumReport memory premiumReport = PremiumReport({
+                feedId: streamId,
+                validFromTimestamp: uint32(block.timestamp),
+                observationsTimestamp: uint32(block.timestamp),
+                nativeFee: 0,
+                linkFee: 0,
+                expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
+                price: int192(int256(price)),
+                bid: int192(int256(price)),
+                ask: int192(int256(price))
+            });
+        } else {
+            BasicReport memory basicReport = BasicReport({
+                feedId: streamId,
+                validFromTimestamp: uint32(block.timestamp),
+                observationsTimestamp: uint32(block.timestamp),
+                nativeFee: 0,
+                linkFee: 0,
+                expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
+                price: int192(int256(price))
+            });
+        }
+    }
+
+    function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
+        perpsEngine.settleMarketOrder(accountId, marketId, extraData);
     }
 }

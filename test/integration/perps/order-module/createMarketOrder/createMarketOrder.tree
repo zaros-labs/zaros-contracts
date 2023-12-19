@@ -17,7 +17,7 @@ CreateMarketOrder_Integration_Test
                     ├── given the account will reach the positions limit
                     │   └── it should revert
                     └── given the account will not reach the positions limit
-                        ├── given the perp market is not active
+                        ├── given the perp market is disabled
                         │   └── it should revert
                         └── given the perp market is active
                             ├── given there is a pending market order

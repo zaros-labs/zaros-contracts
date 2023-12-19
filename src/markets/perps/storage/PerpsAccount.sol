@@ -89,11 +89,11 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Loads a perps account and checks if the `msg.sender` is authorized.
+    /// @notice Loads an existing perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
     function loadExistingAccountAndVerifySender(uint128 accountId) internal view returns (Data storage perpsAccount) {
-        perpsAccount = load(accountId);
+        perpsAccount = loadExisting(accountId);
         verifySender(perpsAccount);
     }
 

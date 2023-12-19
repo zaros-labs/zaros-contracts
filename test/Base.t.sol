@@ -139,8 +139,13 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
         usdToken = new MockUSDToken({ owner: users.owner, ownerBalance: 100_000_000e18 });
-        mockWstEth =
-        new MockERC20({ name: "Wrapped Staked Ether", symbol: "wstETH", decimals_: 18, owner: users.owner, ownerBalance: 100_000_000e18 });
+        mockWstEth = new MockERC20({
+            name: "Wrapped Staked Ether",
+            symbol: "wstETH",
+            decimals_: 18,
+            owner: users.owner,
+            ownerBalance: 100_000_000e18
+        });
         liquidityEngine = LiquidityEngine(mockLiquidityEngineAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
         mockUsdcUsdPriceFeed = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));

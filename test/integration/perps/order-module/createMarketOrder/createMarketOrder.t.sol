@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
@@ -103,7 +104,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_TheAccountWillReachThePositionsLimit(
+    function testFuzz_RevertGiven_TheAccountWillReachThePositionsLimit(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong
@@ -115,12 +116,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountIsNotLiquidatable
         givenTheAccountHasEnoughMargin
     {
-        // UD60x18 sizeDeltaAbsUsd = sd59x18(sizeDelta).abs().intoUd60x18().mul(ud60x18(MOCK_ETH_USD_PRICE));
-        // uint256 marginValueUsd = sizeDeltaAbsUsd.mul(ud60x18(MOCK_ETH_IMR)).intoUint256();
-        // int128 marginValueUsdInt = int128(int256(marginValueUsd));
-        // sizeDelta = bound({ x: sizeDelta, min: -int128(int256(marginValueUsd)), max: minMaxSizeDelta });
         initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
-        marginValueUsd = bound({ x: marginValueUsd, min: 1, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
         int128 sizeDeltaAbs = int128(
             ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18()
@@ -144,6 +142,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             acceptablePrice: 0
         });
 
+        changePrank({ msgSender: mockDefaultMarketOrderSettlementStrategy });
+        // BasicReport memory mockBasicReport =
+
+        mockSettleMarketOrder(perpsAccountId, ETH_USD_MARKET_ID, bytes(""));
+
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MaxPositionsPerAccountReached.selector, 1, 1) });
         perpsEngine.createMarketOrder({
@@ -158,7 +161,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_ThePerpMarketIsNotActive()
+    function test_RevertGiven_ThePerpMarketIsDisabled()
         external
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
