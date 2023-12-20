@@ -26,71 +26,89 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     address internal mockDefaultMarketOrderSettlementStrategy = vm.addr({ privateKey: 0x04 });
 
     /// @dev BTC / USD market configuration variables.
-    SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderStrategyData = SettlementConfiguration
-        .DataStreamsMarketStrategy({
-        chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-        streamId: MOCK_ETH_USD_STREAM_ID,
-        feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-        queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-        settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-        isPremium: false
-    });
-    SettlementConfiguration.Data internal btcUsdMarketOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-        isEnabled: true,
-        fee: DATA_STREAMS_SETTLEMENT_FEE,
-        settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-        data: abi.encode(btcUsdMarketOrderStrategyData)
-    });
-
+    SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderStrategyData;
+    SettlementConfiguration.Data internal btcUsdMarketOrderStrategy;
     // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-    SettlementConfiguration.Data internal btcUsdLimitOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-        isEnabled: true,
-        fee: DATA_STREAMS_SETTLEMENT_FEE,
-        settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-        data: abi.encode(btcUsdMarketOrderStrategyData)
-    });
+    SettlementConfiguration.Data internal btcUsdLimitOrderStrategy;
+
     SettlementConfiguration.Data[] internal btcUsdCustomTriggerStrategies;
 
-    OrderFees.Data internal btcUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+    OrderFees.Data internal btcUsdOrderFees;
 
     /// @dev ETH / USD market configuration variables.
-    SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData = SettlementConfiguration
-        .DataStreamsMarketStrategy({
-        chainlinkVerifier: IVerifierProxy((mockChainlinkVerifier)),
-        streamId: MOCK_ETH_USD_STREAM_ID,
-        feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-        queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-        settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-        isPremium: false
-    });
-    SettlementConfiguration.Data internal ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-        isEnabled: true,
-        fee: DATA_STREAMS_SETTLEMENT_FEE,
-        settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-        data: abi.encode(ethUsdMarketOrderStrategyData)
-    });
-
+    SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData;
+    SettlementConfiguration.Data internal ethUsdMarketOrderStrategy;
     // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-    SettlementConfiguration.Data internal ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-        isEnabled: true,
-        fee: DATA_STREAMS_SETTLEMENT_FEE,
-        settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-        data: abi.encode(ethUsdMarketOrderStrategyData)
-    });
+    SettlementConfiguration.Data internal ethUsdLimitOrderStrategy;
 
     SettlementConfiguration.Data[] internal ethUsdCustomTriggerStrategies;
 
-    OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+    OrderFees.Data internal ethUsdOrderFees;
 
     function setUp() public virtual override {
         Base_Test.setUp();
 
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
+
+        /// @dev BTC / USD market configuration variables.
+        btcUsdMarketOrderStrategyData = SettlementConfiguration.DataStreamsMarketStrategy({
+            chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
+            streamId: MOCK_ETH_USD_STREAM_ID,
+            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
+            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
+            isPremium: false
+        });
+        btcUsdMarketOrderStrategy = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+            isEnabled: true,
+            fee: DATA_STREAMS_SETTLEMENT_FEE,
+            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            data: abi.encode(btcUsdMarketOrderStrategyData)
+        });
+
+        // TODO: update limit order strategy and move the market's strategies definition to a separate file.
+        btcUsdLimitOrderStrategy = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
+            isEnabled: true,
+            fee: DATA_STREAMS_SETTLEMENT_FEE,
+            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            data: abi.encode(btcUsdMarketOrderStrategyData)
+        });
+
+        btcUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+
+        /// @dev ETH / USD market configuration variables.
+        ethUsdMarketOrderStrategyData = SettlementConfiguration.DataStreamsMarketStrategy({
+            chainlinkVerifier: IVerifierProxy((mockChainlinkVerifier)),
+            streamId: MOCK_ETH_USD_STREAM_ID,
+            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
+            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
+            isPremium: false
+        });
+        ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+            isEnabled: true,
+            fee: DATA_STREAMS_SETTLEMENT_FEE,
+            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            data: abi.encode(ethUsdMarketOrderStrategyData)
+        });
+
+        // TODO: update limit order strategy and move the market's strategies definition to a separate file.
+        ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
+            isEnabled: true,
+            fee: DATA_STREAMS_SETTLEMENT_FEE,
+            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            data: abi.encode(ethUsdMarketOrderStrategyData)
+        });
+
+        ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+
+        btcUsdCustomTriggerStrategies.push(btcUsdLimitOrderStrategy);
+        ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderStrategy);
     }
 
     function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
@@ -106,9 +124,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function createMarkets() internal {
-        btcUsdCustomTriggerStrategies.push(btcUsdLimitOrderStrategy);
-        ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderStrategy);
-
         perpsEngine.createPerpsMarket(
             BTC_USD_MARKET_ID,
             BTC_USD_MARKET_NAME,
