@@ -104,14 +104,7 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @return marginCollateralBalance The margin collateral balance for the given collateral type.
-    function getMarginCollateralBalance(
-        Data storage self,
-        address collateralType
-    )
-        internal
-        view
-        returns (UD60x18)
-    {
+    function getMarginCollateralBalance(Data storage self, address collateralType) internal view returns (UD60x18) {
         (, uint256 marginCollateralBalance) = self.marginCollateralBalance.tryGet(collateralType);
 
         return ud60x18(marginCollateralBalance);

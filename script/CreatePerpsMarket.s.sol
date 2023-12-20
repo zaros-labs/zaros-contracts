@@ -125,8 +125,7 @@ contract CreatePerpsMarket is BaseScript {
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
-        SettlementConfiguration.Data[] memory linkUsdCustomTriggerStrategies =
-            new SettlementConfiguration.Data[](1);
+        SettlementConfiguration.Data[] memory linkUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
         linkUsdCustomTriggerStrategies[0] = linkUsdLimitOrderStrategy;
 
         perpsEngine.createPerpsMarket(

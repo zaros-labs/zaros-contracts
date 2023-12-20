@@ -60,8 +60,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
     {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
-        uint256 amountOfOrders =
-            self.limitOrdersIds.length() > lowerBound ? upperBound : self.limitOrdersIds.length();
+        uint256 amountOfOrders = self.limitOrdersIds.length() > lowerBound ? upperBound : self.limitOrdersIds.length();
         LimitOrder.Data[] memory limitOrders = new LimitOrder.Data[](amountOfOrders);
 
         if (amountOfOrders == 0) {
@@ -97,14 +96,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         }
     }
 
-    function settle(
-        bytes calldata signedReport,
-        bytes calldata extraData
-    )
-        external
-        override
-        onlyRegisteredKeeper
-    {
+    function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
         (PerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (

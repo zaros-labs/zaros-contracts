@@ -50,9 +50,8 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
     function getOcoOrders(uint256 lowerBound, uint256 upperBound) external view returns (OcoOrder.Data[] memory) {
         OcoOrderSettlementStrategyStorage storage self = _getOcoOrderSettlementStrategyStorage();
 
-        uint256 amountOfOrders = self.accountsWithActiveOrders.length() > upperBound
-            ? upperBound
-            : self.accountsWithActiveOrders.length();
+        uint256 amountOfOrders =
+            self.accountsWithActiveOrders.length() > upperBound ? upperBound : self.accountsWithActiveOrders.length();
         OcoOrder.Data[] memory ocoOrders = new OcoOrder.Data[](amountOfOrders);
 
         if (amountOfOrders == 0) {
@@ -84,14 +83,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
         }
     }
 
-    function settle(
-        bytes calldata signedReport,
-        bytes calldata extraData
-    )
-        external
-        override
-        onlyRegisteredKeeper
-    {
+    function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
         (PerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (

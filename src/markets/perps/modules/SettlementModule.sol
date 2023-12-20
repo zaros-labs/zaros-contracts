@@ -141,8 +141,7 @@ abstract contract SettlementModule is ISettlementModule {
         );
         oldPosition.update(runtime.newPosition);
         perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(payload.sizeDelta)).intoInt256().toInt128();
-        perpsMarket.size =
-            ud60x18(perpsMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
+        perpsMarket.size = ud60x18(perpsMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
         emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, runtime.newPosition);
     }

@@ -119,9 +119,8 @@ library RewardDistribution {
             if (currentTime.lt(start.add(duration))) {
                 // Note: Not using an intermediate time ratio variable
                 // in the following calculation to maintain precision.
-                currentUpdateDistributed = (currentUpdateDistributed.mul(currentTime.sub(start).intoSD59x18())).div(
-                    duration.intoSD59x18()
-                );
+                currentUpdateDistributed =
+                    (currentUpdateDistributed.mul(currentTime.sub(start).intoSD59x18())).div(duration.intoSD59x18());
             }
 
             // The final value per share change is the difference between what is to be distributed and what was

@@ -13,9 +13,7 @@ interface IStrategyManagerModule {
 
     event LogRegisterStrategy(address indexed collateralType, address indexed strategyHandler);
 
-    event LogMintUsdTokenToStrategy(
-        address indexed collateralType, address indexed strategyHandler, uint256 amount
-    );
+    event LogMintUsdTokenToStrategy(address indexed collateralType, address indexed strategyHandler, uint256 amount);
 
     event LogDepositToStrategy(address indexed sender, address indexed collateralType, uint256 amount);
 
@@ -31,10 +29,5 @@ interface IStrategyManagerModule {
 
     function depositToStrategy(address collateralType, uint256 assetsAmount, uint256 minSharesAmount) external;
 
-    function withdrawFromStrategy(
-        address collateralType,
-        uint256 sharesAmount,
-        uint256 minAssetsAmount
-    )
-        external;
+    function withdrawFromStrategy(address collateralType, uint256 sharesAmount, uint256 minAssetsAmount) external;
 }

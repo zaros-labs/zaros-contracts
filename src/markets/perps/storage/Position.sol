@@ -81,8 +81,7 @@ library Position {
         returns (SD59x18 unrealizedPnl)
     {
         SD59x18 priceShift = price.intoSD59x18().sub(ud60x18(self.lastInteractionPrice).intoSD59x18());
-        unrealizedPnl =
-            sd59x18(self.size).mul(priceShift).add(accruedFunding).add(sd59x18(self.unrealizedPnlStored));
+        unrealizedPnl = sd59x18(self.size).mul(priceShift).add(accruedFunding).add(sd59x18(self.unrealizedPnlStored));
     }
 
     /// @dev Returns the notional value of the position.

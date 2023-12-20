@@ -148,11 +148,7 @@ abstract contract MarketManagerModule is IMarketManagerModule, Ownable {
 
     /// @dev Still need to support scenarios when updating market configuratinos
     /// and handle edge cases like locked markets
-    function configureMarkets(MarketConfiguration.Data[] calldata marketConfigurations)
-        external
-        override
-        onlyOwner
-    {
+    function configureMarkets(MarketConfiguration.Data[] calldata marketConfigurations) external override onlyOwner {
         MarketManager.Data storage marketManager = MarketManager.load();
         marketManager.distributeDebtToVaults(address(0));
 

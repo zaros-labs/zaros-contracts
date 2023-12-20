@@ -34,13 +34,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     }
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
-    function initialize(
-        address forwarder,
-        MarketOrderSettlementStrategy settlementStrategy
-    )
-        external
-        initializer
-    {
+    function initialize(address forwarder, MarketOrderSettlementStrategy settlementStrategy) external initializer {
         __BaseUpkeep_init(forwarder);
 
         if (address(settlementStrategy) == address(0)) {
@@ -52,11 +46,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         self.settlementStrategy = settlementStrategy;
     }
 
-    function getConfig()
-        public
-        view
-        returns (address upkeepOwner, address forwarder, address settlementStrategy)
-    {
+    function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 

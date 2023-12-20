@@ -164,11 +164,7 @@ library MarketManager {
         return Market.load(address(0));
     }
 
-    function getRequiredMinDelegationTime(Data storage self)
-        internal
-        view
-        returns (uint32 requiredMinDelegateTime)
-    {
+    function getRequiredMinDelegationTime(Data storage self) internal view returns (uint32 requiredMinDelegateTime) {
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
             uint32 marketMinDelegateTime = Market.load(self.marketConfigurations[i].marketAddress).minDelegateTime;
 

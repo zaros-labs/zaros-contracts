@@ -13,9 +13,8 @@ contract MockChainlinkFeeManager {
         external
         returns (FeeAsset memory, FeeAsset memory, uint256)
     {
-        return (
-            FeeAsset({ assetAddress: address(0), amount: 0 }), FeeAsset({ assetAddress: address(0), amount: 0 }), 0
-        );
+        return
+            (FeeAsset({ assetAddress: address(0), amount: 0 }), FeeAsset({ assetAddress: address(0), amount: 0 }), 0);
     }
 
     function i_nativeAddress() external pure returns (address) {

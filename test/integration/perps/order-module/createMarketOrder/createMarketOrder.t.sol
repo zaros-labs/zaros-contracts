@@ -143,8 +143,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         });
 
         changePrank({ msgSender: mockDefaultMarketOrderSettlementStrategy });
-        bytes memory mockBasicSignedReport =
-            getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE, false);
+        bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE, false);
 
         mockSettleMarketOrder(perpsAccountId, ETH_USD_MARKET_ID, mockBasicSignedReport);
 
@@ -193,9 +192,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, ETH_USD_MARKET_ID)
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, ETH_USD_MARKET_ID) });
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
