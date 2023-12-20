@@ -182,17 +182,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-        int128 sizeDeltaAbs = int128(
-            ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18()
-                .intoInt256()
-        );
-        int128 sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+
+        int128 sizeDelta = fuzzMarketOrderSizeDelta(initialMarginRate, marginValueUsd, isLong);
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         changePrank({ msgSender: users.owner });
         perpsEngine.updatePerpMarketStatus({ marketId: ETH_USD_MARKET_ID, enable: false });
 
         changePrank({ msgSender: users.naruto });
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, ETH_USD_MARKET_ID) });
@@ -208,7 +205,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_ThereIsAPendingMarketOrder()
+    function testFuzz_RevertGiven_ThereIsAPendingMarketOrder(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong
+    )
         external
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
@@ -218,10 +219,36 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        int128 sizeDelta = fuzzMarketOrderSizeDelta(initialMarginRate, marginValueUsd, isLong);
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
+        perpsEngine.createMarketOrder({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            sizeDelta: sizeDelta,
+            acceptablePrice: 0
+        });
+
         // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarketOrderStillPending.selector, block.timestamp) });
+        perpsEngine.createMarketOrder({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            sizeDelta: sizeDelta,
+            acceptablePrice: 0
+        });
     }
 
-    function test_GivenThereIsNoPendingMarketOrder()
+    function testFuzz_GivenThereIsNoPendingMarketOrder(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong
+    )
         external
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
@@ -231,46 +258,33 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {
-        // it should create the market order
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        int128 sizeDelta = fuzzMarketOrderSizeDelta(initialMarginRate, marginValueUsd, isLong);
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
+        MarketOrder.Data memory expectedMarketOrder =
+            MarketOrder.Data({ sizeDelta: sizeDelta, acceptablePrice: 0, timestamp: block.timestamp });
+
         // it should emit a {LogCreateMarketOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedMarketOrder);
+        perpsEngine.createMarketOrder({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            sizeDelta: sizeDelta,
+            acceptablePrice: 0
+        });
+
+        // it should create the market order
+        MarketOrder.Data memory marketOrder =
+            perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID });
+
+        assertEq(marketOrder.sizeDelta, sizeDelta, "createMarketOrder: sizeDelta");
+        assertEq(marketOrder.acceptablePrice, 0, "createMarketOrder: acceptablePrice");
+        assertEq(marketOrder.timestamp, block.timestamp, "createMarketOrder: timestamp");
     }
-
-    // function testFuzz_CreateMarketOrder(uint256 amountToDeposit) external {
-    //     amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
-    //     deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
-
-    //     uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
-
-    //     MarketOrder.Payload memory payload =
-    //         MarketOrder.Payload({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, sizeDelta: int128(50e18)
-    // });
-    //     MarketOrder.Data memory expectedOrder =
-    //         MarketOrder.Data({ payload: payload, timestamp: uint248(block.timestamp) });
-
-    //     vm.expectEmit({ emitter: address(perpsEngine) });
-    //     emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
-
-    //     perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
-    // }
-
-    // function testFuzz_CreateMarketOrderMultiple(uint256 amountToDeposit) external {
-    //     amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
-    //     deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
-
-    //     uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
-
-    //     MarketOrder.Payload memory payload =
-    //         MarketOrder.Payload({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, sizeDelta: int128(50e18)
-    // });
-
-    //     perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
-
-    //     MarketOrder.Data memory expectedOrder =
-    //         MarketOrder.Data({ payload: payload, timestamp: uint248(block.timestamp) });
-
-    //     vm.expectEmit({ emitter: address(perpsEngine) });
-    //     emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedOrder);
-
-    //     perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
-    // }
 }

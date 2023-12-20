@@ -205,6 +205,22 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
+    function fuzzMarketOrderSizeDelta(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong
+    )
+        internal
+        pure
+        returns (int128 sizeDelta)
+    {
+        int128 sizeDeltaAbs = int128(
+            ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18()
+                .intoInt256()
+        );
+        sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+    }
+
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
         perpsEngine.settleMarketOrder(accountId, marketId, extraData);
     }
