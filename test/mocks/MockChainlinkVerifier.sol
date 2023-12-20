@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-contract MockChainlinkVerifier {
-    address public immutable s_feeManager;
+// Zaros dependencies
+import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 
-    constructor(address feeManager) {
+contract MockChainlinkVerifier {
+    IFeeManager public immutable s_feeManager;
+
+    constructor(IFeeManager feeManager) {
         s_feeManager = feeManager;
     }
 

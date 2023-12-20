@@ -4,12 +4,15 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
+import { MockChainlinkFeeManager } from "./mocks/MockChainlinkFeeManager.sol";
+import { MockChainlinkVerifier } from "./mocks/MockChainlinkVerifier.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "./mocks/MockUSDToken.sol";
@@ -37,7 +40,8 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
     Users internal users;
     address internal mockChainlinkForwarder = vm.addr({ privateKey: 0x01 });
-    address internal mockChainlinkVerifier = vm.addr({ privateKey: 0x02 });
+    address internal mockChainlinkFeeManager;
+    address internal mockChainlinkVerifier;
 
     /// @dev BTC / USD market configuration variables.
     SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderStrategyData = SettlementConfiguration
@@ -72,7 +76,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     /// @dev ETH / USD market configuration variables.
     SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData = SettlementConfiguration
         .DataStreamsMarketStrategy({
-        chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
+        chainlinkVerifier: IVerifierProxy((mockChainlinkVerifier)),
         streamId: MOCK_ETH_USD_STREAM_ID,
         feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
         queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
@@ -112,12 +116,12 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     LiquidityEngine internal liquidityEngine;
 
     /// @dev TODO: deploy real contracts instead of mocking them.
-    address internal mockLiquidityEngineAddress = vm.addr({ privateKey: 0x03 });
-    address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x04 });
+    address internal mockLiquidityEngineAddress = vm.addr({ privateKey: 0x02 });
+    address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x03 });
 
     /// @dev TODO: think about forking tests
-    address internal mockDefaultMarketOrderSettlementStrategy = vm.addr({ privateKey: 0x05 });
-    address internal mockDefaultMarketOrderUpkeep = vm.addr({ privateKey: 0x06 });
+    address internal mockDefaultMarketOrderSettlementStrategy = vm.addr({ privateKey: 0x04 });
+    address internal mockDefaultMarketOrderUpkeep = vm.addr({ privateKey: 0x05 });
     MockPriceFeed internal mockUsdcUsdPriceFeed;
     MockPriceFeed internal mockWstEthUsdPriceFeed;
 
@@ -134,6 +138,8 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
             madara: createUser({ name: "Madara Uchiha" })
         });
         vm.startPrank({ msgSender: users.owner });
+        mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
+        mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
 
         ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderStrategy);
 
