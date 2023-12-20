@@ -53,7 +53,8 @@ abstract contract SettlementModule is ISettlementModule {
     {
         MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
 
-        SettlementPayload memory payload = SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
+        SettlementPayload memory payload =
+            SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
         _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, extraData);
 
         marketOrder.clear();
@@ -68,7 +69,8 @@ abstract contract SettlementModule is ISettlementModule {
         external
         onlyValidCustomTriggerUpkeep
     {
-        // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the position's
+        // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
+        // position's
         // validations and updates.
         for (uint256 i = 0; i < payloads.length; i++) {
             SettlementPayload memory payload = payloads[i];
@@ -134,10 +136,13 @@ abstract contract SettlementModule is ISettlementModule {
             lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        perpsAccount.updateActiveMarkets(runtime.marketId, sd59x18(oldPosition.size), sd59x18(runtime.newPosition.size));
+        perpsAccount.updateActiveMarkets(
+            runtime.marketId, sd59x18(oldPosition.size), sd59x18(runtime.newPosition.size)
+        );
         oldPosition.update(runtime.newPosition);
         perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(payload.sizeDelta)).intoInt256().toInt128();
-        perpsMarket.size = ud60x18(perpsMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
+        perpsMarket.size =
+            ud60x18(perpsMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
         emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, runtime.newPosition);
     }

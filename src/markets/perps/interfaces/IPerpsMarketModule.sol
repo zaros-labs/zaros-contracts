@@ -44,7 +44,8 @@ interface IPerpsMarketModule {
 
     /// @notice Returns the current Chainlink onchain stored price for the given market id.
     /// @dev The index price returned does not necessarily match the latest price provided by the offchain
-    /// Data Streams service. This means the settlement price of a trade will often be different than the index price.
+    /// Data Streams service. This means the settlement price of a trade will often be different than the index
+    /// price.
     /// @param marketId The perps market id.
     function indexPrice(uint128 marketId) external view returns (UD60x18);
 

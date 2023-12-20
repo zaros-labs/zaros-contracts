@@ -9,7 +9,14 @@ import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.s
 
 contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
     /// @notice {MarketOrderSettlementStrategy} UUPS initializer.
-    function initialize(PerpsEngine perpsEngine, address[] calldata keepers, uint128 marketId) external initializer {
+    function initialize(
+        PerpsEngine perpsEngine,
+        address[] calldata keepers,
+        uint128 marketId
+    )
+        external
+        initializer
+    {
         __DataStreamsSettlementStrategy_init(
             perpsEngine, keepers, marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID
         );
@@ -22,12 +29,20 @@ contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
 
     function afterSettlement() external override { }
 
-    function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
+    function settle(
+        bytes calldata signedReport,
+        bytes calldata extraData
+    )
+        external
+        override
+        onlyRegisteredKeeper
+    {
         uint128 accountId = abi.decode(extraData, (uint128));
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
         (uint128 marketId, PerpsEngine perpsEngine) = (
-            dataStreamsCustomSettlementStrategyStorage.marketId, dataStreamsCustomSettlementStrategyStorage.perpsEngine
+            dataStreamsCustomSettlementStrategyStorage.marketId,
+            dataStreamsCustomSettlementStrategyStorage.perpsEngine
         );
 
         perpsEngine.settleMarketOrder(accountId, marketId, signedReport);

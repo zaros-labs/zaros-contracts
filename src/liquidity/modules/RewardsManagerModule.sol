@@ -129,7 +129,8 @@ abstract contract RewardsManagerModule is IRewardsManagerModule, Ownable {
 
         RewardDistribution.Data storage reward = vault.rewards[rewardId];
         reward.claimStatus[accountId].pendingSend = 0;
-        bool success = vault.rewards[rewardId].distributor.payout(accountId, collateralType, msg.sender, rewardAmount);
+        bool success =
+            vault.rewards[rewardId].distributor.payout(accountId, collateralType, msg.sender, rewardAmount);
 
         if (!success) {
             revert Zaros_RewardsManagerModule_RewardUnavailable(distributor);
@@ -150,7 +151,8 @@ abstract contract RewardsManagerModule is IRewardsManagerModule, Ownable {
         // No rewards are currently being distributed if the distributor doesn't exist, they are scheduled to be
         // distributed in the future, or the distribution as already completed
         if (
-            address(vault.rewards[rewardId].distributor) == address(0) || vault.rewards[rewardId].start > currentTime
+            address(vault.rewards[rewardId].distributor) == address(0)
+                || vault.rewards[rewardId].start > currentTime
                 || vault.rewards[rewardId].start + vault.rewards[rewardId].duration <= currentTime
         ) {
             return UD_ZERO;

@@ -54,7 +54,14 @@ library MarginCollateral {
         return ud60x18(amount * 10 ** (Constants.SYSTEM_DECIMALS - self.decimals));
     }
 
-    function convertUd60x18ToTokenAmount(Data storage self, UD60x18 ud60x18Amount) internal view returns (uint256) {
+    function convertUd60x18ToTokenAmount(
+        Data storage self,
+        UD60x18 ud60x18Amount
+    )
+        internal
+        view
+        returns (uint256)
+    {
         if (Constants.SYSTEM_DECIMALS == self.decimals) {
             return ud60x18Amount.intoUint256();
         }

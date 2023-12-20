@@ -58,7 +58,8 @@ contract VaultModule is IVaultModule {
         override
         returns (uint256 amount, uint256 value)
     {
-        (UD60x18 amountUD, UD60x18 valueUD) = MarketManager.load().currentAccountCollateral(collateralType, accountId);
+        (UD60x18 amountUD, UD60x18 valueUD) =
+            MarketManager.load().currentAccountCollateral(collateralType, accountId);
         (amount, value) = (amountUD.intoUint256(), valueUD.intoUint256());
     }
 
@@ -76,14 +77,20 @@ contract VaultModule is IVaultModule {
         (UD60x18 collateralAmountUD, UD60x18 collateralValueUD) =
             marketManager.currentAccountCollateral(collateralType, accountId);
         (collateralAmount, collateralValue) = (collateralAmountUD.intoUint256(), collateralValueUD.intoUint256());
-        collateralizationRatio = marketManager.currentAccountCollateralRatio(collateralType, accountId).intoUint256();
+        collateralizationRatio =
+            marketManager.currentAccountCollateralRatio(collateralType, accountId).intoUint256();
     }
 
     function getPositionDebt(uint128 accountId, address collateralType) external override returns (int256) {
         return MarketManager.load().updateAccountDebt(collateralType, accountId).intoInt256();
     }
 
-    function getVaultCollateral(address collateralType) public view override returns (uint256 amount, uint256 value) {
+    function getVaultCollateral(address collateralType)
+        public
+        view
+        override
+        returns (uint256 amount, uint256 value)
+    {
         (UD60x18 amountUD, UD60x18 valueUD) = MarketManager.load().currentVaultCollateral(collateralType);
         (amount, value) = (amountUD.intoUint256(), valueUD.intoUint256());
     }
@@ -120,7 +127,9 @@ contract VaultModule is IVaultModule {
                 accountId, collateralType, newCollateralAmount.sub(currentCollateralAmount)
             );
         } else {
-            MarketManager.load().requireMinDelegationTimeElapsed(vault.currentEpoch().lastDelegationTime[accountId]);
+            MarketManager.load().requireMinDelegationTimeElapsed(
+                vault.currentEpoch().lastDelegationTime[accountId]
+            );
         }
         UD60x18 collateralPrice =
             _updatePosition(accountId, collateralType, newCollateralAmount, currentCollateralAmount);

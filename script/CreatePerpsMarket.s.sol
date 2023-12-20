@@ -61,8 +61,8 @@ contract CreatePerpsMarket is BaseScript {
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData = SettlementConfiguration
-            .DataStreamsMarketStrategy({
+        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData =
+        SettlementConfiguration.DataStreamsMarketStrategy({
             chainlinkVerifier: chainlinkVerifier,
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
@@ -125,7 +125,8 @@ contract CreatePerpsMarket is BaseScript {
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
-        SettlementConfiguration.Data[] memory linkUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
+        SettlementConfiguration.Data[] memory linkUsdCustomTriggerStrategies =
+            new SettlementConfiguration.Data[](1);
         linkUsdCustomTriggerStrategies[0] = linkUsdLimitOrderStrategy;
 
         perpsEngine.createPerpsMarket(

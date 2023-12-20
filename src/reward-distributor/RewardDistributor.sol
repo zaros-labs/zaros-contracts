@@ -41,7 +41,15 @@ contract RewardDistributor is IRewardDistributor {
         return true;
     }
 
-    function distributeRewards(address collateralType, uint256 amount, uint64 start, uint32 duration) public override {
+    function distributeRewards(
+        address collateralType,
+        uint256 amount,
+        uint64 start,
+        uint32 duration
+    )
+        public
+        override
+    {
         IRewardsManagerModule(_rewardManager).distributeRewards(collateralType, amount, start, duration);
     }
 

@@ -5,7 +5,9 @@ pragma solidity 0.8.23;
 import { IAutomationCompatible } from "../../interfaces/IAutomationCompatible.sol";
 import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
-import { IStreamsLookupCompatible, BasicReport, PremiumReport } from "../../interfaces/IStreamsLookupCompatible.sol";
+import {
+    IStreamsLookupCompatible, BasicReport, PremiumReport
+} from "../../interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
 import { BaseUpkeep } from "../BaseUpkeep.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
@@ -51,7 +53,11 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         self.settlementStrategy = settlementStrategy;
     }
 
-    function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
+    function getConfig()
+        public
+        view
+        returns (address upkeepOwner, address forwarder, address settlementStrategy)
+    {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         LimitOrderUpkeepStorage storage self = _getLimitOrderUpkeepStorage();
 
@@ -122,7 +128,8 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         bytes memory signedReport = values[0];
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
 
-        UD60x18 reportPrice = ChainlinkUtil.getReportPriceUd60x18(reportData, REPORT_PRICE_DECIMALS, isPremiumReport);
+        UD60x18 reportPrice =
+            ChainlinkUtil.getReportPriceUd60x18(reportData, REPORT_PRICE_DECIMALS, isPremiumReport);
 
         for (uint256 i = performLowerBound; i < ordersToIterate; i++) {
             LimitOrder.Data memory limitOrder = limitOrders[i];

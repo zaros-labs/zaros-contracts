@@ -53,7 +53,8 @@ library Errors {
     error AccountPermissionDenied(uint128 accountId, address sender);
     /// @notice Thrown when the given `accountId` doesn't exist.
     error AccountNotFound(uint128 accountId, address sender);
-    /// @notice Thrown when the given `accountId` tries to open a new position but it has already reached the limit.
+    /// @notice Thrown when the given `accountId` tries to open a new position but it has already reached the
+    /// limit.
     error MaxPositionsPerAccountReached(
         uint128 accountId, uint256 activePositionsLength, uint256 maxPositionsPerAccount
     );
@@ -106,6 +107,7 @@ library Errors {
 
     /// @notice Thrown when the provided `settlementId` is not a valid settlement strategy id.
     error InvalidSettlementStrategyType(uint8 settlementId);
-    /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's one.
+    /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
+    /// one.
     error InvalidDataStreamReport(string settlementStreamId, bytes32 reportStreamId);
 }

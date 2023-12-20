@@ -33,7 +33,12 @@ abstract contract CollateralModule is ICollateralModule, Ownable {
     bytes32 private constant _DEPOSIT_FEATURE_FLAG = "deposit";
     bytes32 private constant _WITHDRAW_FEATURE_FLAG = "withdraw";
 
-    function getCollateralConfigs(bool hideDisabled) external view override returns (CollateralConfig.Data[] memory) {
+    function getCollateralConfigs(bool hideDisabled)
+        external
+        view
+        override
+        returns (CollateralConfig.Data[] memory)
+    {
         EnumerableSet.AddressSet storage collateralTypes = CollateralConfig.loadAvailableCollaterals();
 
         uint256 numCollaterals = collateralTypes.length();

@@ -111,7 +111,13 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderStrategy);
     }
 
-    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
+    function createAccountAndDeposit(
+        uint256 amount,
+        address collateralType
+    )
+        internal
+        returns (uint128 accountId)
+    {
         accountId = perpsEngine.createPerpsAccount();
         perpsEngine.depositMargin(accountId, collateralType, amount);
     }

@@ -64,7 +64,8 @@ pragma solidity 0.8.23;
 //     }
 
 //     function _createAccountDepositAndDelegate(address collateralType, uint256 amount) internal {
-//         bytes memory depositData = abi.encodeWithSelector(liquidityEngine.deposit.selector, collateralType, amount);
+//         bytes memory depositData = abi.encodeWithSelector(liquidityEngine.deposit.selector, collateralType,
+// amount);
 //         bytes memory delegateCollateralData =
 //             abi.encodeWithSelector(liquidityEngine.delegateCollateral.selector, collateralType, amount);
 //         bytes[] memory data = new bytes[](2);

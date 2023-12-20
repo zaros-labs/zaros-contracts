@@ -14,7 +14,12 @@ interface IVaultModule {
         uint128 indexed accountId, address collateralType, uint256 amount, address indexed sender
     );
 
-    function getPositionCollateralRatio(uint128 accountId, address collateralType) external returns (uint256 ratio);
+    function getPositionCollateralRatio(
+        uint128 accountId,
+        address collateralType
+    )
+        external
+        returns (uint256 ratio);
 
     function getPositionDebt(uint128 accountId, address collateralType) external returns (int256 debt);
 

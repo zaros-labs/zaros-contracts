@@ -156,7 +156,9 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
         perpsEngine.configureMarginCollateral(address(usdToken), USDZ_DEPOSIT_CAP, address(mockUsdcUsdPriceFeed));
 
-        perpsEngine.configureMarginCollateral(address(mockWstEth), WSTETH_DEPOSIT_CAP, address(mockWstEthUsdPriceFeed));
+        perpsEngine.configureMarginCollateral(
+            address(mockWstEth), WSTETH_DEPOSIT_CAP, address(mockWstEthUsdPriceFeed)
+        );
     }
 
     // function distributeTokens() internal {

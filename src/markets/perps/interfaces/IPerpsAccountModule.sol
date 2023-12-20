@@ -85,7 +85,10 @@ interface IPerpsAccountModule {
     /// @notice Creates a new trading account and multicalls using the provided data payload.
     /// @param data The data payload to be multicalled.
     /// @return results The array of results of the multicall.
-    function createPerpsAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results);
+    function createPerpsAccountAndMulticall(bytes[] calldata data)
+        external
+        payable
+        returns (bytes[] memory results);
 
     /// @notice Deposits margin collateral into the given trading account.
     /// @param accountId The trading account id.

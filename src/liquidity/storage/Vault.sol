@@ -85,7 +85,8 @@ library Vault {
 
     function updateReward(Data storage self, uint128 accountId, bytes32 rewardId) internal returns (UD60x18) {
         UD60x18 totalShares = ud60x18(currentEpoch(self).accountsDebtDistribution.totalShares);
-        UD60x18 actorShares = currentEpoch(self).accountsDebtDistribution.getActorShares(bytes32(uint256(accountId)));
+        UD60x18 actorShares =
+            currentEpoch(self).accountsDebtDistribution.getActorShares(bytes32(uint256(accountId)));
 
         RewardDistribution.Data storage dist = self.rewards[rewardId];
 

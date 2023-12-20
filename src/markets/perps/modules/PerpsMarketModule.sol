@@ -86,7 +86,15 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view override returns (UD60x18 fillPrice) {
+    function estimateFillPrice(
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        override
+        returns (UD60x18 fillPrice)
+    {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         fillPrice = perpsMarket.getIndexPrice();
     }

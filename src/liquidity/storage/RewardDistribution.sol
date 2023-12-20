@@ -75,7 +75,8 @@ library RewardDistribution {
     }
 
     /**
-     * @dev Updates the total shares of a reward distribution entry, and releases its unlocked value into its value per
+     * @dev Updates the total shares of a reward distribution entry, and releases its unlocked value into its value
+     * per
      * share, depending on the time elapsed since the start of the distribution's entry.
      *
      * Note: call every time before `totalShares` changes.
@@ -118,8 +119,9 @@ library RewardDistribution {
             if (currentTime.lt(start.add(duration))) {
                 // Note: Not using an intermediate time ratio variable
                 // in the following calculation to maintain precision.
-                currentUpdateDistributed =
-                    (currentUpdateDistributed.mul(currentTime.sub(start).intoSD59x18())).div(duration.intoSD59x18());
+                currentUpdateDistributed = (currentUpdateDistributed.mul(currentTime.sub(start).intoSD59x18())).div(
+                    duration.intoSD59x18()
+                );
             }
 
             // The final value per share change is the difference between what is to be distributed and what was

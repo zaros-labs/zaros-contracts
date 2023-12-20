@@ -39,7 +39,15 @@ abstract contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function estimateOrderFee(uint128 marketId, int128 sizeDelta) external view override returns (UD60x18, UD60x18) { }
+    function estimateOrderFee(
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        override
+        returns (UD60x18, UD60x18)
+    { }
 
     /// @inheritdoc IOrderModule
     function getRequiredMarginForOrder(

@@ -57,12 +57,14 @@ pragma solidity 0.8.23;
 //         liquidityEngine.registerRewardDistributor(address(sFrxEth), address(rewardDistributor));
 //         liquidityEngine.registerRewardDistributor(address(usdc), address(rewardDistributor));
 //         // TODO: uncomment
-//         // liquidityEngine.registerStrategy(address(usdc), address(balancerUsdcStrategy), USDC_STRATEGY_BORROW_CAP);
+//         // liquidityEngine.registerStrategy(address(usdc), address(balancerUsdcStrategy),
+// USDC_STRATEGY_BORROW_CAP);
 
 //         {
 //             // TODO: use correct accountNft
 //             PerpsEngine perpsEngine =
-//                 new PerpsEngine(payable(address(accountNft), address(liquidityEngine), address(rewardDistributor));
+//                 new PerpsEngine(payable(address(accountNft), address(liquidityEngine),
+// address(rewardDistributor));
 
 //             console.log("Perps Vault: ");
 //             console.log(address(perpsEngine));

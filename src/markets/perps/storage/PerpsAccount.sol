@@ -74,7 +74,8 @@ library PerpsAccount {
         }
     }
 
-    /// @dev This function must be called when the perps account is going to open a new position. If called in a context
+    /// @dev This function must be called when the perps account is going to open a new position. If called in a
+    /// context
     /// of an already active market, the check may be misleading.
     function checkCanCreateNewPosition(Data storage self) internal view {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
@@ -90,7 +91,11 @@ library PerpsAccount {
     /// @notice Loads an existing perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
-    function loadExistingAccountAndVerifySender(uint128 accountId) internal view returns (Data storage perpsAccount) {
+    function loadExistingAccountAndVerifySender(uint128 accountId)
+        internal
+        view
+        returns (Data storage perpsAccount)
+    {
         perpsAccount = loadExisting(accountId);
         verifySender(perpsAccount);
     }
@@ -99,7 +104,14 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @return marginCollateralBalance The margin collateral balance for the given collateral type.
-    function getMarginCollateralBalance(Data storage self, address collateralType) internal view returns (UD60x18) {
+    function getMarginCollateralBalance(
+        Data storage self,
+        address collateralType
+    )
+        internal
+        view
+        returns (UD60x18)
+    {
         (, uint256 marginCollateralBalance) = self.marginCollateralBalance.tryGet(collateralType);
 
         return ud60x18(marginCollateralBalance);

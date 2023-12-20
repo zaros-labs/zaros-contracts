@@ -85,6 +85,7 @@ library ChainlinkUtil {
         internal
         returns (bytes memory verifiedReportData)
     {
-        verifiedReportData = chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
+        verifiedReportData =
+            chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
     }
 }

@@ -53,7 +53,11 @@ library CollateralConfig {
         }
     }
 
-    function loadAvailableCollaterals() internal pure returns (EnumerableSet.AddressSet storage availableCollaterals) {
+    function loadAvailableCollaterals()
+        internal
+        pure
+        returns (EnumerableSet.AddressSet storage availableCollaterals)
+    {
         bytes32 s = SLOT_AVAILABLE_COLLATERALS;
         assembly {
             availableCollaterals.slot := s

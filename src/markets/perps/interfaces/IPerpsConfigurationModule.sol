@@ -17,7 +17,11 @@ interface IPerpsConfigurationModule {
     /// @param decimals The amount of decimals of the collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
     event LogConfigureCollateral(
-        address indexed sender, address indexed collateralType, uint248 depositCap, uint8 decimals, address priceFeed
+        address indexed sender,
+        address indexed collateralType,
+        uint248 depositCap,
+        uint8 decimals,
+        address priceFeed
     );
 
     /// @notice Emitted when a new price feed is configured for a collateral type.

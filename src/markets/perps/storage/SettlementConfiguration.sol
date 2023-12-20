@@ -18,9 +18,11 @@ library SettlementConfiguration {
     uint128 internal constant MARKET_ORDER_SETTLEMENT_ID = 0;
 
     /// @notice Strategies IDs supported.
-    /// @param DATA_STREAMS_MARKET The strategy ID that uses basic or premium reports from CL Data Streams to settle
+    /// @param DATA_STREAMS_MARKET The strategy ID that uses basic or premium reports from CL Data Streams to
+    /// settle
     /// market orders.
-    /// @param DATA_STREAMS_CUSTOM The strategy ID that uses basic or premium reports from CL Data Streams to settle any
+    /// @param DATA_STREAMS_CUSTOM The strategy ID that uses basic or premium reports from CL Data Streams to
+    /// settle any
     /// sort of custom order.
     enum StrategyType {
         DATA_STREAMS_MARKET,
