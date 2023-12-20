@@ -99,9 +99,16 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
                 price: int192(int256(price))
             });
-            bytes32[3] memory mockedSignatures;
-            mockedReportData = abi.encode(mockedSignatures, basicReport);
+
+            mockedReportData = abi.encode(basicReport);
         }
+
+        bytes32[3] memory mockedSignatures;
+        mockedSignatures[0] = bytes32(uint256(keccak256(abi.encodePacked("mockedSignature1"))));
+        mockedSignatures[1] = bytes32(uint256(keccak256(abi.encodePacked("mockedSignature2"))));
+        mockedSignatures[2] = bytes32(uint256(keccak256(abi.encodePacked("mockedSignature3"))));
+
+        mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {

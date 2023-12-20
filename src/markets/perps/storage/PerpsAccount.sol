@@ -14,6 +14,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
@@ -195,14 +196,19 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Updates the account's active markets ids.
+    /// @notice Updates the account's active markets ids based on the position's state transition.
     /// @param self The perps account storage pointer.
-    /// @param marketId The perps market id.
-    /// @param isActive `true` if the market is active, `false` otherwise.
-    function updateActiveMarkets(Data storage self, uint128 marketId, bool isActive) internal {
-        if (isActive) {
+    function updateActiveMarkets(
+        Data storage self,
+        uint128 marketId,
+        SD59x18 oldPositionSize,
+        SD59x18 newPositionSize
+    )
+        internal
+    {
+        if (oldPositionSize.eq(SD_ZERO) && newPositionSize.neq(SD_ZERO)) {
             self.activeMarketsIds.add(marketId);
-        } else {
+        } else if (oldPositionSize.neq(SD_ZERO) && newPositionSize.eq(SD_ZERO)) {
             self.activeMarketsIds.remove(marketId);
         }
     }

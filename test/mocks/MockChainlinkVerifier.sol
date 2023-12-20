@@ -19,6 +19,8 @@ contract MockChainlinkVerifier {
         payable
         returns (bytes memory verifierResponse)
     {
-        return abi.encode(payload);
+        (, bytes memory verifiedReportData) = abi.decode(payload, (bytes32[3], bytes));
+
+        verifierResponse = verifiedReportData;
     }
 }

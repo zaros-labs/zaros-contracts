@@ -134,6 +134,7 @@ abstract contract SettlementModule is ISettlementModule {
             lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
         });
 
+        perpsAccount.updateActiveMarkets(marketId, sd59x18(oldPosition.size), sd59x18(runtime.newPosition.size));
         oldPosition.update(runtime.newPosition);
         perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(payload.sizeDelta)).intoInt256().toInt128();
         perpsMarket.size = ud60x18(perpsMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
