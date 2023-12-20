@@ -63,7 +63,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function getMockedReportData(
-        bytes32 streamId,
+        string memory streamId,
         uint256 price,
         bool isPremium
     )
@@ -71,9 +71,11 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         view
         returns (bytes memory reportData)
     {
+        // TODO: We need to check at the perps engine level if the report's stream id is the market's one.
+        bytes32 mockStreamIdBytes32 = bytes32(uint256(keccak256(abi.encodePacked(streamId))));
         if (isPremium) {
             PremiumReport memory premiumReport = PremiumReport({
-                feedId: streamId,
+                feedId: mockStreamIdBytes32,
                 validFromTimestamp: uint32(block.timestamp),
                 observationsTimestamp: uint32(block.timestamp),
                 nativeFee: 0,
@@ -85,7 +87,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             });
         } else {
             BasicReport memory basicReport = BasicReport({
-                feedId: streamId,
+                feedId: mockStreamIdBytes32,
                 validFromTimestamp: uint32(block.timestamp),
                 observationsTimestamp: uint32(block.timestamp),
                 nativeFee: 0,

@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
@@ -87,6 +88,34 @@ library SettlementConfiguration {
         self.data = settlementConfiguration.data;
     }
 
+    // TODO: Implement
+    function requireDataStreamsReportIsValid(
+        string memory settlementStreamId,
+        bytes memory verifiedReportData,
+        bool isPremium
+    )
+        internal
+    {
+        // bytes32 settlementStreamIdHash = keccak256(abi.encodePacked(settlementStreamId));
+        // bytes32 reportStreamIdHash;
+        // bytes32 reportStreamId;
+        // if (isPremium) {
+        //     PremiumReport memory premiumReport = abi.decode(verifiedReportData, (PremiumReport));
+
+        //     reportStreamId = premiumReport.feedId;
+        //     reportStreamIdHash = keccak256(abi.encodePacked(premiumReport.feedId));
+        // } else {
+        //     BasicReport memory basicReport = abi.decode(verifiedReportData, (BasicReport));
+
+        //     reportStreamId = basicReport.feedId;
+        //     reportStreamIdHash = keccak256(abi.encodePacked(basicReport.feedId));
+        // }
+
+        // if (settlementStreamIdHash != reportStreamIdHash) {
+        //     revert Errors.InvalidDataStreamReport(settlementStreamId, reportStreamId);
+        // }
+    }
+
     function verifyExtraData(
         Data storage self,
         bytes memory extraData
@@ -98,10 +127,18 @@ library SettlementConfiguration {
             DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
                 abi.decode(self.data, (DataStreamsMarketStrategy));
             verifiedExtraData = verifyDataStreamsReport(dataStreamsMarketStrategy, extraData);
+
+            requireDataStreamsReportIsValid(
+                dataStreamsMarketStrategy.streamId, verifiedExtraData, dataStreamsMarketStrategy.isPremium
+            );
         } else if (self.strategyType == StrategyType.DATA_STREAMS_CUSTOM) {
             DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
                 abi.decode(self.data, (DataStreamsCustomStrategy));
             verifiedExtraData = verifyDataStreamsReport(dataStreamsCustomStrategy, extraData);
+
+            requireDataStreamsReportIsValid(
+                dataStreamsCustomStrategy.streamId, verifiedExtraData, dataStreamsCustomStrategy.isPremium
+            );
         } else {
             revert Errors.InvalidSettlementStrategyType(uint8(self.strategyType));
         }

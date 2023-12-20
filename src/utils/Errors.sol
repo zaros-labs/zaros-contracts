@@ -100,4 +100,6 @@ library Errors {
 
     /// @notice Thrown when the provided `settlementId` is not a valid settlement strategy id.
     error InvalidSettlementStrategyType(uint8 settlementId);
+    /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's one.
+    error InvalidDataStreamReport(string settlementStreamId, bytes32 reportStreamId);
 }
