@@ -51,7 +51,7 @@ abstract contract SettlementModule is ISettlementModule {
         external
         onlyMarketOrderUpkeep(marketId)
     {
-        MarketOrder.Data storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
 
         SettlementPayload memory payload = SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
         _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, extraData);

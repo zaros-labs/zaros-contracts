@@ -62,17 +62,19 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         return ud60x18(uint256(answer) * 10 ** (DEFAULT_DECIMALS - decimals));
     }
 
-    function getMockedReportData(
+    function getMockedSignedReport(
         string memory streamId,
         uint256 price,
         bool isPremium
     )
         internal
         view
-        returns (bytes memory reportData)
+        returns (bytes memory mockedSignedReport)
     {
         // TODO: We need to check at the perps engine level if the report's stream id is the market's one.
         bytes32 mockStreamIdBytes32 = bytes32(uint256(keccak256(abi.encodePacked(streamId))));
+        bytes memory mockedReportData;
+
         if (isPremium) {
             PremiumReport memory premiumReport = PremiumReport({
                 feedId: mockStreamIdBytes32,
@@ -85,6 +87,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 bid: int192(int256(price)),
                 ask: int192(int256(price))
             });
+
+            mockedReportData = abi.encode(premiumReport);
         } else {
             BasicReport memory basicReport = BasicReport({
                 feedId: mockStreamIdBytes32,
@@ -95,6 +99,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
                 price: int192(int256(price))
             });
+            bytes32[3] memory mockedSignatures;
+            mockedReportData = abi.encode(mockedSignatures, basicReport);
         }
     }
 
