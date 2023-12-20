@@ -150,7 +150,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MaxPositionsPerAccountReached.selector, 1, 1) });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MaxPositionsPerAccountReached.selector, perpsAccountId, 1, 1) });
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
             marketId: BTC_USD_MARKET_ID,

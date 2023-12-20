@@ -25,6 +25,12 @@ library MarketOrder {
         }
     }
 
+    function update(Data storage self, int128 sizeDelta, uint128 acceptablePrice) internal {
+        self.sizeDelta = sizeDelta;
+        self.acceptablePrice = acceptablePrice;
+        self.timestamp = block.timestamp;
+    }
+
     function clear(Data storage self) internal { }
 
     function checkPendingOrder(Data storage self) internal view {

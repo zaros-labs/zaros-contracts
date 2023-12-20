@@ -176,7 +176,7 @@ library SettlementConfiguration {
         returns (bytes memory verifiedReportData)
     {
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        // FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
+        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
 
         // verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
     }

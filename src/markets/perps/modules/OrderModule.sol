@@ -62,9 +62,7 @@ abstract contract OrderModule is IOrderModule {
         override
         returns (MarketOrder.Data memory marketOrder)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-
-        marketOrder = perpsAccount.activeMarketOrder[marketId];
+        marketOrder = MarketOrder.load(accountId, marketId);
     }
 
     /// @inheritdoc IOrderModule
@@ -97,10 +95,7 @@ abstract contract OrderModule is IOrderModule {
         perpsConfiguration.checkMarketIsNotDisabled(marketId);
         marketOrder.checkPendingOrder();
 
-        MarketOrder.Data memory newMarketOrder =
-            MarketOrder.Data({ sizeDelta: sizeDelta, acceptablePrice: acceptablePrice, timestamp: block.timestamp });
-
-        perpsAccount.activeMarketOrder[marketId] = newMarketOrder;
+        marketOrder.update({ sizeDelta: sizeDelta, acceptablePrice: acceptablePrice });
 
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }

@@ -34,16 +34,13 @@ library PerpsAccount {
     /// @param owner The perps account owner.
     /// @param marginCollateralBalance The perps account margin collateral enumerable map.
     /// @param activeMarketsIds The perps account active markets ids enumerable set.
-    /// @param activeMarketOrder The perps account's market orders with pending settlement per market.
     /// @dev TODO: implement role based access control.
     struct Data {
         uint128 id;
         address owner;
         EnumerableMap.AddressToUintMap marginCollateralBalance;
-        // EnumerableSet.Bytes32Set activeOrdersPerMarket;
         EnumerableSet.UintSet activeMarketsIds;
         EnumerableSet.AddressSet collateralPriority;
-        mapping(uint128 marketId => MarketOrder.Data) activeMarketOrder;
     }
 
     /// @notice Loads a {PerpsAccount} object.
