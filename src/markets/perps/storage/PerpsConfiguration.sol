@@ -37,7 +37,7 @@ library PerpsConfiguration {
         EnumerableSet.UintSet enabledMarketsIds;
     }
 
-    /// @dev Loads the PerpsConfiguration entity.
+    /// @notice Loads the PerpsConfiguration entity.
     /// @return perpsConfiguration The perps configuration storage pointer.
     function load() internal pure returns (Data storage perpsConfiguration) {
         bytes32 slot = PERPS_CONFIGURATION_SLOT;
@@ -47,17 +47,32 @@ library PerpsConfiguration {
         }
     }
 
-    /// @dev Adds a new perps market to the enabled markets set.
+    /// @notice Adds a new perps market to the enabled markets set.
     /// @param self The perps configuration storage pointer.
     /// @param marketId The id of the market to add.
     function addMarket(Data storage self, uint128 marketId) internal {
-        self.enabledMarketsIds.add(uint256(marketId));
+        bool added = self.enabledMarketsIds.add(uint256(marketId));
+
+        if (!added) {
+            revert Errors.PerpMarketAlreadyEnabled(marketId);
+        }
     }
 
-    /// @notice Reverts if the provided `marketId` is not enabled.
+    /// @notice Removes a perps market from the enabled markets set.
+    /// @param self The perps configuration storage pointer.
+    /// @param marketId The id of the market to add.
+    function removeMarket(Data storage self, uint128 marketId) internal {
+        bool added = self.enabledMarketsIds.remove(uint256(marketId));
+
+        if (!added) {
+            revert Errors.PerpMarketAlreadyDisabled(marketId);
+        }
+    }
+
+    /// @notice Reverts if the provided `marketId` is disabled.
     /// @param self The perps configuration storage pointer.
     /// @param marketId The id of the market to check.
-    function checkMarketIsNotDisabled(Data storage self, uint128 marketId) internal view {
+    function checkMarketIsEnabled(Data storage self, uint128 marketId) internal view {
         if (!self.enabledMarketsIds.contains(marketId)) {
             revert Errors.PerpMarketDisabled(marketId);
         }

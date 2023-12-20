@@ -32,6 +32,7 @@ library PerpsMarket {
         int128 skew;
         uint128 size;
         uint128 nextStrategyId;
+        bool initialized;
         OrderFees.Data orderFees;
     }
 
@@ -71,6 +72,7 @@ library PerpsMarket {
         self.maintenanceMarginRate = maintenanceMarginRate;
         self.maxOpenInterest = maxOpenInterest;
         self.minInitialMarginRate = minInitialMarginRate;
+        self.initialized = true;
         self.orderFees = orderFees;
 
         SettlementConfiguration.create(marketId, 0, marketOrderStrategy);

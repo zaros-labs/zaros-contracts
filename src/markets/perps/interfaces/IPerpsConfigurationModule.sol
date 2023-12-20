@@ -42,6 +42,14 @@ interface IPerpsConfigurationModule {
         OrderFees.Data orderFees
     );
 
+    /// @notice Emitted when a perp market is re-enabled by the owner.
+    /// @param marketId The perps market id.
+    event LogEnablePerpMarket(uint128 marketId);
+
+    /// @notice Emitted when a perp market is disabled by the owner.
+    /// @param marketId The perps market id.
+    event LogDisablePerpMarket(uint128 marketId);
+
     /// @dev Returns the maximum amount that can be deposited as margin for a given
     /// collateral type.
     /// @param collateralType The address of the collateral type.
@@ -88,4 +96,6 @@ interface IPerpsConfigurationModule {
         OrderFees.Data calldata orderFees
     )
         external;
+
+    function updatePerpMarketStatus(uint128 marketId, bool enable) external;
 }

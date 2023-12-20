@@ -66,6 +66,8 @@ library Errors {
     error LiquidityEngineNotDefined();
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
+    /// @notice Thrown when trying to update a market status but it hasn't been initialized yet.
+    error PerpMarketNotInitialized(uint128 marketId);
 
     /// @notice PerpsEngine.SettlementModule errors.
 
@@ -77,8 +79,12 @@ library Errors {
 
     /// @notice PerpsEngine.PerpsConfiguration errors.
 
-    /// @notice Thrown when the provided marketId doesn't exist or is currently disabled.
+    /// @notice Thrown when the provided `marketId` doesn't exist or is currently disabled.
     error PerpMarketDisabled(uint128 marketId);
+    /// @notice Thrown when the provided `marketId` is already enabled when trying to enable a market.
+    error PerpMarketAlreadyEnabled(uint128 marketId);
+    /// @notice Thrown when the provided `marketId` is already disabled when trying to disable a market.
+    error PerpMarketAlreadyDisabled(uint128 marketId);
 
     /// @notice PerpsEngine.PerpsMarket errors.
 

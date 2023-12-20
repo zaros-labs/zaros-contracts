@@ -156,6 +156,25 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         );
     }
 
+    function updatePerpMarketStatus(uint128 marketId, bool enable) external override onlyOwner {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        PerpsMarket.Data storage perpMarket = PerpsMarket.load(marketId);
+
+        if (!perpMarket.initialized) {
+            revert Errors.PerpMarketNotInitialized(marketId);
+        }
+
+        if (enable) {
+            perpsConfiguration.addMarket(marketId);
+
+            emit LogEnablePerpMarket(marketId);
+        } else {
+            perpsConfiguration.removeMarket(marketId);
+
+            emit LogDisablePerpMarket(marketId);
+        }
+    }
+
     /// @dev {PerpsConfigurationModule} UUPS initializer.
     function __PerpsConfigurationModule_init(
         address perpsAccountToken,

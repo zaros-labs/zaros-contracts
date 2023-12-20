@@ -92,7 +92,7 @@ abstract contract OrderModule is IOrderModule {
             perpsAccount.checkCanCreateNewPosition();
         }
 
-        perpsConfiguration.checkMarketIsNotDisabled(marketId);
+        perpsConfiguration.checkMarketIsEnabled(marketId);
         marketOrder.checkPendingOrder();
 
         marketOrder.update({ sizeDelta: sizeDelta, acceptablePrice: acceptablePrice });
