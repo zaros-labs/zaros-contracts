@@ -26,7 +26,7 @@ library MarketManager {
 
     error Zaros_MarketManager_MinDelegationTimeoutPending(uint32 timeRemaining);
 
-    bytes32 private constant MARKET_MANAGER_SLOT = keccak256(abi.encode("fi.liquidityEngine.core.MarketManager"));
+    bytes32 private constant MARKET_MANAGER_SLOT = keccak256(abi.encode("fi.zaros.core.MarketManager"));
 
     struct Data {
         uint128 minLiquidityRatio;
@@ -133,10 +133,12 @@ library MarketManager {
     /**
      * @dev Calculates the collateralization ratio of the vault that tracks the given collateral type.
      *
-     * The c-ratio is the vault's share of the total debt of the pool, divided by the collateral it delegates to the
+     * The c-ratio is the vault's share of the total debt of the pool, divided by the collateral it delegates to
+     * the
      * pool.
      *
-     * Note: This is not a view function. It updates the debt distribution chain before performing any calculations.
+     * Note: This is not a view function. It updates the debt distribution chain before performing any
+     * calculations.
      */
     function currentVaultCollateralRatio(Data storage self, address collateralType) internal returns (UD60x18) {
         SD59x18 vaultDebt = currentVaultDebt(self, collateralType);
@@ -145,7 +147,11 @@ library MarketManager {
         return vaultDebt.gt(SD_ZERO) ? collateralValue.div(vaultDebt.intoUD60x18()) : UD_ZERO;
     }
 
-    function findMarketWithCapacityLocked(Data storage self) internal view returns (Market.Data storage lockedMarket) {
+    function findMarketWithCapacityLocked(Data storage self)
+        internal
+        view
+        returns (Market.Data storage lockedMarket)
+    {
         for (uint256 i = 0; i < self.marketConfigurations.length; i++) {
             Market.Data storage market = Market.load(self.marketConfigurations[i].marketAddress);
 

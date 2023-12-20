@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { Order } from "../storage/Order.sol";
+import { MarketOrder } from "../storage/MarketOrder.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -85,7 +85,10 @@ interface IPerpsAccountModule {
     /// @notice Creates a new trading account and multicalls using the provided data payload.
     /// @param data The data payload to be multicalled.
     /// @return results The array of results of the multicall.
-    function createPerpsAccountAndMulticall(bytes[] calldata data) external payable returns (bytes[] memory results);
+    function createPerpsAccountAndMulticall(bytes[] calldata data)
+        external
+        payable
+        returns (bytes[] memory results);
 
     /// @notice Deposits margin collateral into the given trading account.
     /// @param accountId The trading account id.

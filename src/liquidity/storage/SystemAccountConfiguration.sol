@@ -6,7 +6,7 @@ import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 
 library SystemAccountConfiguration {
     bytes32 internal constant SYSTEM_ACCOUNT_CONFIGURATION_SLOT =
-        keccak256(abi.encode("fi.liquidityEngine.core.SystemAccountConfiguration"));
+        keccak256(abi.encode("fi.zaros.core.SystemAccountConfiguration"));
 
     struct Data {
         uint96 nextAccountId;

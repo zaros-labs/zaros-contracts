@@ -2,10 +2,13 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+
+import "forge-std/console.sol";
 
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
@@ -15,10 +18,11 @@ library SettlementConfiguration {
     uint128 internal constant MARKET_ORDER_SETTLEMENT_ID = 0;
 
     /// @notice Strategies IDs supported.
-    /// @param DATA_STREAMS_MARKET The strategy ID that uses basic or premium reports from CL Data Streams to settle
+    /// @param DATA_STREAMS_MARKET The strategy ID that uses basic or premium reports from CL Data Streams to
+    /// settle
     /// market orders.
-    /// market orders.
-    /// @param DATA_STREAMS_CUSTOM The strategy ID that uses basic or premium reports from CL Data Streams to settle any
+    /// @param DATA_STREAMS_CUSTOM The strategy ID that uses basic or premium reports from CL Data Streams to
+    /// settle any
     /// sort of custom order.
     enum StrategyType {
         DATA_STREAMS_MARKET,
@@ -87,6 +91,34 @@ library SettlementConfiguration {
         self.data = settlementConfiguration.data;
     }
 
+    // TODO: Implement
+    function requireDataStreamsReportIsValid(
+        string memory settlementStreamId,
+        bytes memory verifiedReportData,
+        bool isPremium
+    )
+        internal
+    {
+        // bytes32 settlementStreamIdHash = keccak256(abi.encodePacked(settlementStreamId));
+        // bytes32 reportStreamIdHash;
+        // bytes32 reportStreamId;
+        // if (isPremium) {
+        //     PremiumReport memory premiumReport = abi.decode(verifiedReportData, (PremiumReport));
+
+        //     reportStreamId = premiumReport.feedId;
+        //     reportStreamIdHash = keccak256(abi.encodePacked(premiumReport.feedId));
+        // } else {
+        //     BasicReport memory basicReport = abi.decode(verifiedReportData, (BasicReport));
+
+        //     reportStreamId = basicReport.feedId;
+        //     reportStreamIdHash = keccak256(abi.encodePacked(basicReport.feedId));
+        // }
+
+        // if (settlementStreamIdHash != reportStreamIdHash) {
+        //     revert Errors.InvalidDataStreamReport(settlementStreamId, reportStreamId);
+        // }
+    }
+
     function verifyExtraData(
         Data storage self,
         bytes memory extraData
@@ -98,10 +130,18 @@ library SettlementConfiguration {
             DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
                 abi.decode(self.data, (DataStreamsMarketStrategy));
             verifiedExtraData = verifyDataStreamsReport(dataStreamsMarketStrategy, extraData);
+
+            requireDataStreamsReportIsValid(
+                dataStreamsMarketStrategy.streamId, verifiedExtraData, dataStreamsMarketStrategy.isPremium
+            );
         } else if (self.strategyType == StrategyType.DATA_STREAMS_CUSTOM) {
             DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
                 abi.decode(self.data, (DataStreamsCustomStrategy));
             verifiedExtraData = verifyDataStreamsReport(dataStreamsCustomStrategy, extraData);
+
+            requireDataStreamsReportIsValid(
+                dataStreamsCustomStrategy.streamId, verifiedExtraData, dataStreamsCustomStrategy.isPremium
+            );
         } else {
             revert Errors.InvalidSettlementStrategyType(uint8(self.strategyType));
         }

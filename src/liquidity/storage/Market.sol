@@ -19,7 +19,7 @@ library Market {
     error Zaros_Market_MarketNotFound(address marketAddress);
 
     /// @dev Constant base domain used to access a given market's storage slot
-    string internal constant MARKET_DOMAIN = "fi.liquidityEngine.core.Market";
+    string internal constant MARKET_DOMAIN = "fi.zaros.core.Market";
 
     struct Data {
         address marketAddress;

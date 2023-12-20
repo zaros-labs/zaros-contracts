@@ -86,17 +86,25 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
     }
 
     /// @inheritdoc IPerpsMarketModule
-    function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view override returns (UD60x18 fillPrice) {
+    function estimateFillPrice(
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        override
+        returns (UD60x18 fillPrice)
+    {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
         fillPrice = perpsMarket.getIndexPrice();
     }
 
     function getPositionLeverage(uint128 accountId, uint128 marketId) external view override returns (UD60x18) {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        Position.Data storage position = perpsMarket.positions[accountId];
+        Position.Data storage position = Position.load(accountId, marketId);
 
         UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
-        UD60x18 leverage = position.getNotionalValue(marketIndexPrice).div(ud60x18(position.initialMargin));
+        // UD60x18 leverage = position.getNotionalValue(marketIndexPrice).div(ud60x18(position.initialMargin));
     }
 
     /// @inheritdoc IPerpsMarketModule
@@ -136,7 +144,6 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         override
         returns (
             SD59x18 size,
-            UD60x18 initialMargin,
             UD60x18 notionalValue,
             UD60x18 maintenanceMargin,
             SD59x18 accruedFunding,
@@ -144,13 +151,13 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         )
     {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        Position.Data storage position = perpsMarket.positions[accountId];
+        Position.Data storage position = Position.load(accountId, marketId);
 
         // UD60x18 maintenanceMarginRate = ud60x18(perpsMarket.maintenanceMarginRate);
         UD60x18 price = perpsMarket.getIndexPrice();
         SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(price);
 
-        (size, initialMargin, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) =
+        (size, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) =
             position.getPositionData(ud60x18(perpsMarket.maintenanceMarginRate), price, fundingFeePerUnit);
     }
 }

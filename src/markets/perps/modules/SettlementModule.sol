@@ -7,7 +7,7 @@ import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookup
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
-import { Order } from "../storage/Order.sol";
+import { MarketOrder } from "../storage/MarketOrder.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
@@ -22,7 +22,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 abstract contract SettlementModule is ISettlementModule {
-    using Order for Order.Market;
+    using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
     using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
@@ -51,10 +51,10 @@ abstract contract SettlementModule is ISettlementModule {
         external
         onlyMarketOrderUpkeep(marketId)
     {
-        Order.Market storage marketOrder = PerpsAccount.load(accountId).activeMarketOrder[marketId];
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
 
         SettlementPayload memory payload =
-            SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.payload.sizeDelta });
+            SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
         _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, extraData);
 
         marketOrder.clear();
@@ -69,7 +69,8 @@ abstract contract SettlementModule is ISettlementModule {
         external
         onlyValidCustomTriggerUpkeep
     {
-        // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the position's
+        // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
+        // position's
         // validations and updates.
         for (uint256 i = 0; i < payloads.length; i++) {
             SettlementPayload memory payload = payloads[i];
@@ -93,7 +94,7 @@ abstract contract SettlementModule is ISettlementModule {
 
         PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
-        Position.Data storage oldPosition = perpsMarket.positions[runtime.accountId];
+        Position.Data storage oldPosition = Position.load(runtime.accountId, runtime.marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         runtime.fee = ud60x18(settlementConfiguration.fee);
@@ -130,13 +131,14 @@ abstract contract SettlementModule is ISettlementModule {
         // TODO: validate initial margin and size
         runtime.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(sd59x18(payload.sizeDelta)).intoInt256(),
-            // initialMargin: initialMargin.intoUint128(),
-            initialMargin: 0,
             unrealizedPnlStored: runtime.unrealizedPnlToStore.intoInt256().toInt128(),
             lastInteractionPrice: runtime.fillPrice.intoUint128(),
             lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
         });
 
+        perpsAccount.updateActiveMarkets(
+            runtime.marketId, sd59x18(oldPosition.size), sd59x18(runtime.newPosition.size)
+        );
         oldPosition.update(runtime.newPosition);
         perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(payload.sizeDelta)).intoInt256().toInt128();
         perpsMarket.size = ud60x18(perpsMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();

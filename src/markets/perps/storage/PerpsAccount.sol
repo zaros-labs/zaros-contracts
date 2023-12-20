@@ -5,7 +5,8 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarginCollateral } from "./MarginCollateral.sol";
-import { Order } from "./Order.sol";
+import { MarketOrder } from "./MarketOrder.sol";
+import { PerpsConfiguration } from "./PerpsConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -13,6 +14,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
@@ -22,25 +24,23 @@ library PerpsAccount {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
     using MarginCollateral for MarginCollateral.Data;
+    using PerpsConfiguration for PerpsConfiguration.Data;
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
-    string internal constant PERPS_ACCOUNT_DOMAIN = "fi.liquidityEngine.markets.PerpsAccount";
+    string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
 
     /// @notice {PerpsAccount} namespace storage structure.
     /// @param id The perps account id.
     /// @param owner The perps account owner.
     /// @param marginCollateralBalance The perps account margin collateral enumerable map.
     /// @param activeMarketsIds The perps account active markets ids enumerable set.
-    /// @param activeMarketOrder The perps account's market orders with pending settlement per market.
     /// @dev TODO: implement role based access control.
     struct Data {
         uint128 id;
         address owner;
         EnumerableMap.AddressToUintMap marginCollateralBalance;
-        // EnumerableSet.Bytes32Set activeOrdersPerMarket;
         EnumerableSet.UintSet activeMarketsIds;
         EnumerableSet.AddressSet collateralPriority;
-        mapping(uint128 marketId => Order.Market) activeMarketOrder;
     }
 
     /// @notice Loads a {PerpsAccount} object.
@@ -68,12 +68,36 @@ library PerpsAccount {
         return false;
     }
 
-    /// @notice Loads a perps account and checks if the `msg.sender` is authorized.
+    function checkIsNotLiquidatable(Data storage self) internal view {
+        if (canBeLiquidated(self)) {
+            revert Errors.AccountLiquidatable(self.id);
+        }
+    }
+
+    /// @dev This function must be called when the perps account is going to open a new position. If called in a
+    /// context
+    /// of an already active market, the check may be misleading.
+    function checkCanCreateNewPosition(Data storage self) internal view {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+
+        uint256 maxPositionsPerAccount = perpsConfiguration.maxPositionsPerAccount;
+        uint256 activePositionsLength = self.activeMarketsIds.length();
+
+        if (activePositionsLength >= maxPositionsPerAccount) {
+            revert Errors.MaxPositionsPerAccountReached(self.id, activePositionsLength, maxPositionsPerAccount);
+        }
+    }
+
+    /// @notice Loads an existing perps account and checks if the `msg.sender` is authorized.
     /// @param accountId The perps account id.
     /// @return perpsAccount The loaded perps account storage pointer.
-    function loadAccountAndValidatePermission(uint128 accountId) internal view returns (Data storage perpsAccount) {
-        perpsAccount = load(accountId);
-        verifyCaller(perpsAccount);
+    function loadExistingAccountAndVerifySender(uint128 accountId)
+        internal
+        view
+        returns (Data storage perpsAccount)
+    {
+        perpsAccount = loadExisting(accountId);
+        verifySender(perpsAccount);
     }
 
     /// @notice Returns the amount of the given margin collateral type.
@@ -103,12 +127,16 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Verifies if the caller is authorized to perform actions on the given perps account.
+    /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account.
     /// @param self The perps account storage pointer.
-    function verifyCaller(Data storage self) internal view {
+    function verifySender(Data storage self) internal view {
         if (self.owner != msg.sender) {
-            revert Errors.PermissionDenied(self.id, msg.sender);
+            revert Errors.AccountPermissionDenied(self.id, msg.sender);
         }
+    }
+
+    function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {
+        return self.activeMarketsIds.contains(marketId);
     }
 
     /// @notice Creates a new perps account.
@@ -170,14 +198,19 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Updates the account's active markets ids.
+    /// @notice Updates the account's active markets ids based on the position's state transition.
     /// @param self The perps account storage pointer.
-    /// @param marketId The perps market id.
-    /// @param isActive `true` if the market is active, `false` otherwise.
-    function updateActiveMarkets(Data storage self, uint128 marketId, bool isActive) internal {
-        if (isActive) {
+    function updateActiveMarkets(
+        Data storage self,
+        uint128 marketId,
+        SD59x18 oldPositionSize,
+        SD59x18 newPositionSize
+    )
+        internal
+    {
+        if (oldPositionSize.eq(SD_ZERO) && newPositionSize.neq(SD_ZERO)) {
             self.activeMarketsIds.add(marketId);
-        } else {
+        } else if (oldPositionSize.neq(SD_ZERO) && newPositionSize.eq(SD_ZERO)) {
             self.activeMarketsIds.remove(marketId);
         }
     }

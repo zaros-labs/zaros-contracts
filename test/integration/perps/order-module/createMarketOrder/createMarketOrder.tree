@@ -1,0 +1,27 @@
+CreateMarketOrder_Integration_Test
+├── when the account id does not exist
+│   └── it should revert
+└── when the account id exists
+    ├── given the sender is not authorized
+    │   └── it should revert
+    └── given the sender is authorized
+        ├── when the size delta is zero
+        │   └── it should revert
+        └── when the size delta is not zero
+            ├── given the account is liquidatable
+            │   └── it should revert
+            └── given the account is not liquidatable
+                ├── given the account does not have enough margin
+                │   └── it should revert
+                └── given the account has enough margin
+                    ├── given the account will reach the positions limit
+                    │   └── it should revert
+                    └── given the account will not reach the positions limit
+                        ├── given the perp market is disabled
+                        │   └── it should revert
+                        └── given the perp market is active
+                            ├── given there is a pending market order
+                            │   └── it should revert
+                            └── given there is no pending market order
+                                ├── it should emit a {LogCreateMarketOrder} event
+                                └── it should create the market order

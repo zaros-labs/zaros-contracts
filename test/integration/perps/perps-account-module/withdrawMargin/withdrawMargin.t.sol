@@ -43,7 +43,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.PermissionDenied.selector, perpsAccountId, users.sasuke)
+            revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, perpsAccountId, users.sasuke)
         });
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToDeposit));
     }

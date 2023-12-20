@@ -61,8 +61,8 @@ contract CreatePerpsMarket is BaseScript {
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData = SettlementConfiguration
-            .DataStreamsMarketStrategy({
+        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData =
+        SettlementConfiguration.DataStreamsMarketStrategy({
             chainlinkVerifier: chainlinkVerifier,
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,

@@ -42,6 +42,14 @@ interface IPerpsConfigurationModule {
         OrderFees.Data orderFees
     );
 
+    /// @notice Emitted when a perp market is re-enabled by the owner.
+    /// @param marketId The perps market id.
+    event LogEnablePerpMarket(uint128 marketId);
+
+    /// @notice Emitted when a perp market is disabled by the owner.
+    /// @param marketId The perps market id.
+    event LogDisablePerpMarket(uint128 marketId);
+
     /// @dev Returns the maximum amount that can be deposited as margin for a given
     /// collateral type.
     /// @param collateralType The address of the collateral type.
@@ -62,10 +70,10 @@ interface IPerpsConfigurationModule {
     /// @param priceFeed The price oracle address.
     function configureMarginCollateral(address collateralType, uint248 depositCap, address priceFeed) external;
 
-    /// @notice Updates the CL Automation forwarder address and the Data Streams verifier address.
-    /// @param chainlinkForwarder The address of the Chainlink Automation forwarder.
-    /// @param chainlinkVerifier The address of the Chainlink Data Streams verifier.
-    function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external;
+    /// @notice Configures the system parameters.
+    /// @param maxPositionsPerAccount The maximum number of open positions per account.
+    /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
+    function configureSystemParameters(uint128 maxPositionsPerAccount, uint128 marketOrderMaxLifetime) external;
 
     /// @notice Creates a new market with the requested market id.
     /// @param marketId The perps market id.
@@ -88,4 +96,6 @@ interface IPerpsConfigurationModule {
         OrderFees.Data calldata orderFees
     )
         external;
+
+    function updatePerpMarketStatus(uint128 marketId, bool enable) external;
 }

@@ -12,7 +12,7 @@ import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
-import { Order } from "@zaros/markets/perps/storage/Order.sol";
+import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
 
@@ -70,7 +70,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         MarketOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
         uint128 accountId = uint256(log.topics[2]).toUint128();
-        (Order.Market memory marketOrder) = abi.decode(log.data, (Order.Market));
+        (MarketOrder.Data memory marketOrder) = abi.decode(log.data, (MarketOrder.Data));
 
         SettlementConfiguration.Data memory settlementConfiguration =
             settlementStrategy.getZarosSettlementConfiguration();
@@ -87,7 +87,8 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         );
     }
 
-    /// TODO: compare gas optimization pre-loading variables here vs in performUpkeep. Remember of Arbitrum's l1 gas
+    /// TODO: compare gas optimization pre-loading variables here vs in performUpkeep. Remember of Arbitrum's l1
+    /// gas
     /// cost (calldata is the most expensive place).
     /// @inheritdoc IStreamsLookupCompatible
     function checkCallback(

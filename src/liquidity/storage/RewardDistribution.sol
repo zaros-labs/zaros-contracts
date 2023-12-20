@@ -75,7 +75,8 @@ library RewardDistribution {
     }
 
     /**
-     * @dev Updates the total shares of a reward distribution entry, and releases its unlocked value into its value per
+     * @dev Updates the total shares of a reward distribution entry, and releases its unlocked value into its value
+     * per
      * share, depending on the time elapsed since the start of the distribution's entry.
      *
      * Note: call every time before `totalShares` changes.

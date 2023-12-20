@@ -50,7 +50,14 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         __DataStreamsSettlementStrategy_init(perpsEngine, keepers, marketId, settlementId);
     }
 
-    function getLimitOrders(uint256 lowerBound, uint256 upperBound) external view returns (LimitOrder.Data[] memory) {
+    function getLimitOrders(
+        uint256 lowerBound,
+        uint256 upperBound
+    )
+        external
+        view
+        returns (LimitOrder.Data[] memory)
+    {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
         uint256 amountOfOrders = self.limitOrdersIds.length() > lowerBound ? upperBound : self.limitOrdersIds.length();

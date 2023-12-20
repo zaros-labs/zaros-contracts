@@ -7,7 +7,7 @@ library LimitOrder {
         abi.encode(uint256(keccak256("fi.zaros.markets.settlement.storage.LimitOrder")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @notice The Limit Order data structure.
+    /// @notice The Limit MarketOrder data structure.
     /// @param price The desired execution price.
     struct Data {
         uint128 accountId;

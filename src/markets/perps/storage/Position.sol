@@ -8,18 +8,27 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The Position namespace.
 library Position {
+    /// @notice Constant base domain used to access a given Position's storage slot.
+    string internal constant POSITION_DOMAIN = "fi.zaros.markets.perps.storage.Position";
+
     /// @notice The {Position} namespace storage structure.
     /// @param size The position size in asset units, i.e amount of purchased contracts.
-    /// @param initialMargin The notional value of the initial margin allocated by the account.
     /// @param unrealizedPnlStored The notional value of the realized profit or loss of the position.
     /// @param lastInteractionPrice The last settlement reference price of this position.
     /// @param lastInteractionFundingFeePerUnit The last funding fee per unit applied to this position.
     struct Data {
         int256 size;
-        uint128 initialMargin;
         int128 unrealizedPnlStored;
         uint128 lastInteractionPrice;
         int128 lastInteractionFundingFeePerUnit;
+    }
+
+    function load(uint128 accountId, uint128 marketId) internal pure returns (Data storage position) {
+        bytes32 slot = keccak256(abi.encode(POSITION_DOMAIN, accountId, marketId));
+
+        assembly {
+            position.slot := slot
+        }
     }
 
     /// @dev Updates the current position with the new one.
@@ -27,7 +36,6 @@ library Position {
     /// @param newPosition The new position to be placed.
     function update(Data storage self, Data memory newPosition) internal {
         self.size = newPosition.size;
-        self.initialMargin = newPosition.initialMargin;
         self.unrealizedPnlStored = newPosition.unrealizedPnlStored;
         self.lastInteractionPrice = newPosition.lastInteractionPrice;
         self.lastInteractionFundingFeePerUnit = newPosition.lastInteractionFundingFeePerUnit;
@@ -37,7 +45,6 @@ library Position {
     /// @param self The position storage pointer.
     function clear(Data storage self) internal {
         self.size = 0;
-        self.initialMargin = 0;
         self.unrealizedPnlStored = 0;
         self.lastInteractionPrice = 0;
         self.lastInteractionFundingFeePerUnit = 0;
@@ -90,7 +97,6 @@ library Position {
     /// @param price The market's current reference price.
     /// @param fundingFeePerUnit The market's current funding fee per unit.
     /// @return size The position size in asset units, i.e amount of purchased contracts.
-    /// @return initialMargin The notional value of the initial margin allocated by the account.
     /// @return notionalValue The notional value of the position.
     /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
     /// @return accruedFunding The accrued funding fee.
@@ -105,7 +111,6 @@ library Position {
         view
         returns (
             SD59x18 size,
-            UD60x18 initialMargin,
             UD60x18 notionalValue,
             UD60x18 maintenanceMargin,
             SD59x18 accruedFunding,
@@ -113,7 +118,6 @@ library Position {
         )
     {
         size = sd59x18(self.size);
-        initialMargin = ud60x18(self.initialMargin);
         notionalValue = getNotionalValue(self, price);
         maintenanceMargin = notionalValue.mul(maintenanceMarginRate);
         accruedFunding = getAccruedFunding(self, fundingFeePerUnit);

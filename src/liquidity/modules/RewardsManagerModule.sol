@@ -116,7 +116,7 @@ abstract contract RewardsManagerModule is IRewardsManagerModule, Ownable {
         returns (uint256)
     {
         FeatureFlag.ensureAccessToFeature(Constants.CLAIM_FEATURE_FLAG);
-        Account.loadAccountAndValidatePermission(accountId);
+        Account.loadExistingAccountAndVerifySender(accountId);
 
         Vault.Data storage vault = MarketManager.load().vaults[collateralType];
         bytes32 rewardId = keccak256(abi.encode(collateralType, distributor));

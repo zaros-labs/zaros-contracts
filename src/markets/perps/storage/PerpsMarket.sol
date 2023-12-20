@@ -20,7 +20,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 /// @title The PerpsMarket namespace.
 library PerpsMarket {
     /// @dev Constant base domain used to access a given PerpsMarket's storage slot.
-    string internal constant PERPS_MARKET_DOMAIN = "fi.liquidityEngine.markets.PerpsMarket";
+    string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpsMarket";
 
     struct Data {
         string name;
@@ -32,16 +32,19 @@ library PerpsMarket {
         int128 skew;
         uint128 size;
         uint128 nextStrategyId;
+        bool initialized;
         OrderFees.Data orderFees;
-        mapping(uint128 accountId => Position.Data) positions;
     }
 
-    /// @dev TODO: add function that only loads a valid / existing perps market
     function load(uint128 marketId) internal pure returns (Data storage perpsMarket) {
         bytes32 slot = keccak256(abi.encode(PERPS_MARKET_DOMAIN, marketId));
         assembly {
             perpsMarket.slot := slot
         }
+    }
+
+    function loadActive(uint128 marketId) internal view returns (Data storage perpsMarket) {
+        perpsMarket = load(marketId);
     }
 
     function create(
@@ -59,7 +62,7 @@ library PerpsMarket {
     {
         Data storage self = load(marketId);
         if (self.id != 0) {
-            revert Errors.MarketAlreadyExists(marketId, msg.sender);
+            revert Errors.MarketAlreadyExists(marketId);
         }
 
         // TODO: remember to test gas cost / number of sstores here
@@ -69,6 +72,7 @@ library PerpsMarket {
         self.maintenanceMarginRate = maintenanceMarginRate;
         self.maxOpenInterest = maxOpenInterest;
         self.minInitialMarginRate = minInitialMarginRate;
+        self.initialized = true;
         self.orderFees = orderFees;
 
         SettlementConfiguration.create(marketId, 0, marketOrderStrategy);

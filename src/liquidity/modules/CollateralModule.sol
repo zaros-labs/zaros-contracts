@@ -33,7 +33,12 @@ abstract contract CollateralModule is ICollateralModule, Ownable {
     bytes32 private constant _DEPOSIT_FEATURE_FLAG = "deposit";
     bytes32 private constant _WITHDRAW_FEATURE_FLAG = "withdraw";
 
-    function getCollateralConfigs(bool hideDisabled) external view override returns (CollateralConfig.Data[] memory) {
+    function getCollateralConfigs(bool hideDisabled)
+        external
+        view
+        override
+        returns (CollateralConfig.Data[] memory)
+    {
         EnumerableSet.AddressSet storage collateralTypes = CollateralConfig.loadAvailableCollaterals();
 
         uint256 numCollaterals = collateralTypes.length();
@@ -117,10 +122,10 @@ abstract contract CollateralModule is ICollateralModule, Ownable {
 
     function withdraw(uint128 accountId, address collateralType, uint256 tokenAmount) external override {
         FeatureFlag.ensureAccessToFeature(_WITHDRAW_FEATURE_FLAG);
-        // Account.Data storage account = Account.loadAccountAndValidatePermissionAndTimeout(
+        // Account.Data storage account = Account.loadExistingAccountAndVerifySenderAndTimeout(
         //     accountId, Config.readUint(_CONFIG_TIMEOUT_WITHDRAW, 0)
         // );
-        Account.Data storage account = Account.loadAccountAndValidatePermission(accountId);
+        Account.Data storage account = Account.loadExistingAccountAndVerifySender(accountId);
 
         UD60x18 tokenWad = CollateralConfig.load(collateralType).normalizeTokenAmount(tokenAmount);
 

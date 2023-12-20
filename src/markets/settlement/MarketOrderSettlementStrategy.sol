@@ -27,7 +27,8 @@ contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
         (uint128 marketId, PerpsEngine perpsEngine) = (
-            dataStreamsCustomSettlementStrategyStorage.marketId, dataStreamsCustomSettlementStrategyStorage.perpsEngine
+            dataStreamsCustomSettlementStrategyStorage.marketId,
+            dataStreamsCustomSettlementStrategyStorage.perpsEngine
         );
 
         perpsEngine.settleMarketOrder(accountId, marketId, signedReport);

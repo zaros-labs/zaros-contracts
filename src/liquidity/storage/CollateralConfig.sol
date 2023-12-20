@@ -17,7 +17,7 @@ library CollateralConfig {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeCast for int256;
 
-    string internal constant COLLATERAL_CONFIG_DOMAIN = "fi.liquidityEngine.core.CollateralConfig";
+    string internal constant COLLATERAL_CONFIG_DOMAIN = "fi.zaros.core.CollateralConfig";
     bytes32 internal constant SLOT_AVAILABLE_COLLATERALS =
         keccak256(abi.encode(COLLATERAL_CONFIG_DOMAIN, "_availableCollaterals"));
 
@@ -53,7 +53,11 @@ library CollateralConfig {
         }
     }
 
-    function loadAvailableCollaterals() internal pure returns (EnumerableSet.AddressSet storage availableCollaterals) {
+    function loadAvailableCollaterals()
+        internal
+        pure
+        returns (EnumerableSet.AddressSet storage availableCollaterals)
+    {
         bytes32 s = SLOT_AVAILABLE_COLLATERALS;
         assembly {
             availableCollaterals.slot := s

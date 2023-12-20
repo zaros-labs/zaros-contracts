@@ -83,7 +83,12 @@ contract VaultModule is IVaultModule {
         return MarketManager.load().updateAccountDebt(collateralType, accountId).intoInt256();
     }
 
-    function getVaultCollateral(address collateralType) public view override returns (uint256 amount, uint256 value) {
+    function getVaultCollateral(address collateralType)
+        public
+        view
+        override
+        returns (uint256 amount, uint256 value)
+    {
         (UD60x18 amountUD, UD60x18 valueUD) = MarketManager.load().currentVaultCollateral(collateralType);
         (amount, value) = (amountUD.intoUint256(), valueUD.intoUint256());
     }
@@ -101,7 +106,7 @@ contract VaultModule is IVaultModule {
         override
     {
         FeatureFlag.ensureAccessToFeature(Constants.DELEGATE_FEATURE_FLAG);
-        Account.loadAccountAndValidatePermission(accountId);
+        Account.loadExistingAccountAndVerifySender(accountId);
 
         if (newCollateralAmount.gt(UD_ZERO)) {
             CollateralConfig.requireSufficientDelegation(collateralType, newCollateralAmount);

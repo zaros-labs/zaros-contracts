@@ -85,7 +85,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
             PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-            Position.Data storage position = perpsMarket.positions[accountId];
+            Position.Data storage position = Position.load(accountId, marketId);
 
             UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
             SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(marketIndexPrice);
@@ -93,7 +93,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
             UD60x18 notionalValue = position.getNotionalValue(marketIndexPrice);
 
             marginBalance = marginBalance.add(position.getUnrealizedPnl(marketIndexPrice, accruedFunding));
-            initialMargin = initialMargin.add(ud60x18(position.initialMargin));
+            // initialMargin = initialMargin.add(ud60x18(position.initialMargin));
             maintenanceMargin = maintenanceMargin.add(ud60x18(perpsMarket.maintenanceMarginRate).mul(notionalValue));
         }
 
@@ -159,7 +159,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     function withdrawMargin(uint128 accountId, address collateralType, UD60x18 ud60x18Amount) external override {
         _requireAmountNotZero(ud60x18Amount);
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadAccountAndValidatePermission(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
         _checkMarginIsAvailable(perpsAccount, collateralType, ud60x18Amount);
         perpsAccount.decreaseMarginCollateralBalance(collateralType, ud60x18Amount);
 

@@ -53,12 +53,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         perpsConfiguration.liquidityEngine = liquidityEngine;
     }
 
-    function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external override onlyOwner {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.chainlinkForwarder = chainlinkForwarder;
-        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
-    }
-
     /// @inheritdoc IPerpsConfigurationModule
     function configureMarginCollateral(
         address collateralType,
@@ -79,6 +73,24 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         } catch {
             revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }
+    }
+
+    function configureSystemParameters(
+        uint128 maxPositionsPerAccount,
+        uint128 marketOrderMaxLifetime
+    )
+        external
+        override
+        onlyOwner
+    {
+        if (maxPositionsPerAccount == 0) {
+            revert Errors.ZeroInput("maxPositionsPerAccount");
+        }
+
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+
+        perpsConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
+        perpsConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
     }
 
     /// @inheritdoc IPerpsConfigurationModule
@@ -144,10 +156,27 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         );
     }
 
+    function updatePerpMarketStatus(uint128 marketId, bool enable) external override onlyOwner {
+        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        PerpsMarket.Data storage perpMarket = PerpsMarket.load(marketId);
+
+        if (!perpMarket.initialized) {
+            revert Errors.PerpMarketNotInitialized(marketId);
+        }
+
+        if (enable) {
+            perpsConfiguration.addMarket(marketId);
+
+            emit LogEnablePerpMarket(marketId);
+        } else {
+            perpsConfiguration.removeMarket(marketId);
+
+            emit LogDisablePerpMarket(marketId);
+        }
+    }
+
     /// @dev {PerpsConfigurationModule} UUPS initializer.
     function __PerpsConfigurationModule_init(
-        address chainlinkForwader,
-        address chainlinkVerifier,
         address perpsAccountToken,
         address rewardDistributor,
         address usdToken,
@@ -157,8 +186,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         onlyInitializing
     {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.chainlinkForwarder = chainlinkForwader;
-        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
         perpsConfiguration.perpsAccountToken = perpsAccountToken;
         perpsConfiguration.rewardDistributor = rewardDistributor;
         perpsConfiguration.usdToken = usdToken;

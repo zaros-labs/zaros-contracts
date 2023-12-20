@@ -108,8 +108,8 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
     {
         ISettlementModule.SettlementPayload[] memory payloads = new ISettlementModule.SettlementPayload[](0);
 
-        (OcoOrder.Data[] memory ocoOrders, uint256 performLowerBound, uint256 performUpperBound, bool isPremiumReport) =
-            abi.decode(extraData, (OcoOrder.Data[], uint256, uint256, bool));
+        (OcoOrder.Data[] memory ocoOrders, uint256 performLowerBound, uint256 performUpperBound, bool isPremiumReport)
+        = abi.decode(extraData, (OcoOrder.Data[], uint256, uint256, bool));
         uint256 ordersToIterate = ocoOrders.length > performUpperBound ? performUpperBound : ocoOrders.length;
 
         bytes memory reportData = ChainlinkUtil.getReportData(values[0]);
@@ -123,7 +123,9 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             bool isLongPosition = takeProfit.sizeDelta < 0 || stopLoss.sizeDelta < 0;
 
             bool isTpFillable = (
-                isLongPosition ? ud60x18(takeProfit.price).gte(reportPrice) : ud60x18(takeProfit.price).lte(reportPrice)
+                isLongPosition
+                    ? ud60x18(takeProfit.price).gte(reportPrice)
+                    : ud60x18(takeProfit.price).lte(reportPrice)
             ) && takeProfit.price != 0;
 
             bool isStopLossFillable = (
