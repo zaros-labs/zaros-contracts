@@ -165,7 +165,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_ThePerpMarketIsDisabled()
+    function testFuzz_RevertGiven_ThePerpMarketIsDisabled(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong
+    )
         external
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
@@ -174,7 +178,30 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountHasEnoughMargin
         givenTheAccountWillNotReachThePositionsLimit
     {
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        int128 sizeDeltaAbs = int128(
+            ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18()
+                .intoInt256()
+        );
+        int128 sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.updatePerpMarketStatus({ marketId: ETH_USD_MARKET_ID, enable: false });
+
+        changePrank({ msgSender: users.naruto });
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
         // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, ETH_USD_MARKET_ID) });
+        perpsEngine.createMarketOrder({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            sizeDelta: sizeDelta,
+            acceptablePrice: 0
+        });
     }
 
     modifier givenThePerpMarketIsActive() {
