@@ -23,5 +23,5 @@ CreateMarketOrder_Integration_Test
                             ├── given there is a pending market order
                             │   └── it should revert
                             └── given there is no pending market order
-                                ├── it should create the market order
-                                └── it should emit a {LogCreateMarketOrder} event
+                                ├── it should emit a {LogCreateMarketOrder} event
+                                └── it should create the market order
