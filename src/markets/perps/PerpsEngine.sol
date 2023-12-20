@@ -33,8 +33,6 @@ contract PerpsEngine is
 
     function initialize(
         address owner,
-        address chainlinkForwarder,
-        address chainlinkVerifier,
         address perpsAccountToken,
         address rewardDistributor,
         address usdToken,
@@ -45,7 +43,7 @@ contract PerpsEngine is
     {
         __Ownable_init(owner);
         PerpsConfigurationModule.__PerpsConfigurationModule_init(
-            chainlinkForwarder, chainlinkVerifier, perpsAccountToken, rewardDistributor, usdToken, liquidityEngine
+            perpsAccountToken, rewardDistributor, usdToken, liquidityEngine
         );
     }
 

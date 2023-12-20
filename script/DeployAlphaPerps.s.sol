@@ -35,8 +35,8 @@ contract DeployAlphaPerps is BaseScript {
     PerpsEngine internal perpsEngineImplementation;
 
     function run() public broadcaster {
-        chainlinkForwarder = vm.envAddress("CHAINLINK_FORWARDER");
-        chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
+        // chainlinkForwarder = vm.envAddress("CHAINLINK_FORWARDER");
+        // chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
         usdToken = USDToken(vm.envAddress("USDZ"));
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
@@ -45,8 +45,6 @@ contract DeployAlphaPerps is BaseScript {
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
             deployer,
-            chainlinkForwarder,
-            chainlinkVerifier,
             address(perpsAccountToken),
             mockRewardDistributorAddress,
             address(usdToken),

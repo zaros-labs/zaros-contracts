@@ -29,8 +29,6 @@ library PerpsConfiguration {
     struct Data {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMaxLifetime;
-        address chainlinkForwarder;
-        address chainlinkVerifier;
         address rewardDistributor;
         address usdToken;
         address liquidityEngine;

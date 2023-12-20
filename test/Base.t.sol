@@ -3,16 +3,10 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
-import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
-import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
-import { MockChainlinkFeeManager } from "./mocks/MockChainlinkFeeManager.sol";
-import { MockChainlinkVerifier } from "./mocks/MockChainlinkVerifier.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "./mocks/MockUSDToken.sol";
@@ -39,69 +33,6 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     //////////////////////////////////////////////////////////////////////////*/
 
     Users internal users;
-    address internal mockChainlinkForwarder = vm.addr({ privateKey: 0x01 });
-    address internal mockChainlinkFeeManager;
-    address internal mockChainlinkVerifier;
-
-    /// @dev BTC / USD market configuration variables.
-    SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderStrategyData = SettlementConfiguration
-        .DataStreamsMarketStrategy({
-        chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-        streamId: MOCK_ETH_USD_STREAM_ID,
-        feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-        queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-        settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-        isPremium: false
-    });
-    SettlementConfiguration.Data internal btcUsdMarketOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-        isEnabled: true,
-        fee: DATA_STREAMS_SETTLEMENT_FEE,
-        settlementStrategy: mockDefaultMarketOrderUpkeep,
-        data: abi.encode(btcUsdMarketOrderStrategyData)
-    });
-
-    // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-    SettlementConfiguration.Data internal btcUsdLimitOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-        isEnabled: true,
-        fee: DATA_STREAMS_SETTLEMENT_FEE,
-        settlementStrategy: mockDefaultMarketOrderUpkeep,
-        data: abi.encode(btcUsdMarketOrderStrategyData)
-    });
-    SettlementConfiguration.Data[] internal btcUsdCustomTriggerStrategies;
-
-    OrderFees.Data internal btcUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
-
-    /// @dev ETH / USD market configuration variables.
-    SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData = SettlementConfiguration
-        .DataStreamsMarketStrategy({
-        chainlinkVerifier: IVerifierProxy((mockChainlinkVerifier)),
-        streamId: MOCK_ETH_USD_STREAM_ID,
-        feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-        queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-        settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-        isPremium: false
-    });
-    SettlementConfiguration.Data internal ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-        isEnabled: true,
-        fee: DATA_STREAMS_SETTLEMENT_FEE,
-        settlementStrategy: mockDefaultMarketOrderUpkeep,
-        data: abi.encode(btcUsdMarketOrderStrategyData)
-    });
-
-    // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-    SettlementConfiguration.Data internal ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
-        strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-        isEnabled: true,
-        fee: DATA_STREAMS_SETTLEMENT_FEE,
-        settlementStrategy: mockDefaultMarketOrderUpkeep,
-        data: abi.encode(ethUsdMarketOrderStrategyData)
-    });
-    SettlementConfiguration.Data[] internal ethUsdCustomTriggerStrategies;
-
-    OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -120,8 +51,6 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x03 });
 
     /// @dev TODO: think about forking tests
-    address internal mockDefaultMarketOrderSettlementStrategy = vm.addr({ privateKey: 0x04 });
-    address internal mockDefaultMarketOrderUpkeep = vm.addr({ privateKey: 0x05 });
     MockPriceFeed internal mockUsdcUsdPriceFeed;
     MockPriceFeed internal mockWstEthUsdPriceFeed;
 
@@ -138,10 +67,6 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
             madara: createUser({ name: "Madara Uchiha" })
         });
         vm.startPrank({ msgSender: users.owner });
-        mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
-        mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
-
-        ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderStrategy);
 
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
         usdToken = new MockUSDToken({ owner: users.owner, ownerBalance: 100_000_000e18 });
@@ -161,8 +86,6 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
             users.owner,
-            mockChainlinkForwarder,
-            mockChainlinkVerifier,
             address(perpsAccountToken),
             address(rewardDistributor),
             address(usdToken),

@@ -54,13 +54,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     }
 
     /// @inheritdoc IPerpsConfigurationModule
-    function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external override onlyOwner {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.chainlinkForwarder = chainlinkForwarder;
-        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
-    }
-
-    /// @inheritdoc IPerpsConfigurationModule
     function configureMarginCollateral(
         address collateralType,
         uint248 depositCap,
@@ -165,8 +158,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
 
     /// @dev {PerpsConfigurationModule} UUPS initializer.
     function __PerpsConfigurationModule_init(
-        address chainlinkForwader,
-        address chainlinkVerifier,
         address perpsAccountToken,
         address rewardDistributor,
         address usdToken,
@@ -176,8 +167,6 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         onlyInitializing
     {
         PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.chainlinkForwarder = chainlinkForwader;
-        perpsConfiguration.chainlinkVerifier = chainlinkVerifier;
         perpsConfiguration.perpsAccountToken = perpsAccountToken;
         perpsConfiguration.rewardDistributor = rewardDistributor;
         perpsConfiguration.usdToken = usdToken;

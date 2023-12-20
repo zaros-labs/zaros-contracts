@@ -39,8 +39,6 @@ contract DeployAlphaPerps is BaseScript {
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
             deployer,
-            mockChainlinkForwarder,
-            mockChainlinkVerifier,
             mockPerpsAccountTokenAddress,
             mockRewardDistributorAddress,
             address(usdToken),

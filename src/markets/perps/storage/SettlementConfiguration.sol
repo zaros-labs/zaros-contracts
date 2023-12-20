@@ -8,6 +8,8 @@ import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFee
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
+import "forge-std/console.sol";
+
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
     /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
@@ -17,7 +19,6 @@ library SettlementConfiguration {
 
     /// @notice Strategies IDs supported.
     /// @param DATA_STREAMS_MARKET The strategy ID that uses basic or premium reports from CL Data Streams to settle
-    /// market orders.
     /// market orders.
     /// @param DATA_STREAMS_CUSTOM The strategy ID that uses basic or premium reports from CL Data Streams to settle any
     /// sort of custom order.
@@ -176,7 +177,9 @@ library SettlementConfiguration {
         returns (bytes memory verifiedReportData)
     {
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
+        console.log("WAIFU:");
+        console.log(address(chainlinkVerifier));
+        // FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
 
         // verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
     }

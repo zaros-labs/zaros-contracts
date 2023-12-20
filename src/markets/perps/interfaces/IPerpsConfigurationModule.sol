@@ -56,11 +56,6 @@ interface IPerpsConfigurationModule {
     /// @param liquidityEngine The Liquidity Engine proxy address.
     function setLiquidityEngine(address liquidityEngine) external;
 
-    /// @notice Updates the CL Automation forwarder address and the Data Streams verifier address.
-    /// @param chainlinkForwarder The address of the Chainlink Automation forwarder.
-    /// @param chainlinkVerifier The address of the Chainlink Data Streams verifier.
-    function setChainlinkAddresses(address chainlinkForwarder, address chainlinkVerifier) external;
-
     /// @notice Configures the settings of a given margin collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
