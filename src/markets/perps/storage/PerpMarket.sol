@@ -8,6 +8,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
 import { OrderFees } from "./OrderFees.sol";
 import { Position } from "./Position.sol";
+import { MarketConfiguration } from "./MarketConfiguration.sol";
 import { SettlementConfiguration } from "./SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
@@ -23,12 +24,7 @@ library PerpMarket {
     string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpMarket";
 
     struct Data {
-        string name;
-        string symbol;
         uint128 id;
-        uint128 minInitialMarginRate;
-        uint128 maintenanceMarginRate;
-        uint128 maxOpenInterest;
         int128 skew;
         uint128 size;
         uint128 nextStrategyId;
@@ -36,7 +32,7 @@ library PerpMarket {
         int256 lastFundingRate;
         int256 lastFundingValue;
         uint256 lastFundingTime;
-        OrderFees.Data orderFees;
+        MarketConfiguration.Data configuration;
     }
 
     function load(uint128 marketId) internal pure returns (Data storage perpMarket) {
@@ -70,13 +66,15 @@ library PerpMarket {
 
         // TODO: remember to test gas cost / number of sstores here
         self.id = marketId;
-        self.name = name;
-        self.symbol = symbol;
-        self.maintenanceMarginRate = maintenanceMarginRate;
-        self.maxOpenInterest = maxOpenInterest;
-        self.minInitialMarginRate = minInitialMarginRate;
         self.initialized = true;
-        self.orderFees = orderFees;
+        self.configuration = MarketConfiguration.Data({
+            name: name,
+            symbol: symbol,
+            minInitialMarginRate: minInitialMarginRate,
+            maintenanceMarginRate: maintenanceMarginRate,
+            maxOpenInterest: maxOpenInterest,
+            orderFees: orderFees
+        });
 
         SettlementConfiguration.create(marketId, 0, marketOrderStrategy);
 

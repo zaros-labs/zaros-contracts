@@ -22,13 +22,13 @@ interface IPerpMarketModule {
     /// @param marketId The perps market id.
     function symbol(uint128 marketId) external view returns (string memory);
 
-    /// @notice Returns the current market skew.
-    /// @param marketId The perps market id.
-    function skew(uint128 marketId) external view returns (SD59x18);
-
     /// @notice Returns the maximum open interest on a side of the given market.
     /// @param marketId The perps market id.
     function maxOpenInterest(uint128 marketId) external view returns (UD60x18);
+
+    /// @notice Returns the current market skew.
+    /// @param marketId The perps market id.
+    function skew(uint128 marketId) external view returns (SD59x18);
 
     /// @notice Returns the given market's open interest, including the size of longs and shorts.
     /// @dev E.g: There is 500 ETH in long positions and 450 ETH in short positions, this function

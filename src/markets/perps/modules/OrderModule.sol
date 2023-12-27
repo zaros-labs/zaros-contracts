@@ -34,8 +34,7 @@ abstract contract OrderModule is IOrderModule {
 
     /// @inheritdoc IOrderModule
     function getConfiguredOrderFees(uint128 marketId) external view override returns (OrderFees.Data memory) {
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-        return perpMarket.orderFees;
+        PerpMarket.load(marketId).configuration.orderFees;
     }
 
     /// @inheritdoc IOrderModule

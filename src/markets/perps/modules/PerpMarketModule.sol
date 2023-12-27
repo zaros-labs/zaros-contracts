@@ -20,22 +20,22 @@ abstract contract PerpMarketModule is IPerpMarketModule {
 
     /// @inheritdoc IPerpMarketModule
     function name(uint128 marketId) external view override returns (string memory) {
-        return PerpMarket.load(marketId).name;
+        return PerpMarket.load(marketId).configuration.name;
     }
 
     /// @inheritdoc IPerpMarketModule
     function symbol(uint128 marketId) external view override returns (string memory) {
-        return PerpMarket.load(marketId).symbol;
+        return PerpMarket.load(marketId).configuration.symbol;
+    }
+
+    /// @inheritdoc IPerpMarketModule
+    function maxOpenInterest(uint128 marketId) external view override returns (UD60x18) {
+        return ud60x18(PerpMarket.load(marketId).configuration.maxOpenInterest);
     }
 
     /// @inheritdoc IPerpMarketModule
     function skew(uint128 marketId) public view override returns (SD59x18) {
         return sd59x18(PerpMarket.load(marketId).skew);
-    }
-
-    /// @inheritdoc IPerpMarketModule
-    function maxOpenInterest(uint128 marketId) external view override returns (UD60x18) {
-        return ud60x18(PerpMarket.load(marketId).maxOpenInterest);
     }
 
     /// @inheritdoc IPerpMarketModule
@@ -124,14 +124,14 @@ abstract contract PerpMarketModule is IPerpMarketModule {
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
-        name = perpMarket.name;
-        symbol = perpMarket.symbol;
-        minInitialMarginRate = perpMarket.minInitialMarginRate;
-        maintenanceMarginRate = perpMarket.maintenanceMarginRate;
-        maxOpenInterest = perpMarket.maxOpenInterest;
+        name = perpMarket.configuration.name;
+        symbol = perpMarket.configuration.symbol;
+        minInitialMarginRate = perpMarket.configuration.minInitialMarginRate;
+        maintenanceMarginRate = perpMarket.configuration.maintenanceMarginRate;
+        maxOpenInterest = perpMarket.configuration.maxOpenInterest;
         skew = perpMarket.skew;
         size = perpMarket.size;
-        orderFees = perpMarket.orderFees;
+        orderFees = perpMarket.configuration.orderFees;
     }
 
     /// @inheritdoc IPerpMarketModule
@@ -157,7 +157,8 @@ abstract contract PerpMarketModule is IPerpMarketModule {
         UD60x18 price = perpMarket.getIndexPrice();
         SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(price);
 
-        (size, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) =
-            position.getPositionData(ud60x18(perpMarket.maintenanceMarginRate), price, fundingFeePerUnit);
+        (size, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) = position.getPositionData(
+            ud60x18(perpMarket.configuration.maintenanceMarginRate), price, fundingFeePerUnit
+        );
     }
 }
