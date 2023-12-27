@@ -8,7 +8,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
-import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { PerpMarket } from "../storage/PerpMarket.sol";
 import { Position } from "../storage/Position.sol";
 import { MarginCollateral } from "../storage/MarginCollateral.sol";
 
@@ -28,7 +28,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
     using PerpsAccount for PerpsAccount.Data;
-    using PerpsMarket for PerpsMarket.Data;
+    using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
@@ -84,17 +84,17 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
         for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
-            PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(accountId, marketId);
 
-            UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
-            SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(marketIndexPrice);
+            UD60x18 marketIndexPrice = perpMarket.getIndexPrice();
+            SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(marketIndexPrice);
             SD59x18 accruedFunding = position.getAccruedFunding(fundingFeePerUnit);
             UD60x18 notionalValue = position.getNotionalValue(marketIndexPrice);
 
             marginBalance = marginBalance.add(position.getUnrealizedPnl(marketIndexPrice, accruedFunding));
             // initialMargin = initialMargin.add(ud60x18(position.initialMargin));
-            maintenanceMargin = maintenanceMargin.add(ud60x18(perpsMarket.maintenanceMarginRate).mul(notionalValue));
+            maintenanceMargin = maintenanceMargin.add(ud60x18(perpMarket.maintenanceMarginRate).mul(notionalValue));
         }
 
         SD59x18 availableBalance = marginBalance.sub(initialMargin.intoSD59x18());

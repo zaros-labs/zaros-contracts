@@ -17,10 +17,10 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-/// @title The PerpsMarket namespace.
-library PerpsMarket {
-    /// @dev Constant base domain used to access a given PerpsMarket's storage slot.
-    string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpsMarket";
+/// @title The PerpMarket namespace.
+library PerpMarket {
+    /// @dev Constant base domain used to access a given PerpMarket's storage slot.
+    string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpMarket";
 
     struct Data {
         string name;
@@ -39,15 +39,15 @@ library PerpsMarket {
         OrderFees.Data orderFees;
     }
 
-    function load(uint128 marketId) internal pure returns (Data storage perpsMarket) {
+    function load(uint128 marketId) internal pure returns (Data storage perpMarket) {
         bytes32 slot = keccak256(abi.encode(PERPS_MARKET_DOMAIN, marketId));
         assembly {
-            perpsMarket.slot := slot
+            perpMarket.slot := slot
         }
     }
 
-    function loadActive(uint128 marketId) internal view returns (Data storage perpsMarket) {
-        perpsMarket = load(marketId);
+    function loadActive(uint128 marketId) internal view returns (Data storage perpMarket) {
+        perpMarket = load(marketId);
     }
 
     function create(
@@ -100,7 +100,6 @@ library PerpsMarket {
 
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {
         // SD59x18 currentFundingVelocity = getCurrentFundingVelocity(self);
-
     }
 
     function getCurrentFundingVelocity(Data storage self) internal view returns (SD59x18) {

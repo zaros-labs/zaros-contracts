@@ -11,7 +11,7 @@ pragma solidity 0.8.23;
 // import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 // import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
 // import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
-// import { PerpsMarket } from "@zaros/markets/perps/PerpsMarket.sol";
+// import { PerpMarket } from "@zaros/markets/perps/PerpMarket.sol";
 // import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 
 // // Open Zeppelin dependencies
@@ -69,13 +69,13 @@ pragma solidity 0.8.23;
 //             console.log("Perps Vault: ");
 //             console.log(address(perpsEngine));
 
-//             PerpsMarket sFrxEthPerpsMarket = new PerpsMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP",
+//             PerpMarket sFrxEthPerpMarket = new PerpMarket("sfrxETH-USD Perps Market", "SFRXETH-USD PERP",
 //             ethUsdOracle, address(perpsEngine), PERPS_MAX_LEVERAGE, orderFees);
 
 //             console.log("Perps Market: ");
-//             console.log(address(sFrxEthPerpsMarket));
+//             console.log(address(sFrxEthPerpMarket));
 
-//             // perpsEngine.setSupportedMarket(address(sFrxEthPerpsMarket), true);
+//             // perpsEngine.setSupportedMarket(address(sFrxEthPerpMarket), true);
 //             perpsEngine.setIsCollateralEnabled(address(usdToken), true);
 //         }
 

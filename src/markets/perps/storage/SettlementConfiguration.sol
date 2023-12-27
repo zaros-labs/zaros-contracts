@@ -13,7 +13,7 @@ import "forge-std/console.sol";
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
     /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
-    string internal constant SETTLEMENT_STRATEGY_DOMAIN = "fi.zaros.markets.PerpsMarket.SettlementConfiguration";
+    string internal constant SETTLEMENT_STRATEGY_DOMAIN = "fi.zaros.markets.PerpMarket.SettlementConfiguration";
     /// @notice The default strategy id for a given market's market orders settlementConfiguration.
     uint128 internal constant MARKET_ORDER_SETTLEMENT_ID = 0;
 

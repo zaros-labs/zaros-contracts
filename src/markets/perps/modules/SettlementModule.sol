@@ -10,7 +10,7 @@ import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
-import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { PerpMarket } from "../storage/PerpMarket.sol";
 import { Position } from "../storage/Position.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
@@ -24,7 +24,7 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol"
 abstract contract SettlementModule is ISettlementModule {
     using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
-    using PerpsMarket for PerpsMarket.Data;
+    using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeCast for int256;
@@ -92,7 +92,7 @@ abstract contract SettlementModule is ISettlementModule {
         runtime.marketId = marketId;
         runtime.accountId = payload.accountId;
 
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(runtime.marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(runtime.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
         Position.Data storage oldPosition = Position.load(runtime.accountId, runtime.marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
@@ -105,10 +105,10 @@ abstract contract SettlementModule is ISettlementModule {
             bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
 
             // TODO: apply price impact
-            runtime.fillPrice = perpsMarket.getMarkPrice(extraData);
+            runtime.fillPrice = perpMarket.getMarkPrice(extraData);
         }
 
-        SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(runtime.fillPrice);
+        SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(runtime.fillPrice);
         SD59x18 accruedFunding = oldPosition.getAccruedFunding(fundingFeePerUnit);
         SD59x18 currentUnrealizedPnl = oldPosition.getUnrealizedPnl(runtime.fillPrice, accruedFunding);
         // this will change
@@ -140,8 +140,8 @@ abstract contract SettlementModule is ISettlementModule {
             runtime.marketId, sd59x18(oldPosition.size), sd59x18(runtime.newPosition.size)
         );
         oldPosition.update(runtime.newPosition);
-        perpsMarket.skew = sd59x18(perpsMarket.skew).add(sd59x18(payload.sizeDelta)).intoInt256().toInt128();
-        perpsMarket.size = ud60x18(perpsMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
+        perpMarket.skew = sd59x18(perpMarket.skew).add(sd59x18(payload.sizeDelta)).intoInt256().toInt128();
+        perpMarket.size = ud60x18(perpMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
 
         emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, runtime.newPosition);
     }

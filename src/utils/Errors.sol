@@ -75,7 +75,7 @@ library Errors {
     /// @notice Thrown when the caller is not the registered Upkeep contract.
     error OnlyUpkeep(address sender, address upkeep);
 
-    /// @notice PerpsEngine.PerpsMarketModule errors.
+    /// @notice PerpsEngine.PerpMarketModule errors.
     // TODO: create errors
 
     /// @notice PerpsEngine.GlobalConfiguration errors.
@@ -87,7 +87,7 @@ library Errors {
     /// @notice Thrown when the provided `marketId` is already disabled when trying to disable a market.
     error PerpMarketAlreadyDisabled(uint128 marketId);
 
-    /// @notice PerpsEngine.PerpsMarket errors.
+    /// @notice PerpsEngine.PerpMarket errors.
 
     /// @notice Thrown when a perps market id has already been used.
     error MarketAlreadyExists(uint128 marketId);

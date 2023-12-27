@@ -124,7 +124,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function createMarkets() internal {
-        perpsEngine.createPerpsMarket(
+        perpsEngine.createPerpMarket(
             BTC_USD_MARKET_ID,
             BTC_USD_MARKET_NAME,
             BTC_USD_MARKET_SYMBOL,
@@ -136,7 +136,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             btcUsdOrderFees
         );
 
-        perpsEngine.createPerpsMarket(
+        perpsEngine.createPerpMarket(
             ETH_USD_MARKET_ID,
             ETH_USD_MARKET_NAME,
             ETH_USD_MARKET_SYMBOL,

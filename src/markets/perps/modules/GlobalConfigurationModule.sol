@@ -7,7 +7,7 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IGlobalConfigurationModule } from "../interfaces/IGlobalConfigurationModule.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
-import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { PerpMarket } from "../storage/PerpMarket.sol";
 import { MarginCollateral } from "../storage/MarginCollateral.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
@@ -23,7 +23,7 @@ import { ud60x18 } from "@prb-math/UD60x18.sol";
 /// @notice See {IGlobalConfigurationModule}.
 abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable, OwnableUpgradeable {
     using GlobalConfiguration for GlobalConfiguration.Data;
-    using PerpsMarket for PerpsMarket.Data;
+    using PerpMarket for PerpMarket.Data;
     using MarginCollateral for MarginCollateral.Data;
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -94,7 +94,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     }
 
     /// @inheritdoc IGlobalConfigurationModule
-    function createPerpsMarket(
+    function createPerpMarket(
         uint128 marketId,
         string calldata name,
         string calldata symbol,
@@ -130,7 +130,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        PerpsMarket.create(
+        PerpMarket.create(
             marketId,
             name,
             symbol,
@@ -143,7 +143,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
         );
         globalConfiguration.addMarket(marketId);
 
-        emit LogCreatePerpsMarket(
+        emit LogCreatePerpMarket(
             marketId,
             name,
             symbol,
@@ -158,7 +158,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
 
     function updatePerpMarketStatus(uint128 marketId, bool enable) external override onlyOwner {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        PerpsMarket.Data storage perpMarket = PerpsMarket.load(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
         if (!perpMarket.initialized) {
             revert Errors.PerpMarketNotInitialized(marketId);

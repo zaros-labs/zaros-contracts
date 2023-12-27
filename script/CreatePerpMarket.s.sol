@@ -10,7 +10,7 @@ import { SettlementConfiguration } from "@zaros/markets/perps/storage/Settlement
 import { BaseScript } from "./Base.s.sol";
 
 // TODO: update limit order strategies
-contract CreatePerpsMarket is BaseScript {
+contract CreatePerpMarket is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -88,7 +88,7 @@ contract CreatePerpsMarket is BaseScript {
         SettlementConfiguration.Data[] memory ethUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
         ethUsdCustomTriggerStrategies[0] = ethUsdLimitOrderStrategy;
 
-        perpsEngine.createPerpsMarket(
+        perpsEngine.createPerpMarket(
             ETH_USD_MARKET_ID,
             ETH_USD_MARKET_NAME,
             ETH_USD_MARKET_SYMBOL,
@@ -128,7 +128,7 @@ contract CreatePerpsMarket is BaseScript {
         SettlementConfiguration.Data[] memory linkUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
         linkUsdCustomTriggerStrategies[0] = linkUsdLimitOrderStrategy;
 
-        perpsEngine.createPerpsMarket(
+        perpsEngine.createPerpMarket(
             LINK_USD_MARKET_ID,
             LINK_USD_MARKET_NAME,
             LINK_USD_MARKET_SYMBOL,

@@ -7,7 +7,7 @@ import { IPerpsEngine } from "./interfaces/IPerpsEngine.sol";
 import { OrderModule } from "./modules/OrderModule.sol";
 import { PerpsAccountModule } from "./modules/PerpsAccountModule.sol";
 import { GlobalConfigurationModule } from "./modules/GlobalConfigurationModule.sol";
-import { PerpsMarketModule } from "./modules/PerpsMarketModule.sol";
+import { PerpMarketModule } from "./modules/PerpMarketModule.sol";
 import { SettlementModule } from "./modules/SettlementModule.sol";
 
 // Open Zeppelin Upgradeable dependencies
@@ -25,7 +25,7 @@ contract PerpsEngine is
     OrderModule,
     PerpsAccountModule,
     GlobalConfigurationModule,
-    PerpsMarketModule,
+    PerpMarketModule,
     SettlementModule,
     UUPSUpgradeable
 {

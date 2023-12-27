@@ -30,7 +30,7 @@ interface IGlobalConfigurationModule {
     /// @param marketId The perps market id.
     /// @param name The perps market name.
     /// @param symbol The perps market symbol.
-    event LogCreatePerpsMarket(
+    event LogCreatePerpMarket(
         uint128 indexed marketId,
         string name,
         string symbol,
@@ -84,7 +84,7 @@ interface IGlobalConfigurationModule {
     /// @param minInitialMarginRate The perps market min initial margin rate, which defines the max leverage.
     /// @param marketOrderStrategy The perps market settlement strategy.
     /// @param orderFees The perps market maker and taker fees.
-    function createPerpsMarket(
+    function createPerpMarket(
         uint128 marketId,
         string calldata name,
         string calldata symbol,

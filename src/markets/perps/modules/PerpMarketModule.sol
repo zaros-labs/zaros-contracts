@@ -3,42 +3,42 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IPerpsMarketModule } from "../interfaces/IPerpsMarketModule.sol";
+import { IPerpMarketModule } from "../interfaces/IPerpMarketModule.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { Position } from "../storage/Position.sol";
-import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { PerpMarket } from "../storage/PerpMarket.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
-/// @notice See {IPerpsMarketModule}.
-abstract contract PerpsMarketModule is IPerpsMarketModule {
-    using PerpsMarket for PerpsMarket.Data;
+/// @notice See {IPerpMarketModule}.
+abstract contract PerpMarketModule is IPerpMarketModule {
+    using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function name(uint128 marketId) external view override returns (string memory) {
-        return PerpsMarket.load(marketId).name;
+        return PerpMarket.load(marketId).name;
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function symbol(uint128 marketId) external view override returns (string memory) {
-        return PerpsMarket.load(marketId).symbol;
+        return PerpMarket.load(marketId).symbol;
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function skew(uint128 marketId) public view override returns (SD59x18) {
-        return sd59x18(PerpsMarket.load(marketId).skew);
+        return sd59x18(PerpMarket.load(marketId).skew);
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function maxOpenInterest(uint128 marketId) external view override returns (UD60x18) {
-        return ud60x18(PerpsMarket.load(marketId).maxOpenInterest);
+        return ud60x18(PerpMarket.load(marketId).maxOpenInterest);
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function openInterest(uint128 marketId)
         external
         view
@@ -46,7 +46,7 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         returns (UD60x18 longsSize, UD60x18 shortsSize, UD60x18 totalSize)
     {
         SD59x18 currentSkew = skew(marketId);
-        SD59x18 currentOpenInterest = ud60x18(PerpsMarket.load(marketId).size).intoSD59x18();
+        SD59x18 currentOpenInterest = ud60x18(PerpMarket.load(marketId).size).intoSD59x18();
         SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18(2));
         (longsSize, shortsSize) = (
             halfOpenInterest.add(currentSkew).intoUD60x18(),
@@ -55,14 +55,14 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         totalSize = longsSize.add(shortsSize);
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function indexPrice(uint128 marketId) external view override returns (UD60x18) {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
-        return perpsMarket.getIndexPrice();
+        return perpMarket.getIndexPrice();
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function getSettlementConfiguration(
         uint128 marketId,
         uint128 settlementId
@@ -75,17 +75,17 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         return SettlementConfiguration.load(marketId, settlementId);
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function fundingRate(uint128 marketId) external view override returns (SD59x18) {
-        return PerpsMarket.load(marketId).getCurrentFundingRate();
+        return PerpMarket.load(marketId).getCurrentFundingRate();
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function fundingVelocity(uint128 marketId) external view override returns (SD59x18) {
-        return PerpsMarket.load(marketId).getCurrentFundingVelocity();
+        return PerpMarket.load(marketId).getCurrentFundingVelocity();
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function estimateFillPrice(
         uint128 marketId,
         int128 sizeDelta
@@ -95,19 +95,19 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
         override
         returns (UD60x18 fillPrice)
     {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        fillPrice = perpsMarket.getIndexPrice();
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        fillPrice = perpMarket.getIndexPrice();
     }
 
     function getPositionLeverage(uint128 accountId, uint128 marketId) external view override returns (UD60x18) {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         Position.Data storage position = Position.load(accountId, marketId);
 
-        UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
+        UD60x18 marketIndexPrice = perpMarket.getIndexPrice();
         // UD60x18 leverage = position.getNotionalValue(marketIndexPrice).div(ud60x18(position.initialMargin));
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function getMarketData(uint128 marketId)
         external
         view
@@ -122,19 +122,19 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
             OrderFees.Data memory orderFees
         )
     {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
-        name = perpsMarket.name;
-        symbol = perpsMarket.symbol;
-        minInitialMarginRate = perpsMarket.minInitialMarginRate;
-        maintenanceMarginRate = perpsMarket.maintenanceMarginRate;
-        maxOpenInterest = perpsMarket.maxOpenInterest;
-        skew = perpsMarket.skew;
-        size = perpsMarket.size;
-        orderFees = perpsMarket.orderFees;
+        name = perpMarket.name;
+        symbol = perpMarket.symbol;
+        minInitialMarginRate = perpMarket.minInitialMarginRate;
+        maintenanceMarginRate = perpMarket.maintenanceMarginRate;
+        maxOpenInterest = perpMarket.maxOpenInterest;
+        skew = perpMarket.skew;
+        size = perpMarket.size;
+        orderFees = perpMarket.orderFees;
     }
 
-    /// @inheritdoc IPerpsMarketModule
+    /// @inheritdoc IPerpMarketModule
     function getOpenPositionData(
         uint128 accountId,
         uint128 marketId
@@ -150,14 +150,14 @@ abstract contract PerpsMarketModule is IPerpsMarketModule {
             SD59x18 unrealizedPnl
         )
     {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         Position.Data storage position = Position.load(accountId, marketId);
 
-        // UD60x18 maintenanceMarginRate = ud60x18(perpsMarket.maintenanceMarginRate);
-        UD60x18 price = perpsMarket.getIndexPrice();
-        SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(price);
+        // UD60x18 maintenanceMarginRate = ud60x18(perpMarket.maintenanceMarginRate);
+        UD60x18 price = perpMarket.getIndexPrice();
+        SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(price);
 
         (size, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) =
-            position.getPositionData(ud60x18(perpsMarket.maintenanceMarginRate), price, fundingFeePerUnit);
+            position.getPositionData(ud60x18(perpMarket.maintenanceMarginRate), price, fundingFeePerUnit);
     }
 }
