@@ -9,7 +9,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
-import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
+import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
@@ -98,7 +98,7 @@ abstract contract SettlementModule is ISettlementModule {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         runtime.fee = ud60x18(settlementConfiguration.fee);
-        address usdToken = PerpsConfiguration.load().usdToken;
+        address usdToken = GlobalConfiguration.load().usdToken;
 
         // TODO: Let's find a better and defintitive way to avoid stack too deep.
         {

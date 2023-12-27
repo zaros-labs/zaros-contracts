@@ -9,7 +9,7 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 /// @title Perps Configuration Module.
 /// @notice This module is used by the protocol controller to configure the perps
 /// exchange system.
-interface IPerpsConfigurationModule {
+interface IGlobalConfigurationModule {
     /// @notice Emitted when a new collateral type is enabled or disabled.
     /// @param sender The address that enabled or disabled the collateral type.
     /// @param collateralType The address of the collateral type.

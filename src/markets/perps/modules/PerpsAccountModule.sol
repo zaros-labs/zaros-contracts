@@ -7,7 +7,7 @@ import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
-import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
+import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { Position } from "../storage/Position.sol";
 import { MarginCollateral } from "../storage/MarginCollateral.sol";
@@ -32,7 +32,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
-    using PerpsConfiguration for PerpsConfiguration.Data;
+    using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateral for MarginCollateral.Data;
 
     function isAuthorized(uint128 accountId, address sender) external view returns (bool isAuthorized) {
@@ -43,7 +43,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function getPerpsAccountToken() public view override returns (address) {
-        return PerpsConfiguration.load().perpsAccountToken;
+        return GlobalConfiguration.load().perpsAccountToken;
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -104,9 +104,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint128) {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        uint128 accountId = ++perpsConfiguration.nextAccountId;
-        IAccountNFT perpsAccountToken = IAccountNFT(perpsConfiguration.perpsAccountToken);
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        uint128 accountId = ++globalConfiguration.nextAccountId;
+        IAccountNFT perpsAccountToken = IAccountNFT(globalConfiguration.perpsAccountToken);
         perpsAccountToken.mint(msg.sender, accountId);
 
         PerpsAccount.create(accountId, msg.sender);
@@ -142,7 +142,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function depositMargin(uint128 accountId, address collateralType, uint256 amount) external override {
-        // PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        // GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
         UD60x18 ud60x18Amount = marginCollateral.convertTokenAmountToUd60x18(amount);
         _requireAmountNotZero(ud60x18Amount);

@@ -6,7 +6,7 @@ pragma solidity 0.8.23;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarginCollateral } from "./MarginCollateral.sol";
 import { MarketOrder } from "./MarketOrder.sol";
-import { PerpsConfiguration } from "./PerpsConfiguration.sol";
+import { GlobalConfiguration } from "./GlobalConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -24,7 +24,7 @@ library PerpsAccount {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
     using MarginCollateral for MarginCollateral.Data;
-    using PerpsConfiguration for PerpsConfiguration.Data;
+    using GlobalConfiguration for GlobalConfiguration.Data;
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
@@ -78,9 +78,9 @@ library PerpsAccount {
     /// context
     /// of an already active market, the check may be misleading.
     function checkCanCreateNewPosition(Data storage self) internal view {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        uint256 maxPositionsPerAccount = perpsConfiguration.maxPositionsPerAccount;
+        uint256 maxPositionsPerAccount = globalConfiguration.maxPositionsPerAccount;
         uint256 activePositionsLength = self.activeMarketsIds.length();
 
         if (activePositionsLength >= maxPositionsPerAccount) {

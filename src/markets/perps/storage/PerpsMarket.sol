@@ -33,6 +33,9 @@ library PerpsMarket {
         uint128 size;
         uint128 nextStrategyId;
         bool initialized;
+        int256 lastFundingRate;
+        int256 lastFundingValue;
+        uint256 lastFundingTime;
         OrderFees.Data orderFees;
     }
 
@@ -96,7 +99,8 @@ library PerpsMarket {
     }
 
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {
-        return sd59x18(0);
+        // SD59x18 currentFundingVelocity = getCurrentFundingVelocity(self);
+
     }
 
     function getCurrentFundingVelocity(Data storage self) internal view returns (SD59x18) {

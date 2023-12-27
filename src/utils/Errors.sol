@@ -59,7 +59,7 @@ library Errors {
         uint128 accountId, uint256 activePositionsLength, uint256 maxPositionsPerAccount
     );
 
-    /// @notice PerpsEngine.PerpsConfigurationModule
+    /// @notice PerpsEngine.GlobalConfigurationModule
 
     /// @notice Thrown when the provided `accountToken` is the zero address.
     error PerpsAccountTokenNotDefined();
@@ -78,7 +78,7 @@ library Errors {
     /// @notice PerpsEngine.PerpsMarketModule errors.
     // TODO: create errors
 
-    /// @notice PerpsEngine.PerpsConfiguration errors.
+    /// @notice PerpsEngine.GlobalConfiguration errors.
 
     /// @notice Thrown when the provided `marketId` doesn't exist or is currently disabled.
     error PerpMarketDisabled(uint128 marketId);

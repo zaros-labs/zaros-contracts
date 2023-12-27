@@ -16,14 +16,14 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-/// @title The PerpsConfiguration namespace.
-library PerpsConfiguration {
+/// @title The GlobalConfiguration namespace.
+library GlobalConfiguration {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
 
-    /// @dev PerpsConfiguration namespace storage slot.
-    bytes32 internal constant PERPS_CONFIGURATION_SLOT = keccak256(abi.encode("fi.zaros.markets.PerpsConfiguration"));
+    /// @dev GlobalConfiguration namespace storage slot.
+    bytes32 internal constant PERPS_CONFIGURATION_SLOT = keccak256(abi.encode("fi.zaros.markets.GlobalConfiguration"));
 
     /// @notice {PerpConfiguration} namespace storage structure.
     struct Data {
@@ -37,13 +37,13 @@ library PerpsConfiguration {
         EnumerableSet.UintSet enabledMarketsIds;
     }
 
-    /// @notice Loads the PerpsConfiguration entity.
-    /// @return perpsConfiguration The perps configuration storage pointer.
-    function load() internal pure returns (Data storage perpsConfiguration) {
+    /// @notice Loads the GlobalConfiguration entity.
+    /// @return globalConfiguration The perps configuration storage pointer.
+    function load() internal pure returns (Data storage globalConfiguration) {
         bytes32 slot = PERPS_CONFIGURATION_SLOT;
 
         assembly {
-            perpsConfiguration.slot := slot
+            globalConfiguration.slot := slot
         }
     }
 

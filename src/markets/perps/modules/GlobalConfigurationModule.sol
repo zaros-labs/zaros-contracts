@@ -5,8 +5,8 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IPerpsConfigurationModule } from "../interfaces/IPerpsConfigurationModule.sol";
-import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
+import { IGlobalConfigurationModule } from "../interfaces/IGlobalConfigurationModule.sol";
+import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpsMarket } from "../storage/PerpsMarket.sol";
 import { MarginCollateral } from "../storage/MarginCollateral.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
@@ -20,40 +20,40 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 // PRB Math dependencies
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 
-/// @notice See {IPerpsConfigurationModule}.
-abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initializable, OwnableUpgradeable {
-    using PerpsConfiguration for PerpsConfiguration.Data;
+/// @notice See {IGlobalConfigurationModule}.
+abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable, OwnableUpgradeable {
+    using GlobalConfiguration for GlobalConfiguration.Data;
     using PerpsMarket for PerpsMarket.Data;
     using MarginCollateral for MarginCollateral.Data;
 
-    /// @inheritdoc IPerpsConfigurationModule
+    /// @inheritdoc IGlobalConfigurationModule
     function getDepositCapForMarginCollateral(address collateralType) external view override returns (uint256) {
         MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
 
         return marginCollateral.getDepositCap().intoUint256();
     }
 
-    /// @inheritdoc IPerpsConfigurationModule
+    /// @inheritdoc IGlobalConfigurationModule
     function setPerpsAccountToken(address perpsAccountToken) external {
         if (perpsAccountToken == address(0)) {
             revert Errors.PerpsAccountTokenNotDefined();
         }
 
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.perpsAccountToken = perpsAccountToken;
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.perpsAccountToken = perpsAccountToken;
     }
 
-    /// @inheritdoc IPerpsConfigurationModule
+    /// @inheritdoc IGlobalConfigurationModule
     function setLiquidityEngine(address liquidityEngine) external override {
         if (liquidityEngine == address(0)) {
             revert Errors.LiquidityEngineNotDefined();
         }
 
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.liquidityEngine = liquidityEngine;
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.liquidityEngine = liquidityEngine;
     }
 
-    /// @inheritdoc IPerpsConfigurationModule
+    /// @inheritdoc IGlobalConfigurationModule
     function configureMarginCollateral(
         address collateralType,
         uint248 depositCap,
@@ -87,13 +87,13 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             revert Errors.ZeroInput("maxPositionsPerAccount");
         }
 
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        perpsConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
-        perpsConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
+        globalConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
+        globalConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
     }
 
-    /// @inheritdoc IPerpsConfigurationModule
+    /// @inheritdoc IGlobalConfigurationModule
     function createPerpsMarket(
         uint128 marketId,
         string calldata name,
@@ -128,7 +128,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             revert Errors.ZeroInput("minInitialMarginRate");
         }
 
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         PerpsMarket.create(
             marketId,
@@ -141,7 +141,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
             customTriggerStrategies,
             orderFees
         );
-        perpsConfiguration.addMarket(marketId);
+        globalConfiguration.addMarket(marketId);
 
         emit LogCreatePerpsMarket(
             marketId,
@@ -157,7 +157,7 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
     }
 
     function updatePerpMarketStatus(uint128 marketId, bool enable) external override onlyOwner {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         PerpsMarket.Data storage perpMarket = PerpsMarket.load(marketId);
 
         if (!perpMarket.initialized) {
@@ -165,18 +165,18 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         }
 
         if (enable) {
-            perpsConfiguration.addMarket(marketId);
+            globalConfiguration.addMarket(marketId);
 
             emit LogEnablePerpMarket(marketId);
         } else {
-            perpsConfiguration.removeMarket(marketId);
+            globalConfiguration.removeMarket(marketId);
 
             emit LogDisablePerpMarket(marketId);
         }
     }
 
-    /// @dev {PerpsConfigurationModule} UUPS initializer.
-    function __PerpsConfigurationModule_init(
+    /// @dev {GlobalConfigurationModule} UUPS initializer.
+    function __GlobalConfigurationModule_init(
         address perpsAccountToken,
         address rewardDistributor,
         address usdToken,
@@ -185,10 +185,10 @@ abstract contract PerpsConfigurationModule is IPerpsConfigurationModule, Initial
         internal
         onlyInitializing
     {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        perpsConfiguration.perpsAccountToken = perpsAccountToken;
-        perpsConfiguration.rewardDistributor = rewardDistributor;
-        perpsConfiguration.usdToken = usdToken;
-        perpsConfiguration.liquidityEngine = liquidityEngine;
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.perpsAccountToken = perpsAccountToken;
+        globalConfiguration.rewardDistributor = rewardDistributor;
+        globalConfiguration.usdToken = usdToken;
+        globalConfiguration.liquidityEngine = liquidityEngine;
     }
 }
