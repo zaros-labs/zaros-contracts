@@ -55,9 +55,11 @@ library PerpMarket {
         uint128 marketId,
         string memory name,
         string memory symbol,
+        uint128 minInitialMarginRate,
         uint128 maintenanceMarginRate,
         uint128 maxOpenInterest,
-        uint128 minInitialMarginRate,
+        uint256 skewScale,
+        uint128 maxFundingVelocity,
         SettlementConfiguration.Data memory marketOrderStrategy,
         SettlementConfiguration.Data[] memory customTriggerStrategies,
         OrderFees.Data memory orderFees
@@ -78,7 +80,9 @@ library PerpMarket {
             minInitialMarginRate: minInitialMarginRate,
             maintenanceMarginRate: maintenanceMarginRate,
             maxOpenInterest: maxOpenInterest,
-            orderFees: orderFees
+            orderFees: orderFees,
+            skewScale: skewScale,
+            maxFundingVelocity: maxFundingVelocity
         });
 
         SettlementConfiguration.create(marketId, 0, marketOrderStrategy);
@@ -102,8 +106,6 @@ library PerpMarket {
     }
 
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {
-        // SD59x18 currentFundingVelocity = getCurrentFundingVelocity(self);
-
         return sd59x18(self.lastFundingRate).add(
             getCurrentFundingVelocity(self).mul(proportionalElapsedSinceLastFunding(self).intoSD59x18())
         );

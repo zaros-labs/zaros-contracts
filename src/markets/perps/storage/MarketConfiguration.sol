@@ -11,7 +11,7 @@ library MarketConfiguration {
         uint128 minInitialMarginRate;
         uint128 maintenanceMarginRate;
         uint128 maxOpenInterest;
-        uint128 skewScale;
+        uint256 skewScale;
         uint128 maxFundingVelocity;
         OrderFees.Data orderFees;
     }

@@ -27,9 +27,11 @@ contract CreatePerpMarket is BaseScript {
     uint128 internal constant ETH_USD_MARKET_ID = 1;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
     string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
+    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
     uint128 internal constant ETH_USD_MMR = 0.01e18;
     uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
-    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
+    uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
+    uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint248 internal constant ETH_USD_SETTLEMENT_DELAY = 2 seconds;
     OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
@@ -38,9 +40,11 @@ contract CreatePerpMarket is BaseScript {
     uint128 internal constant LINK_USD_MARKET_ID = 2;
     string internal constant LINK_USD_MARKET_NAME = "LINK/USD Perpetual";
     string internal constant LINK_USD_MARKET_SYMBOL = "LINK/USD-PERP";
+    uint128 internal constant LINK_USD_MIN_IMR = 0.01e18;
     uint128 internal constant LINK_USD_MMR = 0.01e18;
     uint128 internal constant LINK_USD_MAX_OI = 100_000_000e18;
-    uint128 internal constant LINK_USD_MIN_IMR = 0.01e18;
+    uint256 internal constant LINK_USD_SKEW_SCALE = 1_000_000e18;
+    uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 2 seconds;
     OrderFees.Data internal linkUsdOrderFee = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
@@ -92,9 +96,11 @@ contract CreatePerpMarket is BaseScript {
             ETH_USD_MARKET_ID,
             ETH_USD_MARKET_NAME,
             ETH_USD_MARKET_SYMBOL,
+            ETH_USD_MIN_IMR,
             ETH_USD_MMR,
             ETH_USD_MAX_OI,
-            ETH_USD_MIN_IMR,
+            ETH_USD_SKEW_SCALE,
+            ETH_USD_MAX_FUNDING_VELOCITY,
             ethUsdMarketOrderStrategy,
             ethUsdCustomTriggerStrategies,
             ethUsdOrderFee
@@ -132,9 +138,11 @@ contract CreatePerpMarket is BaseScript {
             LINK_USD_MARKET_ID,
             LINK_USD_MARKET_NAME,
             LINK_USD_MARKET_SYMBOL,
+            LINK_USD_MIN_IMR,
             LINK_USD_MMR,
             LINK_USD_MAX_OI,
-            LINK_USD_MIN_IMR,
+            LINK_USD_SKEW_SCALE,
+            LINK_USD_MAX_FUNDING_VELOCITY,
             linkUsdMarketOrderStrategy,
             linkUsdCustomTriggerStrategies,
             linkUsdOrderFee

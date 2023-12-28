@@ -7,6 +7,7 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
@@ -125,27 +126,35 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
     function createMarkets() internal {
         perpsEngine.createPerpMarket(
-            BTC_USD_MARKET_ID,
-            BTC_USD_MARKET_NAME,
-            BTC_USD_MARKET_SYMBOL,
-            BTC_USD_MMR,
-            BTC_USD_MAX_OI,
-            BTC_USD_MIN_IMR,
-            btcUsdMarketOrderStrategy,
-            btcUsdCustomTriggerStrategies,
-            btcUsdOrderFees
+            CreatePerpMarketParams({
+                marketId: BTC_USD_MARKET_ID,
+                name: BTC_USD_MARKET_NAME,
+                symbol: BTC_USD_MARKET_SYMBOL,
+                minInitialMarginRate: BTC_USD_MIN_IMR,
+                maintenanceMarginRate: BTC_USD_MMR,
+                maxOpenInterest: BTC_USD_MAX_OI,
+                skewScale: BTC_USD_SKEW_SCALE,
+                maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
+                marketOrderStrategy: btcUsdMarketOrderStrategy,
+                customTriggerStrategies: btcUsdCustomTriggerStrategies,
+                orderFees: btcUsdOrderFees
+            })
         );
 
         perpsEngine.createPerpMarket(
-            ETH_USD_MARKET_ID,
-            ETH_USD_MARKET_NAME,
-            ETH_USD_MARKET_SYMBOL,
-            ETH_USD_MMR,
-            ETH_USD_MAX_OI,
-            ETH_USD_MIN_IMR,
-            ethUsdMarketOrderStrategy,
-            ethUsdCustomTriggerStrategies,
-            ethUsdOrderFees
+            CreatePerpMarketParams({
+                marketId: ETH_USD_MARKET_ID,
+                name: ETH_USD_MARKET_NAME,
+                symbol: ETH_USD_MARKET_SYMBOL,
+                minInitialMarginRate: ETH_USD_MIN_IMR,
+                maintenanceMarginRate: ETH_USD_MMR,
+                maxOpenInterest: ETH_USD_MAX_OI,
+                skewScale: ETH_USD_SKEW_SCALE,
+                maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
+                marketOrderStrategy: ethUsdMarketOrderStrategy,
+                customTriggerStrategies: ethUsdCustomTriggerStrategies,
+                orderFees: ethUsdOrderFees
+            })
         );
     }
 

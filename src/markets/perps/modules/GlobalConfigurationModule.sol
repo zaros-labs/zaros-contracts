@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IGlobalConfigurationModule } from "../interfaces/IGlobalConfigurationModule.sol";
+import { CreatePerpMarketParams, IGlobalConfigurationModule } from "../interfaces/IGlobalConfigurationModule.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpMarket } from "../storage/PerpMarket.sol";
 import { MarginCollateral } from "../storage/MarginCollateral.sol";
@@ -94,65 +94,53 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     }
 
     /// @inheritdoc IGlobalConfigurationModule
-    function createPerpMarket(
-        uint128 marketId,
-        string calldata name,
-        string calldata symbol,
-        uint128 maintenanceMarginRate,
-        uint128 maxOpenInterest,
-        uint128 minInitialMarginRate,
-        SettlementConfiguration.Data calldata marketOrderStrategy,
-        SettlementConfiguration.Data[] calldata customTriggerStrategies,
-        OrderFees.Data calldata orderFees
-    )
-        external
-        override
-        onlyOwner
-    {
-        if (marketId == 0) {
+    function createPerpMarket(CreatePerpMarketParams calldata params) external override onlyOwner {
+        if (params.marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
-        if (abi.encodePacked(name).length == 0) {
+        if (abi.encodePacked(params.name).length == 0) {
             revert Errors.ZeroInput("name");
         }
-        if (abi.encodePacked(symbol).length == 0) {
+        if (abi.encodePacked(params.symbol).length == 0) {
             revert Errors.ZeroInput("symbol");
         }
-        if (maintenanceMarginRate == 0) {
+        if (params.maintenanceMarginRate == 0) {
             revert Errors.ZeroInput("maintenanceMarginRate");
         }
-        if (maxOpenInterest == 0) {
+        if (params.maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
         }
-        if (minInitialMarginRate == 0) {
+        if (params.minInitialMarginRate == 0) {
             revert Errors.ZeroInput("minInitialMarginRate");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         PerpMarket.create(
-            marketId,
-            name,
-            symbol,
-            maintenanceMarginRate,
-            maxOpenInterest,
-            minInitialMarginRate,
-            marketOrderStrategy,
-            customTriggerStrategies,
-            orderFees
+            params.marketId,
+            params.name,
+            params.symbol,
+            params.minInitialMarginRate,
+            params.maintenanceMarginRate,
+            params.maxOpenInterest,
+            params.skewScale,
+            params.maxFundingVelocity,
+            params.marketOrderStrategy,
+            params.customTriggerStrategies,
+            params.orderFees
         );
-        globalConfiguration.addMarket(marketId);
+        globalConfiguration.addMarket(params.marketId);
 
         emit LogCreatePerpMarket(
-            marketId,
-            name,
-            symbol,
-            maintenanceMarginRate,
-            maxOpenInterest,
-            minInitialMarginRate,
-            marketOrderStrategy,
-            customTriggerStrategies,
-            orderFees
+            params.marketId,
+            params.name,
+            params.symbol,
+            params.maintenanceMarginRate,
+            params.maxOpenInterest,
+            params.minInitialMarginRate,
+            params.marketOrderStrategy,
+            params.customTriggerStrategies,
+            params.orderFees
         );
     }
 
