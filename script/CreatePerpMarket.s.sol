@@ -5,6 +5,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
@@ -92,19 +93,21 @@ contract CreatePerpMarket is BaseScript {
         SettlementConfiguration.Data[] memory ethUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
         ethUsdCustomTriggerStrategies[0] = ethUsdLimitOrderStrategy;
 
-        perpsEngine.createPerpMarket(
-            ETH_USD_MARKET_ID,
-            ETH_USD_MARKET_NAME,
-            ETH_USD_MARKET_SYMBOL,
-            ETH_USD_MIN_IMR,
-            ETH_USD_MMR,
-            ETH_USD_MAX_OI,
-            ETH_USD_SKEW_SCALE,
-            ETH_USD_MAX_FUNDING_VELOCITY,
-            ethUsdMarketOrderStrategy,
-            ethUsdCustomTriggerStrategies,
-            ethUsdOrderFee
-        );
+        perpsEngine.createPerpMarket({
+            params: CreatePerpMarketParams({
+                marketId: uint128(ETH_USD_MARKET_ID),
+                name: ETH_USD_MARKET_NAME,
+                symbol: ETH_USD_MARKET_SYMBOL,
+                minInitialMarginRate: ETH_USD_MIN_IMR,
+                maintenanceMarginRate: ETH_USD_MMR,
+                maxOpenInterest: ETH_USD_MAX_OI,
+                skewScale: ETH_USD_SKEW_SCALE,
+                maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
+                marketOrderStrategy: ethUsdMarketOrderStrategy,
+                customTriggerStrategies: ethUsdCustomTriggerStrategies,
+                orderFees: ethUsdOrderFee
+            })
+        });
 
         SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData =
         SettlementConfiguration.DataStreamsMarketStrategy({
@@ -134,18 +137,20 @@ contract CreatePerpMarket is BaseScript {
         SettlementConfiguration.Data[] memory linkUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
         linkUsdCustomTriggerStrategies[0] = linkUsdLimitOrderStrategy;
 
-        perpsEngine.createPerpMarket(
-            LINK_USD_MARKET_ID,
-            LINK_USD_MARKET_NAME,
-            LINK_USD_MARKET_SYMBOL,
-            LINK_USD_MIN_IMR,
-            LINK_USD_MMR,
-            LINK_USD_MAX_OI,
-            LINK_USD_SKEW_SCALE,
-            LINK_USD_MAX_FUNDING_VELOCITY,
-            linkUsdMarketOrderStrategy,
-            linkUsdCustomTriggerStrategies,
-            linkUsdOrderFee
-        );
+        perpsEngine.createPerpMarket({
+            params: CreatePerpMarketParams({
+                marketId: uint128(LINK_USD_MARKET_ID),
+                name: LINK_USD_MARKET_NAME,
+                symbol: LINK_USD_MARKET_SYMBOL,
+                minInitialMarginRate: LINK_USD_MIN_IMR,
+                maintenanceMarginRate: LINK_USD_MMR,
+                maxOpenInterest: LINK_USD_MAX_OI,
+                skewScale: LINK_USD_SKEW_SCALE,
+                maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
+                marketOrderStrategy: linkUsdMarketOrderStrategy,
+                customTriggerStrategies: linkUsdCustomTriggerStrategies,
+                orderFees: linkUsdOrderFee
+            })
+        });
     }
 }
