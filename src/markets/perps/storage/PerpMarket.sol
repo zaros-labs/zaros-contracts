@@ -126,8 +126,17 @@ library PerpMarket {
         return proportionalSkewBounded.mul(maxFundingVelocity);
     }
 
-    function calculateNextFundingFeePerUnit(Data storage self, UD60x18 price) internal view returns (SD59x18) {
-        return sd59x18(0);
+    function calculateNextFundingFeePerUnit(
+        Data storage self,
+        SD59x18 fundingRate,
+        UD60x18 timeElapsed,
+        UD60x18 price
+    )
+        internal
+        view
+        returns (SD59x18)
+    {
+        return sd59x18(self.lastFundingFee).add(pendingFundingFee(self, fundingRate, timeElapsed, price));
     }
 
     function pendingFundingFee(
