@@ -18,8 +18,15 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, convert } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary, UNIT as SD_UNIT, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, convert as ud60x18Convert } from "@prb-math/UD60x18.sol";
+import {
+    SD59x18,
+    sd59x18,
+    unary,
+    UNIT as SD_UNIT,
+    ZERO as SD_ZERO,
+    convert as sd59x18Convert
+} from "@prb-math/SD59x18.sol";
 
 /// @title The PerpMarket namespace.
 library PerpMarket {
@@ -100,9 +107,28 @@ library PerpMarket {
         return ud60x18(0);
     }
 
-    function getMarkPrice(Data storage self, bytes memory data) internal view returns (UD60x18) {
-        // TODO: load settlement strategy and return the mark price based on the report data and report type
-        return ud60x18(0);
+    function getMarkPrice(
+        Data storage self,
+        SD59x18 skewDelta,
+        UD60x18 settlementPrice
+    )
+        internal
+        view
+        returns (UD60x18)
+    {
+        SD59x18 skewScale = sd59x18(uint256(self.configuration.skewScale).toInt256());
+        SD59x18 skew = sd59x18(self.skew);
+
+        SD59x18 priceImpactBeforeDelta = skew.div(skewScale);
+        SD59x18 newSkew = skew.add(skewDelta);
+        SD59x18 priceImpactAfterDelta = newSkew.div(skewScale);
+
+        SD59x18 priceBeforeDelta = settlementPrice.intoSD59x18().mul(SD_UNIT.add(priceImpactBeforeDelta));
+        SD59x18 priceAfterDelta = settlementPrice.intoSD59x18().mul(SD_UNIT.add(priceImpactAfterDelta));
+
+        UD60x18 markPrice = priceBeforeDelta.add(priceAfterDelta).div(sd59x18Convert(2)).intoUD60x18();
+
+        return markPrice;
     }
 
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {
@@ -147,12 +173,12 @@ library PerpMarket {
         view
         returns (SD59x18)
     {
-        SD59x18 avgFundingRate = unary(sd59x18(self.lastFundingRate).add(fundingRate)).div((SD_UNIT.mul(sd59x18(2))));
+        SD59x18 avgFundingRate = unary(sd59x18(self.lastFundingRate).add(fundingRate)).div(sd59x18Convert(2));
 
         return avgFundingRate.mul(proportionalElapsedSinceLastFunding(self).intoSD59x18()).mul(price.intoSD59x18());
     }
 
     function proportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
-        return convert(block.timestamp - self.lastFundingTime).div(convert(Constants.FUNDING_PERIOD));
+        return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_PERIOD));
     }
 }

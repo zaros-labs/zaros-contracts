@@ -103,9 +103,10 @@ abstract contract SettlementModule is ISettlementModule {
         // TODO: Let's find a better and defintitive way to avoid stack too deep.
         {
             bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
+            UD60x18 settlementPrice =
+                settlementConfiguration.getSettlementPrice(verifiedExtraData, payload.sizeDelta > 0);
 
-            // TODO: apply price impact
-            runtime.fillPrice = perpMarket.getMarkPrice(extraData);
+            runtime.fillPrice = perpMarket.getMarkPrice(sd59x18(payload.sizeDelta), settlementPrice);
         }
 
         SD59x18 fundingFeePerUnit =

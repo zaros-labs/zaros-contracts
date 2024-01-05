@@ -122,6 +122,33 @@ library SettlementConfiguration {
         }
     }
 
+    /// @notice Returns the UD60x18 price from a verified report based on its type and whether the top-level order is
+    /// a buy or sell order.
+    /// @param verifiedExtraData The verified report data.
+    /// @param isPremium Whether the report is a premium or basic report.
+    /// @param isBuyOrder Whether the top-level order is a buy or sell order.
+    function getDataStreamsReportPrice(
+        bytes memory verifiedExtraData,
+        bool isPremium,
+        bool isBuyOrder
+    )
+        internal
+        view
+        returns (UD60x18 price)
+    {
+        if (isPremium) {
+            PremiumReport memory premiumReport = abi.decode(verifiedExtraData, (PremiumReport));
+
+            price = isBuyOrder
+                ? ud60x18(int256(premiumReport.ask).toUint256())
+                : ud60x18(int256(premiumReport.bid).toUint256());
+        } else {
+            BasicReport memory basicReport = abi.decode(verifiedExtraData, (BasicReport));
+
+            price = ud60x18(int256(basicReport.price).toUint256());
+        }
+    }
+
     // TODO: Implement
     function requireDataStreamsReportIsValid(
         string memory settlementStreamId,
@@ -148,33 +175,6 @@ library SettlementConfiguration {
         // if (settlementStreamIdHash != reportStreamIdHash) {
         //     revert Errors.InvalidDataStreamReport(settlementStreamId, reportStreamId);
         // }
-    }
-
-    /// @notice Returns the UD60x18 price from a verified report based on its type and whether the top-level order is
-    /// a buy or sell order.
-    /// @param verifiedExtraData The verified report data.
-    /// @param isPremium Whether the report is a premium or basic report.
-    /// @param isBuyOrder Whether the top-level order is a buy or sell order.
-    function getDataStreamsReportPrice(
-        bytes memory verifiedExtraData,
-        bool isPremium,
-        bool isBuyOrder
-    )
-        internal
-        view
-        returns (UD60x18 price)
-    {
-        if (isPremium) {
-            PremiumReport memory premiumReport = abi.decode(verifiedExtraData, (PremiumReport));
-
-            price = isBuyOrder
-                ? ud60x18(int256(premiumReport.ask).toUint256())
-                : ud60x18(int256(premiumReport.bid).toUint256());
-        } else {
-            BasicReport memory basicReport = abi.decode(verifiedExtraData, (BasicReport));
-
-            price = ud60x18(int256(basicReport.price).toUint256());
-        }
     }
 
     function verifyExtraData(
