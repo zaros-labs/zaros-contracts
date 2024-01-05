@@ -8,10 +8,16 @@ import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFee
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
-import "forge-std/console.sol";
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
+    using SafeCast for int256;
+
     /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
     string internal constant SETTLEMENT_STRATEGY_DOMAIN = "fi.zaros.markets.PerpMarket.SettlementConfiguration";
     /// @notice The default strategy id for a given market's market orders settlementConfiguration.
@@ -19,11 +25,9 @@ library SettlementConfiguration {
 
     /// @notice Strategies IDs supported.
     /// @param DATA_STREAMS_MARKET The strategy ID that uses basic or premium reports from CL Data Streams to
-    /// settle
-    /// market orders.
+    /// settle market orders.
     /// @param DATA_STREAMS_CUSTOM The strategy ID that uses basic or premium reports from CL Data Streams to
-    /// settle any
-    /// sort of custom order.
+    /// settle any sort of custom order.
     enum StrategyType {
         DATA_STREAMS_MARKET,
         DATA_STREAMS_CUSTOM
@@ -81,7 +85,6 @@ library SettlementConfiguration {
     }
 
     function create(uint128 marketId, uint128 settlementId, Data memory settlementConfiguration) internal {
-        bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementId));
         Data storage self = load(marketId, settlementId);
 
         self.strategyType = settlementConfiguration.strategyType;
@@ -89,6 +92,34 @@ library SettlementConfiguration {
         self.fee = settlementConfiguration.fee;
         self.settlementStrategy = settlementConfiguration.settlementStrategy;
         self.data = settlementConfiguration.data;
+    }
+
+    /// @notice Returns the settlement price for a given order based on the configured strategy.
+    /// @param self The {SettlementConfiguration} storage pointer.
+    /// @param verifiedExtraData The verified report data.
+    /// @param isBuyOrder Whether the top-level order is a buy or sell order.
+    function getSettlementPrice(
+        Data storage self,
+        bytes memory verifiedExtraData,
+        bool isBuyOrder
+    )
+        internal
+        view
+        returns (UD60x18 price)
+    {
+        if (self.strategyType == StrategyType.DATA_STREAMS_MARKET) {
+            DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
+                abi.decode(self.data, (DataStreamsMarketStrategy));
+
+            price = getDataStreamsReportPrice(verifiedExtraData, dataStreamsMarketStrategy.isPremium, isBuyOrder);
+        } else if (self.strategyType == StrategyType.DATA_STREAMS_CUSTOM) {
+            DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
+                abi.decode(self.data, (DataStreamsCustomStrategy));
+
+            price = getDataStreamsReportPrice(verifiedExtraData, dataStreamsCustomStrategy.isPremium, isBuyOrder);
+        } else {
+            revert Errors.InvalidSettlementStrategyType(uint8(self.strategyType));
+        }
     }
 
     // TODO: Implement
@@ -117,6 +148,33 @@ library SettlementConfiguration {
         // if (settlementStreamIdHash != reportStreamIdHash) {
         //     revert Errors.InvalidDataStreamReport(settlementStreamId, reportStreamId);
         // }
+    }
+
+    /// @notice Returns the UD60x18 price from a verified report based on its type and whether the top-level order is
+    /// a buy or sell order.
+    /// @param verifiedExtraData The verified report data.
+    /// @param isPremium Whether the report is a premium or basic report.
+    /// @param isBuyOrder Whether the top-level order is a buy or sell order.
+    function getDataStreamsReportPrice(
+        bytes memory verifiedExtraData,
+        bool isPremium,
+        bool isBuyOrder
+    )
+        internal
+        view
+        returns (UD60x18 price)
+    {
+        if (isPremium) {
+            PremiumReport memory premiumReport = abi.decode(verifiedExtraData, (PremiumReport));
+
+            price = isBuyOrder
+                ? ud60x18(int256(premiumReport.ask).toUint256())
+                : ud60x18(int256(premiumReport.bid).toUint256());
+        } else {
+            BasicReport memory basicReport = abi.decode(verifiedExtraData, (BasicReport));
+
+            price = ud60x18(int256(basicReport.price).toUint256());
+        }
     }
 
     function verifyExtraData(
