@@ -94,11 +94,11 @@ library SettlementConfiguration {
         self.data = settlementConfiguration.data;
     }
 
-    /// @notice Returns the settlement price for a given order based on the configured strategy.
+    /// @notice Returns the settlement index price for a given order based on the configured strategy.
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param verifiedExtraData The verified report data.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
-    function getSettlementPrice(
+    function getIndexPrice(
         Data storage self,
         bytes memory verifiedExtraData,
         bool isBuyOrder

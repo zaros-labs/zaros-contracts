@@ -42,12 +42,7 @@ interface IPerpMarketModule {
         view
         returns (UD60x18 longsSize, UD60x18 shortsSize, UD60x18 totalSize);
 
-    /// @notice Returns the current Chainlink onchain stored price for the given market id.
-    /// @dev The index price returned does not necessarily match the latest price provided by the offchain
-    /// Data Streams service. This means the settlement price of a trade will often be different than the index
-    /// price.
-    /// @param marketId The perps market id.
-    function indexPrice(uint128 marketId) external view returns (UD60x18);
+    function markPrice(uint128 marketId, int256 skewDelta, uint256 indexPrice) external view returns (UD60x18);
 
     /// @notice Returns a Settlement Strategy used by the given market.
     /// @param marketId The perps market id.
@@ -68,17 +63,11 @@ interface IPerpMarketModule {
     /// @param marketId The perps market id.
     function fundingVelocity(uint128 marketId) external view returns (SD59x18);
 
-    /// @notice Estimates an order's fill price based on its size.
-    /// @param marketId The perps market id.
-    /// @param sizeDelta The order size impact on the current position.
-    /// @return fillPrice The estimated order fill price.
-    function estimateFillPrice(uint128 marketId, int128 sizeDelta) external view returns (UD60x18 fillPrice);
-
-    /// @notice Returns the current leverage of an open position of the given account on the given market.
+    /// @notice Returns the current leverage of a given account id, based on its cross margin collateral and open
+    /// positions.
     /// @param accountId The trading account id.
-    /// @param marketId The perps market id.
-    /// @return leverage The position current leverage (notional value / IM).
-    function getPositionLeverage(uint128 accountId, uint128 marketId) external view returns (UD60x18 leverage);
+    /// @return leverage The account leverage.
+    function getAccountLeverage(uint128 accountId) external view returns (UD60x18 leverage);
 
     /// @notice Returns the most relevant data of the given market.
     /// @param marketId The perps market id.
@@ -107,6 +96,7 @@ interface IPerpMarketModule {
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.
+    /// @param indexPrice The current index price of the market.
     /// @return size The position size in asset units, i.e amount of purchased contracts.
     /// @return notionalValue The notional value of the position.
     /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
@@ -114,7 +104,8 @@ interface IPerpMarketModule {
     /// @return unrealizedPnl The current unrealized profit or loss of the position.
     function getOpenPositionData(
         uint128 accountId,
-        uint128 marketId
+        uint128 marketId,
+        uint256 indexPrice
     )
         external
         view

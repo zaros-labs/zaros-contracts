@@ -87,13 +87,15 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(accountId, marketId);
 
-            UD60x18 marketIndexPrice = perpMarket.getIndexPrice();
+            // TODO: work on this on a separate task
+            UD60x18 marketMarkPrice;
+            // UD60x18 marketMarkPrice = perpMarket.getIndexPrice();
             SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
-            SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(fundingRate, marketIndexPrice);
+            SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(fundingRate, marketMarkPrice);
             SD59x18 accruedFunding = position.getAccruedFunding(fundingFeePerUnit);
-            UD60x18 notionalValue = position.getNotionalValue(marketIndexPrice);
+            UD60x18 notionalValue = position.getNotionalValue(marketMarkPrice);
 
-            marginBalance = marginBalance.add(position.getUnrealizedPnl(marketIndexPrice, accruedFunding));
+            marginBalance = marginBalance.add(position.getUnrealizedPnl(marketMarkPrice, accruedFunding));
             // initialMargin = initialMargin.add(ud60x18(position.initialMargin));
             maintenanceMargin =
                 maintenanceMargin.add(ud60x18(perpMarket.configuration.maintenanceMarginRate).mul(notionalValue));

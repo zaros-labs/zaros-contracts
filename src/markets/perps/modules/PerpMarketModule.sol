@@ -11,7 +11,7 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpMarketModule}.
 abstract contract PerpMarketModule is IPerpMarketModule {
@@ -56,10 +56,19 @@ abstract contract PerpMarketModule is IPerpMarketModule {
     }
 
     /// @inheritdoc IPerpMarketModule
-    function indexPrice(uint128 marketId) external view override returns (UD60x18) {
+    function markPrice(
+        uint128 marketId,
+        int256 skewDelta,
+        uint256 indexPrice
+    )
+        external
+        view
+        override
+        returns (UD60x18)
+    {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
-        return perpMarket.getIndexPrice();
+        return perpMarket.getMarkPrice(sd59x18(skewDelta), ud60x18(indexPrice));
     }
 
     /// @inheritdoc IPerpMarketModule
@@ -86,26 +95,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
     }
 
     /// @inheritdoc IPerpMarketModule
-    function estimateFillPrice(
-        uint128 marketId,
-        int128 sizeDelta
-    )
-        external
-        view
-        override
-        returns (UD60x18 fillPrice)
-    {
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-        fillPrice = perpMarket.getIndexPrice();
-    }
-
-    function getPositionLeverage(uint128 accountId, uint128 marketId) external view override returns (UD60x18) {
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-        Position.Data storage position = Position.load(accountId, marketId);
-
-        UD60x18 marketIndexPrice = perpMarket.getIndexPrice();
-        // UD60x18 leverage = position.getNotionalValue(marketIndexPrice).div(ud60x18(position.initialMargin));
-    }
+    function getAccountLeverage(uint128 accountId) external view override returns (UD60x18) { }
 
     /// @inheritdoc IPerpMarketModule
     function getMarketData(uint128 marketId)
@@ -137,7 +127,8 @@ abstract contract PerpMarketModule is IPerpMarketModule {
     /// @inheritdoc IPerpMarketModule
     function getOpenPositionData(
         uint128 accountId,
-        uint128 marketId
+        uint128 marketId,
+        uint256 indexPrice
     )
         external
         view
@@ -154,7 +145,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
         Position.Data storage position = Position.load(accountId, marketId);
 
         // UD60x18 maintenanceMarginRate = ud60x18(perpMarket.maintenanceMarginRate);
-        UD60x18 price = perpMarket.getIndexPrice();
+        UD60x18 price = perpMarket.getMarkPrice(SD_ZERO, ud60x18(indexPrice));
         SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
         SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(fundingRate, price);
 
