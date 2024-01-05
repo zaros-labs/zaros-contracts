@@ -108,7 +108,8 @@ abstract contract SettlementModule is ISettlementModule {
             runtime.fillPrice = perpMarket.getMarkPrice(extraData);
         }
 
-        SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(runtime.fillPrice);
+        SD59x18 fundingFeePerUnit =
+            perpMarket.calculateNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), runtime.fillPrice);
         SD59x18 accruedFunding = oldPosition.getAccruedFunding(fundingFeePerUnit);
         SD59x18 currentUnrealizedPnl = oldPosition.getUnrealizedPnl(runtime.fillPrice, accruedFunding);
         // this will change

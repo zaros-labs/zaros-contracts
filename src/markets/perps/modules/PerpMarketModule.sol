@@ -155,7 +155,8 @@ abstract contract PerpMarketModule is IPerpMarketModule {
 
         // UD60x18 maintenanceMarginRate = ud60x18(perpMarket.maintenanceMarginRate);
         UD60x18 price = perpMarket.getIndexPrice();
-        SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(price);
+        SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
+        SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(fundingRate, price);
 
         (size, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) = position.getPositionData(
             ud60x18(perpMarket.configuration.maintenanceMarginRate), price, fundingFeePerUnit

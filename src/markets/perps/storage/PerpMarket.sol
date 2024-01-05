@@ -129,20 +129,18 @@ library PerpMarket {
     function calculateNextFundingFeePerUnit(
         Data storage self,
         SD59x18 fundingRate,
-        UD60x18 timeElapsed,
         UD60x18 price
     )
         internal
         view
         returns (SD59x18)
     {
-        return sd59x18(self.lastFundingFee).add(pendingFundingFee(self, fundingRate, timeElapsed, price));
+        return sd59x18(self.lastFundingFee).add(pendingFundingFee(self, fundingRate, price));
     }
 
     function pendingFundingFee(
         Data storage self,
         SD59x18 fundingRate,
-        UD60x18 timeElapsed,
         UD60x18 price
     )
         internal
@@ -151,7 +149,7 @@ library PerpMarket {
     {
         SD59x18 avgFundingRate = unary(sd59x18(self.lastFundingRate).add(fundingRate)).div((SD_UNIT.mul(sd59x18(2))));
 
-        return avgFundingRate.mul(timeElapsed.intoSD59x18()).mul(price.intoSD59x18());
+        return avgFundingRate.mul(proportionalElapsedSinceLastFunding(self).intoSD59x18()).mul(price.intoSD59x18());
     }
 
     function proportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {

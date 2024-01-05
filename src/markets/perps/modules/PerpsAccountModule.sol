@@ -88,7 +88,8 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
             Position.Data storage position = Position.load(accountId, marketId);
 
             UD60x18 marketIndexPrice = perpMarket.getIndexPrice();
-            SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(marketIndexPrice);
+            SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
+            SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(fundingRate, marketIndexPrice);
             SD59x18 accruedFunding = position.getAccruedFunding(fundingFeePerUnit);
             UD60x18 notionalValue = position.getNotionalValue(marketIndexPrice);
 
