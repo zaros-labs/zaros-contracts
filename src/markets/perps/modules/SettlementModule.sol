@@ -115,6 +115,8 @@ abstract contract SettlementModule is ISettlementModule {
         address usdToken = globalConfiguration.usdToken;
 
         globalConfiguration.checkMarketIsEnabled(vars.marketId);
+        // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
+        // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
         perpMarket.validateNewState(vars.sizeDelta);
 
         // TODO: Let's find a better and defintitive way to avoid stack too deep.
