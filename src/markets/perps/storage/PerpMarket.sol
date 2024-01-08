@@ -31,6 +31,7 @@ import {
 /// @title The PerpMarket namespace.
 library PerpMarket {
     using SafeCast for uint256;
+    using SafeCast for int256;
 
     /// @dev Constant base domain used to access a given PerpMarket's storage slot.
     string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpMarket";
@@ -120,7 +121,7 @@ library PerpMarket {
 
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {
         return sd59x18(self.lastFundingRate).add(
-            getCurrentFundingVelocity(self).mul(proportionalElapsedSinceLastFunding(self).intoSD59x18())
+            getCurrentFundingVelocity(self).mul(getProportionalElapsedSinceLastFunding(self).intoSD59x18())
         );
     }
 
@@ -136,10 +137,27 @@ library PerpMarket {
 
         SD59x18 proportionalSkew = skew.div(skewScale);
         SD59x18 proportionalSkewBounded = Math.min(Math.max(unary(SD_UNIT), proportionalSkew), SD_UNIT);
+
         return proportionalSkewBounded.mul(maxFundingVelocity);
     }
 
-    function calculateNextFundingFeePerUnit(
+    function getOrderFeeUsd(Data storage self, SD59x18 sizeDelta, UD60x18 price) internal view returns (SD59x18) {
+        SD59x18 skew = sd59x18(self.skew);
+        SD59x18 feeBps;
+
+        bool isPositiveSkew = skew.gt(SD_ZERO);
+        bool isBuyOrder = sizeDelta.gt(SD_ZERO);
+
+        if (isPositiveSkew == isBuyOrder) {
+            feeBps = sd59x18((self.configuration.orderFees.takerFee));
+        } else {
+            feeBps = sd59x18((self.configuration.orderFees.makerFee));
+        }
+
+        return price.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);
+    }
+
+    function getNextFundingFeePerUnit(
         Data storage self,
         SD59x18 fundingRate,
         UD60x18 price
@@ -148,10 +166,10 @@ library PerpMarket {
         view
         returns (SD59x18)
     {
-        return sd59x18(self.lastFundingFeePerUnit).add(pendingFundingFee(self, fundingRate, price));
+        return sd59x18(self.lastFundingFeePerUnit).add(getPendingFundingFee(self, fundingRate, price));
     }
 
-    function pendingFundingFee(
+    function getPendingFundingFee(
         Data storage self,
         SD59x18 fundingRate,
         UD60x18 price
@@ -162,12 +180,25 @@ library PerpMarket {
     {
         SD59x18 avgFundingRate = unary(sd59x18(self.lastFundingRate).add(fundingRate)).div(sd59x18Convert(2));
 
-        return avgFundingRate.mul(proportionalElapsedSinceLastFunding(self).intoSD59x18()).mul(price.intoSD59x18());
+        return avgFundingRate.mul(getProportionalElapsedSinceLastFunding(self).intoSD59x18()).mul(price.intoSD59x18());
     }
 
-    function proportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
+    function getProportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_PERIOD));
     }
 
-    function updateState(Data storage self, SD59x18 sizeDelta, UD60x18 price) internal { }
+    function updateState(
+        Data storage self,
+        SD59x18 sizeDelta,
+        SD59x18 fundingRate,
+        SD59x18 fundingFeePerUnit
+    )
+        internal
+    {
+        self.skew = sd59x18(self.skew).add(sizeDelta).intoInt256().toInt128();
+        self.size = ud60x18(self.size).add((sizeDelta).abs().intoUD60x18()).intoUint128();
+        self.lastFundingRate = fundingRate.intoInt256();
+        self.lastFundingFeePerUnit = fundingFeePerUnit.intoInt256();
+        self.lastFundingTime = block.timestamp;
+    }
 }

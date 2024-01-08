@@ -96,7 +96,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
             UD60x18 marketMarkPrice;
             // UD60x18 marketMarkPrice = perpMarket.getIndexPrice();
             SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
-            SD59x18 fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(fundingRate, marketMarkPrice);
+            SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, marketMarkPrice);
             SD59x18 accruedFunding = position.getAccruedFunding(fundingFeePerUnit);
             UD60x18 notionalValue = position.getNotionalValue(marketMarkPrice);
 

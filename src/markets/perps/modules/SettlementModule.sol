@@ -83,7 +83,6 @@ abstract contract SettlementModule is ISettlementModule {
         uint128 marketId;
         uint128 accountId;
         SD59x18 sizeDelta;
-        UD60x18 fee;
         UD60x18 fillPrice;
         SD59x18 pnl;
         SD59x18 fundingFeePerUnit;
@@ -113,8 +112,6 @@ abstract contract SettlementModule is ISettlementModule {
             SettlementConfiguration.load(marketId, settlementId);
         address usdToken = GlobalConfiguration.load().usdToken;
 
-        vars.fee = ud60x18(settlementConfiguration.fee);
-
         // TODO: Let's find a better and defintitive way to avoid stack too deep.
         {
             bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
@@ -124,16 +121,27 @@ abstract contract SettlementModule is ISettlementModule {
         }
 
         vars.fundingRate = perpMarket.getCurrentFundingRate();
-        vars.fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(vars.fundingFeePerUnit, vars.fillPrice);
+        vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingFeePerUnit, vars.fillPrice);
         vars.positionAccruedFunding = oldPosition.getAccruedFunding(vars.fundingFeePerUnit);
-        vars.pnl = oldPosition.getUnrealizedPnl(vars.fillPrice, vars.positionAccruedFunding);
+        vars.pnl = oldPosition.getUnrealizedPnl(vars.fillPrice, vars.positionAccruedFunding).add(
+            sd59x18(uint256(settlementConfiguration.fee).toInt256())
+        ).add(perpMarket.getOrderFeeUsd(vars.sizeDelta, vars.fillPrice));
+
+        // UD60x18 initialMargin =
+        //     ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
+        // TODO: validate initial margin and size
+        vars.newPosition = Position.Data({
+            size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
+            lastInteractionPrice: vars.fillPrice.intoUint128(),
+            lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
+        });
 
         // for now we'll realize the total uPnL, we should realize it proportionally in the future
         if (vars.pnl.lt(SD_ZERO)) {
-            UD60x18 amountToDeduct = vars.pnl.intoUD60x18().add((vars.fee));
+            UD60x18 amountToDeduct = vars.pnl.intoUD60x18();
             perpsAccount.deductAccountMargin(amountToDeduct);
         } else if (vars.pnl.gt(SD_ZERO)) {
-            UD60x18 amountToIncrease = vars.pnl.intoUD60x18().sub((vars.fee));
+            UD60x18 amountToIncrease = vars.pnl.intoUD60x18();
             perpsAccount.increaseMarginCollateralBalance(usdToken, amountToIncrease);
         }
         // TODO: liquidityEngine.withdrawUsdToken(upkeep, vars.marketId, vars.fee);
@@ -144,7 +152,7 @@ abstract contract SettlementModule is ISettlementModule {
         } else {
             oldPosition.update(vars.newPosition);
         }
-        perpMarket.updateState(vars.sizeDelta, vars.fillPrice);
+        perpMarket.updateState(vars.sizeDelta, vars.fundingRate, vars.fundingFeePerUnit);
 
         emit LogSettleOrder(msg.sender, vars.accountId, vars.marketId, vars.newPosition);
     }

@@ -13,7 +13,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 library MarginCollateralConfiguration {
     /// @notice Constant base domain used to access a given MarginCollateralConfiguration's storage slot.
-    string internal constant MARGIN_COLLATERAL_DOMAIN = "fi.zaros.markets.MarginCollateralConfiguration";
+    string internal constant MARGIN_COLLATERAL_CONFIGURATION_DOMAIN = "fi.zaros.markets.MarginCollateralConfiguration";
 
     /// @notice {MarginCollateralConfiguration} namespace storage structure.
     /// @param depositCap The maximum deposit cap of the given margin collateral type
@@ -29,7 +29,7 @@ library MarginCollateralConfiguration {
     /// @param collateralType The margin collateral type.
     /// @return marginCollateralConfiguration The loaded margin collateral storage pointer.
     function load(address collateralType) internal pure returns (Data storage marginCollateralConfiguration) {
-        bytes32 slot = keccak256(abi.encode(MARGIN_COLLATERAL_DOMAIN, collateralType));
+        bytes32 slot = keccak256(abi.encode(MARGIN_COLLATERAL_CONFIGURATION_DOMAIN, collateralType));
         assembly {
             marginCollateralConfiguration.slot := slot
         }
