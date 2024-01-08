@@ -42,7 +42,7 @@ library PerpMarket {
         uint128 nextStrategyId;
         bool initialized;
         int256 lastFundingRate;
-        int256 lastFundingFee;
+        int256 lastFundingFeePerUnit;
         uint256 lastFundingTime;
         MarketConfiguration.Data configuration;
     }
@@ -148,7 +148,7 @@ library PerpMarket {
         view
         returns (SD59x18)
     {
-        return sd59x18(self.lastFundingFee).add(pendingFundingFee(self, fundingRate, price));
+        return sd59x18(self.lastFundingFeePerUnit).add(pendingFundingFee(self, fundingRate, price));
     }
 
     function pendingFundingFee(
@@ -168,4 +168,6 @@ library PerpMarket {
     function proportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_PERIOD));
     }
+
+    function updateState(Data storage self, SD59x18 sizeDelta, UD60x18 price) internal { }
 }

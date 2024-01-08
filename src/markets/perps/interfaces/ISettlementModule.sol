@@ -20,16 +20,6 @@ interface ISettlementModule {
         int128 sizeDelta;
     }
 
-    struct SettlementRuntime {
-        uint128 marketId;
-        uint128 accountId;
-        UD60x18 fee;
-        UD60x18 fillPrice;
-        SD59x18 unrealizedPnlToStore;
-        SD59x18 pnl;
-        Position.Data newPosition;
-    }
-
     function settleMarketOrder(uint128 accountId, uint128 marketId, bytes calldata verifiedReportData) external;
 
     function settleCustomTriggers(

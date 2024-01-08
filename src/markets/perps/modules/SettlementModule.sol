@@ -79,6 +79,19 @@ abstract contract SettlementModule is ISettlementModule {
         }
     }
 
+    struct SettleVars {
+        uint128 marketId;
+        uint128 accountId;
+        SD59x18 sizeDelta;
+        UD60x18 fee;
+        UD60x18 fillPrice;
+        SD59x18 pnl;
+        SD59x18 fundingFeePerUnit;
+        SD59x18 fundingRate;
+        SD59x18 positionAccruedFunding;
+        Position.Data newPosition;
+    }
+
     // TODO: rework this
     function _settle(
         uint128 marketId,
@@ -88,63 +101,62 @@ abstract contract SettlementModule is ISettlementModule {
     )
         internal
     {
-        SettlementRuntime memory runtime;
-        runtime.marketId = marketId;
-        runtime.accountId = payload.accountId;
+        SettleVars memory vars;
+        vars.marketId = marketId;
+        vars.accountId = payload.accountId;
+        vars.sizeDelta = sd59x18(payload.sizeDelta);
 
-        PerpMarket.Data storage perpMarket = PerpMarket.load(runtime.marketId);
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
-        Position.Data storage oldPosition = Position.load(runtime.accountId, runtime.marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(vars.marketId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(vars.accountId);
+        Position.Data storage oldPosition = Position.load(vars.accountId, vars.marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
-        runtime.fee = ud60x18(settlementConfiguration.fee);
         address usdToken = GlobalConfiguration.load().usdToken;
+
+        vars.fee = ud60x18(settlementConfiguration.fee);
 
         // TODO: Let's find a better and defintitive way to avoid stack too deep.
         {
             bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
-            UD60x18 indexPrice = settlementConfiguration.getIndexPrice(verifiedExtraData, payload.sizeDelta > 0);
+            UD60x18 indexPrice = settlementConfiguration.getIndexPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
 
-            runtime.fillPrice = perpMarket.getMarkPrice(sd59x18(payload.sizeDelta), indexPrice);
+            vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPrice);
         }
 
-        SD59x18 fundingFeePerUnit =
-            perpMarket.calculateNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), runtime.fillPrice);
-        SD59x18 accruedFunding = oldPosition.getAccruedFunding(fundingFeePerUnit);
-        SD59x18 currentUnrealizedPnl = oldPosition.getUnrealizedPnl(runtime.fillPrice, accruedFunding);
-        // this will change
-        runtime.pnl = currentUnrealizedPnl;
-        runtime.unrealizedPnlToStore = sd59x18(0);
+        vars.fundingRate = perpMarket.getCurrentFundingRate();
+        vars.fundingFeePerUnit = perpMarket.calculateNextFundingFeePerUnit(vars.fundingFeePerUnit, vars.fillPrice);
+        vars.positionAccruedFunding = oldPosition.getAccruedFunding(vars.fundingFeePerUnit);
+        vars.pnl = oldPosition.getUnrealizedPnl(vars.fillPrice, vars.positionAccruedFunding);
 
         // for now we'll realize the total uPnL, we should realize it proportionally in the future
-        if (runtime.pnl.lt(SD_ZERO)) {
-            UD60x18 amountToDeduct = runtime.pnl.intoUD60x18().add((runtime.fee));
+        if (vars.pnl.lt(SD_ZERO)) {
+            UD60x18 amountToDeduct = vars.pnl.intoUD60x18().add((vars.fee));
             perpsAccount.deductAccountMargin(amountToDeduct);
-        } else if (runtime.pnl.gt(SD_ZERO)) {
-            UD60x18 amountToIncrease = runtime.pnl.intoUD60x18().sub((runtime.fee));
+        } else if (vars.pnl.gt(SD_ZERO)) {
+            UD60x18 amountToIncrease = vars.pnl.intoUD60x18().sub((vars.fee));
             perpsAccount.increaseMarginCollateralBalance(usdToken, amountToIncrease);
         }
-        // TODO: liquidityEngine.withdrawUsdToken(upkeep, runtime.marketId, runtime.fee);
+        // TODO: liquidityEngine.withdrawUsdToken(upkeep, vars.marketId, vars.fee);
 
         // UD60x18 initialMargin =
         //     ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
 
         // TODO: validate initial margin and size
-        runtime.newPosition = Position.Data({
-            size: sd59x18(oldPosition.size).add(sd59x18(payload.sizeDelta)).intoInt256(),
-            unrealizedPnlStored: runtime.unrealizedPnlToStore.intoInt256().toInt128(),
-            lastInteractionPrice: runtime.fillPrice.intoUint128(),
-            lastInteractionFundingFeePerUnit: fundingFeePerUnit.intoInt256().toInt128()
+        vars.newPosition = Position.Data({
+            size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
+            lastInteractionPrice: vars.fillPrice.intoUint128(),
+            lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        perpsAccount.updateActiveMarkets(
-            runtime.marketId, sd59x18(oldPosition.size), sd59x18(runtime.newPosition.size)
-        );
-        oldPosition.update(runtime.newPosition);
-        perpMarket.skew = sd59x18(perpMarket.skew).add(sd59x18(payload.sizeDelta)).intoInt256().toInt128();
-        perpMarket.size = ud60x18(perpMarket.size).add(sd59x18(payload.sizeDelta).abs().intoUD60x18()).intoUint128();
+        perpsAccount.updateActiveMarkets(vars.marketId, sd59x18(oldPosition.size), sd59x18(vars.newPosition.size));
+        if (vars.newPosition.size == 0) {
+            oldPosition.clear();
+        } else {
+            oldPosition.update(vars.newPosition);
+        }
+        perpMarket.updateState(vars.sizeDelta, vars.fillPrice);
 
-        emit LogSettleOrder(msg.sender, runtime.accountId, runtime.marketId, runtime.newPosition);
+        emit LogSettleOrder(msg.sender, vars.accountId, vars.marketId, vars.newPosition);
     }
 
     function _requireIsSettlementStrategy(address sender, address upkeep) internal pure {
