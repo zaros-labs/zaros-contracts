@@ -59,7 +59,7 @@ library Errors {
         uint128 accountId, uint256 activePositionsLength, uint256 maxPositionsPerAccount
     );
 
-    /// @notice PerpsEngine.PerpsConfigurationModule
+    /// @notice PerpsEngine.GlobalConfigurationModule
 
     /// @notice Thrown when the provided `accountToken` is the zero address.
     error PerpsAccountTokenNotDefined();
@@ -75,10 +75,10 @@ library Errors {
     /// @notice Thrown when the caller is not the registered Upkeep contract.
     error OnlyUpkeep(address sender, address upkeep);
 
-    /// @notice PerpsEngine.PerpsMarketModule errors.
+    /// @notice PerpsEngine.PerpMarketModule errors.
     // TODO: create errors
 
-    /// @notice PerpsEngine.PerpsConfiguration errors.
+    /// @notice PerpsEngine.GlobalConfiguration errors.
 
     /// @notice Thrown when the provided `marketId` doesn't exist or is currently disabled.
     error PerpMarketDisabled(uint128 marketId);
@@ -87,14 +87,16 @@ library Errors {
     /// @notice Thrown when the provided `marketId` is already disabled when trying to disable a market.
     error PerpMarketAlreadyDisabled(uint128 marketId);
 
-    /// @notice PerpsEngine.PerpsMarket errors.
+    /// @notice PerpsEngine.PerpMarket errors.
 
+    /// @notice Thrown when an order tries to exceed the market's open interest cap.
+    error ExceedsOpenInterestLimit(uint128 marketId, uint256 openInterest, uint256 openInterestDesired);
     /// @notice Thrown when a perps market id has already been used.
     error MarketAlreadyExists(uint128 marketId);
 
-    /// @notice PerpsEngine.MarginCollateral errors.
+    /// @notice PerpsEngine.MarginCollateralConfiguration errors.
 
-    /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
+    /// @notice Thrown when the {MarginCollateralConfiguration} doesn't have a price feed defined to return its price.
     error CollateralPriceFeedNotDefined();
 
     /// @notice PerpsEngine.MarketOrder errors.

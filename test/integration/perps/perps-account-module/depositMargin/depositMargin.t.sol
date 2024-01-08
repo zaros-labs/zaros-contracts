@@ -84,10 +84,10 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
         perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
 
-        uint256 newMarginCollateral =
+        uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(userPerpsAccountId, address(usdToken)).intoUint256();
 
         // it should increase the amount of margin collateral
-        assertEq(newMarginCollateral, amountToDeposit, "depositMargin");
+        assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
     }
 }

@@ -6,10 +6,35 @@ pragma solidity 0.8.23;
 import { OrderFees } from "../storage/OrderFees.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
+/// @notice `createPerpMarket` function parameters.
+/// @param marketId The perps market id.
+/// @param name The perps market name.
+/// @param symbol The perps market symbol.
+/// @param minInitialMarginRate The perps market min initial margin rate, which defines the max leverage.
+/// @param maintenanceMarginRate The perps market maintenance margin rate.
+/// @param maxOpenInterest The perps market maximum open interest per side.
+/// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
+/// @param maxFundingVelocity The perps market maximum funding rate velocity.
+/// @param marketOrderStrategy The perps market settlement strategy.
+/// @param orderFees The perps market maker and taker fees.
+struct CreatePerpMarketParams {
+    uint128 marketId;
+    string name;
+    string symbol;
+    uint128 minInitialMarginRate;
+    uint128 maintenanceMarginRate;
+    uint128 maxOpenInterest;
+    uint256 skewScale;
+    uint128 maxFundingVelocity;
+    SettlementConfiguration.Data marketOrderStrategy;
+    SettlementConfiguration.Data[] customTriggerStrategies;
+    OrderFees.Data orderFees;
+}
+
 /// @title Perps Configuration Module.
 /// @notice This module is used by the protocol controller to configure the perps
 /// exchange system.
-interface IPerpsConfigurationModule {
+interface IGlobalConfigurationModule {
     /// @notice Emitted when a new collateral type is enabled or disabled.
     /// @param sender The address that enabled or disabled the collateral type.
     /// @param collateralType The address of the collateral type.
@@ -30,7 +55,7 @@ interface IPerpsConfigurationModule {
     /// @param marketId The perps market id.
     /// @param name The perps market name.
     /// @param symbol The perps market symbol.
-    event LogCreatePerpsMarket(
+    event LogCreatePerpMarket(
         uint128 indexed marketId,
         string name,
         string symbol,
@@ -54,7 +79,10 @@ interface IPerpsConfigurationModule {
     /// collateral type.
     /// @param collateralType The address of the collateral type.
     /// @return depositCap The configured deposit cap for the given collateral type.
-    function getDepositCapForMarginCollateral(address collateralType) external view returns (uint256 depositCap);
+    function getDepositCapForMarginCollateralConfiguration(address collateralType)
+        external
+        view
+        returns (uint256 depositCap);
 
     /// @notice Sets the address of the account token NFT contract.
     /// @param perpsAccountToken The account token address.
@@ -76,26 +104,8 @@ interface IPerpsConfigurationModule {
     function configureSystemParameters(uint128 maxPositionsPerAccount, uint128 marketOrderMaxLifetime) external;
 
     /// @notice Creates a new market with the requested market id.
-    /// @param marketId The perps market id.
-    /// @param name The perps market name.
-    /// @param symbol The perps market symbol.
-    /// @param maintenanceMarginRate The perps market maintenance margin rate.
-    /// @param maxOpenInterest The perps market maximum open interest per side.
-    /// @param minInitialMarginRate The perps market min initial margin rate, which defines the max leverage.
-    /// @param marketOrderStrategy The perps market settlement strategy.
-    /// @param orderFees The perps market maker and taker fees.
-    function createPerpsMarket(
-        uint128 marketId,
-        string calldata name,
-        string calldata symbol,
-        uint128 maintenanceMarginRate,
-        uint128 maxOpenInterest,
-        uint128 minInitialMarginRate,
-        SettlementConfiguration.Data calldata marketOrderStrategy,
-        SettlementConfiguration.Data[] calldata customTriggerStrategies,
-        OrderFees.Data calldata orderFees
-    )
-        external;
+    /// @dev See {CreatePerpMarketParams}.
+    function createPerpMarket(CreatePerpMarketParams calldata params) external;
 
     function updatePerpMarketStatus(uint128 marketId, bool enable) external;
 }

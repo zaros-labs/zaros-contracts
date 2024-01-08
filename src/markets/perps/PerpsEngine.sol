@@ -6,8 +6,8 @@ pragma solidity 0.8.23;
 import { IPerpsEngine } from "./interfaces/IPerpsEngine.sol";
 import { OrderModule } from "./modules/OrderModule.sol";
 import { PerpsAccountModule } from "./modules/PerpsAccountModule.sol";
-import { PerpsConfigurationModule } from "./modules/PerpsConfigurationModule.sol";
-import { PerpsMarketModule } from "./modules/PerpsMarketModule.sol";
+import { GlobalConfigurationModule } from "./modules/GlobalConfigurationModule.sol";
+import { PerpMarketModule } from "./modules/PerpMarketModule.sol";
 import { SettlementModule } from "./modules/SettlementModule.sol";
 
 // Open Zeppelin Upgradeable dependencies
@@ -24,8 +24,8 @@ contract PerpsEngine is
     IPerpsEngine,
     OrderModule,
     PerpsAccountModule,
-    PerpsConfigurationModule,
-    PerpsMarketModule,
+    GlobalConfigurationModule,
+    PerpMarketModule,
     SettlementModule,
     UUPSUpgradeable
 {
@@ -42,7 +42,7 @@ contract PerpsEngine is
         initializer
     {
         __Ownable_init(owner);
-        PerpsConfigurationModule.__PerpsConfigurationModule_init(
+        GlobalConfigurationModule.__GlobalConfigurationModule_init(
             perpsAccountToken, rewardDistributor, usdToken, liquidityEngine
         );
     }

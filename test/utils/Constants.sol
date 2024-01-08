@@ -54,9 +54,11 @@ abstract contract Constants {
     string internal constant BTC_USD_MARKET_NAME = "BTC/USD Perpetual Futures";
     string internal constant BTC_USD_MARKET_SYMBOL = "BTC/USD PERP";
     string internal constant MOCK_BTC_USD_STREAM_ID = "MOCK_BTC_USD_STREAM_ID";
+    uint128 internal constant BTC_USD_MIN_IMR = 0.01e18;
     uint128 internal constant BTC_USD_MMR = 0.01e18;
     uint128 internal constant BTC_USD_MAX_OI = 100_000_000e18;
-    uint128 internal constant BTC_USD_MIN_IMR = 0.01e18;
+    uint256 internal constant BTC_USD_SKEW_SCALE = 1_000_000e18;
+    uint128 internal constant BTC_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint128 internal constant BTC_USD_ORDER_MAKER_FEE = 0.04e18;
     uint128 internal constant BTC_USD_ORDER_TAKER_FEE = 0.08e18;
     uint248 internal constant BTC_USD_SETTLEMENT_DELAY = 1 seconds;
@@ -66,9 +68,11 @@ abstract contract Constants {
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
     string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
     string internal constant MOCK_ETH_USD_STREAM_ID = "MOCK_ETH_USD_STREAM_ID";
+    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
     uint128 internal constant ETH_USD_MMR = 0.01e18;
     uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
-    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
+    uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
+    uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint128 internal constant ETH_USD_ORDER_MAKER_FEE = 0.04e18;
     uint128 internal constant ETH_USD_ORDER_TAKER_FEE = 0.08e18;
     uint248 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;

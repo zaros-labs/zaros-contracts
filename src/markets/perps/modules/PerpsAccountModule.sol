@@ -7,10 +7,10 @@ import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "../interfaces/IPerpsAccountModule.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
-import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
-import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
+import { PerpMarket } from "../storage/PerpMarket.sol";
 import { Position } from "../storage/Position.sol";
-import { MarginCollateral } from "../storage/MarginCollateral.sol";
+import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -21,19 +21,19 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpsAccountModule}.
 abstract contract PerpsAccountModule is IPerpsAccountModule {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
     using PerpsAccount for PerpsAccount.Data;
-    using PerpsMarket for PerpsMarket.Data;
+    using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
-    using PerpsConfiguration for PerpsConfiguration.Data;
-    using MarginCollateral for MarginCollateral.Data;
+    using GlobalConfiguration for GlobalConfiguration.Data;
+    using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
     function isAuthorized(uint128 accountId, address sender) external view returns (bool isAuthorized) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
@@ -43,7 +43,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function getPerpsAccountToken() public view override returns (address) {
-        return PerpsConfiguration.load().perpsAccountToken;
+        return GlobalConfiguration.load().perpsAccountToken;
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -84,17 +84,21 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
         for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
-            PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(accountId, marketId);
 
-            UD60x18 marketIndexPrice = perpsMarket.getIndexPrice();
-            SD59x18 fundingFeePerUnit = perpsMarket.calculateNextFundingFeePerUnit(marketIndexPrice);
+            // TODO: work on this on a separate task
+            UD60x18 marketMarkPrice;
+            // UD60x18 marketMarkPrice = perpMarket.getIndexPrice();
+            SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
+            SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, marketMarkPrice);
             SD59x18 accruedFunding = position.getAccruedFunding(fundingFeePerUnit);
-            UD60x18 notionalValue = position.getNotionalValue(marketIndexPrice);
+            UD60x18 notionalValue = position.getNotionalValue(marketMarkPrice);
 
-            marginBalance = marginBalance.add(position.getUnrealizedPnl(marketIndexPrice, accruedFunding));
+            marginBalance = marginBalance.add(position.getUnrealizedPnl(marketMarkPrice, accruedFunding));
             // initialMargin = initialMargin.add(ud60x18(position.initialMargin));
-            maintenanceMargin = maintenanceMargin.add(ud60x18(perpsMarket.maintenanceMarginRate).mul(notionalValue));
+            maintenanceMargin =
+                maintenanceMargin.add(ud60x18(perpMarket.configuration.maintenanceMarginRate).mul(notionalValue));
         }
 
         SD59x18 availableBalance = marginBalance.sub(initialMargin.intoSD59x18());
@@ -103,10 +107,40 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
+    function getOpenPositionData(
+        uint128 accountId,
+        uint128 marketId,
+        uint256 indexPrice
+    )
+        external
+        view
+        override
+        returns (
+            SD59x18 openInterest,
+            UD60x18 notionalValue,
+            UD60x18 maintenanceMargin,
+            SD59x18 accruedFunding,
+            SD59x18 unrealizedPnl
+        )
+    {
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        Position.Data storage position = Position.load(accountId, marketId);
+
+        // UD60x18 maintenanceMarginRate = ud60x18(perpMarket.maintenanceMarginRate);
+        UD60x18 price = perpMarket.getMarkPrice(SD_ZERO, ud60x18(indexPrice));
+        SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
+        SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, price);
+
+        (openInterest, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) = position.getPositionData(
+            ud60x18(perpMarket.configuration.maintenanceMarginRate), price, fundingFeePerUnit
+        );
+    }
+
+    /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint128) {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        uint128 accountId = ++perpsConfiguration.nextAccountId;
-        IAccountNFT perpsAccountToken = IAccountNFT(perpsConfiguration.perpsAccountToken);
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        uint128 accountId = ++globalConfiguration.nextAccountId;
+        IAccountNFT perpsAccountToken = IAccountNFT(globalConfiguration.perpsAccountToken);
         perpsAccountToken.mint(msg.sender, accountId);
 
         PerpsAccount.create(accountId, msg.sender);
@@ -142,11 +176,12 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function depositMargin(uint128 accountId, address collateralType, uint256 amount) external override {
-        // PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
-        UD60x18 ud60x18Amount = marginCollateral.convertTokenAmountToUd60x18(amount);
+        // GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
+        UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
         _requireAmountNotZero(ud60x18Amount);
-        _requireEnoughDepositCap(collateralType, ud60x18Amount, marginCollateral.getDepositCap());
+        _requireEnoughDepositCap(collateralType, ud60x18Amount, marginCollateralConfiguration.getDepositCap());
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.increaseMarginCollateralBalance(collateralType, ud60x18Amount);
@@ -163,8 +198,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         _checkMarginIsAvailable(perpsAccount, collateralType, ud60x18Amount);
         perpsAccount.decreaseMarginCollateralBalance(collateralType, ud60x18Amount);
 
-        MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
-        uint256 tokenAmount = marginCollateral.convertUd60x18ToTokenAmount(ud60x18Amount);
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
+        uint256 tokenAmount = marginCollateralConfiguration.convertUd60x18ToTokenAmount(ud60x18Amount);
         IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
 
         emit LogWithdrawMargin(msg.sender, accountId, collateralType, tokenAmount);

@@ -3,10 +3,10 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { PerpsConfiguration } from "./PerpsConfiguration.sol";
+import { GlobalConfiguration } from "./GlobalConfiguration.sol";
 
 library MarketOrder {
-    using PerpsConfiguration for PerpsConfiguration.Data;
+    using GlobalConfiguration for GlobalConfiguration.Data;
 
     /// @notice Constant base domain used to access a given MarketOrder's storage slot.
     string internal constant MARKET_ORDER_DOMAIN = "fi.zaros.markets.perps.storage.MarketOrder";
@@ -34,8 +34,8 @@ library MarketOrder {
     function clear(Data storage self) internal { }
 
     function checkPendingOrder(Data storage self) internal view {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
-        uint128 marketOrderMaxLifetime = perpsConfiguration.marketOrderMaxLifetime;
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        uint128 marketOrderMaxLifetime = globalConfiguration.marketOrderMaxLifetime;
 
         if (self.timestamp != 0 && block.timestamp - self.timestamp <= marketOrderMaxLifetime) {
             revert Errors.MarketOrderStillPending(self.timestamp);

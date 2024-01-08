@@ -13,12 +13,10 @@ library Position {
 
     /// @notice The {Position} namespace storage structure.
     /// @param size The position size in asset units, i.e amount of purchased contracts.
-    /// @param unrealizedPnlStored The notional value of the realized profit or loss of the position.
     /// @param lastInteractionPrice The last settlement reference price of this position.
     /// @param lastInteractionFundingFeePerUnit The last funding fee per unit applied to this position.
     struct Data {
         int256 size;
-        int128 unrealizedPnlStored;
         uint128 lastInteractionPrice;
         int128 lastInteractionFundingFeePerUnit;
     }
@@ -36,7 +34,6 @@ library Position {
     /// @param newPosition The new position to be placed.
     function update(Data storage self, Data memory newPosition) internal {
         self.size = newPosition.size;
-        self.unrealizedPnlStored = newPosition.unrealizedPnlStored;
         self.lastInteractionPrice = newPosition.lastInteractionPrice;
         self.lastInteractionFundingFeePerUnit = newPosition.lastInteractionFundingFeePerUnit;
     }
@@ -45,7 +42,6 @@ library Position {
     /// @param self The position storage pointer.
     function clear(Data storage self) internal {
         self.size = 0;
-        self.unrealizedPnlStored = 0;
         self.lastInteractionPrice = 0;
         self.lastInteractionFundingFeePerUnit = 0;
     }
@@ -81,7 +77,7 @@ library Position {
         returns (SD59x18 unrealizedPnl)
     {
         SD59x18 priceShift = price.intoSD59x18().sub(ud60x18(self.lastInteractionPrice).intoSD59x18());
-        unrealizedPnl = sd59x18(self.size).mul(priceShift).add(accruedFunding).add(sd59x18(self.unrealizedPnlStored));
+        unrealizedPnl = sd59x18(self.size).mul(priceShift).add(accruedFunding);
     }
 
     /// @dev Returns the notional value of the position.

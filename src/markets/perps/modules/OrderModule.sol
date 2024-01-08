@@ -9,8 +9,8 @@ import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
-import { PerpsConfiguration } from "../storage/PerpsConfiguration.sol";
-import { PerpsMarket } from "../storage/PerpsMarket.sol";
+import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
+import { PerpMarket } from "../storage/PerpMarket.sol";
 import { Position } from "../storage/Position.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
@@ -28,14 +28,13 @@ abstract contract OrderModule is IOrderModule {
     using SafeERC20 for IERC20;
     using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
-    using PerpsConfiguration for PerpsConfiguration.Data;
-    using PerpsMarket for PerpsMarket.Data;
+    using GlobalConfiguration for GlobalConfiguration.Data;
+    using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
 
     /// @inheritdoc IOrderModule
     function getConfiguredOrderFees(uint128 marketId) external view override returns (OrderFees.Data memory) {
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        return perpsMarket.orderFees;
+        PerpMarket.load(marketId).configuration.orderFees;
     }
 
     /// @inheritdoc IOrderModule
@@ -76,10 +75,10 @@ abstract contract OrderModule is IOrderModule {
         override
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
         Position.Data storage position = Position.load(accountId, marketId);
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         if (sizeDelta == 0) {
             revert Errors.ZeroInput("sizeDelta");
@@ -92,7 +91,7 @@ abstract contract OrderModule is IOrderModule {
             perpsAccount.checkCanCreateNewPosition();
         }
 
-        perpsConfiguration.checkMarketIsEnabled(marketId);
+        globalConfiguration.checkMarketIsEnabled(marketId);
         marketOrder.checkPendingOrder();
 
         marketOrder.update({ sizeDelta: sizeDelta, acceptablePrice: acceptablePrice });
@@ -113,7 +112,7 @@ abstract contract OrderModule is IOrderModule {
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
 
-        PerpsMarket.Data storage perpsMarket = PerpsMarket.loadActive(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.loadActive(marketId);
         SettlementConfiguration.Data storage settlementConfiguration;
 
         if (!isAccountStrategy) {
@@ -142,8 +141,8 @@ abstract contract OrderModule is IOrderModule {
     /// @inheritdoc IOrderModule
     function cancelMarketOrder(uint128 accountId, uint128 marketId, uint8 orderId) external override {
         // PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-        // PerpsMarket.Data storage perpsMarket = PerpsMarket.load(marketId);
-        // MarketOrder.Data storage order = perpsMarket.orders[accountId][orderId];
+        // PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        // MarketOrder.Data storage order = perpMarket.orders[accountId][orderId];
 
         // // perpsAccount.updateActiveOrders(marketId, orderId, false);
         // order.reset();

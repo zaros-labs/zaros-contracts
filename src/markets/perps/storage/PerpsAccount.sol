@@ -4,9 +4,9 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { MarginCollateral } from "./MarginCollateral.sol";
+import { MarginCollateralConfiguration } from "./MarginCollateralConfiguration.sol";
 import { MarketOrder } from "./MarketOrder.sol";
-import { PerpsConfiguration } from "./PerpsConfiguration.sol";
+import { GlobalConfiguration } from "./GlobalConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -19,12 +19,10 @@ import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
-    using EnumerableMap for EnumerableMap.UintToUintMap;
     using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
-    using MarginCollateral for MarginCollateral.Data;
-    using PerpsConfiguration for PerpsConfiguration.Data;
+    using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
+    using GlobalConfiguration for GlobalConfiguration.Data;
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
@@ -78,9 +76,9 @@ library PerpsAccount {
     /// context
     /// of an already active market, the check may be misleading.
     function checkCanCreateNewPosition(Data storage self) internal view {
-        PerpsConfiguration.Data storage perpsConfiguration = PerpsConfiguration.load();
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        uint256 maxPositionsPerAccount = perpsConfiguration.maxPositionsPerAccount;
+        uint256 maxPositionsPerAccount = globalConfiguration.maxPositionsPerAccount;
         uint256 activePositionsLength = self.activeMarketsIds.length();
 
         if (activePositionsLength >= maxPositionsPerAccount) {
@@ -120,8 +118,10 @@ library PerpsAccount {
     {
         for (uint256 i = 0; i < self.marginCollateralBalance.length(); i++) {
             (address collateralType, uint256 marginCollateralAmount) = self.marginCollateralBalance.at(i);
-            MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
-            UD60x18 marginCollateralValue = marginCollateral.getPrice().mul(ud60x18(marginCollateralAmount));
+            MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+                MarginCollateralConfiguration.load(collateralType);
+            UD60x18 marginCollateralValue =
+                marginCollateralConfiguration.getPrice().mul(ud60x18(marginCollateralAmount));
 
             totalMarginCollateralValue = totalMarginCollateralValue.add(marginCollateralValue);
         }

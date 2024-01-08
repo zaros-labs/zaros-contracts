@@ -24,7 +24,7 @@ abstract contract Events {
                                    PERPS CONFIGURATION MODULE
     //////////////////////////////////////////////////////////////////////////*/
 
-    event LogSetSupportedMarket(address indexed perpsMarket, bool enabled);
+    event LogSetSupportedMarket(address indexed perpMarket, bool enabled);
     event LogSetSupportedCollateral(address indexed sender, address indexed collateralType, bool enabled);
 
     /*//////////////////////////////////////////////////////////////////////////
