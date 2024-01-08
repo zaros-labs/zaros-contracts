@@ -81,10 +81,10 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
 
         uint256 expectedMargin = amountToDeposit - amountToWithdraw;
-        uint256 newMarginCollateralConfiguration =
+        uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(perpsAccountId, address(usdToken)).intoUint256();
 
         // it should decrease the amount of margin collateral
-        assertEq(expectedMargin, newMarginCollateralConfiguration, "withdrawMargin");
+        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
     }
 }

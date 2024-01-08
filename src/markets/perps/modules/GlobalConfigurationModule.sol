@@ -71,13 +71,13 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     {
         try ERC20(collateralType).decimals() returns (uint8 decimals) {
             if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0)) {
-                revert Errors.InvalidMarginCollateralConfigurationConfiguration(collateralType, decimals, priceFeed);
+                revert Errors.InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
             }
             MarginCollateralConfiguration.configure(collateralType, depositCap, decimals, priceFeed);
 
             emit LogConfigureCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
         } catch {
-            revert Errors.InvalidMarginCollateralConfigurationConfiguration(collateralType, 0, priceFeed);
+            revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }
     }
 

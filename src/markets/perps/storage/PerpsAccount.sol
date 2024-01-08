@@ -110,11 +110,11 @@ library PerpsAccount {
 
     /// @notice Returns the notional value of all margin collateral in the account.
     /// @param self The perps account storage pointer.
-    /// @return totalMarginCollateralConfigurationValue The total margin collateral value.
-    function getTotalMarginCollateralConfigurationValue(Data storage self)
+    /// @return totalMarginCollateralValue The total margin collateral value.
+    function getTotalMarginCollateralValue(Data storage self)
         internal
         view
-        returns (UD60x18 totalMarginCollateralConfigurationValue)
+        returns (UD60x18 totalMarginCollateralValue)
     {
         for (uint256 i = 0; i < self.marginCollateralBalance.length(); i++) {
             (address collateralType, uint256 marginCollateralAmount) = self.marginCollateralBalance.at(i);
@@ -123,8 +123,7 @@ library PerpsAccount {
             UD60x18 marginCollateralValue =
                 marginCollateralConfiguration.getPrice().mul(ud60x18(marginCollateralAmount));
 
-            totalMarginCollateralConfigurationValue =
-                totalMarginCollateralConfigurationValue.add(marginCollateralValue);
+            totalMarginCollateralValue = totalMarginCollateralValue.add(marginCollateralValue);
         }
     }
 

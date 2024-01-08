@@ -63,15 +63,10 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getTotalAccountMarginCollateralConfigurationValue(uint128 accountId)
-        external
-        view
-        override
-        returns (UD60x18)
-    {
+    function getTotalAccountMarginCollateralValue(uint128 accountId) external view override returns (UD60x18) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        return perpsAccount.getTotalMarginCollateralConfigurationValue();
+        return perpsAccount.getTotalMarginCollateralValue();
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -83,7 +78,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        SD59x18 marginBalance = perpsAccount.getTotalMarginCollateralConfigurationValue().intoSD59x18();
+        SD59x18 marginBalance = perpsAccount.getTotalMarginCollateralValue().intoSD59x18();
         UD60x18 initialMargin;
         UD60x18 maintenanceMargin;
 
