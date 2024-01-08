@@ -96,12 +96,7 @@ interface IGlobalConfigurationModule {
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
     /// @param priceFeed The price oracle address.
-    function configureMarginCollateralConfiguration(
-        address collateralType,
-        uint248 depositCap,
-        address priceFeed
-    )
-        external;
+    function configureMarginCollateral(address collateralType, uint248 depositCap, address priceFeed) external;
 
     /// @notice Configures the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.

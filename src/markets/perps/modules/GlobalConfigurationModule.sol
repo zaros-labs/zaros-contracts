@@ -60,7 +60,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     }
 
     /// @inheritdoc IGlobalConfigurationModule
-    function configureMarginCollateralConfiguration(
+    function configureMarginCollateral(
         address collateralType,
         uint248 depositCap,
         address priceFeed
