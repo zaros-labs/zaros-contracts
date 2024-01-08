@@ -16,7 +16,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.configureMarginCollateral(address(usdToken), 0, address(mockUsdcUsdPriceFeed));
+        perpsEngine.configureMarginCollateralConfiguration(address(usdToken), 0, address(mockUsdcUsdPriceFeed));
         changePrank({ msgSender: users.naruto });
 
         uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
@@ -84,10 +84,10 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
         perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
 
-        uint256 newMarginCollateral =
+        uint256 newMarginCollateralConfiguration =
             perpsEngine.getAccountMarginCollateralBalance(userPerpsAccountId, address(usdToken)).intoUint256();
 
         // it should increase the amount of margin collateral
-        assertEq(newMarginCollateral, amountToDeposit, "depositMargin");
+        assertEq(newMarginCollateralConfiguration, amountToDeposit, "depositMargin");
     }
 }

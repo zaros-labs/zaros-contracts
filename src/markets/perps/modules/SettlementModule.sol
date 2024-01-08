@@ -138,16 +138,6 @@ abstract contract SettlementModule is ISettlementModule {
         }
         // TODO: liquidityEngine.withdrawUsdToken(upkeep, vars.marketId, vars.fee);
 
-        // UD60x18 initialMargin =
-        //     ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
-
-        // TODO: validate initial margin and size
-        vars.newPosition = Position.Data({
-            size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
-            lastInteractionPrice: vars.fillPrice.intoUint128(),
-            lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
-        });
-
         perpsAccount.updateActiveMarkets(vars.marketId, sd59x18(oldPosition.size), sd59x18(vars.newPosition.size));
         if (vars.newPosition.size == 0) {
             oldPosition.clear();

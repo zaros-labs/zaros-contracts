@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { MarginCollateral } from "./MarginCollateral.sol";
+import { MarginCollateralConfiguration } from "./MarginCollateralConfiguration.sol";
 import { MarketOrder } from "./MarketOrder.sol";
 import { GlobalConfiguration } from "./GlobalConfiguration.sol";
 
@@ -19,11 +19,9 @@ import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
-    using EnumerableMap for EnumerableMap.UintToUintMap;
     using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.UintSet;
-    using MarginCollateral for MarginCollateral.Data;
+    using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using GlobalConfiguration for GlobalConfiguration.Data;
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
@@ -112,18 +110,21 @@ library PerpsAccount {
 
     /// @notice Returns the notional value of all margin collateral in the account.
     /// @param self The perps account storage pointer.
-    /// @return totalMarginCollateralValue The total margin collateral value.
-    function getTotalMarginCollateralValue(Data storage self)
+    /// @return totalMarginCollateralConfigurationValue The total margin collateral value.
+    function getTotalMarginCollateralConfigurationValue(Data storage self)
         internal
         view
-        returns (UD60x18 totalMarginCollateralValue)
+        returns (UD60x18 totalMarginCollateralConfigurationValue)
     {
         for (uint256 i = 0; i < self.marginCollateralBalance.length(); i++) {
             (address collateralType, uint256 marginCollateralAmount) = self.marginCollateralBalance.at(i);
-            MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
-            UD60x18 marginCollateralValue = marginCollateral.getPrice().mul(ud60x18(marginCollateralAmount));
+            MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+                MarginCollateralConfiguration.load(collateralType);
+            UD60x18 marginCollateralValue =
+                marginCollateralConfiguration.getPrice().mul(ud60x18(marginCollateralAmount));
 
-            totalMarginCollateralValue = totalMarginCollateralValue.add(marginCollateralValue);
+            totalMarginCollateralConfigurationValue =
+                totalMarginCollateralConfigurationValue.add(marginCollateralValue);
         }
     }
 

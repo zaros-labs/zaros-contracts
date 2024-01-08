@@ -58,11 +58,11 @@ interface IPerpsAccountModule {
     /// @notice Returns the USD denominated total collateral value for the given account.
     /// @dev This function doesn't take open positions into account.
     /// @param accountId The trading account id.
-    /// @return totalMarginCollateralValue The USD denominated total margin collateral value.
-    function getTotalAccountMarginCollateralValue(uint128 accountId)
+    /// @return totalMarginCollateralConfigurationValue The USD denominated total margin collateral value.
+    function getTotalAccountMarginCollateralConfigurationValue(uint128 accountId)
         external
         view
-        returns (UD60x18 totalMarginCollateralValue);
+        returns (UD60x18 totalMarginCollateralConfigurationValue);
 
     /// @notice Returns the account's total margin balance, available balance and maintenance margin.
     /// @dev This function does take open positions data such as unrealized pnl into account.

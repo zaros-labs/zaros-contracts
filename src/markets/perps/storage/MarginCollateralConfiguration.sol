@@ -11,11 +11,11 @@ import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-library MarginCollateral {
-    /// @notice Constant base domain used to access a given MarginCollateral's storage slot.
-    string internal constant MARGIN_COLLATERAL_DOMAIN = "fi.zaros.markets.MarginCollateral";
+library MarginCollateralConfiguration {
+    /// @notice Constant base domain used to access a given MarginCollateralConfiguration's storage slot.
+    string internal constant MARGIN_COLLATERAL_DOMAIN = "fi.zaros.markets.MarginCollateralConfiguration";
 
-    /// @notice {MarginCollateral} namespace storage structure.
+    /// @notice {MarginCollateralConfiguration} namespace storage structure.
     /// @param depositCap The maximum deposit cap of the given margin collateral type
     /// @param decimals The decimals of the given margin collateral type's ERC20 token
     /// @param priceFeed The chainlink price feed address of the given margin collateral type
@@ -25,13 +25,13 @@ library MarginCollateral {
         address priceFeed;
     }
 
-    /// @notice Loads a {MarginCollateral} object.
+    /// @notice Loads a {MarginCollateralConfiguration} object.
     /// @param collateralType The margin collateral type.
-    /// @return marginCollateral The loaded margin collateral storage pointer.
-    function load(address collateralType) internal pure returns (Data storage marginCollateral) {
+    /// @return marginCollateralConfiguration The loaded margin collateral storage pointer.
+    function load(address collateralType) internal pure returns (Data storage marginCollateralConfiguration) {
         bytes32 slot = keccak256(abi.encode(MARGIN_COLLATERAL_DOMAIN, collateralType));
         assembly {
-            marginCollateral.slot := slot
+            marginCollateralConfiguration.slot := slot
         }
     }
 

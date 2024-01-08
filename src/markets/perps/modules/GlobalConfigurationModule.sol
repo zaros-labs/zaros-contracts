@@ -8,7 +8,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { CreatePerpMarketParams, IGlobalConfigurationModule } from "../interfaces/IGlobalConfigurationModule.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpMarket } from "../storage/PerpMarket.sol";
-import { MarginCollateral } from "../storage/MarginCollateral.sol";
+import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfiguration.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
@@ -24,13 +24,19 @@ import { ud60x18 } from "@prb-math/UD60x18.sol";
 abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable, OwnableUpgradeable {
     using GlobalConfiguration for GlobalConfiguration.Data;
     using PerpMarket for PerpMarket.Data;
-    using MarginCollateral for MarginCollateral.Data;
+    using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
     /// @inheritdoc IGlobalConfigurationModule
-    function getDepositCapForMarginCollateral(address collateralType) external view override returns (uint256) {
-        MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
+    function getDepositCapForMarginCollateralConfiguration(address collateralType)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
 
-        return marginCollateral.getDepositCap().intoUint256();
+        return marginCollateralConfiguration.getDepositCap().intoUint256();
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -54,7 +60,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     }
 
     /// @inheritdoc IGlobalConfigurationModule
-    function configureMarginCollateral(
+    function configureMarginCollateralConfiguration(
         address collateralType,
         uint248 depositCap,
         address priceFeed
@@ -65,13 +71,13 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     {
         try ERC20(collateralType).decimals() returns (uint8 decimals) {
             if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0)) {
-                revert Errors.InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
+                revert Errors.InvalidMarginCollateralConfigurationConfiguration(collateralType, decimals, priceFeed);
             }
-            MarginCollateral.configure(collateralType, depositCap, decimals, priceFeed);
+            MarginCollateralConfiguration.configure(collateralType, depositCap, decimals, priceFeed);
 
             emit LogConfigureCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
         } catch {
-            revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
+            revert Errors.InvalidMarginCollateralConfigurationConfiguration(collateralType, 0, priceFeed);
         }
     }
 

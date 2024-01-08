@@ -66,7 +66,7 @@ library Errors {
     /// @notice Thrown when the provided `zaros` is the zero address.
     error LiquidityEngineNotDefined();
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
-    error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
+    error InvalidMarginCollateralConfigurationConfiguration(address collateralType, uint8 decimals, address priceFeed);
     /// @notice Thrown when trying to update a market status but it hasn't been initialized yet.
     error PerpMarketNotInitialized(uint128 marketId);
 
@@ -92,9 +92,9 @@ library Errors {
     /// @notice Thrown when a perps market id has already been used.
     error MarketAlreadyExists(uint128 marketId);
 
-    /// @notice PerpsEngine.MarginCollateral errors.
+    /// @notice PerpsEngine.MarginCollateralConfiguration errors.
 
-    /// @notice Thrown when the {MarginCollateral} doesn't have a price feed defined to return its price.
+    /// @notice Thrown when the {MarginCollateralConfiguration} doesn't have a price feed defined to return its price.
     error CollateralPriceFeedNotDefined();
 
     /// @notice PerpsEngine.MarketOrder errors.

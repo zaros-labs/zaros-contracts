@@ -10,7 +10,7 @@ import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpMarket } from "../storage/PerpMarket.sol";
 import { Position } from "../storage/Position.sol";
-import { MarginCollateral } from "../storage/MarginCollateral.sol";
+import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -33,7 +33,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
     using GlobalConfiguration for GlobalConfiguration.Data;
-    using MarginCollateral for MarginCollateral.Data;
+    using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
     function isAuthorized(uint128 accountId, address sender) external view returns (bool isAuthorized) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
@@ -63,10 +63,15 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getTotalAccountMarginCollateralValue(uint128 accountId) external view override returns (UD60x18) {
+    function getTotalAccountMarginCollateralConfigurationValue(uint128 accountId)
+        external
+        view
+        override
+        returns (UD60x18)
+    {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        return perpsAccount.getTotalMarginCollateralValue();
+        return perpsAccount.getTotalMarginCollateralConfigurationValue();
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -78,7 +83,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        SD59x18 marginBalance = perpsAccount.getTotalMarginCollateralValue().intoSD59x18();
+        SD59x18 marginBalance = perpsAccount.getTotalMarginCollateralConfigurationValue().intoSD59x18();
         UD60x18 initialMargin;
         UD60x18 maintenanceMargin;
 
@@ -147,10 +152,11 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     /// @inheritdoc IPerpsAccountModule
     function depositMargin(uint128 accountId, address collateralType, uint256 amount) external override {
         // GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
-        UD60x18 ud60x18Amount = marginCollateral.convertTokenAmountToUd60x18(amount);
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
+        UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
         _requireAmountNotZero(ud60x18Amount);
-        _requireEnoughDepositCap(collateralType, ud60x18Amount, marginCollateral.getDepositCap());
+        _requireEnoughDepositCap(collateralType, ud60x18Amount, marginCollateralConfiguration.getDepositCap());
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.increaseMarginCollateralBalance(collateralType, ud60x18Amount);
@@ -167,8 +173,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         _checkMarginIsAvailable(perpsAccount, collateralType, ud60x18Amount);
         perpsAccount.decreaseMarginCollateralBalance(collateralType, ud60x18Amount);
 
-        MarginCollateral.Data storage marginCollateral = MarginCollateral.load(collateralType);
-        uint256 tokenAmount = marginCollateral.convertUd60x18ToTokenAmount(ud60x18Amount);
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
+        uint256 tokenAmount = marginCollateralConfiguration.convertUd60x18ToTokenAmount(ud60x18Amount);
         IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
 
         emit LogWithdrawMargin(msg.sender, accountId, collateralType, tokenAmount);
