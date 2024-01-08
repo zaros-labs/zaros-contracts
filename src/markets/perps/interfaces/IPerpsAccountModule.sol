@@ -78,6 +78,30 @@ interface IPerpsAccountModule {
         view
         returns (SD59x18 marginBalance, SD59x18 availableMargin, UD60x18 initialMargin, UD60x18 maintenanceMargin);
 
+    /// @notice Gets the given market's open position details.
+    /// @param accountId The perps account id.
+    /// @param marketId The perps market id.
+    /// @param indexPrice The current index price of the market.
+    /// @return size The position openInterest in asset units, i.e amount of purchased contracts.
+    /// @return notionalValue The notional value of the position.
+    /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
+    /// @return accruedFunding The accrued funding fee.
+    /// @return unrealizedPnl The current unrealized profit or loss of the position.
+    function getOpenPositionData(
+        uint128 accountId,
+        uint128 marketId,
+        uint256 indexPrice
+    )
+        external
+        view
+        returns (
+            SD59x18 size,
+            UD60x18 notionalValue,
+            UD60x18 maintenanceMargin,
+            SD59x18 accruedFunding,
+            SD59x18 unrealizedPnl
+        );
+
     /// @notice Creates a new trading account and mints its NFT
     /// @return accountId The trading account id.
     function createPerpsAccount() external returns (uint128 accountId);

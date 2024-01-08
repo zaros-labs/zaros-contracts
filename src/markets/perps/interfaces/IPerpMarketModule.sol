@@ -24,11 +24,11 @@ interface IPerpMarketModule {
 
     /// @notice Returns the maximum open interest on a side of the given market.
     /// @param marketId The perps market id.
-    function maxOpenInterest(uint128 marketId) external view returns (UD60x18);
+    function getMaxOpenInterest(uint128 marketId) external view returns (UD60x18);
 
     /// @notice Returns the current market skew.
     /// @param marketId The perps market id.
-    function skew(uint128 marketId) external view returns (SD59x18);
+    function getSkew(uint128 marketId) external view returns (SD59x18);
 
     /// @notice Returns the given market's open interest, including the size of longs and shorts.
     /// @dev E.g: There is 500 ETH in long positions and 450 ETH in short positions, this function
@@ -37,12 +37,12 @@ interface IPerpMarketModule {
     /// @return longsOpenInterest The open interest in long positions.
     /// @return shortsOpenInterest The open interest in short positions.
     /// @return totalOpenInterest The sum of longsOpenInterest and shortsOpenInterest.
-    function openInterest(uint128 marketId)
+    function getOpenInterest(uint128 marketId)
         external
         view
         returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest);
 
-    function markPrice(uint128 marketId, int256 skewDelta, uint256 indexPrice) external view returns (UD60x18);
+    function getMarkPrice(uint128 marketId, int256 skewDelta, uint256 indexPrice) external view returns (UD60x18);
 
     /// @notice Returns a Settlement Strategy used by the given market.
     /// @param marketId The perps market id.
@@ -57,11 +57,11 @@ interface IPerpMarketModule {
 
     /// @notice Returns the given market's funding rate.
     /// @param marketId The perps market id.
-    function fundingRate(uint128 marketId) external view returns (SD59x18);
+    function getFundingRate(uint128 marketId) external view returns (SD59x18);
 
     /// @notice Returns the given market's funding velocity.
     /// @param marketId The perps market id.
-    function fundingVelocity(uint128 marketId) external view returns (SD59x18);
+    function getFundingVelocity(uint128 marketId) external view returns (SD59x18);
 
     /// @notice Returns the current leverage of a given account id, based on its cross margin collateral and open
     /// positions.
@@ -91,29 +91,5 @@ interface IPerpMarketModule {
             int128 skew,
             uint128 openInterest,
             OrderFees.Data memory orderFees
-        );
-
-    /// @notice Gets the given market's open position details.
-    /// @param accountId The perps account id.
-    /// @param marketId The perps market id.
-    /// @param indexPrice The current index price of the market.
-    /// @return size The position openInterest in asset units, i.e amount of purchased contracts.
-    /// @return notionalValue The notional value of the position.
-    /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
-    /// @return accruedFunding The accrued funding fee.
-    /// @return unrealizedPnl The current unrealized profit or loss of the position.
-    function getOpenPositionData(
-        uint128 accountId,
-        uint128 marketId,
-        uint256 indexPrice
-    )
-        external
-        view
-        returns (
-            SD59x18 size,
-            UD60x18 notionalValue,
-            UD60x18 maintenanceMargin,
-            SD59x18 accruedFunding,
-            SD59x18 unrealizedPnl
         );
 }

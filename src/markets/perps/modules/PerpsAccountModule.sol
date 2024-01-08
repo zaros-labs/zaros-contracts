@@ -21,7 +21,7 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpsAccountModule}.
 abstract contract PerpsAccountModule is IPerpsAccountModule {
@@ -109,6 +109,36 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         SD59x18 availableBalance = marginBalance.sub(initialMargin.intoSD59x18());
 
         return (marginBalance, availableBalance, initialMargin, maintenanceMargin);
+    }
+
+    /// @inheritdoc IPerpsAccountModule
+    function getOpenPositionData(
+        uint128 accountId,
+        uint128 marketId,
+        uint256 indexPrice
+    )
+        external
+        view
+        override
+        returns (
+            SD59x18 openInterest,
+            UD60x18 notionalValue,
+            UD60x18 maintenanceMargin,
+            SD59x18 accruedFunding,
+            SD59x18 unrealizedPnl
+        )
+    {
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        Position.Data storage position = Position.load(accountId, marketId);
+
+        // UD60x18 maintenanceMarginRate = ud60x18(perpMarket.maintenanceMarginRate);
+        UD60x18 price = perpMarket.getMarkPrice(SD_ZERO, ud60x18(indexPrice));
+        SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
+        SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, price);
+
+        (openInterest, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) = position.getPositionData(
+            ud60x18(perpMarket.configuration.maintenanceMarginRate), price, fundingFeePerUnit
+        );
     }
 
     /// @inheritdoc IPerpsAccountModule
