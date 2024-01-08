@@ -43,16 +43,16 @@ abstract contract PerpMarketModule is IPerpMarketModule {
         external
         view
         override
-        returns (UD60x18 longsSize, UD60x18 shortsSize, UD60x18 totalSize)
+        returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest)
     {
         SD59x18 currentSkew = skew(marketId);
-        SD59x18 currentOpenInterest = ud60x18(PerpMarket.load(marketId).size).intoSD59x18();
+        SD59x18 currentOpenInterest = ud60x18(PerpMarket.load(marketId).openInterest).intoSD59x18();
         SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18(2));
-        (longsSize, shortsSize) = (
+        (longsOpenInterest, shortsOpenInterest) = (
             halfOpenInterest.add(currentSkew).intoUD60x18(),
             unary(halfOpenInterest).add(currentSkew).abs().intoUD60x18()
         );
-        totalSize = longsSize.add(shortsSize);
+        totalOpenInterest = longsOpenInterest.add(shortsOpenInterest);
     }
 
     /// @inheritdoc IPerpMarketModule
@@ -108,7 +108,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
             uint128 maintenanceMarginRate,
             uint128 maxOpenInterest,
             int128 skew,
-            uint128 size,
+            uint128 openInterest,
             OrderFees.Data memory orderFees
         )
     {
@@ -120,7 +120,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
         maintenanceMarginRate = perpMarket.configuration.maintenanceMarginRate;
         maxOpenInterest = perpMarket.configuration.maxOpenInterest;
         skew = perpMarket.skew;
-        size = perpMarket.size;
+        openInterest = perpMarket.openInterest;
         orderFees = perpMarket.configuration.orderFees;
     }
 
@@ -134,7 +134,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
         view
         override
         returns (
-            SD59x18 size,
+            SD59x18 openInterest,
             UD60x18 notionalValue,
             UD60x18 maintenanceMargin,
             SD59x18 accruedFunding,
@@ -149,7 +149,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
         SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
         SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, price);
 
-        (size, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) = position.getPositionData(
+        (openInterest, notionalValue, maintenanceMargin, accruedFunding, unrealizedPnl) = position.getPositionData(
             ud60x18(perpMarket.configuration.maintenanceMarginRate), price, fundingFeePerUnit
         );
     }

@@ -32,15 +32,15 @@ interface IPerpMarketModule {
 
     /// @notice Returns the given market's open interest, including the size of longs and shorts.
     /// @dev E.g: There is 500 ETH in long positions and 450 ETH in short positions, this function
-    /// should return UD60x18 longsSize = 500e18 and UD60x18 shortsSize = 450e18;
+    /// should return UD60x18 longsOpenInterest = 500e18 and UD60x18 shortsOpenInterest = 450e18;
     /// @param marketId The perps market id.
-    /// @return longsSize The open interest in long positions.
-    /// @return shortsSize The open interest in short positions.
-    /// @return totalSize The sum of longsSize and shortsSize.
+    /// @return longsOpenInterest The open interest in long positions.
+    /// @return shortsOpenInterest The open interest in short positions.
+    /// @return totalOpenInterest The sum of longsOpenInterest and shortsOpenInterest.
     function openInterest(uint128 marketId)
         external
         view
-        returns (UD60x18 longsSize, UD60x18 shortsSize, UD60x18 totalSize);
+        returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest);
 
     function markPrice(uint128 marketId, int256 skewDelta, uint256 indexPrice) external view returns (UD60x18);
 
@@ -77,7 +77,7 @@ interface IPerpMarketModule {
     /// @return maintenanceMarginRate The maintenance margin rate for the market.
     /// @return maxOpenInterest The maximum open interest for the market.
     /// @return skew The skew of the market.
-    /// @return size The size of the market
+    /// @return openInterest The openInterest of the market
     /// @return orderFees The configured maker and taker order fees of the market.
     function getMarketData(uint128 marketId)
         external
@@ -89,7 +89,7 @@ interface IPerpMarketModule {
             uint128 maintenanceMarginRate,
             uint128 maxOpenInterest,
             int128 skew,
-            uint128 size,
+            uint128 openInterest,
             OrderFees.Data memory orderFees
         );
 
@@ -97,7 +97,7 @@ interface IPerpMarketModule {
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.
     /// @param indexPrice The current index price of the market.
-    /// @return size The position size in asset units, i.e amount of purchased contracts.
+    /// @return size The position openInterest in asset units, i.e amount of purchased contracts.
     /// @return notionalValue The notional value of the position.
     /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
     /// @return accruedFunding The accrued funding fee.

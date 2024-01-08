@@ -39,7 +39,7 @@ library PerpMarket {
     struct Data {
         uint128 id;
         int128 skew;
-        uint128 size;
+        uint128 openInterest;
         uint128 nextStrategyId;
         bool initialized;
         int256 lastFundingRate;
@@ -105,10 +105,12 @@ library PerpMarket {
 
     function validateNewState(Data storage self, SD59x18 sizeDelta) internal view {
         UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
-        UD60x18 newSize = ud60x18(self.size).add((sizeDelta).abs().intoUD60x18());
+        UD60x18 newOpenInterest = ud60x18(self.openInterest).add((sizeDelta).abs().intoUD60x18());
 
-        if (newSize.gt(maxOpenInterest)) {
-            revert Errors.ExceedsOpenInterestLimit(self.id, maxOpenInterest.intoUint256(), newSize.intoUint256());
+        if (newOpenInterest.gt(maxOpenInterest)) {
+            revert Errors.ExceedsOpenInterestLimit(
+                self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
+            );
         }
     }
 
@@ -205,7 +207,7 @@ library PerpMarket {
         internal
     {
         self.skew = sd59x18(self.skew).add(sizeDelta).intoInt256().toInt128();
-        self.size = ud60x18(self.size).add((sizeDelta).abs().intoUD60x18()).intoUint128();
+        self.openInterest = ud60x18(self.openInterest).add((sizeDelta).abs().intoUD60x18()).intoUint128();
         self.lastFundingRate = fundingRate.intoInt256();
         self.lastFundingFeePerUnit = fundingFeePerUnit.intoInt256();
         self.lastFundingTime = block.timestamp;
