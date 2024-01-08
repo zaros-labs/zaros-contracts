@@ -89,6 +89,8 @@ library Errors {
 
     /// @notice PerpsEngine.PerpMarket errors.
 
+    /// @notice Thrown when an order tries to exceed the market's open interest cap.
+    error ExceedsOpenInterestLimit(uint128 marketId, uint256 openInterest, uint256 openInterestDesired);
     /// @notice Thrown when a perps market id has already been used.
     error MarketAlreadyExists(uint128 marketId);
 

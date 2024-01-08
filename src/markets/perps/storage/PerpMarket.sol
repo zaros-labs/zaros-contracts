@@ -103,6 +103,15 @@ library PerpMarket {
         }
     }
 
+    function validateNewState(Data storage self, SD59x18 sizeDelta) internal view {
+        UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
+        UD60x18 newSize = ud60x18(self.size).add((sizeDelta).abs().intoUD60x18());
+
+        if (newSize.gt(maxOpenInterest)) {
+            revert Errors.ExceedsOpenInterestLimit(self.id, maxOpenInterest.intoUint256(), newSize.intoUint256());
+        }
+    }
+
     function getMarkPrice(Data storage self, SD59x18 skewDelta, UD60x18 indexPrice) internal view returns (UD60x18) {
         SD59x18 skewScale = sd59x18(uint256(self.configuration.skewScale).toInt256());
         SD59x18 skew = sd59x18(self.skew);

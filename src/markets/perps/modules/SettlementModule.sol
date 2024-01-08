@@ -22,6 +22,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 abstract contract SettlementModule is ISettlementModule {
+    using GlobalConfiguration for GlobalConfiguration.Data;
     using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
     using PerpMarket for PerpMarket.Data;
@@ -110,7 +111,11 @@ abstract contract SettlementModule is ISettlementModule {
         Position.Data storage oldPosition = Position.load(vars.accountId, vars.marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
-        address usdToken = GlobalConfiguration.load().usdToken;
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        address usdToken = globalConfiguration.usdToken;
+
+        globalConfiguration.checkMarketIsEnabled(vars.marketId);
+        perpMarket.validateNewState(vars.sizeDelta);
 
         // TODO: Let's find a better and defintitive way to avoid stack too deep.
         {
