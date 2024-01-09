@@ -35,10 +35,10 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
-    function isAuthorized(uint128 accountId, address sender) external view returns (bool isAuthorized) {
+    function isAuthorized(uint128 accountId, address sender) external view returns (bool) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        // TODO: add permission logic
-        isAuthorized = perpsAccount.owner == sender;
+
+        return perpsAccount.owner == sender;
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -92,10 +92,11 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
             // UD60x18 marketMarkPrice = perpMarket.getIndexPrice();
             SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
             SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, marketMarkPrice);
-            SD59x18 accruedFunding = position.getAccruedFunding(fundingFeePerUnit);
             UD60x18 notionalValue = position.getNotionalValue(marketMarkPrice);
 
-            marginBalance = marginBalance.add(position.getUnrealizedPnl(marketMarkPrice, accruedFunding));
+            marginBalance = marginBalance.add(position.getUnrealizedPnl(marketMarkPrice)).add(
+                position.getAccruedFunding(fundingFeePerUnit)
+            );
             // initialMargin = initialMargin.add(ud60x18(position.initialMargin));
             maintenanceMargin =
                 maintenanceMargin.add(ud60x18(perpMarket.configuration.maintenanceMarginRate).mul(notionalValue));

@@ -65,19 +65,10 @@ library Position {
     /// @dev Returns the current unrealized profit or loss of the position.
     /// @param self The position storage pointer.
     /// @param price The market's current reference price.
-    /// @param accruedFunding The accrued funding fee, positive or negative.
     /// @return unrealizedPnl The current unrealized profit or loss of the position.
-    function getUnrealizedPnl(
-        Data storage self,
-        UD60x18 price,
-        SD59x18 accruedFunding
-    )
-        internal
-        view
-        returns (SD59x18 unrealizedPnl)
-    {
+    function getUnrealizedPnl(Data storage self, UD60x18 price) internal view returns (SD59x18 unrealizedPnl) {
         SD59x18 priceShift = price.intoSD59x18().sub(ud60x18(self.lastInteractionPrice).intoSD59x18());
-        unrealizedPnl = sd59x18(self.size).mul(priceShift).add(accruedFunding);
+        unrealizedPnl = sd59x18(self.size).mul(priceShift);
     }
 
     /// @dev Returns the notional value of the position.
@@ -117,6 +108,6 @@ library Position {
         notionalValue = getNotionalValue(self, price);
         maintenanceMargin = notionalValue.mul(maintenanceMarginRate);
         accruedFunding = getAccruedFunding(self, fundingFeePerUnit);
-        unrealizedPnl = getUnrealizedPnl(self, price, accruedFunding);
+        unrealizedPnl = getUnrealizedPnl(self, price);
     }
 }

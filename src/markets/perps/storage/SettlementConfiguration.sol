@@ -133,7 +133,7 @@ library SettlementConfiguration {
         bool isBuyOrder
     )
         internal
-        view
+        pure
         returns (UD60x18 price)
     {
         if (isPremium) {

@@ -88,7 +88,6 @@ abstract contract SettlementModule is ISettlementModule {
         SD59x18 pnl;
         SD59x18 fundingFeePerUnit;
         SD59x18 fundingRate;
-        SD59x18 positionAccruedFunding;
         Position.Data newPosition;
     }
 
@@ -129,10 +128,11 @@ abstract contract SettlementModule is ISettlementModule {
 
         vars.fundingRate = perpMarket.getCurrentFundingRate();
         vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingFeePerUnit, vars.fillPrice);
-        vars.positionAccruedFunding = oldPosition.getAccruedFunding(vars.fundingFeePerUnit);
-        vars.pnl = oldPosition.getUnrealizedPnl(vars.fillPrice, vars.positionAccruedFunding).add(
+        vars.pnl = oldPosition.getUnrealizedPnl(vars.fillPrice).add(
             sd59x18(uint256(settlementConfiguration.fee).toInt256())
-        ).add(perpMarket.getOrderFeeUsd(vars.sizeDelta, vars.fillPrice));
+        ).add(perpMarket.getOrderFeeUsd(vars.sizeDelta, vars.fillPrice)).add(
+            oldPosition.getAccruedFunding(vars.fundingFeePerUnit)
+        );
 
         // UD60x18 initialMargin =
         //     ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
@@ -161,7 +161,7 @@ abstract contract SettlementModule is ISettlementModule {
         }
         perpMarket.updateState(vars.sizeDelta, vars.fundingRate, vars.fundingFeePerUnit);
 
-        emit LogSettleOrder(msg.sender, vars.accountId, vars.marketId, vars.newPosition);
+        emit LogSettleOrder(msg.sender, vars.accountId, vars.marketId, vars.pnl.intoInt256(), vars.newPosition);
     }
 
     function _requireIsSettlementStrategy(address sender, address upkeep) internal pure {

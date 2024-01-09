@@ -34,7 +34,7 @@ library ChainlinkUtil {
         bool isPremium
     )
         internal
-        view
+        pure
         returns (UD60x18 reportPrice)
     {
         if (isPremium) {
@@ -51,7 +51,7 @@ library ChainlinkUtil {
     /// @param price The price to convert.
     /// @param decimals The report price's decimals.
     /// @return priceUd60x18 The converted price to UD60x18.
-    function convertReportPriceToUd60x18(int192 price, uint8 decimals) internal view returns (UD60x18) {
+    function convertReportPriceToUd60x18(int192 price, uint8 decimals) internal pure returns (UD60x18) {
         if (Constants.SYSTEM_DECIMALS == decimals) {
             return ud60x18(reportPriceToUint256(price));
         }
@@ -60,7 +60,7 @@ library ChainlinkUtil {
 
     /// @notice Convert the provided int192 report price to uint256.
     /// @param price The price to convert.
-    function reportPriceToUint256(int192 price) internal view returns (uint256) {
+    function reportPriceToUint256(int192 price) internal pure returns (uint256) {
         return int256(price).toUint256();
     }
 
@@ -75,6 +75,8 @@ library ChainlinkUtil {
         // TODO: Store preferred fee token instead of querying i_nativeAddress?
         address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
         (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
+
+        return fee;
     }
 
     function verifyReport(

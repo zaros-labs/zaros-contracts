@@ -6,9 +6,9 @@ import { FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 
 contract MockChainlinkFeeManager {
     function getFeeAndReward(
-        address subscriber,
-        bytes memory report,
-        address quoteAddress
+        address,
+        bytes memory,
+        address
     )
         external
         returns (FeeAsset memory, FeeAsset memory, uint256)

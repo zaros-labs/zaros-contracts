@@ -78,7 +78,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
         uint128 settlementId
     )
         external
-        view
+        pure
         override
         returns (SettlementConfiguration.Data memory)
     {

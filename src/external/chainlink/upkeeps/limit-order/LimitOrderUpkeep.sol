@@ -62,6 +62,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
 
     function checkUpkeep(bytes calldata checkData)
         external
+        view
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
@@ -105,7 +106,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         bytes calldata extraData
     )
         external
-        view
+        pure
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {

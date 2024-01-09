@@ -55,7 +55,7 @@ library PerpMarket {
         }
     }
 
-    function loadActive(uint128 marketId) internal view returns (Data storage perpMarket) {
+    function loadActive(uint128 marketId) internal pure returns (Data storage perpMarket) {
         perpMarket = load(marketId);
     }
 
@@ -195,7 +195,7 @@ library PerpMarket {
     }
 
     function getProportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
-        return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_PERIOD));
+        return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_INTERVAL));
     }
 
     function updateState(

@@ -94,8 +94,8 @@ library PerpsAccount {
         view
         returns (Data storage perpsAccount)
     {
+        verifySender(accountId);
         perpsAccount = loadExisting(accountId);
-        verifySender(perpsAccount);
     }
 
     /// @notice Returns the amount of the given margin collateral type.
@@ -127,11 +127,12 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account.
-    /// @param self The perps account storage pointer.
-    function verifySender(Data storage self) internal view {
+    /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account id.
+    /// @param accountId The perps account id.
+    function verifySender(uint128 accountId) internal view {
+        Data storage self = load(accountId);
         if (self.owner != msg.sender) {
-            revert Errors.AccountPermissionDenied(self.id, msg.sender);
+            revert Errors.AccountPermissionDenied(accountId, msg.sender);
         }
     }
 

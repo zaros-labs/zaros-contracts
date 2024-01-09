@@ -59,6 +59,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
 
     function checkUpkeep(bytes calldata checkData)
         external
+        view
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {

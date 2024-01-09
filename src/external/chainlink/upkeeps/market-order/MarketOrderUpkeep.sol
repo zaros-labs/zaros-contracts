@@ -59,12 +59,12 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     /// @inheritdoc ILogAutomation
     function checkLog(
         AutomationLog calldata log,
-        bytes calldata checkData
+        bytes calldata
     )
         external
         view
         override
-        returns (bool upkeepNeeded, bytes memory performData)
+        returns (bool, bytes memory)
     {
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
         MarketOrderSettlementStrategy settlementStrategy = self.settlementStrategy;

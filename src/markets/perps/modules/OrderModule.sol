@@ -34,7 +34,7 @@ abstract contract OrderModule is IOrderModule {
 
     /// @inheritdoc IOrderModule
     function getConfiguredOrderFees(uint128 marketId) external view override returns (OrderFees.Data memory) {
-        PerpMarket.load(marketId).configuration.orderFees;
+        return PerpMarket.load(marketId).configuration.orderFees;
     }
 
     /// @inheritdoc IOrderModule
@@ -57,7 +57,7 @@ abstract contract OrderModule is IOrderModule {
         uint128 marketId
     )
         external
-        view
+        pure
         override
         returns (MarketOrder.Data memory marketOrder)
     {
@@ -75,9 +75,7 @@ abstract contract OrderModule is IOrderModule {
         override
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
-        Position.Data storage position = Position.load(accountId, marketId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         if (sizeDelta == 0) {
@@ -110,9 +108,7 @@ abstract contract OrderModule is IOrderModule {
         override
         returns (bytes memory)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-
-        PerpMarket.Data storage perpMarket = PerpMarket.loadActive(marketId);
+        PerpsAccount.verifySender(accountId);
         SettlementConfiguration.Data storage settlementConfiguration;
 
         if (!isAccountStrategy) {

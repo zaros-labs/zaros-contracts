@@ -13,7 +13,7 @@ contract MockChainlinkVerifier {
 
     function verify(
         bytes calldata payload,
-        bytes calldata parameterPayload
+        bytes calldata
     )
         external
         payable
