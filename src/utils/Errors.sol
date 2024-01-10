@@ -69,6 +69,9 @@ library Errors {
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
     /// @notice Thrown when trying to update a market status but it hasn't been initialized yet.
     error PerpMarketNotInitialized(uint128 marketId);
+    /// @notice Thrown when the provided `collateralType` is not in the collateral priority list when trying to remove
+    /// it.
+    error MarginCollateralTypeNotInPriority(address collateralType);
 
     /// @notice PerpsEngine.SettlementModule errors.
 

@@ -31,7 +31,7 @@ struct CreatePerpMarketParams {
     OrderFees.Data orderFees;
 }
 
-/// @title Perps Configuration Module.
+/// @title Global Configuration Module.
 /// @notice This module is used by the protocol controller to configure the perps
 /// exchange system.
 interface IGlobalConfigurationModule {
