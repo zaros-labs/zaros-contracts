@@ -75,24 +75,8 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         returns (SD59x18)
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18;
-
-        for (uint256 i = 0; i < activeMarketsIds.length; i++) {
-            uint128 marketId = activeMarketsIds[i];
-            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-            Position.Data storage position = Position.load(accountId, marketId);
-
-            // we don't need to revert as this function is consumed by the client only and trusts
-            // the inputs
-            if (position.size == 0) {
-                continue;
-            }
-
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPricesX18[i]);
-            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPrice);
-
-            activePositionsUnrealizedPnlUsdX18 = activePositionsUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18);
-        }
+        SD59x18 activePositionsUnrealizedPnlUsdX18 =
+            getAccountTotalUnrealizedPnl(accountId, activeMarketsIds, indexPricesX18);
 
         return perpsAccount.getEquityUsdX18(activePositionsUnrealizedPnlUsdX18);
     }
@@ -135,6 +119,36 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         SD59x18 availableBalance = marginBalanceUsdX18.sub(initialMarginUsdX18.intoSD59x18());
 
         return (marginBalanceUsdX18, availableBalance, initialMarginUsdX18, maintenanceMarginUsdX18);
+    }
+
+    /// @inheritdoc IPerpsAccountModule
+    function getAccountTotalUnrealizedPnl(
+        uint128 accountId,
+        uint128[] calldata activeMarketsIds,
+        UD60x18[] calldata indexPricesX18
+    )
+        public
+        view
+        returns (SD59x18 accountTotalUnrealizedPnlUsdX18)
+    {
+        SD59x18 accountTotalUnrealizedPnlUsdX18;
+
+        for (uint256 i = 0; i < activeMarketsIds.length; i++) {
+            uint128 marketId = activeMarketsIds[i];
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+            Position.Data storage position = Position.load(accountId, marketId);
+
+            // we don't need to revert as this function is consumed by the client only and trusts
+            // the inputs
+            if (position.size == 0) {
+                continue;
+            }
+
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPricesX18[i]);
+            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPrice);
+
+            accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18);
+        }
     }
 
     /// @inheritdoc IPerpsAccountModule
