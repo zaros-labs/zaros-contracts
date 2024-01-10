@@ -46,23 +46,20 @@ interface IPerpsAccountModule {
     /// @notice Returns the account's margin amount of the given collateral type.
     /// @param accountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @return marginCollateralBalance The margin amount of the given collateral type.
+    /// @return marginCollateralBalanceX18 The margin amount of the given collateral type.
     function getAccountMarginCollateralBalance(
         uint128 accountId,
         address collateralType
     )
         external
         view
-        returns (UD60x18 marginCollateralBalance);
+        returns (UD60x18 marginCollateralBalanceX18);
 
     /// @notice Returns the USD denominated total collateral value for the given account.
     /// @dev This function doesn't take open positions into account.
     /// @param accountId The trading account id.
-    /// @return totalMarginCollateralValue The USD denominated total margin collateral value.
-    function getTotalAccountMarginCollateralValue(uint128 accountId)
-        external
-        view
-        returns (UD60x18 totalMarginCollateralValue);
+    /// @return equityUsdX18 The USD denominated total margin collateral value.
+    function getAccountEquityUsd(uint128 accountId) external view returns (UD60x18 equityUsdX18);
 
     /// @notice Returns the account's total margin balance, available balance and maintenance margin.
     /// @dev This function does take open positions data such as unrealized pnl into account.
@@ -73,7 +70,7 @@ interface IPerpsAccountModule {
     /// @return availableMargin The account's withdrawable margin balance.
     /// @return initialMargin The account's initial margin in positions.
     /// @return maintenanceMargin The account's maintenance margin.
-    function getAccountMarginBalances(uint128 accountId)
+    function getAccountMarginBreakdown(uint128 accountId)
         external
         view
         returns (SD59x18 marginBalance, SD59x18 availableMargin, UD60x18 initialMargin, UD60x18 maintenanceMargin);
