@@ -110,7 +110,7 @@ library PerpsAccount {
     /// @notice Returns the notional value of all margin collateral in the account.
     /// @param self The perps account storage pointer.
     /// @return equityUsdX18 The total margin collateral value.
-    function getequityUsdX18(Data storage self) internal view returns (UD60x18 equityUsdX18) {
+    function getEquityUsdX18(Data storage self) internal view returns (UD60x18 equityUsdX18) {
         for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
             (address collateralType, uint256 marginCollateralAmount) = self.marginCollateralBalanceX18.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =

@@ -85,7 +85,7 @@ interface IPerpsAccountModule {
     /// @param marketId The perps market id.
     /// @param indexPriceX18 The current index price of the market.
     /// @return size The position openInterest in asset units, i.e amount of purchased contracts.
-    /// @return notionalValueUsdX18 The notional value of the position.
+    /// @return notionalValueX18 The notional value of the position.
     /// @return maintenanceMarginUsdX18 The notional value of the maintenance margin allocated by the account.
     /// @return accruedFundingUsdX18 The accrued funding fee.
     /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
@@ -98,7 +98,7 @@ interface IPerpsAccountModule {
         view
         returns (
             SD59x18 size,
-            UD60x18 notionalValueUsdX18,
+            UD60x18 notionalValueX18,
             UD60x18 maintenanceMarginUsdX18,
             SD59x18 accruedFundingUsdX18,
             SD59x18 unrealizedPnlUsdX18

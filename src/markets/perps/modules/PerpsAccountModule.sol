@@ -67,7 +67,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     function getAccountEquityUsd(uint128 accountId) external view override returns (UD60x18) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        return perpsAccount.getequityUsdX18();
+        return perpsAccount.getEquityUsdX18();
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -79,7 +79,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        SD59x18 marginBalanceUsdX18 = perpsAccount.getequityUsdX18().intoSD59x18();
+        SD59x18 marginBalanceUsdX18 = perpsAccount.getEquityUsdX18().intoSD59x18();
         UD60x18 initialMarginUsdX18;
         UD60x18 maintenanceMarginUsdX18;
 
@@ -93,14 +93,14 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
             // UD60x18 marketMarkPrice = perpMarket.getIndexPrice();
             SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
             SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, marketMarkPrice);
-            UD60x18 notionalValueUsdX18 = position.getNotionalValue(marketMarkPrice);
+            UD60x18 notionalValueX18 = position.getNotionalValue(marketMarkPrice);
 
             marginBalanceUsdX18 = marginBalanceUsdX18.add(position.getUnrealizedPnl(marketMarkPrice)).add(
                 position.getAccruedFunding(fundingFeePerUnit)
             );
             // initialMarginUsdX18 = initialMarginUsdX18.add(ud60x18(position.initialMarginUsdX18));
             maintenanceMarginUsdX18 = maintenanceMarginUsdX18.add(
-                ud60x18(perpMarket.configuration.maintenanceMarginRate).mul(notionalValueUsdX18)
+                ud60x18(perpMarket.configuration.maintenanceMarginRate).mul(notionalValueX18)
             );
         }
 
@@ -120,7 +120,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         override
         returns (
             SD59x18 openInterest,
-            UD60x18 notionalValueUsdX18,
+            UD60x18 notionalValueX18,
             UD60x18 maintenanceMarginUsdX18,
             SD59x18 accruedFundingUsdX18,
             SD59x18 unrealizedPnlUsdX18
@@ -134,7 +134,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
         SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, price);
 
-        (openInterest, notionalValueUsdX18, maintenanceMarginUsdX18, accruedFundingUsdX18, unrealizedPnlUsdX18) =
+        (openInterest, notionalValueX18, maintenanceMarginUsdX18, accruedFundingUsdX18, unrealizedPnlUsdX18) =
         position.getPositionData(ud60x18(perpMarket.configuration.maintenanceMarginRate), price, fundingFeePerUnit);
     }
 
