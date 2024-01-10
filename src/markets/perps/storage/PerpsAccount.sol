@@ -153,7 +153,7 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @param amountX18 The amount of margin collateral to be added.
-    function increaseMarginCollateralBalance(Data storage self, address collateralType, UD60x18 amountX18) internal {
+    function deposit(Data storage self, address collateralType, UD60x18 amountX18) internal {
         EnumerableMap.AddressToUintMap storage marginCollateralBalance = self.marginCollateralBalance;
         UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).add(amountX18);
 
@@ -164,7 +164,7 @@ library PerpsAccount {
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @param amountX18 The amount of margin collateral to be removed.
-    function decreaseMarginCollateralBalance(Data storage self, address collateralType, UD60x18 amountX18) internal {
+    function withdraw(Data storage self, address collateralType, UD60x18 amountX18) internal {
         EnumerableMap.AddressToUintMap storage marginCollateralBalance = self.marginCollateralBalance;
         UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).sub(amountX18);
 
@@ -182,10 +182,10 @@ library PerpsAccount {
             address collateralType = globalConfiguration.collateralPriority.at(i);
             UD60x18 marginCollateralBalance = getMarginCollateralBalance(self, collateralType);
             if (marginCollateralBalance.gte(amount)) {
-                decreaseMarginCollateralBalance(self, collateralType, amount);
+                withdraw(self, collateralType, amount);
                 break;
             } else {
-                decreaseMarginCollateralBalance(self, collateralType, marginCollateralBalance);
+                withdraw(self, collateralType, marginCollateralBalance);
                 amount = amount.sub(marginCollateralBalance);
             }
         }

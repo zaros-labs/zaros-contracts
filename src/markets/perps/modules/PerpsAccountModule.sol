@@ -186,7 +186,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         _requireEnoughDepositCap(collateralType, ud60x18Amount, marginCollateralConfiguration.getDepositCap());
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        perpsAccount.increaseMarginCollateralBalance(collateralType, ud60x18Amount);
+        perpsAccount.deposit(collateralType, ud60x18Amount);
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), ud60x18Amount.intoUint256());
 
         emit LogDepositMargin(msg.sender, accountId, collateralType, amount);
@@ -198,7 +198,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
         _checkMarginIsAvailable(perpsAccount, collateralType, ud60x18Amount);
-        perpsAccount.decreaseMarginCollateralBalance(collateralType, ud60x18Amount);
+        perpsAccount.withdraw(collateralType, ud60x18Amount);
 
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);

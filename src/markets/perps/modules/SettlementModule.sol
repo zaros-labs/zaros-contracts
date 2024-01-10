@@ -149,7 +149,7 @@ abstract contract SettlementModule is ISettlementModule {
             perpsAccount.deductAccountMargin(amountToDeduct);
         } else if (vars.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = vars.pnl.intoUD60x18();
-            perpsAccount.increaseMarginCollateralBalance(usdToken, amountToIncrease);
+            perpsAccount.deposit(usdToken, amountToIncrease);
         }
         // TODO: liquidityEngine.withdrawUsdToken(upkeep, vars.marketId, vars.fee);
 
