@@ -114,7 +114,15 @@ library PerpMarket {
         }
     }
 
-    function getMarkPrice(Data storage self, SD59x18 skewDelta, UD60x18 indexPrice) internal view returns (UD60x18) {
+    function getMarkPrice(
+        Data storage self,
+        SD59x18 skewDelta,
+        UD60x18 indexPriceX18
+    )
+        internal
+        view
+        returns (UD60x18)
+    {
         SD59x18 skewScale = sd59x18(uint256(self.configuration.skewScale).toInt256());
         SD59x18 skew = sd59x18(self.skew);
 
@@ -122,8 +130,8 @@ library PerpMarket {
         SD59x18 newSkew = skew.add(skewDelta);
         SD59x18 priceImpactAfterDelta = newSkew.div(skewScale);
 
-        SD59x18 priceBeforeDelta = indexPrice.intoSD59x18().mul(SD_UNIT.add(priceImpactBeforeDelta));
-        SD59x18 priceAfterDelta = indexPrice.intoSD59x18().mul(SD_UNIT.add(priceImpactAfterDelta));
+        SD59x18 priceBeforeDelta = indexPriceX18.intoSD59x18().mul(SD_UNIT.add(priceImpactBeforeDelta));
+        SD59x18 priceAfterDelta = indexPriceX18.intoSD59x18().mul(SD_UNIT.add(priceImpactAfterDelta));
 
         UD60x18 markPrice = priceBeforeDelta.add(priceAfterDelta).div(sd59x18Convert(2)).intoUD60x18();
 

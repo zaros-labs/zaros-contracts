@@ -49,26 +49,26 @@ library Position {
     /// @dev Returns the accrued funding fee and the net funding fee per unit applied.
     /// @param self The position storage pointer.
     /// @param fundingFeePerUnit The market's current funding fee per unit.
-    /// @return accruedFunding The accrued funding fee, positive or negative.
+    /// @return accruedFundingUsdX18 The accrued funding fee, positive or negative.
     function getAccruedFunding(
         Data storage self,
         SD59x18 fundingFeePerUnit
     )
         internal
         view
-        returns (SD59x18 accruedFunding)
+        returns (SD59x18 accruedFundingUsdX18)
     {
         SD59x18 netFundingFeePerUnit = fundingFeePerUnit.sub(sd59x18(self.lastInteractionFundingFeePerUnit));
-        accruedFunding = sd59x18(self.size).mul(netFundingFeePerUnit);
+        accruedFundingUsdX18 = sd59x18(self.size).mul(netFundingFeePerUnit);
     }
 
     /// @dev Returns the current unrealized profit or loss of the position.
     /// @param self The position storage pointer.
     /// @param price The market's current reference price.
-    /// @return unrealizedPnl The current unrealized profit or loss of the position.
-    function getUnrealizedPnl(Data storage self, UD60x18 price) internal view returns (SD59x18 unrealizedPnl) {
+    /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
+    function getUnrealizedPnl(Data storage self, UD60x18 price) internal view returns (SD59x18 unrealizedPnlUsdX18) {
         SD59x18 priceShift = price.intoSD59x18().sub(ud60x18(self.lastInteractionPrice).intoSD59x18());
-        unrealizedPnl = sd59x18(self.size).mul(priceShift);
+        unrealizedPnlUsdX18 = sd59x18(self.size).mul(priceShift);
     }
 
     /// @dev Returns the notional value of the position.
@@ -84,10 +84,10 @@ library Position {
     /// @param price The market's current reference price.
     /// @param fundingFeePerUnit The market's current funding fee per unit.
     /// @return size The position size in asset units, i.e amount of purchased contracts.
-    /// @return notionalValue The notional value of the position.
-    /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
-    /// @return accruedFunding The accrued funding fee.
-    /// @return unrealizedPnl The current unrealized profit or loss of the position.
+    /// @return notionalValueUsdX18 The notional value of the position.
+    /// @return maintenanceMarginX18 The notional value of the maintenance margin allocated by the account.
+    /// @return accruedFundingUsdX18 The accrued funding fee.
+    /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
     function getPositionData(
         Data storage self,
         UD60x18 maintenanceMarginRate,
@@ -98,16 +98,16 @@ library Position {
         view
         returns (
             SD59x18 size,
-            UD60x18 notionalValue,
-            UD60x18 maintenanceMargin,
-            SD59x18 accruedFunding,
-            SD59x18 unrealizedPnl
+            UD60x18 notionalValueUsdX18,
+            UD60x18 maintenanceMarginX18,
+            SD59x18 accruedFundingUsdX18,
+            SD59x18 unrealizedPnlUsdX18
         )
     {
         size = sd59x18(self.size);
-        notionalValue = getNotionalValue(self, price);
-        maintenanceMargin = notionalValue.mul(maintenanceMarginRate);
-        accruedFunding = getAccruedFunding(self, fundingFeePerUnit);
-        unrealizedPnl = getUnrealizedPnl(self, price);
+        notionalValueUsdX18 = getNotionalValue(self, price);
+        maintenanceMarginX18 = notionalValueUsdX18.mul(maintenanceMarginRate);
+        accruedFundingUsdX18 = getAccruedFunding(self, fundingFeePerUnit);
+        unrealizedPnlUsdX18 = getUnrealizedPnl(self, price);
     }
 }

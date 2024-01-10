@@ -66,37 +66,42 @@ interface IPerpsAccountModule {
     /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
     /// the liquidation engine will be triggered.
     /// @param accountId The trading account id.
-    /// @return marginBalance The account's total margin balance.
-    /// @return availableMargin The account's withdrawable margin balance.
-    /// @return initialMargin The account's initial margin in positions.
-    /// @return maintenanceMargin The account's maintenance margin.
+    /// @return marginBalanceX18 The account's total margin balance.
+    /// @return availableMarginX18 The account's withdrawable margin balance.
+    /// @return initialMarginX18 The account's initial margin in positions.
+    /// @return maintenanceMarginX18 The account's maintenance margin.
     function getAccountMarginBreakdown(uint128 accountId)
         external
         view
-        returns (SD59x18 marginBalance, SD59x18 availableMargin, UD60x18 initialMargin, UD60x18 maintenanceMargin);
+        returns (
+            SD59x18 marginBalanceX18,
+            SD59x18 availableMarginX18,
+            UD60x18 initialMarginX18,
+            UD60x18 maintenanceMarginX18
+        );
 
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.
-    /// @param indexPrice The current index price of the market.
+    /// @param indexPriceX18 The current index price of the market.
     /// @return size The position openInterest in asset units, i.e amount of purchased contracts.
-    /// @return notionalValue The notional value of the position.
-    /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
-    /// @return accruedFunding The accrued funding fee.
-    /// @return unrealizedPnl The current unrealized profit or loss of the position.
+    /// @return notionalValueUsdX18 The notional value of the position.
+    /// @return maintenanceMarginX18 The notional value of the maintenance margin allocated by the account.
+    /// @return accruedFundingUsdX18 The accrued funding fee.
+    /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
     function getOpenPositionData(
         uint128 accountId,
         uint128 marketId,
-        uint256 indexPrice
+        uint256 indexPriceX18
     )
         external
         view
         returns (
             SD59x18 size,
-            UD60x18 notionalValue,
-            UD60x18 maintenanceMargin,
-            SD59x18 accruedFunding,
-            SD59x18 unrealizedPnl
+            UD60x18 notionalValueUsdX18,
+            UD60x18 maintenanceMarginX18,
+            SD59x18 accruedFundingUsdX18,
+            SD59x18 unrealizedPnlUsdX18
         );
 
     /// @notice Creates a new trading account and mints its NFT

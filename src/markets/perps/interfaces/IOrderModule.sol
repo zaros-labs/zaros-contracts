@@ -40,7 +40,7 @@ interface IOrderModule {
     )
         external
         view
-        returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMargin);
+        returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMarginX18);
 
     function createMarketOrder(
         uint128 accountId,

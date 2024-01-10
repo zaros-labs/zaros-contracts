@@ -42,7 +42,14 @@ interface IPerpMarketModule {
         view
         returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest);
 
-    function getMarkPrice(uint128 marketId, int256 skewDelta, uint256 indexPrice) external view returns (UD60x18);
+    function getMarkPrice(
+        uint128 marketId,
+        int256 skewDelta,
+        uint256 indexPriceX18
+    )
+        external
+        view
+        returns (UD60x18);
 
     /// @notice Returns a Settlement Strategy used by the given market.
     /// @param marketId The perps market id.

@@ -121,9 +121,10 @@ abstract contract SettlementModule is ISettlementModule {
         // TODO: Let's find a better and defintitive way to avoid stack too deep.
         {
             bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
-            UD60x18 indexPrice = settlementConfiguration.getIndexPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
+            UD60x18 indexPriceX18 =
+                settlementConfiguration.getIndexPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
 
-            vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPrice);
+            vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
         }
 
         vars.fundingRate = perpMarket.getCurrentFundingRate();
@@ -134,8 +135,8 @@ abstract contract SettlementModule is ISettlementModule {
             oldPosition.getAccruedFunding(vars.fundingFeePerUnit)
         );
 
-        // UD60x18 initialMargin =
-        //     ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
+        // UD60x18 initialMarginX18 =
+        //     ud60x18(oldPosition.initialMarginX18).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
         // TODO: validate initial margin and size
         vars.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),

@@ -24,13 +24,15 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         uint256 expectedMaintenanceMargin = 0;
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
+        (SD59x18 marginBalanceX18, SD59x18 availableBalance, UD60x18 initialMarginX18, UD60x18 maintenanceMarginX18) =
             perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
 
-        assertEq(marginBalance.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalance");
+        assertEq(marginBalanceX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
-        assertEq(initialMargin.intoUint256(), expectedInitialMargin, "getAccountMargin initialMargin");
-        assertEq(maintenanceMargin.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMargin");
+        assertEq(initialMarginX18.intoUint256(), expectedInitialMargin, "getAccountMargin initialMarginX18");
+        assertEq(
+            maintenanceMarginX18.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMarginX18"
+        );
     }
 
     function testFuzz_GetAccountMarginMultipleCollateral(uint256 amountToDeposit) external {
@@ -47,12 +49,14 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
-        (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
+        (SD59x18 marginBalanceX18, SD59x18 availableBalance, UD60x18 initialMarginX18, UD60x18 maintenanceMarginX18) =
             perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
 
-        assertEq(marginBalance.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalance");
+        assertEq(marginBalanceX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
-        assertEq(initialMargin.intoUint256(), expectedInitialMargin, "getAccountMargin initialMargin");
-        assertEq(maintenanceMargin.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMargin");
+        assertEq(initialMarginX18.intoUint256(), expectedInitialMargin, "getAccountMargin initialMarginX18");
+        assertEq(
+            maintenanceMarginX18.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMarginX18"
+        );
     }
 }

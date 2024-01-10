@@ -60,7 +60,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
     function getMarkPrice(
         uint128 marketId,
         int256 skewDelta,
-        uint256 indexPrice
+        uint256 indexPriceX18
     )
         external
         view
@@ -69,7 +69,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
-        return perpMarket.getMarkPrice(sd59x18(skewDelta), ud60x18(indexPrice));
+        return perpMarket.getMarkPrice(sd59x18(skewDelta), ud60x18(indexPriceX18));
     }
 
     /// @inheritdoc IPerpMarketModule
