@@ -55,14 +55,25 @@ interface IPerpsAccountModule {
         view
         returns (UD60x18 marginCollateralBalanceX18);
 
-    /// @notice Returns the USD denominated total collateral value for the given account.
+    /// @notice Returns the total equity of all assets under the account without considering the collateral value
+    /// ratio
     /// @dev This function doesn't take open positions into account.
     /// @param accountId The trading account id.
+    /// @param activeMarketsIds The array of active market ids.
+    /// @param indexPricesX18 The array of index prices mapped to each market id.
     /// @return equityUsdX18 The USD denominated total margin collateral value.
-    function getAccountEquityUsd(uint128 accountId) external view returns (UD60x18 equityUsdX18);
+    function getAccountEquityUsd(
+        uint128 accountId,
+        uint128[] calldata activeMarketsIds,
+        UD60x18[] calldata indexPricesX18
+    )
+        external
+        view
+        returns (SD59x18 equityUsdX18);
 
     /// @notice Returns the account's total margin balance, available balance and maintenance margin.
     /// @dev This function does take open positions data such as unrealized pnl into account.
+    /// @dev The margin balance value takes into account the margin collateral's configured ratio (LTV).
     /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
     /// the liquidation engine will be triggered.
     /// @param accountId The trading account id.
@@ -79,6 +90,9 @@ interface IPerpsAccountModule {
             UD60x18 initialMarginUsdX18,
             UD60x18 maintenanceMarginUsdX18
         );
+
+    // TODO: Implement
+    function getActiveMarketsIds(uint128 accountId) external view returns (uint256[] memory activeMarketsIds);
 
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.

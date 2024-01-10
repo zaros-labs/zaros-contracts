@@ -64,10 +64,37 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountEquityUsd(uint128 accountId) external view override returns (UD60x18) {
+    function getAccountEquityUsd(
+        uint128 accountId,
+        uint128[] calldata activeMarketsIds,
+        UD60x18[] calldata indexPricesX18
+    )
+        external
+        view
+        override
+        returns (SD59x18)
+    {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        SD59x18 activePositionsUnrealizedPnlUsdX18;
 
-        return perpsAccount.getEquityUsdX18();
+        for (uint256 i = 0; i < activeMarketsIds.length; i++) {
+            uint128 marketId = activeMarketsIds[i];
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+            Position.Data storage position = Position.load(accountId, marketId);
+
+            // we don't need to revert as this function is consumed by the client only and trusts
+            // the inputs
+            if (position.size == 0) {
+                continue;
+            }
+
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPricesX18[i]);
+            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPrice);
+
+            activePositionsUnrealizedPnlUsdX18 = activePositionsUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18);
+        }
+
+        return perpsAccount.getEquityUsdX18(activePositionsUnrealizedPnlUsdX18);
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -79,7 +106,8 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        SD59x18 marginBalanceUsdX18 = perpsAccount.getEquityUsdX18().intoSD59x18();
+        // SD59x18 marginBalanceUsdX18 = perpsAccount.getEquityUsdX18();
+        SD59x18 marginBalanceUsdX18;
         UD60x18 initialMarginUsdX18;
         UD60x18 maintenanceMarginUsdX18;
 
@@ -108,6 +136,9 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
         return (marginBalanceUsdX18, availableBalance, initialMarginUsdX18, maintenanceMarginUsdX18);
     }
+
+    /// @inheritdoc IPerpsAccountModule
+    function getActiveMarketsIds(uint128 accountId) external view returns (uint256[] memory activeMarketsIds) { }
 
     /// @inheritdoc IPerpsAccountModule
     function getOpenPositionData(
