@@ -24,14 +24,20 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         uint256 expectedMaintenanceMargin = 0;
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        (SD59x18 marginBalanceX18, SD59x18 availableBalance, UD60x18 initialMarginX18, UD60x18 maintenanceMarginX18) =
-            perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
+        (
+            SD59x18 marginBalanceUsdX18,
+            SD59x18 availableBalance,
+            UD60x18 initialMarginUsdX18,
+            UD60x18 maintenanceMarginUsdX18
+        ) = perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
 
-        assertEq(marginBalanceX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceX18");
+        assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
-        assertEq(initialMarginX18.intoUint256(), expectedInitialMargin, "getAccountMargin initialMarginX18");
+        assertEq(initialMarginUsdX18.intoUint256(), expectedInitialMargin, "getAccountMargin initialMarginUsdX18");
         assertEq(
-            maintenanceMarginX18.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMarginX18"
+            maintenanceMarginUsdX18.intoUint256(),
+            expectedMaintenanceMargin,
+            "getAccountMargin maintenanceMarginUsdX18"
         );
     }
 
@@ -49,14 +55,20 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
-        (SD59x18 marginBalanceX18, SD59x18 availableBalance, UD60x18 initialMarginX18, UD60x18 maintenanceMarginX18) =
-            perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
+        (
+            SD59x18 marginBalanceUsdX18,
+            SD59x18 availableBalance,
+            UD60x18 initialMarginUsdX18,
+            UD60x18 maintenanceMarginUsdX18
+        ) = perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
 
-        assertEq(marginBalanceX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceX18");
+        assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
-        assertEq(initialMarginX18.intoUint256(), expectedInitialMargin, "getAccountMargin initialMarginX18");
+        assertEq(initialMarginUsdX18.intoUint256(), expectedInitialMargin, "getAccountMargin initialMarginUsdX18");
         assertEq(
-            maintenanceMarginX18.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMarginX18"
+            maintenanceMarginUsdX18.intoUint256(),
+            expectedMaintenanceMargin,
+            "getAccountMargin maintenanceMarginUsdX18"
         );
     }
 }
