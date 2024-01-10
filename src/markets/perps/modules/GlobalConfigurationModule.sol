@@ -81,6 +81,27 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
         }
     }
 
+    /// @inheritdoc IGlobalConfigurationModule
+    function configureCollateralPriority(address[] calldata collateralTypes) external override onlyOwner {
+        if (collateralTypes.length == 0) {
+            revert Errors.ZeroInput("collateralTypes");
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.configureCollateralPriority(collateralTypes);
+    }
+
+    /// @inheritdoc IGlobalConfigurationModule
+    function removeCollateralFromPriorityList(address collateralType) external override onlyOwner {
+        if (collateralType == address(0)) {
+            revert Errors.ZeroInput("collateralType");
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.removeCollateralTypeFromPriorityList(collateralType);
+    }
+
+    /// @inheritdoc IGlobalConfigurationModule
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime

@@ -98,6 +98,14 @@ interface IGlobalConfigurationModule {
     /// @param priceFeed The price oracle address.
     function configureMarginCollateral(address collateralType, uint248 depositCap, address priceFeed) external;
 
+    /// @notice Configures the collateral priority.
+    /// @param collateralTypes The array of collateral type addresses.
+    function configureCollateralPriority(address[] calldata collateralTypes) external;
+
+    /// @notice Removes the given collateral type from the collateral priority.
+    /// @param collateralType The address of the collateral type to remove.
+    function removeCollateralFromPriorityList(address collateralType) external;
+
     /// @notice Configures the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
     /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
@@ -107,5 +115,8 @@ interface IGlobalConfigurationModule {
     /// @dev See {CreatePerpMarketParams}.
     function createPerpMarket(CreatePerpMarketParams calldata params) external;
 
+    /// @notice Enables or disabled the perp market of the given market id.
+    /// @param marketId The perps market id.
+    /// @param enable Whether the market should be enabled or disabled.
     function updatePerpMarketStatus(uint128 marketId, bool enable) external;
 }

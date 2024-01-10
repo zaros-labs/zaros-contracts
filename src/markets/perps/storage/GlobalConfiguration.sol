@@ -92,7 +92,7 @@ library GlobalConfiguration {
     /// @dev Reverts if the collateral type is not in the set.
     /// @param self The global configuration storage pointer.
     /// @param collateralType The address of the collateral type to remove.
-    function removeCollateralTypeFromPriority(Data storage self, address collateralType) internal {
+    function removeCollateralTypeFromPriorityList(Data storage self, address collateralType) internal {
         bool removed = self.collateralPriority.remove(collateralType);
 
         if (!removed) {
