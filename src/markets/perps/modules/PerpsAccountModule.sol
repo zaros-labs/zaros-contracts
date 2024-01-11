@@ -25,7 +25,7 @@ import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpsAccountModule}.
 abstract contract PerpsAccountModule is IPerpsAccountModule {
-    using EnumerableMap for EnumerableMap.AddressToUintMap;
+    // using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using PerpsAccount for PerpsAccount.Data;
@@ -82,43 +82,51 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountMarginBreakdown(uint128 accountId)
+    function getAccountMarginBreakdown(
+        uint128 accountId,
+        uint128[] calldata activeMarketsIds,
+        UD60x18[] calldata indexPricesX18
+    )
         external
         view
         override
-        returns (SD59x18, SD59x18, UD60x18, UD60x18)
+        returns (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 initialMarginUsdX18,
+            UD60x18 maintenanceMarginUsdX18,
+            SD59x18 availableMarginUsdX18
+        )
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        SD59x18 activePositionsUnrealizedPnlUsdX18 =
+            getAccountTotalUnrealizedPnl(accountId, activeMarketsIds, indexPricesX18);
 
-        SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsdX18();
+        marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsdX18(activePositionsUnrealizedPnlUsdX18);
 
-        UD60x18 initialMarginUsdX18;
-        UD60x18 maintenanceMarginUsdX18;
+        for (uint256 i = 0; i < activeMarketsIds.length; i++) {
+            PerpMarket.Data storage perpMarket = PerpMarket.load(activeMarketsIds[i]);
+            Position.Data storage position = Position.load(accountId, activeMarketsIds[i]);
 
-        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
-            uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
-            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-            Position.Data storage position = Position.load(accountId, marketId);
+            // we don't need to revert as this function is consumed by the client only and trusts
+            // the inputs
+            if (!perpsAccount.activeMarketsIds.contains(activeMarketsIds[i])) {
+                continue;
+            }
 
-            // TODO: work on this on a separate task
-            UD60x18 marketMarkPrice;
-            // UD60x18 marketMarkPrice = perpMarket.getIndexPrice();
-            SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
-            SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, marketMarkPrice);
-            UD60x18 notionalValueX18 = position.getNotionalValue(marketMarkPrice);
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPricesX18[i]);
 
-            marginBalanceUsdX18 = marginBalanceUsdX18.add(position.getUnrealizedPnl(marketMarkPrice)).add(
-                position.getAccruedFunding(fundingFeePerUnit)
-            );
-            // initialMarginUsdX18 = initialMarginUsdX18.add(ud60x18(position.initialMarginUsdX18));
-            maintenanceMarginUsdX18 = maintenanceMarginUsdX18.add(
-                ud60x18(perpMarket.configuration.maintenanceMarginRate).mul(notionalValueX18)
-            );
+            UD60x18 positionNotionalValueX18 = position.getNotionalValue(markPrice);
+            UD60x18 positionInitialMarginUsdX18 =
+                positionNotionalValueX18.mul(ud60x18(perpMarket.configuration.minInitialMarginRateX18));
+            UD60x18 positionMaintenanceMarginUsdX18 =
+                positionNotionalValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
+
+            initialMarginUsdX18 = initialMarginUsdX18.add(positionInitialMarginUsdX18);
+            maintenanceMarginUsdX18 = maintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
         }
 
-        SD59x18 availableBalance = marginBalanceUsdX18.sub(initialMarginUsdX18.intoSD59x18());
-
-        return (marginBalanceUsdX18, availableBalance, initialMarginUsdX18, maintenanceMarginUsdX18);
+        availableMarginUsdX18 =
+            marginBalanceUsdX18.sub((initialMarginUsdX18.add(maintenanceMarginUsdX18)).intoSD59x18());
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -131,6 +139,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18)
     {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
         SD59x18 accountTotalUnrealizedPnlUsdX18;
 
         for (uint256 i = 0; i < activeMarketsIds.length; i++) {
@@ -140,7 +149,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
             // we don't need to revert as this function is consumed by the client only and trusts
             // the inputs
-            if (position.size == 0) {
+            if (!perpsAccount.activeMarketsIds.contains(marketId)) {
                 continue;
             }
 
@@ -174,13 +183,13 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         Position.Data storage position = Position.load(accountId, marketId);
 
-        // UD60x18 maintenanceMarginRate = ud60x18(perpMarket.maintenanceMarginRate);
+        // UD60x18 maintenanceMarginRateX18 = ud60x18(perpMarket.maintenanceMarginRateX18);
         UD60x18 price = perpMarket.getMarkPrice(SD_ZERO, ud60x18(indexPriceX18));
         SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
         SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, price);
 
         (openInterest, notionalValueX18, maintenanceMarginUsdX18, accruedFundingUsdX18, unrealizedPnlUsdX18) =
-        position.getPositionData(ud60x18(perpMarket.configuration.maintenanceMarginRate), price, fundingFeePerUnit);
+        position.getPositionData(ud60x18(perpMarket.configuration.maintenanceMarginRateX18), price, fundingFeePerUnit);
     }
 
     /// @inheritdoc IPerpsAccountModule
@@ -223,7 +232,6 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function depositMargin(uint128 accountId, address collateralType, uint256 amount) external override {
-        // GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
         UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);

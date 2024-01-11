@@ -10,8 +10,8 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 /// @param marketId The perps market id.
 /// @param name The perps market name.
 /// @param symbol The perps market symbol.
-/// @param minInitialMarginRate The perps market min initial margin rate, which defines the max leverage.
-/// @param maintenanceMarginRate The perps market maintenance margin rate.
+/// @param minInitialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
+/// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
 /// @param maxOpenInterest The perps market maximum open interest per side.
 /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
 /// @param maxFundingVelocity The perps market maximum funding rate velocity.
@@ -21,8 +21,8 @@ struct CreatePerpMarketParams {
     uint128 marketId;
     string name;
     string symbol;
-    uint128 minInitialMarginRate;
-    uint128 maintenanceMarginRate;
+    uint128 minInitialMarginRateX18;
+    uint128 maintenanceMarginRateX18;
     uint128 maxOpenInterest;
     uint256 skewScale;
     uint128 maxFundingVelocity;
@@ -59,9 +59,9 @@ interface IGlobalConfigurationModule {
         uint128 indexed marketId,
         string name,
         string symbol,
-        uint128 maintenanceMarginRate,
+        uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
-        uint128 minInitialMarginRate,
+        uint128 minInitialMarginRateX18,
         SettlementConfiguration.Data marketOrderStrategy,
         SettlementConfiguration.Data[] customTriggerStrategies,
         OrderFees.Data orderFees

@@ -36,9 +36,9 @@ abstract contract Constants {
     uint128 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
     uint128 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
     uint128 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
-    uint120 internal constant USDC_LOAN_TO_VALUE = 100e18;
-    uint120 internal constant USDZ_LOAN_TO_VALUE = 100e18;
-    uint120 internal constant WSTETH_LOAN_TO_VALUE = 70e18;
+    uint120 internal constant USDC_LOAN_TO_VALUE = 1e18;
+    uint120 internal constant USDZ_LOAN_TO_VALUE = 1e18;
+    uint120 internal constant WSTETH_LOAN_TO_VALUE = 0.7e18;
     uint256 internal constant USDC_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant USDZ_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant WSTETH_MIN_DEPOSIT_MARGIN = 0.025e18;

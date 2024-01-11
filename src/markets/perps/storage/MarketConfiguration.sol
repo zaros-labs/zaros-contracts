@@ -8,8 +8,8 @@ library MarketConfiguration {
     struct Data {
         string name;
         string symbol;
-        uint128 minInitialMarginRate;
-        uint128 maintenanceMarginRate;
+        uint128 minInitialMarginRateX18;
+        uint128 maintenanceMarginRateX18;
         uint128 maxOpenInterest;
         uint256 skewScale;
         uint128 maxFundingVelocity;

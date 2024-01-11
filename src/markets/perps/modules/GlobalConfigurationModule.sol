@@ -132,14 +132,14 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
         if (abi.encodePacked(params.symbol).length == 0) {
             revert Errors.ZeroInput("symbol");
         }
-        if (params.maintenanceMarginRate == 0) {
-            revert Errors.ZeroInput("maintenanceMarginRate");
+        if (params.maintenanceMarginRateX18 == 0) {
+            revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
         if (params.maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
         }
-        if (params.minInitialMarginRate == 0) {
-            revert Errors.ZeroInput("minInitialMarginRate");
+        if (params.minInitialMarginRateX18 == 0) {
+            revert Errors.ZeroInput("minInitialMarginRateX18");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -148,8 +148,8 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             params.marketId,
             params.name,
             params.symbol,
-            params.minInitialMarginRate,
-            params.maintenanceMarginRate,
+            params.minInitialMarginRateX18,
+            params.maintenanceMarginRateX18,
             params.maxOpenInterest,
             params.skewScale,
             params.maxFundingVelocity,
@@ -163,9 +163,9 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             params.marketId,
             params.name,
             params.symbol,
-            params.maintenanceMarginRate,
+            params.maintenanceMarginRateX18,
             params.maxOpenInterest,
-            params.minInitialMarginRate,
+            params.minInitialMarginRateX18,
             params.marketOrderStrategy,
             params.customTriggerStrategies,
             params.orderFees

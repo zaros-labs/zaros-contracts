@@ -78,18 +78,24 @@ interface IPerpsAccountModule {
     /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
     /// the liquidation engine will be triggered.
     /// @param accountId The trading account id.
+    /// @param activeMarketsIds The array of active market ids.
+    /// @param indexPricesX18 The array of index prices mapped to each market id.
     /// @return marginBalanceUsdX18 The account's total margin balance.
-    /// @return availableMarginUsdX18 The account's withdrawable margin balance.
     /// @return initialMarginUsdX18 The account's initial margin in positions.
     /// @return maintenanceMarginUsdX18 The account's maintenance margin.
-    function getAccountMarginBreakdown(uint128 accountId)
+    /// @return availableMarginUsdX18 The account's withdrawable margin balance.
+    function getAccountMarginBreakdown(
+        uint128 accountId,
+        uint128[] calldata activeMarketsIds,
+        UD60x18[] calldata indexPricesX18
+    )
         external
         view
         returns (
             SD59x18 marginBalanceUsdX18,
-            SD59x18 availableMarginUsdX18,
             UD60x18 initialMarginUsdX18,
-            UD60x18 maintenanceMarginUsdX18
+            UD60x18 maintenanceMarginUsdX18,
+            SD59x18 availableMarginUsdX18
         );
 
     /// @notice Returns the total perps account's unrealized pnl across open positions.

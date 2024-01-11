@@ -24,12 +24,19 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         uint256 expectedMaintenanceMargin = 0;
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
+        uint128[] memory activeMarketsIds;
+        UD60x18[] memory indexPricesX18;
+
         (
             SD59x18 marginBalanceUsdX18,
-            SD59x18 availableBalance,
             UD60x18 initialMarginUsdX18,
-            UD60x18 maintenanceMarginUsdX18
-        ) = perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
+            UD60x18 maintenanceMarginUsdX18,
+            SD59x18 availableBalance
+        ) = perpsEngine.getAccountMarginBreakdown({
+            accountId: perpsAccountId,
+            activeMarketsIds: activeMarketsIds,
+            indexPricesX18: indexPricesX18
+        });
 
         assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
@@ -55,12 +62,19 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
+        uint128[] memory activeMarketsIds;
+        UD60x18[] memory indexPricesX18;
+
         (
             SD59x18 marginBalanceUsdX18,
-            SD59x18 availableBalance,
             UD60x18 initialMarginUsdX18,
-            UD60x18 maintenanceMarginUsdX18
-        ) = perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
+            UD60x18 maintenanceMarginUsdX18,
+            SD59x18 availableBalance
+        ) = perpsEngine.getAccountMarginBreakdown({
+            accountId: perpsAccountId,
+            activeMarketsIds: activeMarketsIds,
+            indexPricesX18: indexPricesX18
+        });
 
         assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
