@@ -15,6 +15,7 @@ import { Position } from "../storage/Position.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
@@ -22,6 +23,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 abstract contract SettlementModule is ISettlementModule {
+    using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
@@ -42,6 +44,22 @@ abstract contract SettlementModule is ISettlementModule {
 
         _requireIsSettlementStrategy(msg.sender, settlementStrategy);
         _;
+    }
+
+    function validateMarginRequirements(
+        uint128 marketId,
+        SettlementPayload calldata payload
+    )
+        public
+        view
+        returns (bool isValid)
+    {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(payload.accountId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
+            uint128 activeMarketId = perpsAccount.activeMarketsIds.at(i);
+        }
     }
 
     function settleMarketOrder(

@@ -108,6 +108,8 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementConfiguration errors.
 
+    /// @notice Thrown when there's no price adapter configured for a CL Data Streams settlement config.
+    error PriceAdapterNotDefined();
     /// @notice Thrown when the provided `settlementId` is not a valid settlement strategy id.
     error InvalidSettlementStrategyType(uint8 settlementId);
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
