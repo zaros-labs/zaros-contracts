@@ -74,7 +74,7 @@ library PerpsAccount {
     /// @dev This function must be called when the perps account is going to open a new position. If called in a
     /// context
     /// of an already active market, the check may be misleading.
-    function checkCanCreateNewPosition(Data storage self) internal view {
+    function checkPositionsLimit(Data storage self) internal view {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         uint256 maxPositionsPerAccount = globalConfiguration.maxPositionsPerAccount;

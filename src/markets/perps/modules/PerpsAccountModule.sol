@@ -36,12 +36,6 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
-    function isAuthorized(uint128 accountId, address sender) external view returns (bool) {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-
-        return perpsAccount.owner == sender;
-    }
-
     /// @inheritdoc IPerpsAccountModule
     function getPerpsAccountToken() public view override returns (address) {
         return GlobalConfiguration.load().perpsAccountToken;

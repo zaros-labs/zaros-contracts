@@ -86,7 +86,7 @@ abstract contract OrderModule is IOrderModule {
 
         bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
         if (!isMarketWithActivePosition) {
-            perpsAccount.checkCanCreateNewPosition();
+            perpsAccount.checkPositionsLimit();
         }
 
         globalConfiguration.checkMarketIsEnabled(marketId);
