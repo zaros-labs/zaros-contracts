@@ -65,12 +65,6 @@ library PerpsAccount {
         return false;
     }
 
-    function checkIsNotLiquidatable(Data storage self) internal view {
-        if (canBeLiquidated(self)) {
-            revert Errors.AccountLiquidatable(self.id);
-        }
-    }
-
     /// @dev This function must be called when the perps account is going to open a new position. If called in a
     /// context
     /// of an already active market, the check may be misleading.

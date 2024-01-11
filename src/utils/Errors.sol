@@ -38,8 +38,6 @@ library Errors {
 
     /// @notice PerpsEngine.OrderModule errors
 
-    /// @notice Thrown when an account is liquidatable and can't perform actions
-    error AccountLiquidatable(uint128 accountId);
     /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
     error FailedDispatchCustomSettlementRequest();
 
