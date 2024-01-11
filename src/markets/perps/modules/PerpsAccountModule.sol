@@ -90,8 +90,8 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
 
-        // SD59x18 marginBalanceUsdX18 = perpsAccount.getEquityUsdX18();
-        SD59x18 marginBalanceUsdX18;
+        SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsdX18();
+
         UD60x18 initialMarginUsdX18;
         UD60x18 maintenanceMarginUsdX18;
 
@@ -228,7 +228,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
             MarginCollateralConfiguration.load(collateralType);
         UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
         _requireAmountNotZero(ud60x18Amount);
-        _requireEnoughDepositCap(collateralType, ud60x18Amount, marginCollateralConfiguration.getDepositCap());
+        _requireEnoughDepositCap(collateralType, ud60x18Amount, ud60x18(marginCollateralConfiguration.depositCap));
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.deposit(collateralType, ud60x18Amount);

@@ -130,6 +130,15 @@ library PerpsAccount {
         equityUsdX18 = equityUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
+    function getMarginBalanceUsdX18(Data storage self) internal view returns (SD59x18 marginBalanceUsdX18) {
+        for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
+            (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
+            MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+                MarginCollateralConfiguration.load(collateralType);
+            UD60x18 balanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18));
+        }
+    }
+
     /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account id.
     /// @param accountId The perps account id.
     function verifySender(uint128 accountId) internal view {

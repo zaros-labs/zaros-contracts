@@ -36,7 +36,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
 
-        return marginCollateralConfiguration.getDepositCap().intoUint256();
+        return marginCollateralConfiguration.depositCap;
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -62,7 +62,8 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     /// @inheritdoc IGlobalConfigurationModule
     function configureMarginCollateral(
         address collateralType,
-        uint248 depositCap,
+        uint128 depositCap,
+        uint120 loanToValue,
         address priceFeed
     )
         external
@@ -73,7 +74,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0)) {
                 revert Errors.InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
             }
-            MarginCollateralConfiguration.configure(collateralType, depositCap, decimals, priceFeed);
+            MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceFeed);
 
             emit LogConfigureCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
         } catch {

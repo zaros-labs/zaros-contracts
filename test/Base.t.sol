@@ -154,10 +154,12 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
         usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, users.owner);
 
-        perpsEngine.configureMarginCollateral(address(usdToken), USDZ_DEPOSIT_CAP, address(mockUsdcUsdPriceFeed));
+        perpsEngine.configureMarginCollateral(
+            address(usdToken), USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, address(mockUsdcUsdPriceFeed)
+        );
 
         perpsEngine.configureMarginCollateral(
-            address(mockWstEth), WSTETH_DEPOSIT_CAP, address(mockWstEthUsdPriceFeed)
+            address(mockWstEth), WSTETH_DEPOSIT_CAP, WSTETH_LOAN_TO_VALUE, address(mockWstEthUsdPriceFeed)
         );
     }
 

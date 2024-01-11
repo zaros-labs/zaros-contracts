@@ -42,7 +42,7 @@ interface IGlobalConfigurationModule {
     /// @param decimals The amount of decimals of the collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
     event LogConfigureCollateral(
-        address indexed sender, address indexed collateralType, uint248 depositCap, uint8 decimals, address priceFeed
+        address indexed sender, address indexed collateralType, uint128 depositCap, uint8 decimals, address priceFeed
     );
 
     /// @notice Emitted when a new price feed is configured for a collateral type.
@@ -95,8 +95,15 @@ interface IGlobalConfigurationModule {
     /// @notice Configures the settings of a given margin collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
+    /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param priceFeed The price oracle address.
-    function configureMarginCollateral(address collateralType, uint248 depositCap, address priceFeed) external;
+    function configureMarginCollateral(
+        address collateralType,
+        uint128 depositCap,
+        uint120 loanToValue,
+        address priceFeed
+    )
+        external;
 
     /// @notice Configures the collateral priority.
     /// @param collateralTypes The array of collateral type addresses.
