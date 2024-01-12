@@ -17,6 +17,8 @@ library Errors {
 
     /// @notice Chainlink Upkeeps errors.
 
+    /// @notice Thrown when an oracle returns an unexpected, invalid value.
+    error InvalidOracleReturn();
     /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
     error OnlyForwarder(address sender, address forwarder);
     /// @notice Thrown when the upkeep provided checkData bounds are invalid.

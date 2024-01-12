@@ -8,7 +8,7 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
+import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -17,7 +17,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 // TODO: Check if a given settlement configuration is enabled.
-// TODO: Move OracleUtil to ChainlinkUtil.
+// TODO: Move ChainlinkUtil to ChainlinkUtil.
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
     using SafeCast for int256;
@@ -109,7 +109,7 @@ library SettlementConfiguration {
             revert Errors.PriceAdapterNotDefined();
         }
 
-        indexPrice = OracleUtil.getPrice(IAggregatorV3(priceAdapter));
+        indexPrice = ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter));
     }
 
     /// @notice Returns the settlement index price for a given order based on the configured strategy.

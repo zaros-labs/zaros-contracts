@@ -6,7 +6,7 @@ pragma solidity 0.8.23;
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
+import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -90,6 +90,6 @@ library MarginCollateralConfiguration {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-        price = OracleUtil.getPrice(IAggregatorV3(priceFeed));
+        price = ChainlinkUtil.getPrice(IAggregatorV3(priceFeed));
     }
 }

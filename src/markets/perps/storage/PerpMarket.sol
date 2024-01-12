@@ -7,7 +7,7 @@ import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
-import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
+import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { OrderFees } from "./OrderFees.sol";
 import { Position } from "./Position.sol";
 import { MarketConfiguration } from "./MarketConfiguration.sol";

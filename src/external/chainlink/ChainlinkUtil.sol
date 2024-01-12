@@ -3,10 +3,12 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { Constants } from "@zaros/utils/Constants.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
+import { IAggregatorV3 } from "./interfaces/IAggregatorV3.sol";
 import { IFeeManager, FeeAsset } from "./interfaces/IFeeManager.sol";
 import { BasicReport, PremiumReport } from "./interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "./interfaces/IVerifierProxy.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -16,6 +18,23 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 library ChainlinkUtil {
     using SafeCast for int256;
+
+    /// @notice Queries the provided Chainlink Price Feed for the margin collateral oracle price.
+    /// @param priceFeed The Chainlink Price Feed address.
+    /// @return price The price of the given margin collateral type.
+    function getPrice(IAggregatorV3 priceFeed) internal view returns (UD60x18 price) {
+        uint8 priceDecimals = priceFeed.decimals();
+        // should revert if priceDecimals > 18
+        if (priceDecimals > Constants.SYSTEM_DECIMALS) {
+            revert Errors.InvalidOracleReturn();
+        }
+
+        try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256, uint80) {
+            price = ud60x18(answer.toUint256() * 10 ** (Constants.SYSTEM_DECIMALS - priceDecimals));
+        } catch {
+            revert Errors.InvalidOracleReturn();
+        }
+    }
 
     /// @notice Decodes the signedReport object and returns the report data only.
     function getReportData(bytes memory signedReport) internal pure returns (bytes memory reportData) {
