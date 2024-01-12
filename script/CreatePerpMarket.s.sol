@@ -75,11 +75,14 @@ contract CreatePerpMarket is BaseScript {
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
+
+        // TODO: Add price adapter
         SettlementConfiguration.Data memory ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
         SettlementConfiguration.Data memory ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
@@ -87,6 +90,7 @@ contract CreatePerpMarket is BaseScript {
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
@@ -111,6 +115,7 @@ contract CreatePerpMarket is BaseScript {
 
         SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData =
         SettlementConfiguration.DataStreamsMarketStrategy({
+            // TODO: Add price adapter
             chainlinkVerifier: chainlinkVerifier,
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
@@ -118,11 +123,14 @@ contract CreatePerpMarket is BaseScript {
             settlementDelay: LINK_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
+
+        // TODO: Add price adapter
         SettlementConfiguration.Data memory linkUsdMarketOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
@@ -131,6 +139,7 @@ contract CreatePerpMarket is BaseScript {
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 

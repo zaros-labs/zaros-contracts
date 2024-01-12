@@ -58,7 +58,7 @@ abstract contract SettlementModule is ISettlementModule {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
         for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
-            uint128 activeMarketId = perpsAccount.activeMarketsIds.at(i);
+            uint256 activeMarketId = perpsAccount.activeMarketsIds.at(i);
         }
     }
 
