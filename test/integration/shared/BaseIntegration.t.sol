@@ -61,20 +61,24 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
+        // TODO: set price adapter
         btcUsdMarketOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(btcUsdMarketOrderStrategyData)
         });
 
         // TODO: update limit order strategy and move the market's strategies definition to a separate file.
+        // TODO: set price adapter
         btcUsdLimitOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(btcUsdMarketOrderStrategyData)
         });
 
@@ -89,20 +93,24 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
+        // TODO: set price adapter
         ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
         // TODO: update limit order strategy and move the market's strategies definition to a separate file.
+        // TODO: set price adapter
         ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
