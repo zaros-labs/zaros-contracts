@@ -38,8 +38,8 @@ pragma solidity 0.8.23;
 
 //         Position.Data memory expectedPosition = Position.Data({
 //             size: marketOrder.payload.sizeDelta,
-//             // initialMargin: uint128(uint256(int256(marketOrder.payload.initialMarginDelta))),
-//             initialMargin: 0,
+//             // initialMarginUsdX18: uint128(uint256(int256(marketOrder.payload.initialMarginDelta))),
+//             initialMarginUsdX18: 0,
 //             unrealizedPnlStored: 0,
 //             lastInteractionPrice: uint128(MOCK_ETH_USD_PRICE),
 //             lastInteractionFundingFeePerUnit: 0
@@ -89,8 +89,8 @@ pragma solidity 0.8.23;
 
 //         Position.Data memory expectedPosition = Position.Data({
 //             size: payload.sizeDelta + sellOrder.payload.sizeDelta,
-//             // initialMargin: uint128(uint256(int256(payload.initialMarginDelta))),
-//             initialMargin: 0,
+//             // initialMarginUsdX18: uint128(uint256(int256(payload.initialMarginDelta))),
+//             initialMarginUsdX18: 0,
 //             unrealizedPnlStored: 0,
 //             lastInteractionPrice: uint128(MOCK_ETH_USD_PRICE),
 //             lastInteractionFundingFeePerUnit: 0

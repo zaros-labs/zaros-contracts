@@ -10,8 +10,8 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 /// @param marketId The perps market id.
 /// @param name The perps market name.
 /// @param symbol The perps market symbol.
-/// @param minInitialMarginRate The perps market min initial margin rate, which defines the max leverage.
-/// @param maintenanceMarginRate The perps market maintenance margin rate.
+/// @param minInitialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
+/// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
 /// @param maxOpenInterest The perps market maximum open interest per side.
 /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
 /// @param maxFundingVelocity The perps market maximum funding rate velocity.
@@ -21,8 +21,8 @@ struct CreatePerpMarketParams {
     uint128 marketId;
     string name;
     string symbol;
-    uint128 minInitialMarginRate;
-    uint128 maintenanceMarginRate;
+    uint128 minInitialMarginRateX18;
+    uint128 maintenanceMarginRateX18;
     uint128 maxOpenInterest;
     uint256 skewScale;
     uint128 maxFundingVelocity;
@@ -31,7 +31,7 @@ struct CreatePerpMarketParams {
     OrderFees.Data orderFees;
 }
 
-/// @title Perps Configuration Module.
+/// @title Global Configuration Module.
 /// @notice This module is used by the protocol controller to configure the perps
 /// exchange system.
 interface IGlobalConfigurationModule {
@@ -42,7 +42,7 @@ interface IGlobalConfigurationModule {
     /// @param decimals The amount of decimals of the collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
     event LogConfigureCollateral(
-        address indexed sender, address indexed collateralType, uint248 depositCap, uint8 decimals, address priceFeed
+        address indexed sender, address indexed collateralType, uint128 depositCap, uint8 decimals, address priceFeed
     );
 
     /// @notice Emitted when a new price feed is configured for a collateral type.
@@ -59,9 +59,9 @@ interface IGlobalConfigurationModule {
         uint128 indexed marketId,
         string name,
         string symbol,
-        uint128 maintenanceMarginRate,
+        uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
-        uint128 minInitialMarginRate,
+        uint128 minInitialMarginRateX18,
         SettlementConfiguration.Data marketOrderStrategy,
         SettlementConfiguration.Data[] customTriggerStrategies,
         OrderFees.Data orderFees
@@ -95,8 +95,23 @@ interface IGlobalConfigurationModule {
     /// @notice Configures the settings of a given margin collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
+    /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param priceFeed The price oracle address.
-    function configureMarginCollateral(address collateralType, uint248 depositCap, address priceFeed) external;
+    function configureMarginCollateral(
+        address collateralType,
+        uint128 depositCap,
+        uint120 loanToValue,
+        address priceFeed
+    )
+        external;
+
+    /// @notice Configures the collateral priority.
+    /// @param collateralTypes The array of collateral type addresses.
+    function configureCollateralPriority(address[] calldata collateralTypes) external;
+
+    /// @notice Removes the given collateral type from the collateral priority.
+    /// @param collateralType The address of the collateral type to remove.
+    function removeCollateralFromPriorityList(address collateralType) external;
 
     /// @notice Configures the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
@@ -107,5 +122,8 @@ interface IGlobalConfigurationModule {
     /// @dev See {CreatePerpMarketParams}.
     function createPerpMarket(CreatePerpMarketParams calldata params) external;
 
+    /// @notice Enables or disabled the perp market of the given market id.
+    /// @param marketId The perps market id.
+    /// @param enable Whether the market should be enabled or disabled.
     function updatePerpMarketStatus(uint128 marketId, bool enable) external;
 }

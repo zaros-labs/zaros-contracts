@@ -6,7 +6,7 @@ pragma solidity 0.8.23;
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { OracleUtil } from "@zaros/utils/OracleUtil.sol";
+import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -16,11 +16,13 @@ library MarginCollateralConfiguration {
     string internal constant MARGIN_COLLATERAL_CONFIGURATION_DOMAIN = "fi.zaros.markets.MarginCollateralConfiguration";
 
     /// @notice {MarginCollateralConfiguration} namespace storage structure.
-    /// @param depositCap The maximum deposit cap of the given margin collateral type
-    /// @param decimals The decimals of the given margin collateral type's ERC20 token
-    /// @param priceFeed The chainlink price feed address of the given margin collateral type
+    /// @param depositCap The maximum deposit cap of the given margin collateral type.
+    /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
+    /// @param decimals The decimals of the given margin collateral type's ERC20 token.
+    /// @param priceFeed The chainlink price feed address of the given margin collateral type.
     struct Data {
-        uint248 depositCap;
+        uint128 depositCap;
+        uint120 loanToValue;
         uint8 decimals;
         address priceFeed;
     }
@@ -33,13 +35,6 @@ library MarginCollateralConfiguration {
         assembly {
             marginCollateralConfiguration.slot := slot
         }
-    }
-
-    /// @notice Returns the maximum amount that can be deposited as margin.
-    /// @param self The margin collateral type storage pointer.
-    /// @return depositCap The configured deposit cap for the given collateral type.
-    function getDepositCap(Data storage self) internal view returns (UD60x18 depositCap) {
-        depositCap = ud60x18(self.depositCap);
     }
 
     /// @notice Converts the provided denormalized amount of margin collateral to UD60x18.
@@ -66,12 +61,22 @@ library MarginCollateralConfiguration {
     /// @dev A margin collateral type is considered disabled if `depositCap` == 0.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of  collateral that can be deposited.
+    /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The amount of decimals of the given margin collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
-    function configure(address collateralType, uint248 depositCap, uint8 decimals, address priceFeed) internal {
+    function configure(
+        address collateralType,
+        uint128 depositCap,
+        uint120 loanToValue,
+        uint8 decimals,
+        address priceFeed
+    )
+        internal
+    {
         Data storage self = load(collateralType);
 
         self.depositCap = depositCap;
+        self.loanToValue = loanToValue;
         self.decimals = decimals;
         self.priceFeed = priceFeed;
     }
@@ -85,6 +90,6 @@ library MarginCollateralConfiguration {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-        price = OracleUtil.getPrice(IAggregatorV3(priceFeed));
+        price = ChainlinkUtil.getPrice(IAggregatorV3(priceFeed));
     }
 }

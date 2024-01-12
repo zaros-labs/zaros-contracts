@@ -61,20 +61,24 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
+        // TODO: set price adapter
         btcUsdMarketOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(btcUsdMarketOrderStrategyData)
         });
 
         // TODO: update limit order strategy and move the market's strategies definition to a separate file.
+        // TODO: set price adapter
         btcUsdLimitOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(btcUsdMarketOrderStrategyData)
         });
 
@@ -89,20 +93,24 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
+        // TODO: set price adapter
         ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
         // TODO: update limit order strategy and move the market's strategies definition to a separate file.
+        // TODO: set price adapter
         ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
@@ -130,8 +138,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 marketId: BTC_USD_MARKET_ID,
                 name: BTC_USD_MARKET_NAME,
                 symbol: BTC_USD_MARKET_SYMBOL,
-                minInitialMarginRate: BTC_USD_MIN_IMR,
-                maintenanceMarginRate: BTC_USD_MMR,
+                minInitialMarginRateX18: BTC_USD_MIN_IMR,
+                maintenanceMarginRateX18: BTC_USD_MMR,
                 maxOpenInterest: BTC_USD_MAX_OI,
                 skewScale: BTC_USD_SKEW_SCALE,
                 maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
@@ -146,8 +154,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 marketId: ETH_USD_MARKET_ID,
                 name: ETH_USD_MARKET_NAME,
                 symbol: ETH_USD_MARKET_SYMBOL,
-                minInitialMarginRate: ETH_USD_MIN_IMR,
-                maintenanceMarginRate: ETH_USD_MMR,
+                minInitialMarginRateX18: ETH_USD_MIN_IMR,
+                maintenanceMarginRateX18: ETH_USD_MMR,
                 maxOpenInterest: ETH_USD_MAX_OI,
                 skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,

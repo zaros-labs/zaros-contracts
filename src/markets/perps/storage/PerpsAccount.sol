@@ -30,15 +30,14 @@ library PerpsAccount {
     /// @notice {PerpsAccount} namespace storage structure.
     /// @param id The perps account id.
     /// @param owner The perps account owner.
-    /// @param marginCollateralBalance The perps account margin collateral enumerable map.
+    /// @param marginCollateralBalanceX18 The perps account margin collateral enumerable map.
     /// @param activeMarketsIds The perps account active markets ids enumerable set.
     /// @dev TODO: implement role based access control.
     struct Data {
         uint128 id;
         address owner;
-        EnumerableMap.AddressToUintMap marginCollateralBalance;
+        EnumerableMap.AddressToUintMap marginCollateralBalanceX18;
         EnumerableSet.UintSet activeMarketsIds;
-        EnumerableSet.AddressSet collateralPriority;
     }
 
     /// @notice Loads a {PerpsAccount} object.
@@ -66,16 +65,10 @@ library PerpsAccount {
         return false;
     }
 
-    function checkIsNotLiquidatable(Data storage self) internal view {
-        if (canBeLiquidated(self)) {
-            revert Errors.AccountLiquidatable(self.id);
-        }
-    }
-
     /// @dev This function must be called when the perps account is going to open a new position. If called in a
     /// context
     /// of an already active market, the check may be misleading.
-    function checkCanCreateNewPosition(Data storage self) internal view {
+    function checkPositionsLimit(Data storage self) internal view {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         uint256 maxPositionsPerAccount = globalConfiguration.maxPositionsPerAccount;
@@ -101,30 +94,56 @@ library PerpsAccount {
     /// @notice Returns the amount of the given margin collateral type.
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
-    /// @return marginCollateralBalance The margin collateral balance for the given collateral type.
+    /// @return marginCollateralBalanceX18 The margin collateral balance for the given collateral type.
     function getMarginCollateralBalance(Data storage self, address collateralType) internal view returns (UD60x18) {
-        (, uint256 marginCollateralBalance) = self.marginCollateralBalance.tryGet(collateralType);
+        (, uint256 marginCollateralBalanceX18) = self.marginCollateralBalanceX18.tryGet(collateralType);
 
-        return ud60x18(marginCollateralBalance);
+        return ud60x18(marginCollateralBalanceX18);
     }
 
     /// @notice Returns the notional value of all margin collateral in the account.
     /// @param self The perps account storage pointer.
-    /// @return totalMarginCollateralValue The total margin collateral value.
-    function getTotalMarginCollateralValue(Data storage self)
+    /// @return equityUsdX18 The total margin collateral value.
+    function getEquityUsdX18(
+        Data storage self,
+        SD59x18 activePositionsUnrealizedPnlUsdX18
+    )
         internal
         view
-        returns (UD60x18 totalMarginCollateralValue)
+        returns (SD59x18 equityUsdX18)
     {
-        for (uint256 i = 0; i < self.marginCollateralBalance.length(); i++) {
-            (address collateralType, uint256 marginCollateralAmount) = self.marginCollateralBalance.at(i);
+        for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
+            (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
-            UD60x18 marginCollateralValue =
-                marginCollateralConfiguration.getPrice().mul(ud60x18(marginCollateralAmount));
+            UD60x18 balanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18));
 
-            totalMarginCollateralValue = totalMarginCollateralValue.add(marginCollateralValue);
+            equityUsdX18 = equityUsdX18.add(balanceUsdX18.intoSD59x18());
         }
+
+        equityUsdX18 = equityUsdX18.add(activePositionsUnrealizedPnlUsdX18);
+    }
+
+    function getMarginBalanceUsdX18(
+        Data storage self,
+        SD59x18 activePositionsUnrealizedPnlUsdX18
+    )
+        internal
+        view
+        returns (SD59x18 marginBalanceUsdX18)
+    {
+        for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
+            (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
+            MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+                MarginCollateralConfiguration.load(collateralType);
+            UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18)).mul(
+                ud60x18(marginCollateralConfiguration.loanToValue)
+            );
+
+            marginBalanceUsdX18 = marginBalanceUsdX18.add(adjustedBalanceUsdX18.intoSD59x18());
+        }
+
+        marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
     /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account id.
@@ -150,57 +169,53 @@ library PerpsAccount {
         perpsAccount.owner = owner;
     }
 
-    /// @notice Increases the margin collateral for the given collateral type.
-    /// @dev If there's no collateral priority defined yet, the first collateral type deposited will
-    /// be included.
+    /// @notice Deposits the given collateral type into the perps account.
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
-    /// @param amount The amount of margin collateral to be added.
-    /// @dev TODO: normalize margin collateral decimals
-    function increaseMarginCollateralBalance(Data storage self, address collateralType, UD60x18 amount) internal {
-        EnumerableMap.AddressToUintMap storage marginCollateralBalance = self.marginCollateralBalance;
-        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).add(amount);
+    /// @param amountX18 The amount of margin collateral to be added.
+    function deposit(Data storage self, address collateralType, UD60x18 amountX18) internal {
+        EnumerableMap.AddressToUintMap storage marginCollateralBalanceX18 = self.marginCollateralBalanceX18;
+        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).add(amountX18);
 
-        if (self.collateralPriority.length() == 0) {
-            self.collateralPriority.add(collateralType);
-        }
-
-        marginCollateralBalance.set(collateralType, newMarginCollateralBalance.intoUint256());
+        marginCollateralBalanceX18.set(collateralType, newMarginCollateralBalance.intoUint256());
     }
 
-    /// @notice Decreases the margin collateral for the given collateral type.
+    /// @notice Withdraws the given collateral type from the perps account.
     /// @param self The perps account storage pointer.
     /// @param collateralType The address of the collateral type.
-    /// @param amount The amount of margin collateral to be removed.
-    /// @dev TODO: denormalize margin collateral decimals
-    function decreaseMarginCollateralBalance(Data storage self, address collateralType, UD60x18 amount) internal {
-        EnumerableMap.AddressToUintMap storage marginCollateralBalance = self.marginCollateralBalance;
-        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).sub(amount);
+    /// @param amountX18 The amount of margin collateral to be removed.
+    function withdraw(Data storage self, address collateralType, UD60x18 amountX18) internal {
+        EnumerableMap.AddressToUintMap storage marginCollateralBalanceX18 = self.marginCollateralBalanceX18;
+        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).sub(amountX18);
 
         if (newMarginCollateralBalance.isZero()) {
-            marginCollateralBalance.remove(collateralType);
-            self.collateralPriority.remove(collateralType);
+            marginCollateralBalanceX18.remove(collateralType);
         } else {
-            marginCollateralBalance.set(collateralType, newMarginCollateralBalance.intoUint256());
+            marginCollateralBalanceX18.set(collateralType, newMarginCollateralBalance.intoUint256());
         }
     }
 
     function deductAccountMargin(Data storage self, UD60x18 amount) internal {
-        for (uint256 i = 0; i < self.collateralPriority.length(); i++) {
-            address collateralType = self.collateralPriority.at(i);
-            UD60x18 marginCollateralBalance = getMarginCollateralBalance(self, collateralType);
-            if (marginCollateralBalance.gte(amount)) {
-                decreaseMarginCollateralBalance(self, collateralType, amount);
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+
+        for (uint256 i = 0; i < globalConfiguration.collateralPriority.length(); i++) {
+            address collateralType = globalConfiguration.collateralPriority.at(i);
+            UD60x18 marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
+            if (marginCollateralBalanceX18.gte(amount)) {
+                withdraw(self, collateralType, amount);
                 break;
             } else {
-                decreaseMarginCollateralBalance(self, collateralType, marginCollateralBalance);
-                amount = amount.sub(marginCollateralBalance);
+                withdraw(self, collateralType, marginCollateralBalanceX18);
+                amount = amount.sub(marginCollateralBalanceX18);
             }
         }
     }
 
     /// @notice Updates the account's active markets ids based on the position's state transition.
     /// @param self The perps account storage pointer.
+    /// @param marketId The perps market id.
+    /// @param oldPositionSize The old position size.
+    /// @param newPositionSize The new position size.
     function updateActiveMarkets(
         Data storage self,
         uint128 marketId,
@@ -215,19 +230,4 @@ library PerpsAccount {
             self.activeMarketsIds.remove(marketId);
         }
     }
-
-    // /// @notice Updates the account's active orders ids per market.
-    // /// @param self The perps account storage pointer.
-    // /// @param marketId The perps market id.
-    // /// @param orderId the order id.
-    // /// @param isActive `true` if the order is being created, `false` otherwise.
-    // function updateActiveOrders(Data storage self, uint128 marketId, uint8 orderId, bool isActive) internal {
-    //     bytes32 orderAndMarketIds = keccak256(abi.encode(marketId, orderId));
-    //     bool success;
-    //     if (isActive) {
-    //         success = self.activeOrdersPerMarket.add(orderAndMarketIds);
-    //     } else {
-    //         success = self.activeOrdersPerMarket.remove(orderAndMarketIds);
-    //     }
-    // }
 }

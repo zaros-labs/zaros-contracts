@@ -36,7 +36,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
 
-        return marginCollateralConfiguration.getDepositCap().intoUint256();
+        return marginCollateralConfiguration.depositCap;
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -62,7 +62,8 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     /// @inheritdoc IGlobalConfigurationModule
     function configureMarginCollateral(
         address collateralType,
-        uint248 depositCap,
+        uint128 depositCap,
+        uint120 loanToValue,
         address priceFeed
     )
         external
@@ -73,7 +74,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0)) {
                 revert Errors.InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
             }
-            MarginCollateralConfiguration.configure(collateralType, depositCap, decimals, priceFeed);
+            MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceFeed);
 
             emit LogConfigureCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
         } catch {
@@ -81,6 +82,27 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
         }
     }
 
+    /// @inheritdoc IGlobalConfigurationModule
+    function configureCollateralPriority(address[] calldata collateralTypes) external override onlyOwner {
+        if (collateralTypes.length == 0) {
+            revert Errors.ZeroInput("collateralTypes");
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.configureCollateralPriority(collateralTypes);
+    }
+
+    /// @inheritdoc IGlobalConfigurationModule
+    function removeCollateralFromPriorityList(address collateralType) external override onlyOwner {
+        if (collateralType == address(0)) {
+            revert Errors.ZeroInput("collateralType");
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.removeCollateralTypeFromPriorityList(collateralType);
+    }
+
+    /// @inheritdoc IGlobalConfigurationModule
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime
@@ -110,14 +132,14 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
         if (abi.encodePacked(params.symbol).length == 0) {
             revert Errors.ZeroInput("symbol");
         }
-        if (params.maintenanceMarginRate == 0) {
-            revert Errors.ZeroInput("maintenanceMarginRate");
+        if (params.maintenanceMarginRateX18 == 0) {
+            revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
         if (params.maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
         }
-        if (params.minInitialMarginRate == 0) {
-            revert Errors.ZeroInput("minInitialMarginRate");
+        if (params.minInitialMarginRateX18 == 0) {
+            revert Errors.ZeroInput("minInitialMarginRateX18");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -126,8 +148,8 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             params.marketId,
             params.name,
             params.symbol,
-            params.minInitialMarginRate,
-            params.maintenanceMarginRate,
+            params.minInitialMarginRateX18,
+            params.maintenanceMarginRateX18,
             params.maxOpenInterest,
             params.skewScale,
             params.maxFundingVelocity,
@@ -141,9 +163,9 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             params.marketId,
             params.name,
             params.symbol,
-            params.maintenanceMarginRate,
+            params.maintenanceMarginRateX18,
             params.maxOpenInterest,
-            params.minInitialMarginRate,
+            params.minInitialMarginRateX18,
             params.marketOrderStrategy,
             params.customTriggerStrategies,
             params.orderFees

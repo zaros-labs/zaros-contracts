@@ -82,11 +82,11 @@ abstract contract OrderModule is IOrderModule {
             revert Errors.ZeroInput("sizeDelta");
         }
 
-        perpsAccount.checkIsNotLiquidatable();
+        // perpsAccount.checkIsNotLiquidatable();
 
         bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
         if (!isMarketWithActivePosition) {
-            perpsAccount.checkCanCreateNewPosition();
+            perpsAccount.checkPositionsLimit();
         }
 
         globalConfiguration.checkMarketIsEnabled(marketId);

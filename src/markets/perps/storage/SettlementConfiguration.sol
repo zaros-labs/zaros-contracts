@@ -2,11 +2,13 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -14,6 +16,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+// TODO: Check if a given settlement configuration is enabled.
+// TODO: Move ChainlinkUtil to ChainlinkUtil.
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
     using SafeCast for int256;
@@ -38,12 +42,14 @@ library SettlementConfiguration {
     /// @param isEnabled Whether the strategy is enabled or not. May be used to pause trading in a market.
     /// @param fee The settlement cost in USD charged from the trader.
     /// @param settlementStrategy The address of the configured SettlementStrategy contract.
+    /// @param priceAdapter The price adapter contract, which stores onchain and outputs the market's index price.
     /// @param data Data structure required for the settlement strategy, varies for each settlementConfiguration.
     struct Data {
         StrategyType strategyType;
         bool isEnabled;
         uint80 fee;
         address settlementStrategy;
+        address priceAdapter;
         bytes data;
     }
 
@@ -92,6 +98,18 @@ library SettlementConfiguration {
         self.fee = settlementConfiguration.fee;
         self.settlementStrategy = settlementConfiguration.settlementStrategy;
         self.data = settlementConfiguration.data;
+    }
+
+    // TODO: Call a Zaros-deployed price adaptar contract instead of calling CL AggregatorV3 interface.
+    // TODO: By having a custom price adapter, we can e.g sync a price adapter with a settlement strategy contract to
+    // deploy custom index markets.
+    function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
+        address priceAdapter = self.priceAdapter;
+        if (priceAdapter == address(0)) {
+            revert Errors.PriceAdapterNotDefined();
+        }
+
+        indexPrice = ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter));
     }
 
     /// @notice Returns the settlement index price for a given order based on the configured strategy.

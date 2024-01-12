@@ -42,7 +42,14 @@ interface IPerpMarketModule {
         view
         returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest);
 
-    function getMarkPrice(uint128 marketId, int256 skewDelta, uint256 indexPrice) external view returns (UD60x18);
+    function getMarkPrice(
+        uint128 marketId,
+        int256 skewDelta,
+        uint256 indexPriceX18
+    )
+        external
+        view
+        returns (UD60x18);
 
     /// @notice Returns a Settlement Strategy used by the given market.
     /// @param marketId The perps market id.
@@ -73,8 +80,8 @@ interface IPerpMarketModule {
     /// @param marketId The perps market id.
     /// @return name The market name.
     /// @return symbol The market symbol.
-    /// @return minInitialMarginRate The minimum initial margin rate for the market.
-    /// @return maintenanceMarginRate The maintenance margin rate for the market.
+    /// @return minInitialMarginRateX18 The minimum initial margin rate for the market.
+    /// @return maintenanceMarginRateX18 The maintenance margin rate for the market.
     /// @return maxOpenInterest The maximum open interest for the market.
     /// @return skew The skew of the market.
     /// @return openInterest The openInterest of the market
@@ -85,8 +92,8 @@ interface IPerpMarketModule {
         returns (
             string memory name,
             string memory symbol,
-            uint128 minInitialMarginRate,
-            uint128 maintenanceMarginRate,
+            uint128 minInitialMarginRateX18,
+            uint128 maintenanceMarginRateX18,
             uint128 maxOpenInterest,
             int128 skew,
             uint128 openInterest,

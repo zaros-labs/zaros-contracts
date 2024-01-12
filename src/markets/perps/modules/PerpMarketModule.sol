@@ -60,7 +60,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
     function getMarkPrice(
         uint128 marketId,
         int256 skewDelta,
-        uint256 indexPrice
+        uint256 indexPriceX18
     )
         external
         view
@@ -69,7 +69,7 @@ abstract contract PerpMarketModule is IPerpMarketModule {
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
-        return perpMarket.getMarkPrice(sd59x18(skewDelta), ud60x18(indexPrice));
+        return perpMarket.getMarkPrice(sd59x18(skewDelta), ud60x18(indexPriceX18));
     }
 
     /// @inheritdoc IPerpMarketModule
@@ -105,8 +105,8 @@ abstract contract PerpMarketModule is IPerpMarketModule {
         returns (
             string memory name,
             string memory symbol,
-            uint128 minInitialMarginRate,
-            uint128 maintenanceMarginRate,
+            uint128 minInitialMarginRateX18,
+            uint128 maintenanceMarginRateX18,
             uint128 maxOpenInterest,
             int128 skew,
             uint128 openInterest,
@@ -117,8 +117,8 @@ abstract contract PerpMarketModule is IPerpMarketModule {
 
         name = perpMarket.configuration.name;
         symbol = perpMarket.configuration.symbol;
-        minInitialMarginRate = perpMarket.configuration.minInitialMarginRate;
-        maintenanceMarginRate = perpMarket.configuration.maintenanceMarginRate;
+        minInitialMarginRateX18 = perpMarket.configuration.minInitialMarginRateX18;
+        maintenanceMarginRateX18 = perpMarket.configuration.maintenanceMarginRateX18;
         maxOpenInterest = perpMarket.configuration.maxOpenInterest;
         skew = perpMarket.skew;
         openInterest = perpMarket.openInterest;

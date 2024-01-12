@@ -33,9 +33,12 @@ abstract contract Constants {
     bytes32 internal constant MINT_FEATURE_FLAG = ProtocolConstants.MINT_FEATURE_FLAG;
 
     /// @notice Margin collateral types configuration constants.
-    uint248 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
-    uint248 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
-    uint248 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
+    uint128 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
+    uint128 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
+    uint128 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
+    uint120 internal constant USDC_LOAN_TO_VALUE = 1e18;
+    uint120 internal constant USDZ_LOAN_TO_VALUE = 1e18;
+    uint120 internal constant WSTETH_LOAN_TO_VALUE = 0.7e18;
     uint256 internal constant USDC_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant USDZ_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant WSTETH_MIN_DEPOSIT_MARGIN = 0.025e18;
@@ -61,7 +64,7 @@ abstract contract Constants {
     uint128 internal constant BTC_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint128 internal constant BTC_USD_ORDER_MAKER_FEE = 0.04e18;
     uint128 internal constant BTC_USD_ORDER_TAKER_FEE = 0.08e18;
-    uint248 internal constant BTC_USD_SETTLEMENT_DELAY = 1 seconds;
+    uint128 internal constant BTC_USD_SETTLEMENT_DELAY = 1 seconds;
 
     /// @notice ETH/USD market configuration constants.
     uint128 internal constant ETH_USD_MARKET_ID = 2;
@@ -75,7 +78,7 @@ abstract contract Constants {
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint128 internal constant ETH_USD_ORDER_MAKER_FEE = 0.04e18;
     uint128 internal constant ETH_USD_ORDER_TAKER_FEE = 0.08e18;
-    uint248 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;
+    uint128 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;
 
     /// @notice Mocked prices.
     uint256 internal constant MOCK_BTC_USD_PRICE = 100_000e18;

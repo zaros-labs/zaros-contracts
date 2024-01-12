@@ -15,6 +15,7 @@ import { Position } from "../storage/Position.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
@@ -22,6 +23,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 abstract contract SettlementModule is ISettlementModule {
+    using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
@@ -42,6 +44,22 @@ abstract contract SettlementModule is ISettlementModule {
 
         _requireIsSettlementStrategy(msg.sender, settlementStrategy);
         _;
+    }
+
+    function validateMarginRequirements(
+        uint128 marketId,
+        SettlementPayload calldata payload
+    )
+        public
+        view
+        returns (bool isValid)
+    {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(payload.accountId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
+            uint256 activeMarketId = perpsAccount.activeMarketsIds.at(i);
+        }
     }
 
     function settleMarketOrder(
@@ -121,9 +139,10 @@ abstract contract SettlementModule is ISettlementModule {
         // TODO: Let's find a better and defintitive way to avoid stack too deep.
         {
             bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
-            UD60x18 indexPrice = settlementConfiguration.getIndexPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
+            UD60x18 indexPriceX18 =
+                settlementConfiguration.getIndexPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
 
-            vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPrice);
+            vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
         }
 
         vars.fundingRate = perpMarket.getCurrentFundingRate();
@@ -134,8 +153,8 @@ abstract contract SettlementModule is ISettlementModule {
             oldPosition.getAccruedFunding(vars.fundingFeePerUnit)
         );
 
-        // UD60x18 initialMargin =
-        //     ud60x18(oldPosition.initialMargin).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
+        // UD60x18 initialMarginUsdX18 =
+        //     ud60x18(oldPosition.initialMarginUsdX18).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
         // TODO: validate initial margin and size
         vars.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
@@ -149,7 +168,7 @@ abstract contract SettlementModule is ISettlementModule {
             perpsAccount.deductAccountMargin(amountToDeduct);
         } else if (vars.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = vars.pnl.intoUD60x18();
-            perpsAccount.increaseMarginCollateralBalance(usdToken, amountToIncrease);
+            perpsAccount.deposit(usdToken, amountToIncrease);
         }
         // TODO: liquidityEngine.withdrawUsdToken(upkeep, vars.marketId, vars.fee);
 

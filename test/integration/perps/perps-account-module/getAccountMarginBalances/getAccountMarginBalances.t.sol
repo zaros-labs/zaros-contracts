@@ -9,7 +9,7 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-contract GetAccountMarginBalances_Integration_Test is Base_Integration_Shared_Test {
+contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
     }
@@ -24,13 +24,28 @@ contract GetAccountMarginBalances_Integration_Test is Base_Integration_Shared_Te
         uint256 expectedMaintenanceMargin = 0;
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
-            perpsEngine.getAccountMarginBalances({ accountId: perpsAccountId });
+        uint128[] memory activeMarketsIds;
+        UD60x18[] memory indexPricesX18;
 
-        assertEq(marginBalance.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalance");
+        (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 initialMarginUsdX18,
+            UD60x18 maintenanceMarginUsdX18,
+            SD59x18 availableBalance
+        ) = perpsEngine.getAccountMarginBreakdown({
+            accountId: perpsAccountId,
+            activeMarketsIds: activeMarketsIds,
+            indexPricesX18: indexPricesX18
+        });
+
+        assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
-        assertEq(initialMargin.intoUint256(), expectedInitialMargin, "getAccountMargin initialMargin");
-        assertEq(maintenanceMargin.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMargin");
+        assertEq(initialMarginUsdX18.intoUint256(), expectedInitialMargin, "getAccountMargin initialMarginUsdX18");
+        assertEq(
+            maintenanceMarginUsdX18.intoUint256(),
+            expectedMaintenanceMargin,
+            "getAccountMargin maintenanceMarginUsdX18"
+        );
     }
 
     function testFuzz_GetAccountMarginMultipleCollateral(uint256 amountToDeposit) external {
@@ -47,12 +62,27 @@ contract GetAccountMarginBalances_Integration_Test is Base_Integration_Shared_Te
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
 
-        (SD59x18 marginBalance, SD59x18 availableBalance, UD60x18 initialMargin, UD60x18 maintenanceMargin) =
-            perpsEngine.getAccountMarginBalances({ accountId: perpsAccountId });
+        uint128[] memory activeMarketsIds;
+        UD60x18[] memory indexPricesX18;
 
-        assertEq(marginBalance.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalance");
+        (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 initialMarginUsdX18,
+            UD60x18 maintenanceMarginUsdX18,
+            SD59x18 availableBalance
+        ) = perpsEngine.getAccountMarginBreakdown({
+            accountId: perpsAccountId,
+            activeMarketsIds: activeMarketsIds,
+            indexPricesX18: indexPricesX18
+        });
+
+        assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
-        assertEq(initialMargin.intoUint256(), expectedInitialMargin, "getAccountMargin initialMargin");
-        assertEq(maintenanceMargin.intoUint256(), expectedMaintenanceMargin, "getAccountMargin maintenanceMargin");
+        assertEq(initialMarginUsdX18.intoUint256(), expectedInitialMargin, "getAccountMargin initialMarginUsdX18");
+        assertEq(
+            maintenanceMarginUsdX18.intoUint256(),
+            expectedMaintenanceMargin,
+            "getAccountMargin maintenanceMarginUsdX18"
+        );
     }
 }

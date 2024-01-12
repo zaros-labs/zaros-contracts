@@ -17,6 +17,8 @@ library Errors {
 
     /// @notice Chainlink Upkeeps errors.
 
+    /// @notice Thrown when an oracle returns an unexpected, invalid value.
+    error InvalidOracleReturn();
     /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
     error OnlyForwarder(address sender, address forwarder);
     /// @notice Thrown when the upkeep provided checkData bounds are invalid.
@@ -38,8 +40,6 @@ library Errors {
 
     /// @notice PerpsEngine.OrderModule errors
 
-    /// @notice Thrown when an account is liquidatable and can't perform actions
-    error AccountLiquidatable(uint128 accountId);
     /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
     error FailedDispatchCustomSettlementRequest();
 
@@ -69,6 +69,9 @@ library Errors {
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
     /// @notice Thrown when trying to update a market status but it hasn't been initialized yet.
     error PerpMarketNotInitialized(uint128 marketId);
+    /// @notice Thrown when the provided `collateralType` is not in the collateral priority list when trying to remove
+    /// it.
+    error MarginCollateralTypeNotInPriority(address collateralType);
 
     /// @notice PerpsEngine.SettlementModule errors.
 
@@ -107,6 +110,8 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementConfiguration errors.
 
+    /// @notice Thrown when there's no price adapter configured for a CL Data Streams settlement config.
+    error PriceAdapterNotDefined();
     /// @notice Thrown when the provided `settlementId` is not a valid settlement strategy id.
     error InvalidSettlementStrategyType(uint8 settlementId);
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's

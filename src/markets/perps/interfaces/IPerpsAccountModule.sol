@@ -37,8 +37,6 @@ interface IPerpsAccountModule {
         address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
     );
 
-    function isAuthorized(uint128 accountId, address sender) external view returns (bool isAuthorized);
-
     /// @notice Gets the contract address of the trading accounts NFTs.
     /// @return perpsAccountToken The account token address.
     function getPerpsAccountToken() external view returns (address perpsAccountToken);
@@ -46,60 +44,97 @@ interface IPerpsAccountModule {
     /// @notice Returns the account's margin amount of the given collateral type.
     /// @param accountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @return marginCollateralBalance The margin amount of the given collateral type.
+    /// @return marginCollateralBalanceX18 The margin amount of the given collateral type.
     function getAccountMarginCollateralBalance(
         uint128 accountId,
         address collateralType
     )
         external
         view
-        returns (UD60x18 marginCollateralBalance);
+        returns (UD60x18 marginCollateralBalanceX18);
 
-    /// @notice Returns the USD denominated total collateral value for the given account.
+    /// @notice Returns the total equity of all assets under the perps account without considering the collateral
+    /// value
+    /// ratio
     /// @dev This function doesn't take open positions into account.
     /// @param accountId The trading account id.
-    /// @return totalMarginCollateralValue The USD denominated total margin collateral value.
-    function getTotalAccountMarginCollateralValue(uint128 accountId)
+    /// @param activeMarketsIds The array of active market ids.
+    /// @param indexPricesX18 The array of index prices mapped to each market id.
+    /// @return equityUsdX18 The USD denominated total margin collateral value.
+    function getAccountEquityUsd(
+        uint128 accountId,
+        uint128[] calldata activeMarketsIds,
+        UD60x18[] calldata indexPricesX18
+    )
         external
         view
-        returns (UD60x18 totalMarginCollateralValue);
+        returns (SD59x18 equityUsdX18);
 
-    /// @notice Returns the account's total margin balance, available balance and maintenance margin.
+    /// @notice Returns the perps account's total margin balance, available balance and maintenance margin.
     /// @dev This function does take open positions data such as unrealized pnl into account.
+    /// @dev The margin balance value takes into account the margin collateral's configured ratio (LTV).
     /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
     /// the liquidation engine will be triggered.
     /// @param accountId The trading account id.
-    /// @return marginBalance The account's total margin balance.
-    /// @return availableMargin The account's withdrawable margin balance.
-    /// @return initialMargin The account's initial margin in positions.
-    /// @return maintenanceMargin The account's maintenance margin.
-    function getAccountMarginBalances(uint128 accountId)
+    /// @param activeMarketsIds The array of active market ids.
+    /// @param indexPricesX18 The array of index prices mapped to each market id.
+    /// @return marginBalanceUsdX18 The account's total margin balance.
+    /// @return initialMarginUsdX18 The account's initial margin in positions.
+    /// @return maintenanceMarginUsdX18 The account's maintenance margin.
+    /// @return availableMarginUsdX18 The account's withdrawable margin balance.
+    function getAccountMarginBreakdown(
+        uint128 accountId,
+        uint128[] calldata activeMarketsIds,
+        UD60x18[] calldata indexPricesX18
+    )
         external
         view
-        returns (SD59x18 marginBalance, SD59x18 availableMargin, UD60x18 initialMargin, UD60x18 maintenanceMargin);
+        returns (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 initialMarginUsdX18,
+            UD60x18 maintenanceMarginUsdX18,
+            SD59x18 availableMarginUsdX18
+        );
+
+    /// @notice Returns the total perps account's unrealized pnl across open positions.
+    /// @param accountId The trading account id.
+    /// @param activeMarketsIds The array of active market ids.
+    /// @param indexPricesX18 The array of index prices mapped to each market id.
+    /// @return accountTotalUnrealizedPnlUsdX18 The account's total unrealized pnl.
+    function getAccountTotalUnrealizedPnl(
+        uint128 accountId,
+        uint128[] calldata activeMarketsIds,
+        UD60x18[] calldata indexPricesX18
+    )
+        external
+        view
+        returns (SD59x18 accountTotalUnrealizedPnlUsdX18);
+
+    // TODO: Implement
+    function getActiveMarketsIds(uint128 accountId) external view returns (uint256[] memory activeMarketsIds);
 
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.
-    /// @param indexPrice The current index price of the market.
+    /// @param indexPriceX18 The current index price of the market.
     /// @return size The position openInterest in asset units, i.e amount of purchased contracts.
-    /// @return notionalValue The notional value of the position.
-    /// @return maintenanceMargin The notional value of the maintenance margin allocated by the account.
-    /// @return accruedFunding The accrued funding fee.
-    /// @return unrealizedPnl The current unrealized profit or loss of the position.
+    /// @return notionalValueX18 The notional value of the position.
+    /// @return maintenanceMarginUsdX18 The notional value of the maintenance margin allocated by the account.
+    /// @return accruedFundingUsdX18 The accrued funding fee.
+    /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
     function getOpenPositionData(
         uint128 accountId,
         uint128 marketId,
-        uint256 indexPrice
+        uint256 indexPriceX18
     )
         external
         view
         returns (
             SD59x18 size,
-            UD60x18 notionalValue,
-            UD60x18 maintenanceMargin,
-            SD59x18 accruedFunding,
-            SD59x18 unrealizedPnl
+            UD60x18 notionalValueX18,
+            UD60x18 maintenanceMarginUsdX18,
+            SD59x18 accruedFundingUsdX18,
+            SD59x18 unrealizedPnlUsdX18
         );
 
     /// @notice Creates a new trading account and mints its NFT

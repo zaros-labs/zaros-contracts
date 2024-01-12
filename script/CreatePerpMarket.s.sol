@@ -75,11 +75,14 @@ contract CreatePerpMarket is BaseScript {
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
+
+        // TODO: Add price adapter
         SettlementConfiguration.Data memory ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
         SettlementConfiguration.Data memory ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
@@ -87,6 +90,7 @@ contract CreatePerpMarket is BaseScript {
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
@@ -98,8 +102,8 @@ contract CreatePerpMarket is BaseScript {
                 marketId: uint128(ETH_USD_MARKET_ID),
                 name: ETH_USD_MARKET_NAME,
                 symbol: ETH_USD_MARKET_SYMBOL,
-                minInitialMarginRate: ETH_USD_MIN_IMR,
-                maintenanceMarginRate: ETH_USD_MMR,
+                minInitialMarginRateX18: ETH_USD_MIN_IMR,
+                maintenanceMarginRateX18: ETH_USD_MMR,
                 maxOpenInterest: ETH_USD_MAX_OI,
                 skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
@@ -111,6 +115,7 @@ contract CreatePerpMarket is BaseScript {
 
         SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData =
         SettlementConfiguration.DataStreamsMarketStrategy({
+            // TODO: Add price adapter
             chainlinkVerifier: chainlinkVerifier,
             streamId: linkUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
@@ -118,11 +123,14 @@ contract CreatePerpMarket is BaseScript {
             settlementDelay: LINK_USD_SETTLEMENT_DELAY,
             isPremium: false
         });
+
+        // TODO: Add price adapter
         SettlementConfiguration.Data memory linkUsdMarketOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
@@ -131,6 +139,7 @@ contract CreatePerpMarket is BaseScript {
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
+            priceAdapter: address(1),
             data: abi.encode(linkUsdMarketOrderStrategyData)
         });
 
@@ -142,8 +151,8 @@ contract CreatePerpMarket is BaseScript {
                 marketId: uint128(LINK_USD_MARKET_ID),
                 name: LINK_USD_MARKET_NAME,
                 symbol: LINK_USD_MARKET_SYMBOL,
-                minInitialMarginRate: LINK_USD_MIN_IMR,
-                maintenanceMarginRate: LINK_USD_MMR,
+                minInitialMarginRateX18: LINK_USD_MIN_IMR,
+                maintenanceMarginRateX18: LINK_USD_MMR,
                 maxOpenInterest: LINK_USD_MAX_OI,
                 skewScale: LINK_USD_SKEW_SCALE,
                 maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
