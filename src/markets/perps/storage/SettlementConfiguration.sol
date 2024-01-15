@@ -16,8 +16,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-// TODO: Check if a given settlement configuration is enabled.
-// TODO: Move ChainlinkUtil to ChainlinkUtil.
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
     using SafeCast for int256;
@@ -73,6 +71,13 @@ library SettlementConfiguration {
         string feedLabel;
         string queryLabel;
         bool isPremium;
+    }
+
+    modifier onlyEnabledSettlement(Data storage self) {
+        if (!self.isEnabled) {
+            revert Errors.SettlementDisabled();
+        }
+        _;
     }
 
     /// @dev The market order strategy id is always 0.
