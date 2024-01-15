@@ -137,13 +137,11 @@ abstract contract SettlementModule is ISettlementModule {
         perpMarket.validateNewState(vars.sizeDelta);
 
         // TODO: Let's find a better and defintitive way to avoid stack too deep.
-        {
-            bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
-            UD60x18 indexPriceX18 =
-                settlementConfiguration.getIndexPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
 
-            vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
-        }
+        bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
+        UD60x18 indexPriceX18 = settlementConfiguration.getIndexPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
+
+        vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
 
         vars.fundingRate = perpMarket.getCurrentFundingRate();
         vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingFeePerUnit, vars.fillPrice);
