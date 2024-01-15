@@ -85,6 +85,7 @@ library PerpMarket {
         // TODO: remember to test gas cost / number of sstores here
         self.id = marketId;
         self.initialized = true;
+        self.priceAdapter = priceAdapter;
         self.configuration = MarketConfiguration.Data({
             name: name,
             symbol: symbol,

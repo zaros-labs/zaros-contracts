@@ -151,6 +151,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             params.marketId,
             params.name,
             params.symbol,
+            // TODO: uncomment
             params.priceAdapter,
             params.minInitialMarginRateX18,
             params.maintenanceMarginRateX18,
@@ -167,7 +168,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             params.marketId,
             params.name,
             params.symbol,
-            params.priceAdapter,
+            // params.priceAdapter,
             params.maintenanceMarginRateX18,
             params.maxOpenInterest,
             params.minInitialMarginRateX18,

@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.23;
 
+// Zaros dependencies
+import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+
 struct Users {
     // Default owner for all Zaros contracts.
     address payable owner;
@@ -13,4 +16,11 @@ struct Users {
     address payable sakura;
     // Malicious user.
     address payable madara;
+}
+
+struct MockPriceAdapters {
+    MockPriceFeed mockBtcUsdPriceAdapter;
+    MockPriceFeed mockEthUsdPriceAdapter;
+    MockPriceFeed mockUsdcUsdPriceAdapter;
+    MockPriceFeed mockWstEthUsdPriceAdapter;
 }

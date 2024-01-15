@@ -61,7 +61,8 @@ interface IGlobalConfigurationModule {
         uint128 indexed marketId,
         string name,
         string symbol,
-        address priceAdapter,
+        // TODO: uncomment
+        // address priceAdapter,
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRateX18,
