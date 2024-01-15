@@ -92,6 +92,8 @@ library Errors {
 
     /// @notice PerpsEngine.PerpMarket errors.
 
+    /// @notice Thrown when there's no price adapter configured for a given perp market.
+    error PriceAdapterNotDefined(uint128 marketId);
     /// @notice Thrown when an order tries to exceed the market's open interest cap.
     error ExceedsOpenInterestLimit(uint128 marketId, uint256 openInterest, uint256 openInterestDesired);
     /// @notice Thrown when a perps market id has already been used.
@@ -112,8 +114,6 @@ library Errors {
 
     /// @notice Thrown when a configured settlement strategy is disabled.
     error SettlementDisabled();
-    /// @notice Thrown when there's no price adapter configured for a CL Data Streams settlement config.
-    error PriceAdapterNotDefined();
     /// @notice Thrown when the provided `settlementId` is not a valid settlement strategy id.
     error InvalidSettlementStrategyType(uint8 settlementId);
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's

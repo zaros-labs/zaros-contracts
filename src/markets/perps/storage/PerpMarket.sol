@@ -123,7 +123,7 @@ library PerpMarket {
     function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
         address priceAdapter = self.priceAdapter;
         if (priceAdapter == address(0)) {
-            revert Errors.PriceAdapterNotDefined();
+            revert Errors.PriceAdapterNotDefined(self.id);
         }
 
         indexPrice = ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter));
