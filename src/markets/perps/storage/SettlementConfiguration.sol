@@ -40,14 +40,12 @@ library SettlementConfiguration {
     /// @param isEnabled Whether the strategy is enabled or not. May be used to pause trading in a market.
     /// @param fee The settlement cost in USD charged from the trader.
     /// @param settlementStrategy The address of the configured SettlementStrategy contract.
-    /// @param priceAdapter The price adapter contract, which stores onchain and outputs the market's index price.
     /// @param data Data structure required for the settlement strategy, varies for each settlementConfiguration.
     struct Data {
         StrategyType strategyType;
         bool isEnabled;
         uint80 fee;
         address settlementStrategy;
-        address priceAdapter;
         bytes data;
     }
 
@@ -105,23 +103,11 @@ library SettlementConfiguration {
         self.data = settlementConfiguration.data;
     }
 
-    // TODO: Call a Zaros-deployed price adaptar contract instead of calling CL AggregatorV3 interface.
-    // TODO: By having a custom price adapter, we can e.g sync a price adapter with a settlement strategy contract to
-    // deploy custom index markets.
-    function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
-        address priceAdapter = self.priceAdapter;
-        if (priceAdapter == address(0)) {
-            revert Errors.PriceAdapterNotDefined();
-        }
-
-        indexPrice = ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter));
-    }
-
     /// @notice Returns the settlement index price for a given order based on the configured strategy.
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param verifiedExtraData The verified report data.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
-    function getIndexPrice(
+    function getSettlementPrice(
         Data storage self,
         bytes memory verifiedExtraData,
         bool isBuyOrder

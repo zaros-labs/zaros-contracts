@@ -36,6 +36,7 @@ library PerpMarket {
     /// @dev Constant base domain used to access a given PerpMarket's storage slot.
     string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpMarket";
 
+    /// @param priceAdapter The price adapter contract, which stores onchain and outputs the market's index price.
     struct Data {
         uint128 id;
         int128 skew;
@@ -45,6 +46,7 @@ library PerpMarket {
         int256 lastFundingRate;
         int256 lastFundingFeePerUnit;
         uint256 lastFundingTime;
+        address priceAdapter;
         MarketConfiguration.Data configuration;
     }
 
@@ -112,6 +114,19 @@ library PerpMarket {
                 self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
             );
         }
+    }
+
+    // TODO: Call a Zaros-deployed price adapter contract instead of calling CL AggregatorV3 interface.
+    // TODO: By having a custom price adapter, we can e.g sync a price adapter with a custom settlement strategies
+    // contracts to
+    // deploy custom index markets.
+    function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
+        address priceAdapter = self.priceAdapter;
+        if (priceAdapter == address(0)) {
+            revert Errors.PriceAdapterNotDefined();
+        }
+
+        indexPrice = ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter));
     }
 
     function getMarkPrice(

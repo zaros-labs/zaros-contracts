@@ -136,10 +136,9 @@ abstract contract SettlementModule is ISettlementModule {
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
         perpMarket.validateNewState(vars.sizeDelta);
 
-        // TODO: Let's find a better and defintitive way to avoid stack too deep.
-
         bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
-        UD60x18 indexPriceX18 = settlementConfiguration.getIndexPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
+        UD60x18 indexPriceX18 =
+            settlementConfiguration.getSettlementPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
 
         vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
 

@@ -97,6 +97,8 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
         marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsdX18(activePositionsUnrealizedPnlUsdX18);
 
+        // (initialMarginUsdX18, maintenanceMarginUsdX18) = perpsAccount.getPositionsMarginRequirements();
+
         for (uint256 i = 0; i < activeMarketsIds.length; i++) {
             PerpMarket.Data storage perpMarket = PerpMarket.load(activeMarketsIds[i]);
             Position.Data storage position = Position.load(accountId, activeMarketsIds[i]);

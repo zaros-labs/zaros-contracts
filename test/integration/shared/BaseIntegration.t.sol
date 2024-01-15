@@ -67,7 +67,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            priceAdapter: address(1),
             data: abi.encode(btcUsdMarketOrderStrategyData)
         });
 
@@ -78,7 +77,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            priceAdapter: address(1),
             data: abi.encode(btcUsdMarketOrderStrategyData)
         });
 
@@ -99,7 +97,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 
@@ -110,7 +107,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            priceAdapter: address(1),
             data: abi.encode(ethUsdMarketOrderStrategyData)
         });
 

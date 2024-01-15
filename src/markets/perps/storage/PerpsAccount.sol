@@ -7,6 +7,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { MarginCollateralConfiguration } from "./MarginCollateralConfiguration.sol";
 import { MarketOrder } from "./MarketOrder.sol";
 import { GlobalConfiguration } from "./GlobalConfiguration.sol";
+import { SettlementConfiguration } from "./SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -21,8 +22,9 @@ library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
-    using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using GlobalConfiguration for GlobalConfiguration.Data;
+    using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
+    using SettlementConfiguration for SettlementConfiguration.Data;
 
     /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
@@ -145,6 +147,21 @@ library PerpsAccount {
 
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
+
+    // function getPositionsMarginRequirements(Data storage self) internal view returns (SD59x18) {
+    //     SD59x18 positionsMarginRequirementsUsdX18;
+
+    //     for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
+    //         uint128 marketId = uint128(self.activeMarketsIds.at(i));
+    //         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+    //         Position.Data storage position = Position.load(self.id, marketId);
+
+    //         UD60x18 indexPrice = settlementConfiguration.getIndexPrice();
+    //         UD60x18 markPrice;
+    //     }
+
+    //     return positionsMarginRequirementsUsdX18;
+    // }
 
     /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account id.
     /// @param accountId The perps account id.
