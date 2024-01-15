@@ -23,6 +23,7 @@ contract CreatePerpMarket is BaseScript {
     address internal defaultMarketOrderUpkeep;
     uint256 internal defaultSettlementFee;
 
+    address internal ethUsdPriceAdapter;
     string internal ethUsdStreamId;
 
     uint128 internal constant ETH_USD_MARKET_ID = 1;
@@ -36,6 +37,7 @@ contract CreatePerpMarket is BaseScript {
     uint248 internal constant ETH_USD_SETTLEMENT_DELAY = 2 seconds;
     OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
+    address internal linkUsdPriceAdapter;
     string internal linkUsdStreamId;
 
     uint128 internal constant LINK_USD_MARKET_ID = 2;
@@ -60,8 +62,10 @@ contract CreatePerpMarket is BaseScript {
         defaultMarketOrderUpkeep = vm.envAddress("DEFAULT_MARKET_ORDER_UPKEEP");
         defaultSettlementFee = vm.envUint("DEFAULT_SETTLEMENT_FEE");
 
+        ethUsdPriceAdapter = vm.envAddress("ETH_USD_PRICE_FEED");
         ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
 
+        linkUsdPriceAdapter = vm.envAddress("LINK_USD_PRICE_FEED");
         linkUsdStreamId = vm.envString("LINK_USD_STREAM_ID");
 
         perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
@@ -100,6 +104,7 @@ contract CreatePerpMarket is BaseScript {
                 marketId: uint128(ETH_USD_MARKET_ID),
                 name: ETH_USD_MARKET_NAME,
                 symbol: ETH_USD_MARKET_SYMBOL,
+                priceAdapter: ethUsdPriceAdapter,
                 minInitialMarginRateX18: ETH_USD_MIN_IMR,
                 maintenanceMarginRateX18: ETH_USD_MMR,
                 maxOpenInterest: ETH_USD_MAX_OI,
@@ -147,6 +152,7 @@ contract CreatePerpMarket is BaseScript {
                 marketId: uint128(LINK_USD_MARKET_ID),
                 name: LINK_USD_MARKET_NAME,
                 symbol: LINK_USD_MARKET_SYMBOL,
+                priceAdapter: linkUsdPriceAdapter,
                 minInitialMarginRateX18: LINK_USD_MIN_IMR,
                 maintenanceMarginRateX18: LINK_USD_MMR,
                 maxOpenInterest: LINK_USD_MAX_OI,

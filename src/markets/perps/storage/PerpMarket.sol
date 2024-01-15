@@ -65,6 +65,7 @@ library PerpMarket {
         uint128 marketId,
         string memory name,
         string memory symbol,
+        address priceAdapter,
         uint128 minInitialMarginRateX18,
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,

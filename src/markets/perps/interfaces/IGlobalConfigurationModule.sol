@@ -10,6 +10,7 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 /// @param marketId The perps market id.
 /// @param name The perps market name.
 /// @param symbol The perps market symbol.
+/// @param priceAdapter The price adapter contract, which stores onchain and outputs the market's index price.
 /// @param minInitialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
 /// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
 /// @param maxOpenInterest The perps market maximum open interest per side.
@@ -21,6 +22,7 @@ struct CreatePerpMarketParams {
     uint128 marketId;
     string name;
     string symbol;
+    address priceAdapter;
     uint128 minInitialMarginRateX18;
     uint128 maintenanceMarginRateX18;
     uint128 maxOpenInterest;
@@ -59,6 +61,7 @@ interface IGlobalConfigurationModule {
         uint128 indexed marketId,
         string name,
         string symbol,
+        address priceAdapter,
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRateX18,

@@ -18,7 +18,7 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
+        uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceAdapter).mul(ud60x18(amountToDeposit)).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
@@ -53,8 +53,8 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
         deal({ token: address(mockWstEth), to: users.naruto, give: amountToDeposit });
 
-        uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).add(
-            getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amountToDeposit))
+        uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceAdapter).mul(ud60x18(amountToDeposit)).add(
+            getPrice(mockWstEthUsdPriceAdapter).mul(ud60x18(amountToDeposit))
         ).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;

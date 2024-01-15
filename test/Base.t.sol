@@ -51,8 +51,10 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x03 });
 
     /// @dev TODO: think about forking tests
-    MockPriceFeed internal mockUsdcUsdPriceFeed;
-    MockPriceFeed internal mockWstEthUsdPriceFeed;
+    MockPriceFeed internal mockBtcUsdPriceAdapter;
+    MockPriceFeed internal mockEthUsdPriceAdapter;
+    MockPriceFeed internal mockUsdcUsdPriceAdapter;
+    MockPriceFeed internal mockWstEthUsdPriceAdapter;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -79,8 +81,11 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         });
         liquidityEngine = LiquidityEngine(mockLiquidityEngineAddress);
         rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
-        mockUsdcUsdPriceFeed = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
-        mockWstEthUsdPriceFeed = new MockPriceFeed(18, int256(MOCK_WSTETH_USD_PRICE));
+
+        mockBtcUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_BTC_USD_PRICE));
+        mockEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
+        mockUsdcUsdPriceAdapter = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
+        mockWstEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_WSTETH_USD_PRICE));
 
         perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
@@ -155,11 +160,11 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, users.owner);
 
         perpsEngine.configureMarginCollateral(
-            address(usdToken), USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, address(mockUsdcUsdPriceFeed)
+            address(usdToken), USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, address(mockUsdcUsdPriceAdapter)
         );
 
         perpsEngine.configureMarginCollateral(
-            address(mockWstEth), WSTETH_DEPOSIT_CAP, WSTETH_LOAN_TO_VALUE, address(mockWstEthUsdPriceFeed)
+            address(mockWstEth), WSTETH_DEPOSIT_CAP, WSTETH_LOAN_TO_VALUE, address(mockWstEthUsdPriceAdapter)
         );
     }
 
