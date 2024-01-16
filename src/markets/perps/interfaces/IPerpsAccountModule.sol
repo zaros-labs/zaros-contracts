@@ -89,9 +89,6 @@ interface IPerpsAccountModule {
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18);
 
-    // TODO: Implement
-    function getActiveMarketsIds(uint128 accountId) external view returns (uint256[] memory activeMarketsIds);
-
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.

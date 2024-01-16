@@ -31,6 +31,7 @@ library MarketOrder {
         self.timestamp = block.timestamp;
     }
 
+    // TODO: Implement
     function clear(Data storage self) internal { }
 
     function checkPendingOrder(Data storage self) internal view {

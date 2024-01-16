@@ -7,11 +7,14 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { MarginCollateralConfiguration } from "./MarginCollateralConfiguration.sol";
 import { MarketOrder } from "./MarketOrder.sol";
 import { GlobalConfiguration } from "./GlobalConfiguration.sol";
+import { PerpMarket } from "./PerpMarket.sol";
+import { Position } from "./Position.sol";
 import { SettlementConfiguration } from "./SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -22,6 +25,9 @@ library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
+    using PerpMarket for PerpMarket.Data;
+    using Position for Position.Data;
+    using SafeCast for uint256;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using SettlementConfiguration for SettlementConfiguration.Data;
@@ -146,6 +152,20 @@ library PerpsAccount {
         }
 
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
+    }
+
+    function getTotalUnrealizedPnl(Data storage self) internal view returns (SD59x18 totalUnrealizedPnlUsdX18) {
+        for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
+            uint128 marketId = self.activeMarketsIds.at(i).toUint128();
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+            Position.Data storage position = Position.load(self.id, marketId);
+
+            UD60x18 indexPrice = perpMarket.getIndexPrice();
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
+            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPrice);
+
+            totalUnrealizedPnlUsdX18 = totalUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18);
+        }
     }
 
     /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account id.

@@ -60,7 +60,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     /// @inheritdoc IPerpsAccountModule
     function getAccountEquityUsd(uint128 accountId) external view override returns (SD59x18) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18 = getAccountTotalUnrealizedPnl(accountId);
+        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getTotalUnrealizedPnl();
 
         return perpsAccount.getEquityUsd(activePositionsUnrealizedPnlUsdX18);
     }
@@ -78,7 +78,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         )
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18 = getAccountTotalUnrealizedPnl(accountId);
+        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getTotalUnrealizedPnl();
 
         marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
 
@@ -108,28 +108,13 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function getAccountTotalUnrealizedPnl(uint128 accountId)
-        public
+        external
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18)
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 accountTotalUnrealizedPnlUsdX18;
-
-        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
-            uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
-            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-            Position.Data storage position = Position.load(accountId, marketId);
-
-            UD60x18 indexPrice = perpMarket.getIndexPrice();
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
-            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPrice);
-
-            accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18);
-        }
+        SD59x18 accountTotalUnrealizedPnlUsdX18 = perpsAccount.getTotalUnrealizedPnl();
     }
-
-    /// @inheritdoc IPerpsAccountModule
-    function getActiveMarketsIds(uint128 accountId) external view returns (uint256[] memory activeMarketsIds) { }
 
     /// @inheritdoc IPerpsAccountModule
     function getOpenPositionData(
