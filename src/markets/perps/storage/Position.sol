@@ -62,6 +62,20 @@ library Position {
         accruedFundingUsdX18 = sd59x18(self.size).mul(netFundingFeePerUnit);
     }
 
+    function getMarginRequirement(
+        Data storage self,
+        UD60x18 price,
+        UD60x18 initialMarginRateX18,
+        UD60x18 maintenanceMarginRateX18
+    )
+        internal
+        view
+        returns (UD60x18 initialMarginUsdX18, UD60x18 maintenanceMarginUsdX18)
+    {
+        initialMarginUsdX18 = getNotionalValue(self, price).mul(initialMarginRateX18);
+        maintenanceMarginUsdX18 = getNotionalValue(self, price).mul(maintenanceMarginRateX18);
+    }
+
     /// @dev Returns the current unrealized profit or loss of the position.
     /// @param self The position storage pointer.
     /// @param price The market's current reference price.

@@ -106,7 +106,7 @@ library PerpsAccount {
     /// @notice Returns the notional value of all margin collateral in the account.
     /// @param self The perps account storage pointer.
     /// @return equityUsdX18 The total margin collateral value.
-    function getEquityUsdX18(
+    function getEquityUsd(
         Data storage self,
         SD59x18 activePositionsUnrealizedPnlUsdX18
     )
@@ -126,7 +126,7 @@ library PerpsAccount {
         equityUsdX18 = equityUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
-    function getMarginBalanceUsdX18(
+    function getMarginBalanceUsd(
         Data storage self,
         SD59x18 activePositionsUnrealizedPnlUsdX18
     )
@@ -147,21 +147,6 @@ library PerpsAccount {
 
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
-
-    // function getPositionsMarginRequirements(Data storage self) internal view returns (SD59x18) {
-    //     SD59x18 positionsMarginRequirementsUsdX18;
-
-    //     for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
-    //         uint128 marketId = uint128(self.activeMarketsIds.at(i));
-    //         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-    //         Position.Data storage position = Position.load(self.id, marketId);
-
-    //         UD60x18 indexPrice = settlementConfiguration.getIndexPrice();
-    //         UD60x18 markPrice;
-    //     }
-
-    //     return positionsMarginRequirementsUsdX18;
-    // }
 
     /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account id.
     /// @param accountId The perps account id.
