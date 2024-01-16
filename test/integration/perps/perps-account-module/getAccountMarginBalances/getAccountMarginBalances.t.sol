@@ -33,11 +33,7 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
             UD60x18 initialMarginUsdX18,
             UD60x18 maintenanceMarginUsdX18,
             SD59x18 availableBalance
-        ) = perpsEngine.getAccountMarginBreakdown({
-            accountId: perpsAccountId,
-            activeMarketsIds: activeMarketsIds,
-            indexPricesX18: indexPricesX18
-        });
+        ) = perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
 
         assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
@@ -71,11 +67,7 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
             UD60x18 initialMarginUsdX18,
             UD60x18 maintenanceMarginUsdX18,
             SD59x18 availableBalance
-        ) = perpsEngine.getAccountMarginBreakdown({
-            accountId: perpsAccountId,
-            activeMarketsIds: activeMarketsIds,
-            indexPricesX18: indexPricesX18
-        });
+        ) = perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
 
         assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");

@@ -59,14 +59,7 @@ interface IPerpsAccountModule {
     /// @dev This function doesn't take open positions into account.
     /// @param accountId The trading account id.
     /// @return equityUsdX18 The USD denominated total margin collateral value.
-    function getAccountEquityUsd(
-        uint128 accountId,
-        uint128[] calldata activeMarketsIds,
-        UD60x18[] calldata indexPricesX18
-    )
-        external
-        view
-        returns (SD59x18 equityUsdX18);
+    function getAccountEquityUsd(uint128 accountId) external view returns (SD59x18 equityUsdX18);
 
     /// @notice Returns the perps account's total margin balance, available balance and maintenance margin.
     /// @dev This function does take open positions data such as unrealized pnl into account.
