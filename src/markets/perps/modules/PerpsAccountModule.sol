@@ -60,7 +60,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     /// @inheritdoc IPerpsAccountModule
     function getAccountEquityUsd(uint128 accountId) external view override returns (SD59x18) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getTotalUnrealizedPnl();
+        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnl();
 
         return perpsAccount.getEquityUsd(activePositionsUnrealizedPnlUsdX18);
     }
@@ -78,7 +78,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         )
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getTotalUnrealizedPnl();
+        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnl();
 
         marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
 
@@ -113,7 +113,7 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18)
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 accountTotalUnrealizedPnlUsdX18 = perpsAccount.getTotalUnrealizedPnl();
+        SD59x18 accountTotalUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnl();
     }
 
     /// @inheritdoc IPerpsAccountModule

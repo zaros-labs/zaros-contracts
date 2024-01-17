@@ -154,7 +154,8 @@ library PerpsAccount {
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
-    function getTotalUnrealizedPnl(Data storage self) internal view returns (SD59x18 totalUnrealizedPnlUsdX18) {
+    // TODO: Should we create a Service to handle this?
+    function getAccountUnrealizedPnl(Data storage self) internal view returns (SD59x18 totalUnrealizedPnlUsdX18) {
         for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);

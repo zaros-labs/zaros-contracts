@@ -150,9 +150,6 @@ abstract contract SettlementModule is ISettlementModule {
             oldPosition.getAccruedFunding(vars.fundingFeePerUnit)
         );
 
-        // UD60x18 initialMarginUsdX18 =
-        //     ud60x18(oldPosition.initialMarginUsdX18).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
-        // TODO: validate initial margin and size
         vars.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
             lastInteractionPrice: vars.fillPrice.intoUint128(),
