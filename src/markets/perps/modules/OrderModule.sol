@@ -84,9 +84,11 @@ abstract contract OrderModule is IOrderModule {
 
         // perpsAccount.checkIsNotLiquidatable();
 
+        // TODO: validate margin requirements
+
         bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
         if (!isMarketWithActivePosition) {
-            perpsAccount.checkPositionsLimit();
+            perpsAccount.validatePositionsLimit();
         }
 
         globalConfiguration.checkMarketIsEnabled(marketId);
