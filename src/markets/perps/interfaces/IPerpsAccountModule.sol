@@ -58,17 +58,8 @@ interface IPerpsAccountModule {
     /// ratio
     /// @dev This function doesn't take open positions into account.
     /// @param accountId The trading account id.
-    /// @param activeMarketsIds The array of active market ids.
-    /// @param indexPricesX18 The array of index prices mapped to each market id.
     /// @return equityUsdX18 The USD denominated total margin collateral value.
-    function getAccountEquityUsd(
-        uint128 accountId,
-        uint128[] calldata activeMarketsIds,
-        UD60x18[] calldata indexPricesX18
-    )
-        external
-        view
-        returns (SD59x18 equityUsdX18);
+    function getAccountEquityUsd(uint128 accountId) external view returns (SD59x18 equityUsdX18);
 
     /// @notice Returns the perps account's total margin balance, available balance and maintenance margin.
     /// @dev This function does take open positions data such as unrealized pnl into account.
@@ -76,17 +67,11 @@ interface IPerpsAccountModule {
     /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
     /// the liquidation engine will be triggered.
     /// @param accountId The trading account id.
-    /// @param activeMarketsIds The array of active market ids.
-    /// @param indexPricesX18 The array of index prices mapped to each market id.
     /// @return marginBalanceUsdX18 The account's total margin balance.
     /// @return initialMarginUsdX18 The account's initial margin in positions.
     /// @return maintenanceMarginUsdX18 The account's maintenance margin.
     /// @return availableMarginUsdX18 The account's withdrawable margin balance.
-    function getAccountMarginBreakdown(
-        uint128 accountId,
-        uint128[] calldata activeMarketsIds,
-        UD60x18[] calldata indexPricesX18
-    )
+    function getAccountMarginBreakdown(uint128 accountId)
         external
         view
         returns (
@@ -98,20 +83,11 @@ interface IPerpsAccountModule {
 
     /// @notice Returns the total perps account's unrealized pnl across open positions.
     /// @param accountId The trading account id.
-    /// @param activeMarketsIds The array of active market ids.
-    /// @param indexPricesX18 The array of index prices mapped to each market id.
     /// @return accountTotalUnrealizedPnlUsdX18 The account's total unrealized pnl.
-    function getAccountTotalUnrealizedPnl(
-        uint128 accountId,
-        uint128[] calldata activeMarketsIds,
-        UD60x18[] calldata indexPricesX18
-    )
+    function getAccountTotalUnrealizedPnl(uint128 accountId)
         external
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18);
-
-    // TODO: Implement
-    function getActiveMarketsIds(uint128 accountId) external view returns (uint256[] memory activeMarketsIds);
 
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.

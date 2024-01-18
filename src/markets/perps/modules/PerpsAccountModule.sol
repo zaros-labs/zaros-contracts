@@ -58,29 +58,15 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountEquityUsd(
-        uint128 accountId,
-        uint128[] calldata activeMarketsIds,
-        UD60x18[] calldata indexPricesX18
-    )
-        external
-        view
-        override
-        returns (SD59x18)
-    {
+    function getAccountEquityUsd(uint128 accountId) external view override returns (SD59x18) {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18 =
-            getAccountTotalUnrealizedPnl(accountId, activeMarketsIds, indexPricesX18);
+        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
 
-        return perpsAccount.getEquityUsdX18(activePositionsUnrealizedPnlUsdX18);
+        return perpsAccount.getEquityUsd(activePositionsUnrealizedPnlUsdX18);
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountMarginBreakdown(
-        uint128 accountId,
-        uint128[] calldata activeMarketsIds,
-        UD60x18[] calldata indexPricesX18
-    )
+    function getAccountMarginBreakdown(uint128 accountId)
         external
         view
         override
@@ -92,28 +78,25 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
         )
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18 =
-            getAccountTotalUnrealizedPnl(accountId, activeMarketsIds, indexPricesX18);
+        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
 
-        marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsdX18(activePositionsUnrealizedPnlUsdX18);
+        marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
 
-        for (uint256 i = 0; i < activeMarketsIds.length; i++) {
-            PerpMarket.Data storage perpMarket = PerpMarket.load(activeMarketsIds[i]);
-            Position.Data storage position = Position.load(accountId, activeMarketsIds[i]);
+        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
+            uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
 
-            // we don't need to revert as this function is consumed by the client only and trusts
-            // the inputs
-            if (!perpsAccount.activeMarketsIds.contains(activeMarketsIds[i])) {
-                continue;
-            }
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+            Position.Data storage position = Position.load(accountId, marketId);
 
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPricesX18[i]);
+            UD60x18 indexPrice = perpMarket.getIndexPrice();
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
 
-            UD60x18 positionNotionalValueX18 = position.getNotionalValue(markPrice);
-            UD60x18 positionInitialMarginUsdX18 =
-                positionNotionalValueX18.mul(ud60x18(perpMarket.configuration.minInitialMarginRateX18));
-            UD60x18 positionMaintenanceMarginUsdX18 =
-                positionNotionalValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
+            (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = position
+                .getMarginRequirements(
+                markPrice,
+                ud60x18(perpMarket.configuration.minInitialMarginRateX18),
+                ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
+            );
 
             initialMarginUsdX18 = initialMarginUsdX18.add(positionInitialMarginUsdX18);
             maintenanceMarginUsdX18 = maintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
@@ -124,38 +107,14 @@ abstract contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getAccountTotalUnrealizedPnl(
-        uint128 accountId,
-        uint128[] calldata activeMarketsIds,
-        UD60x18[] calldata indexPricesX18
-    )
-        public
+    function getAccountTotalUnrealizedPnl(uint128 accountId)
+        external
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18)
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-        SD59x18 accountTotalUnrealizedPnlUsdX18;
-
-        for (uint256 i = 0; i < activeMarketsIds.length; i++) {
-            uint128 marketId = activeMarketsIds[i];
-            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-            Position.Data storage position = Position.load(accountId, marketId);
-
-            // we don't need to revert as this function is consumed by the client only and trusts
-            // the inputs
-            if (!perpsAccount.activeMarketsIds.contains(marketId)) {
-                continue;
-            }
-
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPricesX18[i]);
-            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPrice);
-
-            accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18);
-        }
+        accountTotalUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
     }
-
-    /// @inheritdoc IPerpsAccountModule
-    function getActiveMarketsIds(uint128 accountId) external view returns (uint256[] memory activeMarketsIds) { }
 
     /// @inheritdoc IPerpsAccountModule
     function getOpenPositionData(

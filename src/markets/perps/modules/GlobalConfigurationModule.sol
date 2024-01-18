@@ -132,6 +132,9 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
         if (abi.encodePacked(params.symbol).length == 0) {
             revert Errors.ZeroInput("symbol");
         }
+        if (params.priceAdapter == address(0)) {
+            revert Errors.ZeroInput("priceAdapter");
+        }
         if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
@@ -148,6 +151,8 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             params.marketId,
             params.name,
             params.symbol,
+            // TODO: uncomment
+            params.priceAdapter,
             params.minInitialMarginRateX18,
             params.maintenanceMarginRateX18,
             params.maxOpenInterest,
@@ -163,6 +168,7 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
             params.marketId,
             params.name,
             params.symbol,
+            // params.priceAdapter,
             params.maintenanceMarginRateX18,
             params.maxOpenInterest,
             params.minInitialMarginRateX18,

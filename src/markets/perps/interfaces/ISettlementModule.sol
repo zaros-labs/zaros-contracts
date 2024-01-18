@@ -24,6 +24,20 @@ interface ISettlementModule {
         int128 sizeDelta;
     }
 
+    /// @notice Validates if the given account will still meet margin requirements when updating its position at
+    /// `marketId`.
+    /// @dev Reverts if the newPosition results on an invalid state (requiredMargin >= marginBalance)
+    /// @param accountId The account id to be validated.
+    /// @param marketId The market id to be validated.
+    /// @param newPosition The new position state after the settlement.
+    function validateMarginRequirements(
+        uint128 accountId,
+        uint128 marketId,
+        Position.Data memory newPosition
+    )
+        external
+        view;
+
     function settleMarketOrder(uint128 accountId, uint128 marketId, bytes calldata verifiedReportData) external;
 
     function settleCustomTriggers(

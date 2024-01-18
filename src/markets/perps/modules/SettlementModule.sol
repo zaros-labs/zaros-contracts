@@ -47,18 +47,40 @@ abstract contract SettlementModule is ISettlementModule {
     }
 
     function validateMarginRequirements(
+        uint128 accountId,
         uint128 marketId,
-        SettlementPayload calldata payload
+        Position.Data memory newPosition
     )
         public
         view
-        returns (bool isValid)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(payload.accountId);
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+
+        SD59x18 accountTotalUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
+        SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+
+        UD60x18 requiredMarginUsdX18;
 
         for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
-            uint256 activeMarketId = perpsAccount.activeMarketsIds.at(i);
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+            UD60x18 indexPrice = perpMarket.getIndexPrice();
+            UD60x18 markPrice = perpMarket.getMarkPrice(sd59x18(newPosition.size), indexPrice);
+            UD60x18 newPositionNotionalValueX18 = sd59x18(newPosition.size).abs().intoUD60x18().mul(markPrice);
+
+            UD60x18 newPositionMinInitialMarginUsdX18 =
+                newPositionNotionalValueX18.mul(ud60x18(perpMarket.configuration.minInitialMarginRateX18));
+            UD60x18 newPositionMaintenanceMarginUsdX18 =
+                newPositionNotionalValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
+
+            requiredMarginUsdX18 =
+                requiredMarginUsdX18.add(newPositionMinInitialMarginUsdX18).add(newPositionMaintenanceMarginUsdX18);
+        }
+
+        if (requiredMarginUsdX18.intoSD59x18().gte(marginBalanceUsdX18)) {
+            revert Errors.InsufficientMargin(
+                accountId, marketId, marginBalanceUsdX18.intoUint256(), requiredMarginUsdX18.intoUint256()
+            );
         }
     }
 
@@ -131,19 +153,17 @@ abstract contract SettlementModule is ISettlementModule {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         address usdToken = globalConfiguration.usdToken;
 
-        globalConfiguration.checkMarketIsEnabled(vars.marketId);
+        // globalConfiguration.checkMarketIsEnabled(vars.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
+        // perpsAccount.checkIsNotLiquidatable();
         perpMarket.validateNewState(vars.sizeDelta);
 
-        // TODO: Let's find a better and defintitive way to avoid stack too deep.
-        {
-            bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
-            UD60x18 indexPriceX18 =
-                settlementConfiguration.getIndexPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
+        bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
+        UD60x18 indexPriceX18 =
+            settlementConfiguration.getSettlementPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
 
-            vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
-        }
+        vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
 
         vars.fundingRate = perpMarket.getCurrentFundingRate();
         vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingFeePerUnit, vars.fillPrice);
@@ -153,14 +173,12 @@ abstract contract SettlementModule is ISettlementModule {
             oldPosition.getAccruedFunding(vars.fundingFeePerUnit)
         );
 
-        // UD60x18 initialMarginUsdX18 =
-        //     ud60x18(oldPosition.initialMarginUsdX18).add(sd59x18(marketOrder.payload.initialMarginDelta).intoUD60x18());
-        // TODO: validate initial margin and size
         vars.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
             lastInteractionPrice: vars.fillPrice.intoUint128(),
             lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
         });
+        validateMarginRequirements(vars.accountId, vars.marketId, vars.newPosition);
 
         // for now we'll realize the total uPnL, we should realize it proportionally in the future
         if (vars.pnl.lt(SD_ZERO)) {
@@ -178,6 +196,7 @@ abstract contract SettlementModule is ISettlementModule {
         } else {
             oldPosition.update(vars.newPosition);
         }
+
         perpMarket.updateState(vars.sizeDelta, vars.fundingRate, vars.fundingFeePerUnit);
 
         emit LogSettleOrder(msg.sender, vars.accountId, vars.marketId, vars.pnl.intoInt256(), vars.newPosition);

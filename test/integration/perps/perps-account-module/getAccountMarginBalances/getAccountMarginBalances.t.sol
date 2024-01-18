@@ -18,7 +18,8 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).intoUint256();
+        uint256 expectedMarginBalance =
+            getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(ud60x18(amountToDeposit)).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
@@ -32,11 +33,7 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
             UD60x18 initialMarginUsdX18,
             UD60x18 maintenanceMarginUsdX18,
             SD59x18 availableBalance
-        ) = perpsEngine.getAccountMarginBreakdown({
-            accountId: perpsAccountId,
-            activeMarketsIds: activeMarketsIds,
-            indexPricesX18: indexPricesX18
-        });
+        ) = perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
 
         assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");
@@ -53,9 +50,9 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
         deal({ token: address(mockWstEth), to: users.naruto, give: amountToDeposit });
 
-        uint256 expectedMarginBalance = getPrice(mockUsdcUsdPriceFeed).mul(ud60x18(amountToDeposit)).add(
-            getPrice(mockWstEthUsdPriceFeed).mul(ud60x18(amountToDeposit))
-        ).intoUint256();
+        uint256 expectedMarginBalance = getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(
+            ud60x18(amountToDeposit)
+        ).add(getPrice(mockPriceAdapters.mockWstEthUsdPriceAdapter).mul(ud60x18(amountToDeposit))).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
@@ -70,11 +67,7 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
             UD60x18 initialMarginUsdX18,
             UD60x18 maintenanceMarginUsdX18,
             SD59x18 availableBalance
-        ) = perpsEngine.getAccountMarginBreakdown({
-            accountId: perpsAccountId,
-            activeMarketsIds: activeMarketsIds,
-            indexPricesX18: indexPricesX18
-        });
+        ) = perpsEngine.getAccountMarginBreakdown({ accountId: perpsAccountId });
 
         assertEq(marginBalanceUsdX18.intoUint256(), expectedMarginBalance, "getAccountMargin marginBalanceUsdX18");
         assertEq(availableBalance.intoUint256(), expectedAvailableBalance, "getAccountMargin availableBalance");

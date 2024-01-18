@@ -16,7 +16,9 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.configureMarginCollateral(address(usdToken), 0, USDZ_LOAN_TO_VALUE, address(mockUsdcUsdPriceFeed));
+        perpsEngine.configureMarginCollateral(
+            address(usdToken), 0, USDZ_LOAN_TO_VALUE, address(mockPriceAdapters.mockUsdcUsdPriceAdapter)
+        );
         changePrank({ msgSender: users.naruto });
 
         uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
