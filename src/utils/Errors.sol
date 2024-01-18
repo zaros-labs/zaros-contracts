@@ -77,6 +77,10 @@ library Errors {
 
     /// @notice Thrown when the caller is not the registered Upkeep contract.
     error OnlyUpkeep(address sender, address upkeep);
+    /// @notice Thrown when trying to settle an order and then account has insufficient margin for the new position.
+    error InsufficientMargin(
+        uint128 accountId, uint128 marketId, uint256 marginBalanceUsdX18, uint256 requiredMarginUsdX18
+    );
 
     /// @notice PerpsEngine.PerpMarketModule errors.
     // TODO: create errors
