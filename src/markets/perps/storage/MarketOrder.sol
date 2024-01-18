@@ -32,7 +32,11 @@ library MarketOrder {
     }
 
     // TODO: Implement
-    function clear(Data storage self) internal { }
+    function clear(Data storage self) internal {
+        self.sizeDelta = 0;
+        self.acceptablePrice = 0;
+        self.timestamp = 0;
+    }
 
     function checkPendingOrder(Data storage self) internal view {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -41,5 +45,10 @@ library MarketOrder {
         if (self.timestamp != 0 && block.timestamp - self.timestamp <= marketOrderMaxLifetime) {
             revert Errors.MarketOrderStillPending(self.timestamp);
         }
+    }
+
+    // TODO: Implement
+    function validateSimulatedOrderSettlement() internal view {
+
     }
 }

@@ -18,7 +18,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
@@ -73,10 +73,11 @@ library PerpsAccount {
         return false;
     }
 
+    /// @notice Validates if the perps account is under the configured positions limit.
     /// @dev This function must be called when the perps account is going to open a new position. If called in a
     /// context
     /// of an already active market, the check may be misleading.
-    function checkPositionsLimit(Data storage self) internal view {
+    function validatePositionsLimit(Data storage self) internal view {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         uint256 maxPositionsPerAccount = globalConfiguration.maxPositionsPerAccount;
@@ -84,6 +85,45 @@ library PerpsAccount {
 
         if (activePositionsLength >= maxPositionsPerAccount) {
             revert Errors.MaxPositionsPerAccountReached(self.id, activePositionsLength, maxPositionsPerAccount);
+        }
+    }
+
+    /// @notice Validates if the given account will still meet margin requirements after a new settlement.
+    /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
+    /// @dev Must be called whenever a position is updated.
+    /// @param self The perps account storage pointer.
+    function validateMarginRequirements(Data storage self) internal view {
+        UD60x18 requiredMarginUsdX18;
+        SD59x18 accountTotalUnrealizedPnlUsdX18;
+
+        for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
+            uint128 marketId = self.activeMarketsIds.at(i).toUint128();
+
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+            Position.Data storage position = Position.load(self.id, marketId);
+
+            UD60x18 indexPrice = perpMarket.getIndexPrice();
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
+
+            (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = position
+                .getMarginRequirements(
+                markPrice,
+                ud60x18(perpMarket.configuration.minInitialMarginRateX18),
+                ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
+            );
+            SD59x18 positionUnrealizedPnl = position.getUnrealizedPnl(markPrice);
+
+            requiredMarginUsdX18 =
+                requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
+            accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
+        }
+
+        SD59x18 marginBalanceUsdX18 = getMarginBalanceUsd(self, accountTotalUnrealizedPnlUsdX18);
+
+        if (requiredMarginUsdX18.intoSD59x18().gte(marginBalanceUsdX18)) {
+            revert Errors.InsufficientMargin(
+                self.id, marginBalanceUsdX18.intoUint256(), requiredMarginUsdX18.intoUint256()
+            );
         }
     }
 

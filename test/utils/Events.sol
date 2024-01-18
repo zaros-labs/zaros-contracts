@@ -14,10 +14,10 @@ abstract contract Events {
 
     event LogCreatePerpsAccount(uint128 accountId, address sender);
     event LogDepositMargin(
-        address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
+        address indexed sender, uint128 indexed accountId, address indexed collateralType, uint256 amount
     );
     event LogWithdrawMargin(
-        address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
+        address indexed sender, uint128 indexed accountId, address indexed collateralType, uint256 amount
     );
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -31,9 +31,9 @@ abstract contract Events {
                                    ORDER MODULE
     //////////////////////////////////////////////////////////////////////////*/
     event LogCreateMarketOrder(
-        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, MarketOrder.Data marketOrder
+        address indexed sender, uint128 indexed accountId, uint128 indexed marketId, MarketOrder.Data marketOrder
     );
-    // event LogCancelMarketOrder(address indexed sender, uint256 indexed accountId, uint128 indexed marketId,
+    // event LogCancelMarketOrder(address indexed sender, uint128 indexed accountId, uint128 indexed marketId,
     // uint8
     // orderId);
 
@@ -41,6 +41,6 @@ abstract contract Events {
                                    SETTLEMENT MODULE
     //////////////////////////////////////////////////////////////////////////*/
     event LogSettleOrder(
-        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, Position.Data newPosition
+        address indexed sender, uint128 indexed accountId, uint128 indexed marketId, Position.Data newPosition
     );
 }

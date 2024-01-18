@@ -84,9 +84,11 @@ abstract contract OrderModule is IOrderModule {
 
         // perpsAccount.checkIsNotLiquidatable();
 
+        // TODO: validate margin requirements
+
         bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
         if (!isMarketWithActivePosition) {
-            perpsAccount.checkPositionsLimit();
+            perpsAccount.validatePositionsLimit();
         }
 
         globalConfiguration.checkMarketIsEnabled(marketId);
@@ -135,16 +137,15 @@ abstract contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function cancelMarketOrder(uint128 accountId, uint128 marketId, uint8 orderId) external override {
-        // PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-        // PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-        // MarketOrder.Data storage order = perpMarket.orders[accountId][orderId];
+    function cancelMarketOrder(uint128 accountId, uint128 marketId) external override {
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
 
-        // // perpsAccount.updateActiveOrders(marketId, orderId, false);
-        // order.reset();
+        if (marketOrder.timestamp == 0) {
+            revert Errors.MarketOrderNotFound(accountId, marketId);
+        }
 
-        // emit LogCancelMarketOrder(msg.sender, accountId, marketId, orderId);
+        marketOrder.clear();
 
-        this;
+        emit LogCancelMarketOrder(msg.sender, accountId, marketId);
     }
 }
