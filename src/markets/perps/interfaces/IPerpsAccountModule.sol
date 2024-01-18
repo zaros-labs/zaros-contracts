@@ -25,7 +25,7 @@ interface IPerpsAccountModule {
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
     event LogDepositMargin(
-        address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
+        address indexed sender, uint128 indexed accountId, address indexed collateralType, uint256 amount
     );
 
     /// @notice Emitted when `msg.sender` withdraws `amount` of `collateralType` from `accountId`.
@@ -34,7 +34,7 @@ interface IPerpsAccountModule {
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
     event LogWithdrawMargin(
-        address indexed sender, uint256 indexed accountId, address indexed collateralType, uint256 amount
+        address indexed sender, uint128 indexed accountId, address indexed collateralType, uint256 amount
     );
 
     /// @notice Gets the contract address of the trading accounts NFTs.

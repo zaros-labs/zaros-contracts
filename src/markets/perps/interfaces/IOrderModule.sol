@@ -13,8 +13,9 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 interface IOrderModule {
     event LogCreateMarketOrder(
-        address indexed sender, uint256 indexed accountId, uint128 indexed marketId, MarketOrder.Data marketOrder
+        address indexed sender, uint128 indexed accountId, uint128 indexed marketId, MarketOrder.Data marketOrder
     );
+    event LogCancelMarketOrder(address indexed sender, uint128 indexed accountId, uint128 indexed marketId);
 
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
@@ -50,7 +51,11 @@ interface IOrderModule {
     )
         external;
 
-    function cancelMarketOrder(uint128 accountId, uint128 marketId, uint8 orderId) external;
+    /// @notice Cancels an active market order.
+    /// @dev Reverts if there is no active market order for the given account and market.
+    /// @param accountId The trading account id.
+    /// @param marketId The perp market id.
+    function cancelMarketOrder(uint128 accountId, uint128 marketId) external;
 
     function dispatchCustomSettlementRequest(
         uint128 accountId,
