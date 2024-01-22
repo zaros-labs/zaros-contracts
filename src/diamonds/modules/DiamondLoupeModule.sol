@@ -1,17 +1,28 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import { DiamondCutStorage } from "src/facets/cut/DiamondCutStorage.sol";
-import { IDiamondLoupeModule } from "./IDiamondLoupe.sol";
-import { DiamondLoupe } from "./DiamondLoupe.sol";
+// Zaros dependencies
+import { DiamondCut } from "../storage/DiamondCut.sol";
+import { IDiamondLoupeModule } from "../interfaces/IDiamondLoupeModule.sol";
+import { DiamondLoupe } from "../storage/DiamondLoupe.sol";
 
-abstract contract DiamondLoupeModule is IDiamondLoupeModule {
+// Open Zeppelin Upgradeable dependencies
+import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
+
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+
+abstract contract DiamondLoupeModule is IDiamondLoupeModule, Initializable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
-    function _facetSelectors(address facet) internal view returns (bytes4[] memory selectors) {
-        EnumerableSet.Bytes32Set storage facetSelectors_ = DiamondCutStorage.layout().facetSelectors[facet];
+    function DiamondLoupe_init() external onlyInitializing {
+        _addInterface(type(IDiamondLoupe).interfaceId);
+        _addInterface(type(IERC165).interfaceId);
+    }
+
+    function facetSelectors(address facet) external view returns (bytes4[] memory selectors) {
+        EnumerableSet.Bytes32Set storage facetSelectors_ = DiamondCut.load().facetSelectors[facet];
         uint256 selectorCount = facetSelectors_.length();
         selectors = new bytes4[](selectorCount);
         for (uint256 i = 0; i < selectorCount; i++) {
@@ -19,14 +30,15 @@ abstract contract DiamondLoupeModule is IDiamondLoupeModule {
         }
     }
 
-    function _facetAddresses() internal view returns (address[] memory) {
-        return DiamondCutStorage.layout().facets.values();    }
-
-    function _facetAddress(bytes4 selector) internal view returns (address) {
-        return DiamondCutStorage.layout().selectorToFacet[selector];
+    function facetAddresses() external view returns (address[] memory) {
+        return DiamondCut.load().facets.values();
     }
 
-    function _facets() internal view returns (Facet[] memory facets) {
+    function facetAddress(bytes4 selector) external view returns (address) {
+        return DiamondCut.load().selectorToFacet[selector];
+    }
+
+    function facets() external view returns (Facet[] memory facets) {
         address[] memory facetAddresses = _facetAddresses();
         uint256 facetCount = facetAddresses.length;
         facets = new Facet[](facetCount);
@@ -40,15 +52,15 @@ abstract contract DiamondLoupeModule is IDiamondLoupeModule {
         }
     }
 
-    function _supportsInterface(bytes4 interfaceId) internal view returns (bool) {
-        return DiamondLoupeStorage.layout().supportedInterfaces[interfaceId];
+    function supportsInterface(bytes4 interfaceId) external view returns (bool) {
+        return DiamondLoupe.load().supportedInterfaces[interfaceId];
     }
 
     function _addInterface(bytes4 interfaceId) internal {
-        DiamondLoupeStorage.layout().supportedInterfaces[interfaceId] = true;
+        DiamondLoupe.load().supportedInterfaces[interfaceId] = true;
     }
 
     function _removeInterface(bytes4 interfaceId) internal {
-        DiamondLoupeStorage.layout().supportedInterfaces[interfaceId] = false;
+        DiamondLoupe.load().supportedInterfaces[interfaceId] = false;
     }
 }

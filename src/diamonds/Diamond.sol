@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+// Zaros dependencies
+import { DiamondCutModule } from "./modules/DiamondCutModule.sol";
+import { DiamondLoupeModule } from "./modules/DiamondLoupeModule.sol";
+import { IDiamond } from "./interfaces/IDiamond.sol";
+
+// Open Zeppelin dependencies
 import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { DiamondCutModule } from "src/facets/cut/DiamondCutBase.sol";
-import { DiamondLoupeModule } from "src/facets/loupe/DiamondLoupeBase.sol";
-import { IDiamond } from "./IDiamond.sol";
+
+// Open Zeppelin Upgradeable dependencies
+import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 
 contract DiamondModule is IDiamondModule, Proxy, DiamondCutModule, DiamondLoupeModule, Initializable {
     struct InitParams {
