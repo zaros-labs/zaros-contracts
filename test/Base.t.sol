@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";

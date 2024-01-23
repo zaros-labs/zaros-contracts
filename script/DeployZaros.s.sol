@@ -10,7 +10,7 @@ pragma solidity 0.8.23;
 // import { CollateralConfig } from "@zaros/liquidity/storage/CollateralConfig.sol";
 // import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 // import { BalancerUSDCStrategy } from "@zaros/strategies/BalancerUSDCStrategy.sol";
-// import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+// import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 // import { PerpMarket } from "@zaros/markets/perps/PerpMarket.sol";
 // import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 

@@ -4,13 +4,11 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "./Base.s.sol";
-
-// Open Zeppelin Upgradeable dependencies
-import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Forge dependencies
 import "forge-std/console.sol";
@@ -31,8 +29,7 @@ contract DeployAlphaPerps is BaseScript {
     //////////////////////////////////////////////////////////////////////////*/
     AccountNFT internal perpsAccountToken;
     USDToken internal usdToken;
-    PerpsEngine internal perpsEngine;
-    PerpsEngine internal perpsEngineImplementation;
+    IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
         // chainlinkForwarder = vm.envAddress("CHAINLINK_FORWARDER");
@@ -41,7 +38,7 @@ contract DeployAlphaPerps is BaseScript {
         usdToken = USDToken(vm.envAddress("USDZ"));
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
 
-        perpsEngineImplementation = new PerpsEngine();
+        // perpsEngineImplementation = new PerpsEngine();
         bytes memory initializeData = abi.encodeWithSelector(
             perpsEngineImplementation.initialize.selector,
             deployer,

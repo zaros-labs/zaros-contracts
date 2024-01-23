@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "./Base.s.sol";

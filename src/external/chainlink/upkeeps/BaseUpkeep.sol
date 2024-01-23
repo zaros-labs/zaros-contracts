@@ -6,7 +6,7 @@ import { IFeeManager, FeeAsset } from "../interfaces/IFeeManager.sol";
 import { IVerifierProxy } from "../interfaces/IVerifierProxy.sol";
 import { ChainlinkUtil } from "../ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 
 // Open Zeppelin dependencies
