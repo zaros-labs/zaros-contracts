@@ -20,7 +20,6 @@ library DiamondLoupe {
         self.supportedInterfaces[interfaceId] = true;
     }
 
-
     function removeInterface(Data storage self, bytes4 interfaceId) internal {
         self.supportedInterfaces[interfaceId] = false;
     }

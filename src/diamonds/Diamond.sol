@@ -13,7 +13,9 @@ import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 // Open Zeppelin Upgradeable dependencies
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 
-contract DiamondModule is IDiamondModule, Proxy, Initializable {
+contract DiamondModule is IDiamond, Proxy, Initializable {
+    using DiamondCut for DiamondCut.Data;
+
     struct InitParams {
         FacetCut[] baseFacets;
         address init;
@@ -21,12 +23,18 @@ contract DiamondModule is IDiamondModule, Proxy, Initializable {
     }
 
     constructor(InitParams memory initDiamondCut) initializer {
-        DiamondCut.diamondCut(initDiamondCut.baseFacets, initDiamondCut.init, initDiamondCut.initData);
+        DiamondCut.Data storage diamondCut = DiamondCut.load();
+
+        diamondCut.updateModules(initDiamondCut.baseFacets, initDiamondCut.init, initDiamondCut.initData);
     }
 
-    function _implementation() internal view override returns (address facet) {
+    function _implementation() internal view override returns (address) {
+        DiamondCut.Data storage diamondCut = DiamondCut.load();
         bytes4 functionSignature = msg.sig;
-        facet = DiamondLoupe.facetAddress(functionSignature);
+
+        address facet = diamondCut.getFacetAddress(functionSignature);
         if (facet == address(0)) revert Errors.UnsupportedFunction(functionSignature);
+
+        return facet;
     }
 }

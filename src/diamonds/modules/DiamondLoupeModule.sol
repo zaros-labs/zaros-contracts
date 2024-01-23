@@ -5,47 +5,58 @@ pragma solidity 0.8.23;
 import { DiamondCut } from "../storage/DiamondCut.sol";
 import { IDiamondLoupeModule } from "../interfaces/IDiamondLoupeModule.sol";
 import { DiamondLoupe } from "../storage/DiamondLoupe.sol";
+import { Facet } from "../storage/Facet.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 
 // Open Zeppelin dependencies
+import { IERC165 } from "@openzeppelin/utils/introspection/IERC165.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
-abstract contract DiamondLoupeModule is IDiamondLoupeModule, Initializable {
-    using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.Bytes32Set;
+contract DiamondLoupeModule is IDiamondLoupeModule, IERC165, Initializable {
+    using DiamondCut for DiamondCut.Data;
+    using DiamondLoupe for DiamondLoupe.Data;
+    using EnumerableSet for *;
 
-    function DiamondLoupe_init() external onlyInitializing {
+    function initialize() external onlyInitializing {
         DiamondLoupe.Data storage diamondLoupe = DiamondLoupe.load();
 
-        diamondLoupe.addInterface(type(IDiamondLoupe).interfaceId);
+        diamondLoupe.addInterface(type(IDiamondLoupeModule).interfaceId);
         diamondLoupe.addInterface(type(IERC165).interfaceId);
     }
 
-    function facetSelectors(address facet) external view returns (bytes4[] memory) {
-        DiamondCut storage diamondCut = DiamondCut.load();
+    function facets() external view returns (Facet.Data[] memory) {
+        DiamondCut.Data storage diamondCut = DiamondCut.load();
+
+        return diamondCut.getFacets();
+    }
+
+    function facetFunctionSelectors(address facet) external view returns (bytes4[] memory) {
+        DiamondCut.Data storage diamondCut = DiamondCut.load();
 
         return diamondCut.getFacetSelectors(facet);
     }
 
     function facetAddresses() external view returns (address[] memory) {
-        DiamondCut storage diamondCut = DiamondCut.load();
+        DiamondCut.Data storage diamondCut = DiamondCut.load();
 
         return diamondCut.getFacetAddresses();
     }
 
     function facetAddress(bytes4 selector) external view returns (address) {
-        return DiamondCut.load().selectorToFacet[selector];
+        DiamondCut.Data storage diamondCut = DiamondCut.load();
+
+        return diamondCut.getFacetAddress(selector);
     }
 
-    function facets() external view returns (Facet[] memory) {
-        DiamondCut storage diamondCut = DiamondCut.load();
+    function facetSelectors(address facet) external view returns (bytes4[] memory) {
+        DiamondCut.Data storage diamondCut = DiamondCut.load();
 
-        return diamondCut.getFacets();
+        return diamondCut.getFacetSelectors(facet);
     }
 
-    function supportsInterface(bytes4 interfaceId) external view returns (bool) {
+    function supportsInterface(bytes4 interfaceId) external view override returns (bool) {
         return DiamondLoupe.load().supportedInterfaces[interfaceId];
     }
 }
