@@ -17,9 +17,21 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 contract DiamondCutModule is IDiamondCutModule, Initializable, OwnableUpgradeable {
     using DiamondCut for DiamondCut.Data;
 
-    function updateModules(IDiamond.FacetCut[] memory facetCuts, address init, bytes memory initData) external {
+    function initialize(address owner) external initializer {
+        __Ownable_init(owner);
+    }
+
+    function updateModules(
+        IDiamond.FacetCut[] memory facetCuts,
+        address[] memory initializables,
+        bytes[] memory initializePayloads
+    )
+        external
+    {
         DiamondCut.Data storage diamondCut = DiamondCut.load();
 
-        diamondCut.updateModules(facetCuts, init, initData);
+        diamondCut.updateModules(facetCuts, initializables, initializePayloads);
     }
+
+    function _authorizeUpgrade(IDiamond.FacetCut[] memory) internal onlyOwner { }
 }

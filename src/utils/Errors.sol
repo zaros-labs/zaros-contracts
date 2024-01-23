@@ -29,7 +29,7 @@ library Errors {
     error FunctionFromSameFacet(bytes4 functionSelector);
     error NonExistingFunction(bytes4 functionSelector);
     error CannotRemoveFromOtherFacet(address facet, bytes4 functionSelector);
-    error InitIsNotContract(address init);
+    error InitializableIsNotContract(address initializable);
 
     /// @notice Chainlink Upkeeps errors.
 

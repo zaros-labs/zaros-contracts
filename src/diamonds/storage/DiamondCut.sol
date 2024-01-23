@@ -81,8 +81,8 @@ library DiamondCut {
     function updateModules(
         Data storage self,
         IDiamond.FacetCut[] memory facetCuts,
-        address init,
-        bytes memory initData
+        address[] memory initializables,
+        bytes[] memory initializePayloads
     )
         internal
     {
@@ -100,7 +100,7 @@ library DiamondCut {
             }
         }
 
-        initializeDiamondCut(facetCuts, init, initData);
+        initializeDiamondCut(facetCuts, initializables, initializePayloads);
     }
 
     function addFacet(Data storage self, address facet, bytes4[] memory selectors) internal {
@@ -184,27 +184,22 @@ library DiamondCut {
         }
     }
 
-    function initializeDiamondCut(IDiamond.FacetCut[] memory, address init, bytes memory initData) internal {
-        if (init == address(0)) return;
-        if (init == Constants.MULTI_INIT_ADDRESS) {
-            multiDelegateCall(abi.decode(initData, (IDiamond.MultiInit[])));
-            return;
-        }
-        if (init.code.length == 0) {
-            revert Errors.InitIsNotContract(init);
-        }
-        // slither-disable-next-line unused-return
-        Address.functionDelegateCall(init, initData);
-    }
+    function initializeDiamondCut(
+        IDiamond.FacetCut[] memory,
+        address[] memory initializables,
+        bytes[] memory initializePayloads
+    )
+        internal
+    {
+        for (uint256 i = 0; i < initializables.length; i++) {
+            address initializable = initializables[i];
+            bytes memory data = initializePayloads[i];
 
-    function multiDelegateCall(IDiamond.MultiInit[] memory initData) internal {
-        uint256 length = initData.length;
-        for (uint256 i = 0; i < length; i++) {
-            address init = initData[i].init;
-            if (init.code.length == 0) revert Errors.InitIsNotContract(init);
+            if (initializable.code.length == 0) {
+                revert Errors.InitializableIsNotContract(initializable);
+            }
 
-            // slither-disable-next-line unused-return
-            Address.functionDelegateCall(init, initData[i].initData);
+            Address.functionDelegateCall(initializable, data);
         }
     }
 }

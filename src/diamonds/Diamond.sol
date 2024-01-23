@@ -16,16 +16,12 @@ import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializab
 contract DiamondModule is IDiamond, Proxy, Initializable {
     using DiamondCut for DiamondCut.Data;
 
-    struct InitParams {
-        FacetCut[] baseFacets;
-        address init;
-        bytes initData;
-    }
-
     constructor(InitParams memory initDiamondCut) initializer {
         DiamondCut.Data storage diamondCut = DiamondCut.load();
 
-        diamondCut.updateModules(initDiamondCut.baseFacets, initDiamondCut.init, initDiamondCut.initData);
+        diamondCut.updateModules(
+            initDiamondCut.baseFacets, initDiamondCut.initializables, initDiamondCut.initializePayloads
+        );
     }
 
     function _implementation() internal view override returns (address) {

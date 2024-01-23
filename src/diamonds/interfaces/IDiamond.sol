@@ -6,9 +6,6 @@ pragma solidity 0.8.23;
  * @notice Interface of the Diamond Proxy contract. See [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535).
  */
 interface IDiamond {
-    /// @notice Thrown when calling a function that was not registered in the diamond.
-    error Diamond_UnsupportedFunction();
-
     /**
      * @notice Expresses the action of adding, replacing, or removing a facet.
      */
@@ -30,12 +27,9 @@ interface IDiamond {
         bytes4[] selectors;
     }
 
-    /**
-     * @notice Represents data used in multiDelegateCall.
-     * @param data Includes encoded initializer + arguments.
-     */
-    struct MultiInit {
-        address init;
-        bytes initData;
+    struct InitParams {
+        FacetCut[] baseFacets;
+        address[] initializables;
+        bytes[] initializePayloads;
     }
 }

@@ -10,8 +10,6 @@ library Constants {
     uint32 internal constant MAX_MIN_DELEGATE_TIME = 30 days;
     /// @notice Default period for the proportional funding rate calculations.
     uint256 internal constant FUNDING_INTERVAL = 1 days;
-    /// @notice EIP-2535 address used to indetify a multi delegate call.
-    address internal constant MULTI_INIT_ADDRESS = 0xD1a302d1A302d1A302d1A302d1A302D1A302D1a3;
 
     /// @notice Feature flags for all permissionless features.
     bytes32 internal constant CREATE_ACCOUNT_FEATURE_FLAG = "createAccount";
