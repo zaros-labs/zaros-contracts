@@ -26,6 +26,26 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     using PerpMarket for PerpMarket.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
+    /// @dev {GlobalConfigurationModule} UUPS initializer.
+    function initialize(
+        address owner,
+        address perpsAccountToken,
+        address rewardDistributor,
+        address usdToken,
+        address liquidityEngine
+    )
+        external
+        initializer
+    {
+        __Ownable_init(owner);
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.perpsAccountToken = perpsAccountToken;
+        globalConfiguration.rewardDistributor = rewardDistributor;
+        globalConfiguration.usdToken = usdToken;
+        globalConfiguration.liquidityEngine = liquidityEngine;
+    }
+
     /// @inheritdoc IGlobalConfigurationModule
     function getDepositCapForMarginCollateralConfiguration(address collateralType)
         external
@@ -195,22 +215,5 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
 
             emit LogDisablePerpMarket(marketId);
         }
-    }
-
-    /// @dev {GlobalConfigurationModule} UUPS initializer.
-    function __GlobalConfigurationModule_init(
-        address perpsAccountToken,
-        address rewardDistributor,
-        address usdToken,
-        address liquidityEngine
-    )
-        internal
-        onlyInitializing
-    {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.perpsAccountToken = perpsAccountToken;
-        globalConfiguration.rewardDistributor = rewardDistributor;
-        globalConfiguration.usdToken = usdToken;
-        globalConfiguration.liquidityEngine = liquidityEngine;
     }
 }
