@@ -88,6 +88,7 @@ library PerpsAccount {
         }
     }
 
+    // TODO: Should we create a Service to handle this?
     /// @notice Validates if the given account will still meet margin requirements after a new settlement.
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.
