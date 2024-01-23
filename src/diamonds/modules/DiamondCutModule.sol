@@ -28,6 +28,7 @@ contract DiamondCutModule is IDiamondCutModule, Initializable, OwnableUpgradeabl
     )
         external
     {
+        _authorizeUpgrade(facetCuts);
         DiamondCut.Data storage diamondCut = DiamondCut.load();
 
         diamondCut.updateModules(facetCuts, initializables, initializePayloads);
