@@ -26,8 +26,7 @@ import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 /// @notice See {IPerpsAccountModule}.
 abstract contract PerpsAccountModule is IPerpsAccountModule {
     // using EnumerableMap for EnumerableMap.AddressToUintMap;
-    using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for *;
     using PerpsAccount for PerpsAccount.Data;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;

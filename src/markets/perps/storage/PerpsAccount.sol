@@ -23,8 +23,7 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
-    using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for *;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;

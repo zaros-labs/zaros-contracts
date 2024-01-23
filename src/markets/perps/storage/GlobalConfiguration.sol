@@ -18,8 +18,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 /// @title The GlobalConfiguration namespace.
 library GlobalConfiguration {
-    using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for *;
     using SafeCast for int256;
 
     /// @dev GlobalConfiguration namespace storage slot.
