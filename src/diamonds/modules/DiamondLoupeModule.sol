@@ -17,50 +17,35 @@ abstract contract DiamondLoupeModule is IDiamondLoupeModule, Initializable {
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
     function DiamondLoupe_init() external onlyInitializing {
-        _addInterface(type(IDiamondLoupe).interfaceId);
-        _addInterface(type(IERC165).interfaceId);
+        DiamondLoupe.Data storage diamondLoupe = DiamondLoupe.load();
+
+        diamondLoupe.addInterface(type(IDiamondLoupe).interfaceId);
+        diamondLoupe.addInterface(type(IERC165).interfaceId);
     }
 
-    function facetSelectors(address facet) external view returns (bytes4[] memory selectors) {
-        EnumerableSet.Bytes32Set storage facetSelectors_ = DiamondCut.load().facetSelectors[facet];
-        uint256 selectorCount = facetSelectors_.length();
-        selectors = new bytes4[](selectorCount);
-        for (uint256 i = 0; i < selectorCount; i++) {
-            selectors[i] = bytes4(facetSelectors_.at(i));
-        }
+    function facetSelectors(address facet) external view returns (bytes4[] memory) {
+        DiamondCut storage diamondCut = DiamondCut.load();
+
+        return diamondCut.getFacetSelectors(facet);
     }
 
     function facetAddresses() external view returns (address[] memory) {
-        return DiamondCut.load().facets.values();
+        DiamondCut storage diamondCut = DiamondCut.load();
+
+        return diamondCut.getFacetAddresses();
     }
 
     function facetAddress(bytes4 selector) external view returns (address) {
         return DiamondCut.load().selectorToFacet[selector];
     }
 
-    function facets() external view returns (Facet[] memory facets) {
-        address[] memory facetAddresses = _facetAddresses();
-        uint256 facetCount = facetAddresses.length;
-        facets = new Facet[](facetCount);
+    function facets() external view returns (Facet[] memory) {
+        DiamondCut storage diamondCut = DiamondCut.load();
 
-        // Build up facet struct.
-        for (uint256 i = 0; i < facetCount; i++) {
-            address facet = facetAddresses[i];
-            bytes4[] memory selectors = _facetSelectors(facet);
-
-            facets[i] = Facet({ facet: facet, selectors: selectors });
-        }
+        return diamondCut.getFacets();
     }
 
     function supportsInterface(bytes4 interfaceId) external view returns (bool) {
         return DiamondLoupe.load().supportedInterfaces[interfaceId];
-    }
-
-    function _addInterface(bytes4 interfaceId) internal {
-        DiamondLoupe.load().supportedInterfaces[interfaceId] = true;
-    }
-
-    function _removeInterface(bytes4 interfaceId) internal {
-        DiamondLoupe.load().supportedInterfaces[interfaceId] = false;
     }
 }

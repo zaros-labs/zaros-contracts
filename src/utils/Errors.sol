@@ -15,6 +15,9 @@ library Errors {
     // error DisabledMarketId(uint128 marketId);
     error ArrayLengthMismatch(uint256 expected, uint256 actual);
 
+    /// @notice Router errors.
+    error UnsupportedFunction(bytes4 functionSignature);
+
     /// @notice Chainlink Upkeeps errors.
 
     /// @notice Thrown when an oracle returns an unexpected, invalid value.
