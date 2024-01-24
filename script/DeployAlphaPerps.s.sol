@@ -4,8 +4,10 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { Diamond } from "@zaros/diamonds/Diamond.sol";
 import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
+import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { DiamondCutModule } from "@zaros/diamonds/modules/DiamondCutModule.sol";
+import { DiamondLoupeModule } from "@zaros/diamonds/modules/DiamondLoupeModule.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
 import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
@@ -53,7 +55,7 @@ contract DeployAlphaPerps is BaseScript {
         initializables[0] = globalConfigurationModule;
 
         bytes memory initializeData = abi.encodeWithSelector(
-            globalConfigurationModule.initialize.selector,
+            GlobalConfigurationModule.initialize.selector,
             deployer,
             address(perpsAccountToken),
             mockRewardDistributorAddress,
@@ -94,7 +96,19 @@ contract DeployAlphaPerps is BaseScript {
     }
 
     function getModulesSelectors() internal pure returns (bytes4[][]) {
-        bytes4[][] memory selectors = new bytes4[][](5)();
+        bytes4[][] memory selectors = new bytes4[][](7)();
+
+        bytes4[] memory diamondCutModuleSelectors = new bytes4[](1);
+
+        diamondCutModuleSelectors[0] = DiamondCutModule.updateModules.selector;
+
+        bytes4[] memory diamondLoupeModuleSelectors = new bytes4[](6);
+
+        diamondLoupeModuleSelectors[0] = DiamondLoupeModule.facets.selector;
+        diamondLoupeModuleSelectors[1] = DiamondLoupeModule.facetFunctionSelectors.selector;
+        diamondLoupeModuleSelectors[3] = DiamondLoupeModule.facetAddresses.selector;
+        diamondLoupeModuleSelectors[2] = DiamondLoupeModule.facetAddress.selector;
+        diamondLoupeModuleSelectors[4] = DiamondLoupeModule.facetSelectors.selector;
 
         bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](9);
 
