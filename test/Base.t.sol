@@ -91,20 +91,37 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
             mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter
         });
 
-        perpsEngineImplementation = new PerpsEngine();
-        bytes memory initializeData = abi.encodeWithSelector(
-            perpsEngineImplementation.initialize.selector,
-            users.owner,
-            address(perpsAccountToken),
-            address(rewardDistributor),
-            address(usdToken),
-            address(liquidityEngine)
-        );
-        (bool success,) = address(perpsEngineImplementation).call(initializeData);
-        require(success, "perpsEngineImplementation.initialize failed");
+        address[] memory modules = deployModules();
+        bytes4[][] memory modulesSelectors = getModulesSelectors();
 
-        perpsEngine =
-            PerpsEngine(payable(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData))));
+        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
+        address[] memory initializables = new address[](1);
+
+        address diamondCutModule = modules[0];
+        address globalConfigurationModule = modules[2];
+
+        initializables[0] = globalConfigurationModule;
+
+        bytes memory diamondCutInitializeData = abi.encodeWithSelector(DiamondCutModule.initialize.selector, deployer);
+        bytes memory perpsInitializeData = abi.encodeWithSelector(
+            GlobalConfigurationModule.initialize.selector,
+            address(perpsAccountToken),
+            mockRewardDistributorAddress,
+            address(usdToken),
+            mockZarosAddress
+        );
+
+        bytes[] memory initializePayloads = new bytes[](1);
+        initializePayloads[0] = diamondCutInitializeData;
+        initializePayloads[1] = perpsInitializeData;
+
+        IDiamond.InitParams memory initParams = IDiamond.InitParams({
+            baseFacets: facetCuts,
+            initializables: initializables,
+            initializePayloads: initializePayloads
+        });
+
+        perpsEngine = IPerpsEngine(address(new Diamond(initParams)));
 
         configureContracts();
 
