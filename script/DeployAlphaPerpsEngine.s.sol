@@ -28,7 +28,7 @@ contract DeployAlphaPerps is BaseScript {
     address internal chainlinkForwarder;
     address internal chainlinkVerifier;
     address internal mockRewardDistributorAddress = address(3);
-    address internal mockZarosAddress = address(4);
+    address internal mockLiquidityEngineAddress = address(4);
     /// @dev TODO: We need a USDz price feed
     address internal usdcUsdPriceFeed;
 
@@ -52,7 +52,7 @@ contract DeployAlphaPerps is BaseScript {
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
         address[] memory initializables = getInitializables(modules);
         bytes[] memory initializePayloads = getInitializePayloads(
-            deployer, address(perpsAccountToken), mockRewardDistributorAddress, address(usdToken), mockZarosAddress
+            deployer, address(perpsAccountToken), mockRewardDistributorAddress, address(usdToken), mockLiquidityEngineAddress
         );
 
         IDiamond.InitParams memory initParams = IDiamond.InitParams({

@@ -32,7 +32,7 @@ contract DeployAlphaPerps is BaseScript {
     address internal mockChainlinkVerifier = address(2);
     address internal mockPerpsAccountTokenAddress = address(3);
     address internal mockRewardDistributorAddress = address(4);
-    address internal mockZarosAddress = address(5);
+    address internal mockLiquidityEngineAddress = address(5);
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
