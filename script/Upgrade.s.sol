@@ -29,8 +29,7 @@ contract DeployAlphaPerps is BaseScript {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     USDToken internal usdToken;
-    PerpsEngine internal perpsEngine;
-    PerpsEngine internal perpsEngineImplementation;
+    IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
         usdToken = USDToken(vm.envAddress("USDZ"));

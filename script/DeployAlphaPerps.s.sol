@@ -64,11 +64,19 @@ contract DeployAlphaPerps is BaseScript {
         bytes[] memory initializePayloads = new bytes[](1);
         initializePayloads[0] = initializeData;
 
+        IDiamond.InitParams memory initParams = IDiamond.InitParams({
+            baseFacets: facetCuts,
+            initializables: initializables,
+            initializePayloads: initializePayloads
+        });
+
+        perpsEngine = IPerpsEngine(address(new Diamond(initParams)));
+
         // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
         payable(address(perpsEngine)).transfer(1 ether);
 
         configureContracts();
-        logContracts();
+        logContracts(modules);
     }
 
     function deployModules() internal returns (address[] memory modules) {
@@ -176,14 +184,16 @@ contract DeployAlphaPerps is BaseScript {
         perpsEngine.configureMarginCollateral(address(usdToken), type(uint128).max, 100e18, usdcUsdPriceFeed);
     }
 
-    function logContracts() internal view {
-        // console.log("Perps Account NFT: ");
-        // console.log(address(perpsAccountToken));
+    function logContracts(address[] memory modules) internal view {
+        for (uint256 i = 0; i < modules.length; i++) {
+            console.log("Module: ");
+            console.log(modules[i]);
+        }
 
-        // console.log("Perps Engine Implementation: ");
-        // console.log(address(perpsEngineImplementation));
+        console.log("Perps Account NFT: ");
+        console.log(address(perpsAccountToken));
 
-        // console.log("Perps Engine Proxy: ");
-        // console.log(address(perpsEngine));
+        console.log("Perps Engine Proxy: ");
+        console.log(address(perpsEngine));
     }
 }
