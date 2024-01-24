@@ -22,7 +22,7 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-abstract contract OrderModule is IOrderModule {
+contract OrderModule is IOrderModule {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
     using MarketOrder for MarketOrder.Data;

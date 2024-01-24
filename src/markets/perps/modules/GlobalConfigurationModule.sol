@@ -21,7 +21,7 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 
 /// @notice See {IGlobalConfigurationModule}.
-abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable, OwnableUpgradeable {
+contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable, OwnableUpgradeable {
     using GlobalConfiguration for GlobalConfiguration.Data;
     using PerpMarket for PerpMarket.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
