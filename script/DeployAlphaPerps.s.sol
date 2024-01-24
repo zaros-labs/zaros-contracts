@@ -44,31 +44,25 @@ contract DeployAlphaPerps is BaseScript {
         usdToken = USDToken(vm.envAddress("USDZ"));
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
 
-        (
-            address globalConfigurationModule,
-            address orderModule,
-            address perpMarketModule,
-            address perpsAccountModule,
-            address settlementModule
-        ) = deployModules();
+        address[] memory modules = deployModules();
+        bytes4[][] memory modulesSelectors = getModulesSelectors();
+
+        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
+        address[] memory initializables = new address[](1);
+        address globalConfigurationModule = modules[0];
+        initializables[0] = globalConfigurationModule;
 
         bytes memory initializeData = abi.encodeWithSelector(
-            perpsEngineImplementation.initialize.selector,
+            globalConfigurationModule.initialize.selector,
             deployer,
             address(perpsAccountToken),
             mockRewardDistributorAddress,
             address(usdToken),
             mockZarosAddress
         );
-        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](5);
-        // facetCuts[0] = IDiamond.FacetCut({
-        //     facet: globalConfigurationModule,
-        //     action: IDiamond.FacetCutAction.Add,
-        //     selectors: new bytes4[](0)
-        // });
 
-        // (bool success,) = address(perpsEngineImplementation).call(initializeData);
-        // require(success, "perpsEngineImplementation.initialize failed");
+        bytes[] memory initializePayloads = new bytes[](1);
+        initializePayloads[0] = initializeData;
 
         // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
         payable(address(perpsEngine)).transfer(1 ether);
@@ -77,18 +71,22 @@ contract DeployAlphaPerps is BaseScript {
         logContracts();
     }
 
-    function deployModules() internal returns (address, address, address, address, address) {
+    function deployModules() internal returns (address[] memory modules) {
         address globalConfigurationModule = address(new GlobalConfigurationModule());
         address orderModule = address(new OrderModule());
         address perpMarketModule = address(new PerpMarketModule());
         address perpsAccountModule = address(new PerpsAccountModule());
         address settlementModule = address(new SettlementModule());
 
-        return (globalConfigurationModule, orderModule, perpMarketModule, perpsAccountModule, settlementModule);
+        modules[0] = globalConfigurationModule;
+        modules[1] = orderModule;
+        modules[2] = perpMarketModule;
+        modules[3] = perpsAccountModule;
+        modules[4] = settlementModule;
     }
 
-    function getModuleSelectors() internal pure returns (bytes4[][5]) {
-        bytes4[][5] memory selectors = new bytes4[][5](5);
+    function getModulesSelectors() internal pure returns (bytes4[][]) {
+        bytes4[][] memory selectors = new bytes4[][](5)();
 
         bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](9);
 
@@ -155,20 +153,37 @@ contract DeployAlphaPerps is BaseScript {
         return selectors;
     }
 
+    function getFacetCuts(
+        address[] memory modules,
+        bytes4[][] memory modulesSelectors
+    )
+        internal
+        pure
+        returns (IDiamond.FacetCut[] memory facetCuts)
+    {
+        for (uint256 i = 0; i < modules.length; i++) {
+            bytes4[] memory selectors = modulesSelectors[i];
+
+            facetCuts[i] =
+                IDiamond.FacetCut({ facet: modules[i], action: IDiamond.FacetCutAction.Add, selectors: selectors });
+        }
+    }
+
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
+        // TODO: add margin collateral configuration paremeters to a JSON file and use ffi
         perpsEngine.configureMarginCollateral(address(usdToken), type(uint128).max, 100e18, usdcUsdPriceFeed);
     }
 
     function logContracts() internal view {
-        console.log("Perps Account NFT: ");
-        console.log(address(perpsAccountToken));
+        // console.log("Perps Account NFT: ");
+        // console.log(address(perpsAccountToken));
 
-        console.log("Perps Engine Implementation: ");
-        console.log(address(perpsEngineImplementation));
+        // console.log("Perps Engine Implementation: ");
+        // console.log(address(perpsEngineImplementation));
 
-        console.log("Perps Engine Proxy: ");
-        console.log(address(perpsEngine));
+        // console.log("Perps Engine Proxy: ");
+        // console.log(address(perpsEngine));
     }
 }
