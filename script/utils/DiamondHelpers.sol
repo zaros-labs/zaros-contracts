@@ -31,9 +31,7 @@ function deployModules() returns (address[] memory modules) {
     modules[6] = settlementModule;
 }
 
-function getModulesSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](7)();
-
+function getModulesSelectors() pure returns (bytes4[][] memory selectors) {
     bytes4[] memory diamondCutModuleSelectors = new bytes4[](1);
 
     diamondCutModuleSelectors[0] = DiamondCutModule.updateModules.selector;
@@ -57,7 +55,7 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     globalConfigurationModuleSelectors[5] = GlobalConfigurationModule.removeCollateralFromPriorityList.selector;
     globalConfigurationModuleSelectors[6] = GlobalConfigurationModule.configureSystemParameters.selector;
     globalConfigurationModuleSelectors[7] = GlobalConfigurationModule.createPerpMarket.selector;
-    globalConfigurationModuleSelectors[8] = GlobalConfigurationModule.upatePerpMarketStatus.selector;
+    globalConfigurationModuleSelectors[8] = GlobalConfigurationModule.updatePerpMarketStatus.selector;
 
     bytes4[] memory orderModuleSelectors = new bytes4[](7);
 
@@ -107,8 +105,6 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     selectors[2] = perpMarketModuleSelectors;
     selectors[3] = perpsAccountModuleSelectors;
     selectors[4] = settlementModuleSelectors;
-
-    return selectors;
 }
 
 function getFacetCuts(
@@ -126,7 +122,7 @@ function getFacetCuts(
     }
 }
 
-function getInitializables(address[] memory modules) internal pure returns (address[] memory initializables) {
+function getInitializables(address[] memory modules) pure returns (address[] memory initializables) {
     initializables = new address[](2);
 
     address diamondCutModule = modules[0];
@@ -143,7 +139,6 @@ function getInitializePayloads(
     address usdToken,
     address zaros
 )
-    internal
     pure
     returns (bytes[] memory initializePayloads)
 {
