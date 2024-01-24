@@ -39,7 +39,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
 
     /// @notice {LimitOrderSettlementStrategy} UUPS initializer.
     function initialize(
-        PerpsEngine perpsEngine,
+        IPerpsEngine perpsEngine,
         address[] calldata keepers,
         uint128 marketId,
         uint128 settlementId
@@ -99,7 +99,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
     function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
-        (PerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (
+        (IPerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (
             dataStreamsCustomSettlementStrategyStorage.perpsEngine,
             dataStreamsCustomSettlementStrategyStorage.marketId,
             dataStreamsCustomSettlementStrategyStorage.settlementId

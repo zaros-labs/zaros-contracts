@@ -41,8 +41,8 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     AccountNFT internal perpsAccountToken;
     MockERC20 internal mockWstEth;
     MockUSDToken internal usdToken;
-    PerpsEngine internal perpsEngine;
-    PerpsEngine internal perpsEngineImplementation;
+    IPerpsEngine internal perpsEngine;
+    IPerpsEngine internal perpsEngineImplementation;
     RewardDistributor internal rewardDistributor;
     LiquidityEngine internal liquidityEngine;
 

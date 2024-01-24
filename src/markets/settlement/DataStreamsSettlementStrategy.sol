@@ -82,7 +82,7 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
 
-        PerpsEngine perpsEngine = dataStreamsCustomSettlementStrategyStorage.perpsEngine;
+        IPerpsEngine perpsEngine = dataStreamsCustomSettlementStrategyStorage.perpsEngine;
         uint128 marketId = dataStreamsCustomSettlementStrategyStorage.marketId;
         uint128 settlementId = dataStreamsCustomSettlementStrategyStorage.settlementId;
 
@@ -96,7 +96,7 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
 
     /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
     function __DataStreamsSettlementStrategy_init(
-        PerpsEngine perpsEngine,
+        IPerpsEngine perpsEngine,
         address[] calldata keepers,
         uint128 marketId,
         uint128 settlementId

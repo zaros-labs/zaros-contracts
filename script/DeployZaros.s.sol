@@ -62,7 +62,7 @@ pragma solidity 0.8.23;
 
 //         {
 //             // TODO: use correct accountNft
-//             PerpsEngine perpsEngine =
+//             IPerpsEngine perpsEngine =
 //                 new PerpsEngine(payable(address(accountNft), address(liquidityEngine),
 // address(rewardDistributor));
 
