@@ -55,8 +55,4 @@ contract DiamondLoupeModule is IDiamondLoupeModule, IERC165, Initializable {
 
         return diamondCut.getFacetSelectors(facet);
     }
-
-    function supportsInterface(bytes4 interfaceId) external view override returns (bool) {
-        return DiamondLoupe.load().supportedInterfaces[interfaceId];
-    }
 }
