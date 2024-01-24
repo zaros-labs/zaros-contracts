@@ -30,7 +30,7 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
     /// @param marketId The Zaros perp market id which is using this strategy.
     /// @param settlementId The Zaros perp market settlement strategy id linked to this contract.
     struct DataStreamsSettlementStrategyStorage {
-        PerpsEngine perpsEngine;
+        IPerpsEngine perpsEngine;
         EnumerableSet.AddressSet keepers;
         uint128 marketId;
         uint128 settlementId;

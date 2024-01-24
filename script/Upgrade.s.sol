@@ -45,35 +45,49 @@ contract DeployAlphaPerps is BaseScript {
 
         address[] memory modules = deployModules();
         bytes4[][] memory modulesSelectors = getModulesSelectors();
-        address[] memory initializables = new address[]();
-        bytes[] memory initializePayloads = new bytes[]();
 
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
         address[] memory initializables;
         bytes[] memory initializePayloads;
 
-        perpsEngine = PerpsEngine(payable(vm.envAddress("PERPS_ENGINE")));
+        perpsEngine = IPerpsEngine(payable(vm.envAddress("PERPS_ENGINE")));
         perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
 
-        logContracts();
+        logContracts(modules);
     }
 
     function deployModules() internal returns (address[] memory modules) {
+        address diamondCutModule = address(new DiamondCutModule());
+        address diamondLoupeModule = address(new DiamondLoupeModule());
         address globalConfigurationModule = address(new GlobalConfigurationModule());
         address orderModule = address(new OrderModule());
         address perpMarketModule = address(new PerpMarketModule());
         address perpsAccountModule = address(new PerpsAccountModule());
         address settlementModule = address(new SettlementModule());
 
-        modules[0] = globalConfigurationModule;
-        modules[1] = orderModule;
-        modules[2] = perpMarketModule;
-        modules[3] = perpsAccountModule;
-        modules[4] = settlementModule;
+        modules[0] = diamondCutModule;
+        modules[1] = diamondLoupeModule;
+        modules[2] = globalConfigurationModule;
+        modules[3] = orderModule;
+        modules[4] = perpMarketModule;
+        modules[5] = perpsAccountModule;
+        modules[6] = settlementModule;
     }
 
     function getModulesSelectors() internal pure returns (bytes4[][]) {
-        bytes4[][] memory selectors = new bytes4[][](5)();
+        bytes4[][] memory selectors = new bytes4[][](7)();
+
+        bytes4[] memory diamondCutModuleSelectors = new bytes4[](1);
+
+        diamondCutModuleSelectors[0] = DiamondCutModule.updateModules.selector;
+
+        bytes4[] memory diamondLoupeModuleSelectors = new bytes4[](6);
+
+        diamondLoupeModuleSelectors[0] = DiamondLoupeModule.facets.selector;
+        diamondLoupeModuleSelectors[1] = DiamondLoupeModule.facetFunctionSelectors.selector;
+        diamondLoupeModuleSelectors[3] = DiamondLoupeModule.facetAddresses.selector;
+        diamondLoupeModuleSelectors[2] = DiamondLoupeModule.facetAddress.selector;
+        diamondLoupeModuleSelectors[4] = DiamondLoupeModule.facetSelectors.selector;
 
         bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](9);
 
@@ -140,9 +154,27 @@ contract DeployAlphaPerps is BaseScript {
         return selectors;
     }
 
-    function logContracts() internal view {
-        console.log("New Perps Engine Implementation: ");
-        console.log(address(perpsEngineImplementation));
+    function getFacetCuts(
+        address[] memory modules,
+        bytes4[][] memory modulesSelectors
+    )
+        internal
+        pure
+        returns (IDiamond.FacetCut[] memory facetCuts)
+    {
+        for (uint256 i = 0; i < modules.length; i++) {
+            bytes4[] memory selectors = modulesSelectors[i];
+
+            facetCuts[i] =
+                IDiamond.FacetCut({ facet: modules[i], action: IDiamond.FacetCutAction.Update, selectors: selectors });
+        }
+    }
+
+    function logContracts(address[] memory modules) internal view {
+        for (uint256 i = 0; i < modules.length; i++) {
+            console.log("New Module: ");
+            console.log(modules[i]);
+        }
 
         console.log("Perps Engine Proxy: ");
         console.log(address(perpsEngine));
