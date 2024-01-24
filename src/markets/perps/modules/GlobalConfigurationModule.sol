@@ -26,9 +26,10 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
     using PerpMarket for PerpMarket.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
+    /// TODO: Create inheritable AuthModule
+    /// @dev The Ownable contract is initialized at the DiamondCutModule.
     /// @dev {GlobalConfigurationModule} UUPS initializer.
     function initialize(
-        address owner,
         address perpsAccountToken,
         address rewardDistributor,
         address usdToken,
@@ -37,8 +38,6 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
         external
         initializer
     {
-        __Ownable_init(owner);
-
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.perpsAccountToken = perpsAccountToken;
         globalConfiguration.rewardDistributor = rewardDistributor;

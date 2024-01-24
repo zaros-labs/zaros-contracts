@@ -11,20 +11,12 @@ import { Facet } from "../storage/Facet.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 
 // Open Zeppelin dependencies
-import { IERC165 } from "@openzeppelin/utils/introspection/IERC165.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
-contract DiamondLoupeModule is IDiamondLoupeModule, IERC165, Initializable {
+contract DiamondLoupeModule is IDiamondLoupeModule, Initializable {
     using DiamondCut for DiamondCut.Data;
     using DiamondLoupe for DiamondLoupe.Data;
     using EnumerableSet for *;
-
-    function initialize() external onlyInitializing {
-        DiamondLoupe.Data storage diamondLoupe = DiamondLoupe.load();
-
-        diamondLoupe.addInterface(type(IDiamondLoupeModule).interfaceId);
-        diamondLoupe.addInterface(type(IERC165).interfaceId);
-    }
 
     function facets() external view returns (Facet.Data[] memory) {
         DiamondCut.Data storage diamondCut = DiamondCut.load();

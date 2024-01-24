@@ -51,12 +51,15 @@ contract DeployAlphaPerps is BaseScript {
 
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
         address[] memory initializables = new address[](1);
-        address globalConfigurationModule = modules[0];
+
+        address diamondCutModule = modules[0];
+        address globalConfigurationModule = modules[2];
+
         initializables[0] = globalConfigurationModule;
 
-        bytes memory initializeData = abi.encodeWithSelector(
+        bytes memory diamondCutInitializeData = abi.encodeWithSelector(DiamondCutModule.initialize.selector, deployer);
+        bytes memory perpsInitializeData = abi.encodeWithSelector(
             GlobalConfigurationModule.initialize.selector,
-            deployer,
             address(perpsAccountToken),
             mockRewardDistributorAddress,
             address(usdToken),
@@ -64,7 +67,8 @@ contract DeployAlphaPerps is BaseScript {
         );
 
         bytes[] memory initializePayloads = new bytes[](1);
-        initializePayloads[0] = initializeData;
+        initializePayloads[0] = diamondCutInitializeData;
+        initializePayloads[1] = perpsInitializeData;
 
         IDiamond.InitParams memory initParams = IDiamond.InitParams({
             baseFacets: facetCuts,
@@ -82,17 +86,21 @@ contract DeployAlphaPerps is BaseScript {
     }
 
     function deployModules() internal returns (address[] memory modules) {
+        address diamondCutModule = address(new DiamondCutModule());
+        address diamondLoupeModule = address(new DiamondLoupeModule());
         address globalConfigurationModule = address(new GlobalConfigurationModule());
         address orderModule = address(new OrderModule());
         address perpMarketModule = address(new PerpMarketModule());
         address perpsAccountModule = address(new PerpsAccountModule());
         address settlementModule = address(new SettlementModule());
 
-        modules[0] = globalConfigurationModule;
-        modules[1] = orderModule;
-        modules[2] = perpMarketModule;
-        modules[3] = perpsAccountModule;
-        modules[4] = settlementModule;
+        modules[0] = diamondCutModule;
+        modules[1] = diamondLoupeModule;
+        modules[2] = globalConfigurationModule;
+        modules[3] = orderModule;
+        modules[4] = perpMarketModule;
+        modules[5] = perpsAccountModule;
+        modules[6] = settlementModule;
     }
 
     function getModulesSelectors() internal pure returns (bytes4[][]) {
