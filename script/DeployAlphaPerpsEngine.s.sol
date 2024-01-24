@@ -52,7 +52,11 @@ contract DeployAlphaPerps is BaseScript {
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
         address[] memory initializables = getInitializables(modules);
         bytes[] memory initializePayloads = getInitializePayloads(
-            deployer, address(perpsAccountToken), mockRewardDistributorAddress, address(usdToken), mockLiquidityEngineAddress
+            deployer,
+            address(perpsAccountToken),
+            mockRewardDistributorAddress,
+            address(usdToken),
+            mockLiquidityEngineAddress
         );
 
         IDiamond.InitParams memory initParams = IDiamond.InitParams({
