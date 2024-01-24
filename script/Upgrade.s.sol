@@ -49,9 +49,11 @@ contract DeployAlphaPerps is BaseScript {
         bytes[] memory initializePayloads = new bytes[]();
 
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
+        address[] memory initializables;
+        bytes[] memory initializePayloads;
 
         perpsEngine = PerpsEngine(payable(vm.envAddress("PERPS_ENGINE")));
-        perpsEngine.upgradeToAndCall(address(perpsEngineImplementation), bytes(""));
+        perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
 
         logContracts();
     }
