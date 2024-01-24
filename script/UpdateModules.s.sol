@@ -46,7 +46,8 @@ contract DeployAlphaPerps is BaseScript {
         address[] memory modules = deployModules();
         bytes4[][] memory modulesSelectors = getModulesSelectors();
 
-        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
+        IDiamond.FacetCut[] memory facetCuts =
+            getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Replace);
         address[] memory initializables;
         bytes[] memory initializePayloads;
 

@@ -6,6 +6,7 @@ pragma solidity 0.8.23;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
 import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
@@ -49,7 +50,7 @@ contract DeployAlphaPerps is BaseScript {
         address[] memory modules = deployModules();
         bytes4[][] memory modulesSelectors = getModulesSelectors();
 
-        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
+        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
         address[] memory initializables = getInitializables(modules);
         bytes[] memory initializePayloads = getInitializePayloads(
             deployer,
@@ -65,7 +66,7 @@ contract DeployAlphaPerps is BaseScript {
             initializePayloads: initializePayloads
         });
 
-        perpsEngine = IPerpsEngine(address(new Diamond(initParams)));
+        perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
 
         // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
         payable(address(perpsEngine)).transfer(1 ether);

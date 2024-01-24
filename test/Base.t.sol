@@ -7,6 +7,7 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
 import { Diamond } from "@zaros/diamonds/Diamond.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
+import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
@@ -26,6 +27,7 @@ import {
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";
+import "forge-std/console.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -102,8 +104,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
         address[] memory modules = deployModules();
         bytes4[][] memory modulesSelectors = getModulesSelectors();
-
-        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
+        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
         address[] memory initializables = getInitializables(modules);
         bytes[] memory initializePayloads = getInitializePayloads(
             users.owner,
@@ -118,7 +119,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
             initializables: initializables,
             initializePayloads: initializePayloads
         });
-        perpsEngine = IPerpsEngine(address(new Diamond(initParams)));
+        perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
 
         configureContracts();
 

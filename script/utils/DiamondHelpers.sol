@@ -13,7 +13,9 @@ import { PerpMarketModule } from "@zaros/markets/perps/modules/PerpMarketModule.
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
 
-function deployModules() returns (address[] memory modules) {
+function deployModules() returns (address[] memory) {
+    address[] memory modules = new address[](7);
+
     address diamondCutModule = address(new DiamondCutModule());
     address diamondLoupeModule = address(new DiamondLoupeModule());
     address globalConfigurationModule = address(new GlobalConfigurationModule());
@@ -29,14 +31,18 @@ function deployModules() returns (address[] memory modules) {
     modules[4] = perpMarketModule;
     modules[5] = perpsAccountModule;
     modules[6] = settlementModule;
+
+    return modules;
 }
 
-function getModulesSelectors() pure returns (bytes4[][] memory selectors) {
+function getModulesSelectors() pure returns (bytes4[][] memory) {
+    bytes4[][] memory selectors = new bytes4[][](7);
+
     bytes4[] memory diamondCutModuleSelectors = new bytes4[](1);
 
     diamondCutModuleSelectors[0] = DiamondCutModule.updateModules.selector;
 
-    bytes4[] memory diamondLoupeModuleSelectors = new bytes4[](6);
+    bytes4[] memory diamondLoupeModuleSelectors = new bytes4[](5);
 
     diamondLoupeModuleSelectors[0] = DiamondLoupeModule.facets.selector;
     diamondLoupeModuleSelectors[1] = DiamondLoupeModule.facetFunctionSelectors.selector;
@@ -100,36 +106,47 @@ function getModulesSelectors() pure returns (bytes4[][] memory selectors) {
     settlementModuleSelectors[0] = SettlementModule.settleMarketOrder.selector;
     settlementModuleSelectors[1] = SettlementModule.settleCustomTriggers.selector;
 
-    selectors[0] = globalConfigurationModuleSelectors;
-    selectors[1] = orderModuleSelectors;
-    selectors[2] = perpMarketModuleSelectors;
-    selectors[3] = perpsAccountModuleSelectors;
-    selectors[4] = settlementModuleSelectors;
+    selectors[0] = diamondCutModuleSelectors;
+    selectors[1] = diamondLoupeModuleSelectors;
+    selectors[2] = globalConfigurationModuleSelectors;
+    selectors[3] = orderModuleSelectors;
+    selectors[4] = perpMarketModuleSelectors;
+    selectors[5] = perpsAccountModuleSelectors;
+    selectors[6] = settlementModuleSelectors;
+
+    return selectors;
 }
 
 function getFacetCuts(
     address[] memory modules,
-    bytes4[][] memory modulesSelectors
+    bytes4[][] memory modulesSelectors,
+    IDiamond.FacetCutAction action
 )
     pure
-    returns (IDiamond.FacetCut[] memory facetCuts)
+    returns (IDiamond.FacetCut[] memory)
 {
+    require(modules.length == modulesSelectors.length, "DiamondHelpers: modulesSelectors length mismatch");
+    IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](modules.length);
+
     for (uint256 i = 0; i < modules.length; i++) {
         bytes4[] memory selectors = modulesSelectors[i];
 
-        facetCuts[i] =
-            IDiamond.FacetCut({ facet: modules[i], action: IDiamond.FacetCutAction.Add, selectors: selectors });
+        facetCuts[i] = IDiamond.FacetCut({ facet: modules[i], action: action, selectors: selectors });
     }
+
+    return facetCuts;
 }
 
-function getInitializables(address[] memory modules) pure returns (address[] memory initializables) {
-    initializables = new address[](2);
+function getInitializables(address[] memory modules) pure returns (address[] memory) {
+    address[] memory initializables = new address[](2);
 
     address diamondCutModule = modules[0];
     address globalConfigurationModule = modules[2];
 
     initializables[0] = diamondCutModule;
     initializables[1] = globalConfigurationModule;
+
+    return initializables;
 }
 
 function getInitializePayloads(
@@ -140,8 +157,10 @@ function getInitializePayloads(
     address zaros
 )
     pure
-    returns (bytes[] memory initializePayloads)
+    returns (bytes[] memory)
 {
+    bytes[] memory initializePayloads = new bytes[](2);
+
     bytes memory diamondCutInitializeData = abi.encodeWithSelector(DiamondCutModule.initialize.selector, deployer);
     bytes memory perpsInitializeData = abi.encodeWithSelector(
         GlobalConfigurationModule.initialize.selector, perpsAccountToken, rewardDistributor, usdToken, zaros
@@ -151,4 +170,6 @@ function getInitializePayloads(
 
     initializePayloads[0] = diamondCutInitializeData;
     initializePayloads[1] = perpsInitializeData;
+
+    return initializePayloads;
 }

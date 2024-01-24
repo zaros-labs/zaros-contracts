@@ -13,7 +13,7 @@ import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 // Open Zeppelin Upgradeable dependencies
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 
-contract Diamond is IDiamond, Proxy, Initializable {
+abstract contract Diamond is IDiamond, Proxy, Initializable {
     using DiamondCut for DiamondCut.Data;
 
     constructor(InitParams memory initDiamondCut) initializer {
