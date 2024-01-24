@@ -4,6 +4,8 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
+import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
+import { Diamond } from "@zaros/diamonds/Diamond.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
@@ -14,6 +16,13 @@ import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
+import {
+    deployModules,
+    getModulesSelectors,
+    getFacetCuts,
+    getInitializables,
+    getInitializePayloads
+} from "script/utils/DiamondHelpers.sol";
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";
@@ -95,32 +104,20 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         bytes4[][] memory modulesSelectors = getModulesSelectors();
 
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors);
-        address[] memory initializables = new address[](1);
-
-        address diamondCutModule = modules[0];
-        address globalConfigurationModule = modules[2];
-
-        initializables[0] = globalConfigurationModule;
-
-        bytes memory diamondCutInitializeData = abi.encodeWithSelector(DiamondCutModule.initialize.selector, deployer);
-        bytes memory perpsInitializeData = abi.encodeWithSelector(
-            GlobalConfigurationModule.initialize.selector,
+        address[] memory initializables = getInitializables(modules);
+        bytes[] memory initializePayloads = getInitializePayloads(
+            users.owner,
             address(perpsAccountToken),
             mockRewardDistributorAddress,
             address(usdToken),
-            mockZarosAddress
+            mockLiquidityEngineAddress
         );
-
-        bytes[] memory initializePayloads = new bytes[](1);
-        initializePayloads[0] = diamondCutInitializeData;
-        initializePayloads[1] = perpsInitializeData;
 
         IDiamond.InitParams memory initParams = IDiamond.InitParams({
             baseFacets: facetCuts,
             initializables: initializables,
             initializePayloads: initializePayloads
         });
-
         perpsEngine = IPerpsEngine(address(new Diamond(initParams)));
 
         configureContracts();

@@ -31,7 +31,7 @@ function deployModules() returns (address[] memory modules) {
     modules[6] = settlementModule;
 }
 
-function getModulesSelectors() pure returns (bytes4[][]) {
+function getModulesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](7)();
 
     bytes4[] memory diamondCutModuleSelectors = new bytes4[](1);
