@@ -38,6 +38,10 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
         LimitOrderSettlementStrategy settlementStrategy;
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice {LimitOrderUpkeep} UUPS initializer.
     function initialize(address forwarder, LimitOrderSettlementStrategy settlementStrategy) external initializer {
         __BaseUpkeep_init(forwarder);

@@ -8,6 +8,10 @@ import { SettlementConfiguration } from "@zaros/markets/perps/storage/Settlement
 import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
 
 contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice {MarketOrderSettlementStrategy} UUPS initializer.
     function initialize(
         IPerpsEngine perpsEngine,

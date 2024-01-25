@@ -37,6 +37,10 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         EnumerableSet.UintSet limitOrdersIds;
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice {LimitOrderSettlementStrategy} UUPS initializer.
     function initialize(
         IPerpsEngine perpsEngine,

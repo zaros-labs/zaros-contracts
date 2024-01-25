@@ -36,6 +36,10 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
         mapping(uint128 accountId => OcoOrder.Data) ocoOrderOfAccount;
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice {OcoOrderSettlementStrategy} UUPS initializer.
     function initialize(
         IPerpsEngine perpsEngine,
