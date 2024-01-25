@@ -15,7 +15,6 @@ interface IDiamondLoupeModule {
      * @notice Gets all facet addresses and the selectors of supported functions.
      * @return facetInfo An array of Facet structs.
      */
-
     function facets() external view returns (Facet.Data[] memory);
 
     /**

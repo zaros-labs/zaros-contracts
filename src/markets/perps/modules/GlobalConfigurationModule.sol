@@ -26,6 +26,10 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     using PerpMarket for PerpMarket.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// TODO: Create inheritable AuthModule
     /// @dev The Ownable contract is initialized at the DiamondCutModule.
     /// @dev {GlobalConfigurationModule} UUPS initializer.

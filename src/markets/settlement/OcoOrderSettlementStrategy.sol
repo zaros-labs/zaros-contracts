@@ -17,7 +17,9 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
-    enum Actions { UPDATE_OCO_ORDER }
+    enum Actions {
+        UPDATE_OCO_ORDER
+    }
 
     event LogCreateOcoOrder(
         address indexed sender, uint128 accountId, OcoOrder.TakeProfit takeProfit, OcoOrder.StopLoss stopLoss
