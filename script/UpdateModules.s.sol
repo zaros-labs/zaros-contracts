@@ -4,10 +4,19 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
+import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "./Base.s.sol";
+import {
+    deployModules,
+    getModulesSelectors,
+    getFacetCuts,
+    getInitializables,
+    getInitializePayloads
+} from "script/utils/DiamondHelpers.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -23,39 +32,36 @@ contract DeployAlphaPerps is BaseScript {
     address internal mockChainlinkVerifier = address(2);
     address internal mockPerpsAccountTokenAddress = address(3);
     address internal mockRewardDistributorAddress = address(4);
-    address internal mockZarosAddress = address(5);
+    address internal mockLiquidityEngineAddress = address(5);
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     USDToken internal usdToken;
-    PerpsEngine internal perpsEngine;
-    PerpsEngine internal perpsEngineImplementation;
+    IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
         usdToken = USDToken(vm.envAddress("USDZ"));
 
-        perpsEngineImplementation = new PerpsEngine();
-        bytes memory initializeData = abi.encodeWithSelector(
-            perpsEngineImplementation.initialize.selector,
-            deployer,
-            mockPerpsAccountTokenAddress,
-            mockRewardDistributorAddress,
-            address(usdToken),
-            mockZarosAddress
-        );
-        (bool success,) = address(perpsEngineImplementation).call(initializeData);
-        require(success, "perpsEngineImplementation.initialize failed");
+        address[] memory modules = deployModules();
+        bytes4[][] memory modulesSelectors = getModulesSelectors();
 
-        perpsEngine = PerpsEngine(payable(vm.envAddress("PERPS_ENGINE")));
-        perpsEngine.upgradeToAndCall(address(perpsEngineImplementation), bytes(""));
+        IDiamond.FacetCut[] memory facetCuts =
+            getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Replace);
+        address[] memory initializables;
+        bytes[] memory initializePayloads;
 
-        logContracts();
+        perpsEngine = IPerpsEngine(payable(vm.envAddress("PERPS_ENGINE")));
+        perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
+
+        logContracts(modules);
     }
 
-    function logContracts() internal view {
-        console.log("New Perps Engine Implementation: ");
-        console.log(address(perpsEngineImplementation));
+    function logContracts(address[] memory modules) internal view {
+        for (uint256 i = 0; i < modules.length; i++) {
+            console.log("New Module: ");
+            console.log(modules[i]);
+        }
 
         console.log("Perps Engine Proxy: ");
         console.log(address(perpsEngine));

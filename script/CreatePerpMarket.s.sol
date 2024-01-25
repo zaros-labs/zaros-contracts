@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
@@ -54,7 +54,7 @@ contract CreatePerpMarket is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
-    PerpsEngine internal perpsEngine;
+    IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
@@ -68,7 +68,7 @@ contract CreatePerpMarket is BaseScript {
         linkUsdPriceAdapter = vm.envAddress("LINK_USD_PRICE_FEED");
         linkUsdStreamId = vm.envString("LINK_USD_STREAM_ID");
 
-        perpsEngine = PerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
+        perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
         SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData =
         SettlementConfiguration.DataStreamsMarketStrategy({

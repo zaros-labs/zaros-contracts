@@ -21,10 +21,33 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 
 /// @notice See {IGlobalConfigurationModule}.
-abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable, OwnableUpgradeable {
+contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable, OwnableUpgradeable {
     using GlobalConfiguration for GlobalConfiguration.Data;
     using PerpMarket for PerpMarket.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    /// TODO: Create inheritable AuthModule
+    /// @dev The Ownable contract is initialized at the DiamondCutModule.
+    /// @dev {GlobalConfigurationModule} UUPS initializer.
+    function initialize(
+        address perpsAccountToken,
+        address rewardDistributor,
+        address usdToken,
+        address liquidityEngine
+    )
+        external
+        initializer
+    {
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.perpsAccountToken = perpsAccountToken;
+        globalConfiguration.rewardDistributor = rewardDistributor;
+        globalConfiguration.usdToken = usdToken;
+        globalConfiguration.liquidityEngine = liquidityEngine;
+    }
 
     /// @inheritdoc IGlobalConfigurationModule
     function getDepositCapForMarginCollateralConfiguration(address collateralType)
@@ -195,22 +218,5 @@ abstract contract GlobalConfigurationModule is IGlobalConfigurationModule, Initi
 
             emit LogDisablePerpMarket(marketId);
         }
-    }
-
-    /// @dev {GlobalConfigurationModule} UUPS initializer.
-    function __GlobalConfigurationModule_init(
-        address perpsAccountToken,
-        address rewardDistributor,
-        address usdToken,
-        address liquidityEngine
-    )
-        internal
-        onlyInitializing
-    {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.perpsAccountToken = perpsAccountToken;
-        globalConfiguration.rewardDistributor = rewardDistributor;
-        globalConfiguration.usdToken = usdToken;
-        globalConfiguration.liquidityEngine = liquidityEngine;
     }
 }

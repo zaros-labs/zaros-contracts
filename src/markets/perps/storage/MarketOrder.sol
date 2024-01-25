@@ -48,7 +48,5 @@ library MarketOrder {
     }
 
     // TODO: Implement
-    function validateSimulatedOrderSettlement() internal view {
-
-    }
+    function validateSimulatedOrderSettlement() internal view { }
 }

@@ -23,8 +23,7 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
-    using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for *;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
@@ -88,6 +87,7 @@ library PerpsAccount {
         }
     }
 
+    // TODO: Should we create a Service to handle this?
     /// @notice Validates if the given account will still meet margin requirements after a new settlement.
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.

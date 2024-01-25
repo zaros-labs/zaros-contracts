@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { DataStreamsSettlementStrategy } from "./DataStreamsSettlementStrategy.sol";
@@ -17,7 +17,9 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
 
-    enum Actions { UPDATE_OCO_ORDER }
+    enum Actions {
+        UPDATE_OCO_ORDER
+    }
 
     event LogCreateOcoOrder(
         address indexed sender, uint128 accountId, OcoOrder.TakeProfit takeProfit, OcoOrder.StopLoss stopLoss
@@ -36,7 +38,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
 
     /// @notice {OcoOrderSettlementStrategy} UUPS initializer.
     function initialize(
-        PerpsEngine perpsEngine,
+        IPerpsEngine perpsEngine,
         address[] calldata keepers,
         uint128 marketId,
         uint128 settlementId
@@ -86,7 +88,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
     function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
-        (PerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (
+        (IPerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (
             dataStreamsCustomSettlementStrategyStorage.perpsEngine,
             dataStreamsCustomSettlementStrategyStorage.marketId,
             dataStreamsCustomSettlementStrategyStorage.settlementId

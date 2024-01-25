@@ -4,8 +4,11 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
+import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
+import { Diamond } from "@zaros/diamonds/Diamond.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
@@ -14,9 +17,17 @@ import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
+import {
+    deployModules,
+    getModulesSelectors,
+    getFacetCuts,
+    getInitializables,
+    getInitializePayloads
+} from "script/utils/DiamondHelpers.sol";
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";
+import "forge-std/console.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -41,8 +52,8 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
     AccountNFT internal perpsAccountToken;
     MockERC20 internal mockWstEth;
     MockUSDToken internal usdToken;
-    PerpsEngine internal perpsEngine;
-    PerpsEngine internal perpsEngineImplementation;
+    IPerpsEngine internal perpsEngine;
+    IPerpsEngine internal perpsEngineImplementation;
     RewardDistributor internal rewardDistributor;
     LiquidityEngine internal liquidityEngine;
 
@@ -91,20 +102,24 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
             mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter
         });
 
-        perpsEngineImplementation = new PerpsEngine();
-        bytes memory initializeData = abi.encodeWithSelector(
-            perpsEngineImplementation.initialize.selector,
+        address[] memory modules = deployModules();
+        bytes4[][] memory modulesSelectors = getModulesSelectors();
+        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
+        address[] memory initializables = getInitializables(modules);
+        bytes[] memory initializePayloads = getInitializePayloads(
             users.owner,
             address(perpsAccountToken),
-            address(rewardDistributor),
+            mockRewardDistributorAddress,
             address(usdToken),
-            address(liquidityEngine)
+            mockLiquidityEngineAddress
         );
-        (bool success,) = address(perpsEngineImplementation).call(initializeData);
-        require(success, "perpsEngineImplementation.initialize failed");
 
-        perpsEngine =
-            PerpsEngine(payable(address(new ERC1967Proxy(address(perpsEngineImplementation), initializeData))));
+        IDiamond.InitParams memory initParams = IDiamond.InitParams({
+            baseFacets: facetCuts,
+            initializables: initializables,
+            initializePayloads: initializePayloads
+        });
+        perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
 
         configureContracts();
 

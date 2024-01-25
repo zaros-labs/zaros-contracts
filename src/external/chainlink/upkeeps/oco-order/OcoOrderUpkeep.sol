@@ -10,7 +10,7 @@ import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
 import { BaseUpkeep } from "../BaseUpkeep.sol";
 import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";

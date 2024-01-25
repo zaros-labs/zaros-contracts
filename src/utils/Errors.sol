@@ -15,6 +15,22 @@ library Errors {
     // error DisabledMarketId(uint128 marketId);
     error ArrayLengthMismatch(uint256 expected, uint256 actual);
 
+    /// @notice Router errors.
+    error UnsupportedFunction(bytes4 functionSignature);
+
+    /// @notice DiamondCut errors.
+    error IncorrectFacetCutAction();
+    error FacetIsZeroAddress();
+    error FacetIsNotContract(address facet);
+    error SelectorArrayEmpty(address facet);
+    error SelectorIsZero();
+    error FunctionAlreadyExists(bytes4 functionSelector);
+    error ImmutableFacet();
+    error FunctionFromSameFacet(bytes4 functionSelector);
+    error NonExistingFunction(bytes4 functionSelector);
+    error CannotRemoveFromOtherFacet(address facet, bytes4 functionSelector);
+    error InitializableIsNotContract(address initializable);
+
     /// @notice Chainlink Upkeeps errors.
 
     /// @notice Thrown when an oracle returns an unexpected, invalid value.

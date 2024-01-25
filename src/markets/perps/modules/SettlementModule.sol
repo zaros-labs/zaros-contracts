@@ -22,7 +22,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-abstract contract SettlementModule is ISettlementModule {
+contract SettlementModule is ISettlementModule {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarketOrder for MarketOrder.Data;

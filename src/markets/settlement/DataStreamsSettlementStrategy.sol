@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { ISettlementStrategy } from "./interfaces/ISettlementStrategy.sol";
@@ -30,7 +30,7 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
     /// @param marketId The Zaros perp market id which is using this strategy.
     /// @param settlementId The Zaros perp market settlement strategy id linked to this contract.
     struct DataStreamsSettlementStrategyStorage {
-        PerpsEngine perpsEngine;
+        IPerpsEngine perpsEngine;
         EnumerableSet.AddressSet keepers;
         uint128 marketId;
         uint128 settlementId;
@@ -82,7 +82,7 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
 
-        PerpsEngine perpsEngine = dataStreamsCustomSettlementStrategyStorage.perpsEngine;
+        IPerpsEngine perpsEngine = dataStreamsCustomSettlementStrategyStorage.perpsEngine;
         uint128 marketId = dataStreamsCustomSettlementStrategyStorage.marketId;
         uint128 settlementId = dataStreamsCustomSettlementStrategyStorage.settlementId;
 
@@ -96,7 +96,7 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
 
     /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
     function __DataStreamsSettlementStrategy_init(
-        PerpsEngine perpsEngine,
+        IPerpsEngine perpsEngine,
         address[] calldata keepers,
         uint128 marketId,
         uint128 settlementId
