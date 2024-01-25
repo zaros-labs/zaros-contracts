@@ -4,6 +4,12 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { LimitOrderUpkeep } from "@zaros/external/chainlink/upkeeps/limit-order/LimitOrderUpkeep.sol";
+import { MarketOrderUpkeep } from "@zaros/external/chainlink/upkeeps/market-order/MarketOrderUpkeep.sol";
+import { OcoOrderUpkeep } from "@zaros/external/chainlink/upkeeps/oco-order/OcoOrderUpkeep.sol";
+import { LimitOrderSettlementStrategy } from "@zaros/markets/settlement/LimitOrderSettlementStrategy.sol";
+import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
+import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
@@ -55,6 +61,12 @@ contract CreatePerpMarket is BaseScript {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
+    LimitOrderSettlementStrategy internal limitOrderSettlementStrategy;
+    MarketOrderSettlementStrategy internal marketOrderSettlementStrategy;
+    OcoOrderSettlementStrategy internal ocoOrderSettlementStrategy;
+    LimitOrderUpkeep internal limitOrderUpkeep;
+    MarketOrderUpkeep internal marketOrderUpkeep;
+    OcoOrderUpkeep internal ocoOrderUpkeep;
 
     function run() public broadcaster {
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
@@ -69,6 +81,16 @@ contract CreatePerpMarket is BaseScript {
         linkUsdStreamId = vm.envString("LINK_USD_STREAM_ID");
 
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
+
+        address limitOrderSettlementStrategyImplementation = address(new LimitOrderSettlementStrategy());
+        address marketOrderSettlementStrategyImplementation = address(new MarketOrderSettlementStrategy());
+        address ocoOrderSettlementStrategyImplementation = address(new OcoOrderSettlementStrategy());
+
+        address limitOrderUpkeepImplementation = address(new LimitOrderUpkeep());
+        address marketOrderUpkeepImplementation = address(new MarketOrderUpkeep());
+        address ocoOrderUpkeepImplementation = address(new OcoOrderUpkeep());
+
+        bytes memory limitOrderSettlementStrategyInitializeData;
 
         SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData =
         SettlementConfiguration.DataStreamsMarketStrategy({

@@ -92,12 +92,23 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
         return settlementConfiguration;
     }
 
+    function setKeepers(address[] calldata keepers) external onlyOwner {
+        if (keepers.length == 0) {
+            revert Errors.ZeroInput("keepers");
+        }
+
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
+
+        for (uint256 i = 0; i < keepers.length; i++) {
+            self.keepers.add(keepers[i]);
+        }
+    }
+
     function settle(bytes calldata signedReport, bytes calldata extraData) external virtual;
 
     /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
     function __DataStreamsSettlementStrategy_init(
         IPerpsEngine perpsEngine,
-        address[] calldata keepers,
         uint128 marketId,
         uint128 settlementId
     )
@@ -109,10 +120,6 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
         if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("perpsEngine");
         }
-        if (keepers.length == 0) {
-            revert Errors.ZeroInput("keepers");
-        }
-
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
@@ -125,10 +132,6 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
         self.perpsEngine = perpsEngine;
         self.marketId = marketId;
         self.settlementId = settlementId;
-
-        for (uint256 i = 0; i < keepers.length; i++) {
-            self.keepers.add(keepers[i]);
-        }
     }
 
     function _getKeepers() internal view returns (address[] memory keepers) {

@@ -41,16 +41,8 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
     }
 
     /// @notice {OcoOrderSettlementStrategy} UUPS initializer.
-    function initialize(
-        IPerpsEngine perpsEngine,
-        address[] calldata keepers,
-        uint128 marketId,
-        uint128 settlementId
-    )
-        external
-        initializer
-    {
-        __DataStreamsSettlementStrategy_init(perpsEngine, keepers, marketId, settlementId);
+    function initialize(IPerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) external initializer {
+        __DataStreamsSettlementStrategy_init(perpsEngine, marketId, settlementId);
     }
 
     function getOcoOrders(uint256 lowerBound, uint256 upperBound) external view returns (OcoOrder.Data[] memory) {

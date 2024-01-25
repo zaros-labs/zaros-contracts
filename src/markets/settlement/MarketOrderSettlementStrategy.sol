@@ -13,16 +13,9 @@ contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
     }
 
     /// @notice {MarketOrderSettlementStrategy} UUPS initializer.
-    function initialize(
-        IPerpsEngine perpsEngine,
-        address[] calldata keepers,
-        uint128 marketId
-    )
-        external
-        initializer
-    {
+    function initialize(IPerpsEngine perpsEngine, uint128 marketId) external initializer {
         __DataStreamsSettlementStrategy_init(
-            perpsEngine, keepers, marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID
+            perpsEngine, marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID
         );
     }
 

@@ -42,16 +42,8 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
     }
 
     /// @notice {LimitOrderSettlementStrategy} UUPS initializer.
-    function initialize(
-        IPerpsEngine perpsEngine,
-        address[] calldata keepers,
-        uint128 marketId,
-        uint128 settlementId
-    )
-        external
-        initializer
-    {
-        __DataStreamsSettlementStrategy_init(perpsEngine, keepers, marketId, settlementId);
+    function initialize(IPerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) external initializer {
+        __DataStreamsSettlementStrategy_init(perpsEngine, marketId, settlementId);
     }
 
     function getLimitOrders(

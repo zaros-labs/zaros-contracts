@@ -107,7 +107,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         bytes calldata extraData
     )
         external
-        view
+        pure
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
