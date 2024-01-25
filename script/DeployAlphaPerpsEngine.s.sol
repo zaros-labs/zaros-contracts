@@ -22,7 +22,7 @@ import {
 // Forge dependencies
 import "forge-std/console.sol";
 
-contract DeployAlphaPerps is BaseScript {
+contract DeployAlphaPerpsEngine is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -69,7 +69,7 @@ contract DeployAlphaPerps is BaseScript {
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
 
         // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
-        payable(address(perpsEngine)).transfer(1 ether);
+        payable(address(perpsEngine)).transfer(0.1 ether);
 
         configureContracts();
         logContracts(modules);
