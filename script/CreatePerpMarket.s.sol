@@ -104,7 +104,8 @@ contract CreatePerpMarket is BaseScript {
         });
 
         deploySettlementStrategies();
-        deployAndConfigureKeepers();
+        deployKeepers();
+        configureKeepers();
 
         // TODO: Add price adapter
         SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
@@ -191,70 +192,6 @@ contract CreatePerpMarket is BaseScript {
         });
     }
 
-    function deployAndConfigureKeepers() internal {
-        address limitOrderUpkeepImplementation = address(new LimitOrderUpkeep());
-        address marketOrderUpkeepImplementation = address(new MarketOrderUpkeep());
-        address ocoOrderUpkeepImplementation = address(new OcoOrderUpkeep());
-
-        uint256[] memory limitOrderMarketIds = limitOrderSettlementStrategies.keys();
-        uint256[] memory marketOrderMarketIds = marketOrderSettlementStrategies.keys();
-        uint256[] memory ocoOrderMarketIds = ocoOrderSettlementStrategies.keys();
-
-        for (uint256 i = 0; i < limitOrderMarketIds.length; i++) {
-            uint256 marketId = limitOrderMarketIds[i];
-            limitOrderUpkeeps[marketId].push(
-                address(
-                    new ERC1967Proxy(
-                        limitOrderUpkeepImplementation,
-                        abi.encodeWithSelector(
-                            LimitOrderUpkeep.initialize.selector,
-                            deployer,
-                            limitOrderSettlementStrategies.get(marketId)
-                        )
-                    )
-                )
-            );
-        }
-
-        for (uint256 i = 0; i < marketOrderMarketIds.length; i++) {
-            uint256 marketId = marketOrderMarketIds[i];
-            marketOrderUpkeeps[marketId].push(
-                address(
-                    new ERC1967Proxy(
-                        marketOrderUpkeepImplementation,
-                        abi.encodeWithSelector(
-                            MarketOrderUpkeep.initialize.selector,
-                            deployer,
-                            marketOrderSettlementStrategies.get(marketId)
-                        )
-                    )
-                )
-            );
-        }
-
-        for (uint256 i = 0; i < ocoOrderMarketIds.length; i++) {
-            uint256 marketId = ocoOrderMarketIds[i];
-            ocoOrderUpkeeps[marketId].push(
-                address(
-                    new ERC1967Proxy(
-                        ocoOrderUpkeepImplementation,
-                        abi.encodeWithSelector(
-                            OcoOrderUpkeep.initialize.selector, deployer, ocoOrderSettlementStrategies.get(marketId)
-                        )
-                    )
-                )
-            );
-        }
-
-        LimitOrderSettlementStrategy limitOrderSettlementStrategy =
-            LimitOrderSettlementStrategy(limitOrderSettlementStrategies.get(ETH_USD_MARKET_ID));
-        MarketOrderSettlementStrategy marketOrderSettlementStrategy = MarketOrderSettlementStrategy(
-            marketOrderSettlementStrategies.get(ETH_USD_MARKET_ID)
-        );
-        OcoOrderSettlementStrategy ocoOrderSettlementStrategy =
-            OcoOrderSettlementStrategy(ocoOrderSettlementStrategies.get(ETH_USD_MARKET_ID));
-    }
-
     function deploySettlementStrategies() internal {
         address limitOrderSettlementStrategyImplementation = address(new LimitOrderSettlementStrategy());
         address marketOrderSettlementStrategyImplementation = address(new MarketOrderSettlementStrategy());
@@ -333,5 +270,85 @@ contract CreatePerpMarket is BaseScript {
                 )
             )
         );
+    }
+
+    function deployKeepers() internal {
+        address limitOrderUpkeepImplementation = address(new LimitOrderUpkeep());
+        address marketOrderUpkeepImplementation = address(new MarketOrderUpkeep());
+        address ocoOrderUpkeepImplementation = address(new OcoOrderUpkeep());
+
+        uint256[] memory limitOrderMarketIds = limitOrderSettlementStrategies.keys();
+        uint256[] memory marketOrderMarketIds = marketOrderSettlementStrategies.keys();
+        uint256[] memory ocoOrderMarketIds = ocoOrderSettlementStrategies.keys();
+
+        for (uint256 i = 0; i < limitOrderMarketIds.length; i++) {
+            uint256 marketId = limitOrderMarketIds[i];
+            limitOrderUpkeeps[marketId].push(
+                address(
+                    new ERC1967Proxy(
+                        limitOrderUpkeepImplementation,
+                        abi.encodeWithSelector(
+                            LimitOrderUpkeep.initialize.selector,
+                            deployer,
+                            limitOrderSettlementStrategies.get(marketId)
+                        )
+                    )
+                )
+            );
+        }
+
+        for (uint256 i = 0; i < marketOrderMarketIds.length; i++) {
+            uint256 marketId = marketOrderMarketIds[i];
+            marketOrderUpkeeps[marketId].push(
+                address(
+                    new ERC1967Proxy(
+                        marketOrderUpkeepImplementation,
+                        abi.encodeWithSelector(
+                            MarketOrderUpkeep.initialize.selector,
+                            deployer,
+                            marketOrderSettlementStrategies.get(marketId)
+                        )
+                    )
+                )
+            );
+        }
+
+        for (uint256 i = 0; i < ocoOrderMarketIds.length; i++) {
+            uint256 marketId = ocoOrderMarketIds[i];
+            ocoOrderUpkeeps[marketId].push(
+                address(
+                    new ERC1967Proxy(
+                        ocoOrderUpkeepImplementation,
+                        abi.encodeWithSelector(
+                            OcoOrderUpkeep.initialize.selector, deployer, ocoOrderSettlementStrategies.get(marketId)
+                        )
+                    )
+                )
+            );
+        }
+    }
+
+    function configureKeepers() internal {
+        LimitOrderSettlementStrategy ethUsdLimitOrderSettlementStrategy =
+            LimitOrderSettlementStrategy(limitOrderSettlementStrategies.get(ETH_USD_MARKET_ID));
+        MarketOrderSettlementStrategy ethUsdMarketOrderSettlementStrategy =
+            MarketOrderSettlementStrategy(marketOrderSettlementStrategies.get(ETH_USD_MARKET_ID));
+        OcoOrderSettlementStrategy ethUsOcoOrderSettlementStrategy =
+            OcoOrderSettlementStrategy(ocoOrderSettlementStrategies.get(ETH_USD_MARKET_ID));
+
+        LimitOrderSettlementStrategy linkUsdLimitOrderSettlementStrategy =
+            LimitOrderSettlementStrategy(limitOrderSettlementStrategies.get(LINK_USD_MARKET_ID));
+        MarketOrderSettlementStrategy linkUsdMarketOrderSettlementStrategy =
+            MarketOrderSettlementStrategy(marketOrderSettlementStrategies.get(LINK_USD_MARKET_ID));
+        OcoOrderSettlementStrategy linkUsdOcoOrderSettlementStrategy =
+            OcoOrderSettlementStrategy(ocoOrderSettlementStrategies.get(LINK_USD_MARKET_ID));
+
+        ethUsdLimitOrderSettlementStrategy.setKeepers(limitOrderUpkeeps[ETH_USD_MARKET_ID]);
+        ethUsdMarketOrderSettlementStrategy.setKeepers(marketOrderUpkeeps[ETH_USD_MARKET_ID]);
+        ethUsOcoOrderSettlementStrategy.setKeepers(ocoOrderUpkeeps[ETH_USD_MARKET_ID]);
+
+        linkUsdLimitOrderSettlementStrategy.setKeepers(limitOrderUpkeeps[LINK_USD_MARKET_ID]);
+        linkUsdMarketOrderSettlementStrategy.setKeepers(marketOrderUpkeeps[LINK_USD_MARKET_ID]);
+        linkUsdOcoOrderSettlementStrategy.setKeepers(ocoOrderUpkeeps[LINK_USD_MARKET_ID]);
     }
 }
