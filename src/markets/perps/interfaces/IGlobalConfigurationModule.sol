@@ -16,7 +16,7 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 /// @param maxOpenInterest The perps market maximum open interest per side.
 /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
 /// @param maxFundingVelocity The perps market maximum funding rate velocity.
-/// @param marketOrderStrategy The perps market settlement strategy.
+/// @param marketOrderConfiguration The perps market settlement strategy.
 /// @param orderFees The perps market maker and taker fees.
 struct CreatePerpMarketParams {
     uint128 marketId;
@@ -28,7 +28,7 @@ struct CreatePerpMarketParams {
     uint128 maxOpenInterest;
     uint256 skewScale;
     uint128 maxFundingVelocity;
-    SettlementConfiguration.Data marketOrderStrategy;
+    SettlementConfiguration.Data marketOrderConfiguration;
     SettlementConfiguration.Data[] customTriggerStrategies;
     OrderFees.Data orderFees;
 }
@@ -66,7 +66,7 @@ interface IGlobalConfigurationModule {
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
         uint128 minInitialMarginRateX18,
-        SettlementConfiguration.Data marketOrderStrategy,
+        SettlementConfiguration.Data marketOrderConfiguration,
         SettlementConfiguration.Data[] customTriggerStrategies,
         OrderFees.Data orderFees
     );

@@ -90,7 +90,7 @@ contract CreatePerpMarket is BaseScript {
 
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData =
+        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderConfigurationData =
         SettlementConfiguration.DataStreamsMarketStrategy({
             chainlinkVerifier: chainlinkVerifier,
             streamId: ethUsdStreamId,
@@ -104,23 +104,23 @@ contract CreatePerpMarket is BaseScript {
         deployKeepers(limitOrderSettlementStrategies, marketOrderSettlementStrategies, ocoOrderSettlementStrategies);
 
         // TODO: Add price adapter
-        SettlementConfiguration.Data memory ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
+        SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
-            data: abi.encode(ethUsdMarketOrderStrategyData)
+            data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
-        SettlementConfiguration.Data memory ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
+        SettlementConfiguration.Data memory ethUsdLimitOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
-            data: abi.encode(ethUsdMarketOrderStrategyData)
+            data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
         SettlementConfiguration.Data[] memory ethUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
-        ethUsdCustomTriggerStrategies[0] = ethUsdLimitOrderStrategy;
+        ethUsdCustomTriggerStrategies[0] = ethUsdLimitOrderConfiguration;
 
         perpsEngine.createPerpMarket({
             params: CreatePerpMarketParams({
@@ -133,13 +133,13 @@ contract CreatePerpMarket is BaseScript {
                 maxOpenInterest: ETH_USD_MAX_OI,
                 skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-                marketOrderStrategy: ethUsdMarketOrderStrategy,
+                marketOrderConfiguration: ethUsdMarketOrderConfiguration,
                 customTriggerStrategies: ethUsdCustomTriggerStrategies,
                 orderFees: ethUsdOrderFee
             })
         });
 
-        SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderStrategyData =
+        SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderConfigurationData =
         SettlementConfiguration.DataStreamsMarketStrategy({
             // TODO: Add price adapter
             chainlinkVerifier: chainlinkVerifier,
@@ -151,24 +151,24 @@ contract CreatePerpMarket is BaseScript {
         });
 
         // TODO: Add price adapter
-        SettlementConfiguration.Data memory linkUsdMarketOrderStrategy = SettlementConfiguration.Data({
+        SettlementConfiguration.Data memory linkUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
-            data: abi.encode(linkUsdMarketOrderStrategyData)
+            data: abi.encode(linkUsdMarketOrderConfigurationData)
         });
 
-        SettlementConfiguration.Data memory linkUsdLimitOrderStrategy = SettlementConfiguration.Data({
+        SettlementConfiguration.Data memory linkUsdLimitOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: uint80(defaultSettlementFee),
             settlementStrategy: defaultMarketOrderSettlementStrategy,
-            data: abi.encode(linkUsdMarketOrderStrategyData)
+            data: abi.encode(linkUsdMarketOrderConfigurationData)
         });
 
         SettlementConfiguration.Data[] memory linkUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
-        linkUsdCustomTriggerStrategies[0] = linkUsdLimitOrderStrategy;
+        linkUsdCustomTriggerStrategies[0] = linkUsdLimitOrderConfiguration;
 
         perpsEngine.createPerpMarket({
             params: CreatePerpMarketParams({
@@ -181,7 +181,7 @@ contract CreatePerpMarket is BaseScript {
                 maxOpenInterest: LINK_USD_MAX_OI,
                 skewScale: LINK_USD_SKEW_SCALE,
                 maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
-                marketOrderStrategy: linkUsdMarketOrderStrategy,
+                marketOrderConfiguration: linkUsdMarketOrderConfiguration,
                 customTriggerStrategies: linkUsdCustomTriggerStrategies,
                 orderFees: linkUsdOrderFee
             })
