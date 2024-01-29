@@ -100,6 +100,8 @@ contract CreatePerpMarket is BaseScript {
             isPremium: false
         });
 
+        // TODO: Deploy keepers and add them to the keepers array
+
         // TODO: Add price adapter
         SettlementConfiguration.Data memory ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
@@ -218,24 +220,61 @@ contract CreatePerpMarket is BaseScript {
             OcoOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID, OCO_ORDER_SETTLEMENT_ID
         );
 
-        LimitOrderSettlementStrategy ethUsdLimitOrderSettlementStrategy = LimitOrderSettlementStrategy(address(new ERC1967Proxy(
-            limitOrderSettlementStrategyImplementation, ethUsdLimitOrderSettlementStrategyInitializeData
-        )));
-        MarketOrderSettlementStrategy ethUsdMarketOrderSettlementStrategy = MarketOrderSettlementStrategy(address(new ERC1967Proxy(
-            marketOrderSettlementStrategyImplementation, ethUsdMarketOrderSettlementStrategyInitializeData
-        )));
-        OcoOrderSettlementStrategy ethUsdOcoOrderSettlementStrategy = OcoOrderSettlementStrategy(address(new ERC1967Proxy(
-            ocoOrderSettlementStrategyImplementation, ethUsdOcoOrderSettlementStrategyInitializeData
-        )));
+        limitOrderSettlementStrategies.push(
+            LimitOrderSettlementStrategy(
+                address(
+                    new ERC1967Proxy(
+                        limitOrderSettlementStrategyImplementation, ethUsdLimitOrderSettlementStrategyInitializeData
+                    )
+                )
+            )
+        );
+        marketOrderSettlementStrategies.push(
+            MarketOrderSettlementStrategy(
+                address(
+                    new ERC1967Proxy(
+                        marketOrderSettlementStrategyImplementation, ethUsdMarketOrderSettlementStrategyInitializeData
+                    )
+                )
+            )
+        );
+        ocoOrderSettlementStrategies.push(
+            OcoOrderSettlementStrategy(
+                address(
+                    new ERC1967Proxy(
+                        ocoOrderSettlementStrategyImplementation, ethUsdOcoOrderSettlementStrategyInitializeData
+                    )
+                )
+            )
+        );
 
-        LimitOrderSettlementStrategy linkUsdLimitOrderSettlementStrategy = LimitOrderSettlementStrategy(address(new ERC1967Proxy(
-            limitOrderSettlementStrategyImplementation, linkUsdLimitOrderSettlementStrategyInitializeData
-        )));
-        MarketOrderSettlementStrategy linkUsdMarketOrderSettlementStrategy = MarketOrderSettlementStrategy(address(new ERC1967Proxy(
-            marketOrderSettlementStrategyImplementation, linkUsdMarketOrderSettlementStrategyInitializeData
-        )));
-        OcoOrderSettlementStrategy linkUsdOcoOrderSettlementStrategy = OcoOrderSettlementStrategy(address(new ERC1967Proxy(
-            ocoOrderSettlementStrategyImplementation, linkUsdOcoOrderSettlementStrategyInitializeData
-        )));
+        limitOrderSettlementStrategies.push(
+            LimitOrderSettlementStrategy(
+                address(
+                    new ERC1967Proxy(
+                        limitOrderSettlementStrategyImplementation, linkUsdLimitOrderSettlementStrategyInitializeData
+                    )
+                )
+            )
+        );
+        marketOrderSettlementStrategies.push(
+            MarketOrderSettlementStrategy(
+                address(
+                    new ERC1967Proxy(
+                        marketOrderSettlementStrategyImplementation,
+                        linkUsdMarketOrderSettlementStrategyInitializeData
+                    )
+                )
+            )
+        );
+        ocoOrderSettlementStrategies.push(
+            OcoOrderSettlementStrategy(
+                address(
+                    new ERC1967Proxy(
+                        ocoOrderSettlementStrategyImplementation, linkUsdOcoOrderSettlementStrategyInitializeData
+                    )
+                )
+            )
+        );
     }
 }
