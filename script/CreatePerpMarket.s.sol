@@ -31,8 +31,6 @@ contract CreatePerpMarket is BaseScript {
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
 
     IVerifierProxy internal chainlinkVerifier;
-    address internal defaultMarketOrderSettlementStrategy;
-    address internal defaultMarketOrderUpkeep;
     uint256 internal defaultSettlementFee;
 
     address internal ethUsdPriceAdapter;
@@ -81,9 +79,8 @@ contract CreatePerpMarket is BaseScript {
 
     function run() public broadcaster {
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
-        defaultMarketOrderSettlementStrategy = vm.envAddress("DEFAULT_MARKET_ORDER_SETTLEMENT_STRATEGY");
-        defaultMarketOrderUpkeep = vm.envAddress("DEFAULT_MARKET_ORDER_UPKEEP");
-        defaultSettlementFee = vm.envUint("DEFAULT_SETTLEMENT_FEE");
+        // TODO: Add to market configuration json
+        defaultSettlementFee = 2e18;
 
         ethUsdPriceAdapter = vm.envAddress("ETH_USD_PRICE_FEED");
         ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
