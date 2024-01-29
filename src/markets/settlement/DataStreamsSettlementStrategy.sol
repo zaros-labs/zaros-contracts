@@ -123,9 +123,6 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
-        if (settlementId == 0) {
-            revert Errors.ZeroInput("settlementId");
-        }
 
         DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
 
