@@ -16,6 +16,9 @@ import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
 
+// Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+
 // TODO: update limit order strategies
 contract CreatePerpMarket is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
@@ -31,6 +34,9 @@ contract CreatePerpMarket is BaseScript {
 
     address internal ethUsdPriceAdapter;
     string internal ethUsdStreamId;
+
+    uint256 internal constant LIMIT_ORDER_SETTLEMENT_ID = 1;
+    uint256 internal constant OCO_ORDER_SETTLEMENT_ID = 2;
 
     uint128 internal constant ETH_USD_MARKET_ID = 1;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
@@ -61,12 +67,14 @@ contract CreatePerpMarket is BaseScript {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
-    LimitOrderSettlementStrategy internal limitOrderSettlementStrategy;
-    MarketOrderSettlementStrategy internal marketOrderSettlementStrategy;
-    OcoOrderSettlementStrategy internal ocoOrderSettlementStrategy;
-    LimitOrderUpkeep internal limitOrderUpkeep;
-    MarketOrderUpkeep internal marketOrderUpkeep;
-    OcoOrderUpkeep internal ocoOrderUpkeep;
+
+    LimitOrderSettlementStrategy[] internal limitOrderSettlementStrategies;
+    MarketOrderSettlementStrategy[] internal marketOrderSettlementStrategies;
+    OcoOrderSettlementStrategy[] internal ocoOrderSettlementStrategies;
+
+    LimitOrderUpkeep[] internal limitOrderUpkeeps;
+    MarketOrderUpkeep[] internal marketOrderUpkeeps;
+    OcoOrderUpkeep[] internal ocoOrderUpkeeps;
 
     function run() public broadcaster {
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
@@ -81,16 +89,6 @@ contract CreatePerpMarket is BaseScript {
         linkUsdStreamId = vm.envString("LINK_USD_STREAM_ID");
 
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
-
-        address limitOrderSettlementStrategyImplementation = address(new LimitOrderSettlementStrategy());
-        address marketOrderSettlementStrategyImplementation = address(new MarketOrderSettlementStrategy());
-        address ocoOrderSettlementStrategyImplementation = address(new OcoOrderSettlementStrategy());
-
-        address limitOrderUpkeepImplementation = address(new LimitOrderUpkeep());
-        address marketOrderUpkeepImplementation = address(new MarketOrderUpkeep());
-        address ocoOrderUpkeepImplementation = address(new OcoOrderUpkeep());
-
-        bytes memory limitOrderSettlementStrategyInitializeData;
 
         SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderStrategyData =
         SettlementConfiguration.DataStreamsMarketStrategy({
@@ -185,5 +183,59 @@ contract CreatePerpMarket is BaseScript {
                 orderFees: linkUsdOrderFee
             })
         });
+    }
+
+    function deploySettlementStrategies() internal {
+        address limitOrderSettlementStrategyImplementation = address(new LimitOrderSettlementStrategy());
+        address marketOrderSettlementStrategyImplementation = address(new MarketOrderSettlementStrategy());
+        address ocoOrderSettlementStrategyImplementation = address(new OcoOrderSettlementStrategy());
+
+        address limitOrderUpkeepImplementation = address(new LimitOrderUpkeep());
+        address marketOrderUpkeepImplementation = address(new MarketOrderUpkeep());
+        address ocoOrderUpkeepImplementation = address(new OcoOrderUpkeep());
+
+        bytes memory ethUsdLimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
+            LimitOrderSettlementStrategy.initialize.selector,
+            perpsEngine,
+            ETH_USD_MARKET_ID,
+            LIMIT_ORDER_SETTLEMENT_ID
+        );
+        bytes memory ethUsdMarketOrderSettlementStrategyInitializeData =
+            abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID);
+        bytes memory ethUsdOcoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
+            OcoOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID, OCO_ORDER_SETTLEMENT_ID
+        );
+
+        bytes memory linkUsdLimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
+            LimitOrderSettlementStrategy.initialize.selector,
+            perpsEngine,
+            LINK_USD_MARKET_ID,
+            LIMIT_ORDER_SETTLEMENT_ID
+        );
+        bytes memory linkUsdMarketOrderSettlementStrategyInitializeData =
+            abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID);
+        bytes memory linkUsdOcoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
+            OcoOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID, OCO_ORDER_SETTLEMENT_ID
+        );
+
+        LimitOrderSettlementStrategy ethUsdLimitOrderSettlementStrategy = LimitOrderSettlementStrategy(address(new ERC1967Proxy(
+            limitOrderSettlementStrategyImplementation, ethUsdLimitOrderSettlementStrategyInitializeData
+        )));
+        MarketOrderSettlementStrategy ethUsdMarketOrderSettlementStrategy = MarketOrderSettlementStrategy(address(new ERC1967Proxy(
+            marketOrderSettlementStrategyImplementation, ethUsdMarketOrderSettlementStrategyInitializeData
+        )));
+        OcoOrderSettlementStrategy ethUsdOcoOrderSettlementStrategy = OcoOrderSettlementStrategy(address(new ERC1967Proxy(
+            ocoOrderSettlementStrategyImplementation, ethUsdOcoOrderSettlementStrategyInitializeData
+        )));
+
+        LimitOrderSettlementStrategy linkUsdLimitOrderSettlementStrategy = LimitOrderSettlementStrategy(address(new ERC1967Proxy(
+            limitOrderSettlementStrategyImplementation, linkUsdLimitOrderSettlementStrategyInitializeData
+        )));
+        MarketOrderSettlementStrategy linkUsdMarketOrderSettlementStrategy = MarketOrderSettlementStrategy(address(new ERC1967Proxy(
+            marketOrderSettlementStrategyImplementation, linkUsdMarketOrderSettlementStrategyInitializeData
+        )));
+        OcoOrderSettlementStrategy linkUsdOcoOrderSettlementStrategy = OcoOrderSettlementStrategy(address(new ERC1967Proxy(
+            ocoOrderSettlementStrategyImplementation, linkUsdOcoOrderSettlementStrategyInitializeData
+        )));
     }
 }
