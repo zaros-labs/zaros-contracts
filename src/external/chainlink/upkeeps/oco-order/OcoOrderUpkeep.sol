@@ -35,6 +35,10 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         OcoOrderSettlementStrategy settlementStrategy;
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice {OcoOrderUpkeep} UUPS initializer.
     function initialize(address forwarder, OcoOrderSettlementStrategy settlementStrategy) external initializer {
         __BaseUpkeep_init(forwarder);
@@ -103,7 +107,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         bytes calldata extraData
     )
         external
-        view
+        pure
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {

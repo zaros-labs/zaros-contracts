@@ -33,6 +33,10 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         MarketOrderSettlementStrategy settlementStrategy;
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice {MarketOrderUpkeep} UUPS initializer.
     function initialize(address forwarder, MarketOrderSettlementStrategy settlementStrategy) external initializer {
         __BaseUpkeep_init(forwarder);

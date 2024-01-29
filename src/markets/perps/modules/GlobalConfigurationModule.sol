@@ -181,7 +181,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             params.maxOpenInterest,
             params.skewScale,
             params.maxFundingVelocity,
-            params.marketOrderStrategy,
+            params.marketOrderConfiguration,
             params.customTriggerStrategies,
             params.orderFees
         );
@@ -195,7 +195,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             params.maintenanceMarginRateX18,
             params.maxOpenInterest,
             params.minInitialMarginRateX18,
-            params.marketOrderStrategy,
+            params.marketOrderConfiguration,
             params.customTriggerStrategies,
             params.orderFees
         );

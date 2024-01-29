@@ -27,20 +27,20 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     address internal mockDefaultMarketOrderSettlementStrategy = vm.addr({ privateKey: 0x04 });
 
     /// @dev BTC / USD market configuration variables.
-    SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderStrategyData;
-    SettlementConfiguration.Data internal btcUsdMarketOrderStrategy;
+    SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderConfigurationData;
+    SettlementConfiguration.Data internal btcUsdMarketOrderConfiguration;
     // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-    SettlementConfiguration.Data internal btcUsdLimitOrderStrategy;
+    SettlementConfiguration.Data internal btcUsdLimitOrderConfiguration;
 
     SettlementConfiguration.Data[] internal btcUsdCustomTriggerStrategies;
 
     OrderFees.Data internal btcUsdOrderFees;
 
     /// @dev ETH / USD market configuration variables.
-    SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderStrategyData;
-    SettlementConfiguration.Data internal ethUsdMarketOrderStrategy;
+    SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderConfigurationData;
+    SettlementConfiguration.Data internal ethUsdMarketOrderConfiguration;
     // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-    SettlementConfiguration.Data internal ethUsdLimitOrderStrategy;
+    SettlementConfiguration.Data internal ethUsdLimitOrderConfiguration;
 
     SettlementConfiguration.Data[] internal ethUsdCustomTriggerStrategies;
 
@@ -53,7 +53,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
 
         /// @dev BTC / USD market configuration variables.
-        btcUsdMarketOrderStrategyData = SettlementConfiguration.DataStreamsMarketStrategy({
+        btcUsdMarketOrderConfigurationData = SettlementConfiguration.DataStreamsMarketStrategy({
             chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
             streamId: MOCK_ETH_USD_STREAM_ID,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
@@ -62,28 +62,28 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             isPremium: false
         });
         // TODO: set price adapter
-        btcUsdMarketOrderStrategy = SettlementConfiguration.Data({
+        btcUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            data: abi.encode(btcUsdMarketOrderStrategyData)
+            data: abi.encode(btcUsdMarketOrderConfigurationData)
         });
 
         // TODO: update limit order strategy and move the market's strategies definition to a separate file.
         // TODO: set price adapter
-        btcUsdLimitOrderStrategy = SettlementConfiguration.Data({
+        btcUsdLimitOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            data: abi.encode(btcUsdMarketOrderStrategyData)
+            data: abi.encode(btcUsdMarketOrderConfigurationData)
         });
 
         btcUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
         /// @dev ETH / USD market configuration variables.
-        ethUsdMarketOrderStrategyData = SettlementConfiguration.DataStreamsMarketStrategy({
+        ethUsdMarketOrderConfigurationData = SettlementConfiguration.DataStreamsMarketStrategy({
             chainlinkVerifier: IVerifierProxy((mockChainlinkVerifier)),
             streamId: MOCK_ETH_USD_STREAM_ID,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
@@ -92,28 +92,28 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             isPremium: false
         });
         // TODO: set price adapter
-        ethUsdMarketOrderStrategy = SettlementConfiguration.Data({
+        ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            data: abi.encode(ethUsdMarketOrderStrategyData)
+            data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
         // TODO: update limit order strategy and move the market's strategies definition to a separate file.
         // TODO: set price adapter
-        ethUsdLimitOrderStrategy = SettlementConfiguration.Data({
+        ethUsdLimitOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            data: abi.encode(ethUsdMarketOrderStrategyData)
+            data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
         ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
-        btcUsdCustomTriggerStrategies.push(btcUsdLimitOrderStrategy);
-        ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderStrategy);
+        btcUsdCustomTriggerStrategies.push(btcUsdLimitOrderConfiguration);
+        ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderConfiguration);
     }
 
     function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
@@ -140,7 +140,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 maxOpenInterest: BTC_USD_MAX_OI,
                 skewScale: BTC_USD_SKEW_SCALE,
                 maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
-                marketOrderStrategy: btcUsdMarketOrderStrategy,
+                marketOrderConfiguration: btcUsdMarketOrderConfiguration,
                 customTriggerStrategies: btcUsdCustomTriggerStrategies,
                 orderFees: btcUsdOrderFees
             })
@@ -157,7 +157,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 maxOpenInterest: ETH_USD_MAX_OI,
                 skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-                marketOrderStrategy: ethUsdMarketOrderStrategy,
+                marketOrderConfiguration: ethUsdMarketOrderConfiguration,
                 customTriggerStrategies: ethUsdCustomTriggerStrategies,
                 orderFees: ethUsdOrderFees
             })
