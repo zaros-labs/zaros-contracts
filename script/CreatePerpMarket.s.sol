@@ -20,6 +20,9 @@ import { BaseScript } from "./Base.s.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
+// Forge dependencies
+import "forge-std/console.sol";
+
 // TODO: update limit order strategies
 contract CreatePerpMarket is BaseScript {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
@@ -191,8 +194,16 @@ contract CreatePerpMarket is BaseScript {
 
     function deploySettlementStrategies() internal {
         address limitOrderSettlementStrategyImplementation = address(new LimitOrderSettlementStrategy());
+
+        console.log("LOSS Implementation: ", limitOrderSettlementStrategyImplementation);
+
         address marketOrderSettlementStrategyImplementation = address(new MarketOrderSettlementStrategy());
+
+        console.log("MOSS Implementation: ", marketOrderSettlementStrategyImplementation);
+
         address ocoOrderSettlementStrategyImplementation = address(new OcoOrderSettlementStrategy());
+
+        console.log("OSS Implementation: ", ocoOrderSettlementStrategyImplementation);
 
         bytes memory ethUsdLimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
             LimitOrderSettlementStrategy.initialize.selector,
@@ -218,55 +229,63 @@ contract CreatePerpMarket is BaseScript {
             OcoOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID, OCO_ORDER_SETTLEMENT_ID
         );
 
-        limitOrderSettlementStrategies.set(
-            ETH_USD_MARKET_ID,
-            address(
-                new ERC1967Proxy(
-                    limitOrderSettlementStrategyImplementation, ethUsdLimitOrderSettlementStrategyInitializeData
-                )
-            )
-        );
-        marketOrderSettlementStrategies.set(
-            ETH_USD_MARKET_ID,
-            address(
-                new ERC1967Proxy(
-                    marketOrderSettlementStrategyImplementation, ethUsdMarketOrderSettlementStrategyInitializeData
-                )
-            )
-        );
-        ocoOrderSettlementStrategies.set(
-            ETH_USD_MARKET_ID,
-            address(
-                new ERC1967Proxy(
-                    ocoOrderSettlementStrategyImplementation, ethUsdOcoOrderSettlementStrategyInitializeData
-                )
+        address ethUsdLimitOrderSettlementStrategy = address(
+            new ERC1967Proxy(
+                limitOrderSettlementStrategyImplementation, ethUsdLimitOrderSettlementStrategyInitializeData
             )
         );
 
-        limitOrderSettlementStrategies.set(
-            LINK_USD_MARKET_ID,
-            address(
-                new ERC1967Proxy(
-                    limitOrderSettlementStrategyImplementation, linkUsdLimitOrderSettlementStrategyInitializeData
-                )
+        console.log("ETH-USD LOSS: ", ethUsdLimitOrderSettlementStrategy);
+
+        limitOrderSettlementStrategies.set(ETH_USD_MARKET_ID, ethUsdLimitOrderSettlementStrategy);
+
+        address ethUsdMarketOrderSettlementStrategy = address(
+            new ERC1967Proxy(
+                marketOrderSettlementStrategyImplementation, ethUsdMarketOrderSettlementStrategyInitializeData
             )
         );
-        marketOrderSettlementStrategies.set(
-            LINK_USD_MARKET_ID,
-            address(
-                new ERC1967Proxy(
-                    marketOrderSettlementStrategyImplementation, linkUsdMarketOrderSettlementStrategyInitializeData
-                )
+
+        console.log("ETH-USD MOSS: ", ethUsdMarketOrderSettlementStrategy);
+
+        marketOrderSettlementStrategies.set(ETH_USD_MARKET_ID, ethUsdMarketOrderSettlementStrategy);
+
+        address ethUsdOcoOrderSettlementStrategy = address(
+            new ERC1967Proxy(ocoOrderSettlementStrategyImplementation, ethUsdOcoOrderSettlementStrategyInitializeData)
+        );
+
+        console.log("ETH-USD OSS: ", ethUsdOcoOrderSettlementStrategy);
+
+        ocoOrderSettlementStrategies.set(ETH_USD_MARKET_ID, ethUsdOcoOrderSettlementStrategy);
+
+        address linkUsdLimitOrderSettlementStrategy = address(
+            new ERC1967Proxy(
+                limitOrderSettlementStrategyImplementation, linkUsdLimitOrderSettlementStrategyInitializeData
             )
         );
-        ocoOrderSettlementStrategies.set(
-            LINK_USD_MARKET_ID,
-            address(
-                new ERC1967Proxy(
-                    ocoOrderSettlementStrategyImplementation, linkUsdOcoOrderSettlementStrategyInitializeData
-                )
+
+        console.log("LINK-USD LOSS: ", linkUsdLimitOrderSettlementStrategy);
+
+        limitOrderSettlementStrategies.set(LINK_USD_MARKET_ID, linkUsdLimitOrderSettlementStrategy);
+
+        address linkUsdMarketOrderSettlementStrategy = address(
+            new ERC1967Proxy(
+                marketOrderSettlementStrategyImplementation, linkUsdMarketOrderSettlementStrategyInitializeData
             )
         );
+
+        console.log("LINK-USD MOSS: ", linkUsdMarketOrderSettlementStrategy);
+
+        marketOrderSettlementStrategies.set(LINK_USD_MARKET_ID, linkUsdMarketOrderSettlementStrategy);
+
+        address linkUsdOcoOrderSettlementStrategy = address(
+            new ERC1967Proxy(
+                ocoOrderSettlementStrategyImplementation, linkUsdOcoOrderSettlementStrategyInitializeData
+            )
+        );
+
+        console.log("LINK-USD OSS: ", linkUsdOcoOrderSettlementStrategy);
+
+        ocoOrderSettlementStrategies.set(LINK_USD_MARKET_ID, linkUsdOcoOrderSettlementStrategy);
     }
 
     function deployKeepers() internal {

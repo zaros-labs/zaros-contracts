@@ -21,6 +21,7 @@ import {
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+
 // Forge dependencies
 import "forge-std/console.sol";
 
