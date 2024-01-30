@@ -5,8 +5,12 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { USDToken } from "@zaros/usd/USDToken.sol";
 
-contract MockUSDToken is USDToken {
-    constructor(address owner, uint256 ownerBalance) USDToken(owner) {
-        _mint(owner, ownerBalance);
+contract MockUsdToken is USDToken {
+    constructor(address owner, uint256 deployerBalance) USDToken(owner) {
+        _mint(owner, deployerBalance);
+    }
+
+    function mockMint(address to, uint256 amount) external {
+        _mint(to, amount);
     }
 }
