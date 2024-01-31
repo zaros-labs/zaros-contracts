@@ -37,7 +37,24 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function estimateOrderFee(uint128 marketId, int128 sizeDelta) external view override returns (UD60x18, UD60x18) { }
+    function simulateSettlement(
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        override
+        returns (SD59x18, UD60x18)
+    {
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+        UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
+        UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
+
+        SD59x18 feeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), markPriceX18);
+
+        return (feeUsdX18, markPriceX18);
+    }
 
     /// @inheritdoc IOrderModule
     function getRequiredMarginForOrder(

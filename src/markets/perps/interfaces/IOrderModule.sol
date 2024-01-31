@@ -10,6 +10,7 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 interface IOrderModule {
     event LogCreateMarketOrder(
@@ -27,13 +28,13 @@ interface IOrderModule {
         view
         returns (MarketOrder.Data memory marketOrder);
 
-    function estimateOrderFee(
+    function simulateSettlement(
         uint128 marketId,
         int128 sizeDelta
     )
         external
         view
-        returns (UD60x18 fee, UD60x18 fillPrice);
+        returns (SD59x18 feeUsdX18, UD60x18 fillPriceX18);
 
     function getRequiredMarginForOrder(
         uint128 marketId,
@@ -41,7 +42,7 @@ interface IOrderModule {
     )
         external
         view
-        returns (UD60x18 minimumInitialMargin, UD60x18 maintenanceMarginUsdX18);
+        returns (UD60x18 minInitialMarginUsdX18, UD60x18 maintenanceMarginUsdX18);
 
     function createMarketOrder(
         uint128 accountId,
