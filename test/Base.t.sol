@@ -12,7 +12,7 @@ import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
-import { MockUsdToken } from "./mocks/MockUsdToken.sol";
+import { MockUSDToken } from "./mocks/MockUSDToken.sol";
 import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
@@ -51,7 +51,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
 
     AccountNFT internal perpsAccountToken;
     MockERC20 internal mockWstEth;
-    MockUsdToken internal usdToken;
+    MockUSDToken internal usdToken;
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
     RewardDistributor internal rewardDistributor;
@@ -79,7 +79,7 @@ abstract contract Base_Test is Test, Constants, Events, Storage {
         vm.startPrank({ msgSender: users.owner });
 
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
-        usdToken = new MockUsdToken({ owner: users.owner, deployerBalance: 100_000_000e18 });
+        usdToken = new MockUSDToken({ owner: users.owner, deployerBalance: 100_000_000e18 });
         mockWstEth = new MockERC20({
             name: "Wrapped Staked Ether",
             symbol: "wstETH",
