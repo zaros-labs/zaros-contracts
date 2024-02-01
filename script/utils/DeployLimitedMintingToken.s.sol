@@ -14,7 +14,7 @@ import { ERC20, ERC20Permit } from "@openzeppelin/token/ERC20/extensions/ERC20Pe
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract DeployLimitedMintingToken is BaseScript {
-    function run() public broadcaster returns (address){
+    function run() public broadcaster returns (address) {
         address limitedUSDToken = address(new LimitedUSDToken(deployer));
 
         return limitedUSDToken;
@@ -47,12 +47,11 @@ contract LimitedUSDToken is IUSDToken, ERC20Permit, Ownable {
         }
     }
 
-    function _requireAmountLessThanMaxAmountMint(uint256 amount) private view{
+    function _requireAmountLessThanMaxAmountMint(uint256 amount) private view {
         require(quantityMintPerWallet[msg.sender] + amount <= MAX_AMOUNT_MINT, "You have exceeded your mint limit");
     }
 
-    function updateMaxAmountMint(uint256 newAmount) public onlyOwner{
+    function updateMaxAmountMint(uint256 newAmount) public onlyOwner {
         MAX_AMOUNT_MINT = newAmount;
     }
 }
-
