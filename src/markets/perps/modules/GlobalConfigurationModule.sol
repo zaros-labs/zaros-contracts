@@ -174,7 +174,6 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             params.marketId,
             params.name,
             params.symbol,
-            // TODO: uncomment
             params.priceAdapter,
             params.minInitialMarginRateX18,
             params.maintenanceMarginRateX18,
