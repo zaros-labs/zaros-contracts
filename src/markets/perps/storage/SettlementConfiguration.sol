@@ -49,6 +49,7 @@ library SettlementConfiguration {
         bytes data;
     }
 
+    // TODO: Review if we should use settlementDelay or not
     /// @notice Data structure used by the {DATA_STREAMS} settlementConfiguration.
     /// @param streamId The Chainlink Data Streams stream id.
     /// @param feedLabel The Chainlink Data Streams feed label.
