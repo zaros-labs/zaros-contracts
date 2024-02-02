@@ -84,8 +84,7 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     perpMarketModuleSelectors[6] = PerpMarketModule.getSettlementConfiguration.selector;
     perpMarketModuleSelectors[7] = PerpMarketModule.getFundingRate.selector;
     perpMarketModuleSelectors[8] = PerpMarketModule.getFundingVelocity.selector;
-    perpMarketModuleSelectors[9] = PerpMarketModule.getAccountLeverage.selector;
-    perpMarketModuleSelectors[10] = PerpMarketModule.getMarketData.selector;
+    perpMarketModuleSelectors[9] = PerpMarketModule.getMarketData.selector;
 
     bytes4[] memory perpsAccountModuleSelectors = new bytes4[](11);
 
@@ -94,12 +93,13 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     perpsAccountModuleSelectors[2] = PerpsAccountModule.getAccountEquityUsd.selector;
     perpsAccountModuleSelectors[3] = PerpsAccountModule.getAccountMarginBreakdown.selector;
     perpsAccountModuleSelectors[4] = PerpsAccountModule.getAccountTotalUnrealizedPnl.selector;
-    perpsAccountModuleSelectors[5] = PerpsAccountModule.getOpenPositionData.selector;
-    perpsAccountModuleSelectors[6] = PerpsAccountModule.createPerpsAccount.selector;
-    perpsAccountModuleSelectors[7] = PerpsAccountModule.createPerpsAccountAndMulticall.selector;
-    perpsAccountModuleSelectors[8] = PerpsAccountModule.depositMargin.selector;
-    perpsAccountModuleSelectors[9] = PerpsAccountModule.withdrawMargin.selector;
-    perpsAccountModuleSelectors[10] = PerpsAccountModule.notifyAccountTransfer.selector;
+    perpsAccountModuleSelectors[5] = PerpsAccountModule.getAccountLeverage.selector;
+    perpsAccountModuleSelectors[6] = PerpsAccountModule.getOpenPositionData.selector;
+    perpsAccountModuleSelectors[7] = PerpsAccountModule.createPerpsAccount.selector;
+    perpsAccountModuleSelectors[8] = PerpsAccountModule.createPerpsAccountAndMulticall.selector;
+    perpsAccountModuleSelectors[9] = PerpsAccountModule.depositMargin.selector;
+    perpsAccountModuleSelectors[10] = PerpsAccountModule.withdrawMargin.selector;
+    perpsAccountModuleSelectors[11] = PerpsAccountModule.notifyAccountTransfer.selector;
 
     bytes4[] memory settlementModuleSelectors = new bytes4[](2);
 
