@@ -89,6 +89,12 @@ interface IPerpsAccountModule {
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18);
 
+    /// @notice Returns the current leverage of a given account id, based on its cross margin collateral and open
+    /// positions.
+    /// @param accountId The trading account id.
+    /// @return leverage The account leverage.
+    function getAccountLeverage(uint128 accountId) external view returns (UD60x18 leverage);
+
     /// @notice Gets the given market's open position details.
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.

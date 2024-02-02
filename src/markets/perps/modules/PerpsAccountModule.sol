@@ -115,6 +115,30 @@ contract PerpsAccountModule is IPerpsAccountModule {
         accountTotalUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
     }
 
+    function getAccountLeverage(uint128 accountId) external view returns (UD60x18) {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+
+        SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(perpsAccount.getAccountUnrealizedPnlUsd());
+        UD60x18 totalPositionsNotionalValue;
+
+        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
+            uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
+
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+            Position.Data storage position = Position.load(accountId, marketId);
+
+            UD60x18 indexPrice = perpMarket.getIndexPrice();
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
+
+            UD60x18 positionNotionalValueX18 = position.getNotionalValue(markPrice);
+            totalPositionsNotionalValue = totalPositionsNotionalValue.add(positionNotionalValueX18);
+        }
+
+        return marginBalanceUsdX18.isZero()
+            ? marginBalanceUsdX18.intoUD60x18()
+            : totalPositionsNotionalValue.intoSD59x18().div(marginBalanceUsdX18).intoUD60x18();
+    }
+
     /// @inheritdoc IPerpsAccountModule
     function getOpenPositionData(
         uint128 accountId,
