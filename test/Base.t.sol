@@ -27,7 +27,6 @@ import {
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";
-import "forge-std/console.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
