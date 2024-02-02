@@ -13,7 +13,7 @@ import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.s
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockUsdToken } from "./mocks/MockUsdToken.sol";
-import { Constants } from "./utils/Constants.sol";
+import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
@@ -38,7 +38,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract Base_Test is Test, Constants, Events, Storage {
+abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

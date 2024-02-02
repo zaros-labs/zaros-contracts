@@ -81,8 +81,13 @@ contract DeployAlphaPerpsEngine is BaseScript {
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
+        // TODO: add missing configurations
+
+        perpsEngine.setPerpsAccountToken(address(perpsAccountToken));
+        // perpsEngine.configureSystemParameters();
+        // perpsEngine.configureCollateralPriority();
         // TODO: add margin collateral configuration paremeters to a JSON file and use ffi
-        perpsEngine.configureMarginCollateral(address(usdToken), type(uint128).max, 100e18, usdcUsdPriceFeed);
+        perpsEngine.configureMarginCollateral(address(usdToken), type(uint128).max, 1e18, usdcUsdPriceFeed);
     }
 
     function logContracts(address[] memory modules) internal view {

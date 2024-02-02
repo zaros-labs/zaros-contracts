@@ -177,14 +177,16 @@ library PerpMarket {
         return proportionalSkewBounded.mul(maxFundingVelocity);
     }
 
+    // TODO: fix this logic
+    /// @dev When the skew is zero, taker fee will be charged.
     function getOrderFeeUsd(Data storage self, SD59x18 sizeDelta, UD60x18 price) internal view returns (SD59x18) {
         SD59x18 skew = sd59x18(self.skew);
         SD59x18 feeBps;
 
-        bool isPositiveSkew = skew.gt(SD_ZERO);
+        bool isSkewGteZero = skew.gte(SD_ZERO);
         bool isBuyOrder = sizeDelta.gt(SD_ZERO);
 
-        if (isPositiveSkew == isBuyOrder) {
+        if (isSkewGteZero == isBuyOrder) {
             feeBps = sd59x18((self.configuration.orderFees.takerFee));
         } else {
             feeBps = sd59x18((self.configuration.orderFees.makerFee));
