@@ -39,21 +39,26 @@ contract OrderModule is IOrderModule {
     /// @inheritdoc IOrderModule
     function simulateSettlement(
         uint128 marketId,
+        uint128 settlementId,
         int128 sizeDelta
     )
         external
         view
         override
-        returns (SD59x18, UD60x18)
+        returns (SD59x18, UD60x18, UD60x18)
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, settlementId);
 
         UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
         UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
 
-        SD59x18 feeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), markPriceX18);
+        SD59x18 orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), markPriceX18);
 
-        return (feeUsdX18, markPriceX18);
+        UD60x18 settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
+
+        return (orderFeeUsdX18, settlementFeeUsdX18, markPriceX18);
     }
 
     /// @inheritdoc IOrderModule

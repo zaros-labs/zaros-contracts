@@ -30,11 +30,12 @@ interface IOrderModule {
 
     function simulateSettlement(
         uint128 marketId,
+        uint128 settlementId,
         int128 sizeDelta
     )
         external
         view
-        returns (SD59x18 feeUsdX18, UD60x18 fillPriceX18);
+        returns (SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18);
 
     function getRequiredMarginForOrder(
         uint128 marketId,
