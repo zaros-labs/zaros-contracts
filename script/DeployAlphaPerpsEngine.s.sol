@@ -11,6 +11,7 @@ import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "./Base.s.sol";
+import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 import {
     deployModules,
     getModulesSelectors,
@@ -25,7 +26,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // Forge dependencies
 import "forge-std/console.sol";
 
-contract DeployAlphaPerpsEngine is BaseScript {
+contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -84,8 +85,14 @@ contract DeployAlphaPerpsEngine is BaseScript {
         // TODO: add missing configurations
 
         perpsEngine.setPerpsAccountToken(address(perpsAccountToken));
-        // perpsEngine.configureSystemParameters();
-        // perpsEngine.configureCollateralPriority();
+
+        perpsEngine.configureSystemParameters(MAX_POSITIONS_PER_ACCOUNT, MARKET_ORDER_MAX_LIFETIME);
+
+        address[] memory collateralLiquidationPriority = new address[](1);
+        collateralLiquidationPriority[0] = address(usdToken);
+
+        perpsEngine.configureCollateralPriority(collateralLiquidationPriority);
+
         // TODO: add margin collateral configuration paremeters to a JSON file and use ffi
         perpsEngine.configureMarginCollateral(address(usdToken), type(uint128).max, 1e18, usdcUsdPriceFeed);
     }
