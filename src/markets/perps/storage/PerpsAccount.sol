@@ -92,7 +92,15 @@ library PerpsAccount {
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.
     /// @param self The perps account storage pointer.
-    function validateMarginRequirements(Data storage self) internal view {
+    function validateMarginRequirements(
+        Data storage self,
+        uint128 settlementMarketId,
+        SD59x18 sizeDeltaX18,
+        SD59x18 totalFeesUsdX18
+    )
+        internal
+        view
+    {
         UD60x18 requiredMarginUsdX18;
         SD59x18 accountTotalUnrealizedPnlUsdX18;
 
@@ -102,16 +110,23 @@ library PerpsAccount {
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(self.id, marketId);
 
-            UD60x18 indexPrice = perpMarket.getIndexPrice();
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
+            SD59x18 fundingFeePerUnit =
+                perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
 
-            (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = position
+            // if we're dealing with the market id being settled, we simulate the new position size to get the new
+            // margin requirements.
+            UD60x18 notionalValueX18 = marketId != settlementMarketId
+                ? position.getNotionalValue(markPrice)
+                : sd59x18(position.size).add(sizeDeltaX18).abs().intoUD60x18().mul(markPrice);
+            (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
                 .getMarginRequirements(
-                markPrice,
+                notionalValueX18,
                 ud60x18(perpMarket.configuration.minInitialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
             );
-            SD59x18 positionUnrealizedPnl = position.getUnrealizedPnl(markPrice);
+            SD59x18 positionUnrealizedPnl =
+                position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
 
             requiredMarginUsdX18 =
                 requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
@@ -120,9 +135,12 @@ library PerpsAccount {
 
         SD59x18 marginBalanceUsdX18 = getMarginBalanceUsd(self, accountTotalUnrealizedPnlUsdX18);
 
-        if (requiredMarginUsdX18.intoSD59x18().gte(marginBalanceUsdX18)) {
+        if (requiredMarginUsdX18.intoSD59x18().add(totalFeesUsdX18).gte(marginBalanceUsdX18)) {
             revert Errors.InsufficientMargin(
-                self.id, marginBalanceUsdX18.intoUint256(), requiredMarginUsdX18.intoUint256()
+                self.id,
+                marginBalanceUsdX18.intoInt256(),
+                totalFeesUsdX18.intoInt256(),
+                requiredMarginUsdX18.intoUint256()
             );
         }
     }
@@ -201,11 +219,16 @@ library PerpsAccount {
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(self.id, marketId);
 
-            UD60x18 indexPrice = perpMarket.getIndexPrice();
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
-            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPrice);
+            UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
+            UD60x18 markPriceX18 = perpMarket.getMarkPrice(SD_ZERO, indexPriceX18);
 
-            totalUnrealizedPnlUsdX18 = totalUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18);
+            SD59x18 fundingRateX18 = perpMarket.getCurrentFundingRate();
+            SD59x18 fundingFeePerUnitX18 = perpMarket.getNextFundingFeePerUnit(fundingRateX18, markPriceX18);
+
+            SD59x18 accruedFundingUsdX18 = position.getAccruedFunding(fundingFeePerUnitX18);
+            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPriceX18);
+
+            totalUnrealizedPnlUsdX18 = totalUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18).add(accruedFundingUsdX18);
         }
     }
 

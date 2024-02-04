@@ -67,7 +67,7 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
 
     orderModuleSelectors[0] = OrderModule.getConfiguredOrderFees.selector;
     orderModuleSelectors[1] = OrderModule.simulateSettlement.selector;
-    orderModuleSelectors[2] = OrderModule.getRequiredMarginForOrder.selector;
+    orderModuleSelectors[2] = OrderModule.getMarginRequirementsForTrade.selector;
     orderModuleSelectors[3] = OrderModule.getActiveMarketOrder.selector;
     orderModuleSelectors[4] = OrderModule.createMarketOrder.selector;
     orderModuleSelectors[5] = OrderModule.dispatchCustomSettlementRequest.selector;

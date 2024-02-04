@@ -90,9 +90,10 @@ contract PerpsAccountModule is IPerpsAccountModule {
             UD60x18 indexPrice = perpMarket.getIndexPrice();
             UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
 
-            (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = position
+            UD60x18 notionalValueX18 = position.getNotionalValue(markPrice);
+            (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
                 .getMarginRequirements(
-                markPrice,
+                notionalValueX18,
                 ud60x18(perpMarket.configuration.minInitialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
             );
