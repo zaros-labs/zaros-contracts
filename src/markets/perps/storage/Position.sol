@@ -63,8 +63,7 @@ library Position {
     }
 
     function getMarginRequirements(
-        Data storage self,
-        UD60x18 price,
+        UD60x18 notionalValueX18,
         UD60x18 minInitialMarginRateX18,
         UD60x18 maintenanceMarginRateX18
     )
@@ -72,8 +71,8 @@ library Position {
         view
         returns (UD60x18 initialMarginUsdX18, UD60x18 maintenanceMarginUsdX18)
     {
-        initialMarginUsdX18 = getNotionalValue(self, price).mul(minInitialMarginRateX18);
-        maintenanceMarginUsdX18 = getNotionalValue(self, price).mul(maintenanceMarginRateX18);
+        initialMarginUsdX18 = notionalValueX18.mul(minInitialMarginRateX18);
+        maintenanceMarginUsdX18 = notionalValueX18.mul(maintenanceMarginRateX18);
     }
 
     /// @dev Returns the current unrealized profit or loss of the position.
@@ -85,6 +84,7 @@ library Position {
         unrealizedPnlUsdX18 = sd59x18(self.size).mul(priceShift);
     }
 
+    // TODO: update notional value to handle non-USD markets, e.g ETHBTC
     /// @dev Returns the notional value of the position.
     /// @param self The position storage pointer.
     /// @param price The market's current reference price.

@@ -92,7 +92,14 @@ library PerpsAccount {
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.
     /// @param self The perps account storage pointer.
-    function validateMarginRequirements(Data storage self) internal view {
+    function validateMarginRequirements(
+        Data storage self,
+        uint128 settlementMarketId,
+        SD59x18 sizeDelta
+    )
+        internal
+        view
+    {
         UD60x18 requiredMarginUsdX18;
         SD59x18 accountTotalUnrealizedPnlUsdX18;
 
@@ -105,9 +112,14 @@ library PerpsAccount {
             UD60x18 indexPrice = perpMarket.getIndexPrice();
             UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
 
-            (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = position
+            // if we're dealing with the market id being settled, we simulate the new position size to get the new
+            // margin requirements.
+            UD60x18 notionalValueX18 = marketId != settlementMarketId
+                ? position.getNotionalValue(markPrice)
+                : sd59x18(position.size).add(sizeDelta).abs().intoUD60x18().mul(markPrice);
+            (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
                 .getMarginRequirements(
-                markPrice,
+                notionalValueX18,
                 ud60x18(perpMarket.configuration.minInitialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
             );

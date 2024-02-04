@@ -120,6 +120,7 @@ contract SettlementModule is ISettlementModule {
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
         // perpsAccount.checkIsNotLiquidatable();
         perpMarket.validateNewState(vars.sizeDelta);
+        perpsAccount.validateMarginRequirements(vars.marketId, vars.sizeDelta);
 
         bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
         UD60x18 indexPriceX18 =
@@ -141,7 +142,7 @@ contract SettlementModule is ISettlementModule {
             lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        // for now we'll realize the total uPnL, we should realize it proportionally in the future
+        // TODO: Handle negative margin case
         if (vars.pnl.lt(SD_ZERO)) {
             UD60x18 amountToDeduct = vars.pnl.intoUD60x18();
             perpsAccount.deductAccountMargin(amountToDeduct);
@@ -157,8 +158,6 @@ contract SettlementModule is ISettlementModule {
         } else {
             oldPosition.update(vars.newPosition);
         }
-
-        perpsAccount.validateMarginRequirements();
 
         perpMarket.updateState(vars.sizeDelta, vars.fundingRate, vars.fundingFeePerUnit);
 
