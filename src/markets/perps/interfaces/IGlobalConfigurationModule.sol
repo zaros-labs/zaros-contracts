@@ -10,7 +10,7 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 /// @param marketId The perps market id.
 /// @param name The perps market name.
 /// @param symbol The perps market symbol.
-/// @param priceAdapter The price adapter contract, which stores onchain and outputs the market's index price.
+/// @param priceAdapter The price adapter contract, which handles the market's index price.
 /// @param minInitialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
 /// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
 /// @param maxOpenInterest The perps market maximum open interest per side.
@@ -71,6 +71,18 @@ interface IGlobalConfigurationModule {
         OrderFees.Data orderFees
     );
 
+    event LogConfigurePerpMarket(
+        uint128 indexed marketId,
+        string name,
+        string symbol,
+        uint128 minInitialMarginRateX18,
+        uint128 maintenanceMarginRateX18,
+        uint128 maxOpenInterest,
+        uint128 maxFundingVelocity,
+        uint256 skewScale,
+        OrderFees.Data orderFees
+    );
+
     /// @notice Emitted when a perp market is re-enabled by the owner.
     /// @param marketId The perps market id.
     event LogEnablePerpMarket(uint128 marketId);
@@ -126,6 +138,32 @@ interface IGlobalConfigurationModule {
     /// @dev See {CreatePerpMarketParams}.
     function createPerpMarket(CreatePerpMarketParams calldata params) external;
 
+    /// @notice Updates the configuration variables of the given perp market id.
+    /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
+    /// impact open positions.
+    /// @param marketId The perp market id.
+    /// @param name The perp market name.
+    /// @param symbol The perp market symbol.
+    /// @param priceAdapter The price adapter contract, which handles the market's index price.
+    /// @param minInitialMarginRateX18 The perp market min initial margin rate, which defines the max leverage.
+    /// @param maintenanceMarginRateX18 The perp market maintenance margin rate.
+    /// @param maxOpenInterest The perp market maximum open interest per side.
+    /// @param maxFundingVelocity The perp market maximum funding rate velocity.
+    /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
+    /// @param orderFees The perp market maker and taker fees.
+    function updatePerpMarketConfiguration(
+        uint128 marketId,
+        string calldata name,
+        string calldata symbol,
+        address priceAdapter,
+        uint128 minInitialMarginRateX18,
+        uint128 maintenanceMarginRateX18,
+        uint128 maxOpenInterest,
+        uint128 maxFundingVelocity,
+        uint256 skewScale,
+        OrderFees.Data memory orderFees
+    )
+        external;
     /// @notice Enables or disabled the perp market of the given market id.
     /// @param marketId The perps market id.
     /// @param enable Whether the market should be enabled or disabled.
