@@ -103,9 +103,7 @@ contract OrderModule is IOrderModule {
             revert Errors.ZeroInput("sizeDelta");
         }
 
-        // perpsAccount.checkIsNotLiquidatable();
-
-        // TODO: validate margin requirements
+        perpsAccount.validateMarginRequirements(marketId, sd59x18(sizeDelta));
 
         bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
         if (!isMarketWithActivePosition) {
