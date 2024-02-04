@@ -110,10 +110,9 @@ library PerpsAccount {
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(self.id, marketId);
 
-            UD60x18 indexPrice = perpMarket.getIndexPrice();
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
-            SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
-            SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, markPrice);
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
+            SD59x18 fundingFeePerUnit =
+                perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
 
             // if we're dealing with the market id being settled, we simulate the new position size to get the new
             // margin requirements.
