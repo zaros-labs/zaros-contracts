@@ -220,11 +220,16 @@ library PerpsAccount {
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(self.id, marketId);
 
-            UD60x18 indexPrice = perpMarket.getIndexPrice();
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
-            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPrice);
+            UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
+            UD60x18 markPriceX18 = perpMarket.getMarkPrice(SD_ZERO, indexPriceX18);
 
-            totalUnrealizedPnlUsdX18 = totalUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18);
+            SD59x18 fundingRateX18 = perpMarket.getCurrentFundingRate();
+            SD59x18 fundingFeePerUnitX18 = perpMarket.getNextFundingFeePerUnit(fundingRateX18, markPriceX18);
+
+            SD59x18 accruedFundingUsdX18 = position.getAccruedFunding(fundingFeePerUnitX18);
+            SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPriceX18);
+
+            totalUnrealizedPnlUsdX18 = totalUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18).add(accruedFundingUsdX18);
         }
     }
 
