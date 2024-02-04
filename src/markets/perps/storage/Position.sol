@@ -68,7 +68,7 @@ library Position {
         UD60x18 maintenanceMarginRateX18
     )
         internal
-        view
+        pure
         returns (UD60x18 initialMarginUsdX18, UD60x18 maintenanceMarginUsdX18)
     {
         initialMarginUsdX18 = notionalValueX18.mul(minInitialMarginRateX18);

@@ -38,6 +38,7 @@ contract OrderModule is IOrderModule {
 
     /// @inheritdoc IOrderModule
     function simulateSettlement(
+        uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
         int128 sizeDelta
@@ -47,9 +48,12 @@ contract OrderModule is IOrderModule {
         override
         returns (SD59x18, UD60x18, UD60x18)
     {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
+
+        perpsAccount.validateMarginRequirements(marketId, sd59x18(sizeDelta));
 
         UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
         UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
@@ -62,7 +66,7 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function getRequiredMarginForOrder(
+    function getMarginRequirementsForTrade(
         uint128 marketId,
         int128 sizeDelta
     )
@@ -70,7 +74,19 @@ contract OrderModule is IOrderModule {
         view
         override
         returns (UD60x18, UD60x18)
-    { }
+    {
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+        UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
+        UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
+
+        UD60x18 orderValueX18 = markPriceX18.mul(sd59x18(sizeDelta).abs().intoUD60x18());
+        UD60x18 initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.minInitialMarginRateX18));
+        UD60x18 maintenanceMarginUsdX18 =
+            orderValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
+
+        return (initialMarginUsdX18, maintenanceMarginUsdX18);
+    }
 
     /// @inheritdoc IOrderModule
     function getActiveMarketOrder(
