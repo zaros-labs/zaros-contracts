@@ -46,7 +46,6 @@ library PerpMarket {
         int256 lastFundingRate;
         int256 lastFundingFeePerUnit;
         uint256 lastFundingTime;
-        address priceAdapter;
         MarketConfiguration.Data configuration;
     }
 
@@ -85,10 +84,10 @@ library PerpMarket {
         // TODO: remember to test gas cost / number of sstores here
         self.id = marketId;
         self.initialized = true;
-        self.priceAdapter = priceAdapter;
         self.configuration = MarketConfiguration.Data({
             name: name,
             symbol: symbol,
+            priceAdapter: priceAdapter,
             minInitialMarginRateX18: minInitialMarginRateX18,
             maintenanceMarginRateX18: maintenanceMarginRateX18,
             maxOpenInterest: maxOpenInterest,
@@ -123,7 +122,7 @@ library PerpMarket {
     // contracts to
     // deploy custom index markets.
     function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
-        address priceAdapter = self.priceAdapter;
+        address priceAdapter = self.configuration.priceAdapter;
         if (priceAdapter == address(0)) {
             revert Errors.PriceAdapterNotDefined(self.id);
         }
