@@ -43,7 +43,7 @@ contract OrderModule is IOrderModule {
         uint128 settlementId,
         int128 sizeDelta
     )
-        external
+        public
         view
         override
         returns (SD59x18, UD60x18, UD60x18)
@@ -53,14 +53,16 @@ contract OrderModule is IOrderModule {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
 
-        perpsAccount.validateMarginRequirements(marketId, sd59x18(sizeDelta));
-
         UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
         UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
 
         SD59x18 orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), markPriceX18);
 
         UD60x18 settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
+
+        perpsAccount.validateMarginRequirements(
+            marketId, sd59x18(sizeDelta), orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18())
+        );
 
         return (orderFeeUsdX18, settlementFeeUsdX18, markPriceX18);
     }
@@ -119,7 +121,13 @@ contract OrderModule is IOrderModule {
             revert Errors.ZeroInput("sizeDelta");
         }
 
-        perpsAccount.validateMarginRequirements(marketId, sd59x18(sizeDelta));
+        // we ignore the return values as they aren't needed
+        simulateSettlement({
+            accountId: accountId,
+            marketId: marketId,
+            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            sizeDelta: sizeDelta
+        });
 
         bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
         if (!isMarketWithActivePosition) {
