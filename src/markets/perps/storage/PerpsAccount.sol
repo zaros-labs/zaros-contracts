@@ -95,7 +95,8 @@ library PerpsAccount {
     function validateMarginRequirements(
         Data storage self,
         uint128 settlementMarketId,
-        SD59x18 sizeDelta
+        SD59x18 sizeDeltaX18,
+        SD59x18 totalFeesUsdX18
     )
         internal
         view
@@ -111,19 +112,22 @@ library PerpsAccount {
 
             UD60x18 indexPrice = perpMarket.getIndexPrice();
             UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
+            SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
+            SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, markPrice);
 
             // if we're dealing with the market id being settled, we simulate the new position size to get the new
             // margin requirements.
             UD60x18 notionalValueX18 = marketId != settlementMarketId
                 ? position.getNotionalValue(markPrice)
-                : sd59x18(position.size).add(sizeDelta).abs().intoUD60x18().mul(markPrice);
+                : sd59x18(position.size).add(sizeDeltaX18).abs().intoUD60x18().mul(markPrice);
             (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
                 .getMarginRequirements(
                 notionalValueX18,
                 ud60x18(perpMarket.configuration.minInitialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
             );
-            SD59x18 positionUnrealizedPnl = position.getUnrealizedPnl(markPrice);
+            SD59x18 positionUnrealizedPnl =
+                position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
 
             requiredMarginUsdX18 =
                 requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
@@ -132,9 +136,12 @@ library PerpsAccount {
 
         SD59x18 marginBalanceUsdX18 = getMarginBalanceUsd(self, accountTotalUnrealizedPnlUsdX18);
 
-        if (requiredMarginUsdX18.intoSD59x18().gte(marginBalanceUsdX18)) {
+        if (requiredMarginUsdX18.intoSD59x18().add(totalFeesUsdX18).gte(marginBalanceUsdX18)) {
             revert Errors.InsufficientMargin(
-                self.id, marginBalanceUsdX18.intoUint256(), requiredMarginUsdX18.intoUint256()
+                self.id,
+                marginBalanceUsdX18.intoInt256(),
+                totalFeesUsdX18.intoInt256(),
+                requiredMarginUsdX18.intoUint256()
             );
         }
     }

@@ -77,7 +77,9 @@ library Errors {
         uint128 accountId, uint256 activePositionsLength, uint256 maxPositionsPerAccount
     );
     /// @notice Thrown when trying to settle an order and the account has insufficient margin for the new position.
-    error InsufficientMargin(uint128 accountId, uint256 marginBalanceUsdX18, uint256 requiredMarginUsdX18);
+    error InsufficientMargin(
+        uint128 accountId, int256 marginBalanceUsdX18, int256 totalFeesUsdX18, uint256 requiredMarginUsdX18
+    );
 
     /// @notice PerpsEngine.GlobalConfigurationModule
 
