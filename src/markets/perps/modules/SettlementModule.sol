@@ -94,7 +94,6 @@ contract SettlementModule is ISettlementModule {
         Position.Data newPosition;
     }
 
-    // TODO: rework this
     function _settle(
         uint128 marketId,
         uint128 settlementId,
