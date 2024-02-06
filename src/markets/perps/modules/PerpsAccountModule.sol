@@ -90,9 +90,10 @@ contract PerpsAccountModule is IPerpsAccountModule {
             UD60x18 indexPrice = perpMarket.getIndexPrice();
             UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
 
-            (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = position
+            UD60x18 notionalValueX18 = position.getNotionalValue(markPrice);
+            (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
                 .getMarginRequirements(
-                markPrice,
+                notionalValueX18,
                 ud60x18(perpMarket.configuration.minInitialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
             );
@@ -113,6 +114,30 @@ contract PerpsAccountModule is IPerpsAccountModule {
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
         accountTotalUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
+    }
+
+    function getAccountLeverage(uint128 accountId) external view returns (UD60x18) {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+
+        SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(perpsAccount.getAccountUnrealizedPnlUsd());
+        UD60x18 totalPositionsNotionalValue;
+
+        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
+            uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
+
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+            Position.Data storage position = Position.load(accountId, marketId);
+
+            UD60x18 indexPrice = perpMarket.getIndexPrice();
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
+
+            UD60x18 positionNotionalValueX18 = position.getNotionalValue(markPrice);
+            totalPositionsNotionalValue = totalPositionsNotionalValue.add(positionNotionalValueX18);
+        }
+
+        return marginBalanceUsdX18.isZero()
+            ? marginBalanceUsdX18.intoUD60x18()
+            : totalPositionsNotionalValue.intoSD59x18().div(marginBalanceUsdX18).intoUD60x18();
     }
 
     /// @inheritdoc IPerpsAccountModule
