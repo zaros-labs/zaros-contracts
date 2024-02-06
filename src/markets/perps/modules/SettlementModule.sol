@@ -115,7 +115,7 @@ contract SettlementModule is ISettlementModule {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         address usdToken = globalConfiguration.usdToken;
 
-        // globalConfiguration.checkMarketIsEnabled(vars.marketId);
+        globalConfiguration.checkMarketIsEnabled(vars.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
         // perpsAccount.checkIsNotLiquidatable();
