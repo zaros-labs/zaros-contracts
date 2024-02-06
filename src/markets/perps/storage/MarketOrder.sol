@@ -46,7 +46,4 @@ library MarketOrder {
             revert Errors.MarketOrderStillPending(self.timestamp);
         }
     }
-
-    // TODO: Implement
-    function validateSimulatedOrderSettlement() internal view { }
 }

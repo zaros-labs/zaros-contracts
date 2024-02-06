@@ -17,6 +17,7 @@ import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
+import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 import {
     deployModules,
     getModulesSelectors,
@@ -27,7 +28,6 @@ import {
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";
-import "forge-std/console.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -38,7 +38,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract Base_Test is Test, Constants, Events, Storage {
+abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

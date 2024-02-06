@@ -96,9 +96,6 @@ contract PerpMarketModule is IPerpMarketModule {
     }
 
     /// @inheritdoc IPerpMarketModule
-    function getAccountLeverage(uint128 accountId) external view override returns (UD60x18) { }
-
-    /// @inheritdoc IPerpMarketModule
     function getMarketData(uint128 marketId)
         external
         view

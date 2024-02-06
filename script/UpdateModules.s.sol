@@ -6,64 +6,59 @@ pragma solidity 0.8.23;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
 import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
+import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "./Base.s.sol";
-import {
-    deployModules,
-    getModulesSelectors,
-    getFacetCuts,
-    getInitializables,
-    getInitializePayloads
-} from "script/utils/DiamondHelpers.sol";
+import { deployModules, getModulesSelectors, getFacetCuts } from "./utils/DiamondHelpers.sol";
 
-// Open Zeppelin Upgradeable dependencies
+import { MockSettlementModule } from "test/mocks/MockSettlementModule.sol";
+
+// Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Forge dependencies
 import "forge-std/console.sol";
 
-contract DeployAlphaPerps is BaseScript {
-    /*//////////////////////////////////////////////////////////////////////////
-                                     VARIABLES
-    //////////////////////////////////////////////////////////////////////////*/
-    address internal mockChainlinkForwarder = address(1);
-    address internal mockChainlinkVerifier = address(2);
-    address internal mockPerpsAccountTokenAddress = address(3);
-    address internal mockRewardDistributorAddress = address(4);
-    address internal mockLiquidityEngineAddress = address(5);
-
+contract UpdateModules is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
-    USDToken internal usdToken;
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        usdToken = USDToken(vm.envAddress("USDZ"));
+        OrderModule orderModule = new OrderModule();
+        MockSettlementModule mockSettlementModule = new MockSettlementModule();
 
-        address[] memory modules = deployModules();
-        bytes4[][] memory modulesSelectors = getModulesSelectors();
-
-        IDiamond.FacetCut[] memory facetCuts =
-            getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Replace);
+        bytes4[] memory selectors = new bytes4[](1);
+        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](2);
         address[] memory initializables;
         bytes[] memory initializePayloads;
 
-        perpsEngine = IPerpsEngine(payable(vm.envAddress("PERPS_ENGINE")));
+        selectors[0] = OrderModule.simulateSettlement.selector;
+
+        facetCuts[0] = IDiamond.FacetCut({
+            facet: address(orderModule),
+            action: IDiamond.FacetCutAction.Add,
+            selectors: selectors
+        });
+
+        bytes4[] memory mockSelectors = new bytes4[](1);
+
+        mockSelectors[0] = MockSettlementModule.mockSettle.selector;
+
+        facetCuts[1] = IDiamond.FacetCut({
+            facet: address(mockSettlementModule),
+            action: IDiamond.FacetCutAction.Add,
+            selectors: mockSelectors
+        });
+
+        perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
+
         perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
 
-        logContracts(modules);
-    }
-
-    function logContracts(address[] memory modules) internal view {
-        for (uint256 i = 0; i < modules.length; i++) {
-            console.log("New Module: ");
-            console.log(modules[i]);
-        }
-
-        console.log("Perps Engine Proxy: ");
-        console.log(address(perpsEngine));
+        console.log(address(orderModule));
     }
 }

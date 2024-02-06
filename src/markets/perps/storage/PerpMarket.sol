@@ -46,7 +46,6 @@ library PerpMarket {
         int256 lastFundingRate;
         int256 lastFundingFeePerUnit;
         uint256 lastFundingTime;
-        address priceAdapter;
         MarketConfiguration.Data configuration;
     }
 
@@ -85,10 +84,10 @@ library PerpMarket {
         // TODO: remember to test gas cost / number of sstores here
         self.id = marketId;
         self.initialized = true;
-        self.priceAdapter = priceAdapter;
         self.configuration = MarketConfiguration.Data({
             name: name,
             symbol: symbol,
+            priceAdapter: priceAdapter,
             minInitialMarginRateX18: minInitialMarginRateX18,
             maintenanceMarginRateX18: maintenanceMarginRateX18,
             maxOpenInterest: maxOpenInterest,
@@ -123,7 +122,7 @@ library PerpMarket {
     // contracts to
     // deploy custom index markets.
     function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
-        address priceAdapter = self.priceAdapter;
+        address priceAdapter = self.configuration.priceAdapter;
         if (priceAdapter == address(0)) {
             revert Errors.PriceAdapterNotDefined(self.id);
         }
@@ -177,14 +176,16 @@ library PerpMarket {
         return proportionalSkewBounded.mul(maxFundingVelocity);
     }
 
+    // TODO: fix this logic
+    /// @dev When the skew is zero, taker fee will be charged.
     function getOrderFeeUsd(Data storage self, SD59x18 sizeDelta, UD60x18 price) internal view returns (SD59x18) {
         SD59x18 skew = sd59x18(self.skew);
         SD59x18 feeBps;
 
-        bool isPositiveSkew = skew.gt(SD_ZERO);
+        bool isSkewGteZero = skew.gte(SD_ZERO);
         bool isBuyOrder = sizeDelta.gt(SD_ZERO);
 
-        if (isPositiveSkew == isBuyOrder) {
+        if (isSkewGteZero == isBuyOrder) {
             feeBps = sd59x18((self.configuration.orderFees.takerFee));
         } else {
             feeBps = sd59x18((self.configuration.orderFees.makerFee));

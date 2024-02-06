@@ -85,6 +85,7 @@ contract SettlementModule is ISettlementModule {
     struct SettleVars {
         uint128 marketId;
         uint128 accountId;
+        SD59x18 totalFeesUsdX18;
         SD59x18 sizeDelta;
         UD60x18 fillPrice;
         SD59x18 pnl;
@@ -93,7 +94,6 @@ contract SettlementModule is ISettlementModule {
         Position.Data newPosition;
     }
 
-    // TODO: rework this
     function _settle(
         uint128 marketId,
         uint128 settlementId,
@@ -124,16 +124,20 @@ contract SettlementModule is ISettlementModule {
         bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
         UD60x18 indexPriceX18 =
             settlementConfiguration.getSettlementPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
-
         vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
 
+        vars.totalFeesUsdX18 = perpMarket.getOrderFeeUsd(vars.sizeDelta, vars.fillPrice).add(
+            ud60x18(uint256(settlementConfiguration.fee)).intoSD59x18()
+        );
+
+        perpsAccount.validateMarginRequirements(vars.marketId, vars.sizeDelta, vars.totalFeesUsdX18);
+
         vars.fundingRate = perpMarket.getCurrentFundingRate();
-        vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingFeePerUnit, vars.fillPrice);
+        vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingRate, vars.fillPrice);
+
         vars.pnl = oldPosition.getUnrealizedPnl(vars.fillPrice).add(
             sd59x18(uint256(settlementConfiguration.fee).toInt256())
-        ).add(perpMarket.getOrderFeeUsd(vars.sizeDelta, vars.fillPrice)).add(
-            oldPosition.getAccruedFunding(vars.fundingFeePerUnit)
-        );
+        ).add(vars.totalFeesUsdX18).add(oldPosition.getAccruedFunding(vars.fundingFeePerUnit));
 
         vars.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
@@ -141,7 +145,7 @@ contract SettlementModule is ISettlementModule {
             lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        // for now we'll realize the total uPnL, we should realize it proportionally in the future
+        // TODO: Handle negative margin case
         if (vars.pnl.lt(SD_ZERO)) {
             UD60x18 amountToDeduct = vars.pnl.intoUD60x18();
             perpsAccount.deductAccountMargin(amountToDeduct);
@@ -157,8 +161,6 @@ contract SettlementModule is ISettlementModule {
         } else {
             oldPosition.update(vars.newPosition);
         }
-
-        perpsAccount.validateMarginRequirements();
 
         perpMarket.updateState(vars.sizeDelta, vars.fundingRate, vars.fundingFeePerUnit);
 

@@ -70,12 +70,6 @@ interface IPerpMarketModule {
     /// @param marketId The perps market id.
     function getFundingVelocity(uint128 marketId) external view returns (SD59x18);
 
-    /// @notice Returns the current leverage of a given account id, based on its cross margin collateral and open
-    /// positions.
-    /// @param accountId The trading account id.
-    /// @return leverage The account leverage.
-    function getAccountLeverage(uint128 accountId) external view returns (UD60x18 leverage);
-
     /// @notice Returns the most relevant data of the given market.
     /// @param marketId The perps market id.
     /// @return name The market name.

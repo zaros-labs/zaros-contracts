@@ -51,7 +51,7 @@ contract CreatePerpMarket is BaseScript {
     uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint248 internal constant ETH_USD_SETTLEMENT_DELAY = 2 seconds;
-    OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+    OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     address internal linkUsdPriceAdapter;
     string internal linkUsdStreamId;
@@ -65,7 +65,7 @@ contract CreatePerpMarket is BaseScript {
     uint256 internal constant LINK_USD_SKEW_SCALE = 1_000_000e18;
     uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 2 seconds;
-    OrderFees.Data internal linkUsdOrderFee = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
+    OrderFees.Data internal linkUsdOrderFee = OrderFees.Data({ makerFee: 0.004e18, takerFee: 0.008e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
