@@ -5,13 +5,14 @@ pragma solidity 0.8.23;
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { ERC20, ERC20Permit } from "@openzeppelin/token/ERC20/extensions/ERC20Permit.sol";
 
-contract ERC20Implementation is ERC20Permit, Ownable {
-    constructor(address owner, string memory name, string memory symbol) ERC20(name, symbol) ERC20Permit("Zaros USD") Ownable(owner) { }
+contract LimitedMintingERC20 is ERC20Permit, Ownable {
+    constructor(address owner, string memory name, string memory symbol) ERC20Permit(name, symbol) Ownable(owner) { }
 
-    uint256 MAX_AMOUNT_MINT = 100_000 * 10 ** 18;
+    uint256 internal constant MAX_AMOUNT_MINT = 100_000 * 10 ** 18;
     mapping(address user => uint256 amount) public amountMintedPerAddress;
 
-    error ERC20Token_ZeroAmount();
+    error LimitedMintingERC20_ZeroAmount();
+    error LimitedMintingERC20_AmountExceedsLimit();
 
     function mint(address to, uint256 amount) external {
         _requireAmountNotZero(amount);
@@ -28,13 +29,13 @@ contract ERC20Implementation is ERC20Permit, Ownable {
     }
 
     function _requireAmountNotZero(uint256 amount) private pure {
-        if (amount == 0) {
-            revert ERC20Token_ZeroAmount();
-        }
+        if (amount == 0) revert LimitedMintingERC20_ZeroAmount();
     }
 
     function _requireAmountLessThanMaxAmountMint(uint256 amount) private view {
-        require(amountMintedPerAddress[msg.sender] + amount <= MAX_AMOUNT_MINT, "You have exceeded your mint limit");
+        if (amountMintedPerAddress[msg.sender] + amount <= MAX_AMOUNT_MINT) {
+            revert LimitedMintingERC20_AmountExceedsLimit();
+        }
     }
 
     function updateMaxAmountMint(uint256 newAmount) public onlyOwner {
