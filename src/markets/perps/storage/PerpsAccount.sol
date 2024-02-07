@@ -213,14 +213,14 @@ library PerpsAccount {
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
-    function getAccountMarginRequirements(
+    function getAccountMarginRequirementsAndUnrealizedPnl(
         Data storage self,
         uint128 settlementMarketId,
         SD59x18 sizeDeltaX18
     )
         internal
         view
-        returns (UD60x18 requiredMarginUsdX18)
+        returns (UD60x18 requiredMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18)
     {
         for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
@@ -229,6 +229,8 @@ library PerpsAccount {
             Position.Data storage position = Position.load(self.id, marketId);
 
             UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
+            SD59x18 fundingFeePerUnit =
+                perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
 
             // if we're dealing with the market id being settled, we simulate the new position size to get the new
             // margin requirements.
@@ -241,6 +243,12 @@ library PerpsAccount {
                 ud60x18(perpMarket.configuration.minInitialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
             );
+            SD59x18 positionUnrealizedPnl =
+                position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
+
+            requiredMarginUsdX18 =
+                requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
+            accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
 
             requiredMarginUsdX18 =
                 requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
