@@ -68,9 +68,7 @@ library PerpsAccount {
     }
 
     /// @notice TODO: implement
-    function canBeLiquidated(Data storage self) internal view returns (bool) {
-        return false;
-    }
+    function isLiquidatable(Data storage self) internal view returns (bool) { }
 
     /// @notice Validates if the perps account is under the configured positions limit.
     /// @dev This function must be called when the perps account is going to open a new position. If called in a
@@ -88,6 +86,9 @@ library PerpsAccount {
     }
 
     // TODO: Should we create a Service to handle this?
+    // TODO: Check with Cyfrin if we must actually update the position / perp market state and validate after the core
+    // settlement logic. Is it a risk to use the perpMarket's size and skew before sizeDelta is applied, while we use
+    // the new sizeDelta to calculate the position's new notional value?
     /// @notice Validates if the given account will still meet margin requirements after a new settlement.
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.
@@ -210,6 +211,40 @@ library PerpsAccount {
         }
 
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
+    }
+
+    function getAccountMarginRequirements(
+        Data storage self,
+        uint128 settlementMarketId,
+        SD59x18 sizeDeltaX18
+    )
+        internal
+        view
+        returns (UD60x18 requiredMarginUsdX18)
+    {
+        for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
+            uint128 marketId = self.activeMarketsIds.at(i).toUint128();
+
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+            Position.Data storage position = Position.load(self.id, marketId);
+
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
+
+            // if we're dealing with the market id being settled, we simulate the new position size to get the new
+            // margin requirements.
+            UD60x18 notionalValueX18 = marketId != settlementMarketId
+                ? position.getNotionalValue(markPrice)
+                : sd59x18(position.size).add(sizeDeltaX18).abs().intoUD60x18().mul(markPrice);
+            (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
+                .getMarginRequirements(
+                notionalValueX18,
+                ud60x18(perpMarket.configuration.minInitialMarginRateX18),
+                ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
+            );
+
+            requiredMarginUsdX18 =
+                requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
+        }
     }
 
     // TODO: Should we create a Service to handle this?
