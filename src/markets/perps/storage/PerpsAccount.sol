@@ -68,7 +68,19 @@ library PerpsAccount {
     }
 
     /// @notice TODO: implement
-    function isLiquidatable(Data storage self) internal view returns (bool) { }
+    function isLiquidatable(
+        Data storage self,
+        UD60x18 requiredMarginUsdX18,
+        SD59x18 marginBalance
+    )
+        internal
+        view
+        returns (bool)
+    {
+        if (requiredMarginUsdX18.intoSD59x18().gte(marginBalance)) {
+            return true;
+        }
+    }
 
     /// @notice Validates if the perps account is under the configured positions limit.
     /// @dev This function must be called when the perps account is going to open a new position. If called in a
