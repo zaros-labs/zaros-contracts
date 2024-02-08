@@ -44,7 +44,16 @@ contract MockSettlementModule is SettlementModule {
             ud60x18(uint256(settlementConfiguration.fee)).intoSD59x18()
         );
 
-        perpsAccount.validateMarginRequirements(vars.marketId, vars.sizeDelta, vars.totalFeesUsdX18);
+        {
+            (UD60x18 requiredMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
+                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
+
+            perpsAccount.validateMarginRequirement(
+                requiredMarginUsdX18,
+                perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
+                vars.totalFeesUsdX18
+            );
+        }
 
         vars.fundingRate = perpMarket.getCurrentFundingRate();
         vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingRate, vars.fillPrice);

@@ -93,49 +93,15 @@ library PerpsAccount {
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.
     /// @param self The perps account storage pointer.
-    function validateMarginRequirements(
+    function validateMarginRequirement(
         Data storage self,
-        uint128 settlementMarketId,
-        SD59x18 sizeDeltaX18,
+        UD60x18 requiredMarginUsdX18,
+        SD59x18 marginBalanceUsdX18,
         SD59x18 totalFeesUsdX18
     )
         internal
         view
     {
-        UD60x18 requiredMarginUsdX18;
-        SD59x18 accountTotalUnrealizedPnlUsdX18;
-
-        for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
-            uint128 marketId = self.activeMarketsIds.at(i).toUint128();
-
-            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-            Position.Data storage position = Position.load(self.id, marketId);
-
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
-            SD59x18 fundingFeePerUnit =
-                perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
-
-            // if we're dealing with the market id being settled, we simulate the new position size to get the new
-            // margin requirements.
-            UD60x18 notionalValueX18 = marketId != settlementMarketId
-                ? position.getNotionalValue(markPrice)
-                : sd59x18(position.size).add(sizeDeltaX18).abs().intoUD60x18().mul(markPrice);
-            (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
-                .getMarginRequirements(
-                notionalValueX18,
-                ud60x18(perpMarket.configuration.minInitialMarginRateX18),
-                ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
-            );
-            SD59x18 positionUnrealizedPnl =
-                position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
-
-            requiredMarginUsdX18 =
-                requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
-            accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
-        }
-
-        SD59x18 marginBalanceUsdX18 = getMarginBalanceUsd(self, accountTotalUnrealizedPnlUsdX18);
-
         if (requiredMarginUsdX18.intoSD59x18().add(totalFeesUsdX18).gte(marginBalanceUsdX18)) {
             revert Errors.InsufficientMargin(
                 self.id,
@@ -213,7 +179,7 @@ library PerpsAccount {
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
-    function getAccountMarginRequirementsAndUnrealizedPnl(
+    function getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
         Data storage self,
         uint128 settlementMarketId,
         SD59x18 sizeDeltaX18
