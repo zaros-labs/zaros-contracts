@@ -112,6 +112,9 @@ library Errors {
     /// @notice Thrown when the provided `marketId` is already disabled when trying to disable a market.
     error PerpMarketAlreadyDisabled(uint128 marketId);
 
+    /// @notice PerpsEngine.LiquidationModule errors.
+    error AccountNotLiquidatable(uint128 accountId, uint256 requiredMarginUsdX18, int256 marginBalanceUsdX18);
+
     /// @notice PerpsEngine.PerpMarket errors.
 
     /// @notice Thrown when there's no price adapter configured for a given perp market.
