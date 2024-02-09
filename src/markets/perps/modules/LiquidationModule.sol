@@ -35,14 +35,23 @@ contract LiquidationModule {
         for (uint256 i = 0; i < accountsIds.length; i++) {
             PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountsIds[i]);
 
-            UD60x18 requiredMarginUsdX18;
-            SD59x18 marginBalanceUsdX18;
+            (UD60x18 requiredMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) = perpsAccount.getAccountMarginRequirementUsdAndAccountUnrealizedPnlUsd(0, sd59x18(0));
+            SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
             if (!perpsAccount.isLiquidatable(requiredMarginUsdX18, marginBalanceUsdX18)) {
                 revert Errors.AccountNotLiquidatable(
                     accountsIds[i], requiredMarginUsdX18.intoUint256(), marginBalanceUsdX18.intoInt256()
                 );
             }
-        }
+
+            uint256 amountOfOpenPositions = perpsAccount.activeMarketsIds.length();
+
+            for (uint256 j = 0; j < amountOfOpenPositions; j++) {
+                uint256 marketId = perpsAccount.activeMarketsIds.at(j);
+                PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+                UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
+                // UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(0), indexPriceX18);
+            }
     }
 }
