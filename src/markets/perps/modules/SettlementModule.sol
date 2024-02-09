@@ -119,12 +119,17 @@ contract SettlementModule is ISettlementModule {
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
         // perpsAccount.checkIsNotLiquidatable();
-        perpMarket.validateNewState(vars.sizeDelta);
+        perpMarket.validateNewOpenInterest(vars.sizeDelta);
 
         bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
         UD60x18 indexPriceX18 =
             settlementConfiguration.getSettlementPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
         vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
+
+        vars.fundingRate = perpMarket.getCurrentFundingRate();
+        vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingRate, vars.fillPrice);
+
+        perpMarket.updateFunding(vars.fundingRate, vars.fundingFeePerUnit);
 
         vars.totalFeesUsdX18 = perpMarket.getOrderFeeUsd(vars.sizeDelta, vars.fillPrice).add(
             ud60x18(uint256(settlementConfiguration.fee)).intoSD59x18()
@@ -140,9 +145,6 @@ contract SettlementModule is ISettlementModule {
                 vars.totalFeesUsdX18
             );
         }
-
-        vars.fundingRate = perpMarket.getCurrentFundingRate();
-        vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingRate, vars.fillPrice);
 
         vars.pnl = oldPosition.getUnrealizedPnl(vars.fillPrice).add(
             sd59x18(uint256(settlementConfiguration.fee).toInt256())
@@ -171,7 +173,7 @@ contract SettlementModule is ISettlementModule {
             oldPosition.update(vars.newPosition);
         }
 
-        perpMarket.updateState(vars.sizeDelta, vars.fundingRate, vars.fundingFeePerUnit);
+        perpMarket.updateOpenInterest(vars.sizeDelta);
 
         emit LogSettleOrder(msg.sender, vars.accountId, vars.marketId, vars.pnl.intoInt256(), vars.newPosition);
     }

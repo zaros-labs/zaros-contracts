@@ -106,7 +106,7 @@ library PerpMarket {
         }
     }
 
-    function validateNewState(Data storage self, SD59x18 sizeDelta) internal view {
+    function validateNewOpenInterest(Data storage self, SD59x18 sizeDelta) internal view {
         UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
         UD60x18 newOpenInterest = ud60x18(self.openInterest).add((sizeDelta).abs().intoUD60x18());
 
@@ -224,18 +224,14 @@ library PerpMarket {
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_INTERVAL));
     }
 
-    function updateState(
-        Data storage self,
-        SD59x18 sizeDelta,
-        SD59x18 fundingRate,
-        SD59x18 fundingFeePerUnit
-    )
-        internal
-    {
-        self.skew = sd59x18(self.skew).add(sizeDelta).intoInt256().toInt128();
-        self.openInterest = ud60x18(self.openInterest).add((sizeDelta).abs().intoUD60x18()).intoUint128();
+    function updateFunding(Data storage self, SD59x18 fundingRate, SD59x18 fundingFeePerUnit) internal {
         self.lastFundingRate = fundingRate.intoInt256();
         self.lastFundingFeePerUnit = fundingFeePerUnit.intoInt256();
         self.lastFundingTime = block.timestamp;
+    }
+
+    function updateOpenInterest(Data storage self, SD59x18 sizeDelta) internal {
+        self.skew = sd59x18(self.skew).add(sizeDelta).intoInt256().toInt128();
+        self.openInterest = ud60x18(self.openInterest).add((sizeDelta).abs().intoUD60x18()).intoUint128();
     }
 }
