@@ -268,8 +268,12 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         int128 sizeDelta = fuzzMarketOrderSizeDelta(initialMarginRate, marginValueUsd, isLong);
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
-        MarketOrder.Data memory expectedMarketOrder =
-            MarketOrder.Data({ sizeDelta: sizeDelta, acceptablePrice: 0, timestamp: block.timestamp });
+        MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({
+            marketId: ETH_USD_MARKET_ID,
+            sizeDelta: sizeDelta,
+            acceptablePrice: 0,
+            timestamp: uint128(block.timestamp)
+        });
 
         // it should emit a {LogCreateMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -282,8 +286,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         });
 
         // it should create the market order
-        MarketOrder.Data memory marketOrder =
-            perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID });
+        MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId });
 
         assertEq(marketOrder.sizeDelta, sizeDelta, "createMarketOrder: sizeDelta");
         assertEq(marketOrder.acceptablePrice, 0, "createMarketOrder: acceptablePrice");

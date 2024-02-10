@@ -100,16 +100,13 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function getActiveMarketOrder(
-        uint128 accountId,
-        uint128 marketId
-    )
+    function getActiveMarketOrder(uint128 accountId)
         external
         pure
         override
         returns (MarketOrder.Data memory marketOrder)
     {
-        marketOrder = MarketOrder.load(accountId, marketId);
+        marketOrder = MarketOrder.load(accountId);
     }
 
     /// @inheritdoc IOrderModule
@@ -123,7 +120,7 @@ contract OrderModule is IOrderModule {
         override
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         if (sizeDelta == 0) {
@@ -146,7 +143,7 @@ contract OrderModule is IOrderModule {
         globalConfiguration.checkMarketIsEnabled(marketId);
         marketOrder.checkPendingOrder();
 
-        marketOrder.update({ sizeDelta: sizeDelta, acceptablePrice: acceptablePrice });
+        marketOrder.update({ marketId: marketId, sizeDelta: sizeDelta, acceptablePrice: acceptablePrice });
 
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
@@ -189,15 +186,15 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function cancelMarketOrder(uint128 accountId, uint128 marketId) external override {
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
+    function cancelMarketOrder(uint128 accountId) external override {
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
 
         if (marketOrder.timestamp == 0) {
-            revert Errors.MarketOrderNotFound(accountId, marketId);
+            revert Errors.NoActiveMarketOrder(accountId);
         }
 
         marketOrder.clear();
 
-        emit LogCancelMarketOrder(msg.sender, accountId, marketId);
+        emit LogCancelMarketOrder(msg.sender, accountId);
     }
 }
