@@ -49,14 +49,11 @@ contract MockSettlementModule is SettlementModule {
         );
 
         {
-            (
-                UD60x18 requiredInitialMarginUsdX18,
-                UD60x18 requiredMaintenanceMarginUsdX18,
-                SD59x18 accountTotalUnrealizedPnlUsdX18
-            ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
+            (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
+                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
 
             perpsAccount.validateMarginRequirement(
-                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
+                requiredMaintenanceMarginUsdX18,
                 perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
                 vars.totalFeesUsdX18
             );
