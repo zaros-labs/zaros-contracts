@@ -88,7 +88,7 @@ library Errors {
     /// @notice Thrown when the provided `zaros` is the zero address.
     error LiquidityEngineNotDefined();
     /// @notice Thrown when the provided `liquidationRewardRate` is less than 1e18.
-    error InvalidLiquidationRewardRate(uint256 liquidationRewardRateX18);
+    error InvalidLiquidationRewardRate(uint256 liquidationFeeUsdX18);
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
     /// @notice Thrown when trying to update a market status but it hasn't been initialized yet.

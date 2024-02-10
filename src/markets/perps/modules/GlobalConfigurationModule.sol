@@ -95,14 +95,14 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     }
 
     function configureLiquidationRewardRate(uint256 liquidationRewardRate) external override onlyOwner {
-        UD60x18 liquidationRewardRateX18 = ud60x18(liquidationRewardRate);
+        UD60x18 liquidationFeeUsdX18 = ud60x18(liquidationRewardRate);
 
-        if (liquidationRewardRateX18.lt(UD_UNIT)) {
+        if (liquidationFeeUsdX18.lt(UD_UNIT)) {
             revert Errors.InvalidLiquidationRewardRate(liquidationRewardRate);
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.liquidationRewardRateX18 = liquidationRewardRateX18.intoUint256();
+        globalConfiguration.liquidationFeeUsdX18 = liquidationFeeUsdX18.intoUint256();
     }
 
     /// @inheritdoc IGlobalConfigurationModule

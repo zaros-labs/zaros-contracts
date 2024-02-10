@@ -85,7 +85,8 @@ contract SettlementModule is ISettlementModule {
     struct SettlementContext {
         uint128 marketId;
         uint128 accountId;
-        SD59x18 totalFeesUsdX18;
+        SD59x18 orderFeeUsdX18;
+        UD60x18 settlementFeeUsdX18;
         SD59x18 sizeDelta;
         UD60x18 fillPrice;
         SD59x18 pnl;
@@ -130,9 +131,9 @@ contract SettlementModule is ISettlementModule {
 
         perpMarket.updateFunding(ctx.fundingRate, ctx.fundingFeePerUnit);
 
-        ctx.totalFeesUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDelta, ctx.fillPrice).add(
-            ud60x18(uint256(settlementConfiguration.fee)).intoSD59x18()
-        );
+        ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDelta, ctx.fillPrice);
+        // TODO: add dynamic gas cost in the end
+        ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
         {
             (
@@ -144,13 +145,12 @@ contract SettlementModule is ISettlementModule {
             perpsAccount.validateMarginRequirement(
                 requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
                 perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
-                ctx.totalFeesUsdX18
+                ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
             );
         }
 
-        ctx.pnl = oldPosition.getUnrealizedPnl(ctx.fillPrice).add(
-            sd59x18(uint256(settlementConfiguration.fee).toInt256())
-        ).add(ctx.totalFeesUsdX18).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnit));
+        ctx.pnl =
+            oldPosition.getUnrealizedPnl(ctx.fillPrice).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnit));
 
         // TODO: Handle negative margin case
         if (ctx.pnl.lt(SD_ZERO)) {
@@ -159,8 +159,9 @@ contract SettlementModule is ISettlementModule {
         } else if (ctx.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
             perpsAccount.deposit(usdToken, amountToIncrease);
+
+            // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
         }
-        // TODO: liquidityEngine.withdrawUsdToken(upkeep, ctx.marketId, ctx.fee);
 
         ctx.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(ctx.sizeDelta).intoInt256(),
@@ -178,6 +179,10 @@ contract SettlementModule is ISettlementModule {
 
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
+        // TODO: add dynamic gas cost into settlementFee
+        // liquidityEngine.withdrawUsdToken(keeper, ctx.settlementFeeUsdX18);
+
+        // TODO: Enrich this event
         emit LogSettleOrder(msg.sender, ctx.accountId, ctx.marketId, ctx.pnl.intoInt256(), ctx.newPosition);
     }
 

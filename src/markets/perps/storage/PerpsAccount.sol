@@ -324,8 +324,8 @@ library PerpsAccount {
 
     function liquidate(Data storage self) internal returns (UD60x18 liquidatedCollateralUsdX18) {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        // TODO: send to liquidation pool contract
         // address liquidationPool = globalConfiguration.liquidationPool;
-        address liquidationPool;
 
         liquidatedCollateralUsdX18 = getEquityUsd(self, SD_ZERO).intoUD60x18();
 
@@ -334,7 +334,8 @@ library PerpsAccount {
 
             self.marginCollateralBalanceX18.remove(collateralType);
 
-            IERC20(collateralType).safeTransfer(liquidationPool, balance);
+            // TODO: update to liquidation pool
+            IERC20(collateralType).safeTransfer(msg.sender, balance);
         }
     }
 
