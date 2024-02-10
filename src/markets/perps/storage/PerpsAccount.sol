@@ -12,6 +12,7 @@ import { Position } from "./Position.sol";
 import { SettlementConfiguration } from "./SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
+import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -27,6 +28,7 @@ library PerpsAccount {
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
+    using SafeERC20 for IERC20;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using SettlementConfiguration for SettlementConfiguration.Data;
@@ -261,7 +263,7 @@ library PerpsAccount {
         view
         returns (bool)
     {
-        return requiredMaintenanceMarginUsdX18.add(liquidationFeeUsdX18).gte(marginBalanceUsdX18);
+        return requiredMaintenanceMarginUsdX18.add(liquidationFeeUsdX18).intoSD59x18().gte(marginBalanceUsdX18);
     }
 
     function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {
@@ -320,10 +322,21 @@ library PerpsAccount {
         }
     }
 
-    // function liquidate(Data storage self) internal returns (UD60x18 liquidatedCollateralUsdX18) {
-    //     liquidatedCollateralUsdX18 = getEquityUsd(self, SD_ZERO);
+    function liquidate(Data storage self) internal returns (UD60x18 liquidatedCollateralUsdX18) {
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        // address liquidationPool = globalConfiguration.liquidationPool;
+        address liquidationPool;
 
-    // }
+        liquidatedCollateralUsdX18 = getEquityUsd(self, SD_ZERO).intoUD60x18();
+
+        for (uint256 i = 0; i > self.marginCollateralBalanceX18.length(); i++) {
+            (address collateralType, uint256 balance) = self.marginCollateralBalanceX18.at(i);
+
+            self.marginCollateralBalanceX18.remove(collateralType);
+
+            IERC20(collateralType).safeTransfer(liquidationPool, balance);
+        }
+    }
 
     /// @notice Updates the account's active markets ids based on the position's state transition.
     /// @param self The perps account storage pointer.

@@ -57,7 +57,8 @@ contract LiquidationModule {
 
     function liquidateAccounts(uint128[] calldata accountsIds) external onlyRegisteredLiquidator {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        UD60x18 liquidationFeeUsdX18 = globalConfiguration.liquidationFeeUsdX18;
+        // UD60x18 liquidationFeeUsdX18 = globalConfiguration.liquidationFeeUsdX18;
+        UD60x18 liquidationFeeUsdX18;
         // TODO: apply this to _settle asap
         UD60x18 earnedFeesUsdX18 = liquidationFeeUsdX18.mul(ud60x18(accountsIds.length));
 
@@ -79,7 +80,7 @@ contract LiquidationModule {
             }
 
             // TODO: Continue from here
-            // (UD60x18 liquidatedCollateralUsdX18) = perpsAccount.liquidate();
+            (UD60x18 liquidatedCollateralUsdX18) = perpsAccount.liquidate();
             MarketOrder.load(accountsIds[i]).clear();
             // clear all possible custom orders (limit, tp/sl). Create account nonce to cancel all?
             // perpsAccount.clearCustomOrders();
