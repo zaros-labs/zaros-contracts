@@ -108,6 +108,14 @@ interface IGlobalConfigurationModule {
     /// @param liquidityEngine The Liquidity Engine proxy address.
     function setLiquidityEngine(address liquidityEngine) external;
 
+    /// @notice Configures the collateral priority.
+    /// @param collateralTypes The array of collateral type addresses.
+    function configureCollateralPriority(address[] calldata collateralTypes) external;
+
+    /// @notice Sets the protocol's liquidation reward multiplier, used to payout keepers.
+    /// @param liquidationRewardRate The liquidation reward rate.
+    function configureLiquidationRewardRate(uint256 liquidationRewardRate) external;
+
     /// @notice Configures the settings of a given margin collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
@@ -120,10 +128,6 @@ interface IGlobalConfigurationModule {
         address priceFeed
     )
         external;
-
-    /// @notice Configures the collateral priority.
-    /// @param collateralTypes The array of collateral type addresses.
-    function configureCollateralPriority(address[] calldata collateralTypes) external;
 
     /// @notice Removes the given collateral type from the collateral priority.
     /// @param collateralType The address of the collateral type to remove.

@@ -19,7 +19,7 @@ import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializab
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 // PRB Math dependencies
-import { ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 
 /// @notice See {IGlobalConfigurationModule}.
 contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable, OwnableUpgradeable {
@@ -85,6 +85,27 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationModule
+    function configureCollateralPriority(address[] calldata collateralTypes) external override onlyOwner {
+        if (collateralTypes.length == 0) {
+            revert Errors.ZeroInput("collateralTypes");
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.configureCollateralPriority(collateralTypes);
+    }
+
+    function configureLiquidationRewardRate(uint256 liquidationRewardRate) external override onlyOwner {
+        UD60x18 liquidationRewardRateX18 = ud60x18(liquidationRewardRate);
+
+        if (liquidationRewardRateX18.lt(UD_UNIT)) {
+            revert Errors.InvalidLiquidationRewardRate(liquidationRewardRate);
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.liquidationRewardRateX18 = liquidationRewardRateX18.intoUint256();
+    }
+
+    /// @inheritdoc IGlobalConfigurationModule
     function configureMarginCollateral(
         address collateralType,
         uint128 depositCap,
@@ -105,16 +126,6 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         } catch {
             revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }
-    }
-
-    /// @inheritdoc IGlobalConfigurationModule
-    function configureCollateralPriority(address[] calldata collateralTypes) external override onlyOwner {
-        if (collateralTypes.length == 0) {
-            revert Errors.ZeroInput("collateralTypes");
-        }
-
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.configureCollateralPriority(collateralTypes);
     }
 
     /// @inheritdoc IGlobalConfigurationModule
