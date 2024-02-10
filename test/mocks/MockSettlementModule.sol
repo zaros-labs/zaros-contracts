@@ -37,8 +37,7 @@ contract MockSettlementModule is SettlementModule {
         // perpsAccount.checkIsNotLiquidatable();
         perpMarket.validateNewOpenInterest(vars.sizeDelta);
 
-        UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
-        vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
+        vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, perpMarket.getIndexPrice());
 
         vars.fundingRate = perpMarket.getCurrentFundingRate();
         vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingRate, vars.fillPrice);
@@ -50,11 +49,14 @@ contract MockSettlementModule is SettlementModule {
         );
 
         {
-            (UD60x18 requiredMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
-                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
+            (
+                UD60x18 requiredInitialMarginUsdX18,
+                UD60x18 requiredMaintenanceMarginUsdX18,
+                SD59x18 accountTotalUnrealizedPnlUsdX18
+            ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
 
             perpsAccount.validateMarginRequirement(
-                requiredMarginUsdX18,
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
                 perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
                 vars.totalFeesUsdX18
             );

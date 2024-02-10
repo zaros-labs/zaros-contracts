@@ -67,21 +67,6 @@ library PerpsAccount {
         }
     }
 
-    /// @notice TODO: implement
-    function isLiquidatable(
-        Data storage self,
-        UD60x18 requiredMarginUsdX18,
-        SD59x18 marginBalance
-    )
-        internal
-        view
-        returns (bool)
-    {
-        if (requiredMarginUsdX18.intoSD59x18().gte(marginBalance)) {
-            return true;
-        }
-    }
-
     /// @notice Validates if the perps account is under the configured positions limit.
     /// @dev This function must be called when the perps account is going to open a new position. If called in a
     /// context
@@ -105,6 +90,10 @@ library PerpsAccount {
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.
     /// @param self The perps account storage pointer.
+    /// @param requiredMarginUsdX18 Either the sum of initial margin + maintenance margin, or only the maintenace
+    /// margin, depending on the context.
+    /// @param marginBalanceUsdX18 The account's margin balance.
+    /// @param totalFeesUsdX18 The total fees to be charged to the account in the current context.
     function validateMarginRequirement(
         Data storage self,
         UD60x18 requiredMarginUsdX18,
@@ -198,7 +187,11 @@ library PerpsAccount {
     )
         internal
         view
-        returns (UD60x18 requiredMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18)
+        returns (
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 accountTotalUnrealizedPnlUsdX18
+        )
     {
         for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
@@ -215,7 +208,7 @@ library PerpsAccount {
             UD60x18 notionalValueX18 = marketId != settlementMarketId
                 ? position.getNotionalValue(markPrice)
                 : sd59x18(position.size).add(sizeDeltaX18).abs().intoUD60x18().mul(markPrice);
-            (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
+            (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
                 .getMarginRequirements(
                 notionalValueX18,
                 ud60x18(perpMarket.configuration.minInitialMarginRateX18),
@@ -224,12 +217,9 @@ library PerpsAccount {
             SD59x18 positionUnrealizedPnl =
                 position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
 
-            requiredMarginUsdX18 =
-                requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
+            requiredInitialMarginUsdX18 = requiredInitialMarginUsdX18.add(positionInitialMarginUsdX18);
+            requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
             accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
-
-            requiredMarginUsdX18 =
-                requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
         }
     }
 

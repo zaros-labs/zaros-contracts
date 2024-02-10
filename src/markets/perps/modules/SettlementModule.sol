@@ -122,9 +122,10 @@ contract SettlementModule is ISettlementModule {
         perpMarket.validateNewOpenInterest(vars.sizeDelta);
 
         bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
-        UD60x18 indexPriceX18 =
-            settlementConfiguration.getSettlementPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
-        vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
+
+        vars.fillPrice = perpMarket.getMarkPrice(
+            vars.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO))
+        );
 
         vars.fundingRate = perpMarket.getCurrentFundingRate();
         vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingRate, vars.fillPrice);
@@ -136,11 +137,14 @@ contract SettlementModule is ISettlementModule {
         );
 
         {
-            (UD60x18 requiredMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
-                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
+            (
+                UD60x18 requiredInitialMarginUsdX18,
+                UD60x18 requiredMaintenanceMarginUsdX18,
+                SD59x18 accountTotalUnrealizedPnlUsdX18
+            ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
 
             perpsAccount.validateMarginRequirement(
-                requiredMarginUsdX18,
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
                 perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
                 vars.totalFeesUsdX18
             );

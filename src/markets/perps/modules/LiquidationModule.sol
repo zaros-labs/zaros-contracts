@@ -34,9 +34,9 @@ contract LiquidationModule {
         for (uint256 i = 0; i < accountsIds.length; i++) {
             PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountsIds[i]);
 
-            if (perpsAccount.isLiquidatable(ud60x18(0), sd59x18(0))) {
-                liquidatableAccountsIds[liquidatableAccountsIds.length] = accountsIds[i];
-            }
+            // if (perpsAccount.isLiquidatable(ud60x18(0), sd59x18(0))) {
+            //     liquidatableAccountsIds[liquidatableAccountsIds.length] = accountsIds[i];
+            // }
         }
     }
 
@@ -45,13 +45,13 @@ contract LiquidationModule {
         for (uint256 i = 0; i < accountsIds.length; i++) {
             PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountsIds[i]);
 
-            (UD60x18 requiredMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
+            (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
                 perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
             SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
-            if (!perpsAccount.isLiquidatable(requiredMarginUsdX18, marginBalanceUsdX18)) {
+            if (marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())) {
                 revert Errors.AccountNotLiquidatable(
-                    accountsIds[i], requiredMarginUsdX18.intoUint256(), marginBalanceUsdX18.intoInt256()
+                    accountsIds[i], requiredMaintenanceMarginUsdX18.intoUint256(), marginBalanceUsdX18.intoInt256()
                 );
             }
 
@@ -61,6 +61,8 @@ contract LiquidationModule {
                 uint128 marketId = perpsAccount.activeMarketsIds.at(j).toUint128();
                 PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
                 Position.Data storage position = Position.load(accountsIds[i], marketId);
+
+                // update funding rate
 
                 UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
                 UD60x18 markPriceX18 = perpMarket.getMarkPrice(unary(sd59x18(position.size)), indexPriceX18);

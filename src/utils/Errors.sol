@@ -115,7 +115,9 @@ library Errors {
     error PerpMarketAlreadyDisabled(uint128 marketId);
 
     /// @notice PerpsEngine.LiquidationModule errors.
-    error AccountNotLiquidatable(uint128 accountId, uint256 requiredMarginUsdX18, int256 marginBalanceUsdX18);
+    error AccountNotLiquidatable(
+        uint128 accountId, uint256 requiredMaintenanceMarginUsdX18, int256 marginBalanceUsdX18
+    );
 
     /// @notice PerpsEngine.PerpMarket errors.
 
