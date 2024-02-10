@@ -252,6 +252,18 @@ library PerpsAccount {
         }
     }
 
+    function isLiquidatable(
+        UD60x18 requiredMaintenanceMarginUsdX18,
+        UD60x18 liquidationFeeUsdX18,
+        SD59x18 marginBalanceUsdX18
+    )
+        internal
+        view
+        returns (bool)
+    {
+        return requiredMaintenanceMarginUsdX18.add(liquidationFeeUsdX18).gte(marginBalanceUsdX18);
+    }
+
     function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {
         return self.activeMarketsIds.contains(marketId);
     }
@@ -307,6 +319,11 @@ library PerpsAccount {
             }
         }
     }
+
+    // function liquidate(Data storage self) internal returns (UD60x18 liquidatedCollateralUsdX18) {
+    //     liquidatedCollateralUsdX18 = getEquityUsd(self, SD_ZERO);
+
+    // }
 
     /// @notice Updates the account's active markets ids based on the position's state transition.
     /// @param self The perps account storage pointer.
