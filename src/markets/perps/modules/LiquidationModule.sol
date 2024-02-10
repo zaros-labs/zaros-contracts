@@ -5,6 +5,7 @@ pragma solidity 0.8.23;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpMarket } from "../storage/PerpMarket.sol";
+import { Position } from "../storage/Position.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -12,12 +13,13 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 contract LiquidationModule {
     using EnumerableSet for EnumerableSet.UintSet;
     using PerpsAccount for PerpsAccount.Data;
     using PerpMarket for PerpMarket.Data;
+    using Position for Position.Data;
     using SafeCast for uint256;
 
     modifier onlyRegisteredLiquidator() {
@@ -58,9 +60,12 @@ contract LiquidationModule {
             for (uint256 j = 0; j < amountOfOpenPositions; j++) {
                 uint128 marketId = perpsAccount.activeMarketsIds.at(j).toUint128();
                 PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+                Position.Data storage position = Position.load(accountsIds[i], marketId);
 
                 UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
-                // UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(0), indexPriceX18);
+                UD60x18 markPriceX18 = perpMarket.getMarkPrice(unary(sd59x18(position.size)), indexPriceX18);
+
+                // UD60x18 positionNotionalValue = position.getNotionalValue(markPrice);
             }
         }
     }
