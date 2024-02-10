@@ -52,7 +52,6 @@ contract OrderModule is IOrderModule {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
-        perpMarket.validateNewOpenInterest(sd59x18(sizeDelta));
 
         UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
 

@@ -34,8 +34,6 @@ contract MockSettlementModule is SettlementModule {
         // globalConfiguration.checkMarketIsEnabled(vars.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
-        // perpsAccount.checkIsNotLiquidatable();
-        perpMarket.validateNewOpenInterest(vars.sizeDelta);
 
         vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, perpMarket.getIndexPrice());
 
@@ -49,11 +47,14 @@ contract MockSettlementModule is SettlementModule {
         );
 
         {
-            (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
-                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
+            (
+                UD60x18 requiredInitialMarginUsdX18,
+                UD60x18 requiredMaintenanceMarginUsdX18,
+                SD59x18 accountTotalUnrealizedPnlUsdX18
+            ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
 
             perpsAccount.validateMarginRequirement(
-                requiredMaintenanceMarginUsdX18,
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
                 perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
                 vars.totalFeesUsdX18
             );
@@ -63,12 +64,6 @@ contract MockSettlementModule is SettlementModule {
             sd59x18(uint256(settlementConfiguration.fee).toInt256())
         ).add(vars.totalFeesUsdX18).add(oldPosition.getAccruedFunding(vars.fundingFeePerUnit));
 
-        vars.newPosition = Position.Data({
-            size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
-            lastInteractionPrice: vars.fillPrice.intoUint128(),
-            lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
-        });
-
         // TODO: Handle negative margin case
         if (vars.pnl.lt(SD_ZERO)) {
             UD60x18 amountToDeduct = vars.pnl.intoUD60x18();
@@ -77,7 +72,15 @@ contract MockSettlementModule is SettlementModule {
             UD60x18 amountToIncrease = vars.pnl.intoUD60x18();
             perpsAccount.deposit(usdToken, amountToIncrease);
         }
+
+        vars.newPosition = Position.Data({
+            size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
+            lastInteractionPrice: vars.fillPrice.intoUint128(),
+            lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
+        });
+
         // TODO: liquidityEngine.withdrawUsdToken(upkeep, vars.marketId, vars.fee);
+        perpMarket.updateOpenInterest(vars.sizeDelta, sd59x18(oldPosition.size), sd59x18(vars.newPosition.size));
 
         perpsAccount.updateActiveMarkets(vars.marketId, sd59x18(oldPosition.size), sd59x18(vars.newPosition.size));
         if (vars.newPosition.size == 0) {
@@ -85,8 +88,6 @@ contract MockSettlementModule is SettlementModule {
         } else {
             oldPosition.update(vars.newPosition);
         }
-
-        perpMarket.updateOpenInterest(vars.sizeDelta);
 
         emit LogSettleOrder(msg.sender, vars.accountId, vars.marketId, vars.pnl.intoInt256(), vars.newPosition);
     }

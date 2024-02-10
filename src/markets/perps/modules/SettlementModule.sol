@@ -118,8 +118,6 @@ contract SettlementModule is ISettlementModule {
         globalConfiguration.checkMarketIsEnabled(vars.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
-        // perpsAccount.checkIsNotLiquidatable();
-        perpMarket.validateNewOpenInterest(vars.sizeDelta);
 
         bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
 
@@ -137,11 +135,14 @@ contract SettlementModule is ISettlementModule {
         );
 
         {
-            (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
-                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
+            (
+                UD60x18 requiredInitialMarginUsdX18,
+                UD60x18 requiredMaintenanceMarginUsdX18,
+                SD59x18 accountTotalUnrealizedPnlUsdX18
+            ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, vars.sizeDelta);
 
             perpsAccount.validateMarginRequirement(
-                requiredMaintenanceMarginUsdX18,
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
                 perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
                 vars.totalFeesUsdX18
             );
@@ -150,12 +151,6 @@ contract SettlementModule is ISettlementModule {
         vars.pnl = oldPosition.getUnrealizedPnl(vars.fillPrice).add(
             sd59x18(uint256(settlementConfiguration.fee).toInt256())
         ).add(vars.totalFeesUsdX18).add(oldPosition.getAccruedFunding(vars.fundingFeePerUnit));
-
-        vars.newPosition = Position.Data({
-            size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
-            lastInteractionPrice: vars.fillPrice.intoUint128(),
-            lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
-        });
 
         // TODO: Handle negative margin case
         if (vars.pnl.lt(SD_ZERO)) {
@@ -167,14 +162,20 @@ contract SettlementModule is ISettlementModule {
         }
         // TODO: liquidityEngine.withdrawUsdToken(upkeep, vars.marketId, vars.fee);
 
+        vars.newPosition = Position.Data({
+            size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
+            lastInteractionPrice: vars.fillPrice.intoUint128(),
+            lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
+        });
+
+        perpMarket.updateOpenInterest(vars.sizeDelta, sd59x18(oldPosition.size), sd59x18(vars.newPosition.size));
+
         perpsAccount.updateActiveMarkets(vars.marketId, sd59x18(oldPosition.size), sd59x18(vars.newPosition.size));
         if (vars.newPosition.size == 0) {
             oldPosition.clear();
         } else {
             oldPosition.update(vars.newPosition);
         }
-
-        perpMarket.updateOpenInterest(vars.sizeDelta);
 
         emit LogSettleOrder(msg.sender, vars.accountId, vars.marketId, vars.pnl.intoInt256(), vars.newPosition);
     }
