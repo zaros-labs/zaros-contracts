@@ -22,8 +22,10 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     }
 
     function mint(address to, uint256 amount) external {
-        _requireAmountNotZero(amount);
-        _requireAmountLessThanMaxAmountMint(amount);
+        if (msg.sender != owner()) {
+            _requireAmountNotZero(amount);
+            _requireAmountLessThanMaxAmountMint(amount);
+        }
 
         amountMintedPerAddress[msg.sender] += amount;
 

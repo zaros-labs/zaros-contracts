@@ -9,8 +9,8 @@ import { Diamond } from "@zaros/diamonds/Diamond.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
-import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "./Base.s.sol";
+import { LimitedMintingERC20 } from "./utils/LimitedMintingERC20.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 import {
     deployModules,
@@ -41,14 +41,15 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     AccountNFT internal perpsAccountToken;
-    USDToken internal usdToken;
+    address internal usdToken;
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
         // chainlinkForwarder = vm.envAddress("CHAINLINK_FORWARDER");
         // chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
-        usdToken = USDToken(vm.envAddress("USDZ"));
+        // usdToken = USDToken(vm.envAddress("USDZ"));
+        usdToken = vm.envAddress("USDz");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
 
         address[] memory modules = deployModules();
@@ -57,11 +58,7 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
         address[] memory initializables = getInitializables(modules);
         bytes[] memory initializePayloads = getInitializePayloads(
-            deployer,
-            address(perpsAccountToken),
-            mockRewardDistributorAddress,
-            address(usdToken),
-            mockLiquidityEngineAddress
+            deployer, address(perpsAccountToken), mockRewardDistributorAddress, usdToken, mockLiquidityEngineAddress
         );
 
         IDiamond.InitParams memory initParams = IDiamond.InitParams({
@@ -95,6 +92,8 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
 
         // TODO: add margin collateral configuration paremeters to a JSON file and use ffi
         perpsEngine.configureMarginCollateral(address(usdToken), type(uint128).max, 1e18, usdcUsdPriceFeed);
+
+        LimitedMintingERC20(address(usdToken)).transferOwnership(address(perpsEngine));
     }
 
     function logContracts(address[] memory modules) internal view {
