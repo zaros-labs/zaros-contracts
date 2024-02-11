@@ -260,7 +260,7 @@ library PerpsAccount {
         SD59x18 marginBalanceUsdX18
     )
         internal
-        view
+        pure
         returns (bool)
     {
         return requiredMaintenanceMarginUsdX18.add(liquidationFeeUsdX18).intoSD59x18().gte(marginBalanceUsdX18);
