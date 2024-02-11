@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { LimitedMintingERC20 } from "script/utils/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
@@ -46,6 +47,7 @@ contract LiquidationModule {
     }
 
     struct LiquidationContext {
+        address usdToken;
         UD60x18 liquidationFeeUsdX18;
         UD60x18 earnedLiquidationFeeUsdX18;
         uint128 accountId;
@@ -66,8 +68,9 @@ contract LiquidationModule {
         LiquidationContext memory ctx;
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        // TODO: remove after testnet launch
+        ctx.usdToken = globalConfiguration.usdToken;
         ctx.liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
-        // TODO: apply this to _settle asap
         ctx.earnedLiquidationFeeUsdX18 = ctx.liquidationFeeUsdX18.mul(ud60x18(accountsIds.length));
 
         for (uint256 i = 0; i < accountsIds.length; i++) {
@@ -124,7 +127,8 @@ contract LiquidationModule {
 
             // TODO: pay execution gas costs to liquidator
             // pay earnedLiquidationFeesUsdX18 to liquidator
-            // liquidityEngine.withdrawUsdToken(liquidatedCollateralUsdX18, msg.sender);
+            // liquidityEngine.withdrawUsdToken(msg.sender, liquidatedCollateralUsdX18);
+            LimitedMintingERC20(ctx.usdToken).mint(msg.sender, ctx.earnedLiquidationFeeUsdX18.intoUint256());
         }
     }
 }

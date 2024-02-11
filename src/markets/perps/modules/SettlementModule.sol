@@ -3,8 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
+import { LimitedMintingERC20 } from "script/utils/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
@@ -58,7 +57,14 @@ contract SettlementModule is ISettlementModule {
 
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
+
         _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, extraData);
+        _paySettlementFees({
+            keeper: msg.sender,
+            marketId: marketId,
+            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            amountOfSettledTrades: 1
+        });
 
         marketOrder.clear();
     }
@@ -80,9 +86,17 @@ contract SettlementModule is ISettlementModule {
 
             _settle(marketId, settlementId, payload, extraData);
         }
+
+        _paySettlementFees({
+            keeper: msg.sender,
+            marketId: marketId,
+            settlementId: settlementId,
+            amountOfSettledTrades: payloads.length
+        });
     }
 
     struct SettlementContext {
+        address usdToken;
         uint128 marketId;
         uint128 accountId;
         SD59x18 orderFeeUsdX18;
@@ -114,7 +128,7 @@ contract SettlementModule is ISettlementModule {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        address usdToken = globalConfiguration.usdToken;
+        ctx.usdToken = globalConfiguration.usdToken;
 
         globalConfiguration.checkMarketIsEnabled(ctx.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
@@ -158,9 +172,10 @@ contract SettlementModule is ISettlementModule {
             perpsAccount.deductAccountMargin(amountToDeduct);
         } else if (ctx.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
-            perpsAccount.deposit(usdToken, amountToIncrease);
+            perpsAccount.deposit(ctx.usdToken, amountToIncrease);
 
             // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
+            LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
         ctx.newPosition = Position.Data({
@@ -179,11 +194,27 @@ contract SettlementModule is ISettlementModule {
 
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
-        // TODO: add dynamic gas cost into settlementFee
-        // liquidityEngine.withdrawUsdToken(keeper, ctx.settlementFeeUsdX18);
-
         // TODO: Enrich this event
         emit LogSettleOrder(msg.sender, ctx.accountId, ctx.marketId, ctx.pnl.intoInt256(), ctx.newPosition);
+    }
+
+    function _paySettlementFees(
+        address keeper,
+        uint128 marketId,
+        uint128 settlementId,
+        uint256 amountOfSettledTrades
+    )
+        internal
+    {
+        address usdToken = GlobalConfiguration.load().usdToken;
+
+        UD60x18 settlementFeePerTradeUsdX18 = ud60x18(SettlementConfiguration.load(marketId, settlementId).fee);
+        UD60x18 totalSettlementFeeUsdX18 = settlementFeePerTradeUsdX18.mul(ud60x18(amountOfSettledTrades));
+
+        LimitedMintingERC20(usdToken).mint(keeper, totalSettlementFeeUsdX18.intoUint256());
+
+        // TODO: add dynamic gas cost into settlementFee
+        // liquidityEngine.withdrawUsdToken(keeper, ctx.settlementFeeUsdX18);
     }
 
     function _requireIsSettlementStrategy(address sender, address upkeep) internal pure {
