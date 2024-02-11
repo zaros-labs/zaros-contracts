@@ -69,7 +69,7 @@ contract SettlementModule is ISettlementModule {
         marketOrder.clear();
     }
 
-    function settleCustomTriggers(
+    function settleCustomOrders(
         uint128 marketId,
         uint128 settlementId,
         SettlementPayload[] calldata payloads,

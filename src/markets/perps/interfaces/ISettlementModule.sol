@@ -26,7 +26,7 @@ interface ISettlementModule {
 
     function settleMarketOrder(uint128 accountId, uint128 marketId, bytes calldata verifiedReportData) external;
 
-    function settleCustomTriggers(
+    function settleCustomOrders(
         uint128 marketId,
         uint128 settlementId,
         SettlementPayload[] calldata payloads,

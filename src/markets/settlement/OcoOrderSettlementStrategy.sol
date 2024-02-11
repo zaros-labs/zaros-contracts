@@ -93,7 +93,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
         ISettlementModule.SettlementPayload[] memory payloads =
             abi.decode(extraData, (ISettlementModule.SettlementPayload[]));
 
-        perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, signedReport);
+        perpsEngine.settleCustomOrders(marketId, settlementId, payloads, signedReport);
     }
 
     function _getOcoOrderSettlementStrategyStorage()
