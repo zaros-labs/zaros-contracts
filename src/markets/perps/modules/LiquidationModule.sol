@@ -37,7 +37,7 @@ contract LiquidationModule {
         returns (uint128[] memory liquidatableAccountsIds)
     {
         for (uint256 i = 0; i < accountsIds.length; i++) {
-            PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountsIds[i]);
+            PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountsIds[i]);
 
             // if (perpsAccount.isLiquidatable(ud60x18(0), sd59x18(0))) {
             //     liquidatableAccountsIds[liquidatableAccountsIds.length] = accountsIds[i];
@@ -72,7 +72,7 @@ contract LiquidationModule {
 
         for (uint256 i = 0; i < accountsIds.length; i++) {
             ctx.accountId = accountsIds[i];
-            PerpsAccount.Data storage perpsAccount = PerpsAccount.load(ctx.accountId);
+            PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
 
             (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
                 perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));

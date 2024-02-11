@@ -109,7 +109,7 @@ contract SettlementModule is ISettlementModule {
         ctx.sizeDelta = sd59x18(payload.sizeDelta);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(ctx.accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
         Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);

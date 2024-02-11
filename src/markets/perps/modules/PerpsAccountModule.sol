@@ -50,7 +50,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         override
         returns (UD60x18)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         UD60x18 marginCollateralBalanceX18 = perpsAccount.getMarginCollateralBalance(collateralType);
 
         return marginCollateralBalanceX18;
@@ -58,7 +58,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function getAccountEquityUsd(uint128 accountId) external view override returns (SD59x18) {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
 
         return perpsAccount.getEquityUsd(activePositionsUnrealizedPnlUsdX18);
@@ -76,7 +76,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
             SD59x18 availableMarginUsdX18
         )
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
 
         marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
@@ -112,12 +112,12 @@ contract PerpsAccountModule is IPerpsAccountModule {
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         accountTotalUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
     }
 
     function getAccountLeverage(uint128 accountId) external view returns (UD60x18) {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
 
         SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(perpsAccount.getAccountUnrealizedPnlUsd());
         UD60x18 totalPositionsNotionalValue;
@@ -242,7 +242,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function notifyAccountTransfer(address to, uint128 accountId) external override {
         _onlyPerpsAccountToken();
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.owner = to;
     }
 

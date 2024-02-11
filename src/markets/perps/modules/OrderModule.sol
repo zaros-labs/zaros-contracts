@@ -48,7 +48,7 @@ contract OrderModule is IOrderModule {
         override
         returns (SD59x18, UD60x18, UD60x18)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
