@@ -79,7 +79,7 @@ contract LiquidationModule {
             ctx.marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
             if (
-                PerpsAccount.isLiquidatable(
+                !PerpsAccount.isLiquidatable(
                     requiredMaintenanceMarginUsdX18, ctx.liquidationFeeUsdX18, ctx.marginBalanceUsdX18
                 )
             ) {
