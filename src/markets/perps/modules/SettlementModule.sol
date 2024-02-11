@@ -61,14 +61,15 @@ contract SettlementModule is ISettlementModule {
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
 
         _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, extraData);
+
+        marketOrder.clear();
+
         _paySettlementFees({
             keeper: msg.sender,
             marketId: marketId,
             settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             amountOfSettledTrades: 1
         });
-
-        marketOrder.clear();
     }
 
     function settleCustomOrders(
@@ -224,7 +225,8 @@ contract SettlementModule is ISettlementModule {
 
         LimitedMintingERC20(usdToken).mint(keeper, totalSettlementFeeUsdX18.intoUint256());
 
-        // TODO: add dynamic gas cost into settlementFee
+        // TODO: add dynamic gas cost into settlementFee, checking settlementFeeGasCost stored and multiplying by
+        // GasOracle.gasPrice()
         // liquidityEngine.withdrawUsdToken(keeper, ctx.settlementFeeUsdX18);
     }
 

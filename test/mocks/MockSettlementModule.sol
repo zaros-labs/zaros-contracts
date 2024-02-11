@@ -29,7 +29,7 @@ contract MockSettlementModule is SettlementModule {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        address usdToken = globalConfiguration.usdToken;
+        ctx.usdToken = globalConfiguration.usdToken;
 
         // globalConfiguration.checkMarketIsEnabled(ctx.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.

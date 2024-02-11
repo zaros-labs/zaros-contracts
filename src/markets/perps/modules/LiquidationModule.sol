@@ -92,6 +92,8 @@ contract LiquidationModule {
             }
 
             // TODO: Update margin and fee receivers
+            // TODO: Update liquidation fee to estimate gas costs (i.edefault gas cost stored + gas price from
+            // GasOracle)
             UD60x18 liquidatedCollateralUsdX18 = perpsAccount.deductAccountMargin(
                 msg.sender,
                 msg.sender,
