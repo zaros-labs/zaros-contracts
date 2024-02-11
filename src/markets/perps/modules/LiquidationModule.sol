@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
+import { ILiquidationModule } from "../interfaces/ILiquidationModule.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
 import { PerpMarket } from "../storage/PerpMarket.sol";
@@ -17,7 +18,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-contract LiquidationModule {
+contract LiquidationModule is ILiquidationModule {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using PerpsAccount for PerpsAccount.Data;
@@ -46,7 +47,6 @@ contract LiquidationModule {
     }
 
     struct LiquidationContext {
-        address usdToken;
         UD60x18 liquidationFeeUsdX18;
         uint128 accountId;
         UD60x18 requiredMaintenanceMarginUsdX18;
@@ -67,8 +67,6 @@ contract LiquidationModule {
         LiquidationContext memory ctx;
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        // TODO: remove after testnet launch
-        ctx.usdToken = globalConfiguration.usdToken;
         ctx.liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
 
         for (uint256 i = 0; i < accountsIds.length; i++) {
@@ -135,12 +133,15 @@ contract LiquidationModule {
             // must be an invariant
             assert(perpsAccount.activeMarketsIds.length() == 0);
 
-            // emit LogLiquidateAccount(
-            //     msg.sender,
-            //     ctx.accountId,
-            //     ctx.liquidatedCollateralUsdX18.intoUint256(),
-            //     ctx.collectedFeeUsdX18.intoUint256()
-            // );
+            emit LogLiquidateAccount(
+                msg.sender,
+                ctx.accountId,
+                ctx.amountOfOpenPositions,
+                ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
+                ctx.marginBalanceUsdX18.intoInt256(),
+                ctx.liquidatedCollateralUsdX18.intoUint256(),
+                ctx.liquidationFeeUsdX18.intoUint256()
+            );
         }
     }
 }
