@@ -15,6 +15,10 @@ interface ISettlementModule {
         address indexed sender,
         uint128 indexed accountId,
         uint128 indexed marketId,
+        int256 sizeDelta,
+        uint256 fillPrice,
+        int256 orderFeeUsd,
+        uint256 settlementFeeUsd,
         int256 pnl,
         Position.Data newPosition
     );

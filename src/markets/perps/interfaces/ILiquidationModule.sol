@@ -6,10 +6,10 @@ interface ILiquidationModule {
         address indexed keeper,
         uint128 indexed accountId,
         uint256 amountOfOpenPositions,
-        uint256 requiredMaintenanceMarginUsdX18,
-        int256 marginBalanceUsdX18,
-        uint256 liquidatedCollateralUsdX18,
-        uint256 liquidationFeeUsdX18
+        uint256 requiredMaintenanceMarginUsd,
+        int256 marginBalanceUsd,
+        uint256 liquidatedCollateralUsd,
+        uint256 liquidationFeeUsd
     );
 
     function checkLiquidatableAccounts(uint128[] calldata accountsIds)

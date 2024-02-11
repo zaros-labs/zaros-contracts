@@ -204,8 +204,17 @@ contract SettlementModule is ISettlementModule {
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
-        // TODO: Enrich this event
-        emit LogSettleOrder(msg.sender, ctx.accountId, ctx.marketId, ctx.pnl.intoInt256(), ctx.newPosition);
+        emit LogSettleOrder(
+            msg.sender,
+            ctx.accountId,
+            ctx.marketId,
+            ctx.sizeDelta.intoInt256(),
+            ctx.fillPrice.intoUint256(),
+            ctx.orderFeeUsdX18.intoInt256(),
+            ctx.settlementFeeUsdX18.intoUint256(),
+            ctx.pnl.intoInt256(),
+            ctx.newPosition
+        );
     }
 
     /// @dev We assume that the settlement fees are always properly deducted from the trading accounts, either from
