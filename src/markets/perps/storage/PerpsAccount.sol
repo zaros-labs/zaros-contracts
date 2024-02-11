@@ -306,36 +306,67 @@ library PerpsAccount {
         }
     }
 
-    function deductAccountMargin(Data storage self, UD60x18 amount) internal {
+    function deductAccountMargin(
+        Data storage self,
+        address marginReceiver,
+        address orderFeeReceiver,
+        UD60x18 totalMarginAmountUsdX18,
+        UD60x18 orderFeeUsdX18
+    )
+        internal
+        returns (UD60x18 marginDeductedUsdX18)
+    {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         for (uint256 i = 0; i < globalConfiguration.collateralPriority.length(); i++) {
             address collateralType = globalConfiguration.collateralPriority.at(i);
+            MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+                MarginCollateralConfiguration.load(collateralType);
+
             UD60x18 marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
-            if (marginCollateralBalanceX18.gte(amount)) {
-                withdraw(self, collateralType, amount);
-                break;
-            } else {
-                withdraw(self, collateralType, marginCollateralBalanceX18);
-                amount = amount.sub(marginCollateralBalanceX18);
+            // UD60x18 balanceUsdX18 =
+            // marginCollateralConfiguration.getPrice().mul(ud60x18(marginCollateralBalanceX18));
+            UD60x18 marginCollateralPriceUsdX18 = marginCollateralConfiguration.getPrice();
+
+            if (marginDeductedUsdX18.lt(orderFeeUsdX18)) {
+                UD60x18 pendingFeeUsdX18 = orderFeeUsdX18.sub(marginDeductedUsdX18);
+                UD60x18 pendingFeeInCollateralX18 = pendingFeeUsdX18.div(marginCollateralPriceUsdX18);
+
+                if (marginCollateralBalanceX18.gte(pendingFeeInCollateralX18)) {
+                    withdraw(self, collateralType, pendingFeeInCollateralX18);
+                    marginDeductedUsdX18 = marginDeductedUsdX18.add(pendingFeeUsdX18);
+
+                    IERC20(collateralType).safeTransfer(orderFeeReceiver, pendingFeeInCollateralX18.intoUint256());
+                } else {
+                    UD60x18 feeToDeductUsdX18 = marginCollateralPriceUsdX18.mul(marginCollateralBalanceX18);
+                    withdraw(self, collateralType, marginCollateralBalanceX18);
+                    marginDeductedUsdX18 = marginDeductedUsdX18.add(feeToDeductUsdX18);
+
+                    IERC20(collateralType).safeTransfer(orderFeeReceiver, marginCollateralBalanceX18.intoUint256());
+
+                    continue;
+                }
             }
-        }
-    }
 
-    function liquidate(Data storage self) internal returns (UD60x18 liquidatedCollateralUsdX18) {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        // TODO: send to liquidation pool contract
-        // address liquidationPool = globalConfiguration.liquidationPool;
+            if (marginDeductedUsdX18.lt(totalMarginAmountUsdX18)) {
+                UD60x18 pendingMarginUsdX18 = totalMarginAmountUsdX18.sub(marginDeductedUsdX18);
+                UD60x18 pendingMarginInCollateralX18 = pendingMarginUsdX18.div(marginCollateralPriceUsdX18);
 
-        liquidatedCollateralUsdX18 = getEquityUsd(self, SD_ZERO).intoUD60x18();
+                if (marginCollateralBalanceX18.gte(pendingMarginInCollateralX18)) {
+                    withdraw(self, collateralType, pendingMarginInCollateralX18);
+                    marginDeductedUsdX18 = marginDeductedUsdX18.add(pendingMarginUsdX18);
 
-        for (uint256 i = 0; i > self.marginCollateralBalanceX18.length(); i++) {
-            (address collateralType, uint256 balance) = self.marginCollateralBalanceX18.at(i);
+                    IERC20(collateralType).safeTransfer(marginReceiver, pendingMarginInCollateralX18.intoUint256());
 
-            self.marginCollateralBalanceX18.remove(collateralType);
+                    break;
+                } else {
+                    UD60x18 marginToDeductUsdX18 = marginCollateralPriceUsdX18.mul(marginCollateralBalanceX18);
+                    withdraw(self, collateralType, marginCollateralBalanceX18);
+                    marginDeductedUsdX18 = marginDeductedUsdX18.add(marginToDeductUsdX18);
 
-            // TODO: update to liquidation pool
-            IERC20(collateralType).safeTransfer(msg.sender, balance);
+                    IERC20(collateralType).safeTransfer(marginReceiver, marginCollateralBalanceX18.intoUint256());
+                }
+            }
         }
     }
 

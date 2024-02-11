@@ -60,19 +60,9 @@ contract MockSettlementModule is SettlementModule {
             );
         }
 
-        ctx.pnl =
-            oldPosition.getUnrealizedPnl(ctx.fillPrice).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnit));
-
-        // TODO: Handle negative margin case
-        if (ctx.pnl.lt(SD_ZERO)) {
-            UD60x18 amountToDeduct = ctx.pnl.intoUD60x18();
-            perpsAccount.deductAccountMargin(amountToDeduct);
-        } else if (ctx.pnl.gt(SD_ZERO)) {
-            UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
-            perpsAccount.deposit(usdToken, amountToIncrease);
-
-            // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
-        }
+        ctx.pnl = oldPosition.getUnrealizedPnl(ctx.fillPrice).add(
+            oldPosition.getAccruedFunding(ctx.fundingFeePerUnit)
+        ).add(ctx.orderFeeUsdX18).add(ctx.settlementFeeUsdX18.intoSD59x18());
 
         ctx.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(ctx.sizeDelta).intoInt256(),
@@ -90,8 +80,23 @@ contract MockSettlementModule is SettlementModule {
 
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
-        // TODO: add dynamic gas cost into settlementFee
-        // liquidityEngine.withdrawUsdToken(keeper, ctx.settlementFeeUsdX18);
+        // TODO: Handle negative margin case
+        if (ctx.pnl.lt(SD_ZERO)) {
+            UD60x18 amountToDeduct = ctx.pnl.intoUD60x18();
+            // TODO: update to liquidation pool and fee pool addresses
+            perpsAccount.deductAccountMargin(
+                msg.sender,
+                msg.sender,
+                amountToDeduct,
+                ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO
+            );
+        } else if (ctx.pnl.gt(SD_ZERO)) {
+            UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
+            perpsAccount.deposit(ctx.usdToken, amountToIncrease);
+
+            // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
+            LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
+        }
 
         // TODO: Enrich this event
         emit LogSettleOrder(msg.sender, ctx.accountId, ctx.marketId, ctx.pnl.intoInt256(), ctx.newPosition);

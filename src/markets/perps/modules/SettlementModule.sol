@@ -14,11 +14,12 @@ import { Position } from "../storage/Position.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
+import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 contract SettlementModule is ISettlementModule {
@@ -30,6 +31,7 @@ contract SettlementModule is ISettlementModule {
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeCast for int256;
+    using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
     modifier onlyValidCustomOrderUpkeep() {
@@ -163,20 +165,9 @@ contract SettlementModule is ISettlementModule {
             );
         }
 
-        ctx.pnl =
-            oldPosition.getUnrealizedPnl(ctx.fillPrice).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnit));
-
-        // TODO: Handle negative margin case
-        if (ctx.pnl.lt(SD_ZERO)) {
-            UD60x18 amountToDeduct = ctx.pnl.intoUD60x18();
-            perpsAccount.deductAccountMargin(amountToDeduct);
-        } else if (ctx.pnl.gt(SD_ZERO)) {
-            UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
-            perpsAccount.deposit(ctx.usdToken, amountToIncrease);
-
-            // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
-            LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
-        }
+        ctx.pnl = oldPosition.getUnrealizedPnl(ctx.fillPrice).add(
+            oldPosition.getAccruedFunding(ctx.fundingFeePerUnit)
+        ).add(ctx.orderFeeUsdX18).add(ctx.settlementFeeUsdX18.intoSD59x18());
 
         ctx.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(ctx.sizeDelta).intoInt256(),
@@ -194,10 +185,30 @@ contract SettlementModule is ISettlementModule {
 
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
+        // TODO: Handle negative margin case
+        if (ctx.pnl.lt(SD_ZERO)) {
+            UD60x18 amountToDeduct = ctx.pnl.intoUD60x18();
+            // TODO: update to liquidation pool and fee pool addresses
+            perpsAccount.deductAccountMargin(
+                msg.sender,
+                msg.sender,
+                amountToDeduct,
+                ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO
+            );
+        } else if (ctx.pnl.gt(SD_ZERO)) {
+            UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
+            perpsAccount.deposit(ctx.usdToken, amountToIncrease);
+
+            // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
+            LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
+        }
+
         // TODO: Enrich this event
         emit LogSettleOrder(msg.sender, ctx.accountId, ctx.marketId, ctx.pnl.intoInt256(), ctx.newPosition);
     }
 
+    /// @dev We assume that the settlement fees are always properly deducted from the trading accounts, either from
+    /// their margin or pnl.
     function _paySettlementFees(
         address keeper,
         uint128 marketId,

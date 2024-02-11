@@ -2,7 +2,6 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { LimitedMintingERC20 } from "script/utils/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
@@ -49,8 +48,8 @@ contract LiquidationModule {
     struct LiquidationContext {
         address usdToken;
         UD60x18 liquidationFeeUsdX18;
-        UD60x18 earnedLiquidationFeeUsdX18;
         uint128 accountId;
+        UD60x18 requiredMaintenanceMarginUsdX18;
         SD59x18 marginBalanceUsdX18;
         UD60x18 liquidatedCollateralUsdX18;
         uint256 amountOfOpenPositions;
@@ -71,7 +70,6 @@ contract LiquidationModule {
         // TODO: remove after testnet launch
         ctx.usdToken = globalConfiguration.usdToken;
         ctx.liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
-        ctx.earnedLiquidationFeeUsdX18 = ctx.liquidationFeeUsdX18.mul(ud60x18(accountsIds.length));
 
         for (uint256 i = 0; i < accountsIds.length; i++) {
             ctx.accountId = accountsIds[i];
@@ -79,6 +77,8 @@ contract LiquidationModule {
 
             (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
                 perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
+
+            ctx.requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18;
             ctx.marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
             if (
@@ -91,8 +91,16 @@ contract LiquidationModule {
                 );
             }
 
-            // TODO: Continue from here
-            ctx.liquidatedCollateralUsdX18 = perpsAccount.liquidate();
+            // TODO: Update margin and fee receivers
+            UD60x18 liquidatedCollateralUsdX18 = perpsAccount.deductAccountMargin(
+                msg.sender,
+                msg.sender,
+                ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
+                    ? ctx.marginBalanceUsdX18.intoUD60x18().add(ctx.liquidationFeeUsdX18)
+                    : requiredMaintenanceMarginUsdX18.add(ctx.liquidationFeeUsdX18),
+                ctx.liquidationFeeUsdX18
+            );
+            ctx.liquidatedCollateralUsdX18 = liquidatedCollateralUsdX18;
             MarketOrder.load(ctx.accountId).clear();
             // clear all possible custom orders (limit, tp/sl). Create account nonce to cancel all?
             // perpsAccount.clearCustomOrders();
@@ -125,10 +133,12 @@ contract LiquidationModule {
             // must be an invariant
             assert(perpsAccount.activeMarketsIds.length() == 0);
 
-            // TODO: pay execution gas costs to liquidator
-            // pay earnedLiquidationFeesUsdX18 to liquidator
-            // liquidityEngine.withdrawUsdToken(msg.sender, liquidatedCollateralUsdX18);
-            LimitedMintingERC20(ctx.usdToken).mint(msg.sender, ctx.earnedLiquidationFeeUsdX18.intoUint256());
+            // emit LogLiquidateAccount(
+            //     msg.sender,
+            //     ctx.accountId,
+            //     ctx.liquidatedCollateralUsdX18.intoUint256(),
+            //     ctx.collectedFeeUsdX18.intoUint256()
+            // );
         }
     }
 }
