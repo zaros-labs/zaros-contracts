@@ -123,8 +123,8 @@ contract CreatePerpMarket is BaseScript {
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
-        SettlementConfiguration.Data[] memory ethUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
-        ethUsdCustomTriggerStrategies[0] = ethUsdLimitOrderConfiguration;
+        SettlementConfiguration.Data[] memory ethUsdCustomOrderStrategies = new SettlementConfiguration.Data[](1);
+        ethUsdCustomOrderStrategies[0] = ethUsdLimitOrderConfiguration;
 
         perpsEngine.createPerpMarket({
             params: CreatePerpMarketParams({
@@ -138,7 +138,7 @@ contract CreatePerpMarket is BaseScript {
                 skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
                 marketOrderConfiguration: ethUsdMarketOrderConfiguration,
-                customTriggerStrategies: ethUsdCustomTriggerStrategies,
+                customTriggerStrategies: ethUsdCustomOrderStrategies,
                 orderFees: ethUsdOrderFee
             })
         });
@@ -171,8 +171,8 @@ contract CreatePerpMarket is BaseScript {
             data: abi.encode(linkUsdMarketOrderConfigurationData)
         });
 
-        SettlementConfiguration.Data[] memory linkUsdCustomTriggerStrategies = new SettlementConfiguration.Data[](1);
-        linkUsdCustomTriggerStrategies[0] = linkUsdLimitOrderConfiguration;
+        SettlementConfiguration.Data[] memory linkUsdCustomOrderStrategies = new SettlementConfiguration.Data[](1);
+        linkUsdCustomOrderStrategies[0] = linkUsdLimitOrderConfiguration;
 
         perpsEngine.createPerpMarket({
             params: CreatePerpMarketParams({
@@ -186,7 +186,7 @@ contract CreatePerpMarket is BaseScript {
                 skewScale: LINK_USD_SKEW_SCALE,
                 maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
                 marketOrderConfiguration: linkUsdMarketOrderConfiguration,
-                customTriggerStrategies: linkUsdCustomTriggerStrategies,
+                customTriggerStrategies: linkUsdCustomOrderStrategies,
                 orderFees: linkUsdOrderFee
             })
         });

@@ -32,7 +32,7 @@ contract SettlementModule is ISettlementModule {
     using SafeCast for int256;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    modifier onlyValidCustomTriggerUpkeep() {
+    modifier onlyValidCustomOrderUpkeep() {
         _;
     }
 
@@ -76,7 +76,7 @@ contract SettlementModule is ISettlementModule {
         bytes calldata extraData
     )
         external
-        onlyValidCustomTriggerUpkeep
+        onlyValidCustomOrderUpkeep
     {
         // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
         // position's

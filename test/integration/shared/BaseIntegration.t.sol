@@ -32,7 +32,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     // TODO: update limit order strategy and move the market's strategies definition to a separate file.
     SettlementConfiguration.Data internal btcUsdLimitOrderConfiguration;
 
-    SettlementConfiguration.Data[] internal btcUsdCustomTriggerStrategies;
+    SettlementConfiguration.Data[] internal btcUsdCustomOrderStrategies;
 
     OrderFees.Data internal btcUsdOrderFees;
 
@@ -42,7 +42,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     // TODO: update limit order strategy and move the market's strategies definition to a separate file.
     SettlementConfiguration.Data internal ethUsdLimitOrderConfiguration;
 
-    SettlementConfiguration.Data[] internal ethUsdCustomTriggerStrategies;
+    SettlementConfiguration.Data[] internal ethUsdCustomOrderStrategies;
 
     OrderFees.Data internal ethUsdOrderFees;
 
@@ -112,8 +112,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
         ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
-        btcUsdCustomTriggerStrategies.push(btcUsdLimitOrderConfiguration);
-        ethUsdCustomTriggerStrategies.push(ethUsdLimitOrderConfiguration);
+        btcUsdCustomOrderStrategies.push(btcUsdLimitOrderConfiguration);
+        ethUsdCustomOrderStrategies.push(ethUsdLimitOrderConfiguration);
     }
 
     function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
@@ -141,7 +141,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 skewScale: BTC_USD_SKEW_SCALE,
                 maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
                 marketOrderConfiguration: btcUsdMarketOrderConfiguration,
-                customTriggerStrategies: btcUsdCustomTriggerStrategies,
+                customTriggerStrategies: btcUsdCustomOrderStrategies,
                 orderFees: btcUsdOrderFees
             })
         );
@@ -158,7 +158,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
                 marketOrderConfiguration: ethUsdMarketOrderConfiguration,
-                customTriggerStrategies: ethUsdCustomTriggerStrategies,
+                customTriggerStrategies: ethUsdCustomOrderStrategies,
                 orderFees: ethUsdOrderFees
             })
         );
