@@ -6,6 +6,7 @@ import "@zaros/markets/perps/modules/SettlementModule.sol";
 
 contract MockSettlementModule is SettlementModule {
     using GlobalConfiguration for GlobalConfiguration.Data;
+    using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
@@ -13,8 +14,46 @@ contract MockSettlementModule is SettlementModule {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    function mockSettle(uint128 marketId, uint128 settlementId, SettlementPayload calldata payload) external {
-        _mockSettle(marketId, settlementId, payload);
+    function mockSettleCustomOrders(
+        uint128 marketId,
+        uint128 settlementId,
+        SettlementPayload[] calldata payloads
+    )
+        external
+        onlyValidCustomOrderUpkeep
+    {
+        // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
+        // position's
+        // validations and updates.
+        for (uint256 i = 0; i < payloads.length; i++) {
+            SettlementPayload memory payload = payloads[i];
+
+            _mockSettle(marketId, settlementId, payload);
+        }
+
+        _paySettlementFees({
+            keeper: msg.sender,
+            marketId: marketId,
+            settlementId: settlementId,
+            amountOfSettledTrades: payloads.length
+        });
+    }
+
+    function mockSettleMarketOrder(uint128 accountId, uint128 marketId) external {
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
+
+        SettlementPayload memory payload =
+            SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
+        _mockSettle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload);
+
+        marketOrder.clear();
+
+        _paySettlementFees({
+            keeper: msg.sender,
+            marketId: marketId,
+            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            amountOfSettledTrades: 1
+        });
     }
 
     function _mockSettle(uint128 marketId, uint128 settlementId, SettlementPayload memory payload) internal {
