@@ -187,11 +187,7 @@ contract OrderModule is IOrderModule {
 
     /// @inheritdoc IOrderModule
     function cancelMarketOrder(uint128 accountId) external override {
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
-
-        if (marketOrder.timestamp == 0) {
-            revert Errors.NoActiveMarketOrder(accountId);
-        }
+        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
         marketOrder.clear();
 

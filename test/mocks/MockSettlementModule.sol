@@ -40,7 +40,7 @@ contract MockSettlementModule is SettlementModule {
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId) external {
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
+        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });

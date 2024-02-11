@@ -55,7 +55,7 @@ contract SettlementModule is ISettlementModule {
         external
         onlyMarketOrderUpkeep(marketId)
     {
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
+        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });

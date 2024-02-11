@@ -26,6 +26,16 @@ library MarketOrder {
         }
     }
 
+    function loadExisting(uint128 accountId) internal view returns (Data storage self) {
+        Data storage self = load(accountId);
+
+        if (self.marketId == 0) {
+            revert Errors.NoActiveMarketOrder(accountId);
+        }
+
+        return self;
+    }
+
     function update(Data storage self, uint128 marketId, int128 sizeDelta, uint128 acceptablePrice) internal {
         self.marketId = marketId;
         self.sizeDelta = sizeDelta;
