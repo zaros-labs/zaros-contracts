@@ -29,6 +29,12 @@ contract LiquidationModule is ILiquidationModule {
 
     // TODO: Implement
     modifier onlyRegisteredLiquidator() {
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+
+        if (!globalConfiguration.isLiquidatorEnabled[msg.sender]) {
+            revert Errors.LiquidatorNotRegistered(msg.sender);
+        }
+
         _;
     }
 
