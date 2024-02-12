@@ -37,6 +37,7 @@ library GlobalConfiguration {
         mapping(address => bool) isLiquidatorEnabled;
         EnumerableSet.AddressSet collateralPriority;
         EnumerableSet.UintSet enabledMarketsIds;
+        EnumerableSet.UintSet accountsIdsWithActivePositions;
     }
 
     /// @notice Loads the GlobalConfiguration entity.

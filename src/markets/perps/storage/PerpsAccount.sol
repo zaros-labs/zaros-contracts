@@ -383,10 +383,19 @@ library PerpsAccount {
     )
         internal
     {
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+
         if (oldPositionSize.eq(SD_ZERO) && newPositionSize.neq(SD_ZERO)) {
+            if (!globalConfiguration.accountsIdsWithActivePositions.contains(self.id)) {
+                globalConfiguration.accountsIdsWithActivePositions.add(self.id);
+            }
             self.activeMarketsIds.add(marketId);
         } else if (oldPositionSize.neq(SD_ZERO) && newPositionSize.eq(SD_ZERO)) {
             self.activeMarketsIds.remove(marketId);
+
+            if (self.activeMarketsIds.length() == 0) {
+                globalConfiguration.accountsIdsWithActivePositions.remove(self.id);
+            }
         }
     }
 }
