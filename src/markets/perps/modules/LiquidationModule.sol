@@ -38,7 +38,11 @@ contract LiquidationModule is ILiquidationModule {
         _;
     }
 
-    function checkLiquidatableAccounts(uint128[] calldata accountsIds)
+    function checkLiquidatableAccounts(
+        uint128[] calldata accountsIds,
+        uint256 lowerBound,
+        uint256 upperBound
+    )
         external
         view
         returns (uint128[] memory liquidatableAccountsIds)
@@ -46,8 +50,9 @@ contract LiquidationModule is ILiquidationModule {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         UD60x18 liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
 
-        for (uint256 i = 0; i < accountsIds.length; i++) {
-            PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountsIds[i]);
+        for (uint256 i = lowerBound; i < upperBound; i++) {
+            uint128 accountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
+            PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
 
             (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
                 perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));

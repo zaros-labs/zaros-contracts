@@ -13,7 +13,11 @@ interface ILiquidationModule {
         uint256 liquidationFeeUsd
     );
 
-    function checkLiquidatableAccounts(uint128[] calldata accountsIds)
+    function checkLiquidatableAccounts(
+        uint128[] calldata accountsIds,
+        uint256 lowerBound,
+        uint256 upperBound
+    )
         external
         view
         returns (uint128[] memory liquidatableAccountsIds);
