@@ -34,7 +34,12 @@ contract SettlementModule is ISettlementModule {
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    modifier onlyValidCustomOrderUpkeep() {
+    modifier onlyValidCustomOrderUpkeep(uint128 marketId, uint128 settlementId) {
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, settlementId);
+        address settlementStrategy = settlementConfiguration.settlementStrategy;
+
+        _requireIsSettlementStrategy(msg.sender, settlementStrategy);
         _;
     }
 
@@ -79,7 +84,7 @@ contract SettlementModule is ISettlementModule {
         bytes calldata extraData
     )
         external
-        onlyValidCustomOrderUpkeep
+        onlyValidCustomOrderUpkeep(marketId, settlementId)
     {
         // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
         // position's

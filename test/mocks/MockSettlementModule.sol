@@ -20,7 +20,6 @@ contract MockSettlementModule is SettlementModule {
         SettlementPayload[] calldata payloads
     )
         external
-        onlyValidCustomOrderUpkeep
     {
         // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
         // position's
