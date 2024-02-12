@@ -72,6 +72,8 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.perpsAccountToken = perpsAccountToken;
+
+        emit LogSetPerpsAccountToken(msg.sender, perpsAccountToken);
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -82,6 +84,8 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.liquidityEngine = liquidityEngine;
+
+        emit LogSetLiquidityEngine(msg.sender, liquidityEngine);
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -92,17 +96,44 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.configureCollateralPriority(collateralTypes);
+
+        emit LogConfigureCollateralPriority(msg.sender, collateralTypes);
     }
 
-    function configureLiquidationRewardRate(uint256 liquidationRewardRate) external override onlyOwner {
-        UD60x18 liquidationFeeUsdX18 = ud60x18(liquidationRewardRate);
+    /// @inheritdoc IGlobalConfigurationModule
+    function configureLiquidators(
+        address[] calldata liquidators,
+        bool[] calldata enable
+    )
+        external
+        override
+        onlyOwner
+    {
+        if (liquidators.length == 0) {
+            revert Errors.ZeroInput("liquidators");
+        }
+
+        if (liquidators.length != enable.length) {
+            revert Errors.ArrayLengthMismatch(liquidators.length, enable.length);
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.configureLiquidators(liquidators, enable);
+
+        emit LogConfigureLiquidators(msg.sender, liquidators, enable);
+    }
+
+    function configureLiquidationReward(uint256 liquidationReward) external override onlyOwner {
+        UD60x18 liquidationFeeUsdX18 = ud60x18(liquidationReward);
 
         if (liquidationFeeUsdX18.lt(UD_UNIT)) {
-            revert Errors.InvalidLiquidationRewardRate(liquidationRewardRate);
+            revert Errors.InvalidLiquidationReward(liquidationReward);
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.liquidationFeeUsdX18 = liquidationFeeUsdX18.intoUint256();
+
+        emit LogConfigureLiquidationReward(msg.sender, liquidationReward);
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -122,7 +153,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             }
             MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceFeed);
 
-            emit LogConfigureCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
+            emit LogConfigureMarginCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
         } catch {
             revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }
@@ -136,6 +167,8 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.removeCollateralTypeFromPriorityList(collateralType);
+
+        emit LogRemoveCollateralFromPriorityList(msg.sender, collateralType);
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -155,6 +188,8 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
 
         globalConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
         globalConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
+
+        emit LogConfigureSystemParameters(msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime);
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -187,7 +222,6 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             params.marketId,
             params.name,
             params.symbol,
-            // TODO: uncomment
             params.priceAdapter,
             params.minInitialMarginRateX18,
             params.maintenanceMarginRateX18,
@@ -200,18 +234,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         );
         globalConfiguration.addMarket(params.marketId);
 
-        emit LogCreatePerpMarket(
-            params.marketId,
-            params.name,
-            params.symbol,
-            // params.priceAdapter,
-            params.maintenanceMarginRateX18,
-            params.maxOpenInterest,
-            params.minInitialMarginRateX18,
-            params.marketOrderConfiguration,
-            params.customTriggerStrategies,
-            params.orderFees
-        );
+        emit LogCreatePerpMarket(msg.sender, params.marketId);
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -270,17 +293,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             orderFees
         );
 
-        emit LogConfigurePerpMarket(
-            marketId,
-            name,
-            symbol,
-            minInitialMarginRateX18,
-            maintenanceMarginRateX18,
-            maxOpenInterest,
-            maxFundingVelocity,
-            skewScale,
-            orderFees
-        );
+        emit LogConfigurePerpMarket(msg.sender, marketId);
     }
 
     function updatePerpMarketStatus(uint128 marketId, bool enable) external override onlyOwner {
@@ -294,11 +307,11 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         if (enable) {
             globalConfiguration.addMarket(marketId);
 
-            emit LogEnablePerpMarket(marketId);
+            emit LogEnablePerpMarket(msg.sender, marketId);
         } else {
             globalConfiguration.removeMarket(marketId);
 
-            emit LogDisablePerpMarket(marketId);
+            emit LogDisablePerpMarket(msg.sender, marketId);
         }
     }
 }

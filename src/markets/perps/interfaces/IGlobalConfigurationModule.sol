@@ -37,59 +37,70 @@ struct CreatePerpMarketParams {
 /// @notice This module is used by the protocol controller to configure the perps
 /// exchange system.
 interface IGlobalConfigurationModule {
+    /// @notice Emitted when the account token address is set.
+    event LogSetPerpsAccountToken(address indexed sender, address indexed perpsAccountToken);
+
+    /// @notice Emitted when the Liquidity Engine address is set.
+    /// @param sender The address that set the Liquidity Engine address.
+    /// @param liquidityEngine The Liquidity Engine address.
+    event LogSetLiquidityEngine(address indexed sender, address indexed liquidityEngine);
+
+    /// @notice Emitted when the collateral priority is configured.
+    /// @param sender The address that configured the collateral priority.
+    /// @param collateralTypes The array of collateral type addresses, ordered by priority.
+    event LogConfigureCollateralPriority(address indexed sender, address[] collateralTypes);
+
+    /// @notice Emitted when the liquidators are configured.
+    /// @param sender The address that configured the liquidators.
+    /// @param liquidators The array of liquidator addresses.
+    /// @param enable The array of boolean values that enable or disable the liquidator.
+    event LogConfigureLiquidators(address indexed sender, address[] liquidators, bool[] enable);
+
+    /// @notice Emitted when the liquidation reward is set.
+    /// @param sender The address that set the liquidation reward.
+    /// @param liquidationReward The liquidation reward in USD.
+    event LogConfigureLiquidationReward(address indexed sender, uint256 liquidationReward);
+
     /// @notice Emitted when a new collateral type is enabled or disabled.
     /// @param sender The address that enabled or disabled the collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
     /// @param decimals The amount of decimals of the collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
-    event LogConfigureCollateral(
+    event LogConfigureMarginCollateral(
         address indexed sender, address indexed collateralType, uint128 depositCap, uint8 decimals, address priceFeed
     );
 
-    /// @notice Emitted when a new price feed is configured for a collateral type.
-    /// @param sender The address that configured the price feed.
+    /// @notice Emitted when a collateral type is removed from the collateral priority.
+    /// @param sender The address that removed the collateral type from the priority list.
     /// @param collateralType The address of the collateral type.
-    /// @param priceFeed The address of the price feed.
-    event LogConfigurePriceFeed(address indexed sender, address indexed collateralType, address priceFeed);
+    event LogRemoveCollateralFromPriorityList(address indexed sender, address indexed collateralType);
+
+    /// @notice Emitted when the global system parameters are configured.
+    /// @param sender The address that configured the system parameters.
+    /// @param maxPositionsPerAccount The maximum number of open positions per account.
+    /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
+    event LogConfigureSystemParameters(
+        address indexed sender, uint128 maxPositionsPerAccount, uint128 marketOrderMaxLifetime
+    );
 
     /// @notice Emitted when a new perps market is created.
+    /// @param sender The address that configured the price feed.
     /// @param marketId The perps market id.
-    /// @param name The perps market name.
-    /// @param symbol The perps market symbol.
-    event LogCreatePerpMarket(
-        uint128 indexed marketId,
-        string name,
-        string symbol,
-        // TODO: uncomment
-        // address priceAdapter,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint128 minInitialMarginRateX18,
-        SettlementConfiguration.Data marketOrderConfiguration,
-        SettlementConfiguration.Data[] customTriggerStrategies,
-        OrderFees.Data orderFees
-    );
+    event LogCreatePerpMarket(address indexed sender, uint128 marketId);
 
-    event LogConfigurePerpMarket(
-        uint128 indexed marketId,
-        string name,
-        string symbol,
-        uint128 minInitialMarginRateX18,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint128 maxFundingVelocity,
-        uint256 skewScale,
-        OrderFees.Data orderFees
-    );
+    /// @notice Emitted when a perps market is reconfigured.
+    /// @param sender The address that configured the perps market.
+    /// @param marketId The perps market id.
+    event LogConfigurePerpMarket(address indexed sender, uint128 marketId);
 
     /// @notice Emitted when a perp market is re-enabled by the owner.
     /// @param marketId The perps market id.
-    event LogEnablePerpMarket(uint128 marketId);
+    event LogEnablePerpMarket(address indexed sender, uint128 marketId);
 
     /// @notice Emitted when a perp market is disabled by the owner.
     /// @param marketId The perps market id.
-    event LogDisablePerpMarket(uint128 marketId);
+    event LogDisablePerpMarket(address indexed sender, uint128 marketId);
 
     /// @dev Returns the maximum amount that can be deposited as margin for a given
     /// collateral type.
@@ -112,9 +123,14 @@ interface IGlobalConfigurationModule {
     /// @param collateralTypes The array of collateral type addresses.
     function configureCollateralPriority(address[] calldata collateralTypes) external;
 
+    /// @notice Configures the liquidators.
+    /// @param liquidators The array of liquidator addresses.
+    /// @param enable The array of boolean values that enable or disable the liquidator.
+    function configureLiquidators(address[] calldata liquidators, bool[] calldata enable) external;
+
     /// @notice Sets the protocol's liquidation reward multiplier, used to payout keepers.
-    /// @param liquidationRewardRate The liquidation reward rate.
-    function configureLiquidationRewardRate(uint256 liquidationRewardRate) external;
+    /// @param liquidationReward The liquidation reward rate.
+    function configureLiquidationReward(uint256 liquidationReward) external;
 
     /// @notice Configures the settings of a given margin collateral type.
     /// @param collateralType The address of the collateral type.

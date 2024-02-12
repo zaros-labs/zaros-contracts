@@ -34,6 +34,7 @@ library GlobalConfiguration {
         address liquidityEngine;
         address perpsAccountToken;
         uint96 nextAccountId;
+        mapping(address => bool) isLiquidatorEnabled;
         EnumerableSet.AddressSet collateralPriority;
         EnumerableSet.UintSet enabledMarketsIds;
     }
@@ -97,6 +98,12 @@ library GlobalConfiguration {
 
         if (!removed) {
             revert Errors.MarginCollateralTypeNotInPriority(collateralType);
+        }
+    }
+
+    function configureLiquidators(Data storage self, address[] memory liquidators, bool[] memory enable) internal {
+        for (uint256 i = 0; i < liquidators.length; i++) {
+            self.isLiquidatorEnabled[liquidators[i]] = enable[i];
         }
     }
 }

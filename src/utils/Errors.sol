@@ -12,7 +12,7 @@ library Errors {
     error InvalidParameter(string parameter, string reason);
     /// @notice Thrown when the sender is not authorized to perform a given action.
     error Unauthorized(address sender);
-    // error DisabledMarketId(uint128 marketId);
+    /// @notice Thrown when two or more array parameters are expected to have the same length, but they don't.
     error ArrayLengthMismatch(uint256 expected, uint256 actual);
 
     /// @notice Router errors.
@@ -87,8 +87,8 @@ library Errors {
     error PerpsAccountTokenNotDefined();
     /// @notice Thrown when the provided `zaros` is the zero address.
     error LiquidityEngineNotDefined();
-    /// @notice Thrown when the provided `liquidationRewardRate` is less than 1e18.
-    error InvalidLiquidationRewardRate(uint256 liquidationFeeUsdX18);
+    /// @notice Thrown when the provided `liquidationReward` is less than 1e18.
+    error InvalidLiquidationReward(uint256 liquidationFeeUsdX18);
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
     /// @notice Thrown when trying to update a market status but it hasn't been initialized yet.
