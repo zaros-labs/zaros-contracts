@@ -14,6 +14,7 @@ import { OrderFees } from "../storage/OrderFees.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // OpenZeppelin Upgradeable dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -23,6 +24,7 @@ import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 
 /// @notice See {IGlobalConfigurationModule}.
 contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable, OwnableUpgradeable {
+    using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using PerpMarket for PerpMarket.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
@@ -49,6 +51,22 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         globalConfiguration.rewardDistributor = rewardDistributor;
         globalConfiguration.usdToken = usdToken;
         globalConfiguration.liquidityEngine = liquidityEngine;
+    }
+
+    function getAccountsWithActivePositions(
+        uint256 lowerBound,
+        uint256 upperBound
+    )
+        external
+        view
+        override
+        returns (uint128[] memory accountsIds)
+    {
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+
+        for (uint256 i = lowerBound; i < upperBound; i++) {
+            accountsIds[i] = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
+        }
     }
 
     /// @inheritdoc IGlobalConfigurationModule

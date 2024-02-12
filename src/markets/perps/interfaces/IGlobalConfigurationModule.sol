@@ -102,6 +102,14 @@ interface IGlobalConfigurationModule {
     /// @param marketId The perps market id.
     event LogDisablePerpMarket(address indexed sender, uint128 marketId);
 
+    function getAccountsWithActivePositions(
+        uint256 lowerBound,
+        uint256 upperBound
+    )
+        external
+        view
+        returns (uint128[] memory accountsIds);
+
     /// @dev Returns the maximum amount that can be deposited as margin for a given
     /// collateral type.
     /// @param collateralType The address of the collateral type.
