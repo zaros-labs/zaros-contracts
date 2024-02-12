@@ -27,7 +27,7 @@ library MarketOrder {
     }
 
     function loadExisting(uint128 accountId) internal view returns (Data storage self) {
-        Data storage self = load(accountId);
+        self = load(accountId);
 
         if (self.marketId == 0) {
             revert Errors.NoActiveMarketOrder(accountId);
