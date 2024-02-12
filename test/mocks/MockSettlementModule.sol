@@ -31,7 +31,7 @@ contract MockSettlementModule is SettlementModule {
         }
 
         _paySettlementFees({
-            keeper: msg.sender,
+            settlementFeeReceiver: msg.sender,
             marketId: marketId,
             settlementId: settlementId,
             amountOfSettledTrades: payloads.length
@@ -48,7 +48,7 @@ contract MockSettlementModule is SettlementModule {
         marketOrder.clear();
 
         _paySettlementFees({
-            keeper: msg.sender,
+            settlementFeeReceiver: msg.sender,
             marketId: marketId,
             settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             amountOfSettledTrades: 1

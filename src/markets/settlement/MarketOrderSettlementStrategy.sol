@@ -26,7 +26,14 @@ contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
 
     function afterSettlement() external override { }
 
-    function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
+    function executeTrade(
+        bytes calldata signedReport,
+        bytes calldata extraData
+    )
+        external
+        override
+        onlyRegisteredKeeper
+    {
         uint128 accountId = abi.decode(extraData, (uint128));
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
@@ -35,7 +42,8 @@ contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
             dataStreamsCustomSettlementStrategyStorage.perpsEngine
         );
 
-        perpsEngine.settleMarketOrder(accountId, marketId, signedReport);
+        // TODO: Update the fee receiver to an address managed / stored by the keeper.
+        perpsEngine.settleMarketOrder(accountId, marketId, msg.sender, signedReport);
     }
 
     function dispatch(uint128, bytes calldata) external override { }

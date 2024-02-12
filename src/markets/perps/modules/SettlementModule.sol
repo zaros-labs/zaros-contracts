@@ -55,6 +55,7 @@ contract SettlementModule is ISettlementModule {
     function settleMarketOrder(
         uint128 accountId,
         uint128 marketId,
+        address settlementFeeReceiver,
         bytes calldata extraData
     )
         external
@@ -70,7 +71,7 @@ contract SettlementModule is ISettlementModule {
         marketOrder.clear();
 
         _paySettlementFees({
-            keeper: msg.sender,
+            settlementFeeReceiver: settlementFeeReceiver,
             marketId: marketId,
             settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             amountOfSettledTrades: 1
@@ -80,6 +81,7 @@ contract SettlementModule is ISettlementModule {
     function settleCustomOrders(
         uint128 marketId,
         uint128 settlementId,
+        address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
         bytes calldata extraData
     )
@@ -96,7 +98,7 @@ contract SettlementModule is ISettlementModule {
         }
 
         _paySettlementFees({
-            keeper: msg.sender,
+            settlementFeeReceiver: settlementFeeReceiver,
             marketId: marketId,
             settlementId: settlementId,
             amountOfSettledTrades: payloads.length
@@ -225,7 +227,7 @@ contract SettlementModule is ISettlementModule {
     /// @dev We assume that the settlement fees are always properly deducted from the trading accounts, either from
     /// their margin or pnl.
     function _paySettlementFees(
-        address keeper,
+        address settlementFeeReceiver,
         uint128 marketId,
         uint128 settlementId,
         uint256 amountOfSettledTrades
@@ -237,7 +239,7 @@ contract SettlementModule is ISettlementModule {
         UD60x18 settlementFeePerTradeUsdX18 = ud60x18(SettlementConfiguration.load(marketId, settlementId).fee);
         UD60x18 totalSettlementFeeUsdX18 = settlementFeePerTradeUsdX18.mul(ud60x18(amountOfSettledTrades));
 
-        LimitedMintingERC20(usdToken).mint(keeper, totalSettlementFeeUsdX18.intoUint256());
+        LimitedMintingERC20(usdToken).mint(settlementFeeReceiver, totalSettlementFeeUsdX18.intoUint256());
 
         // TODO: add dynamic gas cost into settlementFee, checking settlementFeeGasCost stored and multiplying by
         // GasOracle.gasPrice()

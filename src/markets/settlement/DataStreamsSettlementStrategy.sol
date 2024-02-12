@@ -116,7 +116,7 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
         }
     }
 
-    function settle(bytes calldata signedReport, bytes calldata extraData) external virtual;
+    function executeTrade(bytes calldata signedReport, bytes calldata extraData) external virtual;
 
     /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
     function __DataStreamsSettlementStrategy_init(

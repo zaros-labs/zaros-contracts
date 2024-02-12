@@ -24,11 +24,18 @@ interface ISettlementModule {
         int128 sizeDelta;
     }
 
-    function settleMarketOrder(uint128 accountId, uint128 marketId, bytes calldata verifiedReportData) external;
+    function settleMarketOrder(
+        uint128 accountId,
+        uint128 marketId,
+        address settlementFeeReceiver,
+        bytes calldata verifiedReportData
+    )
+        external;
 
     function settleCustomOrders(
         uint128 marketId,
         uint128 settlementId,
+        address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
         bytes calldata verifiedReportData
     )

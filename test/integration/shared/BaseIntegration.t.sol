@@ -24,6 +24,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     address internal mockChainlinkVerifier;
 
     /// @dev TODO: think about forking tests
+    mapping(uint256 marketId => address upkeep) internal marketOrderUpkeeps;
     address internal mockDefaultMarketOrderSettlementStrategy = vm.addr({ privateKey: 0x04 });
 
     /// @dev BTC / USD market configuration variables.
@@ -53,9 +54,12 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
 
         /// @dev BTC / USD market configuration variables.
+        // marketOrderUpkeeps[BTC_USD_MARKET_ID] = address(new MarketOrderUpkeep());
+        marketOrderUpkeeps[BTC_USD_MARKET_ID] = vm.addr({ privateKey: 0x05 });
+
         btcUsdMarketOrderConfigurationData = SettlementConfiguration.DataStreamsMarketStrategy({
             chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-            streamId: MOCK_ETH_USD_STREAM_ID,
+            streamId: MOCK_BTC_USD_STREAM_ID,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
@@ -83,6 +87,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         btcUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
 
         /// @dev ETH / USD market configuration variables.
+        marketOrderUpkeeps[ETH_USD_MARKET_ID] = vm.addr({ privateKey: 0x06 });
+
         ethUsdMarketOrderConfigurationData = SettlementConfiguration.DataStreamsMarketStrategy({
             chainlinkVerifier: IVerifierProxy((mockChainlinkVerifier)),
             streamId: MOCK_ETH_USD_STREAM_ID,
@@ -237,6 +243,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
-        perpsEngine.settleMarketOrder(accountId, marketId, extraData);
+        address marketOrderUpkeep = marketOrderUpkeeps[marketId];
+
+        perpsEngine.settleMarketOrder(accountId, marketId, marketOrderUpkeep, extraData);
     }
 }

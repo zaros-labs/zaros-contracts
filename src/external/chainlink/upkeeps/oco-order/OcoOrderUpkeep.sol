@@ -159,7 +159,7 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
         bytes memory extraData = abi.encode(payloads);
 
-        settlementStrategy.settle(signedReport, extraData);
+        settlementStrategy.executeTrade(signedReport, extraData);
     }
 
     function _getOcoOrderUpkeepStorage() internal pure returns (OcoOrderUpkeepStorage storage self) {

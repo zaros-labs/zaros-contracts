@@ -92,7 +92,14 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         }
     }
 
-    function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
+    function executeTrade(
+        bytes calldata signedReport,
+        bytes calldata extraData
+    )
+        external
+        override
+        onlyRegisteredKeeper
+    {
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
         (IPerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (
@@ -104,7 +111,8 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         ISettlementModule.SettlementPayload[] memory payloads =
             abi.decode(extraData, (ISettlementModule.SettlementPayload[]));
 
-        perpsEngine.settleCustomOrders(marketId, settlementId, payloads, signedReport);
+        // TODO: Update the fee receiver to an address stored / managed by the keeper.
+        perpsEngine.settleCustomOrders(marketId, settlementId, msg.sender, payloads, signedReport);
     }
 
     function _getLimitOrderSettlementStrategyStorage()

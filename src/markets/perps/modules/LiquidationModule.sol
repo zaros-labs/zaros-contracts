@@ -43,12 +43,23 @@ contract LiquidationModule is ILiquidationModule {
         view
         returns (uint128[] memory liquidatableAccountsIds)
     {
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        UD60x18 liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
+
         for (uint256 i = 0; i < accountsIds.length; i++) {
             PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountsIds[i]);
 
-            // if (perpsAccount.isLiquidatable(ud60x18(0), sd59x18(0))) {
-            //     liquidatableAccountsIds[liquidatableAccountsIds.length] = accountsIds[i];
-            // }
+            (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
+                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
+            SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+
+            if (
+                PerpsAccount.isLiquidatable(
+                    requiredMaintenanceMarginUsdX18, liquidationFeeUsdX18, marginBalanceUsdX18
+                )
+            ) {
+                liquidatableAccountsIds[liquidatableAccountsIds.length] = accountsIds[i];
+            }
         }
     }
 
@@ -67,7 +78,13 @@ contract LiquidationModule is ILiquidationModule {
         SD59x18 fundingFeePerUnitUsdX18;
     }
 
-    function liquidateAccounts(uint128[] calldata accountsIds) external onlyRegisteredLiquidator {
+    function liquidateAccounts(
+        uint128[] calldata accountsIds,
+        address feeReceiver
+    )
+        external
+        onlyRegisteredLiquidator
+    {
         if (accountsIds.length == 0) return;
 
         LiquidationContext memory ctx;
@@ -95,12 +112,12 @@ contract LiquidationModule is ILiquidationModule {
                 );
             }
 
-            // TODO: Update margin and fee receivers
+            // TODO: Update margin receiver
             // TODO: Update liquidation fee to estimate gas costs (i.edefault gas cost stored + gas price from
             // GasOracle)
             UD60x18 liquidatedCollateralUsdX18 = perpsAccount.deductAccountMargin(
-                msg.sender,
-                msg.sender,
+                feeReceiver,
+                feeReceiver,
                 ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
                     ? ctx.marginBalanceUsdX18.intoUD60x18().add(ctx.liquidationFeeUsdX18)
                     : requiredMaintenanceMarginUsdX18.add(ctx.liquidationFeeUsdX18),
@@ -142,6 +159,7 @@ contract LiquidationModule is ILiquidationModule {
             emit LogLiquidateAccount(
                 msg.sender,
                 ctx.accountId,
+                feeReceiver,
                 ctx.amountOfOpenPositions,
                 ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
                 ctx.marginBalanceUsdX18.intoInt256(),

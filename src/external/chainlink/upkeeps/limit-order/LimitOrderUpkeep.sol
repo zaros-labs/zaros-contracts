@@ -161,7 +161,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             abi.decode(performData, (bytes, ISettlementModule.SettlementPayload[]));
         bytes memory extraData = abi.encode(payloads);
 
-        settlementStrategy.settle(signedReport, extraData);
+        settlementStrategy.executeTrade(signedReport, extraData);
     }
 
     function _getLimitOrderUpkeepStorage() internal pure returns (LimitOrderUpkeepStorage storage self) {
