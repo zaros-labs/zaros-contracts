@@ -20,15 +20,19 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable {
     address public spearmintSigner;
     uint96 internal nextKeyId;
 
+    struct AttestationData {
+        uint256 quantity;
+    }
+
     struct GeneratedKey {
         uint96 id;
         bytes16 key;
         uint256 timestamp;
     }
 
-    mapping (address user => GeneratedKey[] keys) userGeneratedKeys;
-    mapping (bytes16 key => bool status) usedKeys;
-    mapping (address user => bool status) usersActive;
+    mapping (address user => GeneratedKey[] keys) public userGeneratedKeys;
+    mapping (bytes16 key => bool status) public usedKeys;
+    mapping (address user => bool status) public usersActive;
 
     error InvalidSignature();
 
@@ -38,8 +42,8 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable {
         __Ownable_init(owner);
     }
 
-    function createKey(bytes calldata _signature) external {
-        _validateSignature(_signature);
+    function createKey(AttestationData calldata data, bytes calldata _signature) external {
+        _validateSignature(data, _signature);
 
         bytes16 key = bytes16(keccak256(abi.encode(msg.sender, ++nextKeyId)));
 
@@ -75,9 +79,10 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable {
     }
 
      function _validateSignature(
+        AttestationData memory data,
         bytes calldata signature
     ) internal view {
-        bytes32 hashedData = keccak256(abi.encode(msg.sender));
+        bytes32 hashedData = keccak256(abi.encode(msg.sender, data));
 
         if (
             !spearmintSigner.isValidSignatureNow(

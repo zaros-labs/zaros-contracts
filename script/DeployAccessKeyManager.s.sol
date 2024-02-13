@@ -20,8 +20,7 @@ contract DeployAccessKeyManager is BaseScript {
         bytes memory initializeData =
             abi.encodeWithSelector(AccessKeyManager.initialize.selector, deployer, vm.envAddress("SPEARMINT_SIGNER"));
 
-        address accessKeyManagerProxy =
-            address(new ERC1967Proxy(accessKeyManagerImplementation, initializeData));
+        address accessKeyManagerProxy = address(new ERC1967Proxy(accessKeyManagerImplementation, initializeData));
 
         console.log("Access Key Manager Implementation: ", accessKeyManagerImplementation);
         console.log("Access Key Manager Proxy: ", accessKeyManagerProxy);
