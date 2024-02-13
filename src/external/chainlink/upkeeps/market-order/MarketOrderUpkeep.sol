@@ -119,7 +119,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
 
         bytes memory extraData = abi.encode(accountId);
 
-        settlementStrategy.settle(signedReport, extraData);
+        settlementStrategy.executeTrade(signedReport, extraData);
     }
 
     function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {

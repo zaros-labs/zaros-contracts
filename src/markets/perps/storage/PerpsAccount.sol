@@ -12,6 +12,7 @@ import { Position } from "./Position.sol";
 import { SettlementConfiguration } from "./SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
+import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -27,6 +28,7 @@ library PerpsAccount {
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
+    using SafeERC20 for IERC20;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using SettlementConfiguration for SettlementConfiguration.Data;
@@ -67,11 +69,6 @@ library PerpsAccount {
         }
     }
 
-    /// @notice TODO: implement
-    function canBeLiquidated(Data storage self) internal view returns (bool) {
-        return false;
-    }
-
     /// @notice Validates if the perps account is under the configured positions limit.
     /// @dev This function must be called when the perps account is going to open a new position. If called in a
     /// context
@@ -88,53 +85,26 @@ library PerpsAccount {
     }
 
     // TODO: Should we create a Service to handle this?
+    // TODO: Check with Cyfrin if we must actually update the position / perp market state and validate after the core
+    // settlement logic. Is it a risk to use the perpMarket's size and skew before sizeDelta is applied, while we use
+    // the new sizeDelta to calculate the position's new notional value?
     /// @notice Validates if the given account will still meet margin requirements after a new settlement.
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.
     /// @param self The perps account storage pointer.
-    function validateMarginRequirements(
+    /// @param requiredMarginUsdX18 Either the sum of initial margin + maintenance margin, or only the maintenace
+    /// margin, depending on the context.
+    /// @param marginBalanceUsdX18 The account's margin balance.
+    /// @param totalFeesUsdX18 The total fees to be charged to the account in the current context.
+    function validateMarginRequirement(
         Data storage self,
-        uint128 settlementMarketId,
-        SD59x18 sizeDeltaX18,
+        UD60x18 requiredMarginUsdX18,
+        SD59x18 marginBalanceUsdX18,
         SD59x18 totalFeesUsdX18
     )
         internal
         view
     {
-        UD60x18 requiredMarginUsdX18;
-        SD59x18 accountTotalUnrealizedPnlUsdX18;
-
-        for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
-            uint128 marketId = self.activeMarketsIds.at(i).toUint128();
-
-            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-            Position.Data storage position = Position.load(self.id, marketId);
-
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
-            SD59x18 fundingFeePerUnit =
-                perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
-
-            // if we're dealing with the market id being settled, we simulate the new position size to get the new
-            // margin requirements.
-            UD60x18 notionalValueX18 = marketId != settlementMarketId
-                ? position.getNotionalValue(markPrice)
-                : sd59x18(position.size).add(sizeDeltaX18).abs().intoUD60x18().mul(markPrice);
-            (UD60x18 positionMinInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
-                .getMarginRequirements(
-                notionalValueX18,
-                ud60x18(perpMarket.configuration.minInitialMarginRateX18),
-                ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
-            );
-            SD59x18 positionUnrealizedPnl =
-                position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
-
-            requiredMarginUsdX18 =
-                requiredMarginUsdX18.add(positionMinInitialMarginUsdX18).add(positionMaintenanceMarginUsdX18);
-            accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
-        }
-
-        SD59x18 marginBalanceUsdX18 = getMarginBalanceUsd(self, accountTotalUnrealizedPnlUsdX18);
-
         if (requiredMarginUsdX18.intoSD59x18().add(totalFeesUsdX18).gte(marginBalanceUsdX18)) {
             revert Errors.InsufficientMargin(
                 self.id,
@@ -212,6 +182,49 @@ library PerpsAccount {
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
+    function getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
+        Data storage self,
+        uint128 settlementMarketId,
+        SD59x18 sizeDeltaX18
+    )
+        internal
+        view
+        returns (
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 accountTotalUnrealizedPnlUsdX18
+        )
+    {
+        for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
+            uint128 marketId = self.activeMarketsIds.at(i).toUint128();
+
+            PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+            Position.Data storage position = Position.load(self.id, marketId);
+
+            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
+            SD59x18 fundingFeePerUnit =
+                perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
+
+            // if we're dealing with the market id being settled, we simulate the new position size to get the new
+            // margin requirements.
+            UD60x18 notionalValueX18 = marketId != settlementMarketId
+                ? position.getNotionalValue(markPrice)
+                : sd59x18(position.size).add(sizeDeltaX18).abs().intoUD60x18().mul(markPrice);
+            (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
+                .getMarginRequirements(
+                notionalValueX18,
+                ud60x18(perpMarket.configuration.minInitialMarginRateX18),
+                ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
+            );
+            SD59x18 positionUnrealizedPnl =
+                position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
+
+            requiredInitialMarginUsdX18 = requiredInitialMarginUsdX18.add(positionInitialMarginUsdX18);
+            requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
+            accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
+        }
+    }
+
     // TODO: Should we create a Service to handle this?
     function getAccountUnrealizedPnlUsd(Data storage self) internal view returns (SD59x18 totalUnrealizedPnlUsdX18) {
         for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
@@ -239,6 +252,18 @@ library PerpsAccount {
         if (self.owner != msg.sender) {
             revert Errors.AccountPermissionDenied(accountId, msg.sender);
         }
+    }
+
+    function isLiquidatable(
+        UD60x18 requiredMaintenanceMarginUsdX18,
+        UD60x18 liquidationFeeUsdX18,
+        SD59x18 marginBalanceUsdX18
+    )
+        internal
+        pure
+        returns (bool)
+    {
+        return requiredMaintenanceMarginUsdX18.add(liquidationFeeUsdX18).intoSD59x18().gte(marginBalanceUsdX18);
     }
 
     function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {
@@ -281,18 +306,66 @@ library PerpsAccount {
         }
     }
 
-    function deductAccountMargin(Data storage self, UD60x18 amount) internal {
+    function deductAccountMargin(
+        Data storage self,
+        address marginReceiver,
+        address orderFeeReceiver,
+        UD60x18 totalMarginAmountUsdX18,
+        UD60x18 orderFeeUsdX18
+    )
+        internal
+        returns (UD60x18 marginDeductedUsdX18)
+    {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         for (uint256 i = 0; i < globalConfiguration.collateralPriority.length(); i++) {
             address collateralType = globalConfiguration.collateralPriority.at(i);
+            MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+                MarginCollateralConfiguration.load(collateralType);
+
             UD60x18 marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
-            if (marginCollateralBalanceX18.gte(amount)) {
-                withdraw(self, collateralType, amount);
-                break;
-            } else {
-                withdraw(self, collateralType, marginCollateralBalanceX18);
-                amount = amount.sub(marginCollateralBalanceX18);
+            // UD60x18 balanceUsdX18 =
+            // marginCollateralConfiguration.getPrice().mul(ud60x18(marginCollateralBalanceX18));
+            UD60x18 marginCollateralPriceUsdX18 = marginCollateralConfiguration.getPrice();
+
+            if (marginDeductedUsdX18.lt(orderFeeUsdX18)) {
+                UD60x18 pendingFeeUsdX18 = orderFeeUsdX18.sub(marginDeductedUsdX18);
+                UD60x18 pendingFeeInCollateralX18 = pendingFeeUsdX18.div(marginCollateralPriceUsdX18);
+
+                if (marginCollateralBalanceX18.gte(pendingFeeInCollateralX18)) {
+                    withdraw(self, collateralType, pendingFeeInCollateralX18);
+                    marginDeductedUsdX18 = marginDeductedUsdX18.add(pendingFeeUsdX18);
+
+                    IERC20(collateralType).safeTransfer(orderFeeReceiver, pendingFeeInCollateralX18.intoUint256());
+                } else {
+                    UD60x18 feeToDeductUsdX18 = marginCollateralPriceUsdX18.mul(marginCollateralBalanceX18);
+                    withdraw(self, collateralType, marginCollateralBalanceX18);
+                    marginDeductedUsdX18 = marginDeductedUsdX18.add(feeToDeductUsdX18);
+
+                    IERC20(collateralType).safeTransfer(orderFeeReceiver, marginCollateralBalanceX18.intoUint256());
+
+                    continue;
+                }
+            }
+
+            if (marginDeductedUsdX18.lt(totalMarginAmountUsdX18)) {
+                UD60x18 pendingMarginUsdX18 = totalMarginAmountUsdX18.sub(marginDeductedUsdX18);
+                UD60x18 pendingMarginInCollateralX18 = pendingMarginUsdX18.div(marginCollateralPriceUsdX18);
+
+                if (marginCollateralBalanceX18.gte(pendingMarginInCollateralX18)) {
+                    withdraw(self, collateralType, pendingMarginInCollateralX18);
+                    marginDeductedUsdX18 = marginDeductedUsdX18.add(pendingMarginUsdX18);
+
+                    IERC20(collateralType).safeTransfer(marginReceiver, pendingMarginInCollateralX18.intoUint256());
+
+                    break;
+                } else {
+                    UD60x18 marginToDeductUsdX18 = marginCollateralPriceUsdX18.mul(marginCollateralBalanceX18);
+                    withdraw(self, collateralType, marginCollateralBalanceX18);
+                    marginDeductedUsdX18 = marginDeductedUsdX18.add(marginToDeductUsdX18);
+
+                    IERC20(collateralType).safeTransfer(marginReceiver, marginCollateralBalanceX18.intoUint256());
+                }
             }
         }
     }
@@ -310,10 +383,19 @@ library PerpsAccount {
     )
         internal
     {
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+
         if (oldPositionSize.eq(SD_ZERO) && newPositionSize.neq(SD_ZERO)) {
+            if (!globalConfiguration.accountsIdsWithActivePositions.contains(self.id)) {
+                globalConfiguration.accountsIdsWithActivePositions.add(self.id);
+            }
             self.activeMarketsIds.add(marketId);
         } else if (oldPositionSize.neq(SD_ZERO) && newPositionSize.eq(SD_ZERO)) {
             self.activeMarketsIds.remove(marketId);
+
+            if (self.activeMarketsIds.length() == 0) {
+                globalConfiguration.accountsIdsWithActivePositions.remove(self.id);
+            }
         }
     }
 }

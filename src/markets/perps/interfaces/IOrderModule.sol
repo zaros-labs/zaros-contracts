@@ -16,17 +16,11 @@ interface IOrderModule {
     event LogCreateMarketOrder(
         address indexed sender, uint128 indexed accountId, uint128 indexed marketId, MarketOrder.Data marketOrder
     );
-    event LogCancelMarketOrder(address indexed sender, uint128 indexed accountId, uint128 indexed marketId);
+    event LogCancelMarketOrder(address indexed sender, uint128 indexed accountId);
 
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
-    function getActiveMarketOrder(
-        uint128 accountId,
-        uint128 marketId
-    )
-        external
-        view
-        returns (MarketOrder.Data memory marketOrder);
+    function getActiveMarketOrder(uint128 accountId) external view returns (MarketOrder.Data memory marketOrder);
 
     /// @notice Simulates the settlement costs and validity of a given order.
     /// @dev Reverts if there's not enough margin to cover the trade.
@@ -66,8 +60,7 @@ interface IOrderModule {
     /// @notice Cancels an active market order.
     /// @dev Reverts if there is no active market order for the given account and market.
     /// @param accountId The trading account id.
-    /// @param marketId The perp market id.
-    function cancelMarketOrder(uint128 accountId, uint128 marketId) external;
+    function cancelMarketOrder(uint128 accountId) external;
 
     function dispatchCustomSettlementRequest(
         uint128 accountId,

@@ -92,19 +92,35 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         }
     }
 
-    function settle(bytes calldata signedReport, bytes calldata extraData) external override onlyRegisteredKeeper {
+    struct ExecuteTradeContext {
+        IPerpsEngine perpsEngine;
+        uint128 marketId;
+        uint128 settlementId;
+        ISettlementModule.SettlementPayload[] payloads;
+    }
+
+    function executeTrade(
+        bytes calldata signedReport,
+        bytes calldata extraData
+    )
+        external
+        override
+        onlyRegisteredKeeper
+    {
+        ExecuteTradeContext memory ctx;
+
         DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
             _getDataStreamsSettlementStrategyStorage();
-        (IPerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) = (
+        (ctx.perpsEngine, ctx.marketId, ctx.settlementId) = (
             dataStreamsCustomSettlementStrategyStorage.perpsEngine,
             dataStreamsCustomSettlementStrategyStorage.marketId,
             dataStreamsCustomSettlementStrategyStorage.settlementId
         );
 
-        ISettlementModule.SettlementPayload[] memory payloads =
-            abi.decode(extraData, (ISettlementModule.SettlementPayload[]));
+        ctx.payloads = abi.decode(extraData, (ISettlementModule.SettlementPayload[]));
 
-        perpsEngine.settleCustomTriggers(marketId, settlementId, payloads, signedReport);
+        // TODO: Update the fee receiver to an address stored / managed by the keeper.
+        ctx.perpsEngine.settleCustomOrders(ctx.marketId, ctx.settlementId, msg.sender, ctx.payloads, signedReport);
     }
 
     function _getLimitOrderSettlementStrategyStorage()

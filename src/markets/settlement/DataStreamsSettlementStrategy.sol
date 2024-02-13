@@ -104,7 +104,19 @@ abstract contract DataStreamsSettlementStrategy is ISettlementStrategy, OwnableU
         }
     }
 
-    function settle(bytes calldata signedReport, bytes calldata extraData) external virtual;
+    function removeKeepers(address[] calldata keepers) external onlyOwner {
+        if (keepers.length == 0) {
+            revert Errors.ZeroInput("keepers");
+        }
+
+        DataStreamsSettlementStrategyStorage storage self = _getDataStreamsSettlementStrategyStorage();
+
+        for (uint256 i = 0; i < keepers.length; i++) {
+            self.keepers.remove(keepers[i]);
+        }
+    }
+
+    function executeTrade(bytes calldata signedReport, bytes calldata extraData) external virtual;
 
     /// @notice {DataStreamsSettlementStrategy} UUPS initializer.
     function __DataStreamsSettlementStrategy_init(

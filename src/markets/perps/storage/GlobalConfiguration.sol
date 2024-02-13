@@ -28,13 +28,16 @@ library GlobalConfiguration {
     struct Data {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMaxLifetime;
+        uint256 liquidationFeeUsdX18;
         address rewardDistributor;
         address usdToken;
         address liquidityEngine;
         address perpsAccountToken;
         uint96 nextAccountId;
+        mapping(address => bool) isLiquidatorEnabled;
         EnumerableSet.AddressSet collateralPriority;
         EnumerableSet.UintSet enabledMarketsIds;
+        EnumerableSet.UintSet accountsIdsWithActivePositions;
     }
 
     /// @notice Loads the GlobalConfiguration entity.
@@ -96,6 +99,12 @@ library GlobalConfiguration {
 
         if (!removed) {
             revert Errors.MarginCollateralTypeNotInPriority(collateralType);
+        }
+    }
+
+    function configureLiquidators(Data storage self, address[] memory liquidators, bool[] memory enable) internal {
+        for (uint256 i = 0; i < liquidators.length; i++) {
+            self.isLiquidatorEnabled[liquidators[i]] = enable[i];
         }
     }
 }

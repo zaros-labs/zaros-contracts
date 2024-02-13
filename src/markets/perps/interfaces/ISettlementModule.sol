@@ -6,15 +6,15 @@ pragma solidity 0.8.23;
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { Position } from "../storage/Position.sol";
 
-// PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
-
 interface ISettlementModule {
     event LogSettleOrder(
         address indexed sender,
         uint128 indexed accountId,
         uint128 indexed marketId,
+        int256 sizeDelta,
+        uint256 fillPrice,
+        int256 orderFeeUsd,
+        uint256 settlementFeeUsd,
         int256 pnl,
         Position.Data newPosition
     );
@@ -24,11 +24,18 @@ interface ISettlementModule {
         int128 sizeDelta;
     }
 
-    function settleMarketOrder(uint128 accountId, uint128 marketId, bytes calldata verifiedReportData) external;
+    function settleMarketOrder(
+        uint128 accountId,
+        uint128 marketId,
+        address settlementFeeReceiver,
+        bytes calldata verifiedReportData
+    )
+        external;
 
-    function settleCustomTriggers(
+    function settleCustomOrders(
         uint128 marketId,
         uint128 settlementId,
+        address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
         bytes calldata verifiedReportData
     )

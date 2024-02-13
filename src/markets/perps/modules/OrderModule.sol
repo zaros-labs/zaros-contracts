@@ -48,21 +48,30 @@ contract OrderModule is IOrderModule {
         override
         returns (SD59x18, UD60x18, UD60x18)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
 
-        UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
-        UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
+        UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
 
         SD59x18 orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), markPriceX18);
-
         UD60x18 settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
-        perpsAccount.validateMarginRequirements(
-            marketId, sd59x18(sizeDelta), orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18())
-        );
+        {
+            (
+                UD60x18 requiredInitialMarginUsdX18,
+                UD60x18 requiredMaintenanceMarginUsdX18,
+                SD59x18 accountTotalUnrealizedPnlUsdX18
+            ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
+            SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+
+            perpsAccount.validateMarginRequirement(
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
+                marginBalanceUsdX18,
+                orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18())
+            );
+        }
 
         return (orderFeeUsdX18, settlementFeeUsdX18, markPriceX18);
     }
@@ -91,16 +100,13 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function getActiveMarketOrder(
-        uint128 accountId,
-        uint128 marketId
-    )
+    function getActiveMarketOrder(uint128 accountId)
         external
         pure
         override
         returns (MarketOrder.Data memory marketOrder)
     {
-        marketOrder = MarketOrder.load(accountId, marketId);
+        marketOrder = MarketOrder.load(accountId);
     }
 
     /// @inheritdoc IOrderModule
@@ -114,7 +120,7 @@ contract OrderModule is IOrderModule {
         override
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         if (sizeDelta == 0) {
@@ -137,7 +143,7 @@ contract OrderModule is IOrderModule {
         globalConfiguration.checkMarketIsEnabled(marketId);
         marketOrder.checkPendingOrder();
 
-        marketOrder.update({ sizeDelta: sizeDelta, acceptablePrice: acceptablePrice });
+        marketOrder.update({ marketId: marketId, sizeDelta: sizeDelta, acceptablePrice: acceptablePrice });
 
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
@@ -180,15 +186,11 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function cancelMarketOrder(uint128 accountId, uint128 marketId) external override {
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
-
-        if (marketOrder.timestamp == 0) {
-            revert Errors.MarketOrderNotFound(accountId, marketId);
-        }
+    function cancelMarketOrder(uint128 accountId) external override {
+        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
         marketOrder.clear();
 
-        emit LogCancelMarketOrder(msg.sender, accountId, marketId);
+        emit LogCancelMarketOrder(msg.sender, accountId);
     }
 }

@@ -3,8 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
+import { LimitedMintingERC20 } from "script/utils/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
@@ -15,11 +14,12 @@ import { Position } from "../storage/Position.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
+import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 contract SettlementModule is ISettlementModule {
@@ -31,9 +31,15 @@ contract SettlementModule is ISettlementModule {
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeCast for int256;
+    using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    modifier onlyValidCustomTriggerUpkeep() {
+    modifier onlyValidCustomOrderUpkeep(uint128 marketId, uint128 settlementId) {
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, settlementId);
+        address settlementStrategy = settlementConfiguration.settlementStrategy;
+
+        _requireIsSettlementStrategy(msg.sender, settlementStrategy);
         _;
     }
 
@@ -49,28 +55,38 @@ contract SettlementModule is ISettlementModule {
     function settleMarketOrder(
         uint128 accountId,
         uint128 marketId,
+        address settlementFeeReceiver,
         bytes calldata extraData
     )
         external
         onlyMarketOrderUpkeep(marketId)
     {
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId, marketId);
+        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
+
         _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, extraData);
 
         marketOrder.clear();
+
+        _paySettlementFees({
+            settlementFeeReceiver: settlementFeeReceiver,
+            marketId: marketId,
+            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            amountOfSettledTrades: 1
+        });
     }
 
-    function settleCustomTriggers(
+    function settleCustomOrders(
         uint128 marketId,
         uint128 settlementId,
+        address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
         bytes calldata extraData
     )
         external
-        onlyValidCustomTriggerUpkeep
+        onlyValidCustomOrderUpkeep(marketId, settlementId)
     {
         // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
         // position's
@@ -80,12 +96,21 @@ contract SettlementModule is ISettlementModule {
 
             _settle(marketId, settlementId, payload, extraData);
         }
+
+        _paySettlementFees({
+            settlementFeeReceiver: settlementFeeReceiver,
+            marketId: marketId,
+            settlementId: settlementId,
+            amountOfSettledTrades: payloads.length
+        });
     }
 
-    struct SettleVars {
+    struct SettlementContext {
+        address usdToken;
         uint128 marketId;
         uint128 accountId;
-        SD59x18 totalFeesUsdX18;
+        SD59x18 orderFeeUsdX18;
+        UD60x18 settlementFeeUsdX18;
         SD59x18 sizeDelta;
         UD60x18 fillPrice;
         SD59x18 pnl;
@@ -102,69 +127,123 @@ contract SettlementModule is ISettlementModule {
     )
         internal
     {
-        SettleVars memory vars;
-        vars.marketId = marketId;
-        vars.accountId = payload.accountId;
-        vars.sizeDelta = sd59x18(payload.sizeDelta);
+        SettlementContext memory ctx;
+        ctx.marketId = marketId;
+        ctx.accountId = payload.accountId;
+        ctx.sizeDelta = sd59x18(payload.sizeDelta);
 
-        PerpMarket.Data storage perpMarket = PerpMarket.load(vars.marketId);
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(vars.accountId);
-        Position.Data storage oldPosition = Position.load(vars.accountId, vars.marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
+        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        address usdToken = globalConfiguration.usdToken;
+        ctx.usdToken = globalConfiguration.usdToken;
 
-        globalConfiguration.checkMarketIsEnabled(vars.marketId);
+        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
-        // perpsAccount.checkIsNotLiquidatable();
-        perpMarket.validateNewState(vars.sizeDelta);
 
         bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
-        UD60x18 indexPriceX18 =
-            settlementConfiguration.getSettlementPrice(verifiedExtraData, vars.sizeDelta.gt(SD_ZERO));
-        vars.fillPrice = perpMarket.getMarkPrice(vars.sizeDelta, indexPriceX18);
 
-        vars.totalFeesUsdX18 = perpMarket.getOrderFeeUsd(vars.sizeDelta, vars.fillPrice).add(
-            ud60x18(uint256(settlementConfiguration.fee)).intoSD59x18()
+        ctx.fillPrice = perpMarket.getMarkPrice(
+            ctx.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedExtraData, ctx.sizeDelta.gt(SD_ZERO))
         );
 
-        perpsAccount.validateMarginRequirements(vars.marketId, vars.sizeDelta, vars.totalFeesUsdX18);
+        ctx.fundingRate = perpMarket.getCurrentFundingRate();
+        ctx.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(ctx.fundingRate, ctx.fillPrice);
 
-        vars.fundingRate = perpMarket.getCurrentFundingRate();
-        vars.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(vars.fundingRate, vars.fillPrice);
+        perpMarket.updateFunding(ctx.fundingRate, ctx.fundingFeePerUnit);
 
-        vars.pnl = oldPosition.getUnrealizedPnl(vars.fillPrice).add(
-            sd59x18(uint256(settlementConfiguration.fee).toInt256())
-        ).add(vars.totalFeesUsdX18).add(oldPosition.getAccruedFunding(vars.fundingFeePerUnit));
+        ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDelta, ctx.fillPrice);
+        // TODO: add dynamic gas cost in the end
+        ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
-        vars.newPosition = Position.Data({
-            size: sd59x18(oldPosition.size).add(vars.sizeDelta).intoInt256(),
-            lastInteractionPrice: vars.fillPrice.intoUint128(),
-            lastInteractionFundingFeePerUnit: vars.fundingFeePerUnit.intoInt256().toInt128()
+        {
+            (
+                UD60x18 requiredInitialMarginUsdX18,
+                UD60x18 requiredMaintenanceMarginUsdX18,
+                SD59x18 accountTotalUnrealizedPnlUsdX18
+            ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDelta);
+
+            perpsAccount.validateMarginRequirement(
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
+                perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
+                ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
+            );
+        }
+
+        ctx.pnl = oldPosition.getUnrealizedPnl(ctx.fillPrice).add(
+            oldPosition.getAccruedFunding(ctx.fundingFeePerUnit)
+        ).add(ctx.orderFeeUsdX18).add(ctx.settlementFeeUsdX18.intoSD59x18());
+
+        ctx.newPosition = Position.Data({
+            size: sd59x18(oldPosition.size).add(ctx.sizeDelta).intoInt256(),
+            lastInteractionPrice: ctx.fillPrice.intoUint128(),
+            lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        // TODO: Handle negative margin case
-        if (vars.pnl.lt(SD_ZERO)) {
-            UD60x18 amountToDeduct = vars.pnl.intoUD60x18();
-            perpsAccount.deductAccountMargin(amountToDeduct);
-        } else if (vars.pnl.gt(SD_ZERO)) {
-            UD60x18 amountToIncrease = vars.pnl.intoUD60x18();
-            perpsAccount.deposit(usdToken, amountToIncrease);
-        }
-        // TODO: liquidityEngine.withdrawUsdToken(upkeep, vars.marketId, vars.fee);
-
-        perpsAccount.updateActiveMarkets(vars.marketId, sd59x18(oldPosition.size), sd59x18(vars.newPosition.size));
-        if (vars.newPosition.size == 0) {
+        if (ctx.newPosition.size == 0) {
             oldPosition.clear();
         } else {
-            oldPosition.update(vars.newPosition);
+            oldPosition.update(ctx.newPosition);
         }
 
-        perpMarket.updateState(vars.sizeDelta, vars.fundingRate, vars.fundingFeePerUnit);
+        perpMarket.updateOpenInterest(ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
-        emit LogSettleOrder(msg.sender, vars.accountId, vars.marketId, vars.pnl.intoInt256(), vars.newPosition);
+        perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+
+        // TODO: Handle negative margin case
+        if (ctx.pnl.lt(SD_ZERO)) {
+            UD60x18 amountToDeduct = ctx.pnl.intoUD60x18();
+            // TODO: update to liquidation pool and fee pool addresses
+            perpsAccount.deductAccountMargin(
+                msg.sender,
+                msg.sender,
+                amountToDeduct,
+                ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO
+            );
+        } else if (ctx.pnl.gt(SD_ZERO)) {
+            UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
+            perpsAccount.deposit(ctx.usdToken, amountToIncrease);
+
+            // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
+            LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
+        }
+
+        emit LogSettleOrder(
+            msg.sender,
+            ctx.accountId,
+            ctx.marketId,
+            ctx.sizeDelta.intoInt256(),
+            ctx.fillPrice.intoUint256(),
+            ctx.orderFeeUsdX18.intoInt256(),
+            ctx.settlementFeeUsdX18.intoUint256(),
+            ctx.pnl.intoInt256(),
+            ctx.newPosition
+        );
+    }
+
+    /// @dev We assume that the settlement fees are always properly deducted from the trading accounts, either from
+    /// their margin or pnl.
+    function _paySettlementFees(
+        address settlementFeeReceiver,
+        uint128 marketId,
+        uint128 settlementId,
+        uint256 amountOfSettledTrades
+    )
+        internal
+    {
+        address usdToken = GlobalConfiguration.load().usdToken;
+
+        UD60x18 settlementFeePerTradeUsdX18 = ud60x18(SettlementConfiguration.load(marketId, settlementId).fee);
+        UD60x18 totalSettlementFeeUsdX18 = settlementFeePerTradeUsdX18.mul(ud60x18(amountOfSettledTrades));
+
+        LimitedMintingERC20(usdToken).mint(settlementFeeReceiver, totalSettlementFeeUsdX18.intoUint256());
+
+        // TODO: add dynamic gas cost into settlementFee, checking settlementFeeGasCost stored and multiplying by
+        // GasOracle.gasPrice()
+        // liquidityEngine.withdrawUsdToken(keeper, ctx.settlementFeeUsdX18);
     }
 
     function _requireIsSettlementStrategy(address sender, address upkeep) internal pure {

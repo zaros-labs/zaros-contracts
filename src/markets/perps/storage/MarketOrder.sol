@@ -12,27 +12,40 @@ library MarketOrder {
     string internal constant MARKET_ORDER_DOMAIN = "fi.zaros.markets.perps.storage.MarketOrder";
 
     struct Data {
+        uint128 marketId;
         int128 sizeDelta;
         uint128 acceptablePrice;
-        uint256 timestamp;
+        uint128 timestamp;
     }
 
-    function load(uint128 accountId, uint128 marketId) internal pure returns (Data storage self) {
-        bytes32 slot = keccak256(abi.encode(MARKET_ORDER_DOMAIN, accountId, marketId));
+    function load(uint128 accountId) internal pure returns (Data storage self) {
+        bytes32 slot = keccak256(abi.encode(MARKET_ORDER_DOMAIN, accountId));
 
         assembly {
             self.slot := slot
         }
     }
 
-    function update(Data storage self, int128 sizeDelta, uint128 acceptablePrice) internal {
+    function loadExisting(uint128 accountId) internal view returns (Data storage self) {
+        self = load(accountId);
+
+        if (self.marketId == 0) {
+            revert Errors.NoActiveMarketOrder(accountId);
+        }
+
+        return self;
+    }
+
+    function update(Data storage self, uint128 marketId, int128 sizeDelta, uint128 acceptablePrice) internal {
+        self.marketId = marketId;
         self.sizeDelta = sizeDelta;
         self.acceptablePrice = acceptablePrice;
-        self.timestamp = block.timestamp;
+        self.timestamp = uint128(block.timestamp);
     }
 
     // TODO: Implement
     function clear(Data storage self) internal {
+        self.marketId = 0;
         self.sizeDelta = 0;
         self.acceptablePrice = 0;
         self.timestamp = 0;

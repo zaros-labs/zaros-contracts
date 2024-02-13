@@ -45,9 +45,10 @@ contract UpdateModules is BaseScript {
             selectors: selectors
         });
 
-        bytes4[] memory mockSelectors = new bytes4[](1);
+        bytes4[] memory mockSelectors = new bytes4[](2);
 
-        mockSelectors[0] = MockSettlementModule.mockSettle.selector;
+        mockSelectors[0] = MockSettlementModule.mockSettleMarketOrder.selector;
+        mockSelectors[1] = MockSettlementModule.mockSettleCustomOrders.selector;
 
         facetCuts[1] = IDiamond.FacetCut({
             facet: address(mockSettlementModule),

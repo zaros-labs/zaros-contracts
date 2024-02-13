@@ -106,17 +106,6 @@ library PerpMarket {
         }
     }
 
-    function validateNewState(Data storage self, SD59x18 sizeDelta) internal view {
-        UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
-        UD60x18 newOpenInterest = ud60x18(self.openInterest).add((sizeDelta).abs().intoUD60x18());
-
-        if (newOpenInterest.gt(maxOpenInterest)) {
-            revert Errors.ExceedsOpenInterestLimit(
-                self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
-            );
-        }
-    }
-
     // TODO: Call a Zaros-deployed price adapter contract instead of calling CL AggregatorV3 interface.
     // TODO: By having a custom price adapter, we can e.g sync a price adapter with a custom settlement strategies
     // contracts to
@@ -224,18 +213,32 @@ library PerpMarket {
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_INTERVAL));
     }
 
-    function updateState(
-        Data storage self,
-        SD59x18 sizeDelta,
-        SD59x18 fundingRate,
-        SD59x18 fundingFeePerUnit
-    )
-        internal
-    {
-        self.skew = sd59x18(self.skew).add(sizeDelta).intoInt256().toInt128();
-        self.openInterest = ud60x18(self.openInterest).add((sizeDelta).abs().intoUD60x18()).intoUint128();
+    function updateFunding(Data storage self, SD59x18 fundingRate, SD59x18 fundingFeePerUnit) internal {
         self.lastFundingRate = fundingRate.intoInt256();
         self.lastFundingFeePerUnit = fundingFeePerUnit.intoInt256();
         self.lastFundingTime = block.timestamp;
+    }
+
+    function updateOpenInterest(
+        Data storage self,
+        SD59x18 sizeDelta,
+        SD59x18 oldPositionSize,
+        SD59x18 newPositionSize
+    )
+        internal
+    {
+        UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
+        UD60x18 newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
+            newPositionSize.abs().intoUD60x18()
+        );
+
+        if (newOpenInterest.gt(maxOpenInterest)) {
+            revert Errors.ExceedsOpenInterestLimit(
+                self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
+            );
+        }
+
+        self.skew = sd59x18(self.skew).add(sizeDelta).intoInt256().toInt128();
+        self.openInterest = newOpenInterest.intoUint128();
     }
 }
