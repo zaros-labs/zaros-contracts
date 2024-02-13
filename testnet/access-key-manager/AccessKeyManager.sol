@@ -21,19 +21,19 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable {
     uint96 internal nextKeyId;
 
     struct AttestationData {
-        uint256 quantity;
+        uint256 availableKeys;
     }
 
     struct GeneratedKey {
         uint96 id;
         bytes16 key;
-        uint256 timestamp;
     }
 
     mapping (address user => GeneratedKey[] keys) public userGeneratedKeys;
     mapping (bytes16 key => bool status) public usedKeys;
     mapping (address user => bool status) public usersActive;
 
+    error NotEnoughAvailableKeys(uint256 amountOfGeneratedKeys, uint256 availableKeys);
     error InvalidSignature();
 
     function initialize(address owner, address _spearmintSigner) external initializer {
@@ -45,14 +45,20 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable {
     function createKey(AttestationData calldata data, bytes calldata _signature) external {
         _validateSignature(data, _signature);
 
-        bytes16 key = bytes16(keccak256(abi.encode(msg.sender, ++nextKeyId)));
+        uint256 amountOfGeneratedKeys = userGeneratedKeys[msg.sender].length;
 
-        GeneratedKey memory generatedKey;
-        generatedKey.id = nextKeyId;
-        generatedKey.key = key;
-        generatedKey.timestamp = block.timestamp;
+        if (amountOfGeneratedKeys >= data.availableKeys) {
+            revert NotEnoughAvailableKeys(amountOfGeneratedKeys, data.availableKeys);
+        }
 
-        userGeneratedKeys[msg.sender].push(generatedKey);
+        for (uint256 i = amountOfGeneratedKeys; i < amountOfGeneratedKeys + data.availableKeys; i++) {
+            bytes16 key = bytes16(keccak256(abi.encode(msg.sender, i)));
+
+            userGeneratedKeys[msg.sender].push(GeneratedKey({
+                id: uint96(i),
+                key: key
+            }));
+        }
     }
 
     function getKeysByUser() external view returns (GeneratedKey[] memory) {
