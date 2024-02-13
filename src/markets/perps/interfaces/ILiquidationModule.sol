@@ -14,7 +14,6 @@ interface ILiquidationModule {
     );
 
     function checkLiquidatableAccounts(
-        uint128[] calldata accountsIds,
         uint256 lowerBound,
         uint256 upperBound
     )

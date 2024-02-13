@@ -39,7 +39,6 @@ contract LiquidationModule is ILiquidationModule {
     }
 
     function checkLiquidatableAccounts(
-        uint128[] calldata accountsIds,
         uint256 lowerBound,
         uint256 upperBound
     )
@@ -63,7 +62,7 @@ contract LiquidationModule is ILiquidationModule {
                     requiredMaintenanceMarginUsdX18, liquidationFeeUsdX18, marginBalanceUsdX18
                 )
             ) {
-                liquidatableAccountsIds[liquidatableAccountsIds.length] = accountsIds[i];
+                liquidatableAccountsIds[liquidatableAccountsIds.length] = accountId;
             }
         }
     }
