@@ -28,7 +28,8 @@ library GlobalConfiguration {
     struct Data {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMaxLifetime;
-        uint256 liquidationFeeUsdX18;
+        uint128 minTradeSizeUsdX18;
+        uint128 liquidationFeeUsdX18;
         address rewardDistributor;
         address usdToken;
         address liquidityEngine;

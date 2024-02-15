@@ -136,10 +136,6 @@ interface IGlobalConfigurationModule {
     /// @param enable The array of boolean values that enable or disable the liquidator.
     function configureLiquidators(address[] calldata liquidators, bool[] calldata enable) external;
 
-    /// @notice Sets the protocol's liquidation reward multiplier, used to payout keepers.
-    /// @param liquidationReward The liquidation reward rate.
-    function configureLiquidationReward(uint256 liquidationReward) external;
-
     /// @notice Configures the settings of a given margin collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
@@ -160,7 +156,15 @@ interface IGlobalConfigurationModule {
     /// @notice Configures the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
     /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
-    function configureSystemParameters(uint128 maxPositionsPerAccount, uint128 marketOrderMaxLifetime) external;
+    /// @param minTradeSizeUsdX18 The minimum trade size in USD.
+    /// @param liquidationFeeUsdX18 The liquidation fee in USD.
+    function configureSystemParameters(
+        uint128 maxPositionsPerAccount,
+        uint128 marketOrderMaxLifetime,
+        uint128 minTradeSizeUsdX18,
+        uint128 liquidationFeeUsdX18
+    )
+        external;
 
     /// @notice Creates a new market with the requested market id.
     /// @dev See {CreatePerpMarketParams}.

@@ -130,7 +130,9 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     function configureSystemParameters() internal {
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
-            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME
+            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
+            minTradeSizeUsdX18: MIN_TRADE_SIZE_USD,
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD
         });
     }
 
