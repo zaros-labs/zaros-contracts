@@ -209,7 +209,9 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         globalConfiguration.minTradeSizeUsdX18 = minTradeSizeUsdX18;
         globalConfiguration.liquidationFeeUsdX18 = liquidationFeeUsdX18;
 
-        emit LogConfigureSystemParameters(msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime);
+        emit LogConfigureSystemParameters(
+            msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime, minTradeSizeUsdX18, liquidationFeeUsdX18
+        );
     }
 
     /// @inheritdoc IGlobalConfigurationModule
