@@ -106,11 +106,11 @@ library SettlementConfiguration {
 
     /// @notice Returns the settlement index price for a given order based on the configured strategy.
     /// @param self The {SettlementConfiguration} storage pointer.
-    /// @param verifiedExtraData The verified report data.
+    /// @param verifiedPriceData The verified report data.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
     function getSettlementPrice(
         Data storage self,
-        bytes memory verifiedExtraData,
+        bytes memory verifiedPriceData,
         bool isBuyOrder
     )
         internal
@@ -121,12 +121,12 @@ library SettlementConfiguration {
             DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
                 abi.decode(self.data, (DataStreamsMarketStrategy));
 
-            price = getDataStreamsReportPrice(verifiedExtraData, dataStreamsMarketStrategy.isPremium, isBuyOrder);
+            price = getDataStreamsReportPrice(verifiedPriceData, dataStreamsMarketStrategy.isPremium, isBuyOrder);
         } else if (self.strategyType == StrategyType.DATA_STREAMS_CUSTOM) {
             DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
                 abi.decode(self.data, (DataStreamsCustomStrategy));
 
-            price = getDataStreamsReportPrice(verifiedExtraData, dataStreamsCustomStrategy.isPremium, isBuyOrder);
+            price = getDataStreamsReportPrice(verifiedPriceData, dataStreamsCustomStrategy.isPremium, isBuyOrder);
         } else {
             revert Errors.InvalidSettlementStrategyType(uint8(self.strategyType));
         }
@@ -134,11 +134,11 @@ library SettlementConfiguration {
 
     /// @notice Returns the UD60x18 price from a verified report based on its type and whether the top-level order is
     /// a buy or sell order.
-    /// @param verifiedExtraData The verified report data.
+    /// @param verifiedPriceData The verified report data.
     /// @param isPremium Whether the report is a premium or basic report.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
     function getDataStreamsReportPrice(
-        bytes memory verifiedExtraData,
+        bytes memory verifiedPriceData,
         bool isPremium,
         bool isBuyOrder
     )
@@ -147,13 +147,13 @@ library SettlementConfiguration {
         returns (UD60x18 price)
     {
         if (isPremium) {
-            PremiumReport memory premiumReport = abi.decode(verifiedExtraData, (PremiumReport));
+            PremiumReport memory premiumReport = abi.decode(verifiedPriceData, (PremiumReport));
 
             price = isBuyOrder
                 ? ud60x18(int256(premiumReport.ask).toUint256())
                 : ud60x18(int256(premiumReport.bid).toUint256());
         } else {
-            BasicReport memory basicReport = abi.decode(verifiedExtraData, (BasicReport));
+            BasicReport memory basicReport = abi.decode(verifiedPriceData, (BasicReport));
 
             price = ud60x18(int256(basicReport.price).toUint256());
         }
@@ -187,28 +187,28 @@ library SettlementConfiguration {
         // }
     }
 
-    function verifyExtraData(
+    function verifyPriceData(
         Data storage self,
         bytes memory extraData
     )
         internal
-        returns (bytes memory verifiedExtraData)
+        returns (bytes memory verifiedPriceData)
     {
         if (self.strategyType == StrategyType.DATA_STREAMS_MARKET) {
             DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
                 abi.decode(self.data, (DataStreamsMarketStrategy));
-            verifiedExtraData = verifyDataStreamsReport(dataStreamsMarketStrategy, extraData);
+            verifiedPriceData = verifyDataStreamsReport(dataStreamsMarketStrategy, extraData);
 
             requireDataStreamsReportIsValid(
-                dataStreamsMarketStrategy.streamId, verifiedExtraData, dataStreamsMarketStrategy.isPremium
+                dataStreamsMarketStrategy.streamId, verifiedPriceData, dataStreamsMarketStrategy.isPremium
             );
         } else if (self.strategyType == StrategyType.DATA_STREAMS_CUSTOM) {
             DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
                 abi.decode(self.data, (DataStreamsCustomStrategy));
-            verifiedExtraData = verifyDataStreamsReport(dataStreamsCustomStrategy, extraData);
+            verifiedPriceData = verifyDataStreamsReport(dataStreamsCustomStrategy, extraData);
 
             requireDataStreamsReportIsValid(
-                dataStreamsCustomStrategy.streamId, verifiedExtraData, dataStreamsCustomStrategy.isPremium
+                dataStreamsCustomStrategy.streamId, verifiedPriceData, dataStreamsCustomStrategy.isPremium
             );
         } else {
             revert Errors.InvalidSettlementStrategyType(uint8(self.strategyType));
