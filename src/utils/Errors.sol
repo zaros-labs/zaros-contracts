@@ -48,6 +48,7 @@ library Errors {
     /// @notice LimitOrderSettlementStrategy errors.
 
     error LimitOrderInvalidAccountId(uint128 providedAccountId, uint128 expectedAccountId);
+    error MaxLimitOrdersPerAccount();
 
     /// @notice OcoOrderSettlementStrategy errors.
 

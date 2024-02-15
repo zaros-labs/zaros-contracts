@@ -30,9 +30,11 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.markets.settlement.LimitOrderSettlementStrategy
+    /// @param maxActiveOrdersPerAccount The maximum amount of active limit orders per account.
     /// @param nextOrderId The id that will be used for the next limit order stored.
     /// @param limitOrdersIds The set of limit orders ids, used to find the limit orders to be settled.
     struct LimitOrderSettlementStrategyStorage {
+        uint128 maxActiveOrdersPerAccount;
         uint128 nextOrderId;
         EnumerableSet.UintSet limitOrdersIds;
     }
@@ -42,7 +44,18 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
     }
 
     /// @notice {LimitOrderSettlementStrategy} UUPS initializer.
-    function initialize(IPerpsEngine perpsEngine, uint128 marketId, uint128 settlementId) external initializer {
+    function initialize(
+        IPerpsEngine perpsEngine,
+        uint128 marketId,
+        uint128 settlementId,
+        uint128 maxActiveOrdersPerAccount
+    )
+        external
+        initializer
+    {
+        LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
+        self.maxActiveOrdersPerAccount = maxActiveOrdersPerAccount;
+
         __DataStreamsSettlementStrategy_init(perpsEngine, marketId, settlementId);
     }
 
@@ -137,6 +150,10 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
 
     function _createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) internal {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
+
+        if (self.limitOrdersIds.length() >= self.maxActiveOrdersPerAccount) {
+            revert Errors.MaxLimitOrdersPerAccount();
+        }
 
         uint256 orderId = ++self.nextOrderId;
 
