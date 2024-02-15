@@ -56,7 +56,7 @@ contract SettlementModule is ISettlementModule {
         uint128 accountId,
         uint128 marketId,
         address settlementFeeReceiver,
-        bytes calldata extraData
+        bytes calldata priceData
     )
         external
         onlyMarketOrderUpkeep(marketId)
@@ -66,7 +66,7 @@ contract SettlementModule is ISettlementModule {
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
 
-        _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, extraData);
+        _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, priceData);
 
         marketOrder.clear();
 
@@ -83,7 +83,7 @@ contract SettlementModule is ISettlementModule {
         uint128 settlementId,
         address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
-        bytes calldata extraData
+        bytes calldata priceData
     )
         external
         onlyValidCustomOrderUpkeep(marketId, settlementId)
@@ -94,7 +94,7 @@ contract SettlementModule is ISettlementModule {
         for (uint256 i = 0; i < payloads.length; i++) {
             SettlementPayload memory payload = payloads[i];
 
-            _settle(marketId, settlementId, payload, extraData);
+            _settle(marketId, settlementId, payload, priceData);
         }
 
         _paySettlementFees({
@@ -123,7 +123,7 @@ contract SettlementModule is ISettlementModule {
         uint128 marketId,
         uint128 settlementId,
         SettlementPayload memory payload,
-        bytes memory extraData
+        bytes memory priceData
     )
         internal
     {
@@ -144,10 +144,10 @@ contract SettlementModule is ISettlementModule {
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
 
-        bytes memory verifiedExtraData = settlementConfiguration.verifyExtraData(extraData);
+        bytes memory verifiedPriceData = settlementConfiguration.verifyPriceData(priceData);
 
         ctx.fillPrice = perpMarket.getMarkPrice(
-            ctx.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedExtraData, ctx.sizeDelta.gt(SD_ZERO))
+            ctx.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedPriceData, ctx.sizeDelta.gt(SD_ZERO))
         );
 
         ctx.fundingRate = perpMarket.getCurrentFundingRate();

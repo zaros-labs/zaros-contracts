@@ -9,5 +9,5 @@ interface ISettlementStrategy {
 
     function afterSettlement() external;
 
-    function dispatch(uint128 accountId, bytes calldata extraData) external;
+    function dispatch(uint128 accountId, bytes calldata priceData) external;
 }
