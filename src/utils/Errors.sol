@@ -48,6 +48,7 @@ library Errors {
     /// @notice LimitOrderSettlementStrategy errors.
 
     error LimitOrderInvalidAccountId(uint128 providedAccountId, uint128 expectedAccountId);
+    error MaxLimitOrdersPerAccount();
 
     /// @notice OcoOrderSettlementStrategy errors.
 
@@ -88,7 +89,7 @@ library Errors {
     /// @notice Thrown when the provided `zaros` is the zero address.
     error LiquidityEngineNotDefined();
     /// @notice Thrown when the provided `liquidationReward` is less than 1e18.
-    error InvalidLiquidationReward(uint256 liquidationFeeUsdX18);
+    error InvalidLiquidationReward(uint128 liquidationFeeUsdX18);
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
     /// @notice Thrown when trying to update a market status but it hasn't been initialized yet.

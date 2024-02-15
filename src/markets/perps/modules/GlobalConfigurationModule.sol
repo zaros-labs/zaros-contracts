@@ -11,7 +11,6 @@ import { PerpMarket } from "../storage/PerpMarket.sol";
 import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfiguration.sol";
 import { MarketConfiguration } from "../storage/MarketConfiguration.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
-import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // OpenZeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -141,19 +140,6 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         emit LogConfigureLiquidators(msg.sender, liquidators, enable);
     }
 
-    function configureLiquidationReward(uint256 liquidationReward) external override onlyOwner {
-        UD60x18 liquidationFeeUsdX18 = ud60x18(liquidationReward);
-
-        if (liquidationFeeUsdX18.lt(UD_UNIT)) {
-            revert Errors.InvalidLiquidationReward(liquidationReward);
-        }
-
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.liquidationFeeUsdX18 = liquidationFeeUsdX18.intoUint256();
-
-        emit LogConfigureLiquidationReward(msg.sender, liquidationReward);
-    }
-
     /// @inheritdoc IGlobalConfigurationModule
     function configureMarginCollateral(
         address collateralType,
@@ -192,7 +178,9 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     /// @inheritdoc IGlobalConfigurationModule
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
-        uint128 marketOrderMaxLifetime
+        uint128 marketOrderMaxLifetime,
+        uint128 minTradeSizeUsdX18,
+        uint128 liquidationFeeUsdX18
     )
         external
         override
@@ -202,12 +190,28 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             revert Errors.ZeroInput("maxPositionsPerAccount");
         }
 
+        if (marketOrderMaxLifetime == 0) {
+            revert Errors.ZeroInput("marketOrderMaxLifetime");
+        }
+
+        if (minTradeSizeUsdX18 == 0) {
+            revert Errors.ZeroInput("minTradeSizeUsdX18");
+        }
+
+        if (liquidationFeeUsdX18 == 0) {
+            revert Errors.ZeroInput("liquidationFeeUsdX18");
+        }
+
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         globalConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
         globalConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
+        globalConfiguration.minTradeSizeUsdX18 = minTradeSizeUsdX18;
+        globalConfiguration.liquidationFeeUsdX18 = liquidationFeeUsdX18;
 
-        emit LogConfigureSystemParameters(msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime);
+        emit LogConfigureSystemParameters(
+            msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime, minTradeSizeUsdX18, liquidationFeeUsdX18
+        );
     }
 
     /// @inheritdoc IGlobalConfigurationModule

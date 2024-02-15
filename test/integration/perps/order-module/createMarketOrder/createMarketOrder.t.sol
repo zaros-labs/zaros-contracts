@@ -129,7 +129,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: 1,
-            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME
+            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
+            minTradeSizeUsdX18: MIN_TRADE_SIZE_USD,
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD
         });
 
         changePrank({ msgSender: users.naruto });

@@ -83,7 +83,9 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.setPerpsAccountToken(address(perpsAccountToken));
 
-        perpsEngine.configureSystemParameters(MAX_POSITIONS_PER_ACCOUNT, MARKET_ORDER_MAX_LIFETIME);
+        perpsEngine.configureSystemParameters(
+            MAX_POSITIONS_PER_ACCOUNT, MARKET_ORDER_MAX_LIFETIME, MIN_TRADE_SIZE_USD, LIQUIDATION_FEE_USD
+        );
 
         address[] memory collateralLiquidationPriority = new address[](1);
         collateralLiquidationPriority[0] = address(usdToken);

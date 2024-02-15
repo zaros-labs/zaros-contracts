@@ -10,7 +10,7 @@ interface ILiquidationModule {
         uint256 requiredMaintenanceMarginUsd,
         int256 marginBalanceUsd,
         uint256 liquidatedCollateralUsd,
-        uint256 liquidationFeeUsd
+        uint128 liquidationFeeUsd
     );
 
     function checkLiquidatableAccounts(

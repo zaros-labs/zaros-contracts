@@ -168,7 +168,7 @@ contract LiquidationModule is ILiquidationModule {
                 ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
                 ctx.marginBalanceUsdX18.intoInt256(),
                 ctx.liquidatedCollateralUsdX18.intoUint256(),
-                ctx.liquidationFeeUsdX18.intoUint256()
+                ctx.liquidationFeeUsdX18.intoUint128()
             );
         }
     }
