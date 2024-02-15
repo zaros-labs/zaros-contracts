@@ -28,7 +28,7 @@ interface ISettlementModule {
         uint128 accountId,
         uint128 marketId,
         address settlementFeeReceiver,
-        bytes calldata verifiedReportData
+        bytes calldata priceData
     )
         external;
 
@@ -37,7 +37,8 @@ interface ISettlementModule {
         uint128 settlementId,
         address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
-        bytes calldata verifiedReportData
+        bytes calldata priceData,
+        bytes calldata callbackData
     )
         external;
 }

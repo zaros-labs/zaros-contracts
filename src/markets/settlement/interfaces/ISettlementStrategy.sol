@@ -7,7 +7,7 @@ import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementMo
 interface ISettlementStrategy {
     function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external;
 
-    function afterSettlement() external;
+    function afterSettlement(bytes calldata callbackData) external;
 
     function dispatch(uint128 accountId, bytes calldata priceData) external;
 }

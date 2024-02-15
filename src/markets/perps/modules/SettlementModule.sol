@@ -5,6 +5,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { LimitedMintingERC20 } from "script/utils/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
@@ -83,7 +84,8 @@ contract SettlementModule is ISettlementModule {
         uint128 settlementId,
         address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
-        bytes calldata priceData
+        bytes calldata priceData,
+        bytes calldata callbackData
     )
         external
         onlyValidCustomOrderUpkeep(marketId, settlementId)
@@ -103,6 +105,8 @@ contract SettlementModule is ISettlementModule {
             settlementId: settlementId,
             amountOfSettledTrades: payloads.length
         });
+
+        ISettlementStrategy(msg.sender).afterSettlement(callbackData);
     }
 
     struct SettlementContext {
