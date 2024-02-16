@@ -13,6 +13,9 @@ import { OcoOrder } from "./storage/OcoOrder.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
+// PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+
 contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for uint256;
@@ -72,7 +75,9 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
             bool isAccountWithOcoOrder = self.accountsWithActiveOrders.contains(accountId);
 
             if (isAccountWithOcoOrder) {
-                _updateOcoOrder(accountId, OcoOrder.TakeProfit({ price: 0 }), OcoOrder.StopLoss({ price: 0 }), false);
+                _updateOcoOrder(
+                    accountId, OcoOrder.TakeProfit({ price: 0 }), OcoOrder.StopLoss({ price: 0 }), false, 0
+                );
             }
         }
     }
@@ -83,8 +88,14 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
         if (action == Actions.UPDATE_OCO_ORDER) {
             (OcoOrder.TakeProfit memory takeProfit, OcoOrder.StopLoss memory stopLoss, bool isLong) =
                 abi.decode(extraData[8:], (OcoOrder.TakeProfit, OcoOrder.StopLoss, bool));
+            DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+                _getDataStreamsSettlementStrategyStorage();
+            IPerpsEngine perpsEngine = dataStreamsCustomSettlementStrategyStorage.perpsEngine;
+            uint128 marketId = dataStreamsCustomSettlementStrategyStorage.marketId;
 
-            _updateOcoOrder(accountId, takeProfit, stopLoss, isLong);
+            UD60x18 markPriceX18 = perpsEngine.getMarkPrice(marketId, 0);
+
+            _updateOcoOrder(accountId, takeProfit, stopLoss, isLong, markPriceX18.intoUint256());
         } else {
             revert Errors.InvalidSettlementStrategyAction();
         }
@@ -138,13 +149,16 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
         uint128 accountId,
         OcoOrder.TakeProfit memory takeProfit,
         OcoOrder.StopLoss memory stopLoss,
-        bool isLong
+        bool isLong,
+        uint256 markPriceX18
     )
         internal
     {
         OcoOrderSettlementStrategyStorage storage self = _getOcoOrderSettlementStrategyStorage();
 
-        if (takeProfit.price != 0 && takeProfit.price < stopLoss.price) {
+        if (takeProfit.price != 0 && isLong && takeProfit.price < stopLoss.price) {
+            revert Errors.InvalidOcoOrder();
+        } else if (takeProfit.price != 0 && !isLong && takeProfit.price > stopLoss.price) {
             revert Errors.InvalidOcoOrder();
         }
 
@@ -154,8 +168,8 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
             takeProfit.price == 0 && stopLoss.price == 0 && self.accountsWithActiveOrders.contains(accountId);
 
         bool isValidOcoOrder = !isAccountCancellingOcoOrder && isLong
-            ? takeProfit.price > stopLoss.price
-            : takeProfit.price < stopLoss.price;
+            ? (takeProfit.price > markPriceX18 && stopLoss.price < markPriceX18)
+            : (takeProfit.price < markPriceX18 && stopLoss.price > markPriceX18);
 
         if (!isValidOcoOrder) {
             revert Errors.InvalidOcoOrder();
