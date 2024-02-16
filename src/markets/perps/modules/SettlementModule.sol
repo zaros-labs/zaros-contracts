@@ -122,7 +122,7 @@ contract SettlementModule is ISettlementModule {
 
         address ocoOrderSettlementStrategy =
             SettlementConfiguration.load(marketId, SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
-        if (ocoOrderSettlementStrategy != address(0)) {
+        if (ocoOrderSettlementStrategy != address(0) && ocoOrderSettlementStrategy != msg.sender) {
             ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
         }
     }

@@ -13,6 +13,9 @@ import { LimitOrder } from "./storage/LimitOrder.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
+// PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+
 contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using LimitOrder for LimitOrder.Data;
@@ -102,8 +105,14 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
 
         if (action == Actions.CREATE_LIMIT_ORDER) {
             (int128 sizeDelta, uint128 price) = abi.decode(functionData, (int128, uint128));
+            DataStreamsSettlementStrategyStorage storage dataStreamsCustomSettlementStrategyStorage =
+                _getDataStreamsSettlementStrategyStorage();
+            IPerpsEngine perpsEngine = dataStreamsCustomSettlementStrategyStorage.perpsEngine;
+            uint128 marketId = dataStreamsCustomSettlementStrategyStorage.marketId;
 
-            _createLimitOrder(accountId, sizeDelta, price);
+            UD60x18 markPriceX18 = perpsEngine.getMarkPrice(marketId, 0);
+
+            _createLimitOrder(accountId, sizeDelta, price, markPriceX18.intoUint256());
         } else if (action == Actions.CANCEL_LIMIT_ORDER) {
             (uint256 orderId) = abi.decode(functionData, (uint256));
 
@@ -159,11 +168,21 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         }
     }
 
-    function _createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price) internal {
+    function _createLimitOrder(uint128 accountId, int128 sizeDelta, uint128 price, uint256 markPriceX18) internal {
         LimitOrderSettlementStrategyStorage storage self = _getLimitOrderSettlementStrategyStorage();
 
         if (self.limitOrdersIds.length() >= self.maxActiveOrdersPerAccount) {
             revert Errors.MaxLimitOrdersPerAccount();
+        }
+
+        if (sizeDelta == 0) {
+            revert Errors.ZeroInput("sizeDelta");
+        }
+
+        bool isBuy = sizeDelta > 0;
+
+        if (isBuy && price < markPriceX18 || !isBuy && price > markPriceX18) {
+            revert Errors.LimitOrderInvalidPrice(price, markPriceX18, isBuy);
         }
 
         uint256 orderId = ++self.nextOrderId;
