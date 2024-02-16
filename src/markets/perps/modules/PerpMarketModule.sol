@@ -57,19 +57,11 @@ contract PerpMarketModule is IPerpMarketModule {
     }
 
     /// @inheritdoc IPerpMarketModule
-    function getMarkPrice(
-        uint128 marketId,
-        int256 skewDelta,
-        uint256 indexPriceX18
-    )
-        external
-        view
-        override
-        returns (UD60x18)
-    {
+    function getMarkPrice(uint128 marketId, int256 skewDelta) external view override returns (UD60x18) {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
 
-        return perpMarket.getMarkPrice(sd59x18(skewDelta), ud60x18(indexPriceX18));
+        return perpMarket.getMarkPrice(sd59x18(skewDelta), indexPriceX18);
     }
 
     /// @inheritdoc IPerpMarketModule

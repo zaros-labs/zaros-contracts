@@ -5,6 +5,9 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { LimitedMintingERC20 } from "script/utils/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
+import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
+import { OcoOrder } from "@zaros/markets/settlement/storage/OcoOrder.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
@@ -20,7 +23,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 contract SettlementModule is ISettlementModule {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -64,7 +67,7 @@ contract SettlementModule is ISettlementModule {
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
         SettlementPayload memory payload =
-            SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
+            SettlementPayload({ accountId: accountId, orderId: 0, sizeDelta: marketOrder.sizeDelta });
 
         _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, priceData);
 
@@ -76,6 +79,14 @@ contract SettlementModule is ISettlementModule {
             settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             amountOfSettledTrades: 1
         });
+
+        SettlementPayload[] memory payloads = new SettlementPayload[](1);
+        payloads[0] = payload;
+        address ocoOrderSettlementStrategy =
+            SettlementConfiguration.load(marketId, SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
+        if (ocoOrderSettlementStrategy != address(0)) {
+            ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
+        }
     }
 
     function settleCustomOrders(
@@ -83,7 +94,8 @@ contract SettlementModule is ISettlementModule {
         uint128 settlementId,
         address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
-        bytes calldata priceData
+        bytes calldata priceData,
+        address callback
     )
         external
         onlyValidCustomOrderUpkeep(marketId, settlementId)
@@ -103,6 +115,16 @@ contract SettlementModule is ISettlementModule {
             settlementId: settlementId,
             amountOfSettledTrades: payloads.length
         });
+
+        if (callback != address(0)) {
+            ISettlementStrategy(callback).callback(payloads);
+        }
+
+        address ocoOrderSettlementStrategy =
+            SettlementConfiguration.load(marketId, SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
+        if (ocoOrderSettlementStrategy != address(0) && ocoOrderSettlementStrategy != msg.sender) {
+            ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
+        }
     }
 
     struct SettlementContext {
@@ -130,11 +152,14 @@ contract SettlementModule is ISettlementModule {
         SettlementContext memory ctx;
         ctx.marketId = marketId;
         ctx.accountId = payload.accountId;
-        ctx.sizeDelta = sd59x18(payload.sizeDelta);
+        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
+        // TODO: Remove this type(int128) logic after testnet
+        ctx.sizeDelta = (payload.sizeDelta == type(int128).min || payload.sizeDelta == type(int128).max)
+            ? unary(sd59x18(oldPosition.size))
+            : sd59x18(payload.sizeDelta);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
-        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();

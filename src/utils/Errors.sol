@@ -49,6 +49,7 @@ library Errors {
 
     error LimitOrderInvalidAccountId(uint128 providedAccountId, uint128 expectedAccountId);
     error MaxLimitOrdersPerAccount();
+    error LimitOrderInvalidPrice(uint256 limitOrderPriceX18, uint256 markPriceX18, bool isBuy);
 
     /// @notice OcoOrderSettlementStrategy errors.
 

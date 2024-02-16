@@ -5,9 +5,7 @@ pragma solidity 0.8.23;
 import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 
 interface ISettlementStrategy {
-    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external;
-
-    function afterSettlement() external;
+    function callback(ISettlementModule.SettlementPayload[] calldata payloads) external;
 
     function dispatch(uint128 accountId, bytes calldata priceData) external;
 }

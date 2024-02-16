@@ -122,25 +122,25 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
         UD60x18 reportPrice = ChainlinkUtil.getReportPriceUd60x18(reportData, REPORT_PRICE_DECIMALS, isPremiumReport);
 
         for (uint256 i = performLowerBound; i < ordersToIterate; i++) {
-            OcoOrder.TakeProfit memory takeProfit = ocoOrders[i].takeProfit;
-            OcoOrder.StopLoss memory stopLoss = ocoOrders[i].stopLoss;
-
-            bool isLongPosition = takeProfit.sizeDelta < 0 || stopLoss.sizeDelta < 0;
+            OcoOrder.Data memory ocoOrder = ocoOrders[i];
 
             bool isTpFillable = (
-                isLongPosition
-                    ? ud60x18(takeProfit.price).gte(reportPrice)
-                    : ud60x18(takeProfit.price).lte(reportPrice)
-            ) && takeProfit.price != 0;
+                ocoOrder.isLong
+                    ? ud60x18(ocoOrder.takeProfit.price).gte(reportPrice)
+                    : ud60x18(ocoOrder.takeProfit.price).lte(reportPrice)
+            ) && ocoOrder.takeProfit.price != 0;
 
             bool isStopLossFillable = (
-                isLongPosition ? ud60x18(stopLoss.price).lte(reportPrice) : ud60x18(stopLoss.price).gte(reportPrice)
-            ) && stopLoss.price != 0;
+                ocoOrder.isLong
+                    ? ud60x18(ocoOrder.stopLoss.price).lte(reportPrice)
+                    : ud60x18(ocoOrder.stopLoss.price).gte(reportPrice)
+            ) && ocoOrder.stopLoss.price != 0;
 
             if (isTpFillable || isStopLossFillable) {
                 payloads[payloads.length] = ISettlementModule.SettlementPayload({
-                    accountId: ocoOrders[i].accountId,
-                    sizeDelta: isTpFillable ? takeProfit.sizeDelta : stopLoss.sizeDelta
+                    accountId: ocoOrder.accountId,
+                    orderId: 0,
+                    sizeDelta: ocoOrder.isLong ? type(int128).min : type(int128).max
                 });
             }
         }

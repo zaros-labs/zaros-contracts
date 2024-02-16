@@ -42,7 +42,7 @@ contract MockSettlementModule is SettlementModule {
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
         SettlementPayload memory payload =
-            SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
+            SettlementPayload({ accountId: accountId, orderId: 0, sizeDelta: marketOrder.sizeDelta });
         _mockSettle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload);
 
         marketOrder.clear();
