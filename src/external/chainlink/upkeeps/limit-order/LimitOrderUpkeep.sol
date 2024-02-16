@@ -142,6 +142,7 @@ contract LimitOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Ba
             if (isOrderFillable) {
                 payloads[payloads.length] = ISettlementModule.SettlementPayload({
                     accountId: limitOrder.accountId,
+                    orderId: limitOrder.id,
                     sizeDelta: limitOrder.sizeDelta
                 });
             }

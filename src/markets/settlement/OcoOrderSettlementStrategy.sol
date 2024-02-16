@@ -64,18 +64,27 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
         return ocoOrders;
     }
 
-    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external override { }
+    function callback(ISettlementModule.SettlementPayload[] calldata payloads) external override onlyPerpsEngine {
+        OcoOrderSettlementStrategyStorage storage self = _getOcoOrderSettlementStrategyStorage();
 
-    function afterSettlement() external override onlyPerpsEngine { }
+        for (uint256 i = 0; i < payloads.length; i++) {
+            uint128 accountId = payloads[i].accountId;
+            bool isAccountWithOcoOrder = self.accountsWithActiveOrders.contains(accountId);
+
+            if (isAccountWithOcoOrder) {
+                _updateOcoOrder(accountId, OcoOrder.TakeProfit({ price: 0 }), OcoOrder.StopLoss({ price: 0 }), false);
+            }
+        }
+    }
 
     function dispatch(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
         (Actions action) = abi.decode(extraData[0:8], (Actions));
 
         if (action == Actions.UPDATE_OCO_ORDER) {
-            (OcoOrder.TakeProfit memory takeProfit, OcoOrder.StopLoss memory stopLoss) =
-                abi.decode(extraData[8:], (OcoOrder.TakeProfit, OcoOrder.StopLoss));
+            (OcoOrder.TakeProfit memory takeProfit, OcoOrder.StopLoss memory stopLoss, bool isLong) =
+                abi.decode(extraData[8:], (OcoOrder.TakeProfit, OcoOrder.StopLoss, bool));
 
-            _updateOcoOrder(accountId, takeProfit, stopLoss);
+            _updateOcoOrder(accountId, takeProfit, stopLoss, isLong);
         } else {
             revert Errors.InvalidSettlementStrategyAction();
         }
@@ -107,9 +116,10 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
         );
 
         ctx.payloads = abi.decode(extraData, (ISettlementModule.SettlementPayload[]));
-
         // TODO: Update the fee receiver to an address stored / managed by the keeper.
-        ctx.perpsEngine.settleCustomOrders(ctx.marketId, ctx.settlementId, msg.sender, ctx.payloads, signedReport);
+        ctx.perpsEngine.settleCustomOrders(
+            ctx.marketId, ctx.settlementId, msg.sender, ctx.payloads, signedReport, address(0)
+        );
     }
 
     function _getOcoOrderSettlementStrategyStorage()
@@ -127,7 +137,8 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
     function _updateOcoOrder(
         uint128 accountId,
         OcoOrder.TakeProfit memory takeProfit,
-        OcoOrder.StopLoss memory stopLoss
+        OcoOrder.StopLoss memory stopLoss,
+        bool isLong
     )
         internal
     {
@@ -142,9 +153,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
         bool isAccountCancellingOcoOrder =
             takeProfit.price == 0 && stopLoss.price == 0 && self.accountsWithActiveOrders.contains(accountId);
 
-        bool isLongPosition = takeProfit.sizeDelta < 0 || stopLoss.sizeDelta < 0;
-
-        bool isValidOcoOrder = !isAccountCancellingOcoOrder && isLongPosition
+        bool isValidOcoOrder = !isAccountCancellingOcoOrder && isLong
             ? takeProfit.price > stopLoss.price
             : takeProfit.price < stopLoss.price;
 
@@ -159,7 +168,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
         }
 
         self.ocoOrderOfAccount[accountId] =
-            OcoOrder.Data({ accountId: accountId, takeProfit: takeProfit, stopLoss: stopLoss });
+            OcoOrder.Data({ accountId: accountId, isLong: isLong, takeProfit: takeProfit, stopLoss: stopLoss });
 
         emit LogCreateOcoOrder(msg.sender, accountId, takeProfit, stopLoss);
     }

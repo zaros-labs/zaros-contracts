@@ -19,8 +19,10 @@ interface ISettlementModule {
         Position.Data newPosition
     );
 
+    // TODO: Remove orderId after testnet.
     struct SettlementPayload {
         uint128 accountId;
+        uint128 orderId;
         int128 sizeDelta;
     }
 
@@ -38,7 +40,7 @@ interface ISettlementModule {
         address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
         bytes calldata priceData,
-        bytes calldata callbackData
+        address callback
     )
         external;
 }

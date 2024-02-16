@@ -10,6 +10,7 @@ library LimitOrder {
     /// @notice The Limit MarketOrder data structure.
     /// @param price The desired execution price.
     struct Data {
+        uint128 id;
         uint128 accountId;
         int128 sizeDelta;
         uint128 price;
@@ -22,15 +23,16 @@ library LimitOrder {
         }
     }
 
-    function create(uint128 accountId, uint256 orderId, int128 sizeDelta, uint128 price) internal {
+    function create(uint128 accountId, uint128 orderId, int128 sizeDelta, uint128 price) internal {
         Data storage self = load(orderId);
 
+        self.id = orderId;
         self.accountId = accountId;
         self.sizeDelta = sizeDelta;
         self.price = price;
     }
 
-    function reset(Data storage self) internal {
+    function clear(Data storage self) internal {
         self.accountId = 0;
         self.sizeDelta = 0;
         self.price = 0;

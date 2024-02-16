@@ -11,10 +11,12 @@ import { LimitOrder } from "./storage/LimitOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
     using EnumerableSet for EnumerableSet.UintSet;
     using LimitOrder for LimitOrder.Data;
+    using SafeCast for uint256;
 
     enum Actions {
         CREATE_LIMIT_ORDER,
@@ -84,9 +86,15 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         return limitOrders;
     }
 
-    function beforeSettlement(ISettlementModule.SettlementPayload calldata payload) external { }
+    function callback(ISettlementModule.SettlementPayload[] calldata payloads) external onlyPerpsEngine {
+        for (uint256 i = 0; i < payloads.length; i++) {
+            ISettlementModule.SettlementPayload calldata payload = payloads[i];
+            LimitOrder.Data storage limitOrder = LimitOrder.load(payload.orderId);
 
-    function afterSettlement() external { }
+            limitOrder.clear();
+            _getLimitOrderSettlementStrategyStorage().limitOrdersIds.remove(payload.orderId);
+        }
+    }
 
     function dispatch(uint128 accountId, bytes calldata extraData) external override onlyPerpsEngine {
         (Actions action) = abi.decode(extraData[0:8], (Actions));
@@ -110,6 +118,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         uint128 marketId;
         uint128 settlementId;
         ISettlementModule.SettlementPayload[] payloads;
+        address callback;
     }
 
     function executeTrade(
@@ -131,9 +140,11 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         );
 
         ctx.payloads = abi.decode(extraData, (ISettlementModule.SettlementPayload[]));
-
+        ctx.callback = address(this);
         // TODO: Update the fee receiver to an address stored / managed by the keeper.
-        ctx.perpsEngine.settleCustomOrders(ctx.marketId, ctx.settlementId, msg.sender, ctx.payloads, signedReport);
+        ctx.perpsEngine.settleCustomOrders(
+            ctx.marketId, ctx.settlementId, msg.sender, ctx.payloads, signedReport, ctx.callback
+        );
     }
 
     function _getLimitOrderSettlementStrategyStorage()
@@ -161,7 +172,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
         assert(!self.limitOrdersIds.contains(orderId));
         self.limitOrdersIds.add(orderId);
 
-        LimitOrder.create({ accountId: accountId, orderId: orderId, sizeDelta: sizeDelta, price: price });
+        LimitOrder.create({ accountId: accountId, orderId: orderId.toUint128(), sizeDelta: sizeDelta, price: price });
 
         emit LogCreateLimitOrder(accountId, orderId, price, sizeDelta);
     }
@@ -174,7 +185,7 @@ contract LimitOrderSettlementStrategy is DataStreamsSettlementStrategy {
             revert Errors.LimitOrderInvalidAccountId(accountId, limitOrder.accountId);
         }
 
-        limitOrder.reset();
+        limitOrder.clear();
         self.limitOrdersIds.remove(orderId);
 
         emit LogCancelLimitOrder(accountId, orderId);

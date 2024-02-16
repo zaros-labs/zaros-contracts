@@ -6,6 +6,8 @@ pragma solidity 0.8.23;
 import { LimitedMintingERC20 } from "script/utils/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
+import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
+import { OcoOrder } from "@zaros/markets/settlement/storage/OcoOrder.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
@@ -65,7 +67,7 @@ contract SettlementModule is ISettlementModule {
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
         SettlementPayload memory payload =
-            SettlementPayload({ accountId: accountId, sizeDelta: marketOrder.sizeDelta });
+            SettlementPayload({ accountId: accountId, orderId: 0, sizeDelta: marketOrder.sizeDelta });
 
         _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, priceData);
 
@@ -77,6 +79,14 @@ contract SettlementModule is ISettlementModule {
             settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             amountOfSettledTrades: 1
         });
+
+        SettlementPayload[] memory payloads = new SettlementPayload[](1);
+        payloads[0] = payload;
+        address ocoOrderSettlementStrategy =
+            SettlementConfiguration.load(marketId, SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
+        if (ocoOrderSettlementStrategy != address(0)) {
+            ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
+        }
     }
 
     function settleCustomOrders(
@@ -85,7 +95,7 @@ contract SettlementModule is ISettlementModule {
         address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
         bytes calldata priceData,
-        bytes calldata callbackData
+        address callback
     )
         external
         onlyValidCustomOrderUpkeep(marketId, settlementId)
@@ -106,7 +116,15 @@ contract SettlementModule is ISettlementModule {
             amountOfSettledTrades: payloads.length
         });
 
-        ISettlementStrategy(msg.sender).afterSettlement(callbackData);
+        if (callback != address(0)) {
+            ISettlementStrategy(callback).callback(payloads);
+        }
+
+        address ocoOrderSettlementStrategy =
+            SettlementConfiguration.load(marketId, SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
+        if (ocoOrderSettlementStrategy != address(0)) {
+            ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
+        }
     }
 
     struct SettlementContext {
