@@ -98,7 +98,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
         perpsEngine.createPerpMarket({
             params: CreatePerpMarketParams({
-                marketId: uint128(ETH_USD_MARKET_ID),
+                marketId: ETH_USD_MARKET_ID,
                 name: ETH_USD_MARKET_NAME,
                 symbol: ETH_USD_MARKET_SYMBOL,
                 priceAdapter: ethUsdPriceAdapter,
@@ -146,7 +146,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
         perpsEngine.createPerpMarket({
             params: CreatePerpMarketParams({
-                marketId: uint128(LINK_USD_MARKET_ID),
+                marketId: LINK_USD_MARKET_ID,
                 name: LINK_USD_MARKET_NAME,
                 symbol: LINK_USD_MARKET_SYMBOL,
                 priceAdapter: linkUsdPriceAdapter,
