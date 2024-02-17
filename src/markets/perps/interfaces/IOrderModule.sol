@@ -62,7 +62,7 @@ interface IOrderModule {
     /// @param accountId The trading account id.
     function cancelMarketOrder(uint128 accountId) external;
 
-    function dispatchCustomSettlementRequest(
+    function dispatchCustomOrder(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,

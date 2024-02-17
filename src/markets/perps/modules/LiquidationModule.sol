@@ -27,7 +27,6 @@ contract LiquidationModule is ILiquidationModule {
     using MarketOrder for MarketOrder.Data;
     using SafeCast for uint256;
 
-    // TODO: Implement
     modifier onlyRegisteredLiquidator() {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 

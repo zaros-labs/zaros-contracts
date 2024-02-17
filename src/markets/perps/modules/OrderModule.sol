@@ -148,7 +148,7 @@ contract OrderModule is IOrderModule {
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
 
-    function dispatchCustomSettlementRequest(
+    function dispatchCustomOrder(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
@@ -176,7 +176,7 @@ contract OrderModule is IOrderModule {
         (bool success, bytes memory returnData) = settlementStrategy.call(callData);
 
         if (!success) {
-            if (returnData.length == 0) revert Errors.FailedDispatchCustomSettlementRequest();
+            if (returnData.length == 0) revert Errors.FailedDispatchCustomOrder();
             assembly {
                 revert(add(returnData, 0x20), mload(returnData))
             }

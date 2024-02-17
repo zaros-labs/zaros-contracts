@@ -52,6 +52,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         globalConfiguration.liquidityEngine = liquidityEngine;
     }
 
+    /// @inheritdoc IGlobalConfigurationModule
     function getAccountsWithActivePositions(
         uint256 lowerBound,
         uint256 upperBound

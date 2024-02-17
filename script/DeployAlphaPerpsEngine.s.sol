@@ -49,7 +49,7 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
         // chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
         // usdToken = USDToken(vm.envAddress("USDZ"));
-        usdToken = vm.envAddress("USDz");
+        usdToken = vm.envAddress("USDZ");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
 
         address[] memory modules = deployModules();

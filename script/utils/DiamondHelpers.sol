@@ -3,22 +3,22 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
-import { Diamond } from "@zaros/diamonds/Diamond.sol";
 import { DiamondCutModule } from "@zaros/diamonds/modules/DiamondCutModule.sol";
 import { DiamondLoupeModule } from "@zaros/diamonds/modules/DiamondLoupeModule.sol";
-import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
+import { LiquidationModule } from "@zaros/markets/perps/modules/LiquidationModule.sol";
 import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpMarketModule } from "@zaros/markets/perps/modules/PerpMarketModule.sol";
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
 
 function deployModules() returns (address[] memory) {
-    address[] memory modules = new address[](7);
+    address[] memory modules = new address[](8);
 
     address diamondCutModule = address(new DiamondCutModule());
     address diamondLoupeModule = address(new DiamondLoupeModule());
     address globalConfigurationModule = address(new GlobalConfigurationModule());
+    address liquidationModule = address(new LiquidationModule());
     address orderModule = address(new OrderModule());
     address perpMarketModule = address(new PerpMarketModule());
     address perpsAccountModule = address(new PerpsAccountModule());
@@ -27,16 +27,17 @@ function deployModules() returns (address[] memory) {
     modules[0] = diamondCutModule;
     modules[1] = diamondLoupeModule;
     modules[2] = globalConfigurationModule;
-    modules[3] = orderModule;
-    modules[4] = perpMarketModule;
-    modules[5] = perpsAccountModule;
-    modules[6] = settlementModule;
+    modules[3] = liquidationModule;
+    modules[4] = orderModule;
+    modules[5] = perpMarketModule;
+    modules[6] = perpsAccountModule;
+    modules[7] = settlementModule;
 
     return modules;
 }
 
 function getModulesSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](7);
+    bytes4[][] memory selectors = new bytes4[][](8);
 
     bytes4[] memory diamondCutModuleSelectors = new bytes4[](1);
 
@@ -50,18 +51,26 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     diamondLoupeModuleSelectors[2] = DiamondLoupeModule.facetAddress.selector;
     diamondLoupeModuleSelectors[4] = DiamondLoupeModule.facetSelectors.selector;
 
-    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](9);
+    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](12);
 
-    globalConfigurationModuleSelectors[0] =
+    globalConfigurationModuleSelectors[0] = GlobalConfigurationModule.getAccountsWithActivePositions.selector;
+    globalConfigurationModuleSelectors[1] =
         GlobalConfigurationModule.getDepositCapForMarginCollateralConfiguration.selector;
-    globalConfigurationModuleSelectors[1] = GlobalConfigurationModule.setPerpsAccountToken.selector;
-    globalConfigurationModuleSelectors[2] = GlobalConfigurationModule.setLiquidityEngine.selector;
-    globalConfigurationModuleSelectors[3] = GlobalConfigurationModule.configureMarginCollateral.selector;
+    globalConfigurationModuleSelectors[2] = GlobalConfigurationModule.setPerpsAccountToken.selector;
+    globalConfigurationModuleSelectors[3] = GlobalConfigurationModule.setLiquidityEngine.selector;
     globalConfigurationModuleSelectors[4] = GlobalConfigurationModule.configureCollateralPriority.selector;
-    globalConfigurationModuleSelectors[5] = GlobalConfigurationModule.removeCollateralFromPriorityList.selector;
-    globalConfigurationModuleSelectors[6] = GlobalConfigurationModule.configureSystemParameters.selector;
-    globalConfigurationModuleSelectors[7] = GlobalConfigurationModule.createPerpMarket.selector;
-    globalConfigurationModuleSelectors[8] = GlobalConfigurationModule.updatePerpMarketStatus.selector;
+    globalConfigurationModuleSelectors[5] = GlobalConfigurationModule.configureLiquidators.selector;
+    globalConfigurationModuleSelectors[6] = GlobalConfigurationModule.configureMarginCollateral.selector;
+    globalConfigurationModuleSelectors[7] = GlobalConfigurationModule.removeCollateralFromPriorityList.selector;
+    globalConfigurationModuleSelectors[8] = GlobalConfigurationModule.configureSystemParameters.selector;
+    globalConfigurationModuleSelectors[9] = GlobalConfigurationModule.createPerpMarket.selector;
+    globalConfigurationModuleSelectors[10] = GlobalConfigurationModule.updatePerpMarketConfiguration.selector;
+    globalConfigurationModuleSelectors[11] = GlobalConfigurationModule.updatePerpMarketStatus.selector;
+
+    bytes4[] memory liquidationModuleSelectors = new bytes4[](2);
+
+    liquidationModuleSelectors[0] = LiquidationModule.checkLiquidatableAccounts.selector;
+    liquidationModuleSelectors[1] = LiquidationModule.liquidateAccounts.selector;
 
     bytes4[] memory orderModuleSelectors = new bytes4[](7);
 
@@ -70,10 +79,10 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     orderModuleSelectors[2] = OrderModule.getMarginRequirementsForTrade.selector;
     orderModuleSelectors[3] = OrderModule.getActiveMarketOrder.selector;
     orderModuleSelectors[4] = OrderModule.createMarketOrder.selector;
-    orderModuleSelectors[5] = OrderModule.dispatchCustomSettlementRequest.selector;
+    orderModuleSelectors[5] = OrderModule.dispatchCustomOrder.selector;
     orderModuleSelectors[6] = OrderModule.cancelMarketOrder.selector;
 
-    bytes4[] memory perpMarketModuleSelectors = new bytes4[](11);
+    bytes4[] memory perpMarketModuleSelectors = new bytes4[](10);
 
     perpMarketModuleSelectors[0] = PerpMarketModule.name.selector;
     perpMarketModuleSelectors[1] = PerpMarketModule.symbol.selector;
@@ -86,7 +95,7 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     perpMarketModuleSelectors[8] = PerpMarketModule.getFundingVelocity.selector;
     perpMarketModuleSelectors[9] = PerpMarketModule.getMarketData.selector;
 
-    bytes4[] memory perpsAccountModuleSelectors = new bytes4[](11);
+    bytes4[] memory perpsAccountModuleSelectors = new bytes4[](12);
 
     perpsAccountModuleSelectors[0] = PerpsAccountModule.getPerpsAccountToken.selector;
     perpsAccountModuleSelectors[1] = PerpsAccountModule.getAccountMarginCollateralBalance.selector;
@@ -109,10 +118,11 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     selectors[0] = diamondCutModuleSelectors;
     selectors[1] = diamondLoupeModuleSelectors;
     selectors[2] = globalConfigurationModuleSelectors;
-    selectors[3] = orderModuleSelectors;
-    selectors[4] = perpMarketModuleSelectors;
-    selectors[5] = perpsAccountModuleSelectors;
-    selectors[6] = settlementModuleSelectors;
+    selectors[3] = liquidationModuleSelectors;
+    selectors[4] = orderModuleSelectors;
+    selectors[5] = perpMarketModuleSelectors;
+    selectors[6] = perpsAccountModuleSelectors;
+    selectors[7] = settlementModuleSelectors;
 
     return selectors;
 }
