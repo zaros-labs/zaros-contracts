@@ -15,57 +15,30 @@ import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalC
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
+import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Forge dependencies
-import "forge-std/console.sol";
+import { console } from "forge-std/console.sol";
 
 // TODO: update limit order strategies
-contract CreatePerpMarket is BaseScript {
+contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
-    string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
-
     IVerifierProxy internal chainlinkVerifier;
     uint256 internal defaultSettlementFee;
 
     address internal ethUsdPriceAdapter;
     string internal ethUsdStreamId;
 
-    uint256 internal constant LIMIT_ORDER_SETTLEMENT_ID = 1;
-    uint256 internal constant OCO_ORDER_SETTLEMENT_ID = 2;
-
-    uint128 internal constant ETH_USD_MARKET_ID = 1;
-    string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
-    string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
-    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
-    uint128 internal constant ETH_USD_MMR = 0.01e18;
-    uint128 internal constant ETH_USD_MAX_OI = 100_000_000e18;
-    uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
-    uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.25e18;
-    uint248 internal constant ETH_USD_SETTLEMENT_DELAY = 2 seconds;
-    OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
-
     address internal linkUsdPriceAdapter;
     string internal linkUsdStreamId;
-
-    uint128 internal constant LINK_USD_MARKET_ID = 2;
-    string internal constant LINK_USD_MARKET_NAME = "LINK/USD Perpetual";
-    string internal constant LINK_USD_MARKET_SYMBOL = "LINK/USD-PERP";
-    uint128 internal constant LINK_USD_MIN_IMR = 0.01e18;
-    uint128 internal constant LINK_USD_MMR = 0.01e18;
-    uint128 internal constant LINK_USD_MAX_OI = 100_000_000e18;
-    uint256 internal constant LINK_USD_SKEW_SCALE = 1_000_000e18;
-    uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
-    uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 2 seconds;
-    OrderFees.Data internal linkUsdOrderFee = OrderFees.Data({ makerFee: 0.004e18, takerFee: 0.008e18 });
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
@@ -209,7 +182,8 @@ contract CreatePerpMarket is BaseScript {
             LimitOrderSettlementStrategy.initialize.selector,
             perpsEngine,
             ETH_USD_MARKET_ID,
-            LIMIT_ORDER_SETTLEMENT_ID
+            LIMIT_ORDER_SETTLEMENT_ID,
+            MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
         );
         bytes memory ethUsdMarketOrderSettlementStrategyInitializeData =
             abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID);
@@ -235,7 +209,7 @@ contract CreatePerpMarket is BaseScript {
             )
         );
 
-        console.log("ETH-USD LOSS: ", ethUsdLimitOrderSettlementStrategy);
+        console.log("ETH-USD Limit Order Settlement Strategy: ", ethUsdLimitOrderSettlementStrategy);
 
         limitOrderSettlementStrategies.set(ETH_USD_MARKET_ID, ethUsdLimitOrderSettlementStrategy);
 
@@ -245,7 +219,7 @@ contract CreatePerpMarket is BaseScript {
             )
         );
 
-        console.log("ETH-USD MOSS: ", ethUsdMarketOrderSettlementStrategy);
+        console.log("ETH-USD Market Order Settlement Strategy: ", ethUsdMarketOrderSettlementStrategy);
 
         marketOrderSettlementStrategies.set(ETH_USD_MARKET_ID, ethUsdMarketOrderSettlementStrategy);
 
@@ -253,7 +227,7 @@ contract CreatePerpMarket is BaseScript {
             new ERC1967Proxy(ocoOrderSettlementStrategyImplementation, ethUsdOcoOrderSettlementStrategyInitializeData)
         );
 
-        console.log("ETH-USD OSS: ", ethUsdOcoOrderSettlementStrategy);
+        console.log("ETH-USD Oco Order Settlement Strategy: ", ethUsdOcoOrderSettlementStrategy);
 
         ocoOrderSettlementStrategies.set(ETH_USD_MARKET_ID, ethUsdOcoOrderSettlementStrategy);
 
@@ -263,7 +237,7 @@ contract CreatePerpMarket is BaseScript {
             )
         );
 
-        console.log("LINK-USD LOSS: ", linkUsdLimitOrderSettlementStrategy);
+        console.log("LINK-USD Limit OrderSettlement Strategy: ", linkUsdLimitOrderSettlementStrategy);
 
         limitOrderSettlementStrategies.set(LINK_USD_MARKET_ID, linkUsdLimitOrderSettlementStrategy);
 
@@ -273,7 +247,7 @@ contract CreatePerpMarket is BaseScript {
             )
         );
 
-        console.log("LINK-USD MOSS: ", linkUsdMarketOrderSettlementStrategy);
+        console.log("LINK-USD Market Order Settlement Strategy: ", linkUsdMarketOrderSettlementStrategy);
 
         marketOrderSettlementStrategies.set(LINK_USD_MARKET_ID, linkUsdMarketOrderSettlementStrategy);
 
@@ -283,7 +257,7 @@ contract CreatePerpMarket is BaseScript {
             )
         );
 
-        console.log("LINK-USD OSS: ", linkUsdOcoOrderSettlementStrategy);
+        console.log("LINK-USD Oco Order Settlement Strategy: ", linkUsdOcoOrderSettlementStrategy);
 
         ocoOrderSettlementStrategies.set(LINK_USD_MARKET_ID, linkUsdOcoOrderSettlementStrategy);
     }

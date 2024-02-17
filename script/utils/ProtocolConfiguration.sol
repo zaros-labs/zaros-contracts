@@ -2,7 +2,8 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { Constants as Constants } from "@zaros/utils/Constants.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
+import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
@@ -37,10 +38,10 @@ abstract contract ProtocolConfiguration {
     bytes32 internal constant BURN_FEATURE_FLAG = Constants.BURN_FEATURE_FLAG;
     bytes32 internal constant MINT_FEATURE_FLAG = Constants.MINT_FEATURE_FLAG;
 
-    /// @notice Chainlink Automation upkeeps configuration constants.
+    /// @notice Chainlink Automation upkeeps configuration Constants.
     string internal constant PERPS_LIQUIDATION_UPKEEP_NAME = "Perps Liquidation Upkeep";
 
-    /// @notice Margin collateral types configuration constants.
+    /// @notice Margin collateral types configuration Constants.
     uint128 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
     uint128 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
     uint128 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
@@ -51,7 +52,13 @@ abstract contract ProtocolConfiguration {
     uint256 internal constant USDZ_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant WSTETH_MIN_DEPOSIT_MARGIN = 0.025e18;
 
-    /// @notice General perps engine system configuration constants.
+    /// @notice Settlement Strategies configuration Constants.
+    uint256 internal constant LIMIT_ORDER_SETTLEMENT_ID = 1;
+    uint256 internal constant OCO_ORDER_SETTLEMENT_ID = 2;
+    uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
+    uint128 internal constant MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET = 5;
+
+    /// @notice General perps engine system configuration Constants.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
     uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
@@ -60,7 +67,7 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant MIN_TRADE_SIZE_USD = 200e18;
     uint128 internal constant LIQUIDATION_FEE_USD = 5e18;
 
-    /// @notice BTC/USD market configuration constants.
+    /// @notice BTC/USD market configuration Constants.
     uint128 internal constant BTC_USD_MARKET_ID = 1;
     string internal constant BTC_USD_MARKET_NAME = "BTC/USD Perpetual Futures";
     string internal constant BTC_USD_MARKET_SYMBOL = "BTC/USD PERP";
@@ -72,8 +79,9 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant BTC_USD_ORDER_MAKER_FEE = 0.04e18;
     uint128 internal constant BTC_USD_ORDER_TAKER_FEE = 0.08e18;
     uint128 internal constant BTC_USD_SETTLEMENT_DELAY = 1 seconds;
+    OrderFees.Data internal btcUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
-    /// @notice ETH/USD market configuration constants.
+    /// @notice ETH/USD market configuration Constants.
     uint128 internal constant ETH_USD_MARKET_ID = 2;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
     string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
@@ -85,6 +93,19 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant ETH_USD_ORDER_MAKER_FEE = 0.04e18;
     uint128 internal constant ETH_USD_ORDER_TAKER_FEE = 0.08e18;
     uint128 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;
+    OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
+
+    /// @notice LINK/USD market configuration Constants.
+    uint128 internal constant LINK_USD_MARKET_ID = 2;
+    string internal constant LINK_USD_MARKET_NAME = "LINK/USD Perpetual";
+    string internal constant LINK_USD_MARKET_SYMBOL = "LINK/USD-PERP";
+    uint128 internal constant LINK_USD_MIN_IMR = 0.01e18;
+    uint128 internal constant LINK_USD_MMR = 0.01e18;
+    uint128 internal constant LINK_USD_MAX_OI = 100_000_000e18;
+    uint256 internal constant LINK_USD_SKEW_SCALE = 1_000_000e18;
+    uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
+    uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 2 seconds;
+    OrderFees.Data internal linkUsdOrderFee = OrderFees.Data({ makerFee: 0.004e18, takerFee: 0.008e18 });
 
     /// @notice Test only mocks
     uint256 internal constant MOCK_BTC_USD_PRICE = 100_000e18;
