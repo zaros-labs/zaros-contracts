@@ -12,17 +12,35 @@ import { PerpMarketModule } from "@zaros/markets/perps/modules/PerpMarketModule.
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
 
+// Forge dependencies
+import { console } from "forge-std/console.sol";
+
 function deployModules() returns (address[] memory) {
     address[] memory modules = new address[](8);
 
     address diamondCutModule = address(new DiamondCutModule());
+    console.log("DiamondCutModule: ", diamondCutModule);
+
     address diamondLoupeModule = address(new DiamondLoupeModule());
+    console.log("DiamondLoupeModule: ", diamondLoupeModule);
+
     address globalConfigurationModule = address(new GlobalConfigurationModule());
+    console.log("GlobalConfigurationModule: ", globalConfigurationModule);
+
     address liquidationModule = address(new LiquidationModule());
+    console.log("LiquidationModule: ", liquidationModule);
+
     address orderModule = address(new OrderModule());
+    console.log("OrderModule: ", orderModule);
+
     address perpMarketModule = address(new PerpMarketModule());
+    console.log("PerpMarketModule: ", perpMarketModule);
+
     address perpsAccountModule = address(new PerpsAccountModule());
+    console.log("PerpsAccountModule: ", perpsAccountModule);
+
     address settlementModule = address(new SettlementModule());
+    console.log("SettlementModule: ", settlementModule);
 
     modules[0] = diamondCutModule;
     modules[1] = diamondLoupeModule;

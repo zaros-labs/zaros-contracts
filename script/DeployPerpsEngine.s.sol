@@ -19,13 +19,13 @@ import {
     getFacetCuts,
     getInitializables,
     getInitializePayloads
-} from "./utils/DiamondHelpers.sol";
+} from "./helpers/DiamondHelpers.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Forge dependencies
-import "forge-std/console.sol";
+import { console } from "forge-std/console.sol";
 
 contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
@@ -50,6 +50,7 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
 
     function run() public broadcaster {
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
+        console.log("Perps Account NFT: ", address(perpsAccountToken));
         // usdToken = USDToken(vm.envAddress("USDZ"));
         usdToken = vm.envAddress("USDZ");
         link = vm.envAddress("LINK");
@@ -73,12 +74,12 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
         });
 
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
+        console.log("Perps Engine Proxy: ", address(perpsEngine));
 
         // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
         payable(address(perpsEngine)).transfer(0.1 ether);
 
         configureContracts();
-        logContracts(modules);
     }
 
     function configureContracts() internal {
@@ -102,8 +103,7 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
 
         address liquidationUpkeep = address(new LiquidationUpkeep());
 
-        console.log("Liquidation Upkeep:");
-        console.log(liquidationUpkeep);
+        console.log("Liquidation Upkeep: ", liquidationUpkeep);
         // AutomationHelpers.registerLiquidationUpkeep({
         //     name: PERPS_LIQUIDATION_UPKEEP_NAME,
         //     liquidationUpkeep: liquidationUpkeep,
@@ -122,18 +122,5 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
         LimitedMintingERC20(address(usdToken)).transferOwnership(address(perpsEngine));
-    }
-
-    function logContracts(address[] memory modules) internal view {
-        for (uint256 i = 0; i < modules.length; i++) {
-            console.log("Module: ");
-            console.log(modules[i]);
-        }
-
-        console.log("Perps Account NFT: ");
-        console.log(address(perpsAccountToken));
-
-        console.log("Perps Engine Proxy: ");
-        console.log(address(perpsEngine));
     }
 }
