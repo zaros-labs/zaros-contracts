@@ -32,7 +32,6 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
     IVerifierProxy internal chainlinkVerifier;
-    uint256 internal defaultSettlementFee;
 
     address internal ethUsdPriceAdapter;
     string internal ethUsdStreamId;
@@ -55,8 +54,6 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
     function run() public broadcaster {
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
-        // TODO: Add to market configuration json
-        defaultSettlementFee = 2e18;
 
         ethUsdPriceAdapter = vm.envAddress("ETH_USD_PRICE_FEED");
         ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
@@ -84,14 +81,14 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
-            fee: uint80(defaultSettlementFee),
+            fee: DEFAULT_SETTLEMENT_FEE,
             settlementStrategy: marketOrderSettlementStrategies.get(ETH_USD_MARKET_ID),
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
         SettlementConfiguration.Data memory ethUsdLimitOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
-            fee: uint80(defaultSettlementFee),
+            fee: DEFAULT_SETTLEMENT_FEE,
             settlementStrategy: limitOrderSettlementStrategies.get(ETH_USD_MARKET_ID),
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
@@ -131,7 +128,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         SettlementConfiguration.Data memory linkUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
-            fee: uint80(defaultSettlementFee),
+            fee: DEFAULT_SETTLEMENT_FEE,
             settlementStrategy: marketOrderSettlementStrategies.get(LINK_USD_MARKET_ID),
             data: abi.encode(linkUsdMarketOrderConfigurationData)
         });
@@ -139,7 +136,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         SettlementConfiguration.Data memory linkUsdLimitOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
-            fee: uint80(defaultSettlementFee),
+            fee: DEFAULT_SETTLEMENT_FEE,
             settlementStrategy: limitOrderSettlementStrategies.get(LINK_USD_MARKET_ID),
             data: abi.encode(linkUsdMarketOrderConfigurationData)
         });
@@ -168,15 +165,15 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     function deploySettlementStrategies() internal {
         address limitOrderSettlementStrategyImplementation = address(new LimitOrderSettlementStrategy());
 
-        console.log("LOSS Implementation: ", limitOrderSettlementStrategyImplementation);
+        console.log("Limit Order Settlement Strategy Implementation: ", limitOrderSettlementStrategyImplementation);
 
         address marketOrderSettlementStrategyImplementation = address(new MarketOrderSettlementStrategy());
 
-        console.log("MOSS Implementation: ", marketOrderSettlementStrategyImplementation);
+        console.log("Market Order Settlement Strategy Implementation: ", marketOrderSettlementStrategyImplementation);
 
         address ocoOrderSettlementStrategyImplementation = address(new OcoOrderSettlementStrategy());
 
-        console.log("OSS Implementation: ", ocoOrderSettlementStrategyImplementation);
+        console.log("Oco Order Settlement Strategy Implementation: ", ocoOrderSettlementStrategyImplementation);
 
         bytes memory ethUsdLimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
             LimitOrderSettlementStrategy.initialize.selector,
@@ -195,7 +192,8 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             LimitOrderSettlementStrategy.initialize.selector,
             perpsEngine,
             LINK_USD_MARKET_ID,
-            LIMIT_ORDER_SETTLEMENT_ID
+            LIMIT_ORDER_SETTLEMENT_ID,
+            MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
         );
         bytes memory linkUsdMarketOrderSettlementStrategyInitializeData =
             abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID);
