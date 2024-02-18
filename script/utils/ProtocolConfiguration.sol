@@ -82,7 +82,7 @@ abstract contract ProtocolConfiguration {
     OrderFees.Data internal btcUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice ETH/USD market configuration Constants.
-    uint128 internal constant ETH_USD_MARKET_ID = 1;
+    uint128 internal constant ETH_USD_MARKET_ID = 2;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
     string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
     uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
@@ -96,7 +96,7 @@ abstract contract ProtocolConfiguration {
     OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice LINK/USD market configuration Constants.
-    uint128 internal constant LINK_USD_MARKET_ID = 2;
+    uint128 internal constant LINK_USD_MARKET_ID = 3;
     string internal constant LINK_USD_MARKET_NAME = "LINK/USD Perpetual";
     string internal constant LINK_USD_MARKET_SYMBOL = "LINK/USD-PERP";
     uint128 internal constant LINK_USD_MIN_IMR = 0.01e18;
