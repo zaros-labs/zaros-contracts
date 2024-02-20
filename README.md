@@ -1,15 +1,24 @@
 # Zaros
 
-> **_NOTE:_** Still heavily WIP.
+# Latest deployments:
 
-### (Some of the) Next Steps:
+### Arbitrum Sepolia:
 
-- [Move to EIP-2535 Diamond Pattern](https://eips.ethereum.org/EIPS/eip-2535)
-- Soft Liquidations for LPs
-- End to end perps implementation
-- Async Orders
-- CCIP Integration
+- (LimitedMintingERC20) USDC Proxy: 0xbb9aB75B5b0ACAF31b27D068aaBdc10B5Ef305dE
+- (LimitedMintingERC20) USDz Proxy: 0x1c436CF40369A39248EE7E04E210DD3647Adf250
 
-### Architecture
+  - Perps Account NFT: 0x56f0D08385C8409501F2127120Eb034Cf85832Ec
+  - DiamondCutModule: 0x55Cd760aE18F1a6eA36837742bFA17a44722e796
+  - DiamondLoupeModule: 0xe4d18045dF2504D3873bf48473C26D57AC07dD93
+  - GlobalConfigurationModule: 0x525De463774f39c6987F11E5dC9EA6F44D302419
+  - LiquidationModule: 0x93be2D485d8AC5f37Eb7DEA0616ad930e96d1E87
+  - OrderModule: 0xe0FdbB8b8bfBd43a35d7C4774Ba44AFE44C9A0A6
+  - PerpMarketModule: 0x9BD75B21a5552a78DBBC559147437607ca53A994
+  - PerpsAccountModule: 0x7b73254eE30F0eDCed780cF49821b73ed418ef29
+  - SettlementModule: 0xE8c4C9663C20c8c2125A4C6aAeff9aac5D9D2FaB
+  - Perps Engine Proxy: 0x855947DEa0BDe2D4e2A0F1295e63CEB02287FC30
+  - Liquidation Upkeep: 0xe94C6379057591c353B43e4ca68b9B9c721f86BC
+  - Access Key Manager Implementation: 0x91707cb94c53279c54E67B6750aF93C28D63e746
+  - Access Key Manager Proxy: 0xEd8A959d7Be084A639b0a6a433FcFf21c2C1276B
 
-![Architecture Diagram](./docs/img/architecture.png)
+  # Markets Configuration:

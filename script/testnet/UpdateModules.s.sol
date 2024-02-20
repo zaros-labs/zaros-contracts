@@ -11,8 +11,8 @@ import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
-import { BaseScript } from "./Base.s.sol";
-import { deployModules, getModulesSelectors, getFacetCuts } from "./utils/DiamondHelpers.sol";
+import { BaseScript } from "../Base.s.sol";
+import { deployModules, getModulesSelectors, getFacetCuts } from "../helpers/DiamondHelpers.sol";
 
 import { MockSettlementModule } from "test/mocks/MockSettlementModule.sol";
 

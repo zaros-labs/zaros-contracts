@@ -23,7 +23,7 @@ import {
     getFacetCuts,
     getInitializables,
     getInitializePayloads
-} from "script/utils/DiamondHelpers.sol";
+} from "script/helpers/DiamondHelpers.sol";
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";

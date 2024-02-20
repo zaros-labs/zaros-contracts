@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { LimitedMintingERC20 } from "script/utils/LimitedMintingERC20.sol";
+import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
 import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
@@ -233,6 +233,7 @@ contract SettlementModule is ISettlementModule {
             perpsAccount.deposit(ctx.usdToken, amountToIncrease);
 
             // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
+            // NOTE: testnet only
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
@@ -264,6 +265,7 @@ contract SettlementModule is ISettlementModule {
         UD60x18 settlementFeePerTradeUsdX18 = ud60x18(SettlementConfiguration.load(marketId, settlementId).fee);
         UD60x18 totalSettlementFeeUsdX18 = settlementFeePerTradeUsdX18.mul(ud60x18(amountOfSettledTrades));
 
+        // NOTE: testnet only
         LimitedMintingERC20(usdToken).mint(settlementFeeReceiver, totalSettlementFeeUsdX18.intoUint256());
 
         // TODO: add dynamic gas cost into settlementFee, checking settlementFeeGasCost stored and multiplying by
