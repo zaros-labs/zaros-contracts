@@ -58,7 +58,10 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
         upkeepInitialLinkFunding = vm.envUint("UPKEEP_INITIAL_LINK_FUNDING");
 
-        address[] memory modules = deployModules();
+        bool isTestnet = vm.envBool("IS_TESTNET");
+        address accessKeyManager = vm.envAddress("CONTRACT_ACCESS_KEY_MANAGER");
+
+        address[] memory modules = deployModules(isTestnet, accessKeyManager);
         bytes4[][] memory modulesSelectors = getModulesSelectors();
 
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);

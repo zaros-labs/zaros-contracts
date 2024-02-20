@@ -155,14 +155,13 @@ contract PerpsAccountModuleTestnet is IPerpsAccountModule {
     /// @inheritdoc IPerpsAccountModule
     function getOpenPositionData(
         uint128 accountId,
-        uint128 marketId,
-        uint256 indexPriceX18
+        uint128 marketId
     )
         external
         view
         override
         returns (
-            SD59x18 openInterest,
+            SD59x18 sizeX18,
             UD60x18 notionalValueX18,
             UD60x18 maintenanceMarginUsdX18,
             SD59x18 accruedFundingUsdX18,
@@ -172,13 +171,12 @@ contract PerpsAccountModuleTestnet is IPerpsAccountModule {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         Position.Data storage position = Position.load(accountId, marketId);
 
-        // UD60x18 maintenanceMarginRateX18 = ud60x18(perpMarket.maintenanceMarginRateX18);
-        UD60x18 price = perpMarket.getMarkPrice(SD_ZERO, ud60x18(indexPriceX18));
+        UD60x18 markPriceX18 = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
         SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
-        SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, price);
+        SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, markPriceX18);
 
-        (openInterest, notionalValueX18, maintenanceMarginUsdX18, accruedFundingUsdX18, unrealizedPnlUsdX18) =
-        position.getPositionData(ud60x18(perpMarket.configuration.maintenanceMarginRateX18), price, fundingFeePerUnit);
+        (sizeX18, notionalValueX18, maintenanceMarginUsdX18, accruedFundingUsdX18, unrealizedPnlUsdX18) = position
+            .getPositionData(ud60x18(perpMarket.configuration.maintenanceMarginRateX18), markPriceX18, fundingFeePerUnit);
     }
 
     /// @inheritdoc IPerpsAccountModule

@@ -100,7 +100,7 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
             mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter
         });
 
-        address[] memory modules = deployModules();
+        address[] memory modules = deployModules(false, address(0));
         bytes4[][] memory modulesSelectors = getModulesSelectors();
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
         address[] memory initializables = getInitializables(modules);

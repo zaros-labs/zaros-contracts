@@ -11,11 +11,12 @@ import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpMarketModule } from "@zaros/markets/perps/modules/PerpMarketModule.sol";
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
+import { PerpsAccountModuleTestnet } from "../../testnet/modules/PerpsAccountModuleTestnet.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-function deployModules() returns (address[] memory) {
+function deployModules(bool isTestnet, address accessKeyManager) returns (address[] memory) {
     address[] memory modules = new address[](8);
 
     address diamondCutModule = address(new DiamondCutModule());
@@ -36,7 +37,12 @@ function deployModules() returns (address[] memory) {
     address perpMarketModule = address(new PerpMarketModule());
     console.log("PerpMarketModule: ", perpMarketModule);
 
-    address perpsAccountModule = address(new PerpsAccountModule());
+    address perpsAccountModule;
+    if(isTestnet){
+        perpsAccountModule = address(new PerpsAccountModuleTestnet(accessKeyManager));
+    }else {
+        perpsAccountModule = address(new PerpsAccountModule());
+    }
     console.log("PerpsAccountModule: ", perpsAccountModule);
 
     address settlementModule = address(new SettlementModule());
