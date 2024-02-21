@@ -37,7 +37,7 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function simulateSettlement(
+    function simulateTrade(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
@@ -130,7 +130,7 @@ contract OrderModule is IOrderModule {
         }
 
         // we ignore the return values as they aren't needed
-        simulateSettlement({
+        simulateTrade({
             accountId: accountId,
             marketId: marketId,
             settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,

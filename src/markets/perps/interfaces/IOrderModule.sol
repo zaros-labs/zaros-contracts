@@ -31,7 +31,7 @@ interface IOrderModule {
     /// @return orderFeeUsdX18 The order fee in USD.
     /// @return settlementFeeUsdX18 The settlement fee in USD.
     /// @return fillPriceX18 The fill price quote.
-    function simulateSettlement(
+    function simulateTrade(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
