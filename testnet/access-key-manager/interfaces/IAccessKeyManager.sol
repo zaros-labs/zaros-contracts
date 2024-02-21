@@ -20,6 +20,10 @@ interface IAccessKeyManager {
     }
 
     error InvalidAttestation();
+    error NotEnoughAvailableKeys(uint256 amountOfGeneratedKeys, uint256 availableKeys);
+    error InvalidSignature();
+    error InvalidKey();
+    error UserAlreadyActived();
 
     /// @notice Create key with the validation of spearmint
     /// @param data The attestation data of spearmint
@@ -48,6 +52,11 @@ interface IAccessKeyManager {
     /// @param key The key passed
     /// @return The data of key
     function getKeyData(bytes16 key) external view returns (KeyData memory);
+
+    /// @notice Get key id of user
+    /// @param user The user address
+    /// @return The key
+    function getKeyIdOfUser(address user) external view returns (bytes16);
 
     /// @notice Update spearmint signer
     /// @param _spearmintSigner The address of signer spearmint

@@ -26,10 +26,6 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyMan
     mapping (bytes16 key => KeyData data) public keys;
     mapping (address user => bytes16 key) public keyIdOfUser;
 
-    error NotEnoughAvailableKeys(uint256 amountOfGeneratedKeys, uint256 availableKeys);
-    error InvalidSignature();
-    error InvalidKey();
-
     function initialize(address owner, address _spearmintSigner) external initializer {
         spearmintSigner = _spearmintSigner;
 
@@ -65,6 +61,10 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyMan
     }
 
     function activateKey(bytes16 key) external {
+        if (keyIdOfUser[msg.sender] != bytes16(0)) {
+            revert UserAlreadyActived();
+        }
+
         if (!keys[key].isAvailable) {
             revert InvalidKey();
         }
@@ -83,6 +83,10 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyMan
 
     function getKeyData(bytes16 key) external view returns (KeyData memory) {
         return keys[key];
+    }
+
+    function getKeyIdOfUser(address user) external view returns (bytes16) {
+        return keyIdOfUser[user];
     }
 
     function setSpearmintSigner(address _spearmintSigner) public onlyOwner {
