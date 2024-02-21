@@ -15,6 +15,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The GlobalConfiguration namespace.
 library GlobalConfiguration {
@@ -57,6 +58,13 @@ library GlobalConfiguration {
     function checkMarketIsEnabled(Data storage self, uint128 marketId) internal view {
         if (!self.enabledMarketsIds.contains(marketId)) {
             revert Errors.PerpMarketDisabled(marketId);
+        }
+    }
+
+    function checkTradeSizeUsd(Data storage self, SD59x18 sizeDeltaX18, UD60x18 markPriceX18) internal view {
+        UD60x18 tradeSizeUsdX18 = sizeDeltaX18.abs().intoUD60x18().mul(markPriceX18);
+        if (tradeSizeUsdX18.lt(ud60x18(self.minTradeSizeUsdX18))) {
+            revert Errors.TradeSizeTooSmall(tradeSizeUsdX18.intoUint128(), self.minTradeSizeUsdX18);
         }
     }
 

@@ -100,13 +100,10 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function getActiveMarketOrder(uint128 accountId)
-        external
-        pure
-        override
-        returns (MarketOrder.Data memory marketOrder)
-    {
-        marketOrder = MarketOrder.load(accountId);
+    function getActiveMarketOrder(uint128 accountId) external pure override returns (MarketOrder.Data memory) {
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
+
+        return marketOrder;
     }
 
     /// @inheritdoc IOrderModule

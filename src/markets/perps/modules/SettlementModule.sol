@@ -175,6 +175,8 @@ contract SettlementModule is ISettlementModule {
             ctx.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedPriceData, ctx.sizeDelta.gt(SD_ZERO))
         );
 
+        globalConfiguration.checkTradeSizeUsd(ctx.sizeDelta, ctx.fillPrice);
+
         ctx.fundingRate = perpMarket.getCurrentFundingRate();
         ctx.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(ctx.fundingRate, ctx.fillPrice);
 

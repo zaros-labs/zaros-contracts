@@ -60,52 +60,6 @@ library PerpMarket {
         perpMarket = load(marketId);
     }
 
-    function create(
-        uint128 marketId,
-        string memory name,
-        string memory symbol,
-        address priceAdapter,
-        uint128 minInitialMarginRateX18,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint256 skewScale,
-        uint128 maxFundingVelocity,
-        SettlementConfiguration.Data memory marketOrderStrategy,
-        SettlementConfiguration.Data[] memory customTriggerStrategies,
-        OrderFees.Data memory orderFees
-    )
-        internal
-    {
-        Data storage self = load(marketId);
-        if (self.id != 0) {
-            revert Errors.MarketAlreadyExists(marketId);
-        }
-
-        // TODO: remember to test gas cost / number of sstores here
-        self.id = marketId;
-        self.initialized = true;
-        self.configuration = MarketConfiguration.Data({
-            name: name,
-            symbol: symbol,
-            priceAdapter: priceAdapter,
-            minInitialMarginRateX18: minInitialMarginRateX18,
-            maintenanceMarginRateX18: maintenanceMarginRateX18,
-            maxOpenInterest: maxOpenInterest,
-            orderFees: orderFees,
-            skewScale: skewScale,
-            maxFundingVelocity: maxFundingVelocity
-        });
-
-        SettlementConfiguration.create(marketId, 0, marketOrderStrategy);
-
-        if (customTriggerStrategies.length > 0) {
-            for (uint256 i = 0; i < customTriggerStrategies.length; i++) {
-                uint128 nextStrategyId = ++self.nextStrategyId;
-                SettlementConfiguration.create(marketId, nextStrategyId, customTriggerStrategies[i]);
-            }
-        }
-    }
-
     // TODO: Call a Zaros-deployed price adapter contract instead of calling CL AggregatorV3 interface.
     // TODO: By having a custom price adapter, we can e.g sync a price adapter with a custom settlement strategies
     // contracts to
@@ -240,5 +194,51 @@ library PerpMarket {
 
         self.skew = sd59x18(self.skew).add(sizeDelta).intoInt256().toInt128();
         self.openInterest = newOpenInterest.intoUint128();
+    }
+
+    function create(
+        uint128 marketId,
+        string memory name,
+        string memory symbol,
+        address priceAdapter,
+        uint128 minInitialMarginRateX18,
+        uint128 maintenanceMarginRateX18,
+        uint128 maxOpenInterest,
+        uint256 skewScale,
+        uint128 maxFundingVelocity,
+        SettlementConfiguration.Data memory marketOrderStrategy,
+        SettlementConfiguration.Data[] memory customTriggerStrategies,
+        OrderFees.Data memory orderFees
+    )
+        internal
+    {
+        Data storage self = load(marketId);
+        if (self.id != 0) {
+            revert Errors.MarketAlreadyExists(marketId);
+        }
+
+        // TODO: remember to test gas cost / number of sstores here
+        self.id = marketId;
+        self.initialized = true;
+        self.configuration = MarketConfiguration.Data({
+            name: name,
+            symbol: symbol,
+            priceAdapter: priceAdapter,
+            minInitialMarginRateX18: minInitialMarginRateX18,
+            maintenanceMarginRateX18: maintenanceMarginRateX18,
+            maxOpenInterest: maxOpenInterest,
+            orderFees: orderFees,
+            skewScale: skewScale,
+            maxFundingVelocity: maxFundingVelocity
+        });
+
+        SettlementConfiguration.create(marketId, 0, marketOrderStrategy);
+
+        if (customTriggerStrategies.length > 0) {
+            for (uint256 i = 0; i < customTriggerStrategies.length; i++) {
+                uint128 nextStrategyId = ++self.nextStrategyId;
+                SettlementConfiguration.create(marketId, nextStrategyId, customTriggerStrategies[i]);
+            }
+        }
     }
 }
