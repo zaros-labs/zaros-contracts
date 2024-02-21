@@ -189,7 +189,7 @@ contract PerpsAccountModuleTestnet is IPerpsAccountModule {
         }
 
         bool userHasAccount = userAlreadyMintAccount[msg.sender];
-        if (!userHasAccount) {
+        if (userHasAccount) {
             revert UserAlreadyHaveAccount();
         }
 
