@@ -76,8 +76,6 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant BTC_USD_MAX_OI = 1000e18;
     uint256 internal constant BTC_USD_SKEW_SCALE = 3e9;
     uint128 internal constant BTC_USD_MAX_FUNDING_VELOCITY = 0.025e18;
-    uint128 internal constant BTC_USD_ORDER_MAKER_FEE = 0.04e18;
-    uint128 internal constant BTC_USD_ORDER_TAKER_FEE = 0.08e18;
     uint128 internal constant BTC_USD_SETTLEMENT_DELAY = 1 seconds;
     OrderFees.Data internal btcUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
@@ -90,8 +88,6 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant ETH_USD_MAX_OI = 10_000e18;
     uint256 internal constant ETH_USD_SKEW_SCALE = 2e9;
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.025e18;
-    uint128 internal constant ETH_USD_ORDER_MAKER_FEE = 0.04e18;
-    uint128 internal constant ETH_USD_ORDER_TAKER_FEE = 0.08e18;
     uint128 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;
     OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
