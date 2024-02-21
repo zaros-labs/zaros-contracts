@@ -24,7 +24,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 interface IAccessKeyManager {
-    function isUserActive() external view returns (bool);
+    function isUserActive(address user) external view returns (bool);
 }
 
 /// @notice See {IPerpsAccountModule}.
@@ -181,7 +181,7 @@ contract PerpsAccountModuleTestnet is IPerpsAccountModule {
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint128) {
-        (bool isUserActive) = IAccessKeyManager(accessKeyManager).isUserActive();
+        (bool isUserActive) = IAccessKeyManager(accessKeyManager).isUserActive(msg.sender);
 
         if(!isUserActive) {
             revert UserWithoutAccess();
