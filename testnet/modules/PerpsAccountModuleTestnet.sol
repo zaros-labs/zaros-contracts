@@ -40,8 +40,10 @@ contract PerpsAccountModuleTestnet is IPerpsAccountModule {
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
     address public accessKeyManager;
+    mapping(address user => bool alreadyMintAccount) userAlreadyMintAccount;
 
     error UserWithoutAccess();
+    error UserAlreadyHaveAccount();
 
     constructor (address _accessKeyManager) {
         accessKeyManager = _accessKeyManager;
@@ -182,9 +184,13 @@ contract PerpsAccountModuleTestnet is IPerpsAccountModule {
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint128) {
         (bool isUserActive) = IAccessKeyManager(accessKeyManager).isUserActive(msg.sender);
-
-        if(!isUserActive) {
+        if (!isUserActive) {
             revert UserWithoutAccess();
+        }
+
+        bool userHasAccount = userAlreadyMintAccount[msg.sender];
+        if (!userHasAccount) {
+            revert UserAlreadyHaveAccount();
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -193,6 +199,7 @@ contract PerpsAccountModuleTestnet is IPerpsAccountModule {
         perpsAccountToken.mint(msg.sender, accountId);
 
         PerpsAccount.create(accountId, msg.sender);
+        userAlreadyMintAccount[msg.sender] = true;
 
         emit LogCreatePerpsAccount(accountId, msg.sender);
         return accountId;
