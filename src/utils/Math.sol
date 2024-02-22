@@ -2,18 +2,35 @@
 pragma solidity 0.8.23;
 
 // PRB Math dependencies
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+
+// TODO: Override SD59x18 and UD60x18 to use the PRBMath library
+// using Math for SD59x18 global;
+// using Math for UD60x18 global;
 
 library Math {
     function divUp(SD59x18 a, SD59x18 b) internal pure returns (SD59x18) {
         return a.mod(b) == SD_ZERO ? a.div(b) : a.div(b).add(sd59x18(1));
     }
 
+    function divUp(UD60x18 a, UD60x18 b) internal pure returns (UD60x18) {
+        return a.mod(b) == UD_ZERO ? a.div(b) : a.div(b).add(ud60x18(1));
+    }
+
     function max(SD59x18 a, SD59x18 b) internal pure returns (SD59x18) {
         return a.gt(b) ? a : b;
     }
 
+    function max(UD60x18 a, UD60x18 b) internal pure returns (UD60x18) {
+        return a.gt(b) ? a : b;
+    }
+
     function min(SD59x18 a, SD59x18 b) internal pure returns (SD59x18) {
+        return a.lt(b) ? a : b;
+    }
+
+    function min(UD60x18 a, UD60x18 b) internal pure returns (UD60x18) {
         return a.lt(b) ? a : b;
     }
 }
