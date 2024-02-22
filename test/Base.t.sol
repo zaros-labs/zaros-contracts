@@ -172,9 +172,8 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
 
         usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, address(liquidityEngine));
 
-        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, users.owner);
-
-        usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, users.owner);
+        // TODO: Temporary
+        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(perpsEngine));
 
         perpsEngine.configureMarginCollateral(
             address(usdToken),

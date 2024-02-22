@@ -7,6 +7,7 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { Math } from "@zaros/utils/Math.sol";
 import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
@@ -15,11 +16,16 @@ import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol"
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+
 // PRB Math dependencies
 import { sd59x18 } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 abstract contract Base_Integration_Shared_Test is Base_Test {
+    using SafeCast for int256;
+
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
 
@@ -228,19 +234,19 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
-    function fuzzMarketOrderSizeDelta(
+    function fuzzOrderSizeDelta(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
+        uint256 price,
         bool isLong
     )
         internal
         pure
         returns (int128 sizeDelta)
     {
-        int128 sizeDeltaAbs = int128(
-            ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18()
-                .intoInt256()
-        );
+        UD60x18 fuzzedSizeDeltaAbs = ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(price));
+        int128 sizeDeltaAbs =
+            Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD)).intoSD59x18().intoInt256().toInt128();
         sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
     }
 

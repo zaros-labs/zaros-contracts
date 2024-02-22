@@ -150,11 +150,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-        int128 sizeDeltaAbs = int128(
-            ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18()
-                .intoInt256()
-        );
-        int128 sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+        int128 sizeDelta = fuzzOrderSizeDelta(initialMarginRate, marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
 
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters({
@@ -214,7 +210,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        int128 sizeDelta = fuzzMarketOrderSizeDelta(initialMarginRate, marginValueUsd, isLong);
+        int128 sizeDelta = fuzzOrderSizeDelta(initialMarginRate, marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         changePrank({ msgSender: users.owner });
@@ -254,7 +250,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        int128 sizeDelta = fuzzMarketOrderSizeDelta(initialMarginRate, marginValueUsd, isLong);
+        int128 sizeDelta = fuzzOrderSizeDelta(initialMarginRate, marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         perpsEngine.createMarketOrder({
@@ -293,7 +289,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        int128 sizeDelta = fuzzMarketOrderSizeDelta(initialMarginRate, marginValueUsd, isLong);
+        int128 sizeDelta = fuzzOrderSizeDelta(initialMarginRate, marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({

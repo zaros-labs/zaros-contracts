@@ -170,7 +170,6 @@ contract SettlementModule is ISettlementModule {
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
 
         bytes memory verifiedPriceData = settlementConfiguration.verifyPriceData(priceData);
-
         ctx.fillPrice = perpMarket.getMarkPrice(
             ctx.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedPriceData, ctx.sizeDelta.gt(SD_ZERO))
         );
@@ -210,15 +209,15 @@ contract SettlementModule is ISettlementModule {
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
         });
 
+        perpMarket.updateOpenInterest(ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+        perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+
         if (ctx.newPosition.size == 0) {
             oldPosition.clear();
         } else {
             oldPosition.update(ctx.newPosition);
         }
 
-        perpMarket.updateOpenInterest(ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
-
-        perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
         // TODO: Handle negative margin case
         if (ctx.pnl.lt(SD_ZERO)) {
