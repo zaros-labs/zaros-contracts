@@ -97,7 +97,7 @@ contract OrderModule is IOrderModule {
         UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
 
         UD60x18 orderValueX18 = markPriceX18.mul(sd59x18(sizeDelta).abs().intoUD60x18());
-        UD60x18 initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.minInitialMarginRateX18));
+        UD60x18 initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.initialMarginRateX18));
         UD60x18 maintenanceMarginUsdX18 =
             orderValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
 

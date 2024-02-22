@@ -9,7 +9,7 @@ library MarketConfiguration {
         string name;
         string symbol;
         address priceAdapter;
-        uint128 minInitialMarginRateX18;
+        uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
         uint128 maxOpenInterest;
         uint128 maxFundingVelocity;
@@ -22,7 +22,7 @@ library MarketConfiguration {
         string memory name,
         string memory symbol,
         address priceAdapter,
-        uint128 minInitialMarginRateX18,
+        uint128 initialMarginRateX18,
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
         uint128 maxFundingVelocity,
@@ -34,7 +34,7 @@ library MarketConfiguration {
         self.name = name;
         self.symbol = symbol;
         self.priceAdapter = priceAdapter;
-        self.minInitialMarginRateX18 = minInitialMarginRateX18;
+        self.initialMarginRateX18 = initialMarginRateX18;
         self.maintenanceMarginRateX18 = maintenanceMarginRateX18;
         self.maxOpenInterest = maxOpenInterest;
         self.maxFundingVelocity = maxFundingVelocity;

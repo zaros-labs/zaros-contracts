@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { Math } from "@zaros/utils/Math.sol";
 import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
@@ -13,7 +14,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary} from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     using SafeCast for int256;
@@ -81,7 +82,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertWhen_TheSizeDeltaIsLessThanTheMinTradeSize(uint256 marginValueUsd, bool isLong)
+    function testFuzz_RevertWhen_TheSizeDeltaIsLessThanTheMinTradeSize(
+        uint256 marginValueUsd,
+        bool isLong
+    )
         external
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
@@ -91,7 +95,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        // int128 sizeDelta = isLong ? int128(int256(MIN_TRADE_SIZE_USD / MOCK_ETH_USD_PRICE)) : -int128(int256(MIN_TRADE_SIZE_USD / MOCK_ETH_USD_PRICE));
         SD59x18 sizeDeltaAbs = ud60x18(MIN_TRADE_SIZE_USD).sub(UD_UNIT).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18();
         int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
@@ -117,14 +120,42 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_TheAccountWontMeetTheMarginRequirements()
+    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirements(
+        uint256 marginValueUsd,
+        bool isLong
+    )
         external
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
     {
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        SD59x18 sizeDeltaAbs = Math.max(
+            ud60x18(MIN_TRADE_SIZE_USD),
+            ud60x18(ETH_USD_IMR).sub(ud60x18(1)).mul(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE))
+        ).intoSD59x18();
+        int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
+        MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({
+            marketId: ETH_USD_MARKET_ID,
+            sizeDelta: sizeDelta,
+            acceptablePrice: 0,
+            timestamp: uint128(block.timestamp)
+        });
+
         // it should revert
+        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InsufficientMargin.selector) });
+        perpsEngine.createMarketOrder({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            sizeDelta: sizeDelta,
+            acceptablePrice: 0
+        });
     }
 
     modifier givenTheAccountWillMeetTheMarginRequirements() {
@@ -143,7 +174,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
         givenTheAccountWillMeetTheMarginRequirements
     {
-        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_IMR, max: MAX_IMR });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -203,7 +234,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirements
         givenTheAccountWillNotReachThePositionsLimit
     {
-        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_IMR, max: MAX_IMR });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -244,7 +275,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {
-        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_IMR, max: MAX_IMR });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -285,7 +316,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {
-        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_IMR, max: MAX_IMR });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });

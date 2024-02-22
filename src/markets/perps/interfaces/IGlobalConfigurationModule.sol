@@ -11,7 +11,7 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 /// @param name The perps market name.
 /// @param symbol The perps market symbol.
 /// @param priceAdapter The price adapter contract, which handles the market's index price.
-/// @param minInitialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
+/// @param initialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
 /// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
 /// @param maxOpenInterest The perps market maximum open interest per side.
 /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
@@ -23,7 +23,7 @@ struct CreatePerpMarketParams {
     string name;
     string symbol;
     address priceAdapter;
-    uint128 minInitialMarginRateX18;
+    uint128 initialMarginRateX18;
     uint128 maintenanceMarginRateX18;
     uint128 maxOpenInterest;
     uint256 skewScale;
@@ -178,7 +178,7 @@ interface IGlobalConfigurationModule {
     /// @param name The perp market name.
     /// @param symbol The perp market symbol.
     /// @param priceAdapter The price adapter contract, which handles the market's index price.
-    /// @param minInitialMarginRateX18 The perp market min initial margin rate, which defines the max leverage.
+    /// @param initialMarginRateX18 The perp market min initial margin rate, which defines the max leverage.
     /// @param maintenanceMarginRateX18 The perp market maintenance margin rate.
     /// @param maxOpenInterest The perp market maximum open interest per side.
     /// @param maxFundingVelocity The perp market maximum funding rate velocity.
@@ -189,7 +189,7 @@ interface IGlobalConfigurationModule {
         string calldata name,
         string calldata symbol,
         address priceAdapter,
-        uint128 minInitialMarginRateX18,
+        uint128 initialMarginRateX18,
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
         uint128 maxFundingVelocity,
