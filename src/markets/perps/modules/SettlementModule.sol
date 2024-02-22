@@ -218,7 +218,6 @@ contract SettlementModule is ISettlementModule {
             oldPosition.update(ctx.newPosition);
         }
 
-
         // TODO: Handle negative margin case
         if (ctx.pnl.lt(SD_ZERO)) {
             UD60x18 amountToDeduct = ctx.pnl.intoUD60x18();

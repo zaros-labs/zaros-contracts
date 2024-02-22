@@ -99,7 +99,7 @@ library Errors {
     /// it.
     error MarginCollateralTypeNotInPriority(address collateralType);
     /// @notice Thrown when a given trade is below the protocol configured min trade size in usd.
-    error TradeSizeTooSmall(uint128 tradeSizeUsdX18, uint128 minTradeSizeUsdX18);
+    error TradeSizeTooSmall();
 
     /// @notice PerpsEngine.SettlementModule errors.
 

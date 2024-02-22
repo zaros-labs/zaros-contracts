@@ -64,7 +64,7 @@ library GlobalConfiguration {
     function checkTradeSizeUsd(Data storage self, SD59x18 sizeDeltaX18, UD60x18 markPriceX18) internal view {
         UD60x18 tradeSizeUsdX18 = sizeDeltaX18.abs().intoUD60x18().mul(markPriceX18);
         if (tradeSizeUsdX18.lt(ud60x18(self.minTradeSizeUsdX18))) {
-            revert Errors.TradeSizeTooSmall(tradeSizeUsdX18.intoUint128(), self.minTradeSizeUsdX18);
+            revert Errors.TradeSizeTooSmall();
         }
     }
 
