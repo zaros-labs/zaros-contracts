@@ -123,8 +123,8 @@ library PerpsAccount {
         view
         returns (Data storage perpsAccount)
     {
-        verifySender(accountId);
         perpsAccount = loadExisting(accountId);
+        verifySender(accountId);
     }
 
     /// @notice Returns the amount of the given margin collateral type.

@@ -172,9 +172,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         uint128 accountId = ++globalConfiguration.nextAccountId;
         IAccountNFT perpsAccountToken = IAccountNFT(globalConfiguration.perpsAccountToken);
-        perpsAccountToken.mint(msg.sender, accountId);
-
         PerpsAccount.create(accountId, msg.sender);
+
+        perpsAccountToken.mint(msg.sender, accountId);
 
         emit LogCreatePerpsAccount(accountId, msg.sender);
         return accountId;

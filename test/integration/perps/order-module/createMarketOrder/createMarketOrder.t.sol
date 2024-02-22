@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
@@ -76,31 +77,61 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     }
 
     // TODO: Implement
-    function test_RevertGiven_TheAccountIsLiquidatable()
-        external
-        whenTheAccountIdExists
-        givenTheSenderIsAuthorized
-        whenTheSizeDeltaIsNotZero
-    {
-        // it should revert
-    }
-
-    modifier givenTheAccountIsNotLiquidatable() {
-        _;
-    }
-
-    // TODO: Implement
     function test_RevertGiven_TheAccountDoesNotHaveEnoughMargin()
         external
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
-        givenTheAccountIsNotLiquidatable
     {
-        // it should revert
+        // initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
+        // marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        // deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        // int128 sizeDeltaAbs = int128(
+        //     ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18()
+        //         .intoInt256()
+        // );
+        // int128 sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+
+        // changePrank({ msgSender: users.owner });
+        // perpsEngine.configureSystemParameters({
+        //     maxPositionsPerAccount: 1,
+        //     marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
+        //     minTradeSizeUsdX18: MIN_TRADE_SIZE_USD,
+        //     liquidationFeeUsdX18: LIQUIDATION_FEE_USD
+        // });
+
+        // changePrank({ msgSender: users.naruto });
+        // uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
+        // perpsEngine.createMarketOrder({
+        //     accountId: perpsAccountId,
+        //     marketId: ETH_USD_MARKET_ID,
+        //     sizeDelta: sizeDelta,
+        //     acceptablePrice: 0
+        // });
+
+        // changePrank({ msgSender: mockDefaultMarketOrderSettlementStrategy });
+        // bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE,
+        // false);
+
+        // mockSettleMarketOrder(perpsAccountId, ETH_USD_MARKET_ID, mockBasicSignedReport);
+
+        // changePrank({ msgSender: users.naruto });
+
+        // // it should revert
+        // vm.expectRevert({
+        //     revertData: abi.encodeWithSelector(Errors.MaxPositionsPerAccountReached.selector, perpsAccountId, 1, 1)
+        // });
+        // perpsEngine.createMarketOrder({
+        //     accountId: perpsAccountId,
+        //     marketId: BTC_USD_MARKET_ID,
+        //     sizeDelta: sizeDelta,
+        //     acceptablePrice: 0
+        // });
     }
 
-    modifier givenTheAccountHasEnoughMargin() {
+    modifier givenTheTradeSimulationPasses() {
         _;
     }
 
@@ -113,8 +144,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
-        givenTheAccountIsNotLiquidatable
-        givenTheAccountHasEnoughMargin
+        givenTheTradeSimulationPasses
     {
         initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
@@ -176,8 +206,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
-        givenTheAccountIsNotLiquidatable
-        givenTheAccountHasEnoughMargin
+        givenTheTradeSimulationPasses
         givenTheAccountWillNotReachThePositionsLimit
     {
         initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MIN_IMR, max: MAX_IMR });
@@ -216,8 +245,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
-        givenTheAccountIsNotLiquidatable
-        givenTheAccountHasEnoughMargin
+        givenTheTradeSimulationPasses
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {
@@ -257,8 +285,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
-        givenTheAccountIsNotLiquidatable
-        givenTheAccountHasEnoughMargin
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {
@@ -279,7 +305,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should emit a {LogCreateMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedMarketOrder);
+        emit IOrderModule.LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedMarketOrder);
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,
