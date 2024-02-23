@@ -179,7 +179,7 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
             address(usdToken),
             USDZ_DEPOSIT_CAP,
             USDZ_LOAN_TO_VALUE,
-            address(mockPriceAdapters.mockWstEthUsdPriceAdapter)
+            address(mockPriceAdapters.mockUsdcUsdPriceAdapter)
         );
     }
 

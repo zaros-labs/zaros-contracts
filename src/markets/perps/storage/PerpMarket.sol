@@ -28,8 +28,6 @@ import {
     convert as sd59x18Convert
 } from "@prb-math/SD59x18.sol";
 
-import "forge-std/console.sol";
-
 /// @title The PerpMarket namespace.
 library PerpMarket {
     using SafeCast for uint256;
@@ -136,6 +134,8 @@ library PerpMarket {
         } else {
             feeBps = sd59x18((self.configuration.orderFees.takerFee));
         }
+
+        return price.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);
     }
 
     function getNextFundingFeePerUnit(

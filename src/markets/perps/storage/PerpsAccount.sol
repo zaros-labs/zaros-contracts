@@ -195,7 +195,6 @@ library PerpsAccount {
             SD59x18 accountTotalUnrealizedPnlUsdX18
         )
     {
-
         if (settlementMarketId != 0) {
             PerpMarket.Data storage perpMarket = PerpMarket.load(settlementMarketId);
             Position.Data storage position = Position.load(self.id, settlementMarketId);

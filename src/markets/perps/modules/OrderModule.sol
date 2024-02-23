@@ -74,6 +74,7 @@ contract OrderModule is IOrderModule {
             SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
             console.log("CHIDORI");
+            console.log(accountTotalUnrealizedPnlUsdX18.intoUD60x18().intoUint256());
             console.log(requiredInitialMarginUsdX18.intoUint256(), requiredMaintenanceMarginUsdX18.intoUint256());
             console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
             console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());

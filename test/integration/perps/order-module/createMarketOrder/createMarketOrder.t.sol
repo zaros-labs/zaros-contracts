@@ -136,7 +136,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         SD59x18 sizeDeltaAbs = Math.max(
             ud60x18(MIN_TRADE_SIZE_USD),
-            ud60x18(ETH_USD_MARGIN_REQUIREMENTS_RATE).add(ud60x18(1e18)).div(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE))
+            ud60x18(ETH_USD_MARGIN_REQUIREMENTS_RATE).add(ud60x18(1e18)).div(ud60x18(marginValueUsd)).div(
+                ud60x18(MOCK_ETH_USD_PRICE)
+            )
         ).intoSD59x18();
         int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
