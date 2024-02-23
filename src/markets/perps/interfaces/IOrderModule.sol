@@ -28,6 +28,9 @@ interface IOrderModule {
     /// @param marketId The perp market id.
     /// @param settlementId The perp market settlement strategy id.
     /// @param sizeDelta The size delta of the order.
+    /// @return marginBalanceUsdX18 The given account's current margin balance.
+    /// @return requiredInitialMarginUsdX18 The required initial margin to settle the given trade.
+    /// @return requiredMaintenanceMarginUsdX18 The required maintenance margin to settle the given trade.
     /// @return orderFeeUsdX18 The order fee in USD.
     /// @return settlementFeeUsdX18 The settlement fee in USD.
     /// @return fillPriceX18 The fill price quote.
@@ -39,7 +42,14 @@ interface IOrderModule {
     )
         external
         view
-        returns (SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18);
+        returns (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18,
+            UD60x18 fillPriceX18
+        );
 
     function getMarginRequirementsForTrade(
         uint128 marketId,
@@ -62,7 +72,7 @@ interface IOrderModule {
     /// @param accountId The trading account id.
     function cancelMarketOrder(uint128 accountId) external;
 
-    function dispatchCustomOrder(
+    function createCustomOrder(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,

@@ -59,7 +59,7 @@ library Errors {
     /// @notice PerpsEngine.OrderModule errors
 
     /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
-    error FailedDispatchCustomOrder();
+    error FailedCreateCustomOrder();
     /// @notice Thrown when trying to cancel an active market order and there's none.
     error NoActiveMarketOrder(uint128 accountId);
 

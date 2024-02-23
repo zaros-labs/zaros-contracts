@@ -97,7 +97,7 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     orderModuleSelectors[2] = OrderModule.getMarginRequirementsForTrade.selector;
     orderModuleSelectors[3] = OrderModule.getActiveMarketOrder.selector;
     orderModuleSelectors[4] = OrderModule.createMarketOrder.selector;
-    orderModuleSelectors[5] = OrderModule.dispatchCustomOrder.selector;
+    orderModuleSelectors[5] = OrderModule.createCustomOrder.selector;
     orderModuleSelectors[6] = OrderModule.cancelMarketOrder.selector;
 
     bytes4[] memory perpMarketModuleSelectors = new bytes4[](10);

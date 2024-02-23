@@ -183,20 +183,6 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
         );
     }
 
-    // function distributeTokens() internal {
-    //     deal({ token: address(usdToken), to: users.naruto, give: 1_000_000e18 });
-    //     deal({ token: address(mockWstEth), to: users.naruto, give: 1_000_000e18 });
-
-    //     deal({ token: address(usdToken), to: users.sasuke, give: 1_000_000e18 });
-    //     deal({ token: address(mockWstEth), to: users.sasuke, give: 1_000_000e18 });
-
-    //     deal({ token: address(usdToken), to: users.sakura, give: 1_000_000e18 });
-    //     deal({ token: address(mockWstEth), to: users.sakura, give: 1_000_000e18 });
-
-    //     deal({ token: address(usdToken), to: users.madara, give: 1_000_000e18 });
-    //     deal({ token: address(mockWstEth), to: users.madara, give: 1_000_000e18 });
-    // }
-
     /*//////////////////////////////////////////////////////////////////////////
                                     CALL EXPECTS
     //////////////////////////////////////////////////////////////////////////*/
