@@ -109,7 +109,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
                 marketOrderConfiguration: ethUsdMarketOrderConfiguration,
                 customTriggerStrategies: ethUsdCustomOrderStrategies,
-                orderFees: ethUsdOrderFee
+                orderFees: ethUsdOrderFees
             })
         });
 
@@ -150,14 +150,14 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 name: LINK_USD_MARKET_NAME,
                 symbol: LINK_USD_MARKET_SYMBOL,
                 priceAdapter: linkUsdPriceAdapter,
-                initialMarginRateX18: LINK_USD_MIN_IMR,
+                initialMarginRateX18: LINK_USD_IMR,
                 maintenanceMarginRateX18: LINK_USD_MMR,
                 maxOpenInterest: LINK_USD_MAX_OI,
                 skewScale: LINK_USD_SKEW_SCALE,
                 maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
                 marketOrderConfiguration: linkUsdMarketOrderConfiguration,
                 customTriggerStrategies: linkUsdCustomOrderStrategies,
-                orderFees: linkUsdOrderFee
+                orderFees: linkUsdOrderFees
             })
         });
     }

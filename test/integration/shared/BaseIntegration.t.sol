@@ -41,8 +41,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
     SettlementConfiguration.Data[] internal btcUsdCustomOrderStrategies;
 
-    OrderFees.Data internal btcUsdOrderFees;
-
     /// @dev ETH / USD market configuration variables.
     SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderConfigurationData;
     SettlementConfiguration.Data internal ethUsdMarketOrderConfiguration;
@@ -50,8 +48,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     SettlementConfiguration.Data internal ethUsdLimitOrderConfiguration;
 
     SettlementConfiguration.Data[] internal ethUsdCustomOrderStrategies;
-
-    OrderFees.Data internal ethUsdOrderFees;
 
     function setUp() public virtual override {
         Base_Test.setUp();
@@ -90,8 +86,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             data: abi.encode(btcUsdMarketOrderConfigurationData)
         });
 
-        btcUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
-
         /// @dev ETH / USD market configuration variables.
         marketOrderUpkeeps[ETH_USD_MARKET_ID] = vm.addr({ privateKey: 0x06 });
 
@@ -122,8 +116,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
-        ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
-
         btcUsdCustomOrderStrategies.push(btcUsdLimitOrderConfiguration);
         ethUsdCustomOrderStrategies.push(ethUsdLimitOrderConfiguration);
     }
@@ -149,7 +141,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 name: BTC_USD_MARKET_NAME,
                 symbol: BTC_USD_MARKET_SYMBOL,
                 priceAdapter: address(mockPriceAdapters.mockBtcUsdPriceAdapter),
-                initialMarginRateX18: BTC_USD_MIN_IMR,
+                initialMarginRateX18: BTC_USD_IMR,
                 maintenanceMarginRateX18: BTC_USD_MMR,
                 maxOpenInterest: BTC_USD_MAX_OI,
                 skewScale: BTC_USD_SKEW_SCALE,

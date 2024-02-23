@@ -28,6 +28,8 @@ import {
     convert as sd59x18Convert
 } from "@prb-math/SD59x18.sol";
 
+import "forge-std/console.sol";
+
 /// @title The PerpMarket namespace.
 library PerpMarket {
     using SafeCast for uint256;
@@ -130,11 +132,16 @@ library PerpMarket {
         bool isSkewGteZero = skew.gte(SD_ZERO);
         bool isBuyOrder = sizeDelta.gt(SD_ZERO);
 
+        // fix
         if (isSkewGteZero == isBuyOrder) {
             feeBps = sd59x18((self.configuration.orderFees.takerFee));
         } else {
             feeBps = sd59x18((self.configuration.orderFees.makerFee));
         }
+
+        console.log("FEE USD HERE");
+        console.log(feeBps.intoUD60x18().intoUint256());
+        console.log(price.intoSD59x18().mul(sizeDelta).abs().intoUD60x18().intoUint256());
 
         return price.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);
     }
