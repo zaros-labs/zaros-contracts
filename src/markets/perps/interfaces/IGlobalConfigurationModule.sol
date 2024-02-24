@@ -3,6 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfiguration.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
@@ -114,11 +115,11 @@ interface IGlobalConfigurationModule {
     /// @dev Returns the maximum amount that can be deposited as margin for a given
     /// collateral type.
     /// @param collateralType The address of the collateral type.
-    /// @return depositCap The configured deposit cap for the given collateral type.
-    function getDepositCapForMarginCollateralConfiguration(address collateralType)
+    /// @return marginCollateralConfiguration The configuration parameters of the given collateral type.
+    function getMarginCollateralConfiguration(address collateralType)
         external
         view
-        returns (uint256 depositCap);
+        returns (MarginCollateralConfiguration.Data memory marginCollateralConfiguration);
 
     /// @notice Sets the address of the account token NFT contract.
     /// @param perpsAccountToken The account token address.

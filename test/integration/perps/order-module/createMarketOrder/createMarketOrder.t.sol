@@ -13,7 +13,7 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
@@ -134,8 +134,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
+        // TODO: fix
         SD59x18 sizeDeltaAbs = Math.max(
-            ud60x18(MIN_TRADE_SIZE_USD),
+            Math.divUp(ud60x18(MIN_TRADE_SIZE_USD), ud60x18(MOCK_ETH_USD_PRICE)).add(UD_UNIT),
             ud60x18(ETH_USD_MARGIN_REQUIREMENTS_RATE).add(ud60x18(1e18)).div(ud60x18(marginValueUsd)).div(
                 ud60x18(MOCK_ETH_USD_PRICE)
             )
@@ -143,15 +144,25 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
-        MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0,
-            timestamp: uint128(block.timestamp)
-        });
+        (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18,
+        ) = perpsEngine.simulateTrade(perpsAccountId, ETH_USD_MARKET_ID, 0, sizeDelta);
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InsufficientMargin.selector) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InsufficientMargin.selector,
+                perpsAccountId,
+                marginBalanceUsdX18.intoInt256(),
+                orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256(),
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256()
+                )
+        });
+        // vm.expectRevert({revertData: abi.encodeWithSelector(Errors.InsufficientMargin.selector)});
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
             marketId: ETH_USD_MARKET_ID,

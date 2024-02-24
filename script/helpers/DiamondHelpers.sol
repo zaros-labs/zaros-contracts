@@ -72,8 +72,7 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](12);
 
     globalConfigurationModuleSelectors[0] = GlobalConfigurationModule.getAccountsWithActivePositions.selector;
-    globalConfigurationModuleSelectors[1] =
-        GlobalConfigurationModule.getDepositCapForMarginCollateralConfiguration.selector;
+    globalConfigurationModuleSelectors[1] = GlobalConfigurationModule.getMarginCollateralConfiguration.selector;
     globalConfigurationModuleSelectors[2] = GlobalConfigurationModule.setPerpsAccountToken.selector;
     globalConfigurationModuleSelectors[3] = GlobalConfigurationModule.setLiquidityEngine.selector;
     globalConfigurationModuleSelectors[4] = GlobalConfigurationModule.configureCollateralPriority.selector;

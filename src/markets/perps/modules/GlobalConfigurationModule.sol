@@ -70,16 +70,16 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationModule
-    function getDepositCapForMarginCollateralConfiguration(address collateralType)
+    function getMarginCollateralConfiguration(address collateralType)
         external
         view
         override
-        returns (uint256)
+        returns (MarginCollateralConfiguration.Data memory)
     {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
 
-        return marginCollateralConfiguration.depositCap;
+        return marginCollateralConfiguration;
     }
 
     /// @inheritdoc IGlobalConfigurationModule

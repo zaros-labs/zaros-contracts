@@ -6,6 +6,7 @@ pragma solidity 0.8.23;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
 import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
 import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
@@ -29,7 +30,8 @@ contract UpdateModules is BaseScript {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        OrderModule orderModule = new OrderModule();
+        GlobalConfigurationModule globalConfigurationModule = new GlobalConfigurationModule();
+        // OrderModule orderModule = new OrderModule();
         // MockSettlementModule mockSettlementModule = new MockSettlementModule();
 
         bytes4[] memory selectors = new bytes4[](1);
@@ -37,11 +39,11 @@ contract UpdateModules is BaseScript {
         address[] memory initializables;
         bytes[] memory initializePayloads;
 
-        selectors[0] = OrderModule.getActiveMarketOrder.selector;
+        selectors[0] = GlobalConfigurationModule.getMarginCollateralConfiguration.selector;
 
         facetCuts[0] = IDiamond.FacetCut({
-            facet: address(orderModule),
-            action: IDiamond.FacetCutAction.Replace,
+            facet: address(globalConfigurationModule),
+            action: IDiamond.FacetCutAction.Add,
             selectors: selectors
         });
 
@@ -60,6 +62,6 @@ contract UpdateModules is BaseScript {
 
         perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
 
-        console.log(address(orderModule));
+        console.log(address(globalConfigurationModule));
     }
 }
