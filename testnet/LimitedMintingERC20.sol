@@ -46,7 +46,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     }
 
     function _requireAmountLessThanMaxAmountMint(uint256 amount) private view {
-        if (amountMintedPerAddress[msg.sender] + amount <= maxAmountToMintPerAddress) {
+        if (amountMintedPerAddress[msg.sender] + amount > maxAmountToMintPerAddress) {
             revert LimitedMintingERC20_AmountExceedsLimit();
         }
     }
