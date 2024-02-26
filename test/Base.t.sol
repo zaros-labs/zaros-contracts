@@ -100,16 +100,20 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
             mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter
         });
 
-        address[] memory modules = deployModules();
+        bool isTestnet = false;
+        address accessKeyManager = address(0);
+        address[] memory modules = deployModules(isTestnet);
         bytes4[][] memory modulesSelectors = getModulesSelectors();
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
-        address[] memory initializables = getInitializables(modules);
+        address[] memory initializables = getInitializables(modules, isTestnet);
         bytes[] memory initializePayloads = getInitializePayloads(
             users.owner,
             address(perpsAccountToken),
             mockRewardDistributorAddress,
             address(usdToken),
-            mockLiquidityEngineAddress
+            mockLiquidityEngineAddress,
+            accessKeyManager,
+            isTestnet
         );
 
         IDiamond.InitParams memory initParams = IDiamond.InitParams({

@@ -12,36 +12,19 @@ import { ERC20PermitUpgradeable } from "@openzeppelin-upgradeable/token/ERC20/ex
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-// @title A contract to manage the user access trough the generated keys
-// @author Zaros Labs
-contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable {
+// Zaros dependencies
+import { IAccessKeyManager } from "./interfaces/IAccessKeyManager.sol";
+
+contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyManager {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
     using SignatureChecker for address;
 
     address public spearmintSigner;
 
-    struct AttestationData {
-        uint256 availableKeys;
-    }
-
-    struct GeneratedKey {
-        uint96 id;
-        bytes16 key;
-    }
-
-    struct KeyData {
-        address creator;
-        bool isAvailable;
-    }
-
     mapping (address user => GeneratedKey[] keys) public userGeneratedKeys;
     mapping (bytes16 key => KeyData data) public keys;
     mapping (address user => bytes16 key) public keyIdOfUser;
-
-    error NotEnoughAvailableKeys(uint256 amountOfGeneratedKeys, uint256 availableKeys);
-    error InvalidSignature();
-    error InvalidKey();
 
     function initialize(address owner, address _spearmintSigner) external initializer {
         spearmintSigner = _spearmintSigner;
@@ -49,7 +32,6 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable {
         __Ownable_init(owner);
     }
 
-    // @notice Create new available key
     function createKey(AttestationData calldata data, bytes calldata _signature) external {
         _validateSignature(data, _signature);
 
@@ -74,13 +56,15 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable {
         }
     }
 
-    // @notice Get your generated keys
     function getKeysByUser() external view returns (GeneratedKey[] memory) {
         return userGeneratedKeys[msg.sender];
     }
 
-    // @notice Active your key
     function activateKey(bytes16 key) external {
+        if (keyIdOfUser[msg.sender] != bytes16(0)) {
+            revert UserAlreadyActived();
+        }
+
         if (!keys[key].isAvailable) {
             revert InvalidKey();
         }
@@ -89,22 +73,22 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable {
         keyIdOfUser[msg.sender] = key;
     }
 
-    // @notice Verify if user have access
-    function isUserActive() external view returns (bool) {
-        return keyIdOfUser[msg.sender] != bytes16(0);
+    function isUserActive(address user) external view returns (bool) {
+        return keyIdOfUser[user] != bytes16(0);
     }
 
-    // @notice Verify if user key is valid
     function isKeyValid(bytes16 key) external view returns (bool) {
         return keys[key].isAvailable;
     }
 
-    // @notice Get the data of key
     function getKeyData(bytes16 key) external view returns (KeyData memory) {
         return keys[key];
     }
 
-    // @notice Update spearmint signer
+    function getKeyIdOfUser(address user) external view returns (bytes16) {
+        return keyIdOfUser[user];
+    }
+
     function setSpearmintSigner(address _spearmintSigner) public onlyOwner {
         spearmintSigner = _spearmintSigner;
     }
