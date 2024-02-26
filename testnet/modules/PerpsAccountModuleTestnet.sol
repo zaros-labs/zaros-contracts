@@ -38,10 +38,6 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
     error UserWithoutAccess();
     error UserAlreadyHaveAccount();
 
-    // constructor (address _accessKeyManager) {
-    //     accessKeyManager = AccessKeyManager(_accessKeyManager);
-    // }
-
     constructor() {
         _disableInitializers();
     }
@@ -53,11 +49,6 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint128) {
-        // (bool isUserActive) = IAccessKeyManager(accessKeyManager).isUserActive(msg.sender);
-        // if (!isUserActive) {
-        //     revert UserWithoutAccess();
-        // }
-
         (bool isUserActive) = accessKeyManager.isUserActive(msg.sender);
         if (!isUserActive) {
             revert UserWithoutAccess();
