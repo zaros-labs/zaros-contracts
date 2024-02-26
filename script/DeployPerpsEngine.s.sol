@@ -59,13 +59,22 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
         upkeepInitialLinkFunding = vm.envUint("UPKEEP_INITIAL_LINK_FUNDING");
 
-        address[] memory modules = deployModules();
+        bool isTestnet = vm.envBool("IS_TESTNET");
+        address accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
+
+        address[] memory modules = deployModules(isTestnet);
         bytes4[][] memory modulesSelectors = getModulesSelectors();
 
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
-        address[] memory initializables = getInitializables(modules);
+        address[] memory initializables = getInitializables(modules, isTestnet);
         bytes[] memory initializePayloads = getInitializePayloads(
-            deployer, address(perpsAccountToken), mockRewardDistributorAddress, usdToken, mockLiquidityEngineAddress
+            deployer,
+            address(perpsAccountToken),
+            mockRewardDistributorAddress,
+            usdToken,
+            mockLiquidityEngineAddress,
+            address(accessKeyManager),
+            isTestnet
         );
 
         IDiamond.InitParams memory initParams = IDiamond.InitParams({
