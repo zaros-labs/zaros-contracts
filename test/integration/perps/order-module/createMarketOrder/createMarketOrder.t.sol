@@ -137,7 +137,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // TODO: fix
         SD59x18 sizeDeltaAbs = Math.max(
             Math.divUp(ud60x18(MIN_TRADE_SIZE_USD), ud60x18(MOCK_ETH_USD_PRICE)).add(UD_UNIT),
-            ud60x18(ETH_USD_MARGIN_REQUIREMENTS_RATE).add(ud60x18(1e18)).div(ud60x18(marginValueUsd)).div(
+            ud60x18(ETH_USD_MARGIN_REQUIREMENTS).add(ud60x18(1e18)).div(ud60x18(marginValueUsd)).div(
                 ud60x18(MOCK_ETH_USD_PRICE)
             )
         ).intoSD59x18();
@@ -187,7 +187,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
         givenTheAccountWillMeetTheMarginRequirements
     {
-        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS_RATE, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -247,7 +247,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirements
         givenTheAccountWillNotReachThePositionsLimit
     {
-        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS_RATE, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -288,7 +288,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {
-        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS_RATE, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -329,7 +329,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillNotReachThePositionsLimit
         givenThePerpMarketIsActive
     {
-        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS_RATE, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
