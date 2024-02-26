@@ -16,7 +16,7 @@ import { PerpsAccountModuleTestnet } from "../../testnet/modules/PerpsAccountMod
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-function deployModules(bool isTestnet, address accessKeyManager) returns (address[] memory) {
+function deployModules(bool isTestnet) returns (address[] memory) {
     address[] memory modules = new address[](8);
 
     address diamondCutModule = address(new DiamondCutModule());
@@ -38,9 +38,9 @@ function deployModules(bool isTestnet, address accessKeyManager) returns (addres
     console.log("PerpMarketModule: ", perpMarketModule);
 
     address perpsAccountModule;
-    if(isTestnet){
-        perpsAccountModule = address(new PerpsAccountModuleTestnet(accessKeyManager));
-    }else {
+    if (isTestnet) {
+        perpsAccountModule = address(new PerpsAccountModuleTestnet());
+    } else {
         perpsAccountModule = address(new PerpsAccountModule());
     }
     console.log("PerpsAccountModule: ", perpsAccountModule);
@@ -171,14 +171,19 @@ function getFacetCuts(
     return facetCuts;
 }
 
-function getInitializables(address[] memory modules) pure returns (address[] memory) {
-    address[] memory initializables = new address[](2);
+function getInitializables(address[] memory modules, bool isTestnet) pure returns (address[] memory) {
+    address[] memory initializables = new address[](3);
 
     address diamondCutModule = modules[0];
     address globalConfigurationModule = modules[2];
 
     initializables[0] = diamondCutModule;
     initializables[1] = globalConfigurationModule;
+
+    if (isTestnet) {
+        address perpsAccountModuleTestnet = modules[6];
+        initializables[2] = perpsAccountModuleTestnet;
+    }
 
     return initializables;
 }
@@ -188,7 +193,9 @@ function getInitializePayloads(
     address perpsAccountToken,
     address rewardDistributor,
     address usdToken,
-    address zaros
+    address zaros,
+    address _accessKeyManager,
+    bool isTestnet
 )
     pure
     returns (bytes[] memory)
@@ -200,10 +207,16 @@ function getInitializePayloads(
         GlobalConfigurationModule.initialize.selector, perpsAccountToken, rewardDistributor, usdToken, zaros
     );
 
-    initializePayloads = new bytes[](2);
+    initializePayloads = new bytes[](3);
 
     initializePayloads[0] = diamondCutInitializeData;
     initializePayloads[1] = perpsInitializeData;
+
+    if (isTestnet) {
+        bytes memory perpsAccountTestnetData =
+            abi.encodeWithSelector(PerpsAccountModuleTestnet.initialize.selector, _accessKeyManager);
+        initializePayloads[2] = perpsAccountTestnetData;
+    }
 
     return initializePayloads;
 }
