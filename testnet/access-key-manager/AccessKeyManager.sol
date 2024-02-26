@@ -23,6 +23,7 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyMan
     address public spearmintSigner;
 
     mapping (address user => GeneratedKey[] keys) public userGeneratedKeys;
+    mapping (address user => KeyData[] keys) public userGeneratedUsedKeys;
     mapping (bytes16 key => KeyData data) public keys;
     mapping (address user => bytes16 key) public keyIdOfUser;
 
@@ -51,13 +52,18 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyMan
 
             keys[key] = KeyData({
                 creator: msg.sender,
-                isAvailable: true
+                isAvailable: true,
+                activator: address(0)
             });
         }
     }
 
     function getKeysByUser() external view returns (GeneratedKey[] memory) {
         return userGeneratedKeys[msg.sender];
+    }
+
+    function getUsedKeysByUser(address user) external view returns (KeyData[] memory) {
+        return userGeneratedUsedKeys[user];
     }
 
     function activateKey(bytes16 key) external {
@@ -69,8 +75,12 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyMan
             revert InvalidKey();
         }
 
-        keys[key].isAvailable = false;
         keyIdOfUser[msg.sender] = key;
+
+        keys[key].isAvailable = false;
+        keys[key].activator = msg.sender;
+
+        userGeneratedUsedKeys[keys[key].creator].push(keys[key]);
     }
 
     function isUserActive(address user) external view returns (bool) {

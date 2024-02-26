@@ -16,6 +16,7 @@ interface IAccessKeyManager {
 
     struct KeyData {
         address creator;
+        address activator;
         bool isAvailable;
     }
 
@@ -33,6 +34,11 @@ interface IAccessKeyManager {
     /// @notice Get your generated keys
     /// @return Array of keys
     function getKeysByUser() external view returns (GeneratedKey[] memory);
+
+    /// @notice Get user generated used keys
+    /// @param user The user address
+    /// @return Array of bytes16
+    function getUsedKeysByUser(address user) external view returns (KeyData[] memory);
 
     /// @notice Active user key
     /// @param key The key passed
