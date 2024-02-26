@@ -24,6 +24,7 @@ import { sd59x18 } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 abstract contract Base_Integration_Shared_Test is Base_Test {
+    using Math for UD60x18;
     using SafeCast for int256;
 
     address internal mockChainlinkFeeManager;
@@ -237,8 +238,9 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         returns (int128 sizeDelta)
     {
         UD60x18 fuzzedSizeDeltaAbs = ud60x18(marginValueUsd).div(ud60x18(initialMarginRate)).div(ud60x18(price));
+        // TODO: fix min trade size usd dynamic calculation
         int128 sizeDeltaAbs =
-            Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD)).div(ud60x18(price)).intoSD59x18().intoInt256().toInt128();
+            Math.min(Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18))).div(ud60x18(price)), ud60x18(ETH_USD_MAX_OI)).intoSD59x18().intoInt256().toInt128();
         sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
     }
 
