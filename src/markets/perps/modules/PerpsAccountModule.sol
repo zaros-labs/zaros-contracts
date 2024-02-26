@@ -168,7 +168,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function createPerpsAccount() public override virtual returns (uint128) {
+    function createPerpsAccount() public virtual override returns (uint128) {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         uint128 accountId = ++globalConfiguration.nextAccountId;
         IAccountNFT perpsAccountToken = IAccountNFT(globalConfiguration.perpsAccountToken);

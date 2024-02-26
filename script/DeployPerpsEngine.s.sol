@@ -59,7 +59,7 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
         upkeepInitialLinkFunding = vm.envUint("UPKEEP_INITIAL_LINK_FUNDING");
 
         bool isTestnet = vm.envBool("IS_TESTNET");
-        address accessKeyManager = vm.envOr("CONTRACT_ACCESS_KEY_MANAGER", address(0));
+        address accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
 
         address[] memory modules = deployModules(isTestnet);
         bytes4[][] memory modulesSelectors = getModulesSelectors();
