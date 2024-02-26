@@ -42,7 +42,7 @@ abstract contract ProtocolConfiguration {
     string internal constant PERPS_LIQUIDATION_UPKEEP_NAME = "Perps Liquidation Upkeep";
 
     /// @notice Margin collateral types configuration Constants.
-    uint128 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
+    uint128 internal constant USDC_DEPOSIT_CAP = 5_000_000_000e18;
     uint128 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
     uint128 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
     uint120 internal constant USDC_LOAN_TO_VALUE = 1e18;

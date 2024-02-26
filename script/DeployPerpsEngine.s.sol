@@ -44,6 +44,7 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
     //////////////////////////////////////////////////////////////////////////*/
     AccountNFT internal perpsAccountToken;
     address internal usdToken;
+    address internal usdc;
     address internal link;
     address internal automationRegistrar;
     IPerpsEngine internal perpsEngine;
@@ -51,8 +52,8 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
     function run() public broadcaster {
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
         console.log("Perps Account NFT: ", address(perpsAccountToken));
-        // usdToken = USDToken(vm.envAddress("USDZ"));
         usdToken = vm.envAddress("USDZ");
+        usdc = vm.envAddress("USDC");
         link = vm.envAddress("LINK");
         automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
@@ -93,13 +94,15 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
             MAX_POSITIONS_PER_ACCOUNT, MARKET_ORDER_MAX_LIFETIME, MIN_TRADE_SIZE_USD, LIQUIDATION_FEE_USD
         );
 
-        address[] memory collateralLiquidationPriority = new address[](1);
-        collateralLiquidationPriority[0] = address(usdToken);
+        address[] memory collateralLiquidationPriority = new address[](2);
+        collateralLiquidationPriority[0] = usdToken;
+        collateralLiquidationPriority[1] = usdc;
 
         perpsEngine.configureCollateralPriority(collateralLiquidationPriority);
 
         // TODO: add margin collateral configuration paremeters to a JSON file and use ffi
-        perpsEngine.configureMarginCollateral(address(usdToken), type(uint128).max, 1e18, usdcUsdPriceFeed);
+        perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdcUsdPriceFeed);
+        perpsEngine.configureMarginCollateral(usdc, USDC_DEPOSIT_CAP, USDC_LOAN_TO_VALUE, usdcUsdPriceFeed);
 
         address liquidationUpkeep = address(new LiquidationUpkeep());
 
@@ -121,6 +124,6 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
-        LimitedMintingERC20(address(usdToken)).transferOwnership(address(perpsEngine));
+        LimitedMintingERC20(usdToken).transferOwnership(address(perpsEngine));
     }
 }

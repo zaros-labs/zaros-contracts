@@ -76,7 +76,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         override
         returns (MarginCollateralConfiguration.Data memory)
     {
-        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+        MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
 
         return marginCollateralConfiguration;
