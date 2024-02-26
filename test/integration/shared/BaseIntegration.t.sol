@@ -236,7 +236,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         pure
         returns (int128 sizeDelta)
     {
-        UD60x18 fuzzedSizeDeltaAbs = ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(price));
+        UD60x18 fuzzedSizeDeltaAbs = ud60x18(marginValueUsd).div(ud60x18(initialMarginRate)).div(ud60x18(price));
         int128 sizeDeltaAbs =
             Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD)).intoSD59x18().intoInt256().toInt128();
         sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;

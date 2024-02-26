@@ -124,7 +124,7 @@ abstract contract ProtocolConfiguration {
     uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
     uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
-    uint256 internal constant MAX_IMR = 100e18;
+    uint256 internal constant MAX_IMR = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
     string internal constant MOCK_BTC_USD_STREAM_ID = "MOCK_BTC_USD_STREAM_ID";
     string internal constant MOCK_ETH_USD_STREAM_ID = "MOCK_ETH_USD_STREAM_ID";

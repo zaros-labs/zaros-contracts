@@ -63,6 +63,8 @@ contract OrderModule is IOrderModule {
             SettlementConfiguration.load(marketId, settlementId);
 
         fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
+        console.log("FILL PRICE: ");
+        console.log(fillPriceX18.intoUint256());
 
         {
             GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -79,10 +81,10 @@ contract OrderModule is IOrderModule {
             marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
             console.log("CHIDORI");
-            console.log(accountTotalUnrealizedPnlUsdX18.intoUD60x18().intoUint256());
+            // console.log(accountTotalUnrealizedPnlUsdX18.intoUD60x18().intoUint256());
             console.log(requiredInitialMarginUsdX18.intoUint256(), requiredMaintenanceMarginUsdX18.intoUint256());
             console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
-            console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
+            // console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
         }
     }
 
