@@ -171,7 +171,7 @@ function getFacetCuts(
 }
 
 function getInitializables(address[] memory modules, bool isTestnet) pure returns (address[] memory) {
-    address[] memory initializables = new address[](3);
+    address[] memory initializables = new address[](isTestnet ? 3 : 2);
 
     address diamondCutModule = modules[0];
     address globalConfigurationModule = modules[2];
@@ -206,7 +206,7 @@ function getInitializePayloads(
         GlobalConfigurationModule.initialize.selector, perpsAccountToken, rewardDistributor, usdToken, zaros
     );
 
-    initializePayloads = new bytes[](3);
+    initializePayloads = new bytes[](isTestnet ? 3 : 2);
 
     initializePayloads[0] = diamondCutInitializeData;
     initializePayloads[1] = perpsInitializeData;
