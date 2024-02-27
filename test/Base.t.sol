@@ -100,7 +100,7 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
             mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter
         });
 
-        bool isTestnet = false;
+        bool isTestnet = true;
         address accessKeyManager = address(0);
         address[] memory modules = deployModules(isTestnet);
         bytes4[][] memory modulesSelectors = getModulesSelectors();

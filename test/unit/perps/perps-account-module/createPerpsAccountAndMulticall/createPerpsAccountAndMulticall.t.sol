@@ -54,4 +54,27 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
         // it should return a valid results array
         assertEq(perpsAccountTokenReturned, address(perpsAccountToken), "createPerpsAccountAndMulticall");
     }
+
+    function testFuzz_CreatePerpsAccountAndDepositMargin(uint256 amountToDeposit) external whenTheDataArrayDoesNotProvideARevertingCall {
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), amountToDeposit);
+        uint128 expectedAccountId = 1;
+
+        // it should emit {LogDepositMargin}
+        // vm.expectEmit({ emitter: address(perpsEngine) });
+        // emit LogDepositMargin(users.naruto, expectedAccountId, address(usdToken), amountToDeposit);
+
+        // it should transfer the amount from the sender to the perps account
+        expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
+        bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
+
+        uint256 newMarginCollateralBalance =
+            perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdToken)).intoUint256();
+
+        // it should increase the amount of margin collateral
+        assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
+    }
 }

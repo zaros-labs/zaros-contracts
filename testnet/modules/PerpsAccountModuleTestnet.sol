@@ -33,7 +33,7 @@ interface AccessKeyManager {
 /// @notice See {IPerpsAccountModule}.
 contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, OwnableUpgradeable {
     AccessKeyManager public accessKeyManager;
-    mapping(address user => bool alreadyMintAccount) userAlreadyMintAccount;
+    mapping(address user => bool alreadyMintAccount) public userAlreadyMintAccount;
 
     error UserWithoutAccess();
     error UserAlreadyHaveAccount();
