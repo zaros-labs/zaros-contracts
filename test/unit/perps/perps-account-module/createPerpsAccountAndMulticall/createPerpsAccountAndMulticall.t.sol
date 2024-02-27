@@ -55,12 +55,16 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
         assertEq(perpsAccountTokenReturned, address(perpsAccountToken), "createPerpsAccountAndMulticall");
     }
 
-    function testFuzz_CreatePerpsAccountAndDepositMargin(uint256 amountToDeposit) external whenTheDataArrayDoesNotProvideARevertingCall {
+    function testFuzz_CreatePerpsAccountAndDepositMargin(uint256 amountToDeposit)
+        external
+        whenTheDataArrayDoesNotProvideARevertingCall
+    {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
         bytes[] memory data = new bytes[](1);
-        data[0] = abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), amountToDeposit);
+        data[0] =
+            abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), amountToDeposit);
         uint128 expectedAccountId = 1;
 
         // it should emit {LogDepositMargin}

@@ -239,8 +239,10 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     {
         UD60x18 fuzzedSizeDeltaAbs = ud60x18(marginValueUsd).div(ud60x18(initialMarginRate)).div(ud60x18(price));
         // TODO: fix min trade size usd dynamic calculation
-        int128 sizeDeltaAbs =
-            Math.min(Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18))).div(ud60x18(price)), ud60x18(ETH_USD_MAX_OI)).intoSD59x18().intoInt256().toInt128();
+        int128 sizeDeltaAbs = Math.min(
+            Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18))).div(ud60x18(price)),
+            ud60x18(ETH_USD_MAX_OI)
+        ).intoSD59x18().intoInt256().toInt128();
         sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
     }
 

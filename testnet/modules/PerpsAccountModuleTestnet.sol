@@ -32,11 +32,11 @@ interface AccessKeyManager {
 
 /// @notice See {IPerpsAccountModule}.
 contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, OwnableUpgradeable {
-    AccessKeyManager public accessKeyManager;
-    mapping(address user => bool alreadyMintAccount) public userAlreadyMintAccount;
+    AccessKeyManager internal accessKeyManager;
+    mapping(address user => bool accountCreated) internal isAccountCreated;
 
     error UserWithoutAccess();
-    error UserAlreadyHaveAccount();
+    error UserAlreadyHasAccount();
 
     constructor() {
         _disableInitializers();
@@ -47,6 +47,14 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
         accessKeyManager = AccessKeyManager(_accessKeyManager);
     }
 
+    function getAccessKeyManager() external view returns (address) {
+        return address(accessKeyManager);
+    }
+
+    function isUserAccountCreated(address user) external view returns (bool) {
+        return isAccountCreated[user];
+    }
+
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint128) {
         (bool isUserActive) = accessKeyManager.isUserActive(msg.sender);
@@ -54,21 +62,12 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
             revert UserWithoutAccess();
         }
 
-        bool userHasAccount = userAlreadyMintAccount[msg.sender];
+        bool userHasAccount = isAccountCreated[msg.sender];
         if (userHasAccount) {
-            revert UserAlreadyHaveAccount();
+            revert UserAlreadyHasAccount();
         }
 
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        uint128 accountId = ++globalConfiguration.nextAccountId;
-        IAccountNFT perpsAccountToken = IAccountNFT(globalConfiguration.perpsAccountToken);
-
-        PerpsAccount.create(accountId, msg.sender);
-        perpsAccountToken.mint(msg.sender, accountId);
-        userAlreadyMintAccount[msg.sender] = true;
-
-        emit LogCreatePerpsAccount(accountId, msg.sender);
-        return accountId;
+        return super.createPerpsAccount();
     }
 
 }

@@ -135,7 +135,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     if (isTestnet) {
         perpsAccountModuleSelectors[12] = PerpsAccountModuleTestnet.getAccessKeyManager.selector;
-        perpsAccountModuleSelectors[13] = PerpsAccountModuleTestnet.userMintedAccount.selector;
+        perpsAccountModuleSelectors[13] = PerpsAccountModuleTestnet.isUserAccountCreated.selector;
     }
 
     bytes4[] memory settlementModuleSelectors = new bytes4[](2);
