@@ -15,6 +15,7 @@ interface IAccessKeyManager {
     }
 
     struct KeyData {
+        bytes16 key;
         address creator;
         address activator;
         bool isAvailable;

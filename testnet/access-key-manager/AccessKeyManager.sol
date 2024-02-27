@@ -51,6 +51,7 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyMan
             }));
 
             keys[key] = KeyData({
+                key: key,
                 creator: msg.sender,
                 isAvailable: true,
                 activator: address(0)
