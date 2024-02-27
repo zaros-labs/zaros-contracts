@@ -52,7 +52,7 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
 
         uint256 expectedMarginBalance = getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(
             ud60x18(amountToDeposit)
-        ).add(getPrice(mockPriceAdapters.mockWstEthUsdPriceAdapter).mul(ud60x18(amountToDeposit))).intoUint256();
+        ).add(getPrice(mockPriceAdapters.mockWstEthUsdPriceAdapter).mul(ud60x18(amountToDeposit)).mul(ud60x18(WSTETH_LOAN_TO_VALUE))).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
