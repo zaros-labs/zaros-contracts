@@ -11,7 +11,7 @@ contract CreatePerpsAccount_Unit_Test is Base_Test {
     }
 
     function test_RevertGiven_ThePerpsAccountTokenIsNotSet() external {
-        bytes32 slot = bytes32(uint256(PERPS_CONFIGURATION_SLOT) + uint256(4));
+        bytes32 slot = bytes32(uint256(GLOBAL_CONFIGURATION_SLOT) + uint256(5));
         vm.store(address(perpsEngine), slot, bytes32(uint256(0)));
 
         // it should revert
