@@ -60,7 +60,7 @@ function deployModules(bool isTestnet) returns (address[] memory) {
     return modules;
 }
 
-function getModulesSelectors() pure returns (bytes4[][] memory) {
+function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
     bytes4[] memory diamondCutModuleSelectors = new bytes4[](1);
@@ -118,7 +118,7 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     perpMarketModuleSelectors[8] = PerpMarketModule.getFundingVelocity.selector;
     perpMarketModuleSelectors[9] = PerpMarketModule.getMarketData.selector;
 
-    bytes4[] memory perpsAccountModuleSelectors = new bytes4[](12);
+    bytes4[] memory perpsAccountModuleSelectors = new bytes4[](isTestnet ? 14 : 12);
 
     perpsAccountModuleSelectors[0] = PerpsAccountModule.getPerpsAccountToken.selector;
     perpsAccountModuleSelectors[1] = PerpsAccountModule.getAccountMarginCollateralBalance.selector;
@@ -132,6 +132,11 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     perpsAccountModuleSelectors[9] = PerpsAccountModule.depositMargin.selector;
     perpsAccountModuleSelectors[10] = PerpsAccountModule.withdrawMargin.selector;
     perpsAccountModuleSelectors[11] = PerpsAccountModule.notifyAccountTransfer.selector;
+
+    if (isTestnet) {
+        perpsAccountModuleSelectors[12] = PerpsAccountModuleTestnet.getAccessKeyManager.selector;
+        perpsAccountModuleSelectors[13] = PerpsAccountModuleTestnet.userMintedAccount.selector;
+    }
 
     bytes4[] memory settlementModuleSelectors = new bytes4[](2);
 

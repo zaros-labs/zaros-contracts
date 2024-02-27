@@ -63,7 +63,7 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
         address accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
 
         address[] memory modules = deployModules(isTestnet);
-        bytes4[][] memory modulesSelectors = getModulesSelectors();
+        bytes4[][] memory modulesSelectors = getModulesSelectors(isTestnet);
 
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
         address[] memory initializables = getInitializables(modules, isTestnet);
@@ -133,6 +133,6 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
-        LimitedMintingERC20(usdToken).transferOwnership(address(perpsEngine));
+        // LimitedMintingERC20(usdToken).transferOwnership(address(perpsEngine));
     }
 }

@@ -19,7 +19,7 @@ contract DeployTestnetTokens is BaseScript {
     function run() public broadcaster {
         address limitedMintingErc20Implementation = address(new LimitedMintingERC20());
 
-        address accessKeyManager = vm.envOr("CONTRACT_ACCESS_KEY_MANAGER", address(0));
+        address accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
 
         bytes memory usdcInitializeData = abi.encodeWithSelector(
             LimitedMintingERC20.initialize.selector, deployer, "USD Coin", "USDC", address(accessKeyManager)
