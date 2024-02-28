@@ -16,6 +16,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
+import "forge-std/console.sol";
+
 contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     using SafeCast for int256;
 
@@ -189,16 +191,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         initialMarginRate = bound({
             x: initialMarginRate,
             min: ETH_USD_MARGIN_REQUIREMENTS + BTC_USD_MARGIN_REQUIREMENTS,
-            max: MAX_MARGIN_REQUIREMENTS
+            max: MAX_MARGIN_REQUIREMENTS * 2
         });
+        console.log("FUZZED IMR: ", initialMarginRate);
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
         int128 firstOrderSizeDelta = fuzzOrderSizeDelta(
-            Math.min(ud60x18(initialMarginRate * 2), ud60x18(MAX_MARGIN_REQUIREMENTS * 2)).intoUint256(),
-            marginValueUsd,
-            MOCK_ETH_USD_PRICE,
-            isLong
+            ud60x18(initialMarginRate * 2).intoUint256(), marginValueUsd, MOCK_ETH_USD_PRICE, isLong
         );
 
         changePrank({ msgSender: users.owner });
@@ -214,7 +214,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
-            marketId: BTC_USD_MARKET_ID,
+            marketId: ETH_USD_MARKET_ID,
             sizeDelta: firstOrderSizeDelta,
             acceptablePrice: 0
         });
@@ -227,10 +227,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
 
         int128 secondOrderSizeDelta = fuzzOrderSizeDelta(
-            Math.min(ud60x18(initialMarginRate * 2), ud60x18(MAX_MARGIN_REQUIREMENTS * 2)).intoUint256(),
-            marginValueUsd,
-            MOCK_BTC_USD_PRICE,
-            isLong
+            ud60x18(initialMarginRate * 2).intoUint256(), marginValueUsd, MOCK_BTC_USD_PRICE, isLong
         );
 
         // it should revert
@@ -240,7 +237,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
             marketId: BTC_USD_MARKET_ID,
-            sizeDelta: firstOrderSizeDelta,
+            sizeDelta: secondOrderSizeDelta,
             acceptablePrice: 0
         });
     }

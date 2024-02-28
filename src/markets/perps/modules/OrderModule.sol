@@ -22,6 +22,8 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
+import "forge-std/console.sol";
+
 contract OrderModule is IOrderModule {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
@@ -144,6 +146,12 @@ contract OrderModule is IOrderModule {
             settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             sizeDelta: sizeDelta
         });
+
+        console.log("MARGIN REQUIREMENTS: ");
+        console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
+        console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
+        console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
+
         perpsAccount.validateMarginRequirement(
             requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
             marginBalanceUsdX18,
