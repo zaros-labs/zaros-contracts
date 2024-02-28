@@ -237,7 +237,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         bool isLong
     )
         internal
-        pure
+        view
         returns (int128 sizeDelta)
     {
         UD60x18 fuzzedSizeDeltaAbs = ud60x18(marginValueUsd).div(ud60x18(initialMarginRate)).div(ud60x18(price));
@@ -250,16 +250,14 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(price))),
             ud60x18(ETH_USD_MAX_OI)
         ).intoSD59x18().intoInt256().toInt128();
-        int256 sizeDeltaPreFee = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
-        (,,, SD59x18 orderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            accountId, marketId, settlementId, sizeDeltaPreFee
-        );
+        int128 sizeDeltaPreFee = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+        (,,, SD59x18 orderFeeUsdX18,,) = perpsEngine.simulateTrade(accountId, marketId, settlementId, sizeDeltaPreFee);
 
         sizeDelta = (
             isLong
-                ? sd59x18(sizeDeltaPreFee).sub(orderFeeUsdX18.div(ud60x18(price)))
-                : sd59x18(sizeDeltaPreFee).add(orderFeeUsdX18.div(ud60x18(price)))
-        ).toInt128();
+                ? sd59x18(sizeDeltaPreFee).sub(orderFeeUsdX18.div(ud60x18(price).intoSD59x18()))
+                : sd59x18(sizeDeltaPreFee).add(orderFeeUsdX18.div(ud60x18(price).intoSD59x18()))
+        ).intoInt256().toInt128();
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {

@@ -136,8 +136,15 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         uint256 initialMarginRate = ETH_USD_MARGIN_REQUIREMENTS / 2;
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        int128 sizeDelta =
-            fuzzOrderSizeDelta(perpsAccountId, ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, ud60x18(initialMarginRate).intoUint256(), marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            perpsAccountId,
+            ETH_USD_MARKET_ID,
+            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            ud60x18(initialMarginRate).intoUint256(),
+            marginValueUsd,
+            MOCK_ETH_USD_PRICE,
+            isLong
+        );
 
         (
             SD59x18 marginBalanceUsdX18,
@@ -192,7 +199,13 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 firstOrderSizeDelta = fuzzOrderSizeDelta(
-            perpsAccountId, ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, ud60x18(initialMarginRate * 2).intoUint256(), marginValueUsd, MOCK_ETH_USD_PRICE, isLong
+            perpsAccountId,
+            ETH_USD_MARKET_ID,
+            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            ud60x18(initialMarginRate * 2).intoUint256(),
+            marginValueUsd,
+            MOCK_ETH_USD_PRICE,
+            isLong
         );
 
         changePrank({ msgSender: users.owner });
@@ -204,7 +217,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         });
 
         changePrank({ msgSender: users.naruto });
-
 
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
@@ -221,7 +233,13 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
 
         int128 secondOrderSizeDelta = fuzzOrderSizeDelta(
-            ud60x18(initialMarginRate * 2).intoUint256(), marginValueUsd, MOCK_BTC_USD_PRICE, isLong
+            perpsAccountId,
+            ETH_USD_MARKET_ID,
+            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            ud60x18(initialMarginRate * 2).intoUint256(),
+            marginValueUsd,
+            MOCK_BTC_USD_PRICE,
+            isLong
         );
 
         // it should revert
@@ -259,8 +277,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        int128 sizeDelta = fuzzOrderSizeDelta(initialMarginRate, marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            perpsAccountId,
+            ETH_USD_MARKET_ID,
+            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            initialMarginRate,
+            marginValueUsd,
+            MOCK_ETH_USD_PRICE,
+            isLong
+        );
 
         changePrank({ msgSender: users.owner });
         perpsEngine.updatePerpMarketStatus({ marketId: ETH_USD_MARKET_ID, enable: false });
@@ -301,8 +327,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        int128 sizeDelta = fuzzOrderSizeDelta(initialMarginRate, marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            perpsAccountId,
+            ETH_USD_MARKET_ID,
+            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            initialMarginRate,
+            marginValueUsd,
+            MOCK_ETH_USD_PRICE,
+            isLong
+        );
 
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
@@ -343,8 +377,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        int128 sizeDelta = fuzzOrderSizeDelta(initialMarginRate, marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            perpsAccountId,
+            ETH_USD_MARKET_ID,
+            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            initialMarginRate,
+            marginValueUsd,
+            MOCK_ETH_USD_PRICE,
+            isLong
+        );
 
         MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({
             marketId: ETH_USD_MARKET_ID,
