@@ -32,7 +32,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        perpsAccountToken = AccountNFT(vm.envAddress("ACCOUNT_NFT"));
+        perpsAccountToken = AccountNFT(vm.envAddress("PERPS_ACCOUNT_NFT"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         usdToken = vm.envAddress("USDZ");
         usdc = vm.envAddress("USDC");
