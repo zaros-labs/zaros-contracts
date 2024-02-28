@@ -72,7 +72,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     /// @inheritdoc IGlobalConfigurationModule
     function getMarginCollateralConfiguration(address collateralType)
         external
-        view
+        pure
         override
         returns (MarginCollateralConfiguration.Data memory)
     {
