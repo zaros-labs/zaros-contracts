@@ -109,8 +109,8 @@ library PerpsAccount {
             revert Errors.InsufficientMargin(
                 self.id,
                 marginBalanceUsdX18.intoInt256(),
-                totalFeesUsdX18.intoInt256(),
-                requiredMarginUsdX18.intoUint256()
+                requiredMarginUsdX18.intoUint256(),
+                totalFeesUsdX18.intoInt256()
             );
         }
     }

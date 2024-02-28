@@ -185,7 +185,12 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
             USDZ_LOAN_TO_VALUE,
             address(mockPriceAdapters.mockUsdcUsdPriceAdapter)
         );
-        perpsEngine.configureMarginCollateral(address(mockWstEth), WSTETH_DEPOSIT_CAP, WSTETH_LOAN_TO_VALUE, address(mockPriceAdapters.mockWstEthUsdPriceAdapter));
+        perpsEngine.configureMarginCollateral(
+            address(mockWstEth),
+            WSTETH_DEPOSIT_CAP,
+            WSTETH_LOAN_TO_VALUE,
+            address(mockPriceAdapters.mockWstEthUsdPriceAdapter)
+        );
     }
 
     /*//////////////////////////////////////////////////////////////////////////

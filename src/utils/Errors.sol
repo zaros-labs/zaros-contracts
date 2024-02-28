@@ -80,7 +80,7 @@ library Errors {
     );
     /// @notice Thrown when trying to settle an order and the account has insufficient margin for the new position.
     error InsufficientMargin(
-        uint128 accountId, int256 marginBalanceUsdX18, int256 totalFeesUsdX18, uint256 requiredMarginUsdX18
+        uint128 accountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, int256 totalFeesUsdX18
     );
 
     /// @notice PerpsEngine.GlobalConfigurationModule

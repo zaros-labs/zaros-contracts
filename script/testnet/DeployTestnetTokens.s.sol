@@ -22,10 +22,10 @@ contract DeployTestnetTokens is BaseScript {
         address accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
 
         bytes memory usdcInitializeData = abi.encodeWithSelector(
-            LimitedMintingERC20.initialize.selector, deployer, "USD Coin", "USDC", address(accessKeyManager)
+            LimitedMintingERC20.initialize.selector, deployer, "USD Coin", "USDC", accessKeyManager
         );
         bytes memory usdzInitializeData = abi.encodeWithSelector(
-            LimitedMintingERC20.initialize.selector, deployer, "Zaros USD", "USDz", address(accessKeyManager)
+            LimitedMintingERC20.initialize.selector, deployer, "Zaros USD", "USDz", accessKeyManager
         );
 
         address usdc = address(new ERC1967Proxy(limitedMintingErc20Implementation, usdcInitializeData));

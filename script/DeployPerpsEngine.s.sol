@@ -62,6 +62,8 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
         bool isTestnet = vm.envBool("IS_TESTNET");
         address accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
 
+        console.log(accessKeyManager);
+
         address[] memory modules = deployModules(isTestnet);
         bytes4[][] memory modulesSelectors = getModulesSelectors(isTestnet);
 
@@ -73,7 +75,7 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
             mockRewardDistributorAddress,
             usdToken,
             mockLiquidityEngineAddress,
-            address(accessKeyManager),
+            accessKeyManager,
             isTestnet
         );
 
@@ -133,6 +135,6 @@ contract DeployAlphaPerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
-        // LimitedMintingERC20(usdToken).transferOwnership(address(perpsEngine));
+        LimitedMintingERC20(usdToken).transferOwnership(address(perpsEngine));
     }
 }

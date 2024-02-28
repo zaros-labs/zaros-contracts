@@ -187,11 +187,13 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirements
     {
         initialMarginRate =
-            bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
+            bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS + BTC_USD_MARGIN_REQUIREMENTS, max:
+    MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-        int128 sizeDelta = fuzzOrderSizeDelta(initialMarginRate, marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
+        int128 firstOrderSizeDelta = fuzzOrderSizeDelta(Math.min(ud60x18(initialMarginRate * 2),
+    ud60x18(MAX_MARGIN_REQUIREMENTS * 2)).intoUint256(), marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
 
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters({
@@ -206,17 +208,21 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
+            marketId: BTC_USD_MARKET_ID,
+            sizeDelta: firstOrderSizeDelta,
             acceptablePrice: 0
         });
 
         changePrank({ msgSender: mockDefaultMarketOrderSettlementStrategy });
-        bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE, false);
+        bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE,
+    false);
 
         mockSettleMarketOrder(perpsAccountId, ETH_USD_MARKET_ID, mockBasicSignedReport);
 
         changePrank({ msgSender: users.naruto });
+
+        int128 secondOrderSizeDelta = fuzzOrderSizeDelta(Math.min(ud60x18(initialMarginRate * 2),
+    ud60x18(MAX_MARGIN_REQUIREMENTS * 2)).intoUint256(), marginValueUsd, MOCK_BTC_USD_PRICE, isLong);
 
         // it should revert
         vm.expectRevert({
@@ -225,7 +231,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
             marketId: BTC_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
+            sizeDelta: firstOrderSizeDelta,
             acceptablePrice: 0
         });
     }

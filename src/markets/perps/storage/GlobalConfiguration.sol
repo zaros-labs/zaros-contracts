@@ -23,7 +23,8 @@ library GlobalConfiguration {
     using SafeCast for int256;
 
     /// @dev GlobalConfiguration namespace storage slot.
-    bytes32 internal constant GLOBAL_CONFIGURATION_SLOT = keccak256(abi.encode("fi.zaros.markets.GlobalConfiguration"));
+    bytes32 internal constant GLOBAL_CONFIGURATION_SLOT =
+        keccak256(abi.encode("fi.zaros.markets.GlobalConfiguration"));
 
     /// @notice {PerpConfiguration} namespace storage structure.
     struct Data {

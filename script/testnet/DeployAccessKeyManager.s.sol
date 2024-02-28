@@ -22,6 +22,8 @@ contract DeployAccessKeyManager is BaseScript {
 
         address accessKeyManagerProxy = address(new ERC1967Proxy(accessKeyManagerImplementation, initializeData));
 
+        console.log(deployer);
+
         console.log("Access Key Manager Implementation: ", accessKeyManagerImplementation);
         console.log("Access Key Manager Proxy: ", accessKeyManagerProxy);
     }
