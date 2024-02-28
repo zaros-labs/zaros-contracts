@@ -7,6 +7,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 // Open Zeppelin dependencies
@@ -15,8 +16,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
-
-import "forge-std/console.sol";
 
 contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     using SafeCast for int256;
@@ -135,15 +134,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        // TODO: fix
-        SD59x18 sizeDeltaAbs = Math.max(
-            Math.divUp(ud60x18(MIN_TRADE_SIZE_USD), ud60x18(MOCK_ETH_USD_PRICE)).add(UD_UNIT),
-            ud60x18(ETH_USD_MARGIN_REQUIREMENTS).add(ud60x18(1e18)).div(ud60x18(marginValueUsd)).div(
-                ud60x18(MOCK_ETH_USD_PRICE)
-            )
-        ).intoSD59x18();
-        int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
+        uint256 initialMarginRate = ETH_USD_MARGIN_REQUIREMENTS / 2;
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta =
+            fuzzOrderSizeDelta(perpsAccountId, ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, ud60x18(initialMarginRate).intoUint256(), marginValueUsd, MOCK_ETH_USD_PRICE, isLong);
 
         (
             SD59x18 marginBalanceUsdX18,
@@ -193,12 +187,12 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             min: ETH_USD_MARGIN_REQUIREMENTS + BTC_USD_MARGIN_REQUIREMENTS,
             max: MAX_MARGIN_REQUIREMENTS * 2
         });
-        console.log("FUZZED IMR: ", initialMarginRate);
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 firstOrderSizeDelta = fuzzOrderSizeDelta(
-            ud60x18(initialMarginRate * 2).intoUint256(), marginValueUsd, MOCK_ETH_USD_PRICE, isLong
+            perpsAccountId, ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, ud60x18(initialMarginRate * 2).intoUint256(), marginValueUsd, MOCK_ETH_USD_PRICE, isLong
         );
 
         changePrank({ msgSender: users.owner });
@@ -210,7 +204,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         });
 
         changePrank({ msgSender: users.naruto });
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
 
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,

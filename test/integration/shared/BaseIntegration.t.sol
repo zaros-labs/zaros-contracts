@@ -20,7 +20,7 @@ import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 abstract contract Base_Integration_Shared_Test is Base_Test {
@@ -228,6 +228,9 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function fuzzOrderSizeDelta(
+        uint128 accountId,
+        uint128 marketId,
+        uint128 settlementId,
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 price,
@@ -238,12 +241,25 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         returns (int128 sizeDelta)
     {
         UD60x18 fuzzedSizeDeltaAbs = ud60x18(marginValueUsd).div(ud60x18(initialMarginRate)).div(ud60x18(price));
+
+        // TODO: Dynamically get the max OI.
+        uint256 maxOpenInterest = ETH_USD_MAX_OI;
+
         // TODO: fix min trade size usd dynamic calculation
         int128 sizeDeltaAbs = Math.min(
-            Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18))).div(ud60x18(price)),
+            Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(price))),
             ud60x18(ETH_USD_MAX_OI)
         ).intoSD59x18().intoInt256().toInt128();
-        sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+        int256 sizeDeltaPreFee = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+        (,,, SD59x18 orderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            accountId, marketId, settlementId, sizeDeltaPreFee
+        );
+
+        sizeDelta = (
+            isLong
+                ? sd59x18(sizeDeltaPreFee).sub(orderFeeUsdX18.div(ud60x18(price)))
+                : sd59x18(sizeDeltaPreFee).add(orderFeeUsdX18.div(ud60x18(price)))
+        ).toInt128();
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
