@@ -27,10 +27,10 @@ interface IAccessKeyManager {
     error InvalidKey();
     error UserAlreadyActived();
 
-    /// @notice Create key with the validation of spearmint
-    /// @param data The attestation data of spearmint
-    /// @param _signature The signature from spearmint
-    function createKey(AttestationData calldata data, bytes calldata _signature) external;
+    // /// @notice Create key with the validation of spearmint
+    // /// @param data The attestation data of spearmint
+    // /// @param _signature The signature from spearmint
+    // function createKey(AttestationData calldata data, bytes calldata _signature) external;
 
     /// @notice Get your generated keys
     /// @return Array of keys
