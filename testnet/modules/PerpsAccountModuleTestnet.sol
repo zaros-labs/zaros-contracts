@@ -57,17 +57,15 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
 
     /// @inheritdoc IPerpsAccountModule
     function createPerpsAccount() public override returns (uint128) {
-        (bool isUserActive) = accessKeyManager.isUserActive(msg.sender);
-        if (!isUserActive) {
-            revert UserWithoutAccess();
-        }
-
         bool userHasAccount = isAccountCreated[msg.sender];
         if (userHasAccount) {
             revert UserAlreadyHasAccount();
         }
 
-        return super.createPerpsAccount();
+        uint128 perpsAccountId = super.createPerpsAccount();
+        isAccountCreated[msg.sender] = true;
+
+        return perpsAccountId;
     }
 
 }
