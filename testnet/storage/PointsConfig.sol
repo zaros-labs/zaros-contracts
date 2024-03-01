@@ -2,18 +2,10 @@
 pragma solidity 0.8.23;
 
 
-library Points {
+library PointsConfig {
     string internal constant POINTS_CONFIG_DOMAIN = "fi.zaros.PointsConfig";
+    uint256 internal constant POINTS_PER_10K_TRADE-SIZE = 500;
+    uint256 internal constant POINTS_PER_10K_PNL = 1000;
 
-    struct Data {
-        uint256 pointsPerOrderValue;
-    }
-
-    function load(address user) internal pure returns (Data storage points) {
-        bytes32 slot = keccak256(abi.encode(POINTS_CONFIG_DOMAIN));
-        assembly {
-            points.slot := slot
-        }
-    }
 }
 
