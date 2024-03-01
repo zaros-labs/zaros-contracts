@@ -67,7 +67,6 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
             revert UserAlreadyHasAccount();
         }
 
-
         uint128 perpsAccountId = super.createPerpsAccount();
         isAccountCreated[msg.sender] = true;
 
