@@ -11,6 +11,7 @@ library Points {
 
     function load(address user) internal pure returns (Data storage points) {
         bytes32 slot = keccak256(abi.encode(POINTS_DOMAIN, user));
+
         assembly {
             points.slot := slot
         }
