@@ -14,4 +14,8 @@ contract GlobalConfigurationModuleTestnet is GlobalConfigurationModule {
     function setUserPoints(address user, uint256 value) external onlyOwner {
         Points.load(user).amount = value;
     }
+
+    function createCustomReferralCode(address referrer, string memory customReferralCode) external onlyOwner {
+        CustomReferralConfigurationTestnet.load(customReferralCode).referrer = referrer;
+    }
 }
