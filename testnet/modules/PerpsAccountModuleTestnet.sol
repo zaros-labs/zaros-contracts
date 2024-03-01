@@ -12,6 +12,8 @@ import { GlobalConfiguration } from "@zaros/markets/perps/storage/GlobalConfigur
 import { PerpMarket } from "@zaros/markets/perps/storage/PerpMarket.sol";
 import { Position } from "@zaros/markets/perps/storage/Position.sol";
 import { MarginCollateralConfiguration } from "@zaros/markets/perps/storage/MarginCollateralConfiguration.sol";
+import { CustomReferralConfigurationTestnet } from "../storage/CustomReferralConfigurationTestnet.sol";
+import { ReferralTestnet } from "../storage/ReferralTestnet.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -37,6 +39,7 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
 
     error UserWithoutAccess();
     error UserAlreadyHasAccount();
+    error InvalidReferralCode();
 
     constructor() {
         _disableInitializers();
@@ -57,15 +60,37 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
 
     function createPerpsAccount() public override returns (uint128) {}
 
-    function createPerpsAccount(bytes memory referral, bool isCustom) public returns (uint128) {
+    function createPerpsAccount(bytes memory referralCode, bool isCustom) public returns (uint128) {
 
         bool userHasAccount = isAccountCreated[msg.sender];
         if (userHasAccount) {
             revert UserAlreadyHasAccount();
         }
 
+
         uint128 perpsAccountId = super.createPerpsAccount();
         isAccountCreated[msg.sender] = true;
+
+        ReferralTestnet.Data storage referral = ReferralTestnet.load(msg.sender);
+
+        if (referralCode.length != 0 && referral.referralCode.length == 0) {
+            if (isCustom) {
+                CustomReferralConfigurationTestnet.Data storage customReferral = CustomReferralConfigurationTestnet.load(string(referralCode));
+                if (customReferral.referrer == address(0)) {
+                    revert InvalidReferralCode();
+                }
+                referral.referralCode = referralCode;
+                referral.isCustomReferralCode = true;
+            } else {
+                address referrer = abi.decode(referralCode, (address));
+                if (referrer == address(0)) {
+                    revert InvalidReferralCode();
+                }
+                referral.referralCode = referralCode;
+                referral.isCustomReferralCode = false;
+            }
+        }
+
 
         return perpsAccountId;
     }

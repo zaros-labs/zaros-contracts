@@ -9,13 +9,12 @@ library ReferralTestnet {
     string internal constant REFERRAL_TESTNET_DOMAIN = "fi.zaros.ReferralTestnet";
 
     struct Data {
-        address accountOwner;
         bytes referralCode;
         bool isCustomReferralCode;
     }
 
-    function load(address user) internal pure returns (Data storage referralTestnet) {
-        bytes32 slot = keccak256(abi.encode(POINTS_DOMAIN, user));
+    function load(address accountOwner) internal pure returns (Data storage referralTestnet) {
+        bytes32 slot = keccak256(abi.encode(REFERRAL_TESTNET_DOMAIN, accountOwner));
 
         assembly {
             referralTestnet.slot := slot
@@ -26,7 +25,7 @@ library ReferralTestnet {
         if (!self.isCustomReferralCode) {
             return abi.decode(self.referralCode, (address));
         } else {
-            CustomReferralConfigurationTestnet.load(abi.decode(self.referralCode, (string memory)).referrer;
+            CustomReferralConfigurationTestnet.load(abi.decode(self.referralCode, (string))).referrer;
         }
     }
 }
