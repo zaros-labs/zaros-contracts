@@ -49,13 +49,18 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
         return address(accessKeyManager);
     }
 
-
     function isUserAccountCreated(address user) external view returns (bool) {
         return isAccountCreated[user];
     }
 
     function getPointsOfUser(address user) external view returns (uint256 amount) {
         amount = Points.load(user).amount;
+    }
+
+    function getUserReferralData(address user) external pure returns (ReferralTestnet.Data memory) {
+        ReferralTestnet.Data memory referral = ReferralTestnet.load(user);
+
+        return referral;
     }
 
     function createPerpsAccount() public override returns (uint128) {}
