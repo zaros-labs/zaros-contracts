@@ -66,7 +66,6 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
     function createPerpsAccount() public override returns (uint128) {}
 
     function createPerpsAccount(bytes memory referralCode, bool isCustomReferralCode) public returns (uint128) {
-
         bool userHasAccount = isAccountCreated[msg.sender];
         if (userHasAccount) {
             revert UserAlreadyHasAccount();
