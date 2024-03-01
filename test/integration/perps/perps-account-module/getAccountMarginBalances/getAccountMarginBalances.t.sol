@@ -25,9 +25,6 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         uint256 expectedMaintenanceMargin = 0;
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        uint128[] memory activeMarketsIds;
-        UD60x18[] memory indexPricesX18;
-
         (
             SD59x18 marginBalanceUsdX18,
             UD60x18 initialMarginUsdX18,
@@ -62,9 +59,6 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         uint256 expectedMaintenanceMargin = 0;
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(perpsAccountId, address(mockWstEth), amountToDeposit);
-
-        uint128[] memory activeMarketsIds;
-        UD60x18[] memory indexPricesX18;
 
         (
             SD59x18 marginBalanceUsdX18,

@@ -248,7 +248,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         // TODO: fix min trade size usd dynamic calculation
         int128 sizeDeltaAbs = Math.min(
             Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(price))),
-            ud60x18(ETH_USD_MAX_OI)
+            ud60x18(maxOpenInterest)
         ).intoSD59x18().intoInt256().toInt128();
         int128 sizeDeltaPreFee = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
         (,,, SD59x18 orderFeeUsdX18,,) = perpsEngine.simulateTrade(accountId, marketId, settlementId, sizeDeltaPreFee);

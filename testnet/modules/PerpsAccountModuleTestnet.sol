@@ -60,7 +60,7 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
 
     function createPerpsAccount() public override returns (uint128) {}
 
-    function createPerpsAccount(bytes memory referralCode, bool isCustom) public returns (uint128) {
+    function createPerpsAccount(bytes memory referralCode, bool isCustomReferralCode) public returns (uint128) {
 
         bool userHasAccount = isAccountCreated[msg.sender];
         if (userHasAccount) {
@@ -74,7 +74,7 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
         ReferralTestnet.Data storage referral = ReferralTestnet.load(msg.sender);
 
         if (referralCode.length != 0 && referral.referralCode.length == 0) {
-            if (isCustom) {
+            if (isCustomReferralCode) {
                 CustomReferralConfigurationTestnet.Data storage customReferral = CustomReferralConfigurationTestnet.load(string(referralCode));
                 if (customReferral.referrer == address(0)) {
                     revert InvalidReferralCode();
@@ -89,6 +89,25 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
 
 
         return perpsAccountId;
+    }
+
+    function createPerpsAccountAndMulticall(bytes[] calldata data, bytes memory referralCode, bool isCustomReferralCode) external returns (bytes[] memory results) {
+          uint128 accountId = createPerpsAccount(referralCode, isCustomReferralCode);
+
+        results = new bytes[](data.length);
+        for (uint256 i = 0; i < data.length; i++) {
+            bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(accountId), data[i][4:]);
+            (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
+
+            if (!success) {
+                uint256 len = result.length;
+                assembly {
+                    revert(add(result, 0x20), len)
+                }
+            }
+
+            results[i] = result;
+        }
     }
 
 }

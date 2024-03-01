@@ -79,6 +79,7 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
             perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdToken)).intoUint256();
 
         // it should increase the amount of margin collateral
-        assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
+        assertEq(results.length, 0, "createPerpsAccountAndMulticall: results");
+        assertEq(newMarginCollateralBalance, amountToDeposit, "createPerpsAccountAndMulticall: account margin");
     }
 }
