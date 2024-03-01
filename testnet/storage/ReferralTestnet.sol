@@ -21,11 +21,11 @@ library ReferralTestnet {
         }
     }
 
-    function getReferrerAddress(Data storage self) internal view returns (address) {
+    function getReferrerAddress(Data storage self) internal view returns (address referrer) {
         if (!self.isCustomReferralCode) {
-            return abi.decode(self.referralCode, (address));
+            referrer = abi.decode(self.referralCode, (address));
         } else {
-            CustomReferralConfigurationTestnet.load(abi.decode(self.referralCode, (string))).referrer;
+            referrer = CustomReferralConfigurationTestnet.load(abi.decode(self.referralCode, (string))).referrer;
         }
     }
 }

@@ -184,6 +184,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function createPerpsAccountAndMulticall(bytes[] calldata data)
         external
         payable
+        virtual
         override
         returns (bytes[] memory results)
     {

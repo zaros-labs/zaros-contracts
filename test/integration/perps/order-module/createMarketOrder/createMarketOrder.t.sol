@@ -99,13 +99,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
-        MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0,
-            timestamp: uint128(block.timestamp)
-        });
-
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradeSizeTooSmall.selector) });
         perpsEngine.createMarketOrder({

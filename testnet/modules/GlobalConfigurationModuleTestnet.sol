@@ -8,10 +8,6 @@ import { Points } from "../storage/Points.sol";
 
 
 contract GlobalConfigurationModuleTestnet is GlobalConfigurationModule {
-    function getPointsOfUser(address user) external view returns (uint256 amount) {
-        amount = Points.load(user).amount;
-    }
-
     function setUserPoints(address user, uint256 value) external onlyOwner {
         Points.load(user).amount = value;
     }

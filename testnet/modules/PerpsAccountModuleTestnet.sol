@@ -3,15 +3,10 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
-import { Errors } from "@zaros/utils/Errors.sol";
-import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
+import { AccessKeyManager } from "testnet/access-key-manager/AccessKeyManager.sol";
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
 import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
-import { GlobalConfiguration } from "@zaros/markets/perps/storage/GlobalConfiguration.sol";
-import { PerpMarket } from "@zaros/markets/perps/storage/PerpMarket.sol";
-import { Position } from "@zaros/markets/perps/storage/Position.sol";
-import { MarginCollateralConfiguration } from "@zaros/markets/perps/storage/MarginCollateralConfiguration.sol";
+import { Points } from "../storage/Points.sol";
 import { CustomReferralConfigurationTestnet } from "../storage/CustomReferralConfigurationTestnet.sol";
 import { ReferralTestnet } from "../storage/ReferralTestnet.sol";
 
@@ -28,18 +23,18 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-interface AccessKeyManager {
-    function isUserActive(address user) external view returns (bool);
-}
-
 /// @notice See {IPerpsAccountModule}.
 contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, OwnableUpgradeable {
+    using ReferralTestnet for ReferralTestnet.Data;
+
     AccessKeyManager internal accessKeyManager;
     mapping(address user => bool accountCreated) internal isAccountCreated;
 
     error UserWithoutAccess();
     error UserAlreadyHasAccount();
     error InvalidReferralCode();
+
+    event LogReferralSet(address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode);
 
     constructor() {
         _disableInitializers();
@@ -54,8 +49,13 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
         return address(accessKeyManager);
     }
 
+
     function isUserAccountCreated(address user) external view returns (bool) {
         return isAccountCreated[user];
+    }
+
+    function getPointsOfUser(address user) external view returns (uint256 amount) {
+        amount = Points.load(user).amount;
     }
 
     function createPerpsAccount() public override returns (uint128) {}
@@ -85,13 +85,17 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
                 referral.referralCode = referralCode;
                 referral.isCustomReferralCode = false;
             }
+
+            emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
         }
 
 
         return perpsAccountId;
     }
 
-    function createPerpsAccountAndMulticall(bytes[] calldata data, bytes memory referralCode, bool isCustomReferralCode) external returns (bytes[] memory results) {
+    function createPerpsAccountAndMulticall(bytes[] calldata data) external payable override returns (bytes[] memory results) {}
+
+    function createPerpsAccountAndMulticall(bytes[] calldata data, bytes memory referralCode, bool isCustomReferralCode) external payable returns (bytes[] memory results) {
           uint128 accountId = createPerpsAccount(referralCode, isCustomReferralCode);
 
         results = new bytes[](data.length);

@@ -20,7 +20,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     error LimitedMintingERC20_AmountExceedsLimit();
     error LimitedMintingERC20_UserIsNotActive();
 
-    function getAmountMintedPerAddress(address user) public returns (uint256) {
+    function getAmountMintedPerAddress(address user) public view returns (uint256) {
         return amountMintedPerAddress[user];
     }
 
