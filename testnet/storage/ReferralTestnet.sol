@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+// Zaros dependencies
+import { CustomReferralConfigurationTestnet } from "./CustomReferralConfigurationTestnet.sol";
+
 
 library ReferralTestnet {
     string internal constant REFERRAL_TESTNET_DOMAIN = "fi.zaros.ReferralTestnet";
