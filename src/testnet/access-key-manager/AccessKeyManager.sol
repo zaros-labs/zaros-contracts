@@ -33,28 +33,23 @@ contract AccessKeyManager is OwnableUpgradeable, UUPSUpgradeable, IAccessKeyMana
         __Ownable_init(owner);
     }
 
-    // function createKey() external {
-    //     uint256 amountOfGeneratedKeys = userGeneratedKeys[msg.sender].length;
+    function createKey(AttestationData calldata data, bytes calldata _signature) external {
+        _validateSignature(data, _signature);
 
-    //     if (amountOfGeneratedKeys >= 1) {
-    //         revert NotEnoughAvailableKeys(amountOfGeneratedKeys, data.availableKeys);
-    //     }
+        uint256 amountOfGeneratedKeys = userGeneratedKeys[msg.sender].length;
 
-    //     bytes16 key = bytes16(keccak256(abi.encode(msg.sender, i)));
+        if (amountOfGeneratedKeys >= data.availableKeys) {
+            revert NotEnoughAvailableKeys(amountOfGeneratedKeys, data.availableKeys);
+        }
 
-    //     userGeneratedKeys[msg.sender].push(GeneratedKey({
-    //         id: uint96(i),
-    //         key: key
-    //     }));
+        for (uint256 i = amountOfGeneratedKeys; i < amountOfGeneratedKeys + data.availableKeys; i++) {
+            bytes16 key = bytes16(keccak256(abi.encode(msg.sender, i)));
 
-    //     keys[key] = KeyData({
-    //         key: key,
-    //         creator: msg.sender,
-    //         isAvailable: true,
-    //         activator: address(0)
-    //     });
+            userGeneratedKeys[msg.sender].push(GeneratedKey({ id: uint96(i), key: key }));
 
-    // }
+            keys[key] = KeyData({ key: key, creator: msg.sender, isAvailable: true, activator: address(0) });
+        }
+    }
 
     function getKeysByUser() external view returns (GeneratedKey[] memory) {
         return userGeneratedKeys[msg.sender];
