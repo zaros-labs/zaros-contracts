@@ -6,7 +6,7 @@ pragma solidity 0.8.23;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { LiquidationUpkeep } from "@zaros/external/chainlink/upkeeps/liquidation/LiquidationUpkeep.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
-import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
+import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 

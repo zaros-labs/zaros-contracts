@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-
 library Points {
     string internal constant POINTS_DOMAIN = "fi.zaros.Points";
 
@@ -17,4 +16,3 @@ library Points {
         }
     }
 }
-

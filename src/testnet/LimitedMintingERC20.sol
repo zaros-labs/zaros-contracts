@@ -24,7 +24,15 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         return amountMintedPerAddress[user];
     }
 
-    function initialize(address owner, string memory name, string memory symbol, address _accessKeyManager) external initializer {
+    function initialize(
+        address owner,
+        string memory name,
+        string memory symbol,
+        address _accessKeyManager
+    )
+        external
+        initializer
+    {
         maxAmountToMintPerAddress = 100_000 * 10 ** 18;
 
         __ERC20_init(name, symbol);

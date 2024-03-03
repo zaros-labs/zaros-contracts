@@ -15,17 +15,17 @@ import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgra
 // Zaros dependencies
 import { IAccessKeyManager } from "./interfaces/IAccessKeyManager.sol";
 
-contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyManager {
+contract AccessKeyManager is OwnableUpgradeable, UUPSUpgradeable, IAccessKeyManager {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
     using SignatureChecker for address;
 
     address public spearmintSigner;
 
-    mapping (address user => GeneratedKey[] keys) public userGeneratedKeys;
-    mapping (address user => KeyData[] keys) public userGeneratedUsedKeys;
-    mapping (bytes16 key => KeyData data) public keys;
-    mapping (address user => bytes16 key) public keyIdOfUser;
+    mapping(address user => GeneratedKey[] keys) public userGeneratedKeys;
+    mapping(address user => KeyData[] keys) public userGeneratedUsedKeys;
+    mapping(bytes16 key => KeyData data) public keys;
+    mapping(address user => bytes16 key) public keyIdOfUser;
 
     function initialize(address owner, address _spearmintSigner) external initializer {
         spearmintSigner = _spearmintSigner;
@@ -101,18 +101,10 @@ contract AccessKeyManager is OwnableUpgradeable,  UUPSUpgradeable, IAccessKeyMan
         spearmintSigner = _spearmintSigner;
     }
 
-    function _validateSignature(
-        AttestationData memory data,
-        bytes calldata signature
-    ) internal view {
+    function _validateSignature(AttestationData memory data, bytes calldata signature) internal view {
         bytes32 hashedData = keccak256(abi.encode(msg.sender, data));
 
-        if (
-            !spearmintSigner.isValidSignatureNow(
-                hashedData.toEthSignedMessageHash(),
-                signature
-            )
-        ) {
+        if (!spearmintSigner.isValidSignatureNow(hashedData.toEthSignedMessageHash(), signature)) {
             revert InvalidSignature();
         }
     }

@@ -11,7 +11,7 @@ import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpMarketModule } from "@zaros/markets/perps/modules/PerpMarketModule.sol";
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
-import { PerpsAccountModuleTestnet } from "../../testnet/modules/PerpsAccountModuleTestnet.sol";
+import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountModuleTestnet.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";

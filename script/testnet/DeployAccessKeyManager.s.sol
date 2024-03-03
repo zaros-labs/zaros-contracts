@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { BaseScript } from "../Base.s.sol";
-import { AccessKeyManager } from "testnet/access-key-manager/AccessKeyManager.sol";
+import { AccessKeyManager } from "@zaros/testnet/access-key-manager/AccessKeyManager.sol";
 
 // Open zeppelin upgradeable dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";

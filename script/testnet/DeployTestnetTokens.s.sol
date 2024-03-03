@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { BaseScript } from "../Base.s.sol";
-import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
+import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
 

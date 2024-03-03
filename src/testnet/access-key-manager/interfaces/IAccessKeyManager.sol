@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 
 /// @title A contract to manage the user access trough the generated keys.
 interface IAccessKeyManager {
-
     struct AttestationData {
         uint256 availableKeys;
     }

@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { AccessKeyManager } from "testnet/access-key-manager/AccessKeyManager.sol";
+import { AccessKeyManager } from "@zaros/testnet/access-key-manager/AccessKeyManager.sol";
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
 import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
 import { Points } from "../storage/Points.sol";
@@ -34,14 +34,15 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
     error UserAlreadyHasAccount();
     error InvalidReferralCode();
 
-    event LogReferralSet(address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode);
+    event LogReferralSet(
+        address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode
+    );
 
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(address _accessKeyManager) external initializer
-    {
+    function initialize(address _accessKeyManager) external initializer {
         accessKeyManager = AccessKeyManager(_accessKeyManager);
     }
 
@@ -63,7 +64,7 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
         return referral;
     }
 
-    function createPerpsAccount() public override returns (uint128) {}
+    function createPerpsAccount() public override returns (uint128) { }
 
     function createPerpsAccount(bytes memory referralCode, bool isCustomReferralCode) public returns (uint128) {
         bool userHasAccount = isAccountCreated[msg.sender];
@@ -78,7 +79,8 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
 
         if (referralCode.length != 0 && referral.referralCode.length == 0) {
             if (isCustomReferralCode) {
-                CustomReferralConfigurationTestnet.Data storage customReferral = CustomReferralConfigurationTestnet.load(string(referralCode));
+                CustomReferralConfigurationTestnet.Data storage customReferral =
+                    CustomReferralConfigurationTestnet.load(string(referralCode));
                 if (customReferral.referrer == address(0)) {
                     revert InvalidReferralCode();
                 }
@@ -92,14 +94,26 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
             emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
         }
 
-
         return perpsAccountId;
     }
 
-    function createPerpsAccountAndMulticall(bytes[] calldata data) external payable override returns (bytes[] memory results) {}
+    function createPerpsAccountAndMulticall(bytes[] calldata data)
+        external
+        payable
+        override
+        returns (bytes[] memory results)
+    { }
 
-    function createPerpsAccountAndMulticall(bytes[] calldata data, bytes memory referralCode, bool isCustomReferralCode) external payable returns (bytes[] memory results) {
-          uint128 accountId = createPerpsAccount(referralCode, isCustomReferralCode);
+    function createPerpsAccountAndMulticall(
+        bytes[] calldata data,
+        bytes memory referralCode,
+        bool isCustomReferralCode
+    )
+        external
+        payable
+        returns (bytes[] memory results)
+    {
+        uint128 accountId = createPerpsAccount(referralCode, isCustomReferralCode);
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
@@ -116,5 +130,4 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
             results[i] = result;
         }
     }
-
 }

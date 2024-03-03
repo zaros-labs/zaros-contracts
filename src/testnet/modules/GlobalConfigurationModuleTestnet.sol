@@ -3,9 +3,8 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
-import { CustomReferralConfigurationTestnet } from "./CustomReferralConfigurationTestnet.sol";
+import { CustomReferralConfigurationTestnet } from "../storage/CustomReferralConfigurationTestnet.sol";
 import { Points } from "../storage/Points.sol";
-
 
 contract GlobalConfigurationModuleTestnet is GlobalConfigurationModule {
     event LogCreateCustomReferralCode(address indexed referrer, string customReferralCode);
