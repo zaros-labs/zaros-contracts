@@ -11,7 +11,9 @@ import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpMarketModule } from "@zaros/markets/perps/modules/PerpMarketModule.sol";
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
+import { GlobalConfigurationModuleTestnet } from "@zaros/testnet/modules/GlobalConfigurationModuleTestnet.sol";
 import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountModuleTestnet.sol";
+import { SettlementModuleTestnet } from "@zaros/testnet/modules/SettlementModuleTestnet.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -25,9 +27,6 @@ function deployModules(bool isTestnet) returns (address[] memory) {
     address diamondLoupeModule = address(new DiamondLoupeModule());
     console.log("DiamondLoupeModule: ", diamondLoupeModule);
 
-    address globalConfigurationModule = address(new GlobalConfigurationModule());
-    console.log("GlobalConfigurationModule: ", globalConfigurationModule);
-
     address liquidationModule = address(new LiquidationModule());
     console.log("LiquidationModule: ", liquidationModule);
 
@@ -37,15 +36,20 @@ function deployModules(bool isTestnet) returns (address[] memory) {
     address perpMarketModule = address(new PerpMarketModule());
     console.log("PerpMarketModule: ", perpMarketModule);
 
+    address globalConfigurationModule;
     address perpsAccountModule;
+    address settlementModule;
     if (isTestnet) {
+        globalConfigurationModule = address(new GlobalConfigurationModuleTestnet());
         perpsAccountModule = address(new PerpsAccountModuleTestnet());
+        settlementModule = address(new SettlementModuleTestnet());
     } else {
+        globalConfigurationModule = address(new GlobalConfigurationModule());
         perpsAccountModule = address(new PerpsAccountModule());
+        settlementModule = address(new SettlementModule());
     }
+    console.log("GlobalConfigurationModule: ", globalConfigurationModule);
     console.log("PerpsAccountModule: ", perpsAccountModule);
-
-    address settlementModule = address(new SettlementModule());
     console.log("SettlementModule: ", settlementModule);
 
     modules[0] = diamondCutModule;
@@ -75,7 +79,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     diamondLoupeModuleSelectors[2] = DiamondLoupeModule.facetAddress.selector;
     diamondLoupeModuleSelectors[4] = DiamondLoupeModule.facetSelectors.selector;
 
-    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](12);
+    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](isTestnet ? 14 : 12);
 
     globalConfigurationModuleSelectors[0] = GlobalConfigurationModule.getAccountsWithActivePositions.selector;
     globalConfigurationModuleSelectors[1] = GlobalConfigurationModule.getMarginCollateralConfiguration.selector;
@@ -89,6 +93,11 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationModuleSelectors[9] = GlobalConfigurationModule.createPerpMarket.selector;
     globalConfigurationModuleSelectors[10] = GlobalConfigurationModule.updatePerpMarketConfiguration.selector;
     globalConfigurationModuleSelectors[11] = GlobalConfigurationModule.updatePerpMarketStatus.selector;
+
+    if (isTestnet) {
+        globalConfigurationModuleSelectors[12] = GlobalConfigurationModuleTestnet.setUserPoints.selector;
+        globalConfigurationModuleSelectors[13] = GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
+    }
 
     bytes4[] memory liquidationModuleSelectors = new bytes4[](2);
 
@@ -134,8 +143,12 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpsAccountModuleSelectors[11] = PerpsAccountModule.notifyAccountTransfer.selector;
 
     if (isTestnet) {
+        perpsAccountModuleSelectors[7] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
+        perpsAccountModuleSelectors[8] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[]],bytes,bool)"));
         perpsAccountModuleSelectors[12] = PerpsAccountModuleTestnet.getAccessKeyManager.selector;
         perpsAccountModuleSelectors[13] = PerpsAccountModuleTestnet.isUserAccountCreated.selector;
+        perpsAccountModuleSelectors[14] = PerpsAccountModuleTestnet.getPointsOfUser.selector;
+        perpsAccountModuleSelectors[15] = PerpsAccountModuleTestnet.getUserReferralData.selector;
     }
 
     bytes4[] memory settlementModuleSelectors = new bytes4[](2);
