@@ -38,24 +38,6 @@ contract SettlementModuleTestnet is SettlementModule {
     using SafeCast for int256;
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
-    // function settleMarketOrder(
-    //     uint128 accountId,
-    //     uint128 marketId,
-    //     address settlementFeeReceiver,
-    //     bytes calldata priceData
-    // )
-    //     external
-    //     onlyMarketOrderUpkeep(marketId)
-    // {
-    //     super.settleMarketOrder(accountId, marketId, settlementFeeReceiver, priceData);
-
-    //     PerpsAccount.Data storage perpsAccount = PerpsAccount.load(accountId);
-    //     address accountOwner = perpsAccount.owner;
-    //     PointsConfig.Data storage pointsConfig = PointsConfig.load();
-    //     Points.Data storage points = Points.load(accountOwner);
-    //     // points.amount += pointsConfig.pointsPerOrder *
-
-    // }
 
     struct SettlementContextTestnet {
         address usdToken;
@@ -165,18 +147,13 @@ contract SettlementModuleTestnet is SettlementModule {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
             perpsAccount.deposit(ctx.usdToken, amountToIncrease);
 
-            ctx.earnedPoints =
-                ctx.pnl.intoUD60x18().div(ud60x18(10_000e18)).sub(ctx.pnl.intoUD60x18().mod(ud60x18(10_000e18)));
+            ctx.earnedPoints = _calculatePnlPoints(ctx.pnl);
             // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
             // NOTE: testnet only
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
-        ctx.earnedPoints = ctx.earnedPoints.add(
-            ctx.sizeDelta.abs().intoUD60x18().mul(ctx.fillPrice).div(ud60x18(10_000e18)).sub(
-                ctx.sizeDelta.abs().intoUD60x18().mul(ctx.fillPrice).mod(ud60x18(10_000e18))
-            )
-        );
+        ctx.earnedPoints = ctx.earnedPoints.add(_calculateTradeSizePoints(ctx.sizeDelta, ctx.fillPrice));
         Points.load(perpsAccount.owner).amount += ctx.earnedPoints.intoUint256();
 
         emit LogSettleOrder(
@@ -190,5 +167,17 @@ contract SettlementModuleTestnet is SettlementModule {
             ctx.pnl.intoInt256(),
             ctx.newPosition
         );
+    }
+
+    function _calculatePnlPoints(SD59x18 pnl) internal pure returns (UD60x18) {
+        return pnl.intoUD60x18().div(ud60x18(10_000e18)).sub(pnl.intoUD60x18().mod(ud60x18(10_000e18))).mul(
+            ud60x18(PointsConfig.POINTS_PER_10K_PNL)
+        );
+    }
+
+    function _calculateTradeSizePoints(SD59x18 sizeDelta, UD60x18 fillPrice) internal pure returns (UD60x18) {
+        return sizeDelta.abs().intoUD60x18().mul(fillPrice).div(ud60x18(10_000e18)).sub(
+            sizeDelta.abs().intoUD60x18().mul(fillPrice).mod(ud60x18(10_000e18))
+        ).mul(ud60x18(PointsConfig.POINTS_PER_10K_TRADE_SIZE));
     }
 }
