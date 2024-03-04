@@ -33,6 +33,7 @@ contract SettlementModuleTestnet is SettlementModule {
     using MarketOrder for MarketOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
     using PerpMarket for PerpMarket.Data;
+    using Points for Points.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeCast for int256;
@@ -50,7 +51,7 @@ contract SettlementModuleTestnet is SettlementModule {
         SD59x18 pnl;
         SD59x18 fundingFeePerUnit;
         SD59x18 fundingRate;
-        UD60x18 earnedPoints;
+        Points.Data userPoints;
         Position.Data newPosition;
     }
 
@@ -146,15 +147,16 @@ contract SettlementModuleTestnet is SettlementModule {
         } else if (ctx.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
             perpsAccount.deposit(ctx.usdToken, amountToIncrease);
+            Points.load(perpsAccount.owner).updatePnlPoints(ctx.pnl);
 
-            ctx.earnedPoints = _calculatePnlPoints(ctx.pnl);
             // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
             // NOTE: testnet only
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
-        ctx.earnedPoints = ctx.earnedPoints.add(_calculateTradeSizePoints(ctx.sizeDelta, ctx.fillPrice));
-        Points.load(perpsAccount.owner).amount += ctx.earnedPoints.intoUint256();
+        Points.load(perpsAccount.owner).updateTradingVolumePoints(
+            ctx.sizeDelta.abs().intoUD60x18().mul(ctx.fillPrice)
+        );
 
         emit LogSettleOrder(
             msg.sender,
