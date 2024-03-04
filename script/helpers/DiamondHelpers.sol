@@ -127,7 +127,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpMarketModuleSelectors[8] = PerpMarketModule.getFundingVelocity.selector;
     perpMarketModuleSelectors[9] = PerpMarketModule.getMarketData.selector;
 
-    bytes4[] memory perpsAccountModuleSelectors = new bytes4[](isTestnet ? 14 : 12);
+    bytes4[] memory perpsAccountModuleSelectors = new bytes4[](isTestnet ? 16 : 12);
 
     perpsAccountModuleSelectors[0] = PerpsAccountModule.getPerpsAccountToken.selector;
     perpsAccountModuleSelectors[1] = PerpsAccountModule.getAccountMarginCollateralBalance.selector;
