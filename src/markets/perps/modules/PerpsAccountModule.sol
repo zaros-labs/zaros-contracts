@@ -206,8 +206,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
         }
     }
 
+    // TODO: rollback to external
     /// @inheritdoc IPerpsAccountModule
-    function depositMargin(uint128 accountId, address collateralType, uint256 amount) external override {
+    function depositMargin(uint128 accountId, address collateralType, uint256 amount) public virtual override {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
         UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);

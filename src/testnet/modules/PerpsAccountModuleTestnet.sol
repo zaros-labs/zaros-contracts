@@ -25,6 +25,7 @@ import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpsAccountModule}.
 contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, OwnableUpgradeable {
+    using PerpsAccount for PerpsAccount.Data;
     using ReferralTestnet for ReferralTestnet.Data;
 
     AccessKeyManager internal accessKeyManager;
@@ -33,6 +34,7 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
     error UserWithoutAccess();
     error UserAlreadyHasAccount();
     error InvalidReferralCode();
+    error FaucetAlreadyDeposited();
 
     event LogReferralSet(
         address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode
@@ -129,5 +131,16 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
 
             results[i] = result;
         }
+    }
+
+    function depositMargin(uint128 accountId, address collateralType, uint256 amount) public virtual override {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
+        UD60x18 marginCollateralBalance = perpsAccount.getMarginCollateralBalance(collateralType);
+
+        if (marginCollateralBalance > ud60x18(100_000e18)) {
+            revert FaucetAlreadyDeposited();
+        }
+
+        super.depositMargin(accountId, collateralType, amount);
     }
 }
