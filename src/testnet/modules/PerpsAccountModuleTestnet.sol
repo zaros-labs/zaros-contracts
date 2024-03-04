@@ -134,13 +134,13 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
     }
 
     function depositMargin(uint128 accountId, address collateralType, uint256 amount) public virtual override {
+        super.depositMargin(accountId, collateralType, amount);
+
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         UD60x18 marginCollateralBalance = perpsAccount.getMarginCollateralBalance(collateralType);
 
         if (marginCollateralBalance > ud60x18(100_000e18)) {
             revert FaucetAlreadyDeposited();
         }
-
-        super.depositMargin(accountId, collateralType, amount);
     }
 }
