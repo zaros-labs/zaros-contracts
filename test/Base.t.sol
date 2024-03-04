@@ -103,7 +103,7 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
         bool isTestnet = false;
         address accessKeyManager = address(0);
         address[] memory modules = deployModules(isTestnet);
-        bytes4[][] memory modulesSelectors = getModulesSelectors();
+        bytes4[][] memory modulesSelectors = getModulesSelectors(isTestnet);
         IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
         address[] memory initializables = getInitializables(modules, isTestnet);
         bytes[] memory initializePayloads = getInitializePayloads(
@@ -176,31 +176,22 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
 
         usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, address(liquidityEngine));
 
-        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, users.owner);
-
-        usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, users.owner);
+        // TODO: Temporary
+        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(perpsEngine));
 
         perpsEngine.configureMarginCollateral(
             address(usdToken),
             USDZ_DEPOSIT_CAP,
             USDZ_LOAN_TO_VALUE,
+            address(mockPriceAdapters.mockUsdcUsdPriceAdapter)
+        );
+        perpsEngine.configureMarginCollateral(
+            address(mockWstEth),
+            WSTETH_DEPOSIT_CAP,
+            WSTETH_LOAN_TO_VALUE,
             address(mockPriceAdapters.mockWstEthUsdPriceAdapter)
         );
     }
-
-    // function distributeTokens() internal {
-    //     deal({ token: address(usdToken), to: users.naruto, give: 1_000_000e18 });
-    //     deal({ token: address(mockWstEth), to: users.naruto, give: 1_000_000e18 });
-
-    //     deal({ token: address(usdToken), to: users.sasuke, give: 1_000_000e18 });
-    //     deal({ token: address(mockWstEth), to: users.sasuke, give: 1_000_000e18 });
-
-    //     deal({ token: address(usdToken), to: users.sakura, give: 1_000_000e18 });
-    //     deal({ token: address(mockWstEth), to: users.sakura, give: 1_000_000e18 });
-
-    //     deal({ token: address(usdToken), to: users.madara, give: 1_000_000e18 });
-    //     deal({ token: address(mockWstEth), to: users.madara, give: 1_000_000e18 });
-    // }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CALL EXPECTS

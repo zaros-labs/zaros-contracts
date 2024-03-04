@@ -59,7 +59,7 @@ library Errors {
     /// @notice PerpsEngine.OrderModule errors
 
     /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
-    error FailedDispatchCustomOrder();
+    error FailedCreateCustomOrder();
     /// @notice Thrown when trying to cancel an active market order and there's none.
     error NoActiveMarketOrder(uint128 accountId);
 
@@ -80,7 +80,7 @@ library Errors {
     );
     /// @notice Thrown when trying to settle an order and the account has insufficient margin for the new position.
     error InsufficientMargin(
-        uint128 accountId, int256 marginBalanceUsdX18, int256 totalFeesUsdX18, uint256 requiredMarginUsdX18
+        uint128 accountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, int256 totalFeesUsdX18
     );
 
     /// @notice PerpsEngine.GlobalConfigurationModule
@@ -98,6 +98,8 @@ library Errors {
     /// @notice Thrown when the provided `collateralType` is not in the collateral priority list when trying to remove
     /// it.
     error MarginCollateralTypeNotInPriority(address collateralType);
+    /// @notice Thrown when a given trade is below the protocol configured min trade size in usd.
+    error TradeSizeTooSmall();
 
     /// @notice PerpsEngine.SettlementModule errors.
 

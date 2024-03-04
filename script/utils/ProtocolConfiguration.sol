@@ -42,7 +42,7 @@ abstract contract ProtocolConfiguration {
     string internal constant PERPS_LIQUIDATION_UPKEEP_NAME = "Perps Liquidation Upkeep";
 
     /// @notice Margin collateral types configuration Constants.
-    uint128 internal constant USDC_DEPOSIT_CAP = 50_000_000_000e18;
+    uint128 internal constant USDC_DEPOSIT_CAP = 5_000_000_000e18;
     uint128 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
     uint128 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
     uint120 internal constant USDC_LOAN_TO_VALUE = 1e18;
@@ -71,60 +71,60 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant BTC_USD_MARKET_ID = 1;
     string internal constant BTC_USD_MARKET_NAME = "BTC/USD Perpetual Futures";
     string internal constant BTC_USD_MARKET_SYMBOL = "BTC/USD PERP";
-    uint128 internal constant BTC_USD_MIN_IMR = 0.01e18;
+    uint128 internal constant BTC_USD_IMR = 0.01e18;
     uint128 internal constant BTC_USD_MMR = 0.005e18;
+    uint128 internal constant BTC_USD_MARGIN_REQUIREMENTS = BTC_USD_IMR + BTC_USD_MMR;
     uint128 internal constant BTC_USD_MAX_OI = 1000e18;
-    uint256 internal constant BTC_USD_SKEW_SCALE = 3e9;
+    uint256 internal constant BTC_USD_SKEW_SCALE = 100_000e18;
     uint128 internal constant BTC_USD_MAX_FUNDING_VELOCITY = 0.025e18;
-    uint128 internal constant BTC_USD_ORDER_MAKER_FEE = 0.04e18;
-    uint128 internal constant BTC_USD_ORDER_TAKER_FEE = 0.08e18;
     uint128 internal constant BTC_USD_SETTLEMENT_DELAY = 1 seconds;
-    OrderFees.Data internal btcUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
+    OrderFees.Data internal btcUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice ETH/USD market configuration Constants.
     uint128 internal constant ETH_USD_MARKET_ID = 2;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
     string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
-    uint128 internal constant ETH_USD_MIN_IMR = 0.01e18;
+    uint128 internal constant ETH_USD_IMR = 0.01e18;
     uint128 internal constant ETH_USD_MMR = 0.005e18;
+    uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR;
     uint128 internal constant ETH_USD_MAX_OI = 10_000e18;
-    uint256 internal constant ETH_USD_SKEW_SCALE = 2e9;
+    uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.025e18;
-    uint128 internal constant ETH_USD_ORDER_MAKER_FEE = 0.04e18;
-    uint128 internal constant ETH_USD_ORDER_TAKER_FEE = 0.08e18;
     uint128 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;
-    OrderFees.Data internal ethUsdOrderFee = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
+    OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice LINK/USD market configuration Constants.
     uint128 internal constant LINK_USD_MARKET_ID = 3;
     string internal constant LINK_USD_MARKET_NAME = "LINK/USD Perpetual";
     string internal constant LINK_USD_MARKET_SYMBOL = "LINK/USD-PERP";
-    uint128 internal constant LINK_USD_MIN_IMR = 0.05e18;
+    uint128 internal constant LINK_USD_IMR = 0.05e18;
     uint128 internal constant LINK_USD_MMR = 0.025e18;
+    uint128 internal constant LINK_USD_MARGIN_REQUIREMENTS = LINK_USD_IMR + LINK_USD_MMR;
     uint128 internal constant LINK_USD_MAX_OI = 100_000_000e18;
     uint256 internal constant LINK_USD_SKEW_SCALE = 2e8;
     uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 1 seconds;
-    OrderFees.Data internal linkUsdOrderFee = OrderFees.Data({ makerFee: 0.004e18, takerFee: 0.008e18 });
+    OrderFees.Data internal linkUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice ARB/USD market configuration Constants.
     uint128 internal constant ARB_USD_MARKET_ID = 4;
     string internal constant ARB_USD_MARKET_NAME = "ARB/USD Perpetual";
     string internal constant ARB_USD_MARKET_SYMBOL = "ARB/USD-PERP";
-    uint128 internal constant ARB_USD_MIN_IMR = 0.1e18;
+    uint128 internal constant ARB_USD_IMR = 0.1e18;
     uint128 internal constant ARB_USD_MMR = 0.01e18;
+    uint128 internal constant ARB_USD_MARGIN_REQUIREMENTS = ARB_USD_IMR + ARB_USD_MMR;
     uint128 internal constant ARB_USD_MAX_OI = 100_000_000e18;
     uint256 internal constant ARB_USD_SKEW_SCALE = 2e8;
     uint128 internal constant ARB_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint248 internal constant ARB_USD_SETTLEMENT_DELAY = 1 seconds;
-    OrderFees.Data internal arbUsdOrderFee = OrderFees.Data({ makerFee: 0.008e18, takerFee: 0.016e18 });
+    OrderFees.Data internal arbUsdOrderFees = OrderFees.Data({ makerFee: 0.008e18, takerFee: 0.016e18 });
 
     /// @notice Test only mocks
     uint256 internal constant MOCK_BTC_USD_PRICE = 100_000e18;
     uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
     uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
-    uint256 internal constant MAX_IMR = 100e18;
+    uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
     string internal constant MOCK_BTC_USD_STREAM_ID = "MOCK_BTC_USD_STREAM_ID";
     string internal constant MOCK_ETH_USD_STREAM_ID = "MOCK_ETH_USD_STREAM_ID";

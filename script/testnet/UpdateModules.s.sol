@@ -6,6 +6,7 @@ pragma solidity 0.8.23;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
 import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
 import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
@@ -14,7 +15,7 @@ import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "../Base.s.sol";
 import { deployModules, getModulesSelectors, getFacetCuts } from "../helpers/DiamondHelpers.sol";
 
-import { MockSettlementModule } from "test/mocks/MockSettlementModule.sol";
+// import { MockSettlementModule } from "test/mocks/MockSettlementModule.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -29,37 +30,38 @@ contract UpdateModules is BaseScript {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        OrderModule orderModule = new OrderModule();
-        MockSettlementModule mockSettlementModule = new MockSettlementModule();
+        GlobalConfigurationModule globalConfigurationModule = new GlobalConfigurationModule();
+        // OrderModule orderModule = new OrderModule();
+        // MockSettlementModule mockSettlementModule = new MockSettlementModule();
 
         bytes4[] memory selectors = new bytes4[](1);
-        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](2);
+        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](1);
         address[] memory initializables;
         bytes[] memory initializePayloads;
 
-        selectors[0] = OrderModule.simulateSettlement.selector;
+        selectors[0] = GlobalConfigurationModule.getMarginCollateralConfiguration.selector;
 
         facetCuts[0] = IDiamond.FacetCut({
-            facet: address(orderModule),
+            facet: address(globalConfigurationModule),
             action: IDiamond.FacetCutAction.Add,
             selectors: selectors
         });
 
-        bytes4[] memory mockSelectors = new bytes4[](2);
+        // bytes4[] memory mockSelectors = new bytes4[](2);
 
-        mockSelectors[0] = MockSettlementModule.mockSettleMarketOrder.selector;
-        mockSelectors[1] = MockSettlementModule.mockSettleCustomOrders.selector;
+        // mockSelectors[0] = MockSettlementModule.mockSettleMarketOrder.selector;
+        // mockSelectors[1] = MockSettlementModule.mockSettleCustomOrders.selector;
 
-        facetCuts[1] = IDiamond.FacetCut({
-            facet: address(mockSettlementModule),
-            action: IDiamond.FacetCutAction.Add,
-            selectors: mockSelectors
-        });
+        // facetCuts[1] = IDiamond.FacetCut({
+        //     facet: address(mockSettlementModule),
+        //     action: IDiamond.FacetCutAction.Add,
+        //     selectors: mockSelectors
+        // });
 
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 
         perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
 
-        console.log(address(orderModule));
+        console.log(address(globalConfigurationModule));
     }
 }

@@ -94,7 +94,7 @@ contract PerpMarketModule is IPerpMarketModule {
         returns (
             string memory name,
             string memory symbol,
-            uint128 minInitialMarginRateX18,
+            uint128 initialMarginRateX18,
             uint128 maintenanceMarginRateX18,
             uint128 maxOpenInterest,
             int128 skew,
@@ -106,7 +106,7 @@ contract PerpMarketModule is IPerpMarketModule {
 
         name = perpMarket.configuration.name;
         symbol = perpMarket.configuration.symbol;
-        minInitialMarginRateX18 = perpMarket.configuration.minInitialMarginRateX18;
+        initialMarginRateX18 = perpMarket.configuration.initialMarginRateX18;
         maintenanceMarginRateX18 = perpMarket.configuration.maintenanceMarginRateX18;
         maxOpenInterest = perpMarket.configuration.maxOpenInterest;
         skew = perpMarket.skew;

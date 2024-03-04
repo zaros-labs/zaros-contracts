@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { BaseScript } from "../Base.s.sol";
-import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
+import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
 
@@ -19,12 +19,14 @@ contract DeployTestnetTokens is BaseScript {
     function run() public broadcaster {
         address limitedMintingErc20Implementation = address(new LimitedMintingERC20());
 
-        address accessKeyManager = vm.envOr("CONTRACT_ACCESS_KEY_MANAGER", address(0));
+        address accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
 
-        bytes memory usdcInitializeData =
-            abi.encodeWithSelector(LimitedMintingERC20.initialize.selector, deployer, "USD Coin", "USDC", address(accessKeyManager));
-        bytes memory usdzInitializeData =
-            abi.encodeWithSelector(LimitedMintingERC20.initialize.selector, deployer, "Zaros USD", "USDz", address(accessKeyManager));
+        bytes memory usdcInitializeData = abi.encodeWithSelector(
+            LimitedMintingERC20.initialize.selector, deployer, "USD Coin", "USDC", accessKeyManager
+        );
+        bytes memory usdzInitializeData = abi.encodeWithSelector(
+            LimitedMintingERC20.initialize.selector, deployer, "Zaros USD", "USDz", accessKeyManager
+        );
 
         address usdc = address(new ERC1967Proxy(limitedMintingErc20Implementation, usdcInitializeData));
         address usdz = address(new ERC1967Proxy(limitedMintingErc20Implementation, usdzInitializeData));

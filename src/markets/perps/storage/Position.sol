@@ -64,14 +64,14 @@ library Position {
 
     function getMarginRequirements(
         UD60x18 notionalValueX18,
-        UD60x18 minInitialMarginRateX18,
+        UD60x18 initialMarginRateX18,
         UD60x18 maintenanceMarginRateX18
     )
         internal
         pure
         returns (UD60x18 initialMarginUsdX18, UD60x18 maintenanceMarginUsdX18)
     {
-        initialMarginUsdX18 = notionalValueX18.mul(minInitialMarginRateX18);
+        initialMarginUsdX18 = notionalValueX18.mul(initialMarginRateX18);
         maintenanceMarginUsdX18 = notionalValueX18.mul(maintenanceMarginRateX18);
     }
 

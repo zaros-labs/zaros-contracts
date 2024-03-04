@@ -3,6 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfiguration.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
@@ -11,7 +12,7 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 /// @param name The perps market name.
 /// @param symbol The perps market symbol.
 /// @param priceAdapter The price adapter contract, which handles the market's index price.
-/// @param minInitialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
+/// @param initialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
 /// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
 /// @param maxOpenInterest The perps market maximum open interest per side.
 /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
@@ -23,7 +24,7 @@ struct CreatePerpMarketParams {
     string name;
     string symbol;
     address priceAdapter;
-    uint128 minInitialMarginRateX18;
+    uint128 initialMarginRateX18;
     uint128 maintenanceMarginRateX18;
     uint128 maxOpenInterest;
     uint256 skewScale;
@@ -114,11 +115,11 @@ interface IGlobalConfigurationModule {
     /// @dev Returns the maximum amount that can be deposited as margin for a given
     /// collateral type.
     /// @param collateralType The address of the collateral type.
-    /// @return depositCap The configured deposit cap for the given collateral type.
-    function getDepositCapForMarginCollateralConfiguration(address collateralType)
+    /// @return marginCollateralConfiguration The configuration parameters of the given collateral type.
+    function getMarginCollateralConfiguration(address collateralType)
         external
         view
-        returns (uint256 depositCap);
+        returns (MarginCollateralConfiguration.Data memory marginCollateralConfiguration);
 
     /// @notice Sets the address of the account token NFT contract.
     /// @param perpsAccountToken The account token address.
@@ -178,7 +179,7 @@ interface IGlobalConfigurationModule {
     /// @param name The perp market name.
     /// @param symbol The perp market symbol.
     /// @param priceAdapter The price adapter contract, which handles the market's index price.
-    /// @param minInitialMarginRateX18 The perp market min initial margin rate, which defines the max leverage.
+    /// @param initialMarginRateX18 The perp market min initial margin rate, which defines the max leverage.
     /// @param maintenanceMarginRateX18 The perp market maintenance margin rate.
     /// @param maxOpenInterest The perp market maximum open interest per side.
     /// @param maxFundingVelocity The perp market maximum funding rate velocity.
@@ -189,7 +190,7 @@ interface IGlobalConfigurationModule {
         string calldata name,
         string calldata symbol,
         address priceAdapter,
-        uint128 minInitialMarginRateX18,
+        uint128 initialMarginRateX18,
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
         uint128 maxFundingVelocity,

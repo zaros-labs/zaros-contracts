@@ -94,7 +94,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
             (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
                 .getMarginRequirements(
                 notionalValueX18,
-                ud60x18(perpMarket.configuration.minInitialMarginRateX18),
+                ud60x18(perpMarket.configuration.initialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
             );
 
@@ -172,8 +172,8 @@ contract PerpsAccountModule is IPerpsAccountModule {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         uint128 accountId = ++globalConfiguration.nextAccountId;
         IAccountNFT perpsAccountToken = IAccountNFT(globalConfiguration.perpsAccountToken);
-
         PerpsAccount.create(accountId, msg.sender);
+
         perpsAccountToken.mint(msg.sender, accountId);
 
         emit LogCreatePerpsAccount(accountId, msg.sender);
@@ -184,6 +184,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
     function createPerpsAccountAndMulticall(bytes[] calldata data)
         external
         payable
+        virtual
         override
         returns (bytes[] memory results)
     {
@@ -205,8 +206,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
         }
     }
 
+    // TODO: rollback to external
     /// @inheritdoc IPerpsAccountModule
-    function depositMargin(uint128 accountId, address collateralType, uint256 amount) external override {
+    function depositMargin(uint128 accountId, address collateralType, uint256 amount) public virtual override {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
         UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);

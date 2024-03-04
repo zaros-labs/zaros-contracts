@@ -22,6 +22,8 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
+import "forge-std/console.sol";
+
 contract OrderModule is IOrderModule {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
@@ -37,7 +39,7 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function simulateSettlement(
+    function simulateTrade(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
@@ -46,34 +48,42 @@ contract OrderModule is IOrderModule {
         public
         view
         override
-        returns (SD59x18, UD60x18, UD60x18)
+        returns (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18,
+            UD60x18 fillPriceX18
+        )
     {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
 
-        UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
-
-        SD59x18 orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), markPriceX18);
-        UD60x18 settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
+        fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
 
         {
-            (
-                UD60x18 requiredInitialMarginUsdX18,
-                UD60x18 requiredMaintenanceMarginUsdX18,
-                SD59x18 accountTotalUnrealizedPnlUsdX18
-            ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
-            SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
-
-            perpsAccount.validateMarginRequirement(
-                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
-                marginBalanceUsdX18,
-                orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18())
-            );
+            GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+            globalConfiguration.checkTradeSizeUsd(sd59x18(sizeDelta), fillPriceX18);
         }
 
-        return (orderFeeUsdX18, settlementFeeUsdX18, markPriceX18);
+        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), fillPriceX18);
+        settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
+
+        {
+            SD59x18 accountTotalUnrealizedPnlUsdX18;
+            (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
+                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
+            marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+
+            // console.log("CHIDORI");
+            // // console.log(accountTotalUnrealizedPnlUsdX18.intoUD60x18().intoUint256());
+            // console.log(requiredInitialMarginUsdX18.intoUint256(), requiredMaintenanceMarginUsdX18.intoUint256());
+            // console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
+            // // console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
+        }
     }
 
     /// @inheritdoc IOrderModule
@@ -92,7 +102,7 @@ contract OrderModule is IOrderModule {
         UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
 
         UD60x18 orderValueX18 = markPriceX18.mul(sd59x18(sizeDelta).abs().intoUD60x18());
-        UD60x18 initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.minInitialMarginRateX18));
+        UD60x18 initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.initialMarginRateX18));
         UD60x18 maintenanceMarginUsdX18 =
             orderValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
 
@@ -100,13 +110,10 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function getActiveMarketOrder(uint128 accountId)
-        external
-        pure
-        override
-        returns (MarketOrder.Data memory marketOrder)
-    {
-        marketOrder = MarketOrder.load(accountId);
+    function getActiveMarketOrder(uint128 accountId) external pure override returns (MarketOrder.Data memory) {
+        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
+
+        return marketOrder;
     }
 
     /// @inheritdoc IOrderModule
@@ -127,13 +134,29 @@ contract OrderModule is IOrderModule {
             revert Errors.ZeroInput("sizeDelta");
         }
 
-        // we ignore the return values as they aren't needed
-        simulateSettlement({
+        (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18,
+        ) = simulateTrade({
             accountId: accountId,
             marketId: marketId,
             settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             sizeDelta: sizeDelta
         });
+
+        console.log("MARGIN REQUIREMENTS: ");
+        console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
+        console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
+        console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
+
+        perpsAccount.validateMarginRequirement(
+            requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
+            marginBalanceUsdX18,
+            orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18())
+        );
 
         bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
         if (!isMarketWithActivePosition) {
@@ -148,7 +171,7 @@ contract OrderModule is IOrderModule {
         emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
     }
 
-    function dispatchCustomOrder(
+    function createCustomOrder(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
@@ -176,7 +199,7 @@ contract OrderModule is IOrderModule {
         (bool success, bytes memory returnData) = settlementStrategy.call(callData);
 
         if (!success) {
-            if (returnData.length == 0) revert Errors.FailedDispatchCustomOrder();
+            if (returnData.length == 0) revert Errors.FailedCreateCustomOrder();
             assembly {
                 revert(add(returnData, 0x20), mload(returnData))
             }

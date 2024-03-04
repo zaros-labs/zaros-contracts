@@ -11,7 +11,9 @@ import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpMarketModule } from "@zaros/markets/perps/modules/PerpMarketModule.sol";
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
-import { PerpsAccountModuleTestnet } from "../../testnet/modules/PerpsAccountModuleTestnet.sol";
+import { GlobalConfigurationModuleTestnet } from "@zaros/testnet/modules/GlobalConfigurationModuleTestnet.sol";
+import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountModuleTestnet.sol";
+import { SettlementModuleTestnet } from "@zaros/testnet/modules/SettlementModuleTestnet.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -25,9 +27,6 @@ function deployModules(bool isTestnet) returns (address[] memory) {
     address diamondLoupeModule = address(new DiamondLoupeModule());
     console.log("DiamondLoupeModule: ", diamondLoupeModule);
 
-    address globalConfigurationModule = address(new GlobalConfigurationModule());
-    console.log("GlobalConfigurationModule: ", globalConfigurationModule);
-
     address liquidationModule = address(new LiquidationModule());
     console.log("LiquidationModule: ", liquidationModule);
 
@@ -37,15 +36,20 @@ function deployModules(bool isTestnet) returns (address[] memory) {
     address perpMarketModule = address(new PerpMarketModule());
     console.log("PerpMarketModule: ", perpMarketModule);
 
+    address globalConfigurationModule;
     address perpsAccountModule;
+    address settlementModule;
     if (isTestnet) {
+        globalConfigurationModule = address(new GlobalConfigurationModuleTestnet());
         perpsAccountModule = address(new PerpsAccountModuleTestnet());
+        settlementModule = address(new SettlementModuleTestnet());
     } else {
+        globalConfigurationModule = address(new GlobalConfigurationModule());
         perpsAccountModule = address(new PerpsAccountModule());
+        settlementModule = address(new SettlementModule());
     }
+    console.log("GlobalConfigurationModule: ", globalConfigurationModule);
     console.log("PerpsAccountModule: ", perpsAccountModule);
-
-    address settlementModule = address(new SettlementModule());
     console.log("SettlementModule: ", settlementModule);
 
     modules[0] = diamondCutModule;
@@ -60,7 +64,7 @@ function deployModules(bool isTestnet) returns (address[] memory) {
     return modules;
 }
 
-function getModulesSelectors() pure returns (bytes4[][] memory) {
+function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
     bytes4[] memory diamondCutModuleSelectors = new bytes4[](1);
@@ -75,11 +79,10 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     diamondLoupeModuleSelectors[2] = DiamondLoupeModule.facetAddress.selector;
     diamondLoupeModuleSelectors[4] = DiamondLoupeModule.facetSelectors.selector;
 
-    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](12);
+    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](isTestnet ? 14 : 12);
 
     globalConfigurationModuleSelectors[0] = GlobalConfigurationModule.getAccountsWithActivePositions.selector;
-    globalConfigurationModuleSelectors[1] =
-        GlobalConfigurationModule.getDepositCapForMarginCollateralConfiguration.selector;
+    globalConfigurationModuleSelectors[1] = GlobalConfigurationModule.getMarginCollateralConfiguration.selector;
     globalConfigurationModuleSelectors[2] = GlobalConfigurationModule.setPerpsAccountToken.selector;
     globalConfigurationModuleSelectors[3] = GlobalConfigurationModule.setLiquidityEngine.selector;
     globalConfigurationModuleSelectors[4] = GlobalConfigurationModule.configureCollateralPriority.selector;
@@ -91,6 +94,11 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     globalConfigurationModuleSelectors[10] = GlobalConfigurationModule.updatePerpMarketConfiguration.selector;
     globalConfigurationModuleSelectors[11] = GlobalConfigurationModule.updatePerpMarketStatus.selector;
 
+    if (isTestnet) {
+        globalConfigurationModuleSelectors[12] = GlobalConfigurationModuleTestnet.setUserPoints.selector;
+        globalConfigurationModuleSelectors[13] = GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
+    }
+
     bytes4[] memory liquidationModuleSelectors = new bytes4[](2);
 
     liquidationModuleSelectors[0] = LiquidationModule.checkLiquidatableAccounts.selector;
@@ -99,11 +107,11 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     bytes4[] memory orderModuleSelectors = new bytes4[](7);
 
     orderModuleSelectors[0] = OrderModule.getConfiguredOrderFees.selector;
-    orderModuleSelectors[1] = OrderModule.simulateSettlement.selector;
+    orderModuleSelectors[1] = OrderModule.simulateTrade.selector;
     orderModuleSelectors[2] = OrderModule.getMarginRequirementsForTrade.selector;
     orderModuleSelectors[3] = OrderModule.getActiveMarketOrder.selector;
     orderModuleSelectors[4] = OrderModule.createMarketOrder.selector;
-    orderModuleSelectors[5] = OrderModule.dispatchCustomOrder.selector;
+    orderModuleSelectors[5] = OrderModule.createCustomOrder.selector;
     orderModuleSelectors[6] = OrderModule.cancelMarketOrder.selector;
 
     bytes4[] memory perpMarketModuleSelectors = new bytes4[](10);
@@ -119,7 +127,7 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     perpMarketModuleSelectors[8] = PerpMarketModule.getFundingVelocity.selector;
     perpMarketModuleSelectors[9] = PerpMarketModule.getMarketData.selector;
 
-    bytes4[] memory perpsAccountModuleSelectors = new bytes4[](12);
+    bytes4[] memory perpsAccountModuleSelectors = new bytes4[](isTestnet ? 16 : 12);
 
     perpsAccountModuleSelectors[0] = PerpsAccountModule.getPerpsAccountToken.selector;
     perpsAccountModuleSelectors[1] = PerpsAccountModule.getAccountMarginCollateralBalance.selector;
@@ -133,6 +141,15 @@ function getModulesSelectors() pure returns (bytes4[][] memory) {
     perpsAccountModuleSelectors[9] = PerpsAccountModule.depositMargin.selector;
     perpsAccountModuleSelectors[10] = PerpsAccountModule.withdrawMargin.selector;
     perpsAccountModuleSelectors[11] = PerpsAccountModule.notifyAccountTransfer.selector;
+
+    if (isTestnet) {
+        perpsAccountModuleSelectors[7] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
+        perpsAccountModuleSelectors[8] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[]],bytes,bool)"));
+        perpsAccountModuleSelectors[12] = PerpsAccountModuleTestnet.getAccessKeyManager.selector;
+        perpsAccountModuleSelectors[13] = PerpsAccountModuleTestnet.isUserAccountCreated.selector;
+        perpsAccountModuleSelectors[14] = PerpsAccountModuleTestnet.getPointsOfUser.selector;
+        perpsAccountModuleSelectors[15] = PerpsAccountModuleTestnet.getUserReferralData.selector;
+    }
 
     bytes4[] memory settlementModuleSelectors = new bytes4[](2);
 
@@ -172,7 +189,7 @@ function getFacetCuts(
 }
 
 function getInitializables(address[] memory modules, bool isTestnet) pure returns (address[] memory) {
-    address[] memory initializables = new address[](3);
+    address[] memory initializables = new address[](isTestnet ? 3 : 2);
 
     address diamondCutModule = modules[0];
     address globalConfigurationModule = modules[2];
@@ -207,7 +224,7 @@ function getInitializePayloads(
         GlobalConfigurationModule.initialize.selector, perpsAccountToken, rewardDistributor, usdToken, zaros
     );
 
-    initializePayloads = new bytes[](3);
+    initializePayloads = new bytes[](isTestnet ? 3 : 2);
 
     initializePayloads[0] = diamondCutInitializeData;
     initializePayloads[1] = perpsInitializeData;

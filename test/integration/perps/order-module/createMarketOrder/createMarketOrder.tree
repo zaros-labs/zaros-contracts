@@ -8,20 +8,20 @@ CreateMarketOrder_Integration_Test
         ├── when the size delta is zero
         │   └── it should revert
         └── when the size delta is not zero
-            ├── given the account is liquidatable
+            ├── when the size delta is less than the min trade size
             │   └── it should revert
-            └── given the account is not liquidatable
-                ├── given the account does not have enough margin
+            └── when the size delta is greater than the min trade size
+                ├── given the account won't meet the margin requirements
                 │   └── it should revert
-                └── given the account has enough margin
+                └── given the account will meet the margin requirements
                     ├── given the account will reach the positions limit
                     │   └── it should revert
                     └── given the account will not reach the positions limit
-                        ├── given the perp market is disabled
+                        ├── given the perp market is not active
                         │   └── it should revert
                         └── given the perp market is active
                             ├── given there is a pending market order
                             │   └── it should revert
                             └── given there is no pending market order
-                                ├── it should emit a {LogCreateMarketOrder} event
-                                └── it should create the market order
+                                ├── it should create the market order
+                                └── it should emit a {LogCreateMarketOrder} event

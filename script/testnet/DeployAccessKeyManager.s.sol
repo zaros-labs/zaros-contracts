@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { BaseScript } from "../Base.s.sol";
-import { AccessKeyManager } from "testnet/access-key-manager/AccessKeyManager.sol";
+import { AccessKeyManager } from "@zaros/testnet/access-key-manager/AccessKeyManager.sol";
 
 // Open zeppelin upgradeable dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -21,6 +21,8 @@ contract DeployAccessKeyManager is BaseScript {
             abi.encodeWithSelector(AccessKeyManager.initialize.selector, deployer, vm.envAddress("SPEARMINT_SIGNER"));
 
         address accessKeyManagerProxy = address(new ERC1967Proxy(accessKeyManagerImplementation, initializeData));
+
+        console.log(deployer);
 
         console.log("Access Key Manager Implementation: ", accessKeyManagerImplementation);
         console.log("Access Key Manager Proxy: ", accessKeyManagerProxy);

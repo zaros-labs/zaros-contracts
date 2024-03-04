@@ -15,6 +15,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The GlobalConfiguration namespace.
 library GlobalConfiguration {
@@ -22,7 +23,8 @@ library GlobalConfiguration {
     using SafeCast for int256;
 
     /// @dev GlobalConfiguration namespace storage slot.
-    bytes32 internal constant PERPS_CONFIGURATION_SLOT = keccak256(abi.encode("fi.zaros.markets.GlobalConfiguration"));
+    bytes32 internal constant GLOBAL_CONFIGURATION_SLOT =
+        keccak256(abi.encode("fi.zaros.markets.GlobalConfiguration"));
 
     /// @notice {PerpConfiguration} namespace storage structure.
     struct Data {
@@ -44,7 +46,7 @@ library GlobalConfiguration {
     /// @notice Loads the GlobalConfiguration entity.
     /// @return globalConfiguration The global configuration storage pointer.
     function load() internal pure returns (Data storage globalConfiguration) {
-        bytes32 slot = PERPS_CONFIGURATION_SLOT;
+        bytes32 slot = GLOBAL_CONFIGURATION_SLOT;
 
         assembly {
             globalConfiguration.slot := slot
@@ -57,6 +59,13 @@ library GlobalConfiguration {
     function checkMarketIsEnabled(Data storage self, uint128 marketId) internal view {
         if (!self.enabledMarketsIds.contains(marketId)) {
             revert Errors.PerpMarketDisabled(marketId);
+        }
+    }
+
+    function checkTradeSizeUsd(Data storage self, SD59x18 sizeDeltaX18, UD60x18 markPriceX18) internal view {
+        UD60x18 tradeSizeUsdX18 = sizeDeltaX18.abs().intoUD60x18().mul(markPriceX18);
+        if (tradeSizeUsdX18.lt(ud60x18(self.minTradeSizeUsdX18))) {
+            revert Errors.TradeSizeTooSmall();
         }
     }
 

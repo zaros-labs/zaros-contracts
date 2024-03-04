@@ -7,6 +7,7 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { Math } from "@zaros/utils/Math.sol";
 import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
@@ -15,11 +16,17 @@ import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol"
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+
 // PRB Math dependencies
-import { sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 abstract contract Base_Integration_Shared_Test is Base_Test {
+    using Math for UD60x18;
+    using SafeCast for int256;
+
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
 
@@ -35,8 +42,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
     SettlementConfiguration.Data[] internal btcUsdCustomOrderStrategies;
 
-    OrderFees.Data internal btcUsdOrderFees;
-
     /// @dev ETH / USD market configuration variables.
     SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderConfigurationData;
     SettlementConfiguration.Data internal ethUsdMarketOrderConfiguration;
@@ -44,8 +49,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     SettlementConfiguration.Data internal ethUsdLimitOrderConfiguration;
 
     SettlementConfiguration.Data[] internal ethUsdCustomOrderStrategies;
-
-    OrderFees.Data internal ethUsdOrderFees;
 
     function setUp() public virtual override {
         Base_Test.setUp();
@@ -84,8 +87,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             data: abi.encode(btcUsdMarketOrderConfigurationData)
         });
 
-        btcUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
-
         /// @dev ETH / USD market configuration variables.
         marketOrderUpkeeps[ETH_USD_MARKET_ID] = vm.addr({ privateKey: 0x06 });
 
@@ -116,8 +117,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
-        ethUsdOrderFees = OrderFees.Data({ makerFee: 0.04e18, takerFee: 0.08e18 });
-
         btcUsdCustomOrderStrategies.push(btcUsdLimitOrderConfiguration);
         ethUsdCustomOrderStrategies.push(ethUsdLimitOrderConfiguration);
     }
@@ -143,7 +142,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 name: BTC_USD_MARKET_NAME,
                 symbol: BTC_USD_MARKET_SYMBOL,
                 priceAdapter: address(mockPriceAdapters.mockBtcUsdPriceAdapter),
-                minInitialMarginRateX18: BTC_USD_MIN_IMR,
+                initialMarginRateX18: BTC_USD_IMR,
                 maintenanceMarginRateX18: BTC_USD_MMR,
                 maxOpenInterest: BTC_USD_MAX_OI,
                 skewScale: BTC_USD_SKEW_SCALE,
@@ -160,7 +159,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 name: ETH_USD_MARKET_NAME,
                 symbol: ETH_USD_MARKET_SYMBOL,
                 priceAdapter: address(mockPriceAdapters.mockEthUsdPriceAdapter),
-                minInitialMarginRateX18: ETH_USD_MIN_IMR,
+                initialMarginRateX18: ETH_USD_IMR,
                 maintenanceMarginRateX18: ETH_USD_MMR,
                 maxOpenInterest: ETH_USD_MAX_OI,
                 skewScale: ETH_USD_SKEW_SCALE,
@@ -228,20 +227,37 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
-    function fuzzMarketOrderSizeDelta(
+    function fuzzOrderSizeDelta(
+        uint128 accountId,
+        uint128 marketId,
+        uint128 settlementId,
         uint256 initialMarginRate,
         uint256 marginValueUsd,
+        uint256 price,
         bool isLong
     )
         internal
-        pure
+        view
         returns (int128 sizeDelta)
     {
-        int128 sizeDeltaAbs = int128(
-            ud60x18(initialMarginRate).div(ud60x18(marginValueUsd)).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18()
-                .intoInt256()
-        );
-        sizeDelta = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+        UD60x18 fuzzedSizeDeltaAbs = ud60x18(marginValueUsd).div(ud60x18(initialMarginRate)).div(ud60x18(price));
+
+        // TODO: Dynamically get the max OI.
+        uint256 maxOpenInterest = ETH_USD_MAX_OI;
+
+        // TODO: fix min trade size usd dynamic calculation
+        int128 sizeDeltaAbs = Math.min(
+            Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(price))),
+            ud60x18(maxOpenInterest)
+        ).intoSD59x18().intoInt256().toInt128();
+        int128 sizeDeltaPreFee = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+        (,,, SD59x18 orderFeeUsdX18,,) = perpsEngine.simulateTrade(accountId, marketId, settlementId, sizeDeltaPreFee);
+
+        sizeDelta = (
+            isLong
+                ? sd59x18(sizeDeltaPreFee).sub(orderFeeUsdX18.div(ud60x18(price).intoSD59x18()))
+                : sd59x18(sizeDeltaPreFee).add(orderFeeUsdX18.div(ud60x18(price).intoSD59x18()))
+        ).intoInt256().toInt128();
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {

@@ -70,16 +70,16 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationModule
-    function getDepositCapForMarginCollateralConfiguration(address collateralType)
+    function getMarginCollateralConfiguration(address collateralType)
         external
-        view
+        pure
         override
-        returns (uint256)
+        returns (MarginCollateralConfiguration.Data memory)
     {
-        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+        MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
 
-        return marginCollateralConfiguration.depositCap;
+        return marginCollateralConfiguration;
     }
 
     /// @inheritdoc IGlobalConfigurationModule
@@ -235,8 +235,8 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         if (params.maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
         }
-        if (params.minInitialMarginRateX18 == 0) {
-            revert Errors.ZeroInput("minInitialMarginRateX18");
+        if (params.initialMarginRateX18 == 0) {
+            revert Errors.ZeroInput("initialMarginRateX18");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -246,7 +246,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             params.name,
             params.symbol,
             params.priceAdapter,
-            params.minInitialMarginRateX18,
+            params.initialMarginRateX18,
             params.maintenanceMarginRateX18,
             params.maxOpenInterest,
             params.skewScale,
@@ -266,7 +266,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         string calldata name,
         string calldata symbol,
         address priceAdapter,
-        uint128 minInitialMarginRateX18,
+        uint128 initialMarginRateX18,
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
         uint128 maxFundingVelocity,
@@ -293,8 +293,8 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         if (priceAdapter == address(0)) {
             revert Errors.ZeroInput("priceAdapter");
         }
-        if (minInitialMarginRateX18 == 0) {
-            revert Errors.ZeroInput("minInitialMarginRateX18");
+        if (initialMarginRateX18 == 0) {
+            revert Errors.ZeroInput("initialMarginRateX18");
         }
 
         if (maintenanceMarginRateX18 == 0) {
@@ -308,7 +308,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             name,
             symbol,
             priceAdapter,
-            minInitialMarginRateX18,
+            initialMarginRateX18,
             maintenanceMarginRateX18,
             maxOpenInterest,
             maxFundingVelocity,

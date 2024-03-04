@@ -67,7 +67,7 @@ interface IPerpMarketModule {
     /// @param marketId The perps market id.
     /// @return name The market name.
     /// @return symbol The market symbol.
-    /// @return minInitialMarginRateX18 The minimum initial margin rate for the market.
+    /// @return initialMarginRateX18 The minimum initial margin rate for the market.
     /// @return maintenanceMarginRateX18 The maintenance margin rate for the market.
     /// @return maxOpenInterest The maximum open interest for the market.
     /// @return skew The skew of the market.
@@ -79,7 +79,7 @@ interface IPerpMarketModule {
         returns (
             string memory name,
             string memory symbol,
-            uint128 minInitialMarginRateX18,
+            uint128 initialMarginRateX18,
             uint128 maintenanceMarginRateX18,
             uint128 maxOpenInterest,
             int128 skew,

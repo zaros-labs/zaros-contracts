@@ -47,7 +47,7 @@ pragma solidity 0.8.23;
 //         sFrxEth = MockERC20(vm.envAddress("SFRXETH"));
 //         usdc = MockERC20(vm.envAddress("USDC"));
 //         usdToken = MockERC20(vm.envAddress("USDZ"));
-//         accountNft = AccountNFT(vm.envAddress("ACCOUNT_NFT"));
+//         accountNft = AccountNFT(vm.envAddress("PERPS_ACCOUNT_NFT"));
 //         liquidityEngine = LiquidityEngine(vm.envAddress("ZAROS"));
 //         ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
 //         usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
