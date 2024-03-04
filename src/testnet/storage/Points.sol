@@ -9,6 +9,13 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 library Points {
+    event LogUpdatePnlPoints(
+        address indexed user, int256 accumulatedPnl, uint256 pnlPointsCheckpoint, uint256 earnedPoints
+    );
+    event LogUpdateTradingVolumePoints(
+        address indexed user, uint256 accumulatedTradingVolume, uint256 tradingVolumeCheckpoint, uint256 earnedPoints
+    );
+
     string internal constant POINTS_DOMAIN = "fi.zaros.Points";
 
     struct Data {
@@ -27,7 +34,8 @@ library Points {
         }
     }
 
-    function updatePnlPoints(Data storage self, SD59x18 pnl) internal {
+    function updatePnlPoints(address user, SD59x18 pnl) internal {
+        Data storage self = load(user);
         self.accumulatedPnl += pnl.intoInt256();
         SD59x18 accumulatedPnl = sd59x18(self.accumulatedPnl);
 
@@ -44,12 +52,16 @@ library Points {
         }
 
         uint256 checkpointsAdded = newPnlCheckpoint - self.pnlPointsCheckpoint;
+        uint256 earnedPoints = checkpointsAdded * PointsConfig.POINTS_PER_10K_PNL;
 
         self.pnlPointsCheckpoint += checkpointsAdded;
-        self.amount += checkpointsAdded * PointsConfig.POINTS_PER_10K_PNL;
+        self.amount += earnedPoints;
+
+        emit LogUpdatePnlPoints(user, self.accumulatedPnl, self.pnlPointsCheckpoint, earnedPoints);
     }
 
-    function updateTradingVolumePoints(Data storage self, UD60x18 tradingVolume) internal {
+    function updateTradingVolumePoints(address user, UD60x18 tradingVolume) internal {
+        Data storage self = load(user);
         self.accumulatedTradingVolume += tradingVolume.intoUint256();
         UD60x18 accumulatedTradingVolume = ud60x18(self.accumulatedTradingVolume);
 
@@ -66,8 +78,13 @@ library Points {
         }
 
         uint256 checkpointsAdded = newTradingVolumeCheckpoint - self.tradingVolumeCheckpoint;
+        uint256 earnedPoints = checkpointsAdded * PointsConfig.POINTS_PER_10K_TRADE_SIZE;
 
         self.tradingVolumeCheckpoint += checkpointsAdded;
-        self.amount += checkpointsAdded * PointsConfig.POINTS_PER_10K_TRADE_SIZE;
+        self.amount += earnedPoints;
+
+        emit LogUpdateTradingVolumePoints(
+            user, self.accumulatedTradingVolume, self.tradingVolumeCheckpoint, earnedPoints
+        );
     }
 }

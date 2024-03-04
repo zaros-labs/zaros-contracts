@@ -147,16 +147,14 @@ contract SettlementModuleTestnet is SettlementModule {
         } else if (ctx.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
             perpsAccount.deposit(ctx.usdToken, amountToIncrease);
-            Points.load(perpsAccount.owner).updatePnlPoints(ctx.pnl);
+            Points.updatePnlPoints(perpsAccount.owner, ctx.pnl);
 
             // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
             // NOTE: testnet only
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
-        Points.load(perpsAccount.owner).updateTradingVolumePoints(
-            ctx.sizeDelta.abs().intoUD60x18().mul(ctx.fillPrice)
-        );
+        Points.updateTradingVolumePoints(perpsAccount.owner, ctx.sizeDelta.abs().intoUD60x18().mul(ctx.fillPrice));
 
         emit LogSettleOrder(
             msg.sender,
@@ -169,17 +167,5 @@ contract SettlementModuleTestnet is SettlementModule {
             ctx.pnl.intoInt256(),
             ctx.newPosition
         );
-    }
-
-    function _calculatePnlPoints(SD59x18 pnl) internal pure returns (UD60x18) {
-        return pnl.intoUD60x18().div(ud60x18(10_000e18)).sub(pnl.intoUD60x18().mod(ud60x18(10_000e18))).mul(
-            ud60x18(PointsConfig.POINTS_PER_10K_PNL)
-        );
-    }
-
-    function _calculateTradeSizePoints(SD59x18 sizeDelta, UD60x18 fillPrice) internal pure returns (UD60x18) {
-        return sizeDelta.abs().intoUD60x18().mul(fillPrice).div(ud60x18(10_000e18)).sub(
-            sizeDelta.abs().intoUD60x18().mul(fillPrice).mod(ud60x18(10_000e18))
-        ).mul(ud60x18(PointsConfig.POINTS_PER_10K_TRADE_SIZE));
     }
 }
