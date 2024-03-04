@@ -3,11 +3,6 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
-import { Errors } from "@zaros/utils/Errors.sol";
-import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
-import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
-import { OcoOrder } from "@zaros/markets/settlement/storage/OcoOrder.sol";
-import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { PerpsAccount } from "@zaros/markets/perps/storage/PerpsAccount.sol";
@@ -16,7 +11,6 @@ import { PerpMarket } from "@zaros/markets/perps/storage/PerpMarket.sol";
 import { Position } from "@zaros/markets/perps/storage/Position.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { Points } from "../storage/Points.sol";
-import { PointsConfig } from "../storage/PointsConfig.sol";
 
 // Open Zeppelin dependencies
 import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
