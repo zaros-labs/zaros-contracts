@@ -23,6 +23,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+import "forge-std/console.sol";
+
 abstract contract Base_Integration_Shared_Test is Base_Test {
     using Math for UD60x18;
     using SafeCast for int256;
@@ -257,14 +259,25 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) =
             perpsEngine.simulateTrade(accountId, marketId, settlementId, sizeDeltaPreFee);
 
-        SD59x18 feeToDiscount =
-            orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).div((fillPriceX18).intoSD59x18());
+        UD60x18 feeToDiscount = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
         SD59x18 sizeDeltaWithPriceImpact =
-            fillPriceX18.div(ud60x18(price)).intoSD59x18().mul(sd59x18(sizeDeltaPreFee));
+            ud60x18(price).div(fillPriceX18).intoSD59x18().mul(sd59x18(sizeDeltaPreFee));
 
         sizeDelta = (
-            isLong ? sizeDeltaWithPriceImpact.sub(feeToDiscount) : sizeDeltaWithPriceImpact.add(feeToDiscount)
+            isLong
+                ? sizeDeltaWithPriceImpact.sub(feeToDiscount.intoSD59x18())
+                : sizeDeltaWithPriceImpact.add(feeToDiscount.intoSD59x18())
         ).intoInt256().toInt128();
+
+        console.log("Order Fuzzing: ");
+        console.log(fillPriceX18.intoUint256());
+        console.log(fillPriceX18.mul(sd59x18(sizeDelta).abs().intoUD60x18()).intoUint256());
+
+        // console.log("Order Fuzzing");
+        // console.log(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18).intoUint256());
+        // console.log(ud60x18(price).div(fillPriceX18).intoUint256());
+        // console.log(!isLong ? (-int256(sizeDelta)).toUint256() : int256(sizeDelta).toUint256());
+        // console.log(sizeDeltaWithPriceImpact.abs().intoUint256());
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
