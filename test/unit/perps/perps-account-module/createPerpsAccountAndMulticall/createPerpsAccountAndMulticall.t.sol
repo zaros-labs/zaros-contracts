@@ -7,6 +7,8 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
 import { Base_Test } from "test/Base.t.sol";
 
+import "forge-std/console.sol";
+
 contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
@@ -75,11 +77,15 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
         bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
 
+        bytes[] memory mockResults = new bytes[](1);
+
+        // console.log(results[0]);
+
         uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdToken)).intoUint256();
 
         // it should increase the amount of margin collateral
-        assertEq(results.length, 0, "createPerpsAccountAndMulticall: results");
+        assertEq(results.length, 1, "createPerpsAccountAndMulticall: results");
         assertEq(newMarginCollateralBalance, amountToDeposit, "createPerpsAccountAndMulticall: account margin");
     }
 }
