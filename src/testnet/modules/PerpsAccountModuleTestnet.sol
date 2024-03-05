@@ -11,17 +11,12 @@ import { CustomReferralConfigurationTestnet } from "../storage/CustomReferralCon
 import { ReferralTestnet } from "../storage/ReferralTestnet.sol";
 
 // Open Zeppelin dependencies
-import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
-import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
-import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
-import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpsAccountModule}.
 contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, OwnableUpgradeable {
