@@ -80,7 +80,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         }
     }
 
-    function updateAddresAccessKeyManager(address _accessKeyManager) external onlyOwner {
+    function updateAddressAccessKeyManager(address _accessKeyManager) external onlyOwner {
         accessKeyManager = AccessKeyManager(_accessKeyManager);
     }
 
