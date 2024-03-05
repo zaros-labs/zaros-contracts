@@ -7,6 +7,7 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
 import { Diamond } from "@zaros/diamonds/Diamond.sol";
 import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
+import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountModuleTestnet.sol";
 import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
@@ -30,7 +31,7 @@ contract UpdateModules is BaseScript {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        GlobalConfigurationModule globalConfigurationModule = new GlobalConfigurationModule();
+        PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
         // OrderModule orderModule = new OrderModule();
         // MockSettlementModule mockSettlementModule = new MockSettlementModule();
 
@@ -39,10 +40,10 @@ contract UpdateModules is BaseScript {
         address[] memory initializables;
         bytes[] memory initializePayloads;
 
-        selectors[0] = GlobalConfigurationModule.getMarginCollateralConfiguration.selector;
+        selectors[0] = PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
 
         facetCuts[0] = IDiamond.FacetCut({
-            facet: address(globalConfigurationModule),
+            facet: address(perpsAccountModuleTestnet),
             action: IDiamond.FacetCutAction.Add,
             selectors: selectors
         });
@@ -62,6 +63,6 @@ contract UpdateModules is BaseScript {
 
         perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
 
-        console.log(address(globalConfigurationModule));
+        console.log(address(perpsAccountModuleTestnet));
     }
 }
