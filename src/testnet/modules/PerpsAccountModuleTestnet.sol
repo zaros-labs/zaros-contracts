@@ -18,7 +18,6 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-/// @notice See {IPerpsAccountModule}.
 contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, OwnableUpgradeable {
     using PerpsAccount for PerpsAccount.Data;
     using ReferralTestnet for ReferralTestnet.Data;
