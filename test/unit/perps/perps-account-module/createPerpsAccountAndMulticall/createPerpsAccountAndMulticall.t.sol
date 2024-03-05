@@ -69,17 +69,9 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
             abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), amountToDeposit);
         uint128 expectedAccountId = 1;
 
-        // it should emit {LogDepositMargin}
-        // vm.expectEmit({ emitter: address(perpsEngine) });
-        // emit LogDepositMargin(users.naruto, expectedAccountId, address(usdToken), amountToDeposit);
-
         // it should transfer the amount from the sender to the perps account
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
         bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
-
-        bytes[] memory mockResults = new bytes[](1);
-
-        // console.log(results[0]);
 
         uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdToken)).intoUint256();
