@@ -68,7 +68,7 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant LIQUIDATION_FEE_USD = 5e18;
     /// @dev Used by tests for rounding approximate values
     // TODO: let's try not use this or use a smaller buffer
-    uint128 internal constant ROUNDING_BUFFER = 1e16;
+    uint128 internal constant ROUNDING_BUFFER = 0.0015e18;
 
     /// @notice BTC/USD market configuration Constants.
     uint128 internal constant BTC_USD_MARKET_ID = 1;

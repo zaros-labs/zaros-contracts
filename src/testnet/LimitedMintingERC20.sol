@@ -6,13 +6,7 @@ import { ERC20PermitUpgradeable } from "@openzeppelin-upgradeable/token/ERC20/ex
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-interface AccessKeyManager {
-    function isUserActive(address user) external view returns (bool);
-}
-
 contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, OwnableUpgradeable {
-    AccessKeyManager public accessKeyManager;
-
     uint256 internal maxAmountToMintPerAddress;
     mapping(address user => uint256 amount) public amountMintedPerAddress;
 
@@ -24,29 +18,18 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         return amountMintedPerAddress[user];
     }
 
-    function initialize(
-        address owner,
-        string memory name,
-        string memory symbol,
-        address _accessKeyManager
-    )
-        external
-        initializer
-    {
+    function initialize(address owner, string memory name, string memory symbol) external initializer {
         maxAmountToMintPerAddress = 100_000 * 10 ** 18;
 
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
         __Ownable_init(owner);
-
-        accessKeyManager = AccessKeyManager(_accessKeyManager);
     }
 
     function mint(address to, uint256 amount) external {
         if (msg.sender != owner()) {
             _requireAmountNotZero(amount);
             _requireAmountLessThanMaxAmountMint(amount);
-            _requireUserIsActive(to);
         }
 
         amountMintedPerAddress[msg.sender] += amount;
@@ -71,17 +54,6 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         if (amountMintedPerAddress[msg.sender] + amount > maxAmountToMintPerAddress) {
             revert LimitedMintingERC20_AmountExceedsLimit();
         }
-    }
-
-    function _requireUserIsActive(address user) private view {
-        (bool isUserActive) = accessKeyManager.isUserActive(user);
-        if (!isUserActive) {
-            revert LimitedMintingERC20_UserIsNotActive();
-        }
-    }
-
-    function updateAddressAccessKeyManager(address _accessKeyManager) external onlyOwner {
-        accessKeyManager = AccessKeyManager(_accessKeyManager);
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner { }
