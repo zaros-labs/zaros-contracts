@@ -87,6 +87,12 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
                 referral.referralCode = referralCode;
                 referral.isCustomReferralCode = true;
             } else {
+                address referrer = abi.decode(referralCode, (address));
+
+                if (referrer == msg.sender) {
+                    revert InvalidReferralCode();
+                }
+
                 referral.referralCode = referralCode;
                 referral.isCustomReferralCode = false;
             }
