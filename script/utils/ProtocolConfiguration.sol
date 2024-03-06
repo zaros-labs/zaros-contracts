@@ -12,6 +12,22 @@ import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } fr
 abstract contract ProtocolConfiguration {
     /// @notice Admin addresses.
 
+    struct MarketConfig {
+        uint128 marketId;
+        string marketName;
+        string marketSymbol;
+        uint128 imr;
+        uint128 mmr;
+        uint128 marginRequirements;
+        uint128 maxOi;
+        uint256 skewScale;
+        uint128 maxFundingVelocity;
+        uint128 settlementDelay;
+        address priceAdapter;
+        string streamId;
+        OrderFees.Data orderFees;
+    }
+
     // TODO: Update to actual EDAO multisig address
     address internal constant EDAO_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
 
@@ -103,7 +119,7 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant LINK_USD_MAX_OI = 100_000_000e18;
     uint256 internal constant LINK_USD_SKEW_SCALE = 2e8;
     uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
-    uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 1 seconds;
+    uint128 internal constant LINK_USD_SETTLEMENT_DELAY = 1 seconds;
     OrderFees.Data internal linkUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice ARB/USD market configuration Constants.
