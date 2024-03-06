@@ -28,5 +28,6 @@ interface IPerpsAccountModuleTestnet is IPerpsAccountModule {
         bool isCustomReferralCode
     )
         external
-        payable;
+        payable
+        returns (bytes[] memory results);
 }

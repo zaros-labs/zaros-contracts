@@ -144,7 +144,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     if (isTestnet) {
         perpsAccountModuleSelectors[7] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
-        perpsAccountModuleSelectors[8] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[]],bytes,bool)"));
+        perpsAccountModuleSelectors[8] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
         perpsAccountModuleSelectors[12] = PerpsAccountModuleTestnet.getAccessKeyManager.selector;
         perpsAccountModuleSelectors[13] = PerpsAccountModuleTestnet.isUserAccountCreated.selector;
         perpsAccountModuleSelectors[14] = PerpsAccountModuleTestnet.getPointsOfUser.selector;

@@ -40,7 +40,7 @@ contract UpdateModules is BaseScript {
         address[] memory initializables;
         bytes[] memory initializePayloads;
 
-        selectors[0] = PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
+        selectors[0] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
 
         facetCuts[0] = IDiamond.FacetCut({
             facet: address(perpsAccountModuleTestnet),
