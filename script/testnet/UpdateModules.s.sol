@@ -6,8 +6,10 @@ pragma solidity 0.8.23;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
 import { Diamond } from "@zaros/diamonds/Diamond.sol";
-import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
+import { GlobalConfigurationModuleTestnet } from "@zaros/testnet/modules/GlobalConfigurationModuleTestnet.sol";
 import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountModuleTestnet.sol";
+import { SettlementModuleTestnet } from "@zaros/testnet/modules/SettlementModuleTestnet.sol";
+import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
 import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
@@ -32,21 +34,68 @@ contract UpdateModules is BaseScript {
 
     function run() public broadcaster {
         PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
-        // OrderModule orderModule = new OrderModule();
-        // MockSettlementModule mockSettlementModule = new MockSettlementModule();
+        GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
+        SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
 
-        bytes4[] memory selectors = new bytes4[](1);
-        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](1);
+        bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](6);
+        bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](2);
+        bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](2);
+        bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](2);
+
+        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
+
         address[] memory initializables;
         bytes[] memory initializePayloads;
 
-        selectors[0] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
+        perpsAccountModuleTestnetSelectorsAdded[0] =
+            bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
+        perpsAccountModuleTestnetSelectorsAdded[1] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
+        perpsAccountModuleTestnetSelectorsAdded[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
+        perpsAccountModuleTestnetSelectorsAdded[3] = PerpsAccountModuleTestnet.getPointsOfUser.selector;
+        perpsAccountModuleTestnetSelectorsAdded[4] = PerpsAccountModuleTestnet.getUserReferralData.selector;
+        perpsAccountModuleTestnetSelectorsAdded[5] = PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
 
-        facetCuts[0] = IDiamond.FacetCut({
-            facet: address(perpsAccountModuleTestnet),
-            action: IDiamond.FacetCutAction.Add,
-            selectors: selectors
-        });
+        perpsAccountModuleTestnetSelectorsUpdated[0] = bytes4(keccak256("createPerpsAccount()"));
+        perpsAccountModuleTestnetSelectorsUpdated[1] = bytes4(keccak256("createPerpsAccountAndMulticall()"));
+
+        globalConfigurationModuleTestnetSelectorsAdded[0] = GlobalConfigurationModuleTestnet.setUserPoints.selector;
+        globalConfigurationModuleTestnetSelectorsAdded[1] =
+            GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
+
+        settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.settleMarketOrder.selector;
+        settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.settleCustomOrders.selector;
+
+        facetCuts[0] = (
+            IDiamond.FacetCut({
+                facet: address(perpsAccountModuleTestnet),
+                action: IDiamond.FacetCutAction.Add,
+                selectors: perpsAccountModuleTestnetSelectorsAdded
+            })
+        );
+
+        facetCuts[1] = (
+            IDiamond.FacetCut({
+                facet: address(perpsAccountModuleTestnet),
+                action: IDiamond.FacetCutAction.Replace,
+                selectors: perpsAccountModuleTestnetSelectorsUpdated
+            })
+        );
+
+        facetCuts[2] = (
+            IDiamond.FacetCut({
+                facet: address(globalConfigurationModuleTestnet),
+                action: IDiamond.FacetCutAction.Add,
+                selectors: globalConfigurationModuleTestnetSelectorsAdded
+            })
+        );
+
+        facetCuts[3] = (
+            IDiamond.FacetCut({
+                facet: address(settlementModuleTestnet),
+                action: IDiamond.FacetCutAction.Replace,
+                selectors: settlementModuleTestnetSelectorsUpdated
+            })
+        );
 
         // bytes4[] memory mockSelectors = new bytes4[](2);
 
