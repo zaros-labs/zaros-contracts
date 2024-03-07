@@ -24,7 +24,7 @@ import { deployModules, getModulesSelectors, getFacetCuts } from "../helpers/Dia
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Forge dependencies
-import "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
 contract UpdateModules is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
@@ -37,8 +37,8 @@ contract UpdateModules is BaseScript {
         GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
         SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
 
-        bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](6);
-        bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](2);
+        bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](5);
+        bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](3);
         bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](2);
         bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](2);
 
@@ -50,13 +50,13 @@ contract UpdateModules is BaseScript {
         perpsAccountModuleTestnetSelectorsAdded[0] =
             bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
         perpsAccountModuleTestnetSelectorsAdded[1] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
-        perpsAccountModuleTestnetSelectorsAdded[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
-        perpsAccountModuleTestnetSelectorsAdded[3] = PerpsAccountModuleTestnet.getPointsOfUser.selector;
-        perpsAccountModuleTestnetSelectorsAdded[4] = PerpsAccountModuleTestnet.getUserReferralData.selector;
-        perpsAccountModuleTestnetSelectorsAdded[5] = PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
+        perpsAccountModuleTestnetSelectorsAdded[2] = PerpsAccountModuleTestnet.getPointsOfUser.selector;
+        perpsAccountModuleTestnetSelectorsAdded[3] = PerpsAccountModuleTestnet.getUserReferralData.selector;
+        perpsAccountModuleTestnetSelectorsAdded[4] = PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
 
         perpsAccountModuleTestnetSelectorsUpdated[0] = bytes4(keccak256("createPerpsAccount()"));
-        perpsAccountModuleTestnetSelectorsUpdated[1] = bytes4(keccak256("createPerpsAccountAndMulticall()"));
+        perpsAccountModuleTestnetSelectorsUpdated[1] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[])"));
+        perpsAccountModuleTestnetSelectorsUpdated[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
 
         globalConfigurationModuleTestnetSelectorsAdded[0] = GlobalConfigurationModuleTestnet.setUserPoints.selector;
         globalConfigurationModuleTestnetSelectorsAdded[1] =
@@ -111,7 +111,5 @@ contract UpdateModules is BaseScript {
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 
         perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
-
-        console.log(address(perpsAccountModuleTestnet));
     }
 }
