@@ -40,8 +40,15 @@ contract OcoOrderUpkeep is IAutomationCompatible, IStreamsLookupCompatible, Base
     }
 
     /// @notice {OcoOrderUpkeep} UUPS initializer.
-    function initialize(address forwarder, OcoOrderSettlementStrategy settlementStrategy) external initializer {
-        __BaseUpkeep_init(forwarder);
+    function initialize(
+        address owner,
+        address forwarder,
+        OcoOrderSettlementStrategy settlementStrategy
+    )
+        external
+        initializer
+    {
+        __BaseUpkeep_init(owner, forwarder);
 
         if (address(settlementStrategy) == address(0)) {
             revert Errors.ZeroInput("settlementStrategy");

@@ -9,6 +9,7 @@ import { Diamond } from "@zaros/diamonds/Diamond.sol";
 import { GlobalConfigurationModuleTestnet } from "@zaros/testnet/modules/GlobalConfigurationModuleTestnet.sol";
 import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountModuleTestnet.sol";
 import { SettlementModuleTestnet } from "@zaros/testnet/modules/SettlementModuleTestnet.sol";
+import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
 import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
@@ -22,94 +23,106 @@ import { deployModules, getModulesSelectors, getFacetCuts } from "../helpers/Dia
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 
 // Forge dependencies
-import {console} from "forge-std/console.sol";
+import { console } from "forge-std/console.sol";
 
 contract UpdateModules is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
+    LimitedMintingERC20 internal usdc;
+    LimitedMintingERC20 internal usdz;
 
     function run() public broadcaster {
-        PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
-        GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
-        SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
+        usdc = LimitedMintingERC20(vm.envAddress("USDC"));
 
-        bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](5);
-        bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](3);
-        bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](2);
-        bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](2);
+        address newImplementation = address(new LimitedMintingERC20());
 
-        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
+        UUPSUpgradeable(address(usdc)).upgradeToAndCall(newImplementation, bytes(""));
 
-        address[] memory initializables;
-        bytes[] memory initializePayloads;
+        // PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
+        // GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
+        // SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
 
-        perpsAccountModuleTestnetSelectorsAdded[0] =
-            bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
-        perpsAccountModuleTestnetSelectorsAdded[1] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
-        perpsAccountModuleTestnetSelectorsAdded[2] = PerpsAccountModuleTestnet.getPointsOfUser.selector;
-        perpsAccountModuleTestnetSelectorsAdded[3] = PerpsAccountModuleTestnet.getUserReferralData.selector;
-        perpsAccountModuleTestnetSelectorsAdded[4] = PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
+        // bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](5);
+        // bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](3);
+        // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](2);
+        // bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](2);
 
-        perpsAccountModuleTestnetSelectorsUpdated[0] = bytes4(keccak256("createPerpsAccount()"));
-        perpsAccountModuleTestnetSelectorsUpdated[1] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[])"));
-        perpsAccountModuleTestnetSelectorsUpdated[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
+        // IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
 
-        globalConfigurationModuleTestnetSelectorsAdded[0] = GlobalConfigurationModuleTestnet.setUserPoints.selector;
-        globalConfigurationModuleTestnetSelectorsAdded[1] =
-            GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
+        // address[] memory initializables;
+        // bytes[] memory initializePayloads;
 
-        settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.settleMarketOrder.selector;
-        settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.settleCustomOrders.selector;
+        // perpsAccountModuleTestnetSelectorsAdded[0] =
+        //     bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
+        // perpsAccountModuleTestnetSelectorsAdded[1] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
+        // perpsAccountModuleTestnetSelectorsAdded[2] = PerpsAccountModuleTestnet.getPointsOfUser.selector;
+        // perpsAccountModuleTestnetSelectorsAdded[3] = PerpsAccountModuleTestnet.getUserReferralData.selector;
+        // perpsAccountModuleTestnetSelectorsAdded[4] =
+        // PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
 
-        facetCuts[0] = (
-            IDiamond.FacetCut({
-                facet: address(perpsAccountModuleTestnet),
-                action: IDiamond.FacetCutAction.Add,
-                selectors: perpsAccountModuleTestnetSelectorsAdded
-            })
-        );
+        // perpsAccountModuleTestnetSelectorsUpdated[0] = bytes4(keccak256("createPerpsAccount()"));
+        // perpsAccountModuleTestnetSelectorsUpdated[1] =
+        // bytes4(keccak256("createPerpsAccountAndMulticall(bytes[])"));
+        // perpsAccountModuleTestnetSelectorsUpdated[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
 
-        facetCuts[1] = (
-            IDiamond.FacetCut({
-                facet: address(perpsAccountModuleTestnet),
-                action: IDiamond.FacetCutAction.Replace,
-                selectors: perpsAccountModuleTestnetSelectorsUpdated
-            })
-        );
+        // globalConfigurationModuleTestnetSelectorsAdded[0] =
+        // GlobalConfigurationModuleTestnet.setUserPoints.selector;
+        // globalConfigurationModuleTestnetSelectorsAdded[1] =
+        //     GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
 
-        facetCuts[2] = (
-            IDiamond.FacetCut({
-                facet: address(globalConfigurationModuleTestnet),
-                action: IDiamond.FacetCutAction.Add,
-                selectors: globalConfigurationModuleTestnetSelectorsAdded
-            })
-        );
+        // settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.settleMarketOrder.selector;
+        // settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.settleCustomOrders.selector;
 
-        facetCuts[3] = (
-            IDiamond.FacetCut({
-                facet: address(settlementModuleTestnet),
-                action: IDiamond.FacetCutAction.Replace,
-                selectors: settlementModuleTestnetSelectorsUpdated
-            })
-        );
+        // facetCuts[0] = (
+        //     IDiamond.FacetCut({
+        //         facet: address(perpsAccountModuleTestnet),
+        //         action: IDiamond.FacetCutAction.Add,
+        //         selectors: perpsAccountModuleTestnetSelectorsAdded
+        //     })
+        // );
 
-        // bytes4[] memory mockSelectors = new bytes4[](2);
+        // facetCuts[1] = (
+        //     IDiamond.FacetCut({
+        //         facet: address(perpsAccountModuleTestnet),
+        //         action: IDiamond.FacetCutAction.Replace,
+        //         selectors: perpsAccountModuleTestnetSelectorsUpdated
+        //     })
+        // );
 
-        // mockSelectors[0] = MockSettlementModule.mockSettleMarketOrder.selector;
-        // mockSelectors[1] = MockSettlementModule.mockSettleCustomOrders.selector;
+        // facetCuts[2] = (
+        //     IDiamond.FacetCut({
+        //         facet: address(globalConfigurationModuleTestnet),
+        //         action: IDiamond.FacetCutAction.Add,
+        //         selectors: globalConfigurationModuleTestnetSelectorsAdded
+        //     })
+        // );
 
-        // facetCuts[1] = IDiamond.FacetCut({
-        //     facet: address(mockSettlementModule),
-        //     action: IDiamond.FacetCutAction.Add,
-        //     selectors: mockSelectors
-        // });
+        // facetCuts[3] = (
+        //     IDiamond.FacetCut({
+        //         facet: address(settlementModuleTestnet),
+        //         action: IDiamond.FacetCutAction.Replace,
+        //         selectors: settlementModuleTestnetSelectorsUpdated
+        //     })
+        // );
 
-        perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
+        // // bytes4[] memory mockSelectors = new bytes4[](2);
 
-        perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
+        // // mockSelectors[0] = MockSettlementModule.mockSettleMarketOrder.selector;
+        // // mockSelectors[1] = MockSettlementModule.mockSettleCustomOrders.selector;
+
+        // // facetCuts[1] = IDiamond.FacetCut({
+        // //     facet: address(mockSettlementModule),
+        // //     action: IDiamond.FacetCutAction.Add,
+        // //     selectors: mockSelectors
+        // // });
+
+        // perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
+
+        // perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
     }
 }

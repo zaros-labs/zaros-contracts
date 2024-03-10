@@ -25,6 +25,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { console } from "forge-std/console.sol";
 
 // TODO: update limit order strategies
+// TODO: update owner and forwarder on upkeep initialization
 contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 

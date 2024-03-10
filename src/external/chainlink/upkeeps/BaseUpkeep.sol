@@ -40,8 +40,8 @@ abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /// @notice {BaseUpkeep} UUPS initializer.
-    function __BaseUpkeep_init(address forwarder) internal onlyInitializing {
-        __Ownable_init(msg.sender);
+    function __BaseUpkeep_init(address owner, address forwarder) internal onlyInitializing {
+        __Ownable_init(owner);
 
         if (forwarder == address(0)) {
             revert Errors.ZeroInput("forwarder");
