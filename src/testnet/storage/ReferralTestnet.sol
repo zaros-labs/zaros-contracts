@@ -24,7 +24,7 @@ library ReferralTestnet {
         if (!self.isCustomReferralCode) {
             referrer = abi.decode(self.referralCode, (address));
         } else {
-            referrer = CustomReferralConfigurationTestnet.load(abi.decode(self.referralCode, (string))).referrer;
+            referrer = CustomReferralConfigurationTestnet.load(string(self.referralCode)).referrer;
         }
     }
 }

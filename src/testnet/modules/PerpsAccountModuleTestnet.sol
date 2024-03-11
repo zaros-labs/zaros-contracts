@@ -54,10 +54,10 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
         amount = Points.load(user).amount;
     }
 
-    function getUserReferralData(address user) external pure returns (ReferralTestnet.Data memory) {
+    function getUserReferralData(address user) external pure returns (bytes memory, bool) {
         ReferralTestnet.Data memory referral = ReferralTestnet.load(user);
 
-        return referral;
+        return (referral.referralCode, referral.isCustomReferralCode);
     }
 
     function getCustomReferralCodeReferee(string memory customReferralCode) external view returns (address) {
