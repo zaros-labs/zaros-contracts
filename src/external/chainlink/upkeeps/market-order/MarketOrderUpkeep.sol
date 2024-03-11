@@ -38,15 +38,8 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     }
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
-    function initialize(
-        address owner,
-        address forwarder,
-        MarketOrderSettlementStrategy settlementStrategy
-    )
-        external
-        initializer
-    {
-        __BaseUpkeep_init(owner, forwarder);
+    function initialize(address owner, MarketOrderSettlementStrategy settlementStrategy) external initializer {
+        __BaseUpkeep_init(owner);
 
         if (address(settlementStrategy) == address(0)) {
             revert Errors.ZeroInput("settlementStrategy");

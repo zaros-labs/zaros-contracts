@@ -23,8 +23,8 @@ contract LiquidationUpkeep is IAutomationCompatible, BaseUpkeep {
     }
 
     /// @notice {LiquidationUpkeep} UUPS initializer.
-    function initialize(address owner, address forwarder) external initializer {
-        __BaseUpkeep_init(owner, forwarder);
+    function initialize(address owner) external initializer {
+        __BaseUpkeep_init(owner);
     }
 
     function checkUpkeep(bytes calldata checkData)

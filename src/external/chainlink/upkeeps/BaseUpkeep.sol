@@ -39,17 +39,20 @@ abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
         _;
     }
 
-    /// @notice {BaseUpkeep} UUPS initializer.
-    function __BaseUpkeep_init(address owner, address forwarder) internal onlyInitializing {
-        __Ownable_init(owner);
+    /// @notice Updates the Upkeep forwarder address.
+    /// @param forwarder The new forwarder address.
+    function setForwarder(address forwarder) external onlyOwner {
+        BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
+        self.forwarder = forwarder;
+    }
 
-        if (forwarder == address(0)) {
-            revert Errors.ZeroInput("forwarder");
+    /// @notice {BaseUpkeep} UUPS initializer.
+    function __BaseUpkeep_init(address owner) internal onlyInitializing {
+        if (owner == address(0)) {
+            revert Errors.ZeroInput("owner");
         }
 
-        BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
-
-        self.forwarder = forwarder;
+        __Ownable_init(owner);
     }
 
     function _getBaseUpkeepStorage() internal pure returns (BaseUpkeepStorage storage self) {
