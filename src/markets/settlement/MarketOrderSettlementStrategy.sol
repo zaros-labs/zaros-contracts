@@ -19,9 +19,6 @@ contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
         );
     }
 
-    // TODO: Implement
-    // function getConfig() external view;
-
     function callback(ISettlementModule.SettlementPayload[] calldata) external override { }
 
     function executeTrade(

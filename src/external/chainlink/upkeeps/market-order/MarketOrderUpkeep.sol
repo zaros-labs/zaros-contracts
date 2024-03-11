@@ -82,7 +82,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
             abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsMarketStrategy));
 
         string[] memory streams = new string[](1);
-        streams[0] = string(abi.encodePacked(marketOrderStrategy.streamId));
+        streams[0] = marketOrderStrategy.streamId;
         uint256 settlementTimestamp = marketOrder.timestamp + marketOrderStrategy.settlementDelay;
         bytes memory extraData = abi.encode(accountId);
 
@@ -110,16 +110,20 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         performData = abi.encode(signedReport, extraData);
     }
 
+    event Test();
+
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
-        (bytes memory signedReport, uint128 accountId) = abi.decode(performData, (bytes, uint128));
+        // (bytes memory signedReport, uint128 accountId) = abi.decode(performData, (bytes, uint128));
 
-        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
-        MarketOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
+        // MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        // MarketOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
 
-        bytes memory extraData = abi.encode(accountId);
+        // bytes memory extraData = abi.encode(accountId);
 
-        settlementStrategy.executeTrade(signedReport, extraData);
+        // settlementStrategy.executeTrade(signedReport, extraData);
+
+        emit Test();
     }
 
     function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {

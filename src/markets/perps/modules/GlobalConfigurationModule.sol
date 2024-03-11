@@ -11,6 +11,7 @@ import { PerpMarket } from "../storage/PerpMarket.sol";
 import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfiguration.sol";
 import { MarketConfiguration } from "../storage/MarketConfiguration.sol";
 import { OrderFees } from "../storage/OrderFees.sol";
+import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
 // OpenZeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -317,6 +318,21 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         );
 
         emit LogConfigurePerpMarket(msg.sender, marketId);
+    }
+
+    /// @inheritdoc IGlobalConfigurationModule
+    function updateSettlementConfiguration(
+        uint128 marketId,
+        uint128 settlementId,
+        SettlementConfiguration.Data memory newSettlementConfiguration
+    )
+        external
+        override
+        onlyOwner
+    {
+        SettlementConfiguration.update(marketId, settlementId, newSettlementConfiguration);
+
+        emit LogUpdateSettlementConfiguration(msg.sender, marketId, settlementId);
     }
 
     function updatePerpMarketStatus(uint128 marketId, bool enable) external override onlyOwner {

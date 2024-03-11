@@ -98,7 +98,7 @@ library SettlementConfiguration {
         }
     }
 
-    function create(uint128 marketId, uint128 settlementId, Data memory settlementConfiguration) internal {
+    function update(uint128 marketId, uint128 settlementId, Data memory settlementConfiguration) internal {
         Data storage self = load(marketId, settlementId);
 
         self.strategyType = settlementConfiguration.strategyType;

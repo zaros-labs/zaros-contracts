@@ -234,12 +234,14 @@ library PerpMarket {
             maxFundingVelocity: maxFundingVelocity
         });
 
-        SettlementConfiguration.create(marketId, 0, marketOrderStrategy);
+        SettlementConfiguration.update(
+            marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, marketOrderStrategy
+        );
 
         if (customTriggerStrategies.length > 0) {
             for (uint256 i = 0; i < customTriggerStrategies.length; i++) {
                 uint128 nextStrategyId = ++self.nextStrategyId;
-                SettlementConfiguration.create(marketId, nextStrategyId, customTriggerStrategies[i]);
+                SettlementConfiguration.update(marketId, nextStrategyId, customTriggerStrategies[i]);
             }
         }
     }

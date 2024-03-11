@@ -30,12 +30,12 @@ contract UpdateUUPS is BaseScript {
         // usdc = LimitedMintingERC20(vm.envAddress("USDC"));
 
         ethUsdMarketOrderUpkeep = MarketOrderUpkeep(vm.envAddress("ETH_USD_MARKET_ORDER_UPKEEP"));
-        forwarder = vm.envAddress("UPKEEP_FORWARDER");
+        // forwarder = vm.envAddress("UPKEEP_FORWARDER");
         // address newImplementation = address(new LimitedMintingERC20());
         address newImplementation = address(new MarketOrderUpkeep());
 
         UUPSUpgradeable(address(ethUsdMarketOrderUpkeep)).upgradeToAndCall(newImplementation, bytes(""));
 
-        ethUsdMarketOrderUpkeep.setForwarder(forwarder);
+        // ethUsdMarketOrderUpkeep.setForwarder(forwarder);
     }
 }

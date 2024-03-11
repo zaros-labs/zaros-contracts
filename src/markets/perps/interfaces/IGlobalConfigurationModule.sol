@@ -96,6 +96,12 @@ interface IGlobalConfigurationModule {
     /// @param marketId The perps market id.
     event LogConfigurePerpMarket(address indexed sender, uint128 marketId);
 
+    /// @notice Emitted when the settlement configuration of a given market is updated.
+    /// @param sender The address that updated the settlement configuration.
+    /// @param marketId The perps market id.
+    /// @param settlementId The perps market settlement strategy id.
+    event LogUpdateSettlementConfiguration(address indexed sender, uint128 indexed marketId, uint128 settlementId);
+
     /// @notice Emitted when a perp market is re-enabled by the owner.
     /// @param marketId The perps market id.
     event LogEnablePerpMarket(address indexed sender, uint128 marketId);
@@ -196,6 +202,17 @@ interface IGlobalConfigurationModule {
         uint128 maxFundingVelocity,
         uint256 skewScale,
         OrderFees.Data memory orderFees
+    )
+        external;
+
+    /// @notice Updates the settlement configuration of a given market.
+    /// @param marketId The perp market id.
+    /// @param settlementId The perp market settlement strategy id.
+    /// @param newSettlementConfiguration The new settlement configuration.
+    function updateSettlementConfiguration(
+        uint128 marketId,
+        uint128 settlementId,
+        SettlementConfiguration.Data memory newSettlementConfiguration
     )
         external;
     /// @notice Enables or disabled the perp market of the given market id.
