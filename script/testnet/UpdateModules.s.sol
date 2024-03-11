@@ -34,8 +34,6 @@ contract UpdateModules is BaseScript {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
-    LimitedMintingERC20 internal usdc;
-    LimitedMintingERC20 internal usdz;
 
     function run() public broadcaster {
         // PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
