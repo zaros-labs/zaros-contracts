@@ -3,6 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
 import { MarketOrderUpkeep } from "@zaros/external/chainlink/upkeeps/market-order/MarketOrderUpkeep.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "../Base.s.sol";
@@ -25,16 +26,24 @@ contract UpdateUUPS is BaseScript {
 
     address internal forwarder;
     MarketOrderUpkeep internal ethUsdMarketOrderUpkeep;
+    address internal ethUsdMarketOrderSettlementStrategy;
 
     function run() public broadcaster {
         // usdc = LimitedMintingERC20(vm.envAddress("USDC"));
 
         ethUsdMarketOrderUpkeep = MarketOrderUpkeep(vm.envAddress("ETH_USD_MARKET_ORDER_UPKEEP"));
+        ethUsdMarketOrderSettlementStrategy = vm.envAddress("ETH_USD_MARKET_ORDER_SETTLEMENT_STRATEGY");
         // forwarder = vm.envAddress("UPKEEP_FORWARDER");
         // address newImplementation = address(new LimitedMintingERC20());
-        address newImplementation = address(new MarketOrderUpkeep());
+        address ethUsdMarketOrderUpkeepNewImplementation = address(new MarketOrderUpkeep());
+        address ethUsdMarketOrderSettlementStrategyNewImplementation = address(new MarketOrderSettlementStrategy());
 
-        UUPSUpgradeable(address(ethUsdMarketOrderUpkeep)).upgradeToAndCall(newImplementation, bytes(""));
+        UUPSUpgradeable(address(ethUsdMarketOrderUpkeep)).upgradeToAndCall(
+            ethUsdMarketOrderUpkeepNewImplementation, bytes("")
+        );
+        UUPSUpgradeable(ethUsdMarketOrderSettlementStrategy).upgradeToAndCall(
+            ethUsdMarketOrderSettlementStrategyNewImplementation, bytes("")
+        );
 
         // ethUsdMarketOrderUpkeep.setForwarder(forwarder);
     }
