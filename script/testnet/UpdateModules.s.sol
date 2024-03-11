@@ -10,6 +10,7 @@ import { GlobalConfigurationModuleTestnet } from "@zaros/testnet/modules/GlobalC
 import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountModuleTestnet.sol";
 import { SettlementModuleTestnet } from "@zaros/testnet/modules/SettlementModuleTestnet.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
+import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
 import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
@@ -37,14 +38,8 @@ contract UpdateModules is BaseScript {
     LimitedMintingERC20 internal usdz;
 
     function run() public broadcaster {
-        usdc = LimitedMintingERC20(vm.envAddress("USDC"));
-
-        address newImplementation = address(new LimitedMintingERC20());
-
-        UUPSUpgradeable(address(usdc)).upgradeToAndCall(newImplementation, bytes(""));
-
         // PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
-        // GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
+        GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
         // SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
 
         // bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](5);
@@ -54,8 +49,12 @@ contract UpdateModules is BaseScript {
 
         // IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
 
-        // address[] memory initializables;
-        // bytes[] memory initializePayloads;
+        bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](1);
+
+        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](1);
+
+        address[] memory initializables;
+        bytes[] memory initializePayloads;
 
         // perpsAccountModuleTestnetSelectorsAdded[0] =
         //     bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
@@ -77,6 +76,17 @@ contract UpdateModules is BaseScript {
 
         // settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.settleMarketOrder.selector;
         // settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.settleCustomOrders.selector;
+
+        globalConfigurationModuleTestnetSelectorsAdded[0] =
+            GlobalConfigurationModule.updateSettlementConfiguration.selector;
+
+        facetCuts[0] = (
+            IDiamond.FacetCut({
+                facet: address(globalConfigurationModuleTestnet),
+                action: IDiamond.FacetCutAction.Add,
+                selectors: globalConfigurationModuleTestnetSelectorsAdded
+            })
+        );
 
         // facetCuts[0] = (
         //     IDiamond.FacetCut({
@@ -110,19 +120,19 @@ contract UpdateModules is BaseScript {
         //     })
         // );
 
-        // // bytes4[] memory mockSelectors = new bytes4[](2);
+        // bytes4[] memory mockSelectors = new bytes4[](2);
 
-        // // mockSelectors[0] = MockSettlementModule.mockSettleMarketOrder.selector;
-        // // mockSelectors[1] = MockSettlementModule.mockSettleCustomOrders.selector;
+        // mockSelectors[0] = MockSettlementModule.mockSettleMarketOrder.selector;
+        // mockSelectors[1] = MockSettlementModule.mockSettleCustomOrders.selector;
 
-        // // facetCuts[1] = IDiamond.FacetCut({
-        // //     facet: address(mockSettlementModule),
-        // //     action: IDiamond.FacetCutAction.Add,
-        // //     selectors: mockSelectors
-        // // });
+        // facetCuts[1] = IDiamond.FacetCut({
+        //     facet: address(mockSettlementModule),
+        //     action: IDiamond.FacetCutAction.Add,
+        //     selectors: mockSelectors
+        // });
 
-        // perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
+        perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 
-        // perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
+        perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
     }
 }
