@@ -16,18 +16,26 @@ import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract UpdateModules is BaseScript {
+contract UpdateUUPS is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     LimitedMintingERC20 internal usdc;
     LimitedMintingERC20 internal usdz;
 
+    address internal forwarder;
+    MarketOrderUpkeep internal ethUsdMarketOrderUpkeep;
+
     function run() public broadcaster {
-        usdc = LimitedMintingERC20(vm.envAddress("USDC"));
+        // usdc = LimitedMintingERC20(vm.envAddress("USDC"));
 
-        address newImplementation = address(new LimitedMintingERC20());
+        ethUsdMarketOrderUpkeep = MarketOrderUpkeep(vm.envAddress("ETH_USD_MARKET_ORDER_UPKEEP"));
+        forwarder = vm.envAddress("UPKEEP_FORWARDER");
+        // address newImplementation = address(new LimitedMintingERC20());
+        address newImplementation = address(new MarketOrderUpkeep());
 
-        UUPSUpgradeable(address(usdc)).upgradeToAndCall(newImplementation, bytes(""));
+        UUPSUpgradeable(address(ethUsdMarketOrderUpkeep)).upgradeToAndCall(newImplementation, bytes(""));
+
+        ethUsdMarketOrderUpkeep.setForwarder(forwarder);
     }
 }
