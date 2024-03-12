@@ -37,13 +37,13 @@ contract UpdateModules is BaseScript {
 
     function run() public broadcaster {
         // PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
-        GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
-        // SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
+        // GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
+        SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
 
         // bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](5);
         // bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](3);
         // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](2);
-        // bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](2);
+        bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](1);
 
         // IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
 
@@ -72,17 +72,17 @@ contract UpdateModules is BaseScript {
         // globalConfigurationModuleTestnetSelectorsAdded[1] =
         //     GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
 
-        // settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.settleMarketOrder.selector;
+        settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.settleMarketOrder.selector;
         // settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.settleCustomOrders.selector;
 
-        globalConfigurationModuleTestnetSelectorsAdded[0] =
-            GlobalConfigurationModuleTestnet.getCustomReferralCodeReferrer.selector;
+        // globalConfigurationModuleTestnetSelectorsAdded[0] =
+        //     GlobalConfigurationModuleTestnet.getCustomReferralCodeReferrer.selector;
 
         facetCuts[0] = (
             IDiamond.FacetCut({
-                facet: address(globalConfigurationModuleTestnet),
-                action: IDiamond.FacetCutAction.Add,
-                selectors: globalConfigurationModuleTestnetSelectorsAdded
+                facet: address(settlementModuleTestnet),
+                action: IDiamond.FacetCutAction.Replace,
+                selectors: settlementModuleTestnetSelectorsUpdated
             })
         );
 
