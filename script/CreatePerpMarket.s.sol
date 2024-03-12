@@ -15,7 +15,7 @@ import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalC
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
-import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
+import { Markets } from "./markets/Markets.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -25,7 +25,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { console } from "forge-std/console.sol";
 
 // TODO: update limit order strategies
-contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
+contract CreatePerpMarket is BaseScript, Markets {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,15 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig();
+        address[] memory addressPriceFeeds = new address[](2);
+        addressPriceFeeds[0] = vm.envAddress("ETH_USD_PRICE_FEED");
+        addressPriceFeeds[1] = vm.envAddress("LINK_USD_PRICE_FEED");
+
+        string[] memory streamIds = new string[](2);
+        streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
+        streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
+
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(addressPriceFeeds, streamIds);
 
         deploySettlementStrategies(marketsConfig);
         deployKeepers();
@@ -107,47 +115,6 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             });
 
         }
-    }
-
-     function getMarketsConfig() internal view returns(MarketConfig[] memory){
-
-        MarketConfig[] memory marketsConfig = new MarketConfig[](2);
-
-        MarketConfig memory ethUsdConfig = MarketConfig({
-            marketId: ETH_USD_MARKET_ID,
-            marketName: ETH_USD_MARKET_NAME,
-            marketSymbol: ETH_USD_MARKET_SYMBOL,
-            imr: ETH_USD_IMR,
-            mmr: ETH_USD_MMR,
-            marginRequirements: ETH_USD_MARGIN_REQUIREMENTS,
-            maxOi: ETH_USD_MAX_OI,
-            skewScale: ETH_USD_SKEW_SCALE,
-            maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-            priceAdapter: vm.envAddress("ETH_USD_PRICE_FEED"),
-            streamId: vm.envString("ETH_USD_STREAM_ID"),
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
-        });
-        marketsConfig[0] = ethUsdConfig;
-
-        MarketConfig memory linkUsdConfig = MarketConfig({
-            marketId: LINK_USD_MARKET_ID,
-            marketName: LINK_USD_MARKET_NAME,
-            marketSymbol: LINK_USD_MARKET_SYMBOL,
-            imr: LINK_USD_IMR,
-            mmr: LINK_USD_MMR,
-            marginRequirements: LINK_USD_MARGIN_REQUIREMENTS,
-            maxOi: LINK_USD_MAX_OI,
-            skewScale: LINK_USD_SKEW_SCALE,
-            maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
-            settlementDelay: LINK_USD_SETTLEMENT_DELAY,
-            priceAdapter: vm.envAddress("LINK_USD_PRICE_FEED"),
-            streamId: vm.envString("LINK_USD_STREAM_ID"),
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
-        });
-        marketsConfig[1] = linkUsdConfig;
-
-        return marketsConfig;
     }
 
     function deploySettlementStrategies(MarketConfig[] memory marketsConfig) internal {

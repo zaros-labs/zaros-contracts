@@ -16,7 +16,7 @@ import { MockUSDToken } from "./mocks/MockUSDToken.sol";
 import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
-import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
+import { Markets } from "script/markets/Markets.sol";
 import {
     deployModules,
     getModulesSelectors,
@@ -37,7 +37,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
+abstract contract Base_Test is Test, Markets, Events, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

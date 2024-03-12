@@ -11,7 +11,7 @@ import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
-import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
+import { Markets } from "./markets/Markets.sol";
 import {
     deployModules,
     getModulesSelectors,
@@ -23,7 +23,7 @@ import {
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
+contract DeployPerpsEngine is BaseScript, Markets {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
