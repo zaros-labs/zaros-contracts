@@ -60,10 +60,6 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
         return (referral.referralCode, referral.isCustomReferralCode);
     }
 
-    function getCustomReferralCodeReferee(string memory customReferralCode) external view returns (address) {
-        return CustomReferralConfigurationTestnet.load(customReferralCode).referrer;
-    }
-
     function createPerpsAccount() public override returns (uint128) { }
 
     function createPerpsAccount(bytes memory referralCode, bool isCustomReferralCode) public returns (uint128) {

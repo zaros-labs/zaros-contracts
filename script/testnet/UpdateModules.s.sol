@@ -76,7 +76,7 @@ contract UpdateModules is BaseScript {
         // settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.settleCustomOrders.selector;
 
         globalConfigurationModuleTestnetSelectorsAdded[0] =
-            GlobalConfigurationModule.updateSettlementConfiguration.selector;
+            GlobalConfigurationModuleTestnet.getCustomReferralCodeReferrer.selector;
 
         facetCuts[0] = (
             IDiamond.FacetCut({

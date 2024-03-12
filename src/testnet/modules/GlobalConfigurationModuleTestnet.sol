@@ -15,6 +15,10 @@ import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 contract GlobalConfigurationModuleTestnet is GlobalConfigurationModule {
     event LogCreateCustomReferralCode(address indexed referrer, string customReferralCode);
 
+    function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) {
+        return CustomReferralConfigurationTestnet.load(customReferralCode).referrer;
+    }
+
     function setUserPoints(address user, uint256 value) external onlyOwner {
         Points.load(user).amount = value;
     }
