@@ -69,25 +69,25 @@ contract SettlementModule is ISettlementModule {
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, orderId: 0, sizeDelta: marketOrder.sizeDelta });
 
-        // _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, priceData);
+        _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, priceData);
 
-        // marketOrder.clear();
+        marketOrder.clear();
 
-        // _paySettlementFees({
-        //     settlementFeeReceiver: settlementFeeReceiver,
-        //     marketId: marketId,
-        //     settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
-        //     amountOfSettledTrades: 1
-        // });
+        _paySettlementFees({
+            settlementFeeReceiver: settlementFeeReceiver,
+            marketId: marketId,
+            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            amountOfSettledTrades: 1
+        });
 
-        // SettlementPayload[] memory payloads = new SettlementPayload[](1);
-        // payloads[0] = payload;
-        // address ocoOrderSettlementStrategy =
-        //     SettlementConfiguration.load(marketId,
-        // SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
-        // if (ocoOrderSettlementStrategy != address(0)) {
-        //     ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
-        // }
+        SettlementPayload[] memory payloads = new SettlementPayload[](1);
+        payloads[0] = payload;
+        address ocoOrderSettlementStrategy =
+            SettlementConfiguration.load(marketId,
+        SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
+        if (ocoOrderSettlementStrategy != address(0)) {
+            ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
+        }
     }
 
     function settleCustomOrders(
