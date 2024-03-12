@@ -147,10 +147,10 @@ contract OrderModule is IOrderModule {
             sizeDelta: sizeDelta
         });
 
-        console.log("MARGIN REQUIREMENTS: ");
-        console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
-        console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
-        console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
+        // console.log("MARGIN REQUIREMENTS: ");
+        // console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
+        // console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
+        // console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
 
         perpsAccount.validateMarginRequirement(
             requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
