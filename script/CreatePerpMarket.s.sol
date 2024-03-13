@@ -65,115 +65,102 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
 
-        // SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderConfigurationData =
-        // SettlementConfiguration.DataStreamsMarketStrategy({
-        //     chainlinkVerifier: chainlinkVerifier,
-        //     streamId: ethUsdStreamId,
-        //     feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-        //     queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-        //     settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-        //     isPremium: false
-        // });
+        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderConfigurationData =
+        SettlementConfiguration.DataStreamsMarketStrategy({
+            chainlinkVerifier: chainlinkVerifier,
+            streamId: ethUsdStreamId,
+            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
+            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
+            isPremium: ETH_USD_IS_PREMIUM_FEED
+        });
 
-        // deploySettlementStrategies();
-        // deployKeepers();
-        // configureKeepers();
+        deploySettlementStrategies();
+        deployKeepers();
+        configureKeepers();
 
-        // // TODO: Add price adapter
-        // SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-        //     strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-        //     isEnabled: true,
-        //     fee: DEFAULT_SETTLEMENT_FEE,
-        //     settlementStrategy: marketOrderSettlementStrategies.get(ETH_USD_MARKET_ID),
-        //     data: abi.encode(ethUsdMarketOrderConfigurationData)
-        // });
-        // SettlementConfiguration.Data memory ethUsdLimitOrderConfiguration = SettlementConfiguration.Data({
-        //     strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-        //     isEnabled: true,
-        //     fee: DEFAULT_SETTLEMENT_FEE,
-        //     settlementStrategy: limitOrderSettlementStrategies.get(ETH_USD_MARKET_ID),
-        //     data: abi.encode(ethUsdMarketOrderConfigurationData)
-        // });
+        // TODO: Add price adapter
+        SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+            isEnabled: true,
+            fee: DEFAULT_SETTLEMENT_FEE,
+            settlementStrategy: marketOrderSettlementStrategies.get(ETH_USD_MARKET_ID),
+            data: abi.encode(ethUsdMarketOrderConfigurationData)
+        });
+        SettlementConfiguration.Data memory ethUsdLimitOrderConfiguration = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
+            isEnabled: true,
+            fee: DEFAULT_SETTLEMENT_FEE,
+            settlementStrategy: limitOrderSettlementStrategies.get(ETH_USD_MARKET_ID),
+            data: abi.encode(ethUsdMarketOrderConfigurationData)
+        });
 
-        // SettlementConfiguration.Data[] memory ethUsdCustomOrderStrategies = new SettlementConfiguration.Data[](1);
-        // ethUsdCustomOrderStrategies[0] = ethUsdLimitOrderConfiguration;
+        SettlementConfiguration.Data[] memory ethUsdCustomOrderStrategies = new SettlementConfiguration.Data[](1);
+        ethUsdCustomOrderStrategies[0] = ethUsdLimitOrderConfiguration;
 
-        // perpsEngine.createPerpMarket({
-        //     params: CreatePerpMarketParams({
-        //         marketId: ETH_USD_MARKET_ID,
-        //         name: ETH_USD_MARKET_NAME,
-        //         symbol: ETH_USD_MARKET_SYMBOL,
-        //         priceAdapter: ethUsdPriceAdapter,
-        //         initialMarginRateX18: ETH_USD_IMR,
-        //         maintenanceMarginRateX18: ETH_USD_MMR,
-        //         maxOpenInterest: ETH_USD_MAX_OI,
-        //         skewScale: ETH_USD_SKEW_SCALE,
-        //         maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-        //         marketOrderConfiguration: ethUsdMarketOrderConfiguration,
-        //         customTriggerStrategies: ethUsdCustomOrderStrategies,
-        //         orderFees: ethUsdOrderFees
-        //     })
-        // });
+        perpsEngine.createPerpMarket({
+            params: CreatePerpMarketParams({
+                marketId: ETH_USD_MARKET_ID,
+                name: ETH_USD_MARKET_NAME,
+                symbol: ETH_USD_MARKET_SYMBOL,
+                priceAdapter: ethUsdPriceAdapter,
+                initialMarginRateX18: ETH_USD_IMR,
+                maintenanceMarginRateX18: ETH_USD_MMR,
+                maxOpenInterest: ETH_USD_MAX_OI,
+                skewScale: ETH_USD_SKEW_SCALE,
+                maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
+                marketOrderConfiguration: ethUsdMarketOrderConfiguration,
+                customTriggerStrategies: ethUsdCustomOrderStrategies,
+                orderFees: ethUsdOrderFees
+            })
+        });
 
-        // SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderConfigurationData =
-        // SettlementConfiguration.DataStreamsMarketStrategy({
-        //     // TODO: Add price adapter
-        //     chainlinkVerifier: chainlinkVerifier,
-        //     streamId: linkUsdStreamId,
-        //     feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-        //     queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-        //     settlementDelay: LINK_USD_SETTLEMENT_DELAY,
-        //     isPremium: false
-        // });
+        SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderConfigurationData =
+        SettlementConfiguration.DataStreamsMarketStrategy({
+            // TODO: Add price adapter
+            chainlinkVerifier: chainlinkVerifier,
+            streamId: linkUsdStreamId,
+            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
+            settlementDelay: LINK_USD_SETTLEMENT_DELAY,
+            isPremium: LINK_USD_IS_PREMIUM_FEED
+        });
 
-        // // TODO: Add price adapter
-        // SettlementConfiguration.Data memory linkUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-        //     strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-        //     isEnabled: true,
-        //     fee: DEFAULT_SETTLEMENT_FEE,
-        //     settlementStrategy: marketOrderSettlementStrategies.get(LINK_USD_MARKET_ID),
-        //     data: abi.encode(linkUsdMarketOrderConfigurationData)
-        // });
+        // TODO: Add price adapter
+        SettlementConfiguration.Data memory linkUsdMarketOrderConfiguration = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+            isEnabled: true,
+            fee: DEFAULT_SETTLEMENT_FEE,
+            settlementStrategy: marketOrderSettlementStrategies.get(LINK_USD_MARKET_ID),
+            data: abi.encode(linkUsdMarketOrderConfigurationData)
+        });
 
-        // SettlementConfiguration.Data memory linkUsdLimitOrderConfiguration = SettlementConfiguration.Data({
-        //     strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-        //     isEnabled: true,
-        //     fee: DEFAULT_SETTLEMENT_FEE,
-        //     settlementStrategy: limitOrderSettlementStrategies.get(LINK_USD_MARKET_ID),
-        //     data: abi.encode(linkUsdMarketOrderConfigurationData)
-        // });
+        SettlementConfiguration.Data memory linkUsdLimitOrderConfiguration = SettlementConfiguration.Data({
+            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
+            isEnabled: true,
+            fee: DEFAULT_SETTLEMENT_FEE,
+            settlementStrategy: limitOrderSettlementStrategies.get(LINK_USD_MARKET_ID),
+            data: abi.encode(linkUsdMarketOrderConfigurationData)
+        });
 
-        // SettlementConfiguration.Data[] memory linkUsdCustomOrderStrategies = new SettlementConfiguration.Data[](1);
-        // linkUsdCustomOrderStrategies[0] = linkUsdLimitOrderConfiguration;
+        SettlementConfiguration.Data[] memory linkUsdCustomOrderStrategies = new SettlementConfiguration.Data[](1);
+        linkUsdCustomOrderStrategies[0] = linkUsdLimitOrderConfiguration;
 
-        // perpsEngine.createPerpMarket({
-        //     params: CreatePerpMarketParams({
-        //         marketId: LINK_USD_MARKET_ID,
-        //         name: LINK_USD_MARKET_NAME,
-        //         symbol: LINK_USD_MARKET_SYMBOL,
-        //         priceAdapter: linkUsdPriceAdapter,
-        //         initialMarginRateX18: LINK_USD_IMR,
-        //         maintenanceMarginRateX18: LINK_USD_MMR,
-        //         maxOpenInterest: LINK_USD_MAX_OI,
-        //         skewScale: LINK_USD_SKEW_SCALE,
-        //         maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
-        //         marketOrderConfiguration: linkUsdMarketOrderConfiguration,
-        //         customTriggerStrategies: linkUsdCustomOrderStrategies,
-        //         orderFees: linkUsdOrderFees
-        //     })
-        // });
-
-        perpsEngine.updatePerpMarketConfiguration({
-            marketId: LINK_USD_MARKET_ID,
-            name: LINK_USD_MARKET_NAME,
-            symbol: LINK_USD_MARKET_SYMBOL,
-            priceAdapter: linkUsdPriceAdapter,
-            initialMarginRateX18: LINK_USD_IMR,
-            maintenanceMarginRateX18: LINK_USD_MMR,
-            maxOpenInterest: LINK_USD_MAX_OI,
-            skewScale: LINK_USD_SKEW_SCALE,
-            maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
-            orderFees: linkUsdOrderFees
+        perpsEngine.createPerpMarket({
+            params: CreatePerpMarketParams({
+                marketId: LINK_USD_MARKET_ID,
+                name: LINK_USD_MARKET_NAME,
+                symbol: LINK_USD_MARKET_SYMBOL,
+                priceAdapter: linkUsdPriceAdapter,
+                initialMarginRateX18: LINK_USD_IMR,
+                maintenanceMarginRateX18: LINK_USD_MMR,
+                maxOpenInterest: LINK_USD_MAX_OI,
+                skewScale: LINK_USD_SKEW_SCALE,
+                maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
+                marketOrderConfiguration: linkUsdMarketOrderConfiguration,
+                customTriggerStrategies: linkUsdCustomOrderStrategies,
+                orderFees: linkUsdOrderFees
+            })
         });
     }
 

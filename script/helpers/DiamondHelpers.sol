@@ -79,7 +79,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     diamondLoupeModuleSelectors[2] = DiamondLoupeModule.facetAddress.selector;
     diamondLoupeModuleSelectors[4] = DiamondLoupeModule.facetSelectors.selector;
 
-    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](isTestnet ? 14 : 12);
+    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](isTestnet ? 15 : 13);
 
     globalConfigurationModuleSelectors[0] = GlobalConfigurationModule.getAccountsWithActivePositions.selector;
     globalConfigurationModuleSelectors[1] = GlobalConfigurationModule.getMarginCollateralConfiguration.selector;
@@ -93,10 +93,11 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationModuleSelectors[9] = GlobalConfigurationModule.createPerpMarket.selector;
     globalConfigurationModuleSelectors[10] = GlobalConfigurationModule.updatePerpMarketConfiguration.selector;
     globalConfigurationModuleSelectors[11] = GlobalConfigurationModule.updatePerpMarketStatus.selector;
+    globalConfigurationModuleSelectors[12] = GlobalConfigurationModule.updateSettlementConfiguration.selector;
 
     if (isTestnet) {
-        globalConfigurationModuleSelectors[12] = GlobalConfigurationModuleTestnet.setUserPoints.selector;
-        globalConfigurationModuleSelectors[13] = GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
+        globalConfigurationModuleSelectors[13] = GlobalConfigurationModuleTestnet.setUserPoints.selector;
+        globalConfigurationModuleSelectors[14] = GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
     }
 
     bytes4[] memory liquidationModuleSelectors = new bytes4[](2);

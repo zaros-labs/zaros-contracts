@@ -81,6 +81,7 @@ abstract contract ProtocolConfiguration {
     uint256 internal constant BTC_USD_SKEW_SCALE = 100_000e18;
     uint128 internal constant BTC_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint128 internal constant BTC_USD_SETTLEMENT_DELAY = 1 seconds;
+    bool internal constant BTC_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal btcUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice ETH/USD market configuration Constants.
@@ -94,6 +95,7 @@ abstract contract ProtocolConfiguration {
     uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint128 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;
+    bool internal constant ETH_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice LINK/USD market configuration Constants.
@@ -107,6 +109,7 @@ abstract contract ProtocolConfiguration {
     uint256 internal constant LINK_USD_SKEW_SCALE = 1_151_243_152e18;
     uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 1 seconds;
+    bool internal constant LINK_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal linkUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice ARB/USD market configuration Constants.
@@ -120,6 +123,7 @@ abstract contract ProtocolConfiguration {
     uint256 internal constant ARB_USD_SKEW_SCALE = 2e8;
     uint128 internal constant ARB_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint248 internal constant ARB_USD_SETTLEMENT_DELAY = 1 seconds;
+    bool internal constant ARB_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal arbUsdOrderFees = OrderFees.Data({ makerFee: 0.008e18, takerFee: 0.016e18 });
 
     /// @notice Test only mocks
