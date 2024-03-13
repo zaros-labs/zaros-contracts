@@ -11,6 +11,7 @@ import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountMo
 import { SettlementModuleTestnet } from "@zaros/testnet/modules/SettlementModuleTestnet.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
+import { PerpMarketModule } from "@zaros/markets/perps/modules/PerpMarketModule.sol";
 import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
 import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
 import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
@@ -38,7 +39,8 @@ contract UpdateModules is BaseScript {
 
     function run() public broadcaster {
         // PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
-        GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
+        PerpMarketModule perpMarketModule = new PerpMarketModule();
+        // GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
         // SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
 
         // bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](1);
@@ -48,7 +50,8 @@ contract UpdateModules is BaseScript {
 
         // IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
 
-        bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](1);
+        // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](1);
+        bytes4[] memory perpMarketModuleSelectorsUpdated = new bytes4[](1);
 
         IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](1);
 
@@ -75,14 +78,16 @@ contract UpdateModules is BaseScript {
         // settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.settleMarketOrder.selector;
         // settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.settleCustomOrders.selector;
 
-        globalConfigurationModuleTestnetSelectorsAdded[0] =
-            GlobalConfigurationModule.updateSettlementConfiguration.selector;
+        // globalConfigurationModuleTestnetSelectorsAdded[0] =
+        //     GlobalConfigurationModule.updateSettlementConfiguration.selector;
+
+        perpMarketModuleSelectorsUpdated[0] = PerpMarketModule.getOpenInterest.selector;
 
         facetCuts[0] = (
             IDiamond.FacetCut({
-                facet: address(globalConfigurationModuleTestnet),
-                action: IDiamond.FacetCutAction.Add,
-                selectors: globalConfigurationModuleTestnetSelectorsAdded
+                facet: address(perpMarketModule),
+                action: IDiamond.FacetCutAction.Replace,
+                selectors: perpMarketModuleSelectorsUpdated
             })
         );
 
