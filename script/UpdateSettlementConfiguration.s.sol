@@ -44,7 +44,7 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-            isPremium: true
+            isPremium: ETH_USD_IS_PREMIUM_FEED
         });
         SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,

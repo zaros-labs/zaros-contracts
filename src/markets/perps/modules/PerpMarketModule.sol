@@ -11,7 +11,7 @@ import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol"
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary, ZERO as SD_ZERO, convert as sd59x18Convert } from "@prb-math/SD59x18.sol";
 
 /// @notice See {IPerpMarketModule}.
 contract PerpMarketModule is IPerpMarketModule {
@@ -48,7 +48,7 @@ contract PerpMarketModule is IPerpMarketModule {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SD59x18 currentSkew = sd59x18(perpMarket.skew);
         SD59x18 currentOpenInterest = ud60x18(perpMarket.openInterest).intoSD59x18();
-        SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18(2));
+        SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18Convert(2));
         (longsOpenInterest, shortsOpenInterest) = (
             halfOpenInterest.add(currentSkew).intoUD60x18(),
             unary(halfOpenInterest).add(currentSkew).abs().intoUD60x18()
