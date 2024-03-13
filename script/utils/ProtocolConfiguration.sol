@@ -123,7 +123,7 @@ abstract contract ProtocolConfiguration {
     uint256 internal constant ARB_USD_SKEW_SCALE = 2e8;
     uint128 internal constant ARB_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint248 internal constant ARB_USD_SETTLEMENT_DELAY = 1 seconds;
-    bool internal constant ARB_USD_IS_PREMIUM_FEED = false;
+    bool internal constant ARB_USD_IS_PREMIUM_FEED = true;
     OrderFees.Data internal arbUsdOrderFees = OrderFees.Data({ makerFee: 0.008e18, takerFee: 0.016e18 });
 
     /// @notice Test only mocks
