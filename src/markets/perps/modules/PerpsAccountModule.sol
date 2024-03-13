@@ -151,7 +151,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
         returns (
             SD59x18 sizeX18,
             UD60x18 notionalValueX18,
+            UD60x18 initialMarginUsdX18,
             UD60x18 maintenanceMarginUsdX18,
+            UD60x18 entryPriceX18,
             SD59x18 accruedFundingUsdX18,
             SD59x18 unrealizedPnlUsdX18
         )
@@ -160,11 +162,23 @@ contract PerpsAccountModule is IPerpsAccountModule {
         Position.Data storage position = Position.load(accountId, marketId);
 
         UD60x18 markPriceX18 = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
-        SD59x18 fundingRate = perpMarket.getCurrentFundingRate();
-        SD59x18 fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(fundingRate, markPriceX18);
+        SD59x18 fundingFeePerUnit =
+            perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPriceX18);
 
-        (sizeX18, notionalValueX18, maintenanceMarginUsdX18, accruedFundingUsdX18, unrealizedPnlUsdX18) = position
-            .getPositionData(ud60x18(perpMarket.configuration.maintenanceMarginRateX18), markPriceX18, fundingFeePerUnit);
+        (
+            sizeX18,
+            notionalValueX18,
+            initialMarginUsdX18,
+            maintenanceMarginUsdX18,
+            entryPriceX18,
+            accruedFundingUsdX18,
+            unrealizedPnlUsdX18
+        ) = position.getPositionData(
+            ud60x18(perpMarket.configuration.initialMarginRateX18),
+            ud60x18(perpMarket.configuration.maintenanceMarginRateX18),
+            markPriceX18,
+            fundingFeePerUnit
+        );
     }
 
     /// @inheritdoc IPerpsAccountModule

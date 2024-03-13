@@ -83,8 +83,7 @@ contract SettlementModule is ISettlementModule {
         SettlementPayload[] memory payloads = new SettlementPayload[](1);
         payloads[0] = payload;
         address ocoOrderSettlementStrategy =
-            SettlementConfiguration.load(marketId,
-        SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
+            SettlementConfiguration.load(marketId, SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
         if (ocoOrderSettlementStrategy != address(0)) {
             ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
         }

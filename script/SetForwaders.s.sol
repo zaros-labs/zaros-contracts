@@ -32,6 +32,5 @@ contract SetForwarders is BaseScript, ProtocolConfiguration {
     IPerpsEngine internal perpsEngine;
 
     // TODO: Implement
-    function run() public broadcaster {
-    }
+    function run() public broadcaster { }
 }

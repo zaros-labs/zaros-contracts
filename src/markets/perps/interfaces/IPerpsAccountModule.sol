@@ -100,7 +100,9 @@ interface IPerpsAccountModule {
     /// @param marketId The perps market id.
     /// @return sizeX18 The position openInterest in asset units, i.e amount of purchased contracts.
     /// @return notionalValueX18 The notional value of the position.
+    /// @return initialMarginUsdX18 The notional value of the initial margin allocated by the account.
     /// @return maintenanceMarginUsdX18 The notional value of the maintenance margin allocated by the account.
+    /// @return entryPriceX18 The last settlement reference price of this position.
     /// @return accruedFundingUsdX18 The accrued funding fee.
     /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
     function getOpenPositionData(
@@ -112,7 +114,9 @@ interface IPerpsAccountModule {
         returns (
             SD59x18 sizeX18,
             UD60x18 notionalValueX18,
+            UD60x18 initialMarginUsdX18,
             UD60x18 maintenanceMarginUsdX18,
+            UD60x18 entryPriceX18,
             SD59x18 accruedFundingUsdX18,
             SD59x18 unrealizedPnlUsdX18
         );

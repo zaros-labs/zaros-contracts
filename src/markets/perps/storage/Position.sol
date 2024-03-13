@@ -94,16 +94,20 @@ library Position {
 
     /// @dev Returns the entire position data.
     /// @param self The position storage pointer.
+    /// @param initialMarginRateX18 The market's current initial margin rate.
     /// @param maintenanceMarginRateX18 The market's current maintenance margin rate.
     /// @param price The market's current reference price.
     /// @param fundingFeePerUnit The market's current funding fee per unit.
     /// @return size The position size in asset units, i.e amount of purchased contracts.
     /// @return notionalValueX18 The notional value of the position.
+    /// @return initialMarginUsdX18 The notional value of the initial margin allocated by the account.
     /// @return maintenanceMarginUsdX18 The notional value of the maintenance margin allocated by the account.
+    /// @return entryPriceX18 The last settlement reference price of this position.
     /// @return accruedFundingUsdX18 The accrued funding fee.
     /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
     function getPositionData(
         Data storage self,
+        UD60x18 initialMarginRateX18,
         UD60x18 maintenanceMarginRateX18,
         UD60x18 price,
         SD59x18 fundingFeePerUnit
@@ -113,14 +117,18 @@ library Position {
         returns (
             SD59x18 size,
             UD60x18 notionalValueX18,
+            UD60x18 initialMarginUsdX18,
             UD60x18 maintenanceMarginUsdX18,
+            UD60x18 entryPriceX18,
             SD59x18 accruedFundingUsdX18,
             SD59x18 unrealizedPnlUsdX18
         )
     {
         size = sd59x18(self.size);
         notionalValueX18 = getNotionalValue(self, price);
+        initialMarginUsdX18 = notionalValueX18.mul(initialMarginRateX18);
         maintenanceMarginUsdX18 = notionalValueX18.mul(maintenanceMarginRateX18);
+        entryPriceX18 = ud60x18(self.lastInteractionPrice);
         accruedFundingUsdX18 = getAccruedFunding(self, fundingFeePerUnit);
         unrealizedPnlUsdX18 = getUnrealizedPnl(self, price);
     }
