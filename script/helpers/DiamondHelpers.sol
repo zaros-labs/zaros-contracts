@@ -135,7 +135,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpsAccountModuleSelectors[3] = PerpsAccountModule.getAccountMarginBreakdown.selector;
     perpsAccountModuleSelectors[4] = PerpsAccountModule.getAccountTotalUnrealizedPnl.selector;
     perpsAccountModuleSelectors[5] = PerpsAccountModule.getAccountLeverage.selector;
-    perpsAccountModuleSelectors[6] = PerpsAccountModule.getOpenPositionData.selector;
+    perpsAccountModuleSelectors[6] = PerpsAccountModule.getPositionState.selector;
     perpsAccountModuleSelectors[7] = PerpsAccountModule.createPerpsAccount.selector;
     perpsAccountModuleSelectors[8] = PerpsAccountModule.createPerpsAccountAndMulticall.selector;
     perpsAccountModuleSelectors[9] = PerpsAccountModule.depositMargin.selector;

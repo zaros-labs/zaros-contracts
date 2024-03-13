@@ -141,22 +141,14 @@ contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function getOpenPositionData(
+    function getPositionState(
         uint128 accountId,
         uint128 marketId
     )
         external
         view
         override
-        returns (
-            SD59x18 sizeX18,
-            UD60x18 notionalValueX18,
-            UD60x18 initialMarginUsdX18,
-            UD60x18 maintenanceMarginUsdX18,
-            UD60x18 entryPriceX18,
-            SD59x18 accruedFundingUsdX18,
-            SD59x18 unrealizedPnlUsdX18
-        )
+        returns (Position.State memory positionState)
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         Position.Data storage position = Position.load(accountId, marketId);
@@ -165,15 +157,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         SD59x18 fundingFeePerUnit =
             perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPriceX18);
 
-        (
-            sizeX18,
-            notionalValueX18,
-            initialMarginUsdX18,
-            maintenanceMarginUsdX18,
-            entryPriceX18,
-            accruedFundingUsdX18,
-            unrealizedPnlUsdX18
-        ) = position.getPositionData(
+        positionState = position.getState(
             ud60x18(perpMarket.configuration.initialMarginRateX18),
             ud60x18(perpMarket.configuration.maintenanceMarginRateX18),
             markPriceX18,
