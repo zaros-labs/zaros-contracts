@@ -57,8 +57,8 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     function run() public broadcaster {
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
 
-        // ethUsdPriceAdapter = vm.envAddress("ETH_USD_PRICE_FEED");
-        // ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
+        ethUsdPriceAdapter = vm.envAddress("ETH_USD_PRICE_FEED");
+        ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
 
         linkUsdPriceAdapter = vm.envAddress("LINK_USD_PRICE_FEED");
         linkUsdStreamId = vm.envString("LINK_USD_STREAM_ID");

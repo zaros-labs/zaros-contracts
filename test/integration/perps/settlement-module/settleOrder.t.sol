@@ -24,7 +24,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
     function testFuzz_SettleOrder(uint256 initialMarginRate, uint256 marginValueUsd, bool isLong) external {
         initialMarginRate =
-            bound({ x: initialMarginRate, min: BTC_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
+            bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -32,9 +32,9 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             perpsAccountId,
-            BTC_USD_MARKET_ID,
+            ETH_USD_MARKET_ID,
             SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
-            ud60x18(initialMarginRate * 2).intoUint256(),
+            initialMarginRate,
             marginValueUsd,
             MOCK_ETH_USD_PRICE,
             isLong
@@ -42,25 +42,25 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder({
             accountId: perpsAccountId,
-            marketId: BTC_USD_MARKET_ID,
+            marketId: ETH_USD_MARKET_ID,
             sizeDelta: sizeDelta,
             acceptablePrice: 0
         });
 
         Position.Data memory expectedPosition = Position.Data({
             size: sizeDelta,
-            lastInteractionPrice: uint128(MOCK_BTC_USD_PRICE),
+            lastInteractionPrice: uint128(MOCK_ETH_USD_PRICE),
             lastInteractionFundingFeePerUnit: 0
         });
         // vm.expectEmit({ emitter: address(perpsEngine) });
         // emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedPosition);
 
-        bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_BTC_USD_PRICE, true);
+        bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE, false);
 
         changePrank({ msgSender: mockDefaultMarketOrderSettlementStrategy });
         perpsEngine.settleMarketOrder({
             accountId: perpsAccountId,
-            marketId: BTC_USD_MARKET_ID,
+            marketId: ETH_USD_MARKET_ID,
             settlementFeeReceiver: mockDefaultMarketOrderSettlementStrategy,
             priceData: mockBasicSignedReport
         });

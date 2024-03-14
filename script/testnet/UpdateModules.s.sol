@@ -39,19 +39,21 @@ contract UpdateModules is BaseScript {
 
     function run() public broadcaster {
         // PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
-        PerpMarketModule perpMarketModule = new PerpMarketModule();
+        // PerpMarketModule perpMarketModule = new PerpMarketModule();
         // GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
         // SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
+        OrderModule orderModule = new OrderModule();
 
         // bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](3);
         // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](2);
         // bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](1);
+        bytes4[] memory orderModuleTestnetSelectorsUpdated = new bytes4[](1);
 
         // IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
 
         // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](1);
-        bytes4[] memory perpMarketModuleSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory perpMarketModuleSelectorsUpdated = new bytes4[](1);
 
         IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](1);
 
@@ -81,13 +83,15 @@ contract UpdateModules is BaseScript {
         // globalConfigurationModuleTestnetSelectorsAdded[0] =
         //     GlobalConfigurationModule.updateSettlementConfiguration.selector;
 
-        perpMarketModuleSelectorsUpdated[0] = PerpMarketModule.getOpenInterest.selector;
+        // perpMarketModuleSelectorsUpdated[0] = PerpMarketModule.getOpenInterest.selector;
+
+        orderModuleTestnetSelectorsUpdated[0] = OrderModule.createMarketOrder.selector;
 
         facetCuts[0] = (
             IDiamond.FacetCut({
-                facet: address(perpMarketModule),
+                facet: address(orderModule),
                 action: IDiamond.FacetCutAction.Replace,
-                selectors: perpMarketModuleSelectorsUpdated
+                selectors: orderModuleTestnetSelectorsUpdated
             })
         );
 

@@ -64,10 +64,10 @@ contract OrderModule is IOrderModule {
 
         fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
 
-        {
-            GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-            globalConfiguration.checkTradeSizeUsd(sd59x18(sizeDelta), fillPriceX18);
-        }
+        // {
+        //     GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        //     globalConfiguration.checkTradeSizeUsd(sd59x18(sizeDelta), fillPriceX18);
+        // }
 
         orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), fillPriceX18);
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
@@ -147,10 +147,10 @@ contract OrderModule is IOrderModule {
             sizeDelta: sizeDelta
         });
 
-        // console.log("MARGIN REQUIREMENTS: ");
-        // console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
-        // console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
-        // console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
+        console.log("MARGIN REQUIREMENTS: ");
+        console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
+        console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
+        console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
 
         perpsAccount.validateMarginRequirement(
             requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),

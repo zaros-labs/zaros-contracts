@@ -91,7 +91,7 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant ETH_USD_IMR = 0.01e18;
     uint128 internal constant ETH_USD_MMR = 0.005e18;
     uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR + ROUNDING_BUFFER;
-    uint128 internal constant ETH_USD_MAX_OI = 10_000e18;
+    uint128 internal constant ETH_USD_MAX_OI = 100_000e18;
     uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint128 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;
