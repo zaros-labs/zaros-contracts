@@ -79,7 +79,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     diamondLoupeModuleSelectors[2] = DiamondLoupeModule.facetAddress.selector;
     diamondLoupeModuleSelectors[4] = DiamondLoupeModule.facetSelectors.selector;
 
-    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](isTestnet ? 14 : 12);
+    bytes4[] memory globalConfigurationModuleSelectors = new bytes4[](isTestnet ? 15 : 13);
 
     globalConfigurationModuleSelectors[0] = GlobalConfigurationModule.getAccountsWithActivePositions.selector;
     globalConfigurationModuleSelectors[1] = GlobalConfigurationModule.getMarginCollateralConfiguration.selector;
@@ -93,10 +93,11 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationModuleSelectors[9] = GlobalConfigurationModule.createPerpMarket.selector;
     globalConfigurationModuleSelectors[10] = GlobalConfigurationModule.updatePerpMarketConfiguration.selector;
     globalConfigurationModuleSelectors[11] = GlobalConfigurationModule.updatePerpMarketStatus.selector;
+    globalConfigurationModuleSelectors[12] = GlobalConfigurationModule.updateSettlementConfiguration.selector;
 
     if (isTestnet) {
-        globalConfigurationModuleSelectors[12] = GlobalConfigurationModuleTestnet.setUserPoints.selector;
-        globalConfigurationModuleSelectors[13] = GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
+        globalConfigurationModuleSelectors[13] = GlobalConfigurationModuleTestnet.setUserPoints.selector;
+        globalConfigurationModuleSelectors[14] = GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
     }
 
     bytes4[] memory liquidationModuleSelectors = new bytes4[](2);
@@ -135,7 +136,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpsAccountModuleSelectors[3] = PerpsAccountModule.getAccountMarginBreakdown.selector;
     perpsAccountModuleSelectors[4] = PerpsAccountModule.getAccountTotalUnrealizedPnl.selector;
     perpsAccountModuleSelectors[5] = PerpsAccountModule.getAccountLeverage.selector;
-    perpsAccountModuleSelectors[6] = PerpsAccountModule.getOpenPositionData.selector;
+    perpsAccountModuleSelectors[6] = PerpsAccountModule.getPositionState.selector;
     perpsAccountModuleSelectors[7] = PerpsAccountModule.createPerpsAccount.selector;
     perpsAccountModuleSelectors[8] = PerpsAccountModule.createPerpsAccountAndMulticall.selector;
     perpsAccountModuleSelectors[9] = PerpsAccountModule.depositMargin.selector;
@@ -144,7 +145,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     if (isTestnet) {
         perpsAccountModuleSelectors[7] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
-        perpsAccountModuleSelectors[8] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[]],bytes,bool)"));
+        perpsAccountModuleSelectors[8] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
         perpsAccountModuleSelectors[12] = PerpsAccountModuleTestnet.getAccessKeyManager.selector;
         perpsAccountModuleSelectors[13] = PerpsAccountModuleTestnet.isUserAccountCreated.selector;
         perpsAccountModuleSelectors[14] = PerpsAccountModuleTestnet.getPointsOfUser.selector;

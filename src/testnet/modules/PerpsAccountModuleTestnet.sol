@@ -18,7 +18,6 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-/// @notice See {IPerpsAccountModule}.
 contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, OwnableUpgradeable {
     using PerpsAccount for PerpsAccount.Data;
     using ReferralTestnet for ReferralTestnet.Data;
@@ -55,10 +54,10 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
         amount = Points.load(user).amount;
     }
 
-    function getUserReferralData(address user) external pure returns (ReferralTestnet.Data memory) {
+    function getUserReferralData(address user) external pure returns (bytes memory, bool) {
         ReferralTestnet.Data memory referral = ReferralTestnet.load(user);
 
-        return referral;
+        return (referral.referralCode, referral.isCustomReferralCode);
     }
 
     function createPerpsAccount() public override returns (uint128) { }
@@ -84,6 +83,12 @@ contract PerpsAccountModuleTestnet is PerpsAccountModule, Initializable, Ownable
                 referral.referralCode = referralCode;
                 referral.isCustomReferralCode = true;
             } else {
+                address referrer = abi.decode(referralCode, (address));
+
+                if (referrer == msg.sender) {
+                    revert InvalidReferralCode();
+                }
+
                 referral.referralCode = referralCode;
                 referral.isCustomReferralCode = false;
             }

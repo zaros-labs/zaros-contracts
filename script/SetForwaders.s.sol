@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: UNLICENSED
+
+pragma solidity 0.8.23;
+
+// Zaros dependencies
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { BaseScript } from "./Base.s.sol";
+import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
+
+// import { MockSettlementModule } from "test/mocks/MockSettlementModule.sol";
+
+// Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
+
+// Forge dependencies
+import { console } from "forge-std/console.sol";
+
+contract SetForwarders is BaseScript, ProtocolConfiguration {
+    /*//////////////////////////////////////////////////////////////////////////
+                                    VARIABLES
+    //////////////////////////////////////////////////////////////////////////*/
+    string internal ethUsdStreamId;
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    CONTRACTS
+    //////////////////////////////////////////////////////////////////////////*/
+    IVerifierProxy internal chainlinkVerifier;
+    address internal ethUsdMarketOrderSettlementStrategy;
+    IPerpsEngine internal perpsEngine;
+
+    // TODO: Implement
+    function run() public broadcaster { }
+}

@@ -25,6 +25,8 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { console } from "forge-std/console.sol";
 
 // TODO: update limit order strategies
+// TODO: Create isPremium protocol configurable variable
+// TODO: update owner and forwarder on upkeep initialization
 contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
@@ -70,7 +72,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-            isPremium: false
+            isPremium: ETH_USD_IS_PREMIUM_FEED
         });
 
         deploySettlementStrategies();
@@ -121,7 +123,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
             queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
             settlementDelay: LINK_USD_SETTLEMENT_DELAY,
-            isPremium: false
+            isPremium: LINK_USD_IS_PREMIUM_FEED
         });
 
         // TODO: Add price adapter

@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { MarketOrder } from "../storage/MarketOrder.sol";
+import { Position } from "../storage/Position.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -95,27 +96,17 @@ interface IPerpsAccountModule {
     /// @return leverage The account leverage.
     function getAccountLeverage(uint128 accountId) external view returns (UD60x18 leverage);
 
-    /// @notice Gets the given market's open position details.
+    /// @notice Gets the given market's position state.
     /// @param accountId The perps account id.
     /// @param marketId The perps market id.
-    /// @return sizeX18 The position openInterest in asset units, i.e amount of purchased contracts.
-    /// @return notionalValueX18 The notional value of the position.
-    /// @return maintenanceMarginUsdX18 The notional value of the maintenance margin allocated by the account.
-    /// @return accruedFundingUsdX18 The accrued funding fee.
-    /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
-    function getOpenPositionData(
+    /// @return positionState The position's current state.
+    function getPositionState(
         uint128 accountId,
         uint128 marketId
     )
         external
         view
-        returns (
-            SD59x18 sizeX18,
-            UD60x18 notionalValueX18,
-            UD60x18 maintenanceMarginUsdX18,
-            SD59x18 accruedFundingUsdX18,
-            SD59x18 unrealizedPnlUsdX18
-        );
+        returns (Position.State memory positionState);
 
     /// @notice Creates a new trading account and mints its NFT
     /// @return accountId The trading account id.

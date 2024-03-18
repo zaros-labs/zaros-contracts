@@ -25,6 +25,8 @@
   goerli = { key = "${API_KEY_ETHERSCAN}" }
   mainnet = { key = "${API_KEY_ETHERSCAN}" }
   sepolia = { key = "${API_KEY_ETHERSCAN}" }
+  arbitrum = { key = "${API_KEY_ARBISCAN}" }
+  arbitrum_sepolia = { key = "${API_KEY_ARBISCAN}" }
 
 [fmt]
   bracket_spacing = true

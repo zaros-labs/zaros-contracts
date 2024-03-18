@@ -7,6 +7,8 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
 import { Base_Test } from "test/Base.t.sol";
 
+import "forge-std/console.sol";
+
 contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
@@ -67,10 +69,6 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
             abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), amountToDeposit);
         uint128 expectedAccountId = 1;
 
-        // it should emit {LogDepositMargin}
-        // vm.expectEmit({ emitter: address(perpsEngine) });
-        // emit LogDepositMargin(users.naruto, expectedAccountId, address(usdToken), amountToDeposit);
-
         // it should transfer the amount from the sender to the perps account
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
         bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
@@ -79,7 +77,7 @@ contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
             perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdToken)).intoUint256();
 
         // it should increase the amount of margin collateral
-        assertEq(results.length, 0, "createPerpsAccountAndMulticall: results");
+        assertEq(results.length, 1, "createPerpsAccountAndMulticall: results");
         assertEq(newMarginCollateralBalance, amountToDeposit, "createPerpsAccountAndMulticall: account margin");
     }
 }

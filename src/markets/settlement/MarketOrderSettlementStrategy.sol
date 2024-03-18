@@ -19,9 +19,6 @@ contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
         );
     }
 
-    // TODO: Implement
-    // function getConfig() external view;
-
     function callback(ISettlementModule.SettlementPayload[] calldata) external override { }
 
     function executeTrade(
@@ -40,7 +37,7 @@ contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
             dataStreamsCustomSettlementStrategyStorage.perpsEngine
         );
 
-        // TODO: Update the fee receiver to an address managed / stored by the keeper.
+        // // TODO: Update the fee receiver to an address managed / stored by the keeper.
         perpsEngine.settleMarketOrder(accountId, marketId, msg.sender, signedReport);
     }
 

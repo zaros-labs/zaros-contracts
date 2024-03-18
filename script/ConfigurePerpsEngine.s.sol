@@ -42,7 +42,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         upkeepInitialLinkFunding = vm.envUint("UPKEEP_INITIAL_LINK_FUNDING");
 
         // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
-        payable(address(perpsEngine)).transfer(0.1 ether);
+        payable(address(perpsEngine)).transfer(0.03 ether);
 
         configureContracts();
     }

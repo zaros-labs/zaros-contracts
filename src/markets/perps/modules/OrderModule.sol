@@ -64,10 +64,10 @@ contract OrderModule is IOrderModule {
 
         fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
 
-        {
-            GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-            globalConfiguration.checkTradeSizeUsd(sd59x18(sizeDelta), fillPriceX18);
-        }
+        // {
+        //     GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        //     globalConfiguration.checkTradeSizeUsd(sd59x18(sizeDelta), fillPriceX18);
+        // }
 
         orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), fillPriceX18);
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));

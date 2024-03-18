@@ -21,6 +21,23 @@ library Position {
         int128 lastInteractionFundingFeePerUnit;
     }
 
+    /// @param sizeX18 The position openInterest in asset units, i.e amount of purchased contracts.
+    /// @param notionalValueX18 The notional value of the position.
+    /// @param initialMarginUsdX18 The notional value of the initial margin allocated by the account.
+    /// @param maintenanceMarginUsdX18 The notional value of the maintenance margin allocated by the account.
+    /// @param entryPriceX18 The last settlement reference price of this position.
+    /// @param accruedFundingUsdX18 The accrued funding fee.
+    /// @param unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
+    struct State {
+        SD59x18 sizeX18;
+        UD60x18 notionalValueX18;
+        UD60x18 initialMarginUsdX18;
+        UD60x18 maintenanceMarginUsdX18;
+        UD60x18 entryPriceX18;
+        SD59x18 accruedFundingUsdX18;
+        SD59x18 unrealizedPnlUsdX18;
+    }
+
     function load(uint128 accountId, uint128 marketId) internal pure returns (Data storage position) {
         bytes32 slot = keccak256(abi.encode(POSITION_DOMAIN, accountId, marketId));
 
@@ -92,36 +109,30 @@ library Position {
         return sd59x18(self.size).abs().intoUD60x18().mul(price);
     }
 
-    /// @dev Returns the entire position data.
+    /// @dev Returns the position's current state.
     /// @param self The position storage pointer.
+    /// @param initialMarginRateX18 The market's current initial margin rate.
     /// @param maintenanceMarginRateX18 The market's current maintenance margin rate.
     /// @param price The market's current reference price.
     /// @param fundingFeePerUnit The market's current funding fee per unit.
-    /// @return size The position size in asset units, i.e amount of purchased contracts.
-    /// @return notionalValueX18 The notional value of the position.
-    /// @return maintenanceMarginUsdX18 The notional value of the maintenance margin allocated by the account.
-    /// @return accruedFundingUsdX18 The accrued funding fee.
-    /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
-    function getPositionData(
+    /// @return state The position's current state
+    function getState(
         Data storage self,
+        UD60x18 initialMarginRateX18,
         UD60x18 maintenanceMarginRateX18,
         UD60x18 price,
         SD59x18 fundingFeePerUnit
     )
         internal
         view
-        returns (
-            SD59x18 size,
-            UD60x18 notionalValueX18,
-            UD60x18 maintenanceMarginUsdX18,
-            SD59x18 accruedFundingUsdX18,
-            SD59x18 unrealizedPnlUsdX18
-        )
+        returns (State memory state)
     {
-        size = sd59x18(self.size);
-        notionalValueX18 = getNotionalValue(self, price);
-        maintenanceMarginUsdX18 = notionalValueX18.mul(maintenanceMarginRateX18);
-        accruedFundingUsdX18 = getAccruedFunding(self, fundingFeePerUnit);
-        unrealizedPnlUsdX18 = getUnrealizedPnl(self, price);
+        state.sizeX18 = sd59x18(self.size);
+        state.notionalValueX18 = getNotionalValue(self, price);
+        state.initialMarginUsdX18 = state.notionalValueX18.mul(initialMarginRateX18);
+        state.maintenanceMarginUsdX18 = state.notionalValueX18.mul(maintenanceMarginRateX18);
+        state.entryPriceX18 = ud60x18(self.lastInteractionPrice);
+        state.accruedFundingUsdX18 = getAccruedFunding(self, fundingFeePerUnit);
+        state.unrealizedPnlUsdX18 = getUnrealizedPnl(self, price);
     }
 }
