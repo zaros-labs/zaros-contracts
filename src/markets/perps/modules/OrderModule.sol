@@ -39,6 +39,7 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
+    // TODO: Check new OI and skew limits, and all other settle revert cases
     function simulateTrade(
         uint128 accountId,
         uint128 marketId,
@@ -62,7 +63,10 @@ contract OrderModule is IOrderModule {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
 
+        console.log("SASUKETEST1");
+
         fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
+        console.log("SASUKETEST2");
 
         // {
         //     GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -70,6 +74,7 @@ contract OrderModule is IOrderModule {
         // }
 
         orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), fillPriceX18);
+        console.log("SASUKETEST3");
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
         {

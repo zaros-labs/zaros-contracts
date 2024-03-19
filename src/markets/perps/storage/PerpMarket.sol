@@ -28,6 +28,8 @@ import {
     convert as sd59x18Convert
 } from "@prb-math/SD59x18.sol";
 
+import "forge-std/console.sol";
+
 /// @title The PerpMarket namespace.
 library PerpMarket {
     using SafeCast for uint256;
@@ -89,12 +91,18 @@ library PerpMarket {
         SD59x18 newSkew = skew.add(skewDelta);
         SD59x18 priceImpactAfterDelta = newSkew.div(skewScale);
 
+        console.log("MARK_PRICE_1");
+
         UD60x18 priceBeforeDelta =
             indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactBeforeDelta)).intoUD60x18();
+            console.log("MARK_PRICE_2");
+            console.log(priceImpactAfterDelta.abs().intoUD60x18().intoUint256());
         UD60x18 priceAfterDelta =
             indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactAfterDelta)).intoUD60x18();
+            console.log("MARK_PRICE_3");
 
         UD60x18 markPrice = priceBeforeDelta.add(priceAfterDelta).div(ud60x18Convert(2));
+        console.log("MARK_PRICE_4");
 
         return markPrice;
     }
@@ -167,6 +175,17 @@ library PerpMarket {
     function getProportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
         // TODO: add funding interval variable
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_INTERVAL));
+    }
+
+    function checkOpenInterestLimit(Data storage self, SD59x18 sizeDelta) internal view {
+        UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
+        UD60x18 newOpenInterest = ud60x18(self.openInterest).sub(sizeDelta.abs().intoUD60x18());
+
+        if (newOpenInterest.gt(maxOpenInterest)) {
+            revert Errors.ExceedsOpenInterestLimit(
+                self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
+            );
+        }
     }
 
     function updateFunding(Data storage self, SD59x18 fundingRate, SD59x18 fundingFeePerUnit) internal {

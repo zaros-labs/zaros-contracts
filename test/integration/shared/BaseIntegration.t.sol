@@ -20,7 +20,7 @@ import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 import "forge-std/console.sol";
@@ -229,47 +229,64 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
+    struct FuzzOrderSizeDeltaParams {
+        uint128 accountId;
+        uint128 marketId;
+        uint128 settlementId;
+        uint256 initialMarginRate;
+        uint256 marginValueUsd;
+        uint256 maxOpenInterest;
+        uint256 price;
+        bool isLong;
+    }
+
+    struct FuzzOrderSizeDeltaContext {
+        int128 sizeDeltaPreFee;
+        int128 sizeDeltaAbs;
+        UD60x18 fuzzedSizeDeltaAbs;
+        UD60x18 sizeDeltaWithPriceImpact;
+        UD60x18 totalOrderFeeInSize;
+    }
+
     function fuzzOrderSizeDelta(
-        uint128 accountId,
-        uint128 marketId,
-        uint128 settlementId,
-        uint256 initialMarginRate,
-        uint256 marginValueUsd,
-        uint256 maxOpenInterest,
-        uint256 price,
-        bool isLong
+    FuzzOrderSizeDeltaParams memory params
     )
         internal
         view
         returns (int128 sizeDelta)
     {
-        int128 sizeDeltaPreFee;
+        FuzzOrderSizeDeltaContext memory ctx;
         {
-            UD60x18 fuzzedSizeDeltaAbs = ud60x18(marginValueUsd).div(ud60x18(initialMarginRate)).div(ud60x18(price));
+            ctx.fuzzedSizeDeltaAbs = ud60x18(params.marginValueUsd).div(ud60x18(params.initialMarginRate)).div(ud60x18(params.price));
 
             // TODO: fix min trade size usd dynamic calculation
-            int128 sizeDeltaAbs = Math.min(
-                Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(price))),
-                ud60x18(maxOpenInterest)
+            ctx.sizeDeltaAbs = Math.min(
+                Math.max(ctx.fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(params.price))),
+                ud60x18(params.maxOpenInterest)
             ).intoSD59x18().intoInt256().toInt128();
-            sizeDeltaPreFee = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
+            ctx.sizeDeltaPreFee = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
         }
-        (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) =
-            perpsEngine.simulateTrade(accountId, marketId, settlementId, sizeDeltaPreFee);
+        console.log("NARUTOTEST1");
 
-        UD60x18 feeToDiscount = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
-        SD59x18 sizeDeltaWithPriceImpact =
-            ud60x18(price).div(fillPriceX18).intoSD59x18().mul(sd59x18(sizeDeltaPreFee));
+        {
+                    (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) =
+            perpsEngine.simulateTrade(params.accountId, params.marketId, params.settlementId, ctx.sizeDeltaPreFee);
+            console.log("NARUTOTEST2");
+
+        ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
+        console.log("NARUTOTEST3");
+        ctx.sizeDeltaWithPriceImpact =
+            Math.min(ud60x18(params.price).div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPreFee)).abs().intoUD60x18(), ud60x18(params.maxOpenInterest));
+        }
+
+
+        console.log(ctx.sizeDeltaWithPriceImpact.intoUint256());
 
         sizeDelta = (
-            isLong
-                ? sizeDeltaWithPriceImpact.sub(feeToDiscount.intoSD59x18())
-                : sizeDeltaWithPriceImpact.add(feeToDiscount.intoSD59x18())
+            params.isLong
+                ? ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(ctx.totalOrderFeeInSize.intoSD59x18())
+                : unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(ctx.totalOrderFeeInSize.intoSD59x18())
         ).intoInt256().toInt128();
-
-        console.log("Order Fuzzing: ");
-        console.log(fillPriceX18.intoUint256());
-        console.log(fillPriceX18.mul(sd59x18(sizeDelta).abs().intoUD60x18()).intoUint256());
 
         // console.log("Order Fuzzing");
         // console.log(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18).intoUint256());

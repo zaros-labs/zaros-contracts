@@ -31,6 +31,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
 //     uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 //     int128 sizeDelta = fuzzOrderSizeDelta(
+//        FuzzOrderSizeDeltaParams({
 //         perpsAccountId,
 //         ETH_USD_MARKET_ID,
 //         SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
@@ -39,6 +40,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 //         ETH_USD_MAX_OI,
 //         MOCK_ETH_USD_PRICE,
 //         isLong
+// })
 //     );
 
 //     perpsEngine.createMarketOrder({

@@ -130,14 +130,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate = ETH_USD_MARGIN_REQUIREMENTS / 2;
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
-            perpsAccountId,
-            ETH_USD_MARKET_ID,
-            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
-            ud60x18(initialMarginRate).intoUint256(),
-            marginValueUsd,
-            ETH_USD_MAX_OI,
-            MOCK_ETH_USD_PRICE,
-            isLong
+          FuzzOrderSizeDeltaParams({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            initialMarginRate: initialMarginRate,
+            marginValueUsd: marginValueUsd,
+            maxOpenInterest: ETH_USD_MAX_OI,
+            price: MOCK_ETH_USD_PRICE,
+            isLong: isLong
+          })
         );
 
         (
@@ -193,14 +195,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 firstOrderSizeDelta = fuzzOrderSizeDelta(
-            perpsAccountId,
-            ETH_USD_MARKET_ID,
-            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
-            ud60x18(initialMarginRate * 2).intoUint256(),
-            marginValueUsd,
-            ETH_USD_MAX_OI,
-            MOCK_ETH_USD_PRICE,
-            isLong
+         FuzzOrderSizeDeltaParams({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            initialMarginRate: initialMarginRate,
+            marginValueUsd: marginValueUsd,
+            maxOpenInterest: ETH_USD_MAX_OI,
+            price: MOCK_ETH_USD_PRICE,
+            isLong: isLong
+          })
         );
 
         changePrank({ msgSender: users.owner });
@@ -228,14 +232,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
 
         int128 secondOrderSizeDelta = fuzzOrderSizeDelta(
-            perpsAccountId,
-            BTC_USD_MARKET_ID,
-            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
-            ud60x18(initialMarginRate * 2).intoUint256(),
-            marginValueUsd,
-            BTC_USD_MAX_OI,
-            MOCK_BTC_USD_PRICE,
-            isLong
+            FuzzOrderSizeDeltaParams({
+                accountId: perpsAccountId,
+                marketId: BTC_USD_MARKET_ID,
+                settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+                initialMarginRate: initialMarginRate,
+                marginValueUsd: marginValueUsd,
+                maxOpenInterest: BTC_USD_MAX_OI,
+                price: MOCK_BTC_USD_PRICE,
+                isLong: isLong
+            })
         );
 
         // it should revert
@@ -275,14 +281,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
-            perpsAccountId,
-            ETH_USD_MARKET_ID,
-            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
-            initialMarginRate,
-            marginValueUsd,
-            ETH_USD_MAX_OI,
-            MOCK_ETH_USD_PRICE,
-            isLong
+            FuzzOrderSizeDeltaParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+                initialMarginRate: initialMarginRate,
+                marginValueUsd: marginValueUsd,
+                maxOpenInterest: ETH_USD_MAX_OI,
+                price: MOCK_ETH_USD_PRICE,
+                isLong: isLong
+            })
         );
 
         changePrank({ msgSender: users.owner });
@@ -326,14 +334,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
-            perpsAccountId,
-            ETH_USD_MARKET_ID,
-            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
-            initialMarginRate,
-            marginValueUsd,
-            ETH_USD_MAX_OI,
-            MOCK_ETH_USD_PRICE,
-            isLong
+         FuzzOrderSizeDeltaParams({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            initialMarginRate: initialMarginRate,
+            marginValueUsd: marginValueUsd,
+            maxOpenInterest: ETH_USD_MAX_OI,
+            price: MOCK_ETH_USD_PRICE,
+            isLong: isLong
+          })
         );
 
         perpsEngine.createMarketOrder({
@@ -377,14 +387,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
-            perpsAccountId,
-            ETH_USD_MARKET_ID,
-            SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
-            initialMarginRate,
-            marginValueUsd,
-            ETH_USD_MAX_OI,
-            MOCK_ETH_USD_PRICE,
-            isLong
+         FuzzOrderSizeDeltaParams({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            initialMarginRate: initialMarginRate,
+            marginValueUsd: marginValueUsd,
+            maxOpenInterest: ETH_USD_MAX_OI,
+            price: MOCK_ETH_USD_PRICE,
+            isLong: isLong
+          })
         );
 
         MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({
