@@ -235,6 +235,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         uint128 settlementId,
         uint256 initialMarginRate,
         uint256 marginValueUsd,
+        uint256 maxOpenInterest,
         uint256 price,
         bool isLong
     )
@@ -245,9 +246,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         int128 sizeDeltaPreFee;
         {
             UD60x18 fuzzedSizeDeltaAbs = ud60x18(marginValueUsd).div(ud60x18(initialMarginRate)).div(ud60x18(price));
-
-            // TODO: Dynamically get the max OI.
-            uint256 maxOpenInterest = ETH_USD_MAX_OI;
 
             // TODO: fix min trade size usd dynamic calculation
             int128 sizeDeltaAbs = Math.min(

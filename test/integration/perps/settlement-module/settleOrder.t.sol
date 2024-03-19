@@ -36,6 +36,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 //         SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
 //         initialMarginRate,
 //         marginValueUsd,
+//         ETH_USD_MAX_OI,
 //         MOCK_ETH_USD_PRICE,
 //         isLong
 //     );

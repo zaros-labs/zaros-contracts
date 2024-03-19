@@ -135,6 +135,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             ud60x18(initialMarginRate).intoUint256(),
             marginValueUsd,
+            ETH_USD_MAX_OI,
             MOCK_ETH_USD_PRICE,
             isLong
         );
@@ -197,6 +198,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             ud60x18(initialMarginRate * 2).intoUint256(),
             marginValueUsd,
+            ETH_USD_MAX_OI,
             MOCK_ETH_USD_PRICE,
             isLong
         );
@@ -227,10 +229,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         int128 secondOrderSizeDelta = fuzzOrderSizeDelta(
             perpsAccountId,
-            ETH_USD_MARKET_ID,
+            BTC_USD_MARKET_ID,
             SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             ud60x18(initialMarginRate * 2).intoUint256(),
             marginValueUsd,
+            BTC_USD_MAX_OI,
             MOCK_BTC_USD_PRICE,
             isLong
         );
@@ -277,6 +280,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             initialMarginRate,
             marginValueUsd,
+            ETH_USD_MAX_OI,
             MOCK_ETH_USD_PRICE,
             isLong
         );
@@ -327,6 +331,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             initialMarginRate,
             marginValueUsd,
+            ETH_USD_MAX_OI,
             MOCK_ETH_USD_PRICE,
             isLong
         );
@@ -377,6 +382,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
             initialMarginRate,
             marginValueUsd,
+            ETH_USD_MAX_OI,
             MOCK_ETH_USD_PRICE,
             isLong
         );
