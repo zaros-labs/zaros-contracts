@@ -126,7 +126,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
     {
         UD60x18 maxMarginValueUsd = ud60x18(ETH_USD_MARGIN_REQUIREMENTS).mul(ud60x18(ETH_USD_MAX_OI));
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
+        marginValueUsd =
+            bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
