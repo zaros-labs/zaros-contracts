@@ -67,8 +67,9 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant MIN_TRADE_SIZE_USD = 200e18;
     uint128 internal constant LIQUIDATION_FEE_USD = 5e18;
     /// @dev Used by tests for rounding approximate bps values
-    // TODO: let's try not use this or use a smaller buffer
-    uint128 internal constant ROUNDING_BPS = 0.0015e18;
+    // TODO: let's try not use this
+    // uint128 internal constant ROUNDING_BPS = 0.0015e18;
+    uint128 internal constant ROUNDING_BPS = 0;
     /// @dev Used by tests for rounding approximate uints
     uint128 internal constant ROUNDING_UINT = 10e18;
 
@@ -90,7 +91,7 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant ETH_USD_MARKET_ID = 2;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
     string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
-    uint128 internal constant ETH_USD_IMR = 0.01e18;
+    uint128 internal constant ETH_USD_IMR = 0.005e18;
     uint128 internal constant ETH_USD_MMR = 0.005e18;
     uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR + ROUNDING_BPS;
     uint128 internal constant ETH_USD_MAX_OI = 100_000e18;

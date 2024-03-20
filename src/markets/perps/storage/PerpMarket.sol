@@ -95,11 +95,11 @@ library PerpMarket {
 
         UD60x18 priceBeforeDelta =
             indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactBeforeDelta)).intoUD60x18();
-            console.log("MARK_PRICE_2");
-            console.log(priceImpactAfterDelta.abs().intoUD60x18().intoUint256());
+        console.log("MARK_PRICE_2");
+        console.log(priceImpactAfterDelta.abs().intoUD60x18().intoUint256());
         UD60x18 priceAfterDelta =
             indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactAfterDelta)).intoUD60x18();
-            console.log("MARK_PRICE_3");
+        console.log("MARK_PRICE_3");
 
         UD60x18 markPrice = priceBeforeDelta.add(priceAfterDelta).div(ud60x18Convert(2));
         console.log("MARK_PRICE_4");
@@ -130,7 +130,15 @@ library PerpMarket {
     }
 
     /// @dev When the skew is zero, taker fee will be charged.
-    function getOrderFeeUsd(Data storage self, SD59x18 sizeDelta, UD60x18 price) internal view returns (SD59x18) {
+    function getOrderFeeUsd(
+        Data storage self,
+        SD59x18 sizeDelta,
+        UD60x18 markPriceX18
+    )
+        internal
+        view
+        returns (SD59x18)
+    {
         SD59x18 skew = sd59x18(self.skew);
         SD59x18 feeBps;
 
@@ -143,7 +151,7 @@ library PerpMarket {
             feeBps = sd59x18((self.configuration.orderFees.takerFee));
         }
 
-        return price.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);
+        return markPriceX18.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);
     }
 
     function getNextFundingFeePerUnit(
