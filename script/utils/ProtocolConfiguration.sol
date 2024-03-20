@@ -66,10 +66,6 @@ abstract contract ProtocolConfiguration {
     uint128 internal constant MARKET_ORDER_MAX_LIFETIME = 10 seconds;
     uint128 internal constant MIN_TRADE_SIZE_USD = 200e18;
     uint128 internal constant LIQUIDATION_FEE_USD = 5e18;
-    /// @dev Used by tests for rounding approximate bps values
-    // TODO: let's try not use this
-    // uint128 internal constant ROUNDING_BPS = 0.0015e18;
-    uint128 internal constant ROUNDING_BPS = 0;
     /// @dev Used by tests for rounding approximate uints
     uint128 internal constant ROUNDING_UINT = 10e18;
 
@@ -79,7 +75,7 @@ abstract contract ProtocolConfiguration {
     string internal constant BTC_USD_MARKET_SYMBOL = "BTC/USD PERP";
     uint128 internal constant BTC_USD_IMR = 0.01e18;
     uint128 internal constant BTC_USD_MMR = 0.005e18;
-    uint128 internal constant BTC_USD_MARGIN_REQUIREMENTS = BTC_USD_IMR + BTC_USD_MMR + ROUNDING_BPS;
+    uint128 internal constant BTC_USD_MARGIN_REQUIREMENTS = BTC_USD_IMR + BTC_USD_MMR;
     uint128 internal constant BTC_USD_MAX_OI = 1000e18;
     uint256 internal constant BTC_USD_SKEW_SCALE = 100_000e18;
     uint128 internal constant BTC_USD_MAX_FUNDING_VELOCITY = 0.025e18;
@@ -93,7 +89,7 @@ abstract contract ProtocolConfiguration {
     string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
     uint128 internal constant ETH_USD_IMR = 0.005e18;
     uint128 internal constant ETH_USD_MMR = 0.005e18;
-    uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR + ROUNDING_BPS;
+    uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR;
     uint128 internal constant ETH_USD_MAX_OI = 100_000e18;
     uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.025e18;
@@ -107,7 +103,7 @@ abstract contract ProtocolConfiguration {
     string internal constant LINK_USD_MARKET_SYMBOL = "LINK/USD-PERP";
     uint128 internal constant LINK_USD_IMR = 0.05e18;
     uint128 internal constant LINK_USD_MMR = 0.025e18;
-    uint128 internal constant LINK_USD_MARGIN_REQUIREMENTS = LINK_USD_IMR + LINK_USD_MMR + ROUNDING_BPS;
+    uint128 internal constant LINK_USD_MARGIN_REQUIREMENTS = LINK_USD_IMR + LINK_USD_MMR;
     uint128 internal constant LINK_USD_MAX_OI = 100_000_000e18;
     uint256 internal constant LINK_USD_SKEW_SCALE = 1_151_243_152e18;
     uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
@@ -121,7 +117,7 @@ abstract contract ProtocolConfiguration {
     string internal constant ARB_USD_MARKET_SYMBOL = "ARB/USD-PERP";
     uint128 internal constant ARB_USD_IMR = 0.1e18;
     uint128 internal constant ARB_USD_MMR = 0.01e18;
-    uint128 internal constant ARB_USD_MARGIN_REQUIREMENTS = ARB_USD_IMR + ARB_USD_MMR + ROUNDING_BPS;
+    uint128 internal constant ARB_USD_MARGIN_REQUIREMENTS = ARB_USD_IMR + ARB_USD_MMR;
     uint128 internal constant ARB_USD_MAX_OI = 100_000_000e18;
     uint256 internal constant ARB_USD_SKEW_SCALE = 2e8;
     uint128 internal constant ARB_USD_MAX_FUNDING_VELOCITY = 0.25e18;
