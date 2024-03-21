@@ -33,12 +33,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, perpsAccountId, users.naruto)
         });
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: sizeDelta,
+                acceptablePrice: 0
+            })
+        );
     }
 
     modifier whenTheAccountIdExists() {
@@ -54,12 +56,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, perpsAccountId, users.sasuke)
         });
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: sizeDelta,
+                acceptablePrice: 0
+            })
+        );
     }
 
     modifier givenTheSenderIsAuthorized() {
@@ -71,12 +75,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "sizeDelta") });
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: 0,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: 0,
+                acceptablePrice: 0
+            })
+        );
     }
 
     modifier whenTheSizeDeltaIsNotZero() {
@@ -103,7 +109,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
     //     // it should revert
     //     vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradeSizeTooSmall.selector) });
-    //     perpsEngine.createMarketOrder({
+    //     perpsEngine.createMarketOrder(IOrderModule.CreateMarketOrderParams({
     //         accountId: perpsAccountId,
     //         marketId: ETH_USD_MARKET_ID,
     //         sizeDelta: sizeDelta,
@@ -165,12 +171,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 )
         });
         // vm.expectRevert({revertData: abi.encodeWithSelector(Errors.InsufficientMargin.selector)});
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: sizeDelta,
+                acceptablePrice: 0
+            })
+        );
     }
 
     modifier givenTheAccountWillMeetTheMarginRequirements() {
@@ -221,12 +229,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: users.naruto });
 
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: firstOrderSizeDelta,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: firstOrderSizeDelta,
+                acceptablePrice: 0
+            })
+        );
 
         changePrank({ msgSender: mockDefaultMarketOrderSettlementStrategy });
         bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE, false);
@@ -252,12 +262,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.MaxPositionsPerAccountReached.selector, perpsAccountId, 1, 1)
         });
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: BTC_USD_MARKET_ID,
-            sizeDelta: secondOrderSizeDelta,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: BTC_USD_MARKET_ID,
+                sizeDelta: secondOrderSizeDelta,
+                acceptablePrice: 0
+            })
+        );
     }
 
     modifier givenTheAccountWillNotReachThePositionsLimit() {
@@ -304,12 +316,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, ETH_USD_MARKET_ID) });
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: sizeDelta,
+                acceptablePrice: 0
+            })
+        );
     }
 
     modifier givenThePerpMarketIsActive() {
@@ -350,23 +364,27 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: sizeDelta,
+                acceptablePrice: 0
+            })
+        );
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.MarketOrderStillPending.selector, block.timestamp)
         });
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: sizeDelta,
+                acceptablePrice: 0
+            })
+        );
     }
 
     function testFuzz_GivenThereIsNoPendingMarketOrder(
@@ -413,12 +431,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should emit a {LogCreateMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit IOrderModule.LogCreateMarketOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedMarketOrder);
-        perpsEngine.createMarketOrder({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0
-        });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: sizeDelta,
+                acceptablePrice: 0
+            })
+        );
 
         // it should create the market order
         MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId });
