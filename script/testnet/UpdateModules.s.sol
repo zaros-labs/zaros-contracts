@@ -38,17 +38,17 @@ contract UpdateModules is BaseScript {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        // PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
+        PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
         // PerpMarketModule perpMarketModule = new PerpMarketModule();
         // GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
         // SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
-        OrderModule orderModule = new OrderModule();
+        // OrderModule orderModule = new OrderModule();
 
         // bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](1);
-        // bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](3);
+        bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](2);
         // bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](1);
-        bytes4[] memory orderModuleTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory orderModuleTestnetSelectorsUpdated = new bytes4[](1);
 
         // IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
 
@@ -67,7 +67,7 @@ contract UpdateModules is BaseScript {
         // perpsAccountModuleTestnetSelectorsAdded[4] =
         // PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
 
-        // perpsAccountModuleTestnetSelectorsUpdated[0] = bytes4(keccak256("createPerpsAccount()"));
+        perpsAccountModuleTestnetSelectorsUpdated[0] = PerpsAccountModuleTestnet.getUserReferralData.selector;
         // perpsAccountModuleTestnetSelectorsUpdated[1] =
         // bytes4(keccak256("createPerpsAccountAndMulticall(bytes[])"));
         // perpsAccountModuleTestnetSelectorsUpdated[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
@@ -85,13 +85,13 @@ contract UpdateModules is BaseScript {
 
         // perpMarketModuleSelectorsUpdated[0] = PerpMarketModule.getOpenInterest.selector;
 
-        orderModuleTestnetSelectorsUpdated[0] = OrderModule.createMarketOrder.selector;
+        // orderModuleTestnetSelectorsUpdated[0] = OrderModule.createMarketOrder.selector;
 
         facetCuts[0] = (
             IDiamond.FacetCut({
-                facet: address(orderModule),
+                facet: address(perpsAccountModuleTestnet),
                 action: IDiamond.FacetCutAction.Replace,
-                selectors: orderModuleTestnetSelectorsUpdated
+                selectors: perpsAccountModuleTestnetSelectorsUpdated
             })
         );
 
