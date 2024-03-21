@@ -114,10 +114,10 @@ contract MockSettlementModule is SettlementModule {
             oldPosition.update(ctx.newPosition);
         }
 
-        (UD60x18 newOpenInterest, SD59x18 newSkew) = perpMarket.checkOpenInterestLimits(
+        (ctx.newOpenInterest, ctx.newSkew) = perpMarket.checkOpenInterestLimits(
             ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size)
         );
-        perpMarket.updateOpenInterest(newOpenInterest, newSkew);
+        perpMarket.updateOpenInterest(ctx.newOpenInterest, ctx.newSkew);
 
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 

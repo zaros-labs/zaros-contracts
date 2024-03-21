@@ -45,6 +45,8 @@ contract SettlementModuleTestnet is SettlementModule {
         SD59x18 pnl;
         SD59x18 fundingFeePerUnit;
         SD59x18 fundingRate;
+        UD60x18 newOpenInterest;
+        SD59x18 newSkew;
         Points.Data userPoints;
         Position.Data newPosition;
     }
@@ -119,10 +121,10 @@ contract SettlementModuleTestnet is SettlementModule {
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        (UD60x18 newOpenInterest, SD59x18 newSkew) = perpMarket.checkOpenInterestLimits(
+        (ctx.newOpenInterest, ctx.newSkew) = perpMarket.checkOpenInterestLimits(
             ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size)
         );
-        perpMarket.updateOpenInterest(newOpenInterest, newSkew);
+        perpMarket.updateOpenInterest(ctx.newOpenInterest, ctx.newSkew);
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
         if (ctx.newPosition.size == 0) {

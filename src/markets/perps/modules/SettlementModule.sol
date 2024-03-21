@@ -131,6 +131,8 @@ contract SettlementModule is ISettlementModule {
         SD59x18 fundingFeePerUnit;
         SD59x18 fundingRate;
         Position.Data newPosition;
+        UD60x18 newOpenInterest;
+        SD59x18 newSkew;
     }
 
     function _settle(
@@ -202,10 +204,10 @@ contract SettlementModule is ISettlementModule {
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        (UD60x18 newOpenInterest, SD59x18 newSkew) = perpMarket.checkOpenInterestLimits(
+        (ctx.newOpenInterest, ctx.newSkew) = perpMarket.checkOpenInterestLimits(
             ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size)
         );
-        perpMarket.updateOpenInterest(newOpenInterest, newSkew);
+        perpMarket.updateOpenInterest(ctx.newOpenInterest, ctx.newSkew);
 
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
@@ -231,6 +233,7 @@ contract SettlementModule is ISettlementModule {
 
             // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
             // NOTE: testnet only
+            // TODO: Move to testnet version
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
