@@ -119,7 +119,10 @@ contract SettlementModuleTestnet is SettlementModule {
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        perpMarket.updateOpenInterest(ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+        (UD60x18 newOpenInterest, SD59x18 newSkew) = perpMarket.checkOpenInterestLimits(
+            ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size)
+        );
+        perpMarket.updateOpenInterest(newOpenInterest, newSkew);
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
         if (ctx.newPosition.size == 0) {
