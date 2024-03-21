@@ -151,7 +151,9 @@ contract LiquidationModule is ILiquidationModule {
 
                 position.clear();
 
-                perpMarket.updateOpenInterest(ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD_ZERO);
+                (UD60x18 newOpenInterest, SD59x18 newSkew) =
+                    perpMarket.checkOpenInterestLimits(ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD_ZERO);
+                perpMarket.updateOpenInterest(newOpenInterest, newSkew);
 
                 perpsAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
             }

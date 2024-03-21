@@ -199,7 +199,7 @@ library PerpMarket {
         newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
             newPositionSize.abs().intoUD60x18()
         );
-        newSkew = sd59x18(int256(self.skew)).add(sizeDelta).intoInt256().toInt128();
+        newSkew = sd59x18(self.skew).add(sizeDelta);
 
         if (newOpenInterest.gt(maxOpenInterest)) {
             revert Errors.ExceedsOpenInterestLimit(

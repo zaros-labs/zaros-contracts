@@ -201,10 +201,12 @@ contract SettlementModule is ISettlementModule {
             lastInteractionPrice: ctx.fillPrice.intoUint128(),
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
         });
+
         (UD60x18 newOpenInterest, SD59x18 newSkew) = perpMarket.checkOpenInterestLimits(
             ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size)
         );
         perpMarket.updateOpenInterest(newOpenInterest, newSkew);
+
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
         if (ctx.newPosition.size == 0) {
