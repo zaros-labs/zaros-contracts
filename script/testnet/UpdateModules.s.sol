@@ -22,8 +22,6 @@ import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "../Base.s.sol";
 import { deployModules, getModulesSelectors, getFacetCuts } from "../helpers/DiamondHelpers.sol";
 
-// import { MockSettlementModule } from "test/mocks/MockSettlementModule.sol";
-
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
@@ -126,17 +124,6 @@ contract UpdateModules is BaseScript {
         //         selectors: settlementModuleTestnetSelectorsUpdated
         //     })
         // );
-
-        // bytes4[] memory mockSelectors = new bytes4[](2);
-
-        // mockSelectors[0] = MockSettlementModule.mockSettleMarketOrder.selector;
-        // mockSelectors[1] = MockSettlementModule.mockSettleCustomOrders.selector;
-
-        // facetCuts[1] = IDiamond.FacetCut({
-        //     facet: address(mockSettlementModule),
-        //     action: IDiamond.FacetCutAction.Add,
-        //     selectors: mockSelectors
-        // });
 
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 
