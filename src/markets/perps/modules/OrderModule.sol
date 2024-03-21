@@ -139,6 +139,14 @@ contract OrderModule is IOrderModule {
             revert Errors.ZeroInput("sizeDelta");
         }
 
+        globalConfiguration.checkMarketIsEnabled(marketId);
+        marketOrder.checkPendingOrder();
+
+        bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
+        if (!isMarketWithActivePosition) {
+            perpsAccount.validatePositionsLimit();
+        }
+
         (
             SD59x18 marginBalanceUsdX18,
             UD60x18 requiredInitialMarginUsdX18,
@@ -152,24 +160,11 @@ contract OrderModule is IOrderModule {
             sizeDelta: sizeDelta
         });
 
-        console.log("MARGIN REQUIREMENTS: ");
-        console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
-        console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
-        console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
-
         perpsAccount.validateMarginRequirement(
             requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
             marginBalanceUsdX18,
             orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18())
         );
-
-        bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
-        if (!isMarketWithActivePosition) {
-            perpsAccount.validatePositionsLimit();
-        }
-
-        globalConfiguration.checkMarketIsEnabled(marketId);
-        marketOrder.checkPendingOrder();
 
         marketOrder.update({ marketId: marketId, sizeDelta: sizeDelta, acceptablePrice: acceptablePrice });
 

@@ -185,15 +185,28 @@ library PerpMarket {
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_INTERVAL));
     }
 
-    function checkOpenInterestLimit(Data storage self, SD59x18 sizeDelta) internal view {
+    function checkOpenInterestLimits(
+        Data storage self,
+        SD59x18 sizeDelta,
+        SD59x18 oldPositionSize,
+        SD59x18 newPositionSize
+    )
+        internal
+        view
+        returns (UD60x18 newOpenInterest, SD59x18 newSkew)
+    {
         UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
-        UD60x18 newOpenInterest = ud60x18(self.openInterest).sub(sizeDelta.abs().intoUD60x18());
+        newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
+            newPositionSize.abs().intoUD60x18()
+        );
+        newSkew = sd59x18(int256(self.skew)).add(sizeDelta).intoInt256().toInt128();
 
         if (newOpenInterest.gt(maxOpenInterest)) {
             revert Errors.ExceedsOpenInterestLimit(
                 self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
             );
         }
+        // TODO: validate skew
     }
 
     function updateFunding(Data storage self, SD59x18 fundingRate, SD59x18 fundingFeePerUnit) internal {
@@ -202,26 +215,8 @@ library PerpMarket {
         self.lastFundingTime = block.timestamp;
     }
 
-    function updateOpenInterest(
-        Data storage self,
-        SD59x18 sizeDelta,
-        SD59x18 oldPositionSize,
-        SD59x18 newPositionSize
-    )
-        internal
-    {
-        UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
-        UD60x18 newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
-            newPositionSize.abs().intoUD60x18()
-        );
-
-        if (newOpenInterest.gt(maxOpenInterest)) {
-            revert Errors.ExceedsOpenInterestLimit(
-                self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
-            );
-        }
-
-        self.skew = sd59x18(self.skew).add(sizeDelta).intoInt256().toInt128();
+    function updateOpenInterest(Data storage self, UD60x18 newOpenInterest, SD59x18 newSkew) internal {
+        self.skew = newSkew.intoInt256().toInt128();
         self.openInterest = newOpenInterest.intoUint128();
     }
 
