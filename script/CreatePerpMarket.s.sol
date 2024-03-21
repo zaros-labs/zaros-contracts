@@ -11,7 +11,7 @@ import { LimitOrderSettlementStrategy } from "@zaros/markets/settlement/LimitOrd
 import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
 import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
-import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
+import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
@@ -99,7 +99,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         ethUsdCustomOrderStrategies[0] = ethUsdLimitOrderConfiguration;
 
         perpsEngine.createPerpMarket({
-            params: CreatePerpMarketParams({
+            params: IGlobalConfigurationModule.CreatePerpMarketParams({
                 marketId: ETH_USD_MARKET_ID,
                 name: ETH_USD_MARKET_NAME,
                 symbol: ETH_USD_MARKET_SYMBOL,
@@ -147,7 +147,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         linkUsdCustomOrderStrategies[0] = linkUsdLimitOrderConfiguration;
 
         perpsEngine.createPerpMarket({
-            params: CreatePerpMarketParams({
+            params: IGlobalConfigurationModule.CreatePerpMarketParams({
                 marketId: LINK_USD_MARKET_ID,
                 name: LINK_USD_MARKET_NAME,
                 symbol: LINK_USD_MARKET_SYMBOL,

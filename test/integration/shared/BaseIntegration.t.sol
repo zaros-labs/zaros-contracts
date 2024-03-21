@@ -8,7 +8,7 @@ import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.so
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
-import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
+import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
@@ -139,7 +139,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
     function createMarkets() internal {
         perpsEngine.createPerpMarket(
-            CreatePerpMarketParams({
+            IGlobalConfigurationModule.CreatePerpMarketParams({
                 marketId: BTC_USD_MARKET_ID,
                 name: BTC_USD_MARKET_NAME,
                 symbol: BTC_USD_MARKET_SYMBOL,
@@ -156,7 +156,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         );
 
         perpsEngine.createPerpMarket(
-            CreatePerpMarketParams({
+            IGlobalConfigurationModule.CreatePerpMarketParams({
                 marketId: ETH_USD_MARKET_ID,
                 name: ETH_USD_MARKET_NAME,
                 symbol: ETH_USD_MARKET_SYMBOL,

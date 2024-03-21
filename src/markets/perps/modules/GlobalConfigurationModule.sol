@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { CreatePerpMarketParams, IGlobalConfigurationModule } from "../interfaces/IGlobalConfigurationModule.sol";
+import { IGlobalConfigurationModule } from "../interfaces/IGlobalConfigurationModule.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpMarket } from "../storage/PerpMarket.sol";
 import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfiguration.sol";
