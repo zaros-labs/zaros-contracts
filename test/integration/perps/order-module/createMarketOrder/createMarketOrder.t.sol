@@ -144,10 +144,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
                 settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: initialMarginRate,
-                marginValueUsd: marginValueUsd,
-                maxOpenInterest: ETH_USD_MAX_OI,
-                price: MOCK_ETH_USD_PRICE,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
+                minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
+                price: ud60x18(MOCK_ETH_USD_PRICE),
                 isLong: isLong
             })
         );
@@ -211,10 +212,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
                 settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: initialMarginRate,
-                marginValueUsd: marginValueUsd,
-                maxOpenInterest: ETH_USD_MAX_OI,
-                price: MOCK_ETH_USD_PRICE,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
+                minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
+                price: ud60x18(MOCK_ETH_USD_PRICE),
                 isLong: isLong
             })
         );
@@ -249,10 +251,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 accountId: perpsAccountId,
                 marketId: BTC_USD_MARKET_ID,
                 settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: initialMarginRate,
-                marginValueUsd: marginValueUsd,
-                maxOpenInterest: BTC_USD_MAX_OI,
-                price: MOCK_BTC_USD_PRICE,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(BTC_USD_MAX_OI),
+                minTradeSize: ud60x18(BTC_USD_MIN_TRADE_SIZE),
+                price: ud60x18(MOCK_BTC_USD_PRICE),
                 isLong: isLong
             })
         );
@@ -300,10 +303,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
                 settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: initialMarginRate,
-                marginValueUsd: marginValueUsd,
-                maxOpenInterest: ETH_USD_MAX_OI,
-                price: MOCK_ETH_USD_PRICE,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
+                minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
+                price: ud60x18(MOCK_ETH_USD_PRICE),
                 isLong: isLong
             })
         );
@@ -355,10 +359,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
                 settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: initialMarginRate,
-                marginValueUsd: marginValueUsd,
-                maxOpenInterest: ETH_USD_MAX_OI,
-                price: MOCK_ETH_USD_PRICE,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
+                minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
+                price: ud60x18(MOCK_ETH_USD_PRICE),
                 isLong: isLong
             })
         );
@@ -412,10 +417,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
                 settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: initialMarginRate,
-                marginValueUsd: marginValueUsd,
-                maxOpenInterest: ETH_USD_MAX_OI,
-                price: MOCK_ETH_USD_PRICE,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
+                minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
+                price: ud60x18(MOCK_ETH_USD_PRICE),
                 isLong: isLong
             })
         );

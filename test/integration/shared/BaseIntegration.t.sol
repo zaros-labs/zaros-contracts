@@ -234,10 +234,11 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         uint128 accountId;
         uint128 marketId;
         uint128 settlementId;
-        uint256 initialMarginRate;
-        uint256 marginValueUsd;
-        uint256 maxOpenInterest;
-        uint256 price;
+        UD60x18 initialMarginRate;
+        UD60x18 marginValueUsd;
+        UD60x18 maxOpenInterest;
+        UD60x18 minTradeSize;
+        UD60x18 price;
         bool isLong;
     }
 
@@ -251,67 +252,41 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
     function fuzzOrderSizeDelta(FuzzOrderSizeDeltaParams memory params) internal view returns (int128 sizeDelta) {
         FuzzOrderSizeDeltaContext memory ctx;
-        {
-            ctx.fuzzedSizeDeltaAbs =
-                ud60x18(params.marginValueUsd).div(ud60x18(params.initialMarginRate)).div(ud60x18(params.price));
 
-            // TODO: fix min trade size usd dynamic calculation
-            // ctx.sizeDeltaAbs = Math.min(
-            //     Math.max(
-            //         ctx.fuzzedSizeDeltaAbs,
-            // ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(params.price))
-            //     ),
-            //     ud60x18(params.maxOpenInterest)
-            // ).intoSD59x18().intoInt256().toInt128();
-            ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
-        }
-        console.log("NARUTOTEST1");
+        ctx.fuzzedSizeDeltaAbs = params.marginValueUsd.div(params.initialMarginRate).div(params.price);
+        ctx.sizeDeltaAbs = Math.min(Math.max(ctx.fuzzedSizeDeltaAbs, params.minTradeSize), (params.maxOpenInterest))
+            .intoSD59x18().intoInt256().toInt128();
+        ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
 
-        {
-            (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine
-                .simulateTrade(params.accountId, params.marketId, params.settlementId, ctx.sizeDeltaPrePriceImpact);
-            console.log("NARUTOTEST2");
+        (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine.simulateTrade(
+            params.accountId, params.marketId, params.settlementId, ctx.sizeDeltaPrePriceImpact
+        );
 
-            ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
-            console.log("TOTAL ORDER FEE: ");
-            console.log(ctx.totalOrderFeeInSize.intoUint256());
-            console.log("NARUTOTEST3");
-            // ctx.sizeDeltaWithPriceImpact = Math.min(
-            //     (
-            //         params.isLong
-            //             ?
-            // ud60x18(params.price).div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPrePriceImpact))
-            //             : sd59x18(ctx.sizeDeltaPrePriceImpact)
-            //     ).abs().intoUD60x18(),
-            //     ud60x18(params.maxOpenInterest)
-            // );
-
-            ctx.sizeDeltaWithPriceImpact = Math.min(
-                (ud60x18(params.price).div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPrePriceImpact))).abs(
-                ).intoUD60x18(),
-                ud60x18(params.maxOpenInterest)
-            );
-
-            console.log(params.price);
-            console.log(fillPriceX18.intoUint256());
-        }
-
-        console.log("Order Fuzzing: ");
-        console.log(sd59x18(ctx.sizeDeltaPrePriceImpact).abs().intoUD60x18().intoUint256());
-        console.log(ctx.sizeDeltaWithPriceImpact.intoUint256());
+        ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
+        // ctx.sizeDeltaWithPriceImpact = Math.min(
+        //     (
+        //         params.isLong
+        //             ?
+        // ud60x18(params.price).div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPrePriceImpact))
+        //             : sd59x18(ctx.sizeDeltaPrePriceImpact)
+        //     ).abs().intoUD60x18(),
+        //     ud60x18(params.maxOpenInterest)
+        // );
+        ctx.sizeDeltaWithPriceImpact = Math.min(
+            (params.price.div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPrePriceImpact))).abs().intoUD60x18(
+            ),
+            params.maxOpenInterest
+        );
 
         sizeDelta = (
             params.isLong
                 ? ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
-                    ctx.totalOrderFeeInSize.intoSD59x18().div(ud60x18(params.initialMarginRate).intoSD59x18())
+                    ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
                 )
                 : unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
-                    ctx.totalOrderFeeInSize.intoSD59x18().div(ud60x18(params.initialMarginRate).intoSD59x18())
+                    ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
                 )
         ).intoInt256().toInt128();
-
-        console.log("SDELTA HERE:");
-        console.log(sd59x18(sizeDelta).abs().intoUD60x18().intoUint256());
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
