@@ -254,7 +254,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         FuzzOrderSizeDeltaContext memory ctx;
 
         ctx.fuzzedSizeDeltaAbs = params.marginValueUsd.div(params.initialMarginRate).div(params.price);
-        ctx.sizeDeltaAbs = Math.min(Math.max(ctx.fuzzedSizeDeltaAbs, params.minTradeSize), (params.maxOpenInterest))
+        ctx.sizeDeltaAbs = Math.min(Math.max(ctx.fuzzedSizeDeltaAbs, params.minTradeSize), params.maxOpenInterest)
             .intoSD59x18().intoInt256().toInt128();
         ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
 
@@ -263,15 +263,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         );
 
         ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
-        // ctx.sizeDeltaWithPriceImpact = Math.min(
-        //     (
-        //         params.isLong
-        //             ?
-        // ud60x18(params.price).div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPrePriceImpact))
-        //             : sd59x18(ctx.sizeDeltaPrePriceImpact)
-        //     ).abs().intoUD60x18(),
-        //     ud60x18(params.maxOpenInterest)
-        // );
         ctx.sizeDeltaWithPriceImpact = Math.min(
             (params.price.div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPrePriceImpact))).abs().intoUD60x18(
             ),
@@ -280,13 +271,17 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
         sizeDelta = (
             params.isLong
-                ? ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
-                    ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
-                )
-                : unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
-                    ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
-                )
+                ? Math.max(ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
+                    ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18()))
+                , params.minTradeSize.intoSD59x18())
+                : Math.min(unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
+                    ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18()))
+                , unary(params.minTradeSize.intoSD59x18()))
         ).intoInt256().toInt128();
+
+        console.log("Order Fuzzing: ");
+        console.log(sd59x18(sizeDelta).abs().intoUD60x18().intoUint256());
+        console.log(params.minTradeSize.intoUint256());
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
