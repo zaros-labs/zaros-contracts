@@ -137,7 +137,7 @@ contract OrderModule is IOrderModule {
         ) = simulateTrade({
             accountId: params.accountId,
             marketId: params.marketId,
-            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta: params.sizeDelta
         });
         perpsAccount.validateMarginRequirement(

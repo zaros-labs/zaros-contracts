@@ -266,7 +266,7 @@ library PerpMarket {
             params.orderFees
         );
         SettlementConfiguration.update(
-            params.marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, params.marketOrderConfiguration
+            params.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, params.marketOrderConfiguration
         );
 
         if (params.customTriggerStrategies.length > 0) {

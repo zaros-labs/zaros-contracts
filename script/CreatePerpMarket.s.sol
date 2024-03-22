@@ -183,26 +183,29 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             LimitOrderSettlementStrategy.initialize.selector,
             perpsEngine,
             ETH_USD_MARKET_ID,
-            LIMIT_ORDER_SETTLEMENT_ID,
+            LIMIT_ORDER_CONFIGURATION_ID,
             MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
         );
         bytes memory ethUsdMarketOrderSettlementStrategyInitializeData =
             abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID);
         bytes memory ethUsdOcoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-            OcoOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID, OCO_ORDER_SETTLEMENT_ID
+            OcoOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID, OCO_ORDER_CONFIGURATION_ID
         );
 
         bytes memory linkUsdLimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
             LimitOrderSettlementStrategy.initialize.selector,
             perpsEngine,
             LINK_USD_MARKET_ID,
-            LIMIT_ORDER_SETTLEMENT_ID,
+            LIMIT_ORDER_CONFIGURATION_ID,
             MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
         );
         bytes memory linkUsdMarketOrderSettlementStrategyInitializeData =
             abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID);
         bytes memory linkUsdOcoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-            OcoOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID, OCO_ORDER_SETTLEMENT_ID
+            OcoOrderSettlementStrategy.initialize.selector,
+            perpsEngine,
+            LINK_USD_MARKET_ID,
+            OCO_ORDER_CONFIGURATION_ID
         );
 
         address ethUsdLimitOrderSettlementStrategy = address(

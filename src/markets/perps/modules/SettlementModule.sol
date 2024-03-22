@@ -48,7 +48,7 @@ contract SettlementModule is ISettlementModule {
 
     modifier onlyMarketOrderUpkeep(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID);
+            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
         address settlementStrategy = settlementConfiguration.settlementStrategy;
 
         _requireIsSettlementStrategy(msg.sender, settlementStrategy);
@@ -69,14 +69,14 @@ contract SettlementModule is ISettlementModule {
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, orderId: 0, sizeDelta: marketOrder.sizeDelta });
 
-        _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, priceData);
+        _settle(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, payload, priceData);
 
         marketOrder.clear();
 
         _paySettlementFees({
             settlementFeeReceiver: settlementFeeReceiver,
             marketId: marketId,
-            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             amountOfSettledTrades: 1
         });
     }
@@ -112,8 +112,9 @@ contract SettlementModule is ISettlementModule {
             ISettlementStrategy(callback).callback(payloads);
         }
 
-        address ocoOrderSettlementStrategy =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
+        address ocoOrderSettlementStrategy = SettlementConfiguration.load(
+            marketId, SettlementConfiguration.OCO_ORDER_CONFIGURATION_ID
+        ).settlementStrategy;
         if (ocoOrderSettlementStrategy != address(0) && ocoOrderSettlementStrategy != msg.sender) {
             ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
         }

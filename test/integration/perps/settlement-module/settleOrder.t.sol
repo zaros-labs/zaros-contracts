@@ -34,7 +34,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 //        FuzzOrderSizeDeltaParams({
 //         perpsAccountId,
 //         ETH_USD_MARKET_ID,
-//         SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+//         SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
 //         initialMarginRate,
 //         marginValueUsd,
 //         ETH_USD_MAX_OI,

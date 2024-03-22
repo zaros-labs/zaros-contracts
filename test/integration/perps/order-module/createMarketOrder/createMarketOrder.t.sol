@@ -143,7 +143,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
-                settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: initialMarginRate,
                 marginValueUsd: marginValueUsd,
                 maxOpenInterest: ETH_USD_MAX_OI,
@@ -210,7 +210,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
-                settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: initialMarginRate,
                 marginValueUsd: marginValueUsd,
                 maxOpenInterest: ETH_USD_MAX_OI,
@@ -248,7 +248,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: BTC_USD_MARKET_ID,
-                settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: initialMarginRate,
                 marginValueUsd: marginValueUsd,
                 maxOpenInterest: BTC_USD_MAX_OI,
@@ -299,7 +299,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
-                settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: initialMarginRate,
                 marginValueUsd: marginValueUsd,
                 maxOpenInterest: ETH_USD_MAX_OI,
@@ -354,7 +354,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
-                settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: initialMarginRate,
                 marginValueUsd: marginValueUsd,
                 maxOpenInterest: ETH_USD_MAX_OI,
@@ -411,7 +411,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
-                settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: initialMarginRate,
                 marginValueUsd: marginValueUsd,
                 maxOpenInterest: ETH_USD_MAX_OI,

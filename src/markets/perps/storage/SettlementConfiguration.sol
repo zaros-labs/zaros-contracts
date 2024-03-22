@@ -23,11 +23,11 @@ library SettlementConfiguration {
     /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
     string internal constant SETTLEMENT_STRATEGY_DOMAIN = "fi.zaros.markets.PerpMarket.SettlementConfiguration";
     /// @notice The default strategy id for a given market's market orders settlementConfiguration.
-    uint128 internal constant MARKET_ORDER_SETTLEMENT_ID = 0;
+    uint128 internal constant MARKET_ORDER_CONFIGURATION_ID = 0;
     /// @notice The default strategy id for a given market's limit orders settlementConfiguration.
-    uint128 internal constant LIMIT_ORDER_SETTLEMENT_ID = 1;
+    uint128 internal constant LIMIT_ORDER_CONFIGURATION_ID = 1;
     /// @notice The default strategy id for a given market's OCO orders settlementConfiguration.
-    uint128 internal constant OCO_ORDER_SETTLEMENT_ID = 2;
+    uint128 internal constant OCO_ORDER_CONFIGURATION_ID = 2;
 
     /// @notice Strategies IDs supported.
     /// @param DATA_STREAMS_MARKET The strategy ID that uses basic or premium reports from CL Data Streams to

@@ -53,8 +53,8 @@ abstract contract ProtocolConfiguration {
     uint256 internal constant WSTETH_MIN_DEPOSIT_MARGIN = 0.025e18;
 
     /// @notice Settlement Strategies configuration parameters.
-    uint256 internal constant LIMIT_ORDER_SETTLEMENT_ID = 1;
-    uint256 internal constant OCO_ORDER_SETTLEMENT_ID = 2;
+    uint256 internal constant LIMIT_ORDER_CONFIGURATION_ID = 1;
+    uint256 internal constant OCO_ORDER_CONFIGURATION_ID = 2;
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
     uint128 internal constant MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET = 5;
 

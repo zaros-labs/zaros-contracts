@@ -53,7 +53,7 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
         });
 
         perpsEngine.updateSettlementConfiguration(
-            ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, ethUsdMarketOrderConfiguration
+            ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, ethUsdMarketOrderConfiguration
         );
     }
 }
