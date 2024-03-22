@@ -89,33 +89,33 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    // function testFuzz_RevertWhen_TheSizeDeltaIsLessThanTheMinTradeSize(
-    //     uint256 marginValueUsd,
-    //     bool isLong
-    // )
-    //     external
-    //     whenTheAccountIdExists
-    //     givenTheSenderIsAuthorized
-    //     whenTheSizeDeltaIsNotZero
-    // {
-    //     marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+    function testFuzz_RevertWhen_TheSizeDeltaIsLessThanTheMinTradeSize(
+        uint256 marginValueUsd,
+        bool isLong
+    )
+        external
+        whenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+    {
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
-    //     deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-    //     SD59x18 sizeDeltaAbs =
-    // ud60x18(MIN_TRADE_SIZE_USD).sub(UD_UNIT).div(ud60x18(MOCK_ETH_USD_PRICE)).intoSD59x18();
-    //     int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() :
-    // unary(sizeDeltaAbs).intoInt256().toInt128();
-    //     uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        SD59x18 sizeDeltaAbs = ud60x18(ETH_USD_MIN_TRADE_SIZE).intoSD59x18().sub(sd59x18(1));
 
-    //     // it should revert
-    //     vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradeSizeTooSmall.selector) });
-    //     perpsEngine.createMarketOrder(IOrderModule.CreateMarketOrderParams({
-    //         accountId: perpsAccountId,
-    //         marketId: ETH_USD_MARKET_ID,
-    //         sizeDelta: sizeDelta,
-    //         acceptablePrice: 0
-    //     });
-    // }
+        int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() :
+    unary(sizeDeltaAbs).intoInt256().toInt128();
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradeSizeTooSmall.selector) });
+        perpsEngine.createMarketOrder(IOrderModule.CreateMarketOrderParams({
+            accountId: perpsAccountId,
+            marketId: ETH_USD_MARKET_ID,
+            sizeDelta: sizeDelta,
+            acceptablePrice: 0
+        }));
+    }
 
     modifier whenTheSizeDeltaIsGreaterThanTheMinTradeSize() {
         _;
