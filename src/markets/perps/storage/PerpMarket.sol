@@ -254,7 +254,6 @@ library PerpMarket {
         self.initialized = true;
 
         self.configuration.update(
-            self,
             name,
             symbol,
             priceAdapter,

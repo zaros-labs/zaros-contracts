@@ -63,7 +63,7 @@ contract OrderModule is IOrderModule {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
 
-        perpMarket.checkTradeSize(sizeDelta);
+        perpMarket.checkTradeSize(sd59x18(sizeDelta));
 
         fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
 

@@ -146,8 +146,9 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 initialMarginRateX18: BTC_USD_IMR,
                 maintenanceMarginRateX18: BTC_USD_MMR,
                 maxOpenInterest: BTC_USD_MAX_OI,
-                skewScale: BTC_USD_SKEW_SCALE,
                 maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
+                skewScale: BTC_USD_SKEW_SCALE,
+                minTradeSizeX18: BTC_USD_MIN_TRADE_SIZE,
                 marketOrderConfiguration: btcUsdMarketOrderConfiguration,
                 customTriggerStrategies: btcUsdCustomOrderStrategies,
                 orderFees: btcUsdOrderFees
@@ -163,8 +164,9 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 initialMarginRateX18: ETH_USD_IMR,
                 maintenanceMarginRateX18: ETH_USD_MMR,
                 maxOpenInterest: ETH_USD_MAX_OI,
-                skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
+                skewScale: ETH_USD_SKEW_SCALE,
+                minTradeSizeX18: ETH_USD_MIN_TRADE_SIZE,
                 marketOrderConfiguration: ethUsdMarketOrderConfiguration,
                 customTriggerStrategies: ethUsdCustomOrderStrategies,
                 orderFees: ethUsdOrderFees
