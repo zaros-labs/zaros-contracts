@@ -132,7 +132,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
-            minTradeSizeUsdX18: MIN_TRADE_SIZE_USD,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD
         });
     }
@@ -255,12 +254,13 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 ud60x18(params.marginValueUsd).div(ud60x18(params.initialMarginRate)).div(ud60x18(params.price));
 
             // TODO: fix min trade size usd dynamic calculation
-            ctx.sizeDeltaAbs = Math.min(
-                Math.max(
-                    ctx.fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(params.price))
-                ),
-                ud60x18(params.maxOpenInterest)
-            ).intoSD59x18().intoInt256().toInt128();
+            // ctx.sizeDeltaAbs = Math.min(
+            //     Math.max(
+            //         ctx.fuzzedSizeDeltaAbs,
+            // ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(params.price))
+            //     ),
+            //     ud60x18(params.maxOpenInterest)
+            // ).intoSD59x18().intoInt256().toInt128();
             ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
         }
         console.log("NARUTOTEST1");

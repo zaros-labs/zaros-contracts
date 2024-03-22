@@ -14,6 +14,7 @@ library MarketConfiguration {
         uint128 maxOpenInterest;
         uint128 maxFundingVelocity;
         uint256 skewScale;
+        uint256 minTradeSizeX18;
         OrderFees.Data orderFees;
     }
 
@@ -27,6 +28,7 @@ library MarketConfiguration {
         uint128 maxOpenInterest,
         uint128 maxFundingVelocity,
         uint256 skewScale,
+        uint256 minTradeSizeX18,
         OrderFees.Data memory orderFees
     )
         internal
@@ -39,6 +41,7 @@ library MarketConfiguration {
         self.maxOpenInterest = maxOpenInterest;
         self.maxFundingVelocity = maxFundingVelocity;
         self.skewScale = skewScale;
+        self.minTradeSizeX18 = minTradeSizeX18;
         self.orderFees = orderFees;
     }
 }

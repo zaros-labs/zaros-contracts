@@ -181,7 +181,6 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime,
-        uint128 minTradeSizeUsdX18,
         uint128 liquidationFeeUsdX18
     )
         external
@@ -196,10 +195,6 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             revert Errors.ZeroInput("marketOrderMaxLifetime");
         }
 
-        if (minTradeSizeUsdX18 == 0) {
-            revert Errors.ZeroInput("minTradeSizeUsdX18");
-        }
-
         if (liquidationFeeUsdX18 == 0) {
             revert Errors.ZeroInput("liquidationFeeUsdX18");
         }
@@ -208,14 +203,14 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
 
         globalConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
         globalConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
-        globalConfiguration.minTradeSizeUsdX18 = minTradeSizeUsdX18;
         globalConfiguration.liquidationFeeUsdX18 = liquidationFeeUsdX18;
 
         emit LogConfigureSystemParameters(
-            msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime, minTradeSizeUsdX18, liquidationFeeUsdX18
+            msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime, liquidationFeeUsdX18
         );
     }
 
+    // TODO: add missing zero checks
     /// @inheritdoc IGlobalConfigurationModule
     function createPerpMarket(CreatePerpMarketParams calldata params) external override onlyOwner {
         if (params.marketId == 0) {
@@ -250,8 +245,9 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             params.initialMarginRateX18,
             params.maintenanceMarginRateX18,
             params.maxOpenInterest,
-            params.skewScale,
             params.maxFundingVelocity,
+            params.skewScale,
+            params.minTradeSizeX18,
             params.marketOrderConfiguration,
             params.customTriggerStrategies,
             params.orderFees
@@ -272,6 +268,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         uint128 maxOpenInterest,
         uint128 maxFundingVelocity,
         uint256 skewScale,
+        uint256 minTradeSizeX18,
         OrderFees.Data memory orderFees
     )
         external
@@ -314,6 +311,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             maxOpenInterest,
             maxFundingVelocity,
             skewScale,
+            minTradeSizeX18,
             orderFees
         );
 

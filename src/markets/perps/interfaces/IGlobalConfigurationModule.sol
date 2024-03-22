@@ -49,13 +49,11 @@ interface IGlobalConfigurationModule {
     /// @param sender The address that configured the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
     /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
-    /// @param minTradeSizeUsdX18 The minimum trade size in USD.
     /// @param liquidationFeeUsdX18 The liquidation fee in USD.
     event LogConfigureSystemParameters(
         address indexed sender,
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime,
-        uint128 minTradeSizeUsdX18,
         uint128 liquidationFeeUsdX18
     );
 
@@ -137,12 +135,10 @@ interface IGlobalConfigurationModule {
     /// @notice Configures the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
     /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
-    /// @param minTradeSizeUsdX18 The minimum trade size in USD.
     /// @param liquidationFeeUsdX18 The liquidation fee in USD.
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime,
-        uint128 minTradeSizeUsdX18,
         uint128 liquidationFeeUsdX18
     )
         external;
@@ -155,8 +151,9 @@ interface IGlobalConfigurationModule {
     /// @param initialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
     /// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
     /// @param maxOpenInterest The perps market maximum open interest per side.
-    /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param maxFundingVelocity The perps market maximum funding rate velocity.
+    /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
+    /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param marketOrderConfiguration The perps market settlement strategy.
     /// @param orderFees The perps market maker and taker fees.
     struct CreatePerpMarketParams {
@@ -167,8 +164,9 @@ interface IGlobalConfigurationModule {
         uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
         uint128 maxOpenInterest;
-        uint256 skewScale;
         uint128 maxFundingVelocity;
+        uint256 skewScale;
+        uint256 minTradeSizeX18;
         SettlementConfiguration.Data marketOrderConfiguration;
         SettlementConfiguration.Data[] customTriggerStrategies;
         OrderFees.Data orderFees;

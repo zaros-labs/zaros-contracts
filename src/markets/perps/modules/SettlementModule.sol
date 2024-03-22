@@ -160,16 +160,15 @@ contract SettlementModule is ISettlementModule {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         ctx.usdToken = globalConfiguration.usdToken;
 
-        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
+        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
+        perpMarket.checkTradeSize(ctx.sizeDelta);
 
         bytes memory verifiedPriceData = settlementConfiguration.verifyPriceData(priceData);
         ctx.fillPrice = perpMarket.getMarkPrice(
             ctx.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedPriceData, ctx.sizeDelta.gt(SD_ZERO))
         );
-
-        globalConfiguration.checkTradeSizeUsd(ctx.sizeDelta, ctx.fillPrice);
 
         ctx.fundingRate = perpMarket.getCurrentFundingRate();
         ctx.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(ctx.fundingRate, ctx.fillPrice);

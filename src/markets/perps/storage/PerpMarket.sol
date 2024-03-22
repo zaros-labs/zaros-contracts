@@ -34,6 +34,7 @@ import "forge-std/console.sol";
 library PerpMarket {
     using SafeCast for uint256;
     using SafeCast for int256;
+    using MarketConfiguration for MarketConfiguration.Data;
 
     /// @dev Constant base domain used to access a given PerpMarket's storage slot.
     string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpMarket";
@@ -209,6 +210,12 @@ library PerpMarket {
         // TODO: validate skew
     }
 
+    function checkTradeSize(Data storage self, SD59x18 sizeDeltaX18) internal view {
+        if (sizeDeltaX18.abs().intoUD60x18().lt(ud60x18(self.configuration.minTradeSizeX18))) {
+            revert Errors.TradeSizeTooSmall();
+        }
+    }
+
     function updateFunding(Data storage self, SD59x18 fundingRate, SD59x18 fundingFeePerUnit) internal {
         self.lastFundingRate = fundingRate.intoInt256();
         self.lastFundingFeePerUnit = fundingFeePerUnit.intoInt256();
@@ -228,8 +235,9 @@ library PerpMarket {
         uint128 initialMarginRateX18,
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
-        uint256 skewScale,
         uint128 maxFundingVelocity,
+        uint256 skewScale,
+        uint256 minTradeSizeX18,
         SettlementConfiguration.Data memory marketOrderStrategy,
         SettlementConfiguration.Data[] memory customTriggerStrategies,
         OrderFees.Data memory orderFees
@@ -244,18 +252,20 @@ library PerpMarket {
         // TODO: remember to test gas cost / number of sstores here
         self.id = marketId;
         self.initialized = true;
-        self.configuration = MarketConfiguration.Data({
-            name: name,
-            symbol: symbol,
-            priceAdapter: priceAdapter,
-            initialMarginRateX18: initialMarginRateX18,
-            maintenanceMarginRateX18: maintenanceMarginRateX18,
-            maxOpenInterest: maxOpenInterest,
-            orderFees: orderFees,
-            skewScale: skewScale,
-            maxFundingVelocity: maxFundingVelocity
-        });
 
+        self.configuration.update(
+            self,
+            name,
+            symbol,
+            priceAdapter,
+            initialMarginRateX18,
+            maintenanceMarginRateX18,
+            maxOpenInterest,
+            maxFundingVelocity,
+            skewScale,
+            minTradeSizeX18,
+            orderFees
+        );
         SettlementConfiguration.update(
             marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, marketOrderStrategy
         );
