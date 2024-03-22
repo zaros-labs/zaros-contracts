@@ -227,52 +227,52 @@ library PerpMarket {
         self.openInterest = newOpenInterest.intoUint128();
     }
 
-    function create(
-        uint128 marketId,
-        string memory name,
-        string memory symbol,
-        address priceAdapter,
-        uint128 initialMarginRateX18,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint128 maxFundingVelocity,
-        uint256 skewScale,
-        uint256 minTradeSizeX18,
-        SettlementConfiguration.Data memory marketOrderStrategy,
-        SettlementConfiguration.Data[] memory customTriggerStrategies,
-        OrderFees.Data memory orderFees
-    )
-        internal
-    {
-        Data storage self = load(marketId);
+    struct CreateParams {
+        uint128 marketId;
+        string name;
+        string symbol;
+        address priceAdapter;
+        uint128 initialMarginRateX18;
+        uint128 maintenanceMarginRateX18;
+        uint128 maxOpenInterest;
+        uint128 maxFundingVelocity;
+        uint256 skewScale;
+        uint256 minTradeSizeX18;
+        SettlementConfiguration.Data marketOrderConfiguration;
+        SettlementConfiguration.Data[] customTriggerStrategies;
+        OrderFees.Data orderFees;
+    }
+
+    function create(CreateParams memory params) internal {
+        Data storage self = load(params.marketId);
         if (self.id != 0) {
-            revert Errors.MarketAlreadyExists(marketId);
+            revert Errors.MarketAlreadyExists(params.marketId);
         }
 
         // TODO: remember to test gas cost / number of sstores here
-        self.id = marketId;
+        self.id = params.marketId;
         self.initialized = true;
 
         self.configuration.update(
-            name,
-            symbol,
-            priceAdapter,
-            initialMarginRateX18,
-            maintenanceMarginRateX18,
-            maxOpenInterest,
-            maxFundingVelocity,
-            skewScale,
-            minTradeSizeX18,
-            orderFees
+            params.name,
+            params.symbol,
+            params.priceAdapter,
+            params.initialMarginRateX18,
+            params.maintenanceMarginRateX18,
+            params.maxOpenInterest,
+            params.maxFundingVelocity,
+            params.skewScale,
+            params.minTradeSizeX18,
+            params.orderFees
         );
         SettlementConfiguration.update(
-            marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, marketOrderStrategy
+            params.marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, params.marketOrderConfiguration
         );
 
-        if (customTriggerStrategies.length > 0) {
-            for (uint256 i = 0; i < customTriggerStrategies.length; i++) {
+        if (params.customTriggerStrategies.length > 0) {
+            for (uint256 i = 0; i < params.customTriggerStrategies.length; i++) {
                 uint128 nextStrategyId = ++self.nextStrategyId;
-                SettlementConfiguration.update(marketId, nextStrategyId, customTriggerStrategies[i]);
+                SettlementConfiguration.update(params.marketId, nextStrategyId, params.customTriggerStrategies[i]);
             }
         }
     }

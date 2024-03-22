@@ -238,7 +238,64 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         PerpMarket.create(
-            params.marketId,
+            PerpMarket.CreateParams({
+                marketId: params.marketId,
+                name: params.name,
+                symbol: params.symbol,
+                priceAdapter: params.priceAdapter,
+                initialMarginRateX18: params.initialMarginRateX18,
+                maintenanceMarginRateX18: params.maintenanceMarginRateX18,
+                maxOpenInterest: params.maxOpenInterest,
+                maxFundingVelocity: params.maxFundingVelocity,
+                skewScale: params.skewScale,
+                minTradeSizeX18: params.minTradeSizeX18,
+                marketOrderConfiguration: params.marketOrderConfiguration,
+                customTriggerStrategies: params.customTriggerStrategies,
+                orderFees: params.orderFees
+            })
+        );
+        globalConfiguration.addMarket(params.marketId);
+
+        emit LogCreatePerpMarket(msg.sender, params.marketId);
+    }
+
+    /// @inheritdoc IGlobalConfigurationModule
+    function updatePerpMarketConfiguration(UpdatePerpMarketConfigurationParams calldata params)
+        external
+        override
+        onlyOwner
+    {
+        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
+        MarketConfiguration.Data storage perpMarketConfiguration = perpMarket.configuration;
+
+        if (!perpMarket.initialized) {
+            revert Errors.PerpMarketNotInitialized(params.marketId);
+        }
+
+        if (abi.encodePacked(params.name).length == 0) {
+            revert Errors.ZeroInput("name");
+        }
+        if (abi.encodePacked(params.symbol).length == 0) {
+            revert Errors.ZeroInput("symbol");
+        }
+        if (params.priceAdapter == address(0)) {
+            revert Errors.ZeroInput("priceAdapter");
+        }
+        if (params.initialMarginRateX18 == 0) {
+            revert Errors.ZeroInput("initialMarginRateX18");
+        }
+
+        if (params.maintenanceMarginRateX18 == 0) {
+            revert Errors.ZeroInput("maintenanceMarginRateX18");
+        }
+        if (params.skewScale == 0) {
+            revert Errors.ZeroInput("skewScale");
+        }
+        if (params.minTradeSizeX18 == 0) {
+            revert Errors.ZeroInput("minTradeSizeX18");
+        }
+
+        perpMarketConfiguration.update(
             params.name,
             params.symbol,
             params.priceAdapter,
@@ -248,74 +305,10 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             params.maxFundingVelocity,
             params.skewScale,
             params.minTradeSizeX18,
-            params.marketOrderConfiguration,
-            params.customTriggerStrategies,
             params.orderFees
         );
-        globalConfiguration.addMarket(params.marketId);
 
-        emit LogCreatePerpMarket(msg.sender, params.marketId);
-    }
-
-    /// @inheritdoc IGlobalConfigurationModule
-    function updatePerpMarketConfiguration(
-        uint128 marketId,
-        string calldata name,
-        string calldata symbol,
-        address priceAdapter,
-        uint128 initialMarginRateX18,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint128 maxFundingVelocity,
-        uint256 skewScale,
-        uint256 minTradeSizeX18,
-        OrderFees.Data memory orderFees
-    )
-        external
-        override
-        onlyOwner
-    {
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-        MarketConfiguration.Data storage perpMarketConfiguration = perpMarket.configuration;
-
-        if (!perpMarket.initialized) {
-            revert Errors.PerpMarketNotInitialized(marketId);
-        }
-
-        if (abi.encodePacked(name).length == 0) {
-            revert Errors.ZeroInput("name");
-        }
-        if (abi.encodePacked(symbol).length == 0) {
-            revert Errors.ZeroInput("symbol");
-        }
-        if (priceAdapter == address(0)) {
-            revert Errors.ZeroInput("priceAdapter");
-        }
-        if (initialMarginRateX18 == 0) {
-            revert Errors.ZeroInput("initialMarginRateX18");
-        }
-
-        if (maintenanceMarginRateX18 == 0) {
-            revert Errors.ZeroInput("maintenanceMarginRateX18");
-        }
-        if (skewScale == 0) {
-            revert Errors.ZeroInput("skewScale");
-        }
-
-        perpMarketConfiguration.update(
-            name,
-            symbol,
-            priceAdapter,
-            initialMarginRateX18,
-            maintenanceMarginRateX18,
-            maxOpenInterest,
-            maxFundingVelocity,
-            skewScale,
-            minTradeSizeX18,
-            orderFees
-        );
-
-        emit LogConfigurePerpMarket(msg.sender, marketId);
+        emit LogConfigurePerpMarket(msg.sender, params.marketId);
     }
 
     /// @inheritdoc IGlobalConfigurationModule

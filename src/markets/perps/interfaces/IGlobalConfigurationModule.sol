@@ -176,9 +176,7 @@ interface IGlobalConfigurationModule {
     /// @dev See {CreatePerpMarketParams}.
     function createPerpMarket(CreatePerpMarketParams calldata params) external;
 
-    /// @notice Updates the configuration variables of the given perp market id.
-    /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
-    /// impact open positions.
+    /// @notice `updatePerpMarketConfiguration` params.
     /// @param marketId The perp market id.
     /// @param name The perp market name.
     /// @param symbol The perp market symbol.
@@ -190,20 +188,25 @@ interface IGlobalConfigurationModule {
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param orderFees The perp market maker and taker fees.
-    function updatePerpMarketConfiguration(
-        uint128 marketId,
-        string calldata name,
-        string calldata symbol,
-        address priceAdapter,
-        uint128 initialMarginRateX18,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint128 maxFundingVelocity,
-        uint256 skewScale,
-        uint256 minTradeSizeX18,
-        OrderFees.Data memory orderFees
-    )
-        external;
+    struct UpdatePerpMarketConfigurationParams {
+        uint128 marketId;
+        string name;
+        string symbol;
+        address priceAdapter;
+        uint128 initialMarginRateX18;
+        uint128 maintenanceMarginRateX18;
+        uint128 maxOpenInterest;
+        uint128 maxFundingVelocity;
+        uint256 skewScale;
+        uint256 minTradeSizeX18;
+        OrderFees.Data orderFees;
+    }
+
+    /// @notice Updates the configuration variables of the given perp market id.
+    /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
+    /// impact open positions.
+    /// @dev See {UpdatePerpMarketConfigurationParams}.
+    function updatePerpMarketConfiguration(UpdatePerpMarketConfigurationParams calldata params) external;
 
     /// @notice Updates the settlement configuration of a given market.
     /// @param marketId The perp market id.
