@@ -188,6 +188,7 @@ interface IGlobalConfigurationModule {
     /// @param maxOpenInterest The perp market maximum open interest per side.
     /// @param maxFundingVelocity The perp market maximum funding rate velocity.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
+    /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param orderFees The perp market maker and taker fees.
     function updatePerpMarketConfiguration(
         uint128 marketId,
@@ -199,6 +200,7 @@ interface IGlobalConfigurationModule {
         uint128 maxOpenInterest,
         uint128 maxFundingVelocity,
         uint256 skewScale,
+        uint256 minTradeSizeX18,
         OrderFees.Data memory orderFees
     )
         external;

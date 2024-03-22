@@ -107,8 +107,9 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 initialMarginRateX18: ETH_USD_IMR,
                 maintenanceMarginRateX18: ETH_USD_MMR,
                 maxOpenInterest: ETH_USD_MAX_OI,
-                skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
+                skewScale: ETH_USD_SKEW_SCALE,
+                minTradeSizeX18: ETH_USD_MIN_TRADE_SIZE,
                 marketOrderConfiguration: ethUsdMarketOrderConfiguration,
                 customTriggerStrategies: ethUsdCustomOrderStrategies,
                 orderFees: ethUsdOrderFees
@@ -155,8 +156,9 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 initialMarginRateX18: LINK_USD_IMR,
                 maintenanceMarginRateX18: LINK_USD_MMR,
                 maxOpenInterest: LINK_USD_MAX_OI,
-                skewScale: LINK_USD_SKEW_SCALE,
                 maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
+                skewScale: LINK_USD_SKEW_SCALE,
+                minTradeSizeX18: LINK_USD_MIN_TRADE_SIZE,
                 marketOrderConfiguration: linkUsdMarketOrderConfiguration,
                 customTriggerStrategies: linkUsdCustomOrderStrategies,
                 orderFees: linkUsdOrderFees
