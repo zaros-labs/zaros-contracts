@@ -39,7 +39,6 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    // TODO: Check new OI and skew limits, and all other settle revert cases
     function simulateTrade(
         uint128 accountId,
         uint128 marketId,
