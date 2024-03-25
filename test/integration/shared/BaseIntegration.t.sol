@@ -271,12 +271,18 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
         sizeDelta = (
             params.isLong
-                ? Math.max(ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
-                    ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18()))
-                , params.minTradeSize.intoSD59x18())
-                : Math.min(unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
-                    ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18()))
-                , unary(params.minTradeSize.intoSD59x18()))
+                ? Math.max(
+                    ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
+                        ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+                    ),
+                    params.minTradeSize.intoSD59x18()
+                )
+                : Math.min(
+                    unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
+                        ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+                    ),
+                    unary(params.minTradeSize.intoSD59x18())
+                )
         ).intoInt256().toInt128();
 
         console.log("Order Fuzzing: ");

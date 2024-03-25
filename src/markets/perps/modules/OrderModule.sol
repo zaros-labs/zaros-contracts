@@ -63,8 +63,6 @@ contract OrderModule is IOrderModule {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
 
-        perpMarket.checkTradeSize(sd59x18(sizeDelta));
-
         fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
 
         orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), fillPriceX18);
@@ -121,7 +119,11 @@ contract OrderModule is IOrderModule {
         }
 
         globalConfiguration.checkMarketIsEnabled(params.marketId);
-        marketOrder.checkPendingOrder();
+
+        perpMarket.checkTradeSize(sd59x18(params.sizeDelta));
+        perpMarket.checkOpenInterestLimits(
+            sd59x18(params.sizeDelta), sd59x18(position.size), sd59x18(position.size).add(sd59x18(params.sizeDelta))
+        );
 
         bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(params.marketId);
         if (!isMarketWithActivePosition) {
@@ -146,10 +148,7 @@ contract OrderModule is IOrderModule {
             ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
         );
 
-        perpMarket.checkOpenInterestLimits(
-            sd59x18(params.sizeDelta), sd59x18(position.size), sd59x18(position.size).add(sd59x18(params.sizeDelta))
-        );
-
+        marketOrder.checkPendingOrder();
         marketOrder.update({
             marketId: params.marketId,
             sizeDelta: params.sizeDelta,

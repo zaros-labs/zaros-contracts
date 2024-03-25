@@ -28,7 +28,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_RevertWhen_TheAccountIdDoesNotExist(uint128 perpsAccountId, int128 sizeDelta) external {
+    function testFuzz_RevertGiven_TheAccountIdDoesNotExist(uint128 perpsAccountId, int128 sizeDelta) external {
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, perpsAccountId, users.naruto)
@@ -43,11 +43,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
     }
 
-    modifier whenTheAccountIdExists() {
+    modifier givenTheAccountIdExists() {
         _;
     }
 
-    function testFuzz_RevertGiven_TheSenderIsNotAuthorized(int128 sizeDelta) external whenTheAccountIdExists {
+    function testFuzz_RevertGiven_TheSenderIsNotAuthorized(int128 sizeDelta) external givenTheAccountIdExists {
         uint128 perpsAccountId = perpsEngine.createPerpsAccount();
 
         changePrank({ msgSender: users.sasuke });
@@ -70,7 +70,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertWhen_TheSizeDeltaIsZero() external whenTheAccountIdExists givenTheSenderIsAuthorized {
+    function test_RevertWhen_TheSizeDeltaIsZero() external givenTheAccountIdExists givenTheSenderIsAuthorized {
         uint128 perpsAccountId = perpsEngine.createPerpsAccount();
 
         // it should revert
@@ -89,55 +89,22 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheSizeDeltaIsLessThanTheMinTradeSize(
+    function testFuzz_RevertGiven_ThePerpMarketIsDisabled(
+        uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong
     )
         external
-        whenTheAccountIdExists
+        givenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
     {
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-        SD59x18 sizeDeltaAbs = ud60x18(ETH_USD_MIN_TRADE_SIZE).intoSD59x18().sub(sd59x18(1));
 
-        int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() :
-    unary(sizeDeltaAbs).intoInt256().toInt128();
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradeSizeTooSmall.selector) });
-        perpsEngine.createMarketOrder(IOrderModule.CreateMarketOrderParams({
-            accountId: perpsAccountId,
-            marketId: ETH_USD_MARKET_ID,
-            sizeDelta: sizeDelta,
-            acceptablePrice: 0
-        }));
-    }
-
-    modifier whenTheSizeDeltaIsGreaterThanTheMinTradeSize() {
-        _;
-    }
-
-    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirements(
-        uint256 marginValueUsd,
-        bool isLong
-    )
-        external
-        whenTheAccountIdExists
-        givenTheSenderIsAuthorized
-        whenTheSizeDeltaIsNotZero
-        whenTheSizeDeltaIsGreaterThanTheMinTradeSize
-    {
-        UD60x18 maxMarginValueUsd = ud60x18(ETH_USD_MARGIN_REQUIREMENTS).mul(ud60x18(ETH_USD_MAX_OI));
-        marginValueUsd =
-            bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
-
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-
-        uint256 initialMarginRate = ETH_USD_MARGIN_REQUIREMENTS / 2;
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -153,25 +120,13 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-        (
-            SD59x18 marginBalanceUsdX18,
-            UD60x18 requiredInitialMarginUsdX18,
-            UD60x18 requiredMaintenanceMarginUsdX18,
-            SD59x18 orderFeeUsdX18,
-            UD60x18 settlementFeeUsdX18,
-        ) = perpsEngine.simulateTrade(perpsAccountId, ETH_USD_MARKET_ID, 0, sizeDelta);
+        changePrank({ msgSender: users.owner });
+        perpsEngine.updatePerpMarketStatus({ marketId: ETH_USD_MARKET_ID, enable: false });
+
+        changePrank({ msgSender: users.naruto });
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                Errors.InsufficientMargin.selector,
-                perpsAccountId,
-                marginBalanceUsdX18.intoInt256(),
-                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
-                orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
-                )
-        });
-        // vm.expectRevert({revertData: abi.encodeWithSelector(Errors.InsufficientMargin.selector)});
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, ETH_USD_MARKET_ID) });
         perpsEngine.createMarketOrder(
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
@@ -182,21 +137,69 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
     }
 
-    modifier givenTheAccountWillMeetTheMarginRequirements() {
+    modifier givenThePerpMarketIsEnabled() {
         _;
     }
 
-    function testFuzz_RevertGiven_TheAccountWillReachThePositionsLimit(
+    function testFuzz_RevertWhen_TheSizeDeltaIsLessThanTheMinTradeSize(
+        uint256 marginValueUsd,
+        bool isLong
+    )
+        external
+        givenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+        givenThePerpMarketIsEnabled
+    {
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        SD59x18 sizeDeltaAbs = ud60x18(ETH_USD_MIN_TRADE_SIZE).intoSD59x18().sub(sd59x18(1));
+
+        int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradeSizeTooSmall.selector) });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: sizeDelta,
+                acceptablePrice: 0
+            })
+        );
+    }
+
+    modifier whenTheSizeDeltaIsGreaterThanTheMinTradeSize() {
+        _;
+    }
+
+    function test_RevertGiven_ThePerpMarketWillReachTheOILimit()
+        external
+        givenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+        givenThePerpMarketIsEnabled
+        whenTheSizeDeltaIsGreaterThanTheMinTradeSize
+    { }
+
+    modifier givenThePerpMarketWontReachTheOILimit() {
+        _;
+    }
+
+    function testFuzz_RevertGiven_TheAccountHasReachedThePositionsLimit(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong
     )
         external
-        whenTheAccountIdExists
+        givenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
+        givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
-        givenTheAccountWillMeetTheMarginRequirements
+        givenThePerpMarketWontReachTheOILimit
     {
         initialMarginRate = bound({
             x: initialMarginRate,
@@ -274,29 +277,30 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
     }
 
-    modifier givenTheAccountWillNotReachThePositionsLimit() {
+    modifier givenTheAccountHasNotReachedThePositionsLimit() {
         _;
     }
 
-    function testFuzz_RevertGiven_ThePerpMarketIsDisabled(
-        uint256 initialMarginRate,
+    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirements(
         uint256 marginValueUsd,
         bool isLong
     )
         external
-        whenTheAccountIdExists
+        givenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
+        givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
-        givenTheAccountWillMeetTheMarginRequirements
-        givenTheAccountWillNotReachThePositionsLimit
+        givenThePerpMarketWontReachTheOILimit
+        givenTheAccountHasNotReachedThePositionsLimit
     {
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        UD60x18 maxMarginValueUsd = ud60x18(ETH_USD_MARGIN_REQUIREMENTS).mul(ud60x18(ETH_USD_MAX_OI));
+        marginValueUsd =
+            bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
+        uint256 initialMarginRate = ETH_USD_MARGIN_REQUIREMENTS / 2;
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -312,13 +316,24 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-        changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketStatus({ marketId: ETH_USD_MARKET_ID, enable: false });
-
-        changePrank({ msgSender: users.naruto });
+        (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18,
+        ) = perpsEngine.simulateTrade(perpsAccountId, ETH_USD_MARKET_ID, 0, sizeDelta);
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, ETH_USD_MARKET_ID) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InsufficientMargin.selector,
+                perpsAccountId,
+                marginBalanceUsdX18.intoInt256(),
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
+                orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
+                )
+        });
         perpsEngine.createMarketOrder(
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
@@ -329,7 +344,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
     }
 
-    modifier givenThePerpMarketIsActive() {
+    modifier givenTheAccountWillMeetTheMarginRequirements() {
         _;
     }
 
@@ -339,13 +354,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         bool isLong
     )
         external
-        whenTheAccountIdExists
+        givenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
+        givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
+        givenThePerpMarketWontReachTheOILimit
+        givenTheAccountHasNotReachedThePositionsLimit
         givenTheAccountWillMeetTheMarginRequirements
-        givenTheAccountWillNotReachThePositionsLimit
-        givenThePerpMarketIsActive
     {
         initialMarginRate =
             bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
@@ -397,13 +413,14 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         bool isLong
     )
         external
-        whenTheAccountIdExists
+        givenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
+        givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
+        givenThePerpMarketWontReachTheOILimit
+        givenTheAccountHasNotReachedThePositionsLimit
         givenTheAccountWillMeetTheMarginRequirements
-        givenTheAccountWillNotReachThePositionsLimit
-        givenThePerpMarketIsActive
     {
         initialMarginRate =
             bound({ x: initialMarginRate, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
