@@ -175,14 +175,33 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_ThePerpMarketWillReachTheOILimit()
+    function testFuzz_RevertGiven_ThePerpMarketWillReachTheOILimit(uint256 marginValueUsd, bool isLong)
         external
         givenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
-    { }
+    {
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        SD59x18 sizeDeltaAbs = ud60x18(ETH_USD_MAX_OI).intoSD59x18().add(sd59x18(1));
+
+        int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ExceedsOpenInterestLimit.selector, ETH_USD_MARKET_ID, ETH_USD_MAX_OI, sizeDeltaAbs.intoUint256()) });
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: sizeDelta,
+                acceptablePrice: 0
+            })
+        );
+    }
 
     modifier givenThePerpMarketWontReachTheOILimit() {
         _;
