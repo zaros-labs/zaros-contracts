@@ -175,7 +175,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function testFuzz_RevertGiven_ThePerpMarketWillReachTheOILimit(uint256 marginValueUsd, bool isLong)
+    function testFuzz_RevertGiven_ThePerpMarketWillReachTheOILimit(
+        uint256 marginValueUsd,
+        bool isLong
+    )
         external
         givenTheAccountIdExists
         givenTheSenderIsAuthorized
@@ -192,7 +195,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ExceedsOpenInterestLimit.selector, ETH_USD_MARKET_ID, ETH_USD_MAX_OI, sizeDeltaAbs.intoUint256()) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.ExceedsOpenInterestLimit.selector, ETH_USD_MARKET_ID, ETH_USD_MAX_OI, sizeDeltaAbs.intoUint256()
+                )
+        });
         perpsEngine.createMarketOrder(
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
