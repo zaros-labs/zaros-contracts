@@ -28,8 +28,6 @@ import {
     convert as sd59x18Convert
 } from "@prb-math/SD59x18.sol";
 
-import "forge-std/console.sol";
-
 /// @title The PerpMarket namespace.
 library PerpMarket {
     using SafeCast for uint256;
@@ -92,18 +90,12 @@ library PerpMarket {
         SD59x18 newSkew = skew.add(skewDelta);
         SD59x18 priceImpactAfterDelta = newSkew.div(skewScale);
 
-        console.log("MARK_PRICE_1");
-
         UD60x18 priceBeforeDelta =
             indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactBeforeDelta)).intoUD60x18();
-        console.log("MARK_PRICE_2");
-        console.log(priceImpactAfterDelta.abs().intoUD60x18().intoUint256());
         UD60x18 priceAfterDelta =
             indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactAfterDelta)).intoUD60x18();
-        console.log("MARK_PRICE_3");
 
         UD60x18 markPrice = priceBeforeDelta.add(priceAfterDelta).div(ud60x18Convert(2));
-        console.log("MARK_PRICE_4");
 
         return markPrice;
     }

@@ -7,8 +7,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
 import { Base_Test } from "test/Base.t.sol";
 
-import "forge-std/console.sol";
-
 contract CreatePerpsAccountAndMulticall_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();

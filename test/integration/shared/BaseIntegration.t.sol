@@ -23,8 +23,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-import "forge-std/console.sol";
-
 abstract contract Base_Integration_Shared_Test is Base_Test {
     using Math for UD60x18;
     using SafeCast for int256;
@@ -284,10 +282,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                     unary(params.minTradeSize.intoSD59x18())
                 )
         ).intoInt256().toInt128();
-
-        console.log("Order Fuzzing: ");
-        console.log(sd59x18(sizeDelta).abs().intoUD60x18().intoUint256());
-        console.log(params.minTradeSize.intoUint256());
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {

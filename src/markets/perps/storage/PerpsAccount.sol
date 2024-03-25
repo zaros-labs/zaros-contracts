@@ -21,8 +21,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-import "forge-std/console.sol";
-
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -218,19 +216,10 @@ library PerpsAccount {
             SD59x18 positionUnrealizedPnl =
                 position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
 
-            console.log("From Perps Account 1: ");
-            console.log(positionUnrealizedPnl.intoUD60x18().intoUint256());
-            console.log(markPrice.intoUint256(), notionalValueX18.intoUint256());
-
             requiredInitialMarginUsdX18 = requiredInitialMarginUsdX18.add(positionInitialMarginUsdX18);
             requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
             accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
-
-            console.log(requiredInitialMarginUsdX18.intoUint256(), requiredMaintenanceMarginUsdX18.intoUint256());
         }
-
-        console.log("From Perps Account 2: ");
-        console.log(self.activeMarketsIds.length());
 
         for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
