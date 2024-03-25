@@ -46,7 +46,8 @@ contract CreatePerpMarket is BaseScript, Markets {
     mapping(uint256 marketId => address[] upkeeps) internal marketOrderUpkeeps;
     mapping(uint256 marketId => address[] upkeeps) internal ocoOrderUpkeeps;
 
-    function run() public broadcaster {
+    function run(uint256 initialMarketIndex, uint256 finalMarketIndex) public broadcaster {
+
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
 
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
@@ -59,7 +60,11 @@ contract CreatePerpMarket is BaseScript, Markets {
         streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
         streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(addressPriceFeeds, streamIds);
+        uint256[] memory filteredIndexMarkets = new uint256[](2);
+        filteredIndexMarkets[0] = initialMarketIndex;
+        filteredIndexMarkets[1] = finalMarketIndex;
+
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(addressPriceFeeds, streamIds, filteredIndexMarkets);
 
         deploySettlementStrategies(marketsConfig);
         deployKeepers();

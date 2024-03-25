@@ -98,7 +98,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         OrderFees.Data orderFees;
     }
 
-    function getMarketsConfig(address[] memory addressPriceFeeds, string[] memory streamIds) internal pure returns(MarketConfig[] memory){
+    function getMarketsConfig(address[] memory addressPriceFeeds, string[] memory streamIds, uint256[] memory filteredIndexMarkets) internal pure returns(MarketConfig[] memory){
 
         MarketConfig[] memory marketsConfig = new MarketConfig[](2);
 
@@ -136,6 +136,24 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         });
         marketsConfig[1] = linkUsdConfig;
 
-        return marketsConfig;
+        uint256 initialMarketIndex = filteredIndexMarkets[0];
+        uint256 finalMarketIndex = filteredIndexMarkets[1];
+
+        uint256 lengthFilteredMarkets;
+        if(initialMarketIndex == finalMarketIndex) {
+            lengthFilteredMarkets = 1;
+        } else {
+            lengthFilteredMarkets = (finalMarketIndex - initialMarketIndex) + 1;
+        }
+
+        MarketConfig[] memory filteredMarketsConfig = new MarketConfig[](lengthFilteredMarkets);
+
+        uint256 filteredIndex = 0;
+        for(uint256 index = initialMarketIndex; index <= finalMarketIndex; index++) {
+            filteredMarketsConfig[filteredIndex] = marketsConfig[index];
+            filteredIndex++;
+        }
+
+        return filteredMarketsConfig;
     }
 }
