@@ -11,7 +11,7 @@ import { LimitOrderSettlementStrategy } from "@zaros/markets/settlement/LimitOrd
 import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
 import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
-import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
+import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
@@ -99,7 +99,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         ethUsdCustomOrderStrategies[0] = ethUsdLimitOrderConfiguration;
 
         perpsEngine.createPerpMarket({
-            params: CreatePerpMarketParams({
+            params: IGlobalConfigurationModule.CreatePerpMarketParams({
                 marketId: ETH_USD_MARKET_ID,
                 name: ETH_USD_MARKET_NAME,
                 symbol: ETH_USD_MARKET_SYMBOL,
@@ -107,8 +107,9 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 initialMarginRateX18: ETH_USD_IMR,
                 maintenanceMarginRateX18: ETH_USD_MMR,
                 maxOpenInterest: ETH_USD_MAX_OI,
-                skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
+                skewScale: ETH_USD_SKEW_SCALE,
+                minTradeSizeX18: ETH_USD_MIN_TRADE_SIZE,
                 marketOrderConfiguration: ethUsdMarketOrderConfiguration,
                 customTriggerStrategies: ethUsdCustomOrderStrategies,
                 orderFees: ethUsdOrderFees
@@ -147,7 +148,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         linkUsdCustomOrderStrategies[0] = linkUsdLimitOrderConfiguration;
 
         perpsEngine.createPerpMarket({
-            params: CreatePerpMarketParams({
+            params: IGlobalConfigurationModule.CreatePerpMarketParams({
                 marketId: LINK_USD_MARKET_ID,
                 name: LINK_USD_MARKET_NAME,
                 symbol: LINK_USD_MARKET_SYMBOL,
@@ -155,8 +156,9 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 initialMarginRateX18: LINK_USD_IMR,
                 maintenanceMarginRateX18: LINK_USD_MMR,
                 maxOpenInterest: LINK_USD_MAX_OI,
-                skewScale: LINK_USD_SKEW_SCALE,
                 maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
+                skewScale: LINK_USD_SKEW_SCALE,
+                minTradeSizeX18: LINK_USD_MIN_TRADE_SIZE,
                 marketOrderConfiguration: linkUsdMarketOrderConfiguration,
                 customTriggerStrategies: linkUsdCustomOrderStrategies,
                 orderFees: linkUsdOrderFees
@@ -181,26 +183,29 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             LimitOrderSettlementStrategy.initialize.selector,
             perpsEngine,
             ETH_USD_MARKET_ID,
-            LIMIT_ORDER_SETTLEMENT_ID,
+            LIMIT_ORDER_CONFIGURATION_ID,
             MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
         );
         bytes memory ethUsdMarketOrderSettlementStrategyInitializeData =
             abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID);
         bytes memory ethUsdOcoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-            OcoOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID, OCO_ORDER_SETTLEMENT_ID
+            OcoOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID, OCO_ORDER_CONFIGURATION_ID
         );
 
         bytes memory linkUsdLimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
             LimitOrderSettlementStrategy.initialize.selector,
             perpsEngine,
             LINK_USD_MARKET_ID,
-            LIMIT_ORDER_SETTLEMENT_ID,
+            LIMIT_ORDER_CONFIGURATION_ID,
             MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
         );
         bytes memory linkUsdMarketOrderSettlementStrategyInitializeData =
             abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID);
         bytes memory linkUsdOcoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-            OcoOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID, OCO_ORDER_SETTLEMENT_ID
+            OcoOrderSettlementStrategy.initialize.selector,
+            perpsEngine,
+            LINK_USD_MARKET_ID,
+            OCO_ORDER_CONFIGURATION_ID
         );
 
         address ethUsdLimitOrderSettlementStrategy = address(

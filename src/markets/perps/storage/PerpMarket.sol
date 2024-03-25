@@ -32,6 +32,7 @@ import {
 library PerpMarket {
     using SafeCast for uint256;
     using SafeCast for int256;
+    using MarketConfiguration for MarketConfiguration.Data;
 
     /// @dev Constant base domain used to access a given PerpMarket's storage slot.
     string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpMarket";
@@ -122,7 +123,15 @@ library PerpMarket {
     }
 
     /// @dev When the skew is zero, taker fee will be charged.
-    function getOrderFeeUsd(Data storage self, SD59x18 sizeDelta, UD60x18 price) internal view returns (SD59x18) {
+    function getOrderFeeUsd(
+        Data storage self,
+        SD59x18 sizeDelta,
+        UD60x18 markPriceX18
+    )
+        internal
+        view
+        returns (SD59x18)
+    {
         SD59x18 skew = sd59x18(self.skew);
         SD59x18 feeBps;
 
@@ -135,7 +144,7 @@ library PerpMarket {
             feeBps = sd59x18((self.configuration.orderFees.takerFee));
         }
 
-        return price.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);
+        return markPriceX18.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);
     }
 
     function getNextFundingFeePerUnit(
@@ -169,79 +178,93 @@ library PerpMarket {
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_INTERVAL));
     }
 
-    function updateFunding(Data storage self, SD59x18 fundingRate, SD59x18 fundingFeePerUnit) internal {
-        self.lastFundingRate = fundingRate.intoInt256();
-        self.lastFundingFeePerUnit = fundingFeePerUnit.intoInt256();
-        self.lastFundingTime = block.timestamp;
-    }
-
-    function updateOpenInterest(
+    function checkOpenInterestLimits(
         Data storage self,
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
         SD59x18 newPositionSize
     )
         internal
+        view
+        returns (UD60x18 newOpenInterest, SD59x18 newSkew)
     {
         UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
-        UD60x18 newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
+        newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
             newPositionSize.abs().intoUD60x18()
         );
+        newSkew = sd59x18(self.skew).add(sizeDelta);
 
         if (newOpenInterest.gt(maxOpenInterest)) {
             revert Errors.ExceedsOpenInterestLimit(
                 self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
             );
         }
+        // TODO: validate skew
+    }
 
-        self.skew = sd59x18(self.skew).add(sizeDelta).intoInt256().toInt128();
+    function checkTradeSize(Data storage self, SD59x18 sizeDeltaX18) internal view {
+        if (sizeDeltaX18.abs().intoUD60x18().lt(ud60x18(self.configuration.minTradeSizeX18))) {
+            revert Errors.TradeSizeTooSmall();
+        }
+    }
+
+    function updateFunding(Data storage self, SD59x18 fundingRate, SD59x18 fundingFeePerUnit) internal {
+        self.lastFundingRate = fundingRate.intoInt256();
+        self.lastFundingFeePerUnit = fundingFeePerUnit.intoInt256();
+        self.lastFundingTime = block.timestamp;
+    }
+
+    function updateOpenInterest(Data storage self, UD60x18 newOpenInterest, SD59x18 newSkew) internal {
+        self.skew = newSkew.intoInt256().toInt128();
         self.openInterest = newOpenInterest.intoUint128();
     }
 
-    function create(
-        uint128 marketId,
-        string memory name,
-        string memory symbol,
-        address priceAdapter,
-        uint128 initialMarginRateX18,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint256 skewScale,
-        uint128 maxFundingVelocity,
-        SettlementConfiguration.Data memory marketOrderStrategy,
-        SettlementConfiguration.Data[] memory customTriggerStrategies,
-        OrderFees.Data memory orderFees
-    )
-        internal
-    {
-        Data storage self = load(marketId);
+    struct CreateParams {
+        uint128 marketId;
+        string name;
+        string symbol;
+        address priceAdapter;
+        uint128 initialMarginRateX18;
+        uint128 maintenanceMarginRateX18;
+        uint128 maxOpenInterest;
+        uint128 maxFundingVelocity;
+        uint256 skewScale;
+        uint256 minTradeSizeX18;
+        SettlementConfiguration.Data marketOrderConfiguration;
+        SettlementConfiguration.Data[] customTriggerStrategies;
+        OrderFees.Data orderFees;
+    }
+
+    function create(CreateParams memory params) internal {
+        Data storage self = load(params.marketId);
         if (self.id != 0) {
-            revert Errors.MarketAlreadyExists(marketId);
+            revert Errors.MarketAlreadyExists(params.marketId);
         }
 
         // TODO: remember to test gas cost / number of sstores here
-        self.id = marketId;
+        self.id = params.marketId;
         self.initialized = true;
-        self.configuration = MarketConfiguration.Data({
-            name: name,
-            symbol: symbol,
-            priceAdapter: priceAdapter,
-            initialMarginRateX18: initialMarginRateX18,
-            maintenanceMarginRateX18: maintenanceMarginRateX18,
-            maxOpenInterest: maxOpenInterest,
-            orderFees: orderFees,
-            skewScale: skewScale,
-            maxFundingVelocity: maxFundingVelocity
-        });
 
+        self.configuration.update(
+            params.name,
+            params.symbol,
+            params.priceAdapter,
+            params.initialMarginRateX18,
+            params.maintenanceMarginRateX18,
+            params.maxOpenInterest,
+            params.maxFundingVelocity,
+            params.skewScale,
+            params.minTradeSizeX18,
+            params.orderFees
+        );
         SettlementConfiguration.update(
-            marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, marketOrderStrategy
+            params.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, params.marketOrderConfiguration
         );
 
-        if (customTriggerStrategies.length > 0) {
-            for (uint256 i = 0; i < customTriggerStrategies.length; i++) {
+        if (params.customTriggerStrategies.length > 0) {
+            for (uint256 i = 0; i < params.customTriggerStrategies.length; i++) {
                 uint128 nextStrategyId = ++self.nextStrategyId;
-                SettlementConfiguration.update(marketId, nextStrategyId, customTriggerStrategies[i]);
+                SettlementConfiguration.update(params.marketId, nextStrategyId, params.customTriggerStrategies[i]);
             }
         }
     }

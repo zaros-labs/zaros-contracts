@@ -22,8 +22,6 @@ import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "../Base.s.sol";
 import { deployModules, getModulesSelectors, getFacetCuts } from "../helpers/DiamondHelpers.sol";
 
-// import { MockSettlementModule } from "test/mocks/MockSettlementModule.sol";
-
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
@@ -38,17 +36,17 @@ contract UpdateModules is BaseScript {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        // PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
+        PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
         // PerpMarketModule perpMarketModule = new PerpMarketModule();
         // GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
         // SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
-        OrderModule orderModule = new OrderModule();
+        // OrderModule orderModule = new OrderModule();
 
         // bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](1);
-        // bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](3);
+        bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](2);
         // bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](1);
-        bytes4[] memory orderModuleTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory orderModuleTestnetSelectorsUpdated = new bytes4[](1);
 
         // IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
 
@@ -67,7 +65,7 @@ contract UpdateModules is BaseScript {
         // perpsAccountModuleTestnetSelectorsAdded[4] =
         // PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
 
-        // perpsAccountModuleTestnetSelectorsUpdated[0] = bytes4(keccak256("createPerpsAccount()"));
+        perpsAccountModuleTestnetSelectorsUpdated[0] = PerpsAccountModuleTestnet.getUserReferralData.selector;
         // perpsAccountModuleTestnetSelectorsUpdated[1] =
         // bytes4(keccak256("createPerpsAccountAndMulticall(bytes[])"));
         // perpsAccountModuleTestnetSelectorsUpdated[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
@@ -85,13 +83,13 @@ contract UpdateModules is BaseScript {
 
         // perpMarketModuleSelectorsUpdated[0] = PerpMarketModule.getOpenInterest.selector;
 
-        orderModuleTestnetSelectorsUpdated[0] = OrderModule.createMarketOrder.selector;
+        // orderModuleTestnetSelectorsUpdated[0] = OrderModule.createMarketOrder.selector;
 
         facetCuts[0] = (
             IDiamond.FacetCut({
-                facet: address(orderModule),
+                facet: address(perpsAccountModuleTestnet),
                 action: IDiamond.FacetCutAction.Replace,
-                selectors: orderModuleTestnetSelectorsUpdated
+                selectors: perpsAccountModuleTestnetSelectorsUpdated
             })
         );
 
@@ -126,17 +124,6 @@ contract UpdateModules is BaseScript {
         //         selectors: settlementModuleTestnetSelectorsUpdated
         //     })
         // );
-
-        // bytes4[] memory mockSelectors = new bytes4[](2);
-
-        // mockSelectors[0] = MockSettlementModule.mockSettleMarketOrder.selector;
-        // mockSelectors[1] = MockSettlementModule.mockSettleCustomOrders.selector;
-
-        // facetCuts[1] = IDiamond.FacetCut({
-        //     facet: address(mockSettlementModule),
-        //     action: IDiamond.FacetCutAction.Add,
-        //     selectors: mockSelectors
-        // });
 
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 

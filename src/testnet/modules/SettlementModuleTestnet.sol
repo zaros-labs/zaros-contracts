@@ -45,6 +45,8 @@ contract SettlementModuleTestnet is SettlementModule {
         SD59x18 pnl;
         SD59x18 fundingFeePerUnit;
         SD59x18 fundingRate;
+        UD60x18 newOpenInterest;
+        SD59x18 newSkew;
         Points.Data userPoints;
         Position.Data newPosition;
     }
@@ -75,16 +77,15 @@ contract SettlementModuleTestnet is SettlementModule {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         ctx.usdToken = globalConfiguration.usdToken;
 
-        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
+        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
+        perpMarket.checkTradeSize(ctx.sizeDelta);
 
         bytes memory verifiedPriceData = settlementConfiguration.verifyPriceData(priceData);
         ctx.fillPrice = perpMarket.getMarkPrice(
             ctx.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedPriceData, ctx.sizeDelta.gt(SD_ZERO))
         );
-
-        globalConfiguration.checkTradeSizeUsd(ctx.sizeDelta, ctx.fillPrice);
 
         ctx.fundingRate = perpMarket.getCurrentFundingRate();
         ctx.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(ctx.fundingRate, ctx.fillPrice);
@@ -119,7 +120,10 @@ contract SettlementModuleTestnet is SettlementModule {
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        perpMarket.updateOpenInterest(ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+        (ctx.newOpenInterest, ctx.newSkew) = perpMarket.checkOpenInterestLimits(
+            ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size)
+        );
+        perpMarket.updateOpenInterest(ctx.newOpenInterest, ctx.newSkew);
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
         if (ctx.newPosition.size == 0) {

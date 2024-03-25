@@ -59,13 +59,22 @@ interface IOrderModule {
         view
         returns (UD60x18 initialMarginUsdX18, UD60x18 maintenanceMarginUsdX18);
 
-    function createMarketOrder(
-        uint128 accountId,
-        uint128 marketId,
-        int128 sizeDelta,
-        uint128 acceptablePrice
-    )
-        external;
+    struct CreateMarketOrderParams {
+        uint128 accountId;
+        uint128 marketId;
+        int128 sizeDelta;
+        uint128 acceptablePrice;
+    }
+
+    struct CreateMarketOrderContext {
+        SD59x18 marginBalanceUsdX18;
+        UD60x18 requiredInitialMarginUsdX18;
+        UD60x18 requiredMaintenanceMarginUsdX18;
+        SD59x18 orderFeeUsdX18;
+        UD60x18 settlementFeeUsdX18;
+    }
+
+    function createMarketOrder(CreateMarketOrderParams calldata params) external;
 
     /// @notice Cancels an active market order.
     /// @dev Reverts if there is no active market order for the given account and market.

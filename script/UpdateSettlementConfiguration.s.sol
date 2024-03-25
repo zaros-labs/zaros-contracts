@@ -9,8 +9,6 @@ import { SettlementConfiguration } from "@zaros/markets/perps/storage/Settlement
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 
-// import { MockSettlementModule } from "test/mocks/MockSettlementModule.sol";
-
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
@@ -55,7 +53,7 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
         });
 
         perpsEngine.updateSettlementConfiguration(
-            ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, ethUsdMarketOrderConfiguration
+            ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, ethUsdMarketOrderConfiguration
         );
     }
 }

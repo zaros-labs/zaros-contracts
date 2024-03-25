@@ -8,8 +8,6 @@ import { MarketOrderUpkeep } from "@zaros/external/chainlink/upkeeps/market-orde
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "../Base.s.sol";
 
-// import { MockSettlementModule } from "test/mocks/MockSettlementModule.sol";
-
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";

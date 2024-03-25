@@ -22,8 +22,6 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-import "forge-std/console.sol";
-
 contract OrderModule is IOrderModule {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
@@ -64,26 +62,13 @@ contract OrderModule is IOrderModule {
 
         fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
 
-        // {
-        //     GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        //     globalConfiguration.checkTradeSizeUsd(sd59x18(sizeDelta), fillPriceX18);
-        // }
-
         orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), fillPriceX18);
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
-        {
-            SD59x18 accountTotalUnrealizedPnlUsdX18;
-            (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
-                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
-            marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
-
-            // console.log("CHIDORI");
-            // // console.log(accountTotalUnrealizedPnlUsdX18.intoUD60x18().intoUint256());
-            // console.log(requiredInitialMarginUsdX18.intoUint256(), requiredMaintenanceMarginUsdX18.intoUint256());
-            // console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
-            // // console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
-        }
+        SD59x18 accountTotalUnrealizedPnlUsdX18;
+        (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
+            perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
+        marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
     }
 
     /// @inheritdoc IOrderModule
@@ -117,58 +102,57 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function createMarketOrder(
-        uint128 accountId,
-        uint128 marketId,
-        int128 sizeDelta,
-        uint128 acceptablePrice
-    )
-        external
-        override
-    {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
+    function createMarketOrder(CreateMarketOrderParams calldata params) external override {
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(params.accountId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
+        MarketOrder.Data storage marketOrder = MarketOrder.load(params.accountId);
+        Position.Data storage position = Position.load(params.accountId, params.marketId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        if (sizeDelta == 0) {
+        CreateMarketOrderContext memory ctx;
+
+        if (params.sizeDelta == 0) {
             revert Errors.ZeroInput("sizeDelta");
         }
 
-        (
-            SD59x18 marginBalanceUsdX18,
-            UD60x18 requiredInitialMarginUsdX18,
-            UD60x18 requiredMaintenanceMarginUsdX18,
-            SD59x18 orderFeeUsdX18,
-            UD60x18 settlementFeeUsdX18,
-        ) = simulateTrade({
-            accountId: accountId,
-            marketId: marketId,
-            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
-            sizeDelta: sizeDelta
-        });
+        globalConfiguration.checkMarketIsEnabled(params.marketId);
 
-        console.log("MARGIN REQUIREMENTS: ");
-        console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
-        console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
-        console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
-
-        perpsAccount.validateMarginRequirement(
-            requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
-            marginBalanceUsdX18,
-            orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18())
+        perpMarket.checkTradeSize(sd59x18(params.sizeDelta));
+        perpMarket.checkOpenInterestLimits(
+            sd59x18(params.sizeDelta), sd59x18(position.size), sd59x18(position.size).add(sd59x18(params.sizeDelta))
         );
 
-        bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(marketId);
+        bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(params.marketId);
         if (!isMarketWithActivePosition) {
             perpsAccount.validatePositionsLimit();
         }
 
-        globalConfiguration.checkMarketIsEnabled(marketId);
+        (
+            ctx.marginBalanceUsdX18,
+            ctx.requiredInitialMarginUsdX18,
+            ctx.requiredMaintenanceMarginUsdX18,
+            ctx.orderFeeUsdX18,
+            ctx.settlementFeeUsdX18,
+        ) = simulateTrade({
+            accountId: params.accountId,
+            marketId: params.marketId,
+            settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            sizeDelta: params.sizeDelta
+        });
+        perpsAccount.validateMarginRequirement(
+            ctx.requiredInitialMarginUsdX18.add(ctx.requiredMaintenanceMarginUsdX18),
+            ctx.marginBalanceUsdX18,
+            ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
+        );
+
         marketOrder.checkPendingOrder();
+        marketOrder.update({
+            marketId: params.marketId,
+            sizeDelta: params.sizeDelta,
+            acceptablePrice: params.acceptablePrice
+        });
 
-        marketOrder.update({ marketId: marketId, sizeDelta: sizeDelta, acceptablePrice: acceptablePrice });
-
-        emit LogCreateMarketOrder(msg.sender, accountId, marketId, marketOrder);
+        emit LogCreateMarketOrder(msg.sender, params.accountId, params.marketId, marketOrder);
     }
 
     function createCustomOrder(

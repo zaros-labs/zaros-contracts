@@ -48,7 +48,7 @@ contract SettlementModule is ISettlementModule {
 
     modifier onlyMarketOrderUpkeep(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID);
+            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
         address settlementStrategy = settlementConfiguration.settlementStrategy;
 
         _requireIsSettlementStrategy(msg.sender, settlementStrategy);
@@ -69,14 +69,14 @@ contract SettlementModule is ISettlementModule {
         SettlementPayload memory payload =
             SettlementPayload({ accountId: accountId, orderId: 0, sizeDelta: marketOrder.sizeDelta });
 
-        _settle(marketId, SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID, payload, priceData);
+        _settle(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, payload, priceData);
 
         marketOrder.clear();
 
         _paySettlementFees({
             settlementFeeReceiver: settlementFeeReceiver,
             marketId: marketId,
-            settlementId: SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+            settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             amountOfSettledTrades: 1
         });
     }
@@ -112,8 +112,9 @@ contract SettlementModule is ISettlementModule {
             ISettlementStrategy(callback).callback(payloads);
         }
 
-        address ocoOrderSettlementStrategy =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.OCO_ORDER_SETTLEMENT_ID).settlementStrategy;
+        address ocoOrderSettlementStrategy = SettlementConfiguration.load(
+            marketId, SettlementConfiguration.OCO_ORDER_CONFIGURATION_ID
+        ).settlementStrategy;
         if (ocoOrderSettlementStrategy != address(0) && ocoOrderSettlementStrategy != msg.sender) {
             ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
         }
@@ -131,6 +132,8 @@ contract SettlementModule is ISettlementModule {
         SD59x18 fundingFeePerUnit;
         SD59x18 fundingRate;
         Position.Data newPosition;
+        UD60x18 newOpenInterest;
+        SD59x18 newSkew;
     }
 
     function _settle(
@@ -158,16 +161,15 @@ contract SettlementModule is ISettlementModule {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         ctx.usdToken = globalConfiguration.usdToken;
 
-        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
         // TODO: potentially update all checks to return true / false and bubble up the revert to the caller?
+        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
+        perpMarket.checkTradeSize(ctx.sizeDelta);
 
         bytes memory verifiedPriceData = settlementConfiguration.verifyPriceData(priceData);
         ctx.fillPrice = perpMarket.getMarkPrice(
             ctx.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedPriceData, ctx.sizeDelta.gt(SD_ZERO))
         );
-
-        globalConfiguration.checkTradeSizeUsd(ctx.sizeDelta, ctx.fillPrice);
 
         ctx.fundingRate = perpMarket.getCurrentFundingRate();
         ctx.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(ctx.fundingRate, ctx.fillPrice);
@@ -202,7 +204,11 @@ contract SettlementModule is ISettlementModule {
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
         });
 
-        perpMarket.updateOpenInterest(ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+        (ctx.newOpenInterest, ctx.newSkew) = perpMarket.checkOpenInterestLimits(
+            ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size)
+        );
+        perpMarket.updateOpenInterest(ctx.newOpenInterest, ctx.newSkew);
+
         perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
         if (ctx.newPosition.size == 0) {
@@ -227,6 +233,7 @@ contract SettlementModule is ISettlementModule {
 
             // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
             // NOTE: testnet only
+            // TODO: Move to testnet version
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 

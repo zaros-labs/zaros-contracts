@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { CreatePerpMarketParams, IGlobalConfigurationModule } from "../interfaces/IGlobalConfigurationModule.sol";
+import { IGlobalConfigurationModule } from "../interfaces/IGlobalConfigurationModule.sol";
 import { GlobalConfiguration } from "../storage/GlobalConfiguration.sol";
 import { PerpMarket } from "../storage/PerpMarket.sol";
 import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfiguration.sol";
@@ -181,7 +181,6 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime,
-        uint128 minTradeSizeUsdX18,
         uint128 liquidationFeeUsdX18
     )
         external
@@ -196,10 +195,6 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
             revert Errors.ZeroInput("marketOrderMaxLifetime");
         }
 
-        if (minTradeSizeUsdX18 == 0) {
-            revert Errors.ZeroInput("minTradeSizeUsdX18");
-        }
-
         if (liquidationFeeUsdX18 == 0) {
             revert Errors.ZeroInput("liquidationFeeUsdX18");
         }
@@ -208,14 +203,14 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
 
         globalConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
         globalConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
-        globalConfiguration.minTradeSizeUsdX18 = minTradeSizeUsdX18;
         globalConfiguration.liquidationFeeUsdX18 = liquidationFeeUsdX18;
 
         emit LogConfigureSystemParameters(
-            msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime, minTradeSizeUsdX18, liquidationFeeUsdX18
+            msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime, liquidationFeeUsdX18
         );
     }
 
+    // TODO: add missing zero checks
     /// @inheritdoc IGlobalConfigurationModule
     function createPerpMarket(CreatePerpMarketParams calldata params) external override onlyOwner {
         if (params.marketId == 0) {
@@ -243,18 +238,21 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         PerpMarket.create(
-            params.marketId,
-            params.name,
-            params.symbol,
-            params.priceAdapter,
-            params.initialMarginRateX18,
-            params.maintenanceMarginRateX18,
-            params.maxOpenInterest,
-            params.skewScale,
-            params.maxFundingVelocity,
-            params.marketOrderConfiguration,
-            params.customTriggerStrategies,
-            params.orderFees
+            PerpMarket.CreateParams({
+                marketId: params.marketId,
+                name: params.name,
+                symbol: params.symbol,
+                priceAdapter: params.priceAdapter,
+                initialMarginRateX18: params.initialMarginRateX18,
+                maintenanceMarginRateX18: params.maintenanceMarginRateX18,
+                maxOpenInterest: params.maxOpenInterest,
+                maxFundingVelocity: params.maxFundingVelocity,
+                skewScale: params.skewScale,
+                minTradeSizeX18: params.minTradeSizeX18,
+                marketOrderConfiguration: params.marketOrderConfiguration,
+                customTriggerStrategies: params.customTriggerStrategies,
+                orderFees: params.orderFees
+            })
         );
         globalConfiguration.addMarket(params.marketId);
 
@@ -262,62 +260,55 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationModule
-    function updatePerpMarketConfiguration(
-        uint128 marketId,
-        string calldata name,
-        string calldata symbol,
-        address priceAdapter,
-        uint128 initialMarginRateX18,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint128 maxFundingVelocity,
-        uint256 skewScale,
-        OrderFees.Data memory orderFees
-    )
+    function updatePerpMarketConfiguration(UpdatePerpMarketConfigurationParams calldata params)
         external
         override
         onlyOwner
     {
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
         MarketConfiguration.Data storage perpMarketConfiguration = perpMarket.configuration;
 
         if (!perpMarket.initialized) {
-            revert Errors.PerpMarketNotInitialized(marketId);
+            revert Errors.PerpMarketNotInitialized(params.marketId);
         }
 
-        if (abi.encodePacked(name).length == 0) {
+        if (abi.encodePacked(params.name).length == 0) {
             revert Errors.ZeroInput("name");
         }
-        if (abi.encodePacked(symbol).length == 0) {
+        if (abi.encodePacked(params.symbol).length == 0) {
             revert Errors.ZeroInput("symbol");
         }
-        if (priceAdapter == address(0)) {
+        if (params.priceAdapter == address(0)) {
             revert Errors.ZeroInput("priceAdapter");
         }
-        if (initialMarginRateX18 == 0) {
+        if (params.initialMarginRateX18 == 0) {
             revert Errors.ZeroInput("initialMarginRateX18");
         }
 
-        if (maintenanceMarginRateX18 == 0) {
+        if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
-        if (skewScale == 0) {
+        if (params.skewScale == 0) {
             revert Errors.ZeroInput("skewScale");
+        }
+        if (params.minTradeSizeX18 == 0) {
+            revert Errors.ZeroInput("minTradeSizeX18");
         }
 
         perpMarketConfiguration.update(
-            name,
-            symbol,
-            priceAdapter,
-            initialMarginRateX18,
-            maintenanceMarginRateX18,
-            maxOpenInterest,
-            maxFundingVelocity,
-            skewScale,
-            orderFees
+            params.name,
+            params.symbol,
+            params.priceAdapter,
+            params.initialMarginRateX18,
+            params.maintenanceMarginRateX18,
+            params.maxOpenInterest,
+            params.maxFundingVelocity,
+            params.skewScale,
+            params.minTradeSizeX18,
+            params.orderFees
         );
 
-        emit LogConfigurePerpMarket(msg.sender, marketId);
+        emit LogConfigurePerpMarket(msg.sender, params.marketId);
     }
 
     /// @inheritdoc IGlobalConfigurationModule

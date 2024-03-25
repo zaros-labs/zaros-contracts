@@ -78,16 +78,20 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
 
         SettlementConfiguration.Data memory settlementConfiguration =
             settlementStrategy.getZarosSettlementConfiguration();
-        SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderStrategy =
+        SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfiguration =
             abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsMarketStrategy));
 
         string[] memory streams = new string[](1);
-        streams[0] = marketOrderStrategy.streamId;
-        uint256 settlementTimestamp = marketOrder.timestamp + marketOrderStrategy.settlementDelay;
+        streams[0] = marketOrderConfiguration.streamId;
+        uint256 settlementTimestamp = marketOrder.timestamp + marketOrderConfiguration.settlementDelay;
         bytes memory extraData = abi.encode(accountId);
 
         revert StreamsLookup(
-            marketOrderStrategy.feedLabel, streams, marketOrderStrategy.queryLabel, settlementTimestamp, extraData
+            marketOrderConfiguration.feedLabel,
+            streams,
+            marketOrderConfiguration.queryLabel,
+            settlementTimestamp,
+            extraData
         );
     }
 

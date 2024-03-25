@@ -8,7 +8,7 @@ import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.so
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
-import { CreatePerpMarketParams } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
+import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
@@ -20,10 +20,8 @@ import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-
-import "forge-std/console.sol";
 
 abstract contract Base_Integration_Shared_Test is Base_Test {
     using Math for UD60x18;
@@ -132,14 +130,13 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
-            minTradeSizeUsdX18: MIN_TRADE_SIZE_USD,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD
         });
     }
 
     function createMarkets() internal {
         perpsEngine.createPerpMarket(
-            CreatePerpMarketParams({
+            IGlobalConfigurationModule.CreatePerpMarketParams({
                 marketId: BTC_USD_MARKET_ID,
                 name: BTC_USD_MARKET_NAME,
                 symbol: BTC_USD_MARKET_SYMBOL,
@@ -147,8 +144,9 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 initialMarginRateX18: BTC_USD_IMR,
                 maintenanceMarginRateX18: BTC_USD_MMR,
                 maxOpenInterest: BTC_USD_MAX_OI,
-                skewScale: BTC_USD_SKEW_SCALE,
                 maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
+                skewScale: BTC_USD_SKEW_SCALE,
+                minTradeSizeX18: BTC_USD_MIN_TRADE_SIZE,
                 marketOrderConfiguration: btcUsdMarketOrderConfiguration,
                 customTriggerStrategies: btcUsdCustomOrderStrategies,
                 orderFees: btcUsdOrderFees
@@ -156,7 +154,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         );
 
         perpsEngine.createPerpMarket(
-            CreatePerpMarketParams({
+            IGlobalConfigurationModule.CreatePerpMarketParams({
                 marketId: ETH_USD_MARKET_ID,
                 name: ETH_USD_MARKET_NAME,
                 symbol: ETH_USD_MARKET_SYMBOL,
@@ -164,8 +162,9 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 initialMarginRateX18: ETH_USD_IMR,
                 maintenanceMarginRateX18: ETH_USD_MMR,
                 maxOpenInterest: ETH_USD_MAX_OI,
-                skewScale: ETH_USD_SKEW_SCALE,
                 maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
+                skewScale: ETH_USD_SKEW_SCALE,
+                minTradeSizeX18: ETH_USD_MIN_TRADE_SIZE,
                 marketOrderConfiguration: ethUsdMarketOrderConfiguration,
                 customTriggerStrategies: ethUsdCustomOrderStrategies,
                 orderFees: ethUsdOrderFees
@@ -229,55 +228,60 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
-    function fuzzOrderSizeDelta(
-        uint128 accountId,
-        uint128 marketId,
-        uint128 settlementId,
-        uint256 initialMarginRate,
-        uint256 marginValueUsd,
-        uint256 price,
-        bool isLong
-    )
-        internal
-        view
-        returns (int128 sizeDelta)
-    {
-        int128 sizeDeltaPreFee;
-        {
-            UD60x18 fuzzedSizeDeltaAbs = ud60x18(marginValueUsd).div(ud60x18(initialMarginRate)).div(ud60x18(price));
+    struct FuzzOrderSizeDeltaParams {
+        uint128 accountId;
+        uint128 marketId;
+        uint128 settlementId;
+        UD60x18 initialMarginRate;
+        UD60x18 marginValueUsd;
+        UD60x18 maxOpenInterest;
+        UD60x18 minTradeSize;
+        UD60x18 price;
+        bool isLong;
+    }
 
-            // TODO: Dynamically get the max OI.
-            uint256 maxOpenInterest = ETH_USD_MAX_OI;
+    struct FuzzOrderSizeDeltaContext {
+        int128 sizeDeltaPrePriceImpact;
+        int128 sizeDeltaAbs;
+        UD60x18 fuzzedSizeDeltaAbs;
+        UD60x18 sizeDeltaWithPriceImpact;
+        UD60x18 totalOrderFeeInSize;
+    }
 
-            // TODO: fix min trade size usd dynamic calculation
-            int128 sizeDeltaAbs = Math.min(
-                Math.max(fuzzedSizeDeltaAbs, ud60x18(MIN_TRADE_SIZE_USD).add(ud60x18(10e18)).div(ud60x18(price))),
-                ud60x18(maxOpenInterest)
-            ).intoSD59x18().intoInt256().toInt128();
-            sizeDeltaPreFee = isLong ? sizeDeltaAbs : -sizeDeltaAbs;
-        }
-        (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) =
-            perpsEngine.simulateTrade(accountId, marketId, settlementId, sizeDeltaPreFee);
+    function fuzzOrderSizeDelta(FuzzOrderSizeDeltaParams memory params) internal view returns (int128 sizeDelta) {
+        FuzzOrderSizeDeltaContext memory ctx;
 
-        UD60x18 feeToDiscount = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
-        SD59x18 sizeDeltaWithPriceImpact =
-            ud60x18(price).div(fillPriceX18).intoSD59x18().mul(sd59x18(sizeDeltaPreFee));
+        ctx.fuzzedSizeDeltaAbs = params.marginValueUsd.div(params.initialMarginRate).div(params.price);
+        ctx.sizeDeltaAbs = Math.min(Math.max(ctx.fuzzedSizeDeltaAbs, params.minTradeSize), params.maxOpenInterest)
+            .intoSD59x18().intoInt256().toInt128();
+        ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
+
+        (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine.simulateTrade(
+            params.accountId, params.marketId, params.settlementId, ctx.sizeDeltaPrePriceImpact
+        );
+
+        ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
+        ctx.sizeDeltaWithPriceImpact = Math.min(
+            (params.price.div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPrePriceImpact))).abs().intoUD60x18(
+            ),
+            params.maxOpenInterest
+        );
 
         sizeDelta = (
-            isLong
-                ? sizeDeltaWithPriceImpact.sub(feeToDiscount.intoSD59x18())
-                : sizeDeltaWithPriceImpact.add(feeToDiscount.intoSD59x18())
+            params.isLong
+                ? Math.max(
+                    ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
+                        ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+                    ),
+                    params.minTradeSize.intoSD59x18()
+                )
+                : Math.min(
+                    unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
+                        ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+                    ),
+                    unary(params.minTradeSize.intoSD59x18())
+                )
         ).intoInt256().toInt128();
-
-        console.log("Order Fuzzing: ");
-        console.log(fillPriceX18.intoUint256());
-        console.log(fillPriceX18.mul(sd59x18(sizeDelta).abs().intoUD60x18()).intoUint256());
-
-        // console.log("Order Fuzzing");
-        // console.log(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18).intoUint256());
-        // console.log(ud60x18(price).div(fillPriceX18).intoUint256());
-        // console.log(!isLong ? (-int256(sizeDelta)).toUint256() : int256(sizeDelta).toUint256());
-        // console.log(sizeDeltaWithPriceImpact.abs().intoUint256());
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {

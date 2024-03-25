@@ -7,33 +7,6 @@ import { MarginCollateralConfiguration } from "../storage/MarginCollateralConfig
 import { OrderFees } from "../storage/OrderFees.sol";
 import { SettlementConfiguration } from "../storage/SettlementConfiguration.sol";
 
-/// @notice `createPerpMarket` function parameters.
-/// @param marketId The perps market id.
-/// @param name The perps market name.
-/// @param symbol The perps market symbol.
-/// @param priceAdapter The price adapter contract, which handles the market's index price.
-/// @param initialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
-/// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
-/// @param maxOpenInterest The perps market maximum open interest per side.
-/// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
-/// @param maxFundingVelocity The perps market maximum funding rate velocity.
-/// @param marketOrderConfiguration The perps market settlement strategy.
-/// @param orderFees The perps market maker and taker fees.
-struct CreatePerpMarketParams {
-    uint128 marketId;
-    string name;
-    string symbol;
-    address priceAdapter;
-    uint128 initialMarginRateX18;
-    uint128 maintenanceMarginRateX18;
-    uint128 maxOpenInterest;
-    uint256 skewScale;
-    uint128 maxFundingVelocity;
-    SettlementConfiguration.Data marketOrderConfiguration;
-    SettlementConfiguration.Data[] customTriggerStrategies;
-    OrderFees.Data orderFees;
-}
-
 /// @title Global Configuration Module.
 /// @notice This module is used by the protocol controller to configure the perps
 /// exchange system.
@@ -76,13 +49,11 @@ interface IGlobalConfigurationModule {
     /// @param sender The address that configured the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
     /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
-    /// @param minTradeSizeUsdX18 The minimum trade size in USD.
     /// @param liquidationFeeUsdX18 The liquidation fee in USD.
     event LogConfigureSystemParameters(
         address indexed sender,
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime,
-        uint128 minTradeSizeUsdX18,
         uint128 liquidationFeeUsdX18
     );
 
@@ -164,23 +135,48 @@ interface IGlobalConfigurationModule {
     /// @notice Configures the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
     /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
-    /// @param minTradeSizeUsdX18 The minimum trade size in USD.
     /// @param liquidationFeeUsdX18 The liquidation fee in USD.
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime,
-        uint128 minTradeSizeUsdX18,
         uint128 liquidationFeeUsdX18
     )
         external;
+
+    /// @notice `createPerpMarket` function parameters.
+    /// @param marketId The perps market id.
+    /// @param name The perps market name.
+    /// @param symbol The perps market symbol.
+    /// @param priceAdapter The price adapter contract, which handles the market's index price.
+    /// @param initialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
+    /// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
+    /// @param maxOpenInterest The perps market maximum open interest per side.
+    /// @param maxFundingVelocity The perps market maximum funding rate velocity.
+    /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
+    /// @param minTradeSizeX18 The minimum size of a trade in contract units.
+    /// @param marketOrderConfiguration The perps market settlement strategy.
+    /// @param orderFees The perps market maker and taker fees.
+    struct CreatePerpMarketParams {
+        uint128 marketId;
+        string name;
+        string symbol;
+        address priceAdapter;
+        uint128 initialMarginRateX18;
+        uint128 maintenanceMarginRateX18;
+        uint128 maxOpenInterest;
+        uint128 maxFundingVelocity;
+        uint256 skewScale;
+        uint256 minTradeSizeX18;
+        SettlementConfiguration.Data marketOrderConfiguration;
+        SettlementConfiguration.Data[] customTriggerStrategies;
+        OrderFees.Data orderFees;
+    }
 
     /// @notice Creates a new market with the requested market id.
     /// @dev See {CreatePerpMarketParams}.
     function createPerpMarket(CreatePerpMarketParams calldata params) external;
 
-    /// @notice Updates the configuration variables of the given perp market id.
-    /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
-    /// impact open positions.
+    /// @notice `updatePerpMarketConfiguration` params.
     /// @param marketId The perp market id.
     /// @param name The perp market name.
     /// @param symbol The perp market symbol.
@@ -190,20 +186,27 @@ interface IGlobalConfigurationModule {
     /// @param maxOpenInterest The perp market maximum open interest per side.
     /// @param maxFundingVelocity The perp market maximum funding rate velocity.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
+    /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param orderFees The perp market maker and taker fees.
-    function updatePerpMarketConfiguration(
-        uint128 marketId,
-        string calldata name,
-        string calldata symbol,
-        address priceAdapter,
-        uint128 initialMarginRateX18,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint128 maxFundingVelocity,
-        uint256 skewScale,
-        OrderFees.Data memory orderFees
-    )
-        external;
+    struct UpdatePerpMarketConfigurationParams {
+        uint128 marketId;
+        string name;
+        string symbol;
+        address priceAdapter;
+        uint128 initialMarginRateX18;
+        uint128 maintenanceMarginRateX18;
+        uint128 maxOpenInterest;
+        uint128 maxFundingVelocity;
+        uint256 skewScale;
+        uint256 minTradeSizeX18;
+        OrderFees.Data orderFees;
+    }
+
+    /// @notice Updates the configuration variables of the given perp market id.
+    /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
+    /// impact open positions.
+    /// @dev See {UpdatePerpMarketConfigurationParams}.
+    function updatePerpMarketConfiguration(UpdatePerpMarketConfigurationParams calldata params) external;
 
     /// @notice Updates the settlement configuration of a given market.
     /// @param marketId The perp market id.

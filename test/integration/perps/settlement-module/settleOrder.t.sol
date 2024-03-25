@@ -31,16 +31,19 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 
 //     uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 //     int128 sizeDelta = fuzzOrderSizeDelta(
+//        FuzzOrderSizeDeltaParams({
 //         perpsAccountId,
 //         ETH_USD_MARKET_ID,
-//         SettlementConfiguration.MARKET_ORDER_SETTLEMENT_ID,
+//         SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
 //         initialMarginRate,
 //         marginValueUsd,
+//         ETH_USD_MAX_OI,
 //         MOCK_ETH_USD_PRICE,
 //         isLong
+// })
 //     );
 
-//     perpsEngine.createMarketOrder({
+//     perpsEngine.createMarketOrder(IOrderModule.CreateMarketOrderParams({
 //         accountId: perpsAccountId,
 //         marketId: ETH_USD_MARKET_ID,
 //         sizeDelta: sizeDelta,
@@ -82,7 +85,8 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 // //         sizeDelta: int128(50e18)
 // //     });
 
-// //     perpsEngine.createMarketOrder({ payload: payload, extraData: bytes("") });
+// //     perpsEngine.createMarketOrder(IOrderModule.CreateMarketOrderParams({ payload: payload, extraData: bytes("")
+// });
 
 // //     perpsEngine.settleMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport
 // // });
@@ -93,7 +97,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 // //         sizeDelta: int128(-25e18),
 // //         acceptablePrice: 0
 // //     });
-// //     perpsEngine.createMarketOrder({ payload: newPayload });
+// //     perpsEngine.createMarketOrder(IOrderModule.CreateMarketOrderParams({ payload: newPayload });
 // //     MarketOrder.Data memory sellOrder = perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId });
 
 // //     Position.Data memory expectedPosition = Position.Data({
