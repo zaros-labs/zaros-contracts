@@ -3,11 +3,11 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { Base_Test } from "test/Base.t.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
-contract CreatePerpsAccount_Unit_Test is Base_Test {
+contract CreatePerpsAccount_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
-        Base_Test.setUp();
+        Base_Integration_Shared_Test.setUp();
     }
 
     function test_RevertGiven_ThePerpsAccountTokenIsNotSet() external {
