@@ -60,7 +60,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
         streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
 
-         uint256[] memory filteredIndexMarkets = new uint256[](2);
+        uint256[] memory filteredIndexMarkets = new uint256[](2);
         filteredIndexMarkets[0] = initialMarketIndex;
         filteredIndexMarkets[1] = finalMarketIndex;
 
@@ -98,7 +98,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 data: abi.encode(marketOrderConfigurationData)
             });
 
-             SettlementConfiguration.Data[] memory customOrderStrategies = new SettlementConfiguration.Data[](1);
+            SettlementConfiguration.Data[] memory customOrderStrategies = new SettlementConfiguration.Data[](1);
             customOrderStrategies[0] = limitOrderConfiguration;
 
             perpsEngine.createPerpMarket({
@@ -119,7 +119,6 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 })
             });
         }
-
     }
 
     function deploySettlementStrategies(MarketConfig[] memory marketsConfig) internal {
@@ -141,11 +140,15 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
             );
 
-            bytes memory marketOrderSettlementStrategyInitializeData =
-                abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, marketsConfig[i].marketId);
+            bytes memory marketOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
+                MarketOrderSettlementStrategy.initialize.selector, perpsEngine, marketsConfig[i].marketId
+            );
 
             bytes memory ocoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-                OcoOrderSettlementStrategy.initialize.selector, perpsEngine, marketsConfig[i].marketId, OCO_ORDER_CONFIGURATION_ID
+                OcoOrderSettlementStrategy.initialize.selector,
+                perpsEngine,
+                marketsConfig[i].marketId,
+                OCO_ORDER_CONFIGURATION_ID
             );
 
             address limitOrderSettlementStrategy = address(
@@ -171,11 +174,14 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             ocoOrderSettlementStrategies.set(marketsConfig[i].marketId, ocoOrderSettlementStrategy);
 
             console.log("----------");
-            console.log(marketsConfig[i].marketSymbol, " Limit Order Settlement Strategy: ", limitOrderSettlementStrategy);
-            console.log(marketsConfig[i].marketSymbol, " Market Order Settlement Strategy: ", marketOrderSettlementStrategy);
+            console.log(
+                marketsConfig[i].marketSymbol, " Limit Order Settlement Strategy: ", limitOrderSettlementStrategy
+            );
+            console.log(
+                marketsConfig[i].marketSymbol, " Market Order Settlement Strategy: ", marketOrderSettlementStrategy
+            );
             console.log(marketsConfig[i].marketSymbol, " Oco Order Settlement Strategy: ", ocoOrderSettlementStrategy);
         }
-
     }
 
     function deployKeepers() internal {
@@ -243,7 +249,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
     function configureKeepers(MarketConfig[] memory marketsConfig) internal {
         for (uint256 i = 0; i < marketsConfig.length; i++) {
-LimitOrderSettlementStrategy limitOrderSettlementStrategy =
+            LimitOrderSettlementStrategy limitOrderSettlementStrategy =
                 LimitOrderSettlementStrategy(limitOrderSettlementStrategies.get(marketsConfig[i].marketId));
 
             MarketOrderSettlementStrategy marketOrderSettlementStrategy =

@@ -16,7 +16,6 @@ import { EthUsd } from "./EthUsd.sol";
 import { LinkUsd } from "./LinkUsd.sol";
 
 contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
-
     struct MarketConfig {
         uint128 marketId;
         string marketName;
@@ -35,8 +34,15 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         OrderFees.Data orderFees;
     }
 
-    function getMarketsConfig(address[] memory addressPriceFeeds, string[] memory streamIds, uint256[] memory filteredIndexMarkets) internal pure returns(MarketConfig[] memory){
-
+    function getMarketsConfig(
+        address[] memory addressPriceFeeds,
+        string[] memory streamIds,
+        uint256[] memory filteredIndexMarkets
+    )
+        internal
+        pure
+        returns (MarketConfig[] memory)
+    {
         MarketConfig[] memory marketsConfig = new MarketConfig[](2);
 
         MarketConfig memory ethUsdConfig = MarketConfig({
@@ -81,7 +87,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint256 finalMarketIndex = filteredIndexMarkets[1];
 
         uint256 lengthFilteredMarkets;
-        if(initialMarketIndex == finalMarketIndex) {
+        if (initialMarketIndex == finalMarketIndex) {
             lengthFilteredMarkets = 1;
         } else {
             lengthFilteredMarkets = (finalMarketIndex - initialMarketIndex) + 1;
@@ -90,7 +96,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         MarketConfig[] memory filteredMarketsConfig = new MarketConfig[](lengthFilteredMarkets);
 
         uint256 filteredIndex = 0;
-        for(uint256 index = initialMarketIndex; index <= finalMarketIndex; index++) {
+        for (uint256 index = initialMarketIndex; index <= finalMarketIndex; index++) {
             filteredMarketsConfig[filteredIndex] = marketsConfig[index];
             filteredIndex++;
         }
