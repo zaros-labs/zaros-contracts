@@ -223,15 +223,17 @@ contract PerpsAccountModule is IPerpsAccountModule {
     /// @inheritdoc IPerpsAccountModule
     function withdrawMargin(uint128 accountId, address collateralType, UD60x18 ud60x18Amount) external override {
         _requireAmountNotZero(ud60x18Amount);
+        _requireEnoughMarginCollateral(accountId, collateralType, ud60x18Amount);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-        _checkMarginIsAvailable(perpsAccount, collateralType, ud60x18Amount);
         perpsAccount.withdraw(collateralType, ud60x18Amount);
 
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
         uint256 tokenAmount = marginCollateralConfiguration.convertUd60x18ToTokenAmount(ud60x18Amount);
         IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
+
+        _requireMarginRequirementIsValid(perpsAccount, collateralType, ud60x18Amount);
 
         emit LogWithdrawMargin(msg.sender, accountId, collateralType, tokenAmount);
     }
@@ -263,14 +265,23 @@ contract PerpsAccountModule is IPerpsAccountModule {
     /// @param perpsAccount The perps account storage pointer.
     /// @param collateralType The margin collateral address.
     /// @param amount The amount of margin collateral to be withdrawn.
-    function _checkMarginIsAvailable(
-        PerpsAccount.Data storage perpsAccount,
-        address collateralType,
-        UD60x18 amount
+    function _requireMarginRequirementIsValid(
+        PerpsAccount.Data storage perpsAccount
     )
         internal
         view
-    { }
+    {
+        (
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 accountTotalUnrealizedPnlUsdX18
+        ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
+        SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+
+        perpsAccount.validateMarginRequirement(
+            requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18), marginBalanceUsdX18, SD_ZERO
+        );
+    }
 
     /// @dev Reverts if the caller is not the account owner.
     function _onlyPerpsAccountToken() internal view {
