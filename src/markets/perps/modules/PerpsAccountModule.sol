@@ -221,17 +221,17 @@ contract PerpsAccountModule is IPerpsAccountModule {
     }
 
     /// @inheritdoc IPerpsAccountModule
-    function withdrawMargin(uint128 accountId, address collateralType, UD60x18 ud60x18Amount) external override {
+    function withdrawMargin(uint128 accountId, address collateralType, UD60x18 amount) external override {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
-        _requireAmountNotZero(ud60x18Amount);
-        _requireEnoughMarginCollateral(perpsAccount, collateralType, ud60x18Amount);
+        _requireAmountNotZero(amount);
+        _requireEnoughMarginCollateral(perpsAccount, collateralType, amount);
 
-        perpsAccount.withdraw(collateralType, ud60x18Amount);
+        perpsAccount.withdraw(collateralType, amount);
         _requireMarginRequirementIsValid(perpsAccount);
 
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
-        uint256 tokenAmount = marginCollateralConfiguration.convertUd60x18ToTokenAmount(ud60x18Amount);
+        uint256 tokenAmount = marginCollateralConfiguration.convertUd60x18ToTokenAmount(amount);
 
         IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
 

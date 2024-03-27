@@ -17,6 +17,7 @@ import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 // Open Zeppelin dependencies
+import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
@@ -177,6 +178,30 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         (, int256 answer,,,) = priceFeed.latestRoundData();
 
         return ud60x18(uint256(answer) * 10 ** (SYSTEM_DECIMALS - decimals));
+    }
+
+    function convertTokenAmountToUd60x18(address collateralType, uint256 amount) internal view returns (UD60x18) {
+        uint8 decimals = ERC20(collateralType).decimals();
+        if (Constants.SYSTEM_DECIMALS == decimals) {
+            return ud60x18(amount);
+        }
+        return ud60x18(amount * 10 ** (Constants.SYSTEM_DECIMALS - decimals));
+    }
+
+    function convertUd60x18ToTokenAmount(
+        address collateralType,
+        UD60x18 ud60x18Amount
+    )
+        internal
+        view
+        returns (uint256)
+    {
+        uint8 decimals = ERC20(collateralType).decimals();
+        if (Constants.SYSTEM_DECIMALS == decimals) {
+            return ud60x18Amount.intoUint256();
+        }
+
+        return ud60x18Amount.intoUint256() / (10 ** (Constants.SYSTEM_DECIMALS - decimals));
     }
 
     function getMockedSignedReport(
