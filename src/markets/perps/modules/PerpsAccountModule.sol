@@ -23,6 +23,8 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
+import "forge-std/console.sol";
+
 /// @notice See {IPerpsAccountModule}.
 contract PerpsAccountModule is IPerpsAccountModule {
     // using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -275,7 +277,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         UD60x18 marginCollateralBalanceX18 = perpsAccount.getMarginCollateralBalance(collateralType);
 
         if (marginCollateralBalanceX18.lt(amount)) {
-            revert Errors.InsufficientMarginCollateralBalance(
+            revert Errors.InsufficientCollateralBalance(
                 amount.intoUint256(), marginCollateralBalanceX18.intoUint256()
             );
         }
@@ -291,6 +293,13 @@ contract PerpsAccountModule is IPerpsAccountModule {
             SD59x18 accountTotalUnrealizedPnlUsdX18
         ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
         SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+
+        console.log("from perps account: ");
+
+        console.log(requiredInitialMarginUsdX18.intoUint256(), requiredMaintenanceMarginUsdX18.intoUint256());
+        console.log(accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().intoUint256());
+        console.log(accountTotalUnrealizedPnlUsdX18.lt(SD_ZERO));
+        console.log(marginBalanceUsdX18.abs().intoUD60x18().intoUint256());
 
         perpsAccount.validateMarginRequirement(
             requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18), marginBalanceUsdX18, SD_ZERO

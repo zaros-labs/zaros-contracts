@@ -68,7 +68,7 @@ library Errors {
     /// @notice Thrown When the provided collateral is not supported.
     error DepositCap(address collateralType, uint256 amount, uint256 depositCap);
     /// @notice Thrown when there's not enough margin collateral to be withdrawn.
-    error InsufficientMarginCollateralBalance(uint256 amount, uint256 balance);
+    error InsufficientCollateralBalance(uint256 amount, uint256 balance);
     /// @notice Thrown When the caller is not the account token contract.
     error OnlyPerpsAccountToken(address sender);
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.

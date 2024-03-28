@@ -9,7 +9,10 @@ import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 
 // PRB Math dependencies
-import { ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
+
+import "forge-std/console.sol";
 
 contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -100,7 +103,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.InsufficientMarginCollateralBalance.selector, amountToWithdraw, expectedMarginCollateralBalance
+                Errors.InsufficientCollateralBalance.selector, amountToWithdraw, expectedMarginCollateralBalance
                 )
         });
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
@@ -122,14 +125,17 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-        marginRequirement =
-            bound({ x: marginRequirement, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
-        uint256 requiredMarginUsd = ud60x18(amountToDeposit).div(ud60x18(marginRequirement)).mul(
-            ud60x18(ETH_USD_MARGIN_REQUIREMENTS)
-        ).intoUint256();
-        amountToWithdraw = bound({ x: amountToWithdraw, min: requiredMarginUsd, max: amountToDeposit });
-        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+        {
+            amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+            marginRequirement =
+                bound({ x: marginRequirement, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
+            // TODO: discount order fees
+            uint256 requiredMarginUsd = ud60x18(amountToDeposit).div(ud60x18(marginRequirement)).mul(
+                ud60x18(ETH_USD_MARGIN_REQUIREMENTS)
+            ).intoUint256();
+            amountToWithdraw = bound({ x: amountToWithdraw, min: requiredMarginUsd, max: amountToDeposit });
+            deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+        }
 
         uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -145,6 +151,15 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
                 isLong: isLong,
                 shouldDiscountFees: true
             })
+        );
+        (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18,
+        ) = perpsEngine.simulateTrade(
+            perpsAccountId, ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, sizeDelta
         );
 
         perpsEngine.createMarketOrder(
@@ -163,9 +178,16 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: users.naruto });
 
+        // console.log("from test here: ");
+        // console.log(amountToDeposit - amountToWithdraw, requiredMarginUsd);
+
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.InsufficientMargin.selector, perpsAccountId, amountToDeposit - amountToWithdraw, requiredMarginUsd
+                Errors.InsufficientMargin.selector,
+                perpsAccountId,
+                marginBalanceUsdX18.intoInt256() - int256(amountToWithdraw),
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
+                int256(0)
                 )
         });
         // it should revert
