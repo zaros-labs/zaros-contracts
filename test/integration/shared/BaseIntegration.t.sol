@@ -24,6 +24,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+import "forge-std/console.sol";
+
 abstract contract Base_Integration_Shared_Test is Base_Test {
     using Math for UD60x18;
     using SafeCast for int256;
@@ -263,6 +265,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         UD60x18 minTradeSize;
         UD60x18 price;
         bool isLong;
+        bool shouldDiscountFees;
     }
 
     struct FuzzOrderSizeDeltaContext {
@@ -276,9 +279,15 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     function fuzzOrderSizeDelta(FuzzOrderSizeDeltaParams memory params) internal view returns (int128 sizeDelta) {
         FuzzOrderSizeDeltaContext memory ctx;
 
+        console.log("fuzz order: ");
+        console.log(params.marginValueUsd.intoUint256());
+        console.log(params.initialMarginRate.intoUint256());
         ctx.fuzzedSizeDeltaAbs = params.marginValueUsd.div(params.initialMarginRate).div(params.price);
+        console.log(ctx.fuzzedSizeDeltaAbs.intoUint256());
         ctx.sizeDeltaAbs = Math.min(Math.max(ctx.fuzzedSizeDeltaAbs, params.minTradeSize), params.maxOpenInterest)
             .intoSD59x18().intoInt256().toInt128();
+        console.log("size delta abs: ");
+        console.log(sd59x18(ctx.sizeDeltaAbs).abs().intoUD60x18().intoUint256());
         ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
 
         (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine.simulateTrade(
@@ -292,18 +301,42 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             params.maxOpenInterest
         );
 
+        console.log("size delta with price impact: ");
+        console.log(ctx.sizeDeltaWithPriceImpact.intoUint256());
+
+        // SD59x18 shortSize =  Math.min(
+        //             unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
+        //                 ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+        //             ),
+        //             unary(params.minTradeSize.intoSD59x18()));
+
+        SD59x18 shortSize = unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
+            ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+        );
+
+        console.log("short size: ");
+        console.log(unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).abs().intoUD60x18().intoUint256());
+        console.log(ctx.totalOrderFeeInSize.intoUint256());
+        console.log(params.initialMarginRate.intoUint256());
+        console.log(shortSize.abs().intoUD60x18().intoUint256());
+
+        // if testing revert  cases where we don't want to discount fees, we pass shouldDiscountFees as false
         sizeDelta = (
             params.isLong
                 ? Math.max(
-                    ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
-                        ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
-                    ),
+                    params.shouldDiscountFees
+                        ? ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
+                            ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+                        )
+                        : ctx.sizeDeltaWithPriceImpact.intoSD59x18(),
                     params.minTradeSize.intoSD59x18()
                 )
                 : Math.min(
-                    unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
-                        ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
-                    ),
+                    params.shouldDiscountFees
+                        ? unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
+                            ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+                        )
+                        : unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()),
                     unary(params.minTradeSize.intoSD59x18())
                 )
         ).intoInt256().toInt128();

@@ -142,7 +142,8 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
                 maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
                 minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
                 price: ud60x18(MOCK_ETH_USD_PRICE),
-                isLong: isLong
+                isLong: isLong,
+                shouldDiscountFees: true
             })
         );
 
