@@ -324,11 +324,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
     {
-        UD60x18 maxMarginValueUsd =
-            ud60x18(ETH_USD_MARGIN_REQUIREMENTS).mul(ud60x18(ETH_USD_MAX_OI)).sub(ud60x18(1e18));
+        UD60x18 maxMarginValueUsd = ud60x18(ETH_USD_MARGIN_REQUIREMENTS).mul(ud60x18(ETH_USD_MAX_OI));
         marginValueUsd =
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
-        initialMarginRate = bound({ x: initialMarginRate, min: 1, max: ETH_USD_MARGIN_REQUIREMENTS / 2 });
+        initialMarginRate = bound({ x: initialMarginRate, min: 1, max: ETH_USD_MARGIN_REQUIREMENTS - 1 });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
