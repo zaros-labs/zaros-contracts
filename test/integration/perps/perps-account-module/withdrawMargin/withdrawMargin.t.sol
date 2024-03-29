@@ -113,6 +113,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
+    // TODO: fix pnl issue on settle tests
     function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirements(
         uint256 amountToDeposit,
         uint256 amountToWithdraw,
@@ -178,8 +179,10 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: users.naruto });
 
-        // console.log("from test here: ");
-        // console.log(amountToDeposit - amountToWithdraw, requiredMarginUsd);
+        console.log("from wmt: ");
+        console.log(marginBalanceUsdX18.abs().intoUint256());
+        console.log(amountToWithdraw);
+        console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
 
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
