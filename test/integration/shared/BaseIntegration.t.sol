@@ -318,6 +318,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
         address marketOrderUpkeep = marketOrderUpkeeps[marketId];
 
-        perpsEngine.settleMarketOrder(accountId, marketId, marketOrderUpkeep, extraData);
+        perpsEngine.executeMarketOrder(accountId, marketId, marketOrderUpkeep, extraData);
     }
 }

@@ -55,7 +55,7 @@ contract SettlementModule is ISettlementModule {
         _;
     }
 
-    function settleMarketOrder(
+    function executeMarketOrder(
         uint128 accountId,
         uint128 marketId,
         address settlementFeeReceiver,
@@ -81,7 +81,7 @@ contract SettlementModule is ISettlementModule {
         });
     }
 
-    function settleCustomOrders(
+    function executeCustomOrders(
         uint128 marketId,
         uint128 settlementId,
         address settlementFeeReceiver,

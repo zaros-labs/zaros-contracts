@@ -38,7 +38,7 @@ contract MarketOrderSettlementStrategy is DataStreamsSettlementStrategy {
         );
 
         // // TODO: Update the fee receiver to an address managed / stored by the keeper.
-        perpsEngine.settleMarketOrder(accountId, marketId, msg.sender, signedReport);
+        perpsEngine.executeMarketOrder(accountId, marketId, msg.sender, signedReport);
     }
 
     function dispatch(uint128, bytes calldata) external override { }

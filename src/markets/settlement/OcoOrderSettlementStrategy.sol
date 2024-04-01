@@ -128,7 +128,7 @@ contract OcoOrderSettlementStrategy is DataStreamsSettlementStrategy {
 
         ctx.payloads = abi.decode(extraData, (ISettlementModule.SettlementPayload[]));
         // TODO: Update the fee receiver to an address stored / managed by the keeper.
-        ctx.perpsEngine.settleCustomOrders(
+        ctx.perpsEngine.executeCustomOrders(
             ctx.marketId, ctx.settlementId, msg.sender, ctx.payloads, signedReport, address(0)
         );
     }
