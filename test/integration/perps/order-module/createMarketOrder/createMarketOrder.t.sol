@@ -116,7 +116,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
                 minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
                 price: ud60x18(MOCK_ETH_USD_PRICE),
-                isLong: isLong
+                isLong: isLong,
+                shouldDiscountFees: true
             })
         );
 
@@ -246,7 +247,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
                 minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
                 price: ud60x18(MOCK_ETH_USD_PRICE),
-                isLong: isLong
+                isLong: isLong,
+                shouldDiscountFees: true
             })
         );
 
@@ -285,7 +287,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 maxOpenInterest: ud60x18(BTC_USD_MAX_OI),
                 minTradeSize: ud60x18(BTC_USD_MIN_TRADE_SIZE),
                 price: ud60x18(MOCK_BTC_USD_PRICE),
-                isLong: isLong
+                isLong: isLong,
+                shouldDiscountFees: true
             })
         );
 
@@ -309,6 +312,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
     function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirements(
         uint256 marginValueUsd,
+        uint256 initialMarginRate,
         bool isLong
     )
         external
@@ -323,10 +327,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         UD60x18 maxMarginValueUsd = ud60x18(ETH_USD_MARGIN_REQUIREMENTS).mul(ud60x18(ETH_USD_MAX_OI));
         marginValueUsd =
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
+        initialMarginRate = bound({ x: initialMarginRate, min: 1, max: ETH_USD_MARGIN_REQUIREMENTS - 1 });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint256 initialMarginRate = ETH_USD_MARGIN_REQUIREMENTS / 2;
         uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -338,7 +342,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
                 minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
                 price: ud60x18(MOCK_ETH_USD_PRICE),
-                isLong: isLong
+                isLong: isLong,
+                shouldDiscountFees: false
             })
         );
 
@@ -348,7 +353,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             UD60x18 requiredMaintenanceMarginUsdX18,
             SD59x18 orderFeeUsdX18,
             UD60x18 settlementFeeUsdX18,
-        ) = perpsEngine.simulateTrade(perpsAccountId, ETH_USD_MARKET_ID, 0, sizeDelta);
+        ) = perpsEngine.simulateTrade(
+            perpsAccountId, ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, sizeDelta
+        );
 
         // it should revert
         vm.expectRevert({
@@ -406,7 +413,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
                 minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
                 price: ud60x18(MOCK_ETH_USD_PRICE),
-                isLong: isLong
+                isLong: isLong,
+                shouldDiscountFees: true
             })
         );
 
@@ -465,7 +473,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
                 minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
                 price: ud60x18(MOCK_ETH_USD_PRICE),
-                isLong: isLong
+                isLong: isLong,
+                shouldDiscountFees: true
             })
         );
 

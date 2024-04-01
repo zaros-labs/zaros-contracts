@@ -63,10 +63,12 @@ library Errors {
     /// @notice Thrown when trying to cancel an active market order and there's none.
     error NoActiveMarketOrder(uint128 accountId);
 
-    /// @notice PerpsEngine.PerpsAccountModule and PerpsEngine.PerpsAccount errors.
+    /// @notice PerpsEngine.PerpsAccountModule
 
     /// @notice Thrown When the provided collateral is not supported.
     error DepositCap(address collateralType, uint256 amount, uint256 depositCap);
+    /// @notice Thrown when there's not enough margin collateral to be withdrawn.
+    error InsufficientCollateralBalance(uint256 amount, uint256 balance);
     /// @notice Thrown When the caller is not the account token contract.
     error OnlyPerpsAccountToken(address sender);
     /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
