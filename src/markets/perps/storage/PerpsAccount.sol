@@ -105,7 +105,7 @@ library PerpsAccount {
         internal
         view
     {
-        if (requiredMarginUsdX18.intoSD59x18().add(totalFeesUsdX18).gte(marginBalanceUsdX18)) {
+        if (requiredMarginUsdX18.intoSD59x18().add(totalFeesUsdX18).gt(marginBalanceUsdX18)) {
             revert Errors.InsufficientMargin(
                 self.id,
                 marginBalanceUsdX18.intoInt256(),

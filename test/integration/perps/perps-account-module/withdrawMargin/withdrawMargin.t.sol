@@ -207,25 +207,25 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
-        // amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
-        // amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
-        // deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
+        amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        // uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        // // it should emit a {LogWithdrawMargin} event
-        // vm.expectEmit({ emitter: address(perpsEngine) });
-        // emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);
+        // it should emit a {LogWithdrawMargin} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);
 
-        // // it should transfer the withdrawn amount to the sender
-        // expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
-        // perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
+        // it should transfer the withdrawn amount to the sender
+        expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
+        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
 
-        // uint256 expectedMargin = amountToDeposit - amountToWithdraw;
-        // uint256 newMarginCollateralBalance =
-        //     perpsEngine.getAccountMarginCollateralBalance(perpsAccountId, address(usdToken)).intoUint256();
+        uint256 expectedMargin = amountToDeposit - amountToWithdraw;
+        uint256 newMarginCollateralBalance =
+            perpsEngine.getAccountMarginCollateralBalance(perpsAccountId, address(usdToken)).intoUint256();
 
-        // // it should decrease the margin collateral balance
-        // assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
+        // it should decrease the margin collateral balance
+        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
     }
 }
