@@ -35,12 +35,6 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     //////////////////////////////////////////////////////////////////////////*/
     IVerifierProxy internal chainlinkVerifier;
 
-    address internal ethUsdPriceAdapter;
-    string internal ethUsdStreamId;
-
-    address internal linkUsdPriceAdapter;
-    string internal linkUsdStreamId;
-
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -54,230 +48,150 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     mapping(uint256 marketId => address[] upkeeps) internal marketOrderUpkeeps;
     mapping(uint256 marketId => address[] upkeeps) internal ocoOrderUpkeeps;
 
-    function run() public broadcaster {
+    function run(uint256 initialMarketIndex, uint256 finalMarketIndex) public broadcaster {
+        perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
 
-        ethUsdPriceAdapter = vm.envAddress("ETH_USD_PRICE_FEED");
-        ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
+        address[] memory addressPriceFeeds = new address[](2);
+        addressPriceFeeds[0] = vm.envAddress("ETH_USD_PRICE_FEED");
+        addressPriceFeeds[1] = vm.envAddress("LINK_USD_PRICE_FEED");
 
-        linkUsdPriceAdapter = vm.envAddress("LINK_USD_PRICE_FEED");
-        linkUsdStreamId = vm.envString("LINK_USD_STREAM_ID");
+        string[] memory streamIds = new string[](2);
+        streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
+        streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
 
-        perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
+        uint256[] memory filteredIndexMarkets = new uint256[](2);
+        filteredIndexMarkets[0] = initialMarketIndex;
+        filteredIndexMarkets[1] = finalMarketIndex;
 
-        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderConfigurationData =
-        SettlementConfiguration.DataStreamsMarketStrategy({
-            chainlinkVerifier: chainlinkVerifier,
-            streamId: ethUsdStreamId,
-            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-            isPremium: ETH_USD_IS_PREMIUM_FEED
-        });
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(addressPriceFeeds, streamIds, filteredIndexMarkets);
 
-        deploySettlementStrategies();
+        deploySettlementStrategies(marketsConfig);
         deployKeepers();
-        configureKeepers();
+        configureKeepers(marketsConfig);
 
-        // TODO: Add price adapter
-        SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-            isEnabled: true,
-            fee: DEFAULT_SETTLEMENT_FEE,
-            settlementStrategy: marketOrderSettlementStrategies.get(ETH_USD_MARKET_ID),
-            data: abi.encode(ethUsdMarketOrderConfigurationData)
-        });
-        SettlementConfiguration.Data memory ethUsdLimitOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-            isEnabled: true,
-            fee: DEFAULT_SETTLEMENT_FEE,
-            settlementStrategy: limitOrderSettlementStrategies.get(ETH_USD_MARKET_ID),
-            data: abi.encode(ethUsdMarketOrderConfigurationData)
-        });
+        for (uint256 i = 0; i < marketsConfig.length; i++) {
+            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
+            SettlementConfiguration.DataStreamsMarketStrategy({
+                chainlinkVerifier: chainlinkVerifier,
+                streamId: marketsConfig[i].streamId,
+                feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+                queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
+                settlementDelay: marketsConfig[i].settlementDelay,
+                isPremium: marketsConfig[i].isPremiumFeed
+            });
 
-        SettlementConfiguration.Data[] memory ethUsdCustomOrderStrategies = new SettlementConfiguration.Data[](1);
-        ethUsdCustomOrderStrategies[0] = ethUsdLimitOrderConfiguration;
-
-        perpsEngine.createPerpMarket({
-            params: IGlobalConfigurationModule.CreatePerpMarketParams({
-                marketId: ETH_USD_MARKET_ID,
-                name: ETH_USD_MARKET_NAME,
-                symbol: ETH_USD_MARKET_SYMBOL,
-                priceAdapter: ethUsdPriceAdapter,
-                initialMarginRateX18: ETH_USD_IMR,
-                maintenanceMarginRateX18: ETH_USD_MMR,
-                maxOpenInterest: ETH_USD_MAX_OI,
-                maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-                skewScale: ETH_USD_SKEW_SCALE,
-                minTradeSizeX18: ETH_USD_MIN_TRADE_SIZE,
-                marketOrderConfiguration: ethUsdMarketOrderConfiguration,
-                customTriggerStrategies: ethUsdCustomOrderStrategies,
-                orderFees: ethUsdOrderFees
-            })
-        });
-
-        SettlementConfiguration.DataStreamsMarketStrategy memory linkUsdMarketOrderConfigurationData =
-        SettlementConfiguration.DataStreamsMarketStrategy({
             // TODO: Add price adapter
-            chainlinkVerifier: chainlinkVerifier,
-            streamId: linkUsdStreamId,
-            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-            settlementDelay: LINK_USD_SETTLEMENT_DELAY,
-            isPremium: LINK_USD_IS_PREMIUM_FEED
-        });
+            SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
+                strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+                isEnabled: true,
+                fee: DEFAULT_SETTLEMENT_FEE,
+                settlementStrategy: marketOrderSettlementStrategies.get(marketsConfig[i].marketId),
+                data: abi.encode(marketOrderConfigurationData)
+            });
 
-        // TODO: Add price adapter
-        SettlementConfiguration.Data memory linkUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-            isEnabled: true,
-            fee: DEFAULT_SETTLEMENT_FEE,
-            settlementStrategy: marketOrderSettlementStrategies.get(LINK_USD_MARKET_ID),
-            data: abi.encode(linkUsdMarketOrderConfigurationData)
-        });
+            SettlementConfiguration.Data memory limitOrderConfiguration = SettlementConfiguration.Data({
+                strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
+                isEnabled: true,
+                fee: DEFAULT_SETTLEMENT_FEE,
+                settlementStrategy: limitOrderSettlementStrategies.get(marketsConfig[i].marketId),
+                data: abi.encode(marketOrderConfigurationData)
+            });
 
-        SettlementConfiguration.Data memory linkUsdLimitOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-            isEnabled: true,
-            fee: DEFAULT_SETTLEMENT_FEE,
-            settlementStrategy: limitOrderSettlementStrategies.get(LINK_USD_MARKET_ID),
-            data: abi.encode(linkUsdMarketOrderConfigurationData)
-        });
+            SettlementConfiguration.Data[] memory customOrderStrategies = new SettlementConfiguration.Data[](1);
+            customOrderStrategies[0] = limitOrderConfiguration;
 
-        SettlementConfiguration.Data[] memory linkUsdCustomOrderStrategies = new SettlementConfiguration.Data[](1);
-        linkUsdCustomOrderStrategies[0] = linkUsdLimitOrderConfiguration;
-
-        perpsEngine.createPerpMarket({
-            params: IGlobalConfigurationModule.CreatePerpMarketParams({
-                marketId: LINK_USD_MARKET_ID,
-                name: LINK_USD_MARKET_NAME,
-                symbol: LINK_USD_MARKET_SYMBOL,
-                priceAdapter: linkUsdPriceAdapter,
-                initialMarginRateX18: LINK_USD_IMR,
-                maintenanceMarginRateX18: LINK_USD_MMR,
-                maxOpenInterest: LINK_USD_MAX_OI,
-                maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
-                skewScale: LINK_USD_SKEW_SCALE,
-                minTradeSizeX18: LINK_USD_MIN_TRADE_SIZE,
-                marketOrderConfiguration: linkUsdMarketOrderConfiguration,
-                customTriggerStrategies: linkUsdCustomOrderStrategies,
-                orderFees: linkUsdOrderFees
-            })
-        });
+            perpsEngine.createPerpMarket({
+                params: IGlobalConfigurationModule.CreatePerpMarketParams({
+                    marketId: marketsConfig[i].marketId,
+                    name: marketsConfig[i].marketName,
+                    symbol: marketsConfig[i].marketSymbol,
+                    priceAdapter: marketsConfig[i].priceAdapter,
+                    initialMarginRateX18: marketsConfig[i].imr,
+                    maintenanceMarginRateX18: marketsConfig[i].mmr,
+                    maxOpenInterest: marketsConfig[i].maxOi,
+                    skewScale: marketsConfig[i].skewScale,
+                    minTradeSizeX18: marketsConfig[i].minTradeSize,
+                    maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
+                    marketOrderConfiguration: marketOrderConfiguration,
+                    customTriggerStrategies: customOrderStrategies,
+                    orderFees: marketsConfig[i].orderFees
+                })
+            });
+        }
     }
 
-    function deploySettlementStrategies() internal {
+    function deploySettlementStrategies(MarketConfig[] memory marketsConfig) internal {
         address limitOrderSettlementStrategyImplementation = address(new LimitOrderSettlementStrategy());
-
-        console.log("Limit Order Settlement Strategy Implementation: ", limitOrderSettlementStrategyImplementation);
-
         address marketOrderSettlementStrategyImplementation = address(new MarketOrderSettlementStrategy());
-
-        console.log("Market Order Settlement Strategy Implementation: ", marketOrderSettlementStrategyImplementation);
-
         address ocoOrderSettlementStrategyImplementation = address(new OcoOrderSettlementStrategy());
 
+        console.log("----------");
+        console.log("Limit Order Settlement Strategy Implementation: ", limitOrderSettlementStrategyImplementation);
+        console.log("Market Order Settlement Strategy Implementation: ", marketOrderSettlementStrategyImplementation);
         console.log("Oco Order Settlement Strategy Implementation: ", ocoOrderSettlementStrategyImplementation);
 
-        bytes memory ethUsdLimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-            LimitOrderSettlementStrategy.initialize.selector,
-            perpsEngine,
-            ETH_USD_MARKET_ID,
-            LIMIT_ORDER_CONFIGURATION_ID,
-            MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
-        );
-        bytes memory ethUsdMarketOrderSettlementStrategyInitializeData =
-            abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID);
-        bytes memory ethUsdOcoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-            OcoOrderSettlementStrategy.initialize.selector, perpsEngine, ETH_USD_MARKET_ID, OCO_ORDER_CONFIGURATION_ID
-        );
+        for (uint256 i = 0; i < marketsConfig.length; i++) {
+            bytes memory LimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
+                LimitOrderSettlementStrategy.initialize.selector,
+                perpsEngine,
+                marketsConfig[i].marketId,
+                LIMIT_ORDER_CONFIGURATION_ID,
+                MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
+            );
 
-        bytes memory linkUsdLimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-            LimitOrderSettlementStrategy.initialize.selector,
-            perpsEngine,
-            LINK_USD_MARKET_ID,
-            LIMIT_ORDER_CONFIGURATION_ID,
-            MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
-        );
-        bytes memory linkUsdMarketOrderSettlementStrategyInitializeData =
-            abi.encodeWithSelector(MarketOrderSettlementStrategy.initialize.selector, perpsEngine, LINK_USD_MARKET_ID);
-        bytes memory linkUsdOcoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-            OcoOrderSettlementStrategy.initialize.selector,
-            perpsEngine,
-            LINK_USD_MARKET_ID,
-            OCO_ORDER_CONFIGURATION_ID
-        );
+            bytes memory marketOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
+                MarketOrderSettlementStrategy.initialize.selector, perpsEngine, marketsConfig[i].marketId
+            );
 
-        address ethUsdLimitOrderSettlementStrategy = address(
-            new ERC1967Proxy(
-                limitOrderSettlementStrategyImplementation, ethUsdLimitOrderSettlementStrategyInitializeData
-            )
-        );
+            bytes memory ocoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
+                OcoOrderSettlementStrategy.initialize.selector,
+                perpsEngine,
+                marketsConfig[i].marketId,
+                OCO_ORDER_CONFIGURATION_ID
+            );
 
-        console.log("ETH-USD Limit Order Settlement Strategy: ", ethUsdLimitOrderSettlementStrategy);
+            address limitOrderSettlementStrategy = address(
+                new ERC1967Proxy(
+                    limitOrderSettlementStrategyImplementation, LimitOrderSettlementStrategyInitializeData
+                )
+            );
 
-        limitOrderSettlementStrategies.set(ETH_USD_MARKET_ID, ethUsdLimitOrderSettlementStrategy);
+            limitOrderSettlementStrategies.set(marketsConfig[i].marketId, limitOrderSettlementStrategy);
 
-        address ethUsdMarketOrderSettlementStrategy = address(
-            new ERC1967Proxy(
-                marketOrderSettlementStrategyImplementation, ethUsdMarketOrderSettlementStrategyInitializeData
-            )
-        );
+            address marketOrderSettlementStrategy = address(
+                new ERC1967Proxy(
+                    marketOrderSettlementStrategyImplementation, marketOrderSettlementStrategyInitializeData
+                )
+            );
 
-        console.log("ETH-USD Market Order Settlement Strategy: ", ethUsdMarketOrderSettlementStrategy);
+            marketOrderSettlementStrategies.set(marketsConfig[i].marketId, marketOrderSettlementStrategy);
 
-        marketOrderSettlementStrategies.set(ETH_USD_MARKET_ID, ethUsdMarketOrderSettlementStrategy);
+            address ocoOrderSettlementStrategy = address(
+                new ERC1967Proxy(ocoOrderSettlementStrategyImplementation, ocoOrderSettlementStrategyInitializeData)
+            );
 
-        address ethUsdOcoOrderSettlementStrategy = address(
-            new ERC1967Proxy(ocoOrderSettlementStrategyImplementation, ethUsdOcoOrderSettlementStrategyInitializeData)
-        );
+            ocoOrderSettlementStrategies.set(marketsConfig[i].marketId, ocoOrderSettlementStrategy);
 
-        console.log("ETH-USD Oco Order Settlement Strategy: ", ethUsdOcoOrderSettlementStrategy);
-
-        ocoOrderSettlementStrategies.set(ETH_USD_MARKET_ID, ethUsdOcoOrderSettlementStrategy);
-
-        address linkUsdLimitOrderSettlementStrategy = address(
-            new ERC1967Proxy(
-                limitOrderSettlementStrategyImplementation, linkUsdLimitOrderSettlementStrategyInitializeData
-            )
-        );
-
-        console.log("LINK-USD Limit OrderSettlement Strategy: ", linkUsdLimitOrderSettlementStrategy);
-
-        limitOrderSettlementStrategies.set(LINK_USD_MARKET_ID, linkUsdLimitOrderSettlementStrategy);
-
-        address linkUsdMarketOrderSettlementStrategy = address(
-            new ERC1967Proxy(
-                marketOrderSettlementStrategyImplementation, linkUsdMarketOrderSettlementStrategyInitializeData
-            )
-        );
-
-        console.log("LINK-USD Market Order Settlement Strategy: ", linkUsdMarketOrderSettlementStrategy);
-
-        marketOrderSettlementStrategies.set(LINK_USD_MARKET_ID, linkUsdMarketOrderSettlementStrategy);
-
-        address linkUsdOcoOrderSettlementStrategy = address(
-            new ERC1967Proxy(
-                ocoOrderSettlementStrategyImplementation, linkUsdOcoOrderSettlementStrategyInitializeData
-            )
-        );
-
-        console.log("LINK-USD Oco Order Settlement Strategy: ", linkUsdOcoOrderSettlementStrategy);
-
-        ocoOrderSettlementStrategies.set(LINK_USD_MARKET_ID, linkUsdOcoOrderSettlementStrategy);
+            console.log("----------");
+            console.log(
+                marketsConfig[i].marketSymbol, " Limit Order Settlement Strategy: ", limitOrderSettlementStrategy
+            );
+            console.log(
+                marketsConfig[i].marketSymbol, " Market Order Settlement Strategy: ", marketOrderSettlementStrategy
+            );
+            console.log(marketsConfig[i].marketSymbol, " Oco Order Settlement Strategy: ", ocoOrderSettlementStrategy);
+        }
     }
 
     function deployKeepers() internal {
         address limitOrderUpkeepImplementation = address(new LimitOrderUpkeep());
-
-        console.log("LimitOrderUpkeep Implementation: ", limitOrderUpkeepImplementation);
-
         address marketOrderUpkeepImplementation = address(new MarketOrderUpkeep());
-
-        console.log("MarketOrderUpkeep Implementation: ", marketOrderUpkeepImplementation);
-
         address ocoOrderUpkeepImplementation = address(new OcoOrderUpkeep());
 
+        console.log("----------");
+        console.log("LimitOrderUpkeep Implementation: ", limitOrderUpkeepImplementation);
+        console.log("MarketOrderUpkeep Implementation: ", marketOrderUpkeepImplementation);
         console.log("OcoOrderUpkeep Implementation: ", ocoOrderUpkeepImplementation);
 
         uint256[] memory limitOrderMarketIds = limitOrderSettlementStrategies.keys();
@@ -333,29 +247,23 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         }
     }
 
-    function configureKeepers() internal {
-        LimitOrderSettlementStrategy ethUsdLimitOrderSettlementStrategy =
-            LimitOrderSettlementStrategy(limitOrderSettlementStrategies.get(ETH_USD_MARKET_ID));
-        MarketOrderSettlementStrategy ethUsdMarketOrderSettlementStrategy =
-            MarketOrderSettlementStrategy(marketOrderSettlementStrategies.get(ETH_USD_MARKET_ID));
-        OcoOrderSettlementStrategy ethUsOcoOrderSettlementStrategy =
-            OcoOrderSettlementStrategy(ocoOrderSettlementStrategies.get(ETH_USD_MARKET_ID));
+    function configureKeepers(MarketConfig[] memory marketsConfig) internal {
+        for (uint256 i = 0; i < marketsConfig.length; i++) {
+            LimitOrderSettlementStrategy limitOrderSettlementStrategy =
+                LimitOrderSettlementStrategy(limitOrderSettlementStrategies.get(marketsConfig[i].marketId));
 
-        LimitOrderSettlementStrategy linkUsdLimitOrderSettlementStrategy =
-            LimitOrderSettlementStrategy(limitOrderSettlementStrategies.get(LINK_USD_MARKET_ID));
-        MarketOrderSettlementStrategy linkUsdMarketOrderSettlementStrategy =
-            MarketOrderSettlementStrategy(marketOrderSettlementStrategies.get(LINK_USD_MARKET_ID));
-        OcoOrderSettlementStrategy linkUsdOcoOrderSettlementStrategy =
-            OcoOrderSettlementStrategy(ocoOrderSettlementStrategies.get(LINK_USD_MARKET_ID));
+            MarketOrderSettlementStrategy marketOrderSettlementStrategy =
+                MarketOrderSettlementStrategy(marketOrderSettlementStrategies.get(marketsConfig[i].marketId));
 
-        ethUsdLimitOrderSettlementStrategy.setKeepers(limitOrderUpkeeps[ETH_USD_MARKET_ID]);
-        ethUsdMarketOrderSettlementStrategy.setKeepers(marketOrderUpkeeps[ETH_USD_MARKET_ID]);
-        ethUsOcoOrderSettlementStrategy.setKeepers(ocoOrderUpkeeps[ETH_USD_MARKET_ID]);
+            OcoOrderSettlementStrategy ocoOrderSettlementStrategy =
+                OcoOrderSettlementStrategy(ocoOrderSettlementStrategies.get(marketsConfig[i].marketId));
 
-        linkUsdLimitOrderSettlementStrategy.setKeepers(limitOrderUpkeeps[LINK_USD_MARKET_ID]);
-        linkUsdMarketOrderSettlementStrategy.setKeepers(marketOrderUpkeeps[LINK_USD_MARKET_ID]);
-        linkUsdOcoOrderSettlementStrategy.setKeepers(ocoOrderUpkeeps[LINK_USD_MARKET_ID]);
+            limitOrderSettlementStrategy.setKeepers(limitOrderUpkeeps[marketsConfig[i].marketId]);
+            marketOrderSettlementStrategy.setKeepers(marketOrderUpkeeps[marketsConfig[i].marketId]);
+            ocoOrderSettlementStrategy.setKeepers(ocoOrderUpkeeps[marketsConfig[i].marketId]);
+        }
 
+        console.log("----------");
         console.log("All Keepers have been configured.");
     }
 }
