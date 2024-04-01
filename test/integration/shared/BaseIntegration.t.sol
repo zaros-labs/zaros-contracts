@@ -17,6 +17,7 @@ import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 // Open Zeppelin dependencies
+import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
@@ -179,6 +180,30 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         return ud60x18(uint256(answer) * 10 ** (SYSTEM_DECIMALS - decimals));
     }
 
+    function convertTokenAmountToUd60x18(address collateralType, uint256 amount) internal view returns (UD60x18) {
+        uint8 decimals = ERC20(collateralType).decimals();
+        if (Constants.SYSTEM_DECIMALS == decimals) {
+            return ud60x18(amount);
+        }
+        return ud60x18(amount * 10 ** (Constants.SYSTEM_DECIMALS - decimals));
+    }
+
+    function convertUd60x18ToTokenAmount(
+        address collateralType,
+        UD60x18 ud60x18Amount
+    )
+        internal
+        view
+        returns (uint256)
+    {
+        uint8 decimals = ERC20(collateralType).decimals();
+        if (Constants.SYSTEM_DECIMALS == decimals) {
+            return ud60x18Amount.intoUint256();
+        }
+
+        return ud60x18Amount.intoUint256() / (10 ** (Constants.SYSTEM_DECIMALS - decimals));
+    }
+
     function getMockedSignedReport(
         string memory streamId,
         uint256 price,
@@ -238,6 +263,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         UD60x18 minTradeSize;
         UD60x18 price;
         bool isLong;
+        bool shouldDiscountFees;
     }
 
     struct FuzzOrderSizeDeltaContext {
@@ -267,18 +293,23 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             params.maxOpenInterest
         );
 
+        // if testing revert  cases where we don't want to discount fees, we pass shouldDiscountFees as false
         sizeDelta = (
             params.isLong
                 ? Math.max(
-                    ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
-                        ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
-                    ),
+                    params.shouldDiscountFees
+                        ? ctx.sizeDeltaWithPriceImpact.intoSD59x18().sub(
+                            ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+                        )
+                        : ctx.sizeDeltaWithPriceImpact.intoSD59x18(),
                     params.minTradeSize.intoSD59x18()
                 )
                 : Math.min(
-                    unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
-                        ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
-                    ),
+                    params.shouldDiscountFees
+                        ? unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()).add(
+                            ctx.totalOrderFeeInSize.intoSD59x18().div(params.initialMarginRate.intoSD59x18())
+                        )
+                        : unary(ctx.sizeDeltaWithPriceImpact.intoSD59x18()),
                     unary(params.minTradeSize.intoSD59x18())
                 )
         ).intoInt256().toInt128();
