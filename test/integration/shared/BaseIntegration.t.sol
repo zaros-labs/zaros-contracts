@@ -390,8 +390,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         perpsEngine.settleMarketOrder(accountId, marketId, marketOrderUpkeep, extraData);
     }
 
-    function getFuzzMarketConfig(uint256 marketIndex) internal view returns (MarketConfig memory){
-        vm.assume(marketIndex >= 0 && marketIndex <= 1);
+    function getFuzzMarketConfig(uint256 marketIndex, uint256 initialMarketIndex, uint256 finalMarketIndex) internal view returns (MarketConfig memory){
+        vm.assume(marketIndex >= initialMarketIndex && marketIndex <= finalMarketIndex);
 
         address[] memory addressPriceFeeds = new address[](2);
         addressPriceFeeds[0] = vm.envAddress("ETH_USD_PRICE_FEED");
