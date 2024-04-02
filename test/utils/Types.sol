@@ -21,6 +21,7 @@ struct Users {
 struct MockPriceAdapters {
     MockPriceFeed mockBtcUsdPriceAdapter;
     MockPriceFeed mockEthUsdPriceAdapter;
+    MockPriceFeed mockLinkUsdPriceAdapter;
     MockPriceFeed mockUsdcUsdPriceAdapter;
     MockPriceFeed mockWstEthUsdPriceAdapter;
 }

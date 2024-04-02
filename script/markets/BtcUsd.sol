@@ -24,4 +24,8 @@ abstract contract BtcUsd {
     uint128 internal constant BTC_USD_SETTLEMENT_DELAY = 1 seconds;
     bool internal constant BTC_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal btcUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
+
+    /// @notice Test only mocks
+    string internal constant MOCK_BTC_USD_STREAM_ID = "MOCK_BTC_USD_STREAM_ID";
+    uint256 internal constant MOCK_BTC_USD_PRICE = 100_000e18;
 }
