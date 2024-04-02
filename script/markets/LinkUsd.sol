@@ -24,4 +24,8 @@ abstract contract LinkUsd {
     uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 1 seconds;
     bool internal constant LINK_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal linkUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
+
+    /// @notice Test only mocks
+    string internal constant MOCK_LINK_USD_STREAM_ID = "MOCK_LINK_USD_STREAM_ID";
+    uint256 internal constant MOCK_LINK_USD_PRICE = 10e18;
 }
