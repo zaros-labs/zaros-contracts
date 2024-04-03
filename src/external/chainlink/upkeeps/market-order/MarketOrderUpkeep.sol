@@ -3,15 +3,11 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IFeeManager, FeeAsset } from "../../interfaces/IFeeManager.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible } from "../../interfaces/IStreamsLookupCompatible.sol";
-import { IVerifierProxy } from "../../interfaces/IVerifierProxy.sol";
 import { BaseUpkeep } from "../BaseUpkeep.sol";
-import { ChainlinkUtil } from "../../ChainlinkUtil.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementModule.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
@@ -28,9 +24,11 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     ) & ~bytes32(uint256(0xff));
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
-    /// @param settlementStrategy The market order settlement strategy contract.
+    /// @param perpsEngine The address of the PerpsEngine contract.
+    /// @param marketId The Zaros perp market id which is using this strategy.
     struct MarketOrderUpkeepStorage {
-        MarketOrderSettlementStrategy settlementStrategy;
+        IPerpsEngine perpsEngine;
+        uint128 marketId;
     }
 
     constructor() {
@@ -38,25 +36,34 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     }
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
-    function initialize(address owner, MarketOrderSettlementStrategy settlementStrategy) external initializer {
+    function initialize(address owner, IPerpsEngine perpsEngine, uint128 marketId) external initializer {
         __BaseUpkeep_init(owner);
 
-        if (address(settlementStrategy) == address(0)) {
-            revert Errors.ZeroInput("settlementStrategy");
+        if (address(perpsEngine) == address(0)) {
+            revert Errors.ZeroInput("perpsEngine");
+        }
+        if (marketId == 0) {
+            revert Errors.ZeroInput("marketId");
         }
 
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
-        self.settlementStrategy = settlementStrategy;
+        self.perpsEngine = perpsEngine;
+        self.marketId = marketId;
     }
 
-    function getConfig() public view returns (address upkeepOwner, address forwarder, address settlementStrategy) {
+    function getConfig()
+        public
+        view
+        returns (address upkeepOwner, address forwarder, address perpsEngine, uint128 marketId)
+    {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
         upkeepOwner = owner();
         forwarder = baseUpkeepStorage.forwarder;
-        settlementStrategy = address(self.settlementStrategy);
+        perpsEngine = address(self.perpsEngine);
+        marketId = self.marketId;
     }
 
     /// TODO: add check if upkeep is turned on (check contract's ETH funding)
@@ -120,11 +127,10 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         uint128 accountId = abi.decode(extraData, (uint128));
 
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
-        MarketOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
+        (uint128 marketId, IPerpsEngine perpsEngine) = (self.marketId, self.perpsEngine);
 
-        bytes memory tradeExtraData = abi.encode(accountId);
-
-        settlementStrategy.executeTrade(signedReport, tradeExtraData);
+        // TODO: Update the fee receiver to an address managed / stored by the keeper.
+        perpsEngine.executeMarketOrder(accountId, marketId, msg.sender, signedReport);
     }
 
     function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {
