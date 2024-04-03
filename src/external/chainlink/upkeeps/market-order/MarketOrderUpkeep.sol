@@ -10,7 +10,6 @@ import { BaseUpkeep } from "../BaseUpkeep.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
-import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -25,9 +24,11 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
     /// @param perpsEngine The address of the PerpsEngine contract.
-    /// @param marketId The Zaros perp market id which is using this strategy.
+    /// @param feeReceiver The address that receives settlement fees.
+    /// @param marketId The perps market id that the keeper should execute market orders for.
     struct MarketOrderUpkeepStorage {
         IPerpsEngine perpsEngine;
+        address feeReceiver;
         uint128 marketId;
     }
 
@@ -36,11 +37,26 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     }
 
     /// @notice {MarketOrderUpkeep} UUPS initializer.
-    function initialize(address owner, IPerpsEngine perpsEngine, uint128 marketId) external initializer {
+    /// @param owner The address of the owner of the keeper.
+    /// @param perpsEngine The address of the PerpsEngine contract.
+    /// @param feeReceiver The address that receives settlement fees.
+    /// @param marketId The perps market id that the keeper should execute market orders for.
+    function initialize(
+        address owner,
+        IPerpsEngine perpsEngine,
+        address feeReceiver,
+        uint128 marketId
+    )
+        external
+        initializer
+    {
         __BaseUpkeep_init(owner);
 
         if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("perpsEngine");
+        }
+        if (feeReceiver == address(0)) {
+            revert Errors.ZeroInput("feeReceiver");
         }
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
@@ -49,13 +65,14 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
 
         self.perpsEngine = perpsEngine;
+        self.feeReceiver = feeReceiver;
         self.marketId = marketId;
     }
 
     function getConfig()
         public
         view
-        returns (address upkeepOwner, address forwarder, address perpsEngine, uint128 marketId)
+        returns (address upkeepOwner, address forwarder, address perpsEngine, address feeReceiver, uint128 marketId)
     {
         BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
@@ -63,6 +80,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         upkeepOwner = owner();
         forwarder = baseUpkeepStorage.forwarder;
         perpsEngine = address(self.perpsEngine);
+        feeReceiver = self.feeReceiver;
         marketId = self.marketId;
     }
 
@@ -121,16 +139,28 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         performData = abi.encode(signedReport, extraData);
     }
 
+    /// @notice Updates the address that receives settlement fees.
+    /// @param newFeeReceiver The new address that receives settlement fees.
+    function updateFeeReceiver(address newFeeReceiver) external onlyOwner {
+        if (newFeeReceiver == address(0)) {
+            revert Errors.ZeroInput("newFeeReceiver");
+        }
+
+        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        self.feeReceiver = newFeeReceiver;
+    }
+
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
         (bytes memory signedReport, bytes memory extraData) = abi.decode(performData, (bytes, bytes));
         uint128 accountId = abi.decode(extraData, (uint128));
 
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
-        (uint128 marketId, IPerpsEngine perpsEngine) = (self.marketId, self.perpsEngine);
+        (IPerpsEngine perpsEngine, address feeReceiver, uint128 marketId) =
+            (self.perpsEngine, self.feeReceiver, self.marketId);
 
         // TODO: Update the fee receiver to an address managed / stored by the keeper.
-        perpsEngine.executeMarketOrder(accountId, marketId, msg.sender, signedReport);
+        perpsEngine.executeMarketOrder(accountId, marketId, feeReceiver, signedReport);
     }
 
     function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {
