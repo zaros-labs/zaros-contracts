@@ -51,7 +51,7 @@ contract SettlementModule is ISettlementModule {
             SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
         address keeper = settlementConfiguration.keeper;
 
-        _requireIsKeeper(msg.sender, keeper);;
+        _requireIsKeeper(msg.sender, keeper);
         _;
     }
 
