@@ -86,7 +86,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
-                settlementStrategy: marketOrderSettlementStrategies.get(marketsConfig[i].marketId),
+                keeper: marketOrderSettlementStrategies.get(marketsConfig[i].marketId),
                 data: abi.encode(marketOrderConfigurationData)
             });
 
@@ -94,7 +94,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
-                settlementStrategy: limitOrderSettlementStrategies.get(marketsConfig[i].marketId),
+                keeper: limitOrderSettlementStrategies.get(marketsConfig[i].marketId),
                 data: abi.encode(marketOrderConfigurationData)
             });
 

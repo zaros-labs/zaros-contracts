@@ -43,13 +43,13 @@ library SettlementConfiguration {
     /// @param strategyType The strategy id active.
     /// @param isEnabled Whether the strategy is enabled or not. May be used to pause trading in a market.
     /// @param fee The settlement cost in USD charged from the trader.
-    /// @param settlementStrategy The address of the configured SettlementStrategy contract.
+    /// @param keeper The address of the keeper that executes trades.
     /// @param data Data structure required for the settlement strategy, varies for each settlementConfiguration.
     struct Data {
         StrategyType strategyType;
         bool isEnabled;
         uint80 fee;
-        address settlementStrategy;
+        address keeper;
         bytes data;
     }
 
@@ -104,7 +104,7 @@ library SettlementConfiguration {
         self.strategyType = settlementConfiguration.strategyType;
         self.isEnabled = settlementConfiguration.isEnabled;
         self.fee = settlementConfiguration.fee;
-        self.settlementStrategy = settlementConfiguration.settlementStrategy;
+        self.keeper = settlementConfiguration.keeper;
         self.data = settlementConfiguration.data;
     }
 
@@ -220,25 +220,25 @@ library SettlementConfiguration {
     }
 
     function verifyDataStreamsReport(
-        DataStreamsMarketStrategy memory settlementStrategy,
+        DataStreamsMarketStrategy memory keeper,
         bytes memory signedReport
     )
         internal
         returns (bytes memory verifiedReportData)
     {
-        IVerifierProxy chainlinkVerifier = settlementStrategy.chainlinkVerifier;
+        IVerifierProxy chainlinkVerifier = keeper.chainlinkVerifier;
 
         verifiedReportData = verifyDataStreamsReport(chainlinkVerifier, signedReport);
     }
 
     function verifyDataStreamsReport(
-        DataStreamsCustomStrategy memory settlementStrategy,
+        DataStreamsCustomStrategy memory keeper,
         bytes memory signedReport
     )
         internal
         returns (bytes memory verifiedReportData)
     {
-        IVerifierProxy chainlinkVerifier = settlementStrategy.chainlinkVerifier;
+        IVerifierProxy chainlinkVerifier = keeper.chainlinkVerifier;
 
         verifiedReportData = verifyDataStreamsReport(chainlinkVerifier, signedReport);
     }

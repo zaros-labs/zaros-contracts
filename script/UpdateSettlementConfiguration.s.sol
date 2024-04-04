@@ -48,7 +48,7 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
-            settlementStrategy: ethUsdMarketOrderSettlementStrategy,
+            keeper: ethUsdMarketOrderSettlementStrategy,
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 

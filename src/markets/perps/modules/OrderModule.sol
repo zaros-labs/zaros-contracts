@@ -155,6 +155,7 @@ contract OrderModule is IOrderModule {
         emit LogCreateMarketOrder(msg.sender, params.accountId, params.marketId, marketOrder);
     }
 
+    // TODO: re-implement
     function createCustomOrder(
         uint128 accountId,
         uint128 marketId,
@@ -166,30 +167,31 @@ contract OrderModule is IOrderModule {
         override
         returns (bytes memory)
     {
-        PerpsAccount.verifySender(accountId);
-        SettlementConfiguration.Data storage settlementConfiguration;
+        // PerpsAccount.verifySender(accountId);
+        // SettlementConfiguration.Data storage settlementConfiguration;
 
-        if (!isAccountStrategy) {
-            settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
-        } else {
-            // TODO: Implement
-            // settlementConfiguration = SettlementConfiguration.load(accountId, marketId, settlementId);
-            settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
-        }
+        // if (!isAccountStrategy) {
+        //     settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
+        // } else {
+        //     // TODO: Implement
+        //     // settlementConfiguration = SettlementConfiguration.load(accountId, marketId, settlementId);
+        //     settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
+        // }
 
-        address settlementStrategy = settlementConfiguration.settlementStrategy;
+        // address settlementStrategy = settlementConfiguration.settlementStrategy;
 
-        bytes memory callData = abi.encodeWithSelector(ISettlementStrategy.dispatch.selector, accountId, extraData);
-        (bool success, bytes memory returnData) = settlementStrategy.call(callData);
+        // bytes memory callData = abi.encodeWithSelector(ISettlementStrategy.dispatch.selector, accountId,
+        // extraData);
+        // (bool success, bytes memory returnData) = settlementStrategy.call(callData);
 
-        if (!success) {
-            if (returnData.length == 0) revert Errors.FailedCreateCustomOrder();
-            assembly {
-                revert(add(returnData, 0x20), mload(returnData))
-            }
-        }
+        // if (!success) {
+        //     if (returnData.length == 0) revert Errors.FailedCreateCustomOrder();
+        //     assembly {
+        //         revert(add(returnData, 0x20), mload(returnData))
+        //     }
+        // }
 
-        return returnData;
+        // return returnData;
     }
 
     /// @inheritdoc IOrderModule

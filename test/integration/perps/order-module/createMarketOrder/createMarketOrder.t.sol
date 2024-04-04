@@ -270,7 +270,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-        changePrank({ msgSender: mockDefaultMarketOrderSettlementStrategy });
+        changePrank({ msgSender: marketOrderUpkeeps[ETH_USD_MARKET_ID] });
         bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE, false);
 
         mockSettleMarketOrder(perpsAccountId, ETH_USD_MARKET_ID, mockBasicSignedReport);

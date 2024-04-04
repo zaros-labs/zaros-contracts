@@ -33,7 +33,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
     /// @dev TODO: think about forking tests
     mapping(uint256 marketId => address upkeep) internal marketOrderUpkeeps;
-    address internal mockDefaultMarketOrderSettlementStrategy = vm.addr({ privateKey: 0x04 });
 
     /// @dev BTC / USD market configuration variables.
     SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderConfigurationData;
@@ -74,7 +73,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
-            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            keeper: marketOrderUpkeeps[BTC_USD_MARKET_ID],
             data: abi.encode(btcUsdMarketOrderConfigurationData)
         });
 
@@ -84,7 +83,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
-            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            keeper: marketOrderUpkeeps[BTC_USD_MARKET_ID],
             data: abi.encode(btcUsdMarketOrderConfigurationData)
         });
 
@@ -104,7 +103,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
-            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            keeper: marketOrderUpkeeps[ETH_USD_MARKET_ID],
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
@@ -114,7 +113,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
-            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
+            keeper: marketOrderUpkeeps[ETH_USD_MARKET_ID],
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
