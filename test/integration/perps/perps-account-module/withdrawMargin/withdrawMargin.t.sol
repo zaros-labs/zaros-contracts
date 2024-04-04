@@ -153,13 +153,8 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
                 shouldDiscountFees: true
             })
         );
-        (
-            SD59x18 marginBalanceUsdX18,
-            UD60x18 requiredInitialMarginUsdX18,
-            UD60x18 requiredMaintenanceMarginUsdX18,
-            SD59x18 orderFeeUsdX18,
-            UD60x18 settlementFeeUsdX18,
-        ) = perpsEngine.simulateTrade(
+        (SD59x18 marginBalanceUsdX18, UD60x18 requiredInitialMarginUsdX18, UD60x18 requiredMaintenanceMarginUsdX18,,,)
+        = perpsEngine.simulateTrade(
             perpsAccountId, ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, sizeDelta
         );
 
