@@ -70,7 +70,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         });
         // TODO: set price adapter
         btcUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             keeper: marketOrderUpkeeps[BTC_USD_MARKET_ID],
@@ -80,7 +80,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         // TODO: update limit order strategy and move the market's strategies definition to a separate file.
         // TODO: set price adapter
         btcUsdLimitOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             keeper: marketOrderUpkeeps[BTC_USD_MARKET_ID],
@@ -100,7 +100,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         });
         // TODO: set price adapter
         ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             keeper: marketOrderUpkeeps[ETH_USD_MARKET_ID],
@@ -110,7 +110,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         // TODO: update limit order strategy and move the market's strategies definition to a separate file.
         // TODO: set price adapter
         ethUsdLimitOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
             keeper: marketOrderUpkeeps[ETH_USD_MARKET_ID],

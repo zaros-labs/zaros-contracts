@@ -42,7 +42,7 @@ library Errors {
 
     /// @notice PerpsEngine.OrderModule errors
 
-    /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
+    /// @notice Thrown when invoking a custom settlement configuration reverts without a downstream error.
     error FailedCreateCustomOrder();
     /// @notice Thrown when trying to cancel an active market order and there's none.
     error NoActiveMarketOrder(uint128 accountId);
@@ -133,10 +133,10 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementConfiguration errors.
 
-    /// @notice Thrown when a configured settlement strategy is disabled.
+    /// @notice Thrown when a configured settlement configuration is disabled.
     error SettlementDisabled();
-    /// @notice Thrown when the provided `settlementId` is not a valid settlement strategy id.
-    error InvalidSettlementStrategyType(uint8 settlementId);
+    /// @notice Thrown when the provided `settlementId` is not a valid settlement configuration id.
+    error InvalidSettlementConfiguration(uint8 settlementId);
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
     /// one.
     error InvalidDataStreamReport(string settlementStreamId, bytes32 reportStreamId);

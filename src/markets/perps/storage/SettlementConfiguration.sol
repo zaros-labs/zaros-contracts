@@ -34,19 +34,19 @@ library SettlementConfiguration {
     /// settle market orders.
     /// @param DATA_STREAMS_CUSTOM The strategy ID that uses basic or premium reports from CL Data Streams to
     /// settle any sort of custom order.
-    enum StrategyType {
+    enum Strategy {
         DATA_STREAMS_MARKET,
         DATA_STREAMS_CUSTOM
     }
 
     /// @notice The {SettlementConfiguration} namespace storage structure.
-    /// @param strategyType The strategy id active.
+    /// @param strategy The strategy id active.
     /// @param isEnabled Whether the strategy is enabled or not. May be used to pause trading in a market.
     /// @param fee The settlement cost in USD charged from the trader.
     /// @param keeper The address of the keeper that executes trades.
-    /// @param data Data structure required for the settlement strategy, varies for each settlementConfiguration.
+    /// @param data Data structure required for the settlement configuration, varies for each settlementConfiguration.
     struct Data {
-        StrategyType strategyType;
+        Strategy strategy;
         bool isEnabled;
         uint80 fee;
         address keeper;
@@ -101,7 +101,7 @@ library SettlementConfiguration {
     function update(uint128 marketId, uint128 settlementId, Data memory settlementConfiguration) internal {
         Data storage self = load(marketId, settlementId);
 
-        self.strategyType = settlementConfiguration.strategyType;
+        self.strategy = settlementConfiguration.strategy;
         self.isEnabled = settlementConfiguration.isEnabled;
         self.fee = settlementConfiguration.fee;
         self.keeper = settlementConfiguration.keeper;
@@ -121,18 +121,18 @@ library SettlementConfiguration {
         view
         returns (UD60x18 price)
     {
-        if (self.strategyType == StrategyType.DATA_STREAMS_MARKET) {
+        if (self.strategy == Strategy.DATA_STREAMS_MARKET) {
             DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
                 abi.decode(self.data, (DataStreamsMarketStrategy));
 
             price = getDataStreamsReportPrice(verifiedPriceData, dataStreamsMarketStrategy.isPremium, isBuyOrder);
-        } else if (self.strategyType == StrategyType.DATA_STREAMS_CUSTOM) {
+        } else if (self.strategy == Strategy.DATA_STREAMS_CUSTOM) {
             DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
                 abi.decode(self.data, (DataStreamsCustomStrategy));
 
             price = getDataStreamsReportPrice(verifiedPriceData, dataStreamsCustomStrategy.isPremium, isBuyOrder);
         } else {
-            revert Errors.InvalidSettlementStrategyType(uint8(self.strategyType));
+            revert Errors.InvalidSettlementConfiguration(uint8(self.strategy));
         }
     }
 
@@ -198,7 +198,7 @@ library SettlementConfiguration {
         internal
         returns (bytes memory verifiedPriceData)
     {
-        if (self.strategyType == StrategyType.DATA_STREAMS_MARKET) {
+        if (self.strategy == Strategy.DATA_STREAMS_MARKET) {
             DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
                 abi.decode(self.data, (DataStreamsMarketStrategy));
             verifiedPriceData = verifyDataStreamsReport(dataStreamsMarketStrategy, extraData);
@@ -206,7 +206,7 @@ library SettlementConfiguration {
             requireDataStreamsReportIsValid(
                 dataStreamsMarketStrategy.streamId, verifiedPriceData, dataStreamsMarketStrategy.isPremium
             );
-        } else if (self.strategyType == StrategyType.DATA_STREAMS_CUSTOM) {
+        } else if (self.strategy == Strategy.DATA_STREAMS_CUSTOM) {
             DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
                 abi.decode(self.data, (DataStreamsCustomStrategy));
             verifiedPriceData = verifyDataStreamsReport(dataStreamsCustomStrategy, extraData);
@@ -215,7 +215,7 @@ library SettlementConfiguration {
                 dataStreamsCustomStrategy.streamId, verifiedPriceData, dataStreamsCustomStrategy.isPremium
             );
         } else {
-            revert Errors.InvalidSettlementStrategyType(uint8(self.strategyType));
+            revert Errors.InvalidSettlementConfiguration(uint8(self.strategy));
         }
     }
 

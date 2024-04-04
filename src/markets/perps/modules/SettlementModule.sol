@@ -5,9 +5,6 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
-import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
-import { OcoOrder } from "@zaros/markets/settlement/storage/OcoOrder.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
@@ -147,7 +144,6 @@ contract SettlementModule is ISettlementModule {
         SettlementContext memory ctx;
         ctx.marketId = marketId;
         ctx.accountId = payload.accountId;
-        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
         ctx.sizeDelta = sd59x18(payload.sizeDelta);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
@@ -155,6 +151,8 @@ contract SettlementModule is ISettlementModule {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
+
         ctx.usdToken = globalConfiguration.usdToken;
 
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.

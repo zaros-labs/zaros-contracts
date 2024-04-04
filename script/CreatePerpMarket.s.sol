@@ -4,12 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { LimitOrderUpkeep } from "@zaros/external/chainlink/upkeeps/limit-order/LimitOrderUpkeep.sol";
 import { MarketOrderUpkeep } from "@zaros/external/chainlink/upkeeps/market-order/MarketOrderUpkeep.sol";
-import { OcoOrderUpkeep } from "@zaros/external/chainlink/upkeeps/oco-order/OcoOrderUpkeep.sol";
-import { LimitOrderSettlementStrategy } from "@zaros/markets/settlement/LimitOrderSettlementStrategy.sol";
-import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
-import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
@@ -83,7 +78,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
             // TODO: Add price adapter
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
                 keeper: marketOrderSettlementStrategies.get(marketsConfig[i].marketId),
@@ -91,7 +86,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             });
 
             SettlementConfiguration.Data memory limitOrderConfiguration = SettlementConfiguration.Data({
-                strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_CUSTOM,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
                 keeper: limitOrderSettlementStrategies.get(marketsConfig[i].marketId),
@@ -118,69 +113,6 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                     orderFees: marketsConfig[i].orderFees
                 })
             });
-        }
-    }
-
-    function deploySettlementStrategies(MarketConfig[] memory marketsConfig) internal {
-        address limitOrderSettlementStrategyImplementation = address(new LimitOrderSettlementStrategy());
-        address marketOrderSettlementStrategyImplementation = address(new MarketOrderSettlementStrategy());
-        address ocoOrderSettlementStrategyImplementation = address(new OcoOrderSettlementStrategy());
-
-        console.log("----------");
-        console.log("Limit Order Settlement Strategy Implementation: ", limitOrderSettlementStrategyImplementation);
-        console.log("Market Order Settlement Strategy Implementation: ", marketOrderSettlementStrategyImplementation);
-        console.log("Oco Order Settlement Strategy Implementation: ", ocoOrderSettlementStrategyImplementation);
-
-        for (uint256 i = 0; i < marketsConfig.length; i++) {
-            bytes memory LimitOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-                LimitOrderSettlementStrategy.initialize.selector,
-                perpsEngine,
-                marketsConfig[i].marketId,
-                LIMIT_ORDER_CONFIGURATION_ID,
-                MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET
-            );
-
-            bytes memory marketOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-                MarketOrderSettlementStrategy.initialize.selector, perpsEngine, marketsConfig[i].marketId
-            );
-
-            bytes memory ocoOrderSettlementStrategyInitializeData = abi.encodeWithSelector(
-                OcoOrderSettlementStrategy.initialize.selector,
-                perpsEngine,
-                marketsConfig[i].marketId,
-                OCO_ORDER_CONFIGURATION_ID
-            );
-
-            address limitOrderSettlementStrategy = address(
-                new ERC1967Proxy(
-                    limitOrderSettlementStrategyImplementation, LimitOrderSettlementStrategyInitializeData
-                )
-            );
-
-            limitOrderSettlementStrategies.set(marketsConfig[i].marketId, limitOrderSettlementStrategy);
-
-            address marketOrderSettlementStrategy = address(
-                new ERC1967Proxy(
-                    marketOrderSettlementStrategyImplementation, marketOrderSettlementStrategyInitializeData
-                )
-            );
-
-            marketOrderSettlementStrategies.set(marketsConfig[i].marketId, marketOrderSettlementStrategy);
-
-            address ocoOrderSettlementStrategy = address(
-                new ERC1967Proxy(ocoOrderSettlementStrategyImplementation, ocoOrderSettlementStrategyInitializeData)
-            );
-
-            ocoOrderSettlementStrategies.set(marketsConfig[i].marketId, ocoOrderSettlementStrategy);
-
-            console.log("----------");
-            console.log(
-                marketsConfig[i].marketSymbol, " Limit Order Settlement Strategy: ", limitOrderSettlementStrategy
-            );
-            console.log(
-                marketsConfig[i].marketSymbol, " Market Order Settlement Strategy: ", marketOrderSettlementStrategy
-            );
-            console.log(marketsConfig[i].marketSymbol, " Oco Order Settlement Strategy: ", ocoOrderSettlementStrategy);
         }
     }
 
@@ -245,25 +177,5 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
             ocoOrderUpkeeps[marketId].push(ocoOrderUpkeep);
         }
-    }
-
-    function configureKeepers(MarketConfig[] memory marketsConfig) internal {
-        for (uint256 i = 0; i < marketsConfig.length; i++) {
-            LimitOrderSettlementStrategy limitOrderSettlementStrategy =
-                LimitOrderSettlementStrategy(limitOrderSettlementStrategies.get(marketsConfig[i].marketId));
-
-            MarketOrderSettlementStrategy marketOrderSettlementStrategy =
-                MarketOrderSettlementStrategy(marketOrderSettlementStrategies.get(marketsConfig[i].marketId));
-
-            OcoOrderSettlementStrategy ocoOrderSettlementStrategy =
-                OcoOrderSettlementStrategy(ocoOrderSettlementStrategies.get(marketsConfig[i].marketId));
-
-            limitOrderSettlementStrategy.setKeepers(limitOrderUpkeeps[marketsConfig[i].marketId]);
-            marketOrderSettlementStrategy.setKeepers(marketOrderUpkeeps[marketsConfig[i].marketId]);
-            ocoOrderSettlementStrategy.setKeepers(ocoOrderUpkeeps[marketsConfig[i].marketId]);
-        }
-
-        console.log("----------");
-        console.log("All Keepers have been configured.");
     }
 }

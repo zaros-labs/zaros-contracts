@@ -2,7 +2,6 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IOrderModule } from "../interfaces/IOrderModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";

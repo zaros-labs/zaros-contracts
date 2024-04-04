@@ -26,7 +26,7 @@ interface IOrderModule {
     /// @dev Reverts if there's not enough margin to cover the trade.
     /// @param accountId The trading account id.
     /// @param marketId The perp market id.
-    /// @param settlementId The perp market settlement strategy id.
+    /// @param settlementId The perp market settlement configuration id.
     /// @param sizeDelta The size delta of the order.
     /// @return marginBalanceUsdX18 The given account's current margin balance.
     /// @return requiredInitialMarginUsdX18 The required initial margin to settle the given trade.

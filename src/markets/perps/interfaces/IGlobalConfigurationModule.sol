@@ -70,7 +70,7 @@ interface IGlobalConfigurationModule {
     /// @notice Emitted when the settlement configuration of a given market is updated.
     /// @param sender The address that updated the settlement configuration.
     /// @param marketId The perps market id.
-    /// @param settlementId The perps market settlement strategy id.
+    /// @param settlementId The perps market settlement configuration id.
     event LogUpdateSettlementConfiguration(address indexed sender, uint128 indexed marketId, uint128 settlementId);
 
     /// @notice Emitted when a perp market is re-enabled by the owner.
@@ -154,7 +154,7 @@ interface IGlobalConfigurationModule {
     /// @param maxFundingVelocity The perps market maximum funding rate velocity.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
-    /// @param marketOrderConfiguration The perps market settlement strategy.
+    /// @param marketOrderConfiguration The perps market settlement configuration.
     /// @param orderFees The perps market maker and taker fees.
     struct CreatePerpMarketParams {
         uint128 marketId;
@@ -210,7 +210,7 @@ interface IGlobalConfigurationModule {
 
     /// @notice Updates the settlement configuration of a given market.
     /// @param marketId The perp market id.
-    /// @param settlementId The perp market settlement strategy id.
+    /// @param settlementId The perp market settlement configuration id.
     /// @param newSettlementConfiguration The new settlement configuration.
     function updateSettlementConfiguration(
         uint128 marketId,
