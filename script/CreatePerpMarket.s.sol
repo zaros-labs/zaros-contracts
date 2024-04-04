@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { MarketOrderUpkeep } from "@zaros/external/chainlink/upkeeps/market-order/MarketOrderUpkeep.sol";
+import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
@@ -21,7 +21,7 @@ import { console } from "forge-std/console.sol";
 
 // TODO: update limit order strategies
 // TODO: Create isPremium protocol configurable variable
-// TODO: update owner and forwarder on upkeep initialization
+// TODO: update owner and forwarder on keeper initialization
 contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
@@ -99,16 +99,16 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         }
     }
 
-    function deployMarketOrderKeeper(uint128 marketId) internal returns (address marketOrderUpkeep) {
-        address marketOrderUpkeepImplementation = address(new MarketOrderUpkeep());
+    function deployMarketOrderKeeper(uint128 marketId) internal returns (address marketOrderKeeper) {
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        console.log("MarketOrderUpkeep Implementation: ", marketOrderUpkeepImplementation);
+        console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
 
-        marketOrderUpkeep = address(
+        marketOrderKeeper = address(
             new ERC1967Proxy(
-                marketOrderUpkeepImplementation,
+                marketOrderKeeperImplementation,
                 abi.encodeWithSelector(
-                    MarketOrderUpkeep.initialize.selector, deployer, perpsEngine, settlementFeeReceiver, marketId
+                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, settlementFeeReceiver, marketId
                 )
             )
         );

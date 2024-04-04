@@ -32,7 +32,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     address internal mockChainlinkVerifier;
 
     /// @dev TODO: think about forking tests
-    mapping(uint256 marketId => address upkeep) internal marketOrderUpkeeps;
+    mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
 
     /// @dev BTC / USD market configuration variables.
     SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderConfigurationData;
@@ -57,8 +57,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
 
         /// @dev BTC / USD market configuration variables.
-        // marketOrderUpkeeps[BTC_USD_MARKET_ID] = address(new MarketOrderUpkeep());
-        marketOrderUpkeeps[BTC_USD_MARKET_ID] = vm.addr({ privateKey: 0x05 });
+        // marketOrderKeepers[BTC_USD_MARKET_ID] = address(new MarketOrderKeeper());
+        marketOrderKeepers[BTC_USD_MARKET_ID] = vm.addr({ privateKey: 0x05 });
 
         btcUsdMarketOrderConfigurationData = SettlementConfiguration.DataStreamsMarketStrategy({
             chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
@@ -73,7 +73,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
-            keeper: marketOrderUpkeeps[BTC_USD_MARKET_ID],
+            keeper: marketOrderKeepers[BTC_USD_MARKET_ID],
             data: abi.encode(btcUsdMarketOrderConfigurationData)
         });
 
@@ -83,12 +83,12 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
-            keeper: marketOrderUpkeeps[BTC_USD_MARKET_ID],
+            keeper: marketOrderKeepers[BTC_USD_MARKET_ID],
             data: abi.encode(btcUsdMarketOrderConfigurationData)
         });
 
         /// @dev ETH / USD market configuration variables.
-        marketOrderUpkeeps[ETH_USD_MARKET_ID] = vm.addr({ privateKey: 0x06 });
+        marketOrderKeepers[ETH_USD_MARKET_ID] = vm.addr({ privateKey: 0x06 });
 
         ethUsdMarketOrderConfigurationData = SettlementConfiguration.DataStreamsMarketStrategy({
             chainlinkVerifier: IVerifierProxy((mockChainlinkVerifier)),
@@ -103,7 +103,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
-            keeper: marketOrderUpkeeps[ETH_USD_MARKET_ID],
+            keeper: marketOrderKeepers[ETH_USD_MARKET_ID],
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
@@ -113,7 +113,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_CUSTOM,
             isEnabled: true,
             fee: DATA_STREAMS_SETTLEMENT_FEE,
-            keeper: marketOrderUpkeeps[ETH_USD_MARKET_ID],
+            keeper: marketOrderKeepers[ETH_USD_MARKET_ID],
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 
@@ -315,8 +315,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
-        address marketOrderUpkeep = marketOrderUpkeeps[marketId];
+        address marketOrderKeeper = marketOrderKeepers[marketId];
 
-        perpsEngine.executeMarketOrder(accountId, marketId, marketOrderUpkeep, extraData);
+        perpsEngine.executeMarketOrder(accountId, marketId, marketOrderKeeper, extraData);
     }
 }

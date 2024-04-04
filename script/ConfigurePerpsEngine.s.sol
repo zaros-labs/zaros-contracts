@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { LiquidationUpkeep } from "@zaros/external/chainlink/upkeeps/liquidation/LiquidationUpkeep.sol";
+import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
@@ -19,7 +19,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     //////////////////////////////////////////////////////////////////////////*/
     /// @dev TODO: We need a USDz price feed
     address internal usdcUsdPriceFeed;
-    uint256 internal upkeepInitialLinkFunding;
+    uint256 internal keeperInitialLinkFunding;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
@@ -39,7 +39,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         link = vm.envAddress("LINK");
         automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
-        upkeepInitialLinkFunding = vm.envUint("UPKEEP_INITIAL_LINK_FUNDING");
+        keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
 
         // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
         payable(address(perpsEngine)).transfer(0.03 ether);
@@ -70,22 +70,22 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdcUsdPriceFeed);
         perpsEngine.configureMarginCollateral(usdc, USDC_DEPOSIT_CAP, USDC_LOAN_TO_VALUE, usdcUsdPriceFeed);
 
-        address liquidationUpkeep = address(new LiquidationUpkeep());
+        address liquidationKeeper = address(new LiquidationKeeper());
 
-        console.log("Liquidation Upkeep: ", liquidationUpkeep);
-        // AutomationHelpers.registerLiquidationUpkeep({
-        //     name: PERPS_LIQUIDATION_UPKEEP_NAME,
-        //     liquidationUpkeep: liquidationUpkeep,
+        console.log("Liquidation Keeper: ", liquidationKeeper);
+        // AutomationHelpers.registerLiquidationKeeper({
+        //     name: PERPS_LIQUIDATION_KEEPER_NAME,
+        //     liquidationKeeper: liquidationKeeper,
         //     link: link,
         //     registrar: automationRegistrar,
         //     adminAddress: EDAO_ADDRESS,
-        //     linkAmount: upkeepInitialLinkFunding
+        //     linkAmount: keeperInitialLinkFunding
         // });
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);
 
-        liquidators[0] = liquidationUpkeep;
+        liquidators[0] = liquidationKeeper;
         liquidatorStatus[0] = true;
 
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);

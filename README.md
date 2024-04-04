@@ -17,7 +17,7 @@
   - PerpsAccountModule: 0x7b73254eE30F0eDCed780cF49821b73ed418ef29
   - SettlementModule: 0xE8c4C9663C20c8c2125A4C6aAeff9aac5D9D2FaB
   - Perps Engine Proxy: 0xB6B2eFe6A68a7E5B110F358Cd7719172e370BCA5
-  - Liquidation Upkeep: 0xe94C6379057591c353B43e4ca68b9B9c721f86BC
+  - Liquidation Keeper: 0xe94C6379057591c353B43e4ca68b9B9c721f86BC
   - Access Key Manager Implementation: 0x91707cb94c53279c54E67B6750aF93C28D63e746
   - Access Key Manager Proxy: 0xEd8A959d7Be084A639b0a6a433FcFf21c2C1276B
 

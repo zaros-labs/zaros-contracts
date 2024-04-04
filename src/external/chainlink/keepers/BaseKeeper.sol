@@ -13,24 +13,24 @@ import { ISettlementModule } from "@zaros/markets/perps/interfaces/ISettlementMo
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
+abstract contract BaseKeeper is UUPSUpgradeable, OwnableUpgradeable {
     /// @notice ERC7201 storage location.
-    bytes32 internal constant BASE_UPKEEP_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.BaseUpkeep")) - 1)
+    bytes32 internal constant BASE_KEEPER_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.BaseKeeper")) - 1)
     ) & ~bytes32(uint256(0xff));
 
     /// @notice Chainlink Data Streams Reports default decimals (both Basic and Premium).
     uint8 internal constant REPORT_PRICE_DECIMALS = 8;
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.BaseUpkeep
-    /// @param forwarder The address of the Upkeep forwarder contract.
-    struct BaseUpkeepStorage {
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.BaseKeeper
+    /// @param forwarder The address of the Keeper forwarder contract.
+    struct BaseKeeperStorage {
         address forwarder;
     }
 
-    /// @notice Ensures that only the Upkeep's forwarder contract can call a function.
+    /// @notice Ensures that only the Keeper's forwarder contract can call a function.
     modifier onlyForwarder() {
-        BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
+        BaseKeeperStorage storage self = _getBaseKeeperStorage();
         bool isSenderForwarder = msg.sender == self.forwarder;
 
         if (!isSenderForwarder) {
@@ -39,15 +39,15 @@ abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
         _;
     }
 
-    /// @notice Updates the Upkeep forwarder address.
+    /// @notice Updates the Keeper forwarder address.
     /// @param forwarder The new forwarder address.
     function setForwarder(address forwarder) external onlyOwner {
-        BaseUpkeepStorage storage self = _getBaseUpkeepStorage();
+        BaseKeeperStorage storage self = _getBaseKeeperStorage();
         self.forwarder = forwarder;
     }
 
-    /// @notice {BaseUpkeep} UUPS initializer.
-    function __BaseUpkeep_init(address owner) internal onlyInitializing {
+    /// @notice {BaseKeeper} UUPS initializer.
+    function __BaseKeeper_init(address owner) internal onlyInitializing {
         if (owner == address(0)) {
             revert Errors.ZeroInput("owner");
         }
@@ -55,8 +55,8 @@ abstract contract BaseUpkeep is UUPSUpgradeable, OwnableUpgradeable {
         __Ownable_init(owner);
     }
 
-    function _getBaseUpkeepStorage() internal pure returns (BaseUpkeepStorage storage self) {
-        bytes32 slot = BASE_UPKEEP_LOCATION;
+    function _getBaseKeeperStorage() internal pure returns (BaseKeeperStorage storage self) {
+        bytes32 slot = BASE_KEEPER_LOCATION;
 
         assembly {
             self.slot := slot

@@ -34,7 +34,7 @@ contract SettlementModule is ISettlementModule {
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    modifier onlyCustomOrderUpkeep(uint128 marketId, uint128 settlementId) {
+    modifier onlyCustomOrderKeeper(uint128 marketId, uint128 settlementId) {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         address keeper = settlementConfiguration.keeper;
@@ -43,7 +43,7 @@ contract SettlementModule is ISettlementModule {
         _;
     }
 
-    modifier onlyMarketOrderUpkeep(uint128 marketId) {
+    modifier onlyMarketOrderKeeper(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
         address keeper = settlementConfiguration.keeper;
@@ -59,7 +59,7 @@ contract SettlementModule is ISettlementModule {
         bytes calldata priceData
     )
         external
-        onlyMarketOrderUpkeep(marketId)
+        onlyMarketOrderKeeper(marketId)
     {
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
@@ -91,7 +91,7 @@ contract SettlementModule is ISettlementModule {
         address callback
     )
         external
-        onlyCustomOrderUpkeep(marketId, settlementId)
+        onlyCustomOrderKeeper(marketId, settlementId)
     {
         // // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
         // // position's
@@ -271,7 +271,7 @@ contract SettlementModule is ISettlementModule {
 
     function _requireIsKeeper(address sender, address keeper) internal pure {
         if (sender != keeper && keeper != address(0)) {
-            revert Errors.OnlyUpkeep(sender, keeper);
+            revert Errors.OnlyKeeper(sender, keeper);
         }
     }
 }

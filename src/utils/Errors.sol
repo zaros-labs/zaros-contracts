@@ -31,13 +31,13 @@ library Errors {
     error CannotRemoveFromOtherFacet(address facet, bytes4 functionSelector);
     error InitializableIsNotContract(address initializable);
 
-    /// @notice Chainlink Upkeeps errors.
+    /// @notice Chainlink Keepers errors.
 
     /// @notice Thrown when an oracle returns an unexpected, invalid value.
     error InvalidOracleReturn();
     /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
     error OnlyForwarder(address sender, address forwarder);
-    /// @notice Thrown when the upkeep provided checkData bounds are invalid.
+    /// @notice Thrown when the keeper provided checkData bounds are invalid.
     error InvalidBounds();
 
     /// @notice PerpsEngine.OrderModule errors
@@ -89,8 +89,8 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementModule errors.
 
-    /// @notice Thrown when the caller is not the registered Upkeep contract.
-    error OnlyUpkeep(address sender, address upkeep);
+    /// @notice Thrown when the caller is not the registered Keeper contract.
+    error OnlyKeeper(address sender, address keeper);
 
     /// @notice PerpsEngine.PerpMarketModule errors.
     // TODO: create errors

@@ -6,7 +6,7 @@ pragma solidity 0.8.23;
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible } from "../../interfaces/IStreamsLookupCompatible.sol";
-import { BaseUpkeep } from "../BaseUpkeep.sol";
+import { BaseKeeper } from "../BaseKeeper.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
@@ -14,22 +14,22 @@ import { SettlementConfiguration } from "@zaros/markets/perps/storage/Settlement
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpkeep {
+contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeeper {
     using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.
-    bytes32 internal constant MARKET_ORDER_UPKEEP_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.MarketOrderUpkeep")) - 1)
+    bytes32 internal constant MARKET_ORDER_KEEPER_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.MarketOrderKeeper")) - 1)
     ) & ~bytes32(uint256(0xff));
 
     /// @notice index of the account id param at LogCreateMarketOrder.
     uint256 internal constant LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX = 2;
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderKeeper
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param feeReceiver The address that receives settlement fees.
     /// @param marketId The perps market id that the keeper should execute market orders for.
-    struct MarketOrderUpkeepStorage {
+    struct MarketOrderKeeperStorage {
         IPerpsEngine perpsEngine;
         address feeReceiver;
         uint128 marketId;
@@ -39,7 +39,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         _disableInitializers();
     }
 
-    /// @notice {MarketOrderUpkeep} UUPS initializer.
+    /// @notice {MarketOrderKeeper} UUPS initializer.
     /// @param owner The address of the owner of the keeper.
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param feeReceiver The address that receives settlement fees.
@@ -53,7 +53,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         external
         initializer
     {
-        __BaseUpkeep_init(owner);
+        __BaseKeeper_init(owner);
 
         if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("perpsEngine");
@@ -65,7 +65,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
             revert Errors.ZeroInput("marketId");
         }
 
-        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
 
         self.perpsEngine = perpsEngine;
         self.feeReceiver = feeReceiver;
@@ -75,13 +75,13 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
     function getConfig()
         public
         view
-        returns (address upkeepOwner, address forwarder, address perpsEngine, address feeReceiver, uint128 marketId)
+        returns (address keeperOwner, address forwarder, address perpsEngine, address feeReceiver, uint128 marketId)
     {
-        BaseUpkeepStorage storage baseUpkeepStorage = _getBaseUpkeepStorage();
-        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        BaseKeeperStorage storage baseKeeperStorage = _getBaseKeeperStorage();
+        MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
 
-        upkeepOwner = owner();
-        forwarder = baseUpkeepStorage.forwarder;
+        keeperOwner = owner();
+        forwarder = baseKeeperStorage.forwarder;
         perpsEngine = address(self.perpsEngine);
         feeReceiver = self.feeReceiver;
         marketId = self.marketId;
@@ -97,7 +97,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         override
         returns (bool, bytes memory)
     {
-        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
         (IPerpsEngine perpsEngine, uint128 marketId) = (self.perpsEngine, self.marketId);
 
         uint128 accountId = uint256(log.topics[LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX]).toUint128();
@@ -129,11 +129,11 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         external
         pure
         override
-        returns (bool upkeepNeeded, bytes memory performData)
+        returns (bool keeperNeeded, bytes memory performData)
     {
         bytes memory signedReport = values[0];
 
-        upkeepNeeded = true;
+        keeperNeeded = true;
         performData = abi.encode(signedReport, extraData);
     }
 
@@ -144,24 +144,24 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
             revert Errors.ZeroInput("newFeeReceiver");
         }
 
-        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
         self.feeReceiver = newFeeReceiver;
     }
 
     /// @inheritdoc ILogAutomation
-    function performUpkeep(bytes calldata performData) external onlyForwarder {
+    function performKeeper(bytes calldata performData) external onlyForwarder {
         (bytes memory signedReport, bytes memory extraData) = abi.decode(performData, (bytes, bytes));
         uint128 accountId = abi.decode(extraData, (uint128));
 
-        MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
+        MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
         (IPerpsEngine perpsEngine, address feeReceiver, uint128 marketId) =
             (self.perpsEngine, self.feeReceiver, self.marketId);
 
         perpsEngine.executeMarketOrder(accountId, marketId, feeReceiver, signedReport);
     }
 
-    function _getMarketOrderUpkeepStorage() internal pure returns (MarketOrderUpkeepStorage storage self) {
-        bytes32 slot = MARKET_ORDER_UPKEEP_LOCATION;
+    function _getMarketOrderKeeperStorage() internal pure returns (MarketOrderKeeperStorage storage self) {
+        bytes32 slot = MARKET_ORDER_KEEPER_LOCATION;
 
         assembly {
             self.slot := slot
