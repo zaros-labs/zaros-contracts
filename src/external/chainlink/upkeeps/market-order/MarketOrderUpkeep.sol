@@ -22,6 +22,9 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.MarketOrderUpkeep")) - 1)
     ) & ~bytes32(uint256(0xff));
 
+    /// @notice index of the account id param at LogCreateMarketOrder.
+    uint256 internal constant LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX = 2;
+
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderUpkeep
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param feeReceiver The address that receives settlement fees.
@@ -84,7 +87,6 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         marketId = self.marketId;
     }
 
-    /// TODO: add check if upkeep is turned on (check contract's ETH funding)
     /// @inheritdoc ILogAutomation
     function checkLog(
         AutomationLog calldata log,
@@ -96,13 +98,13 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         returns (bool, bytes memory)
     {
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
-        MarketOrderSettlementStrategy settlementStrategy = self.settlementStrategy;
+        IPerpsEngine perpsEngine = self.perpsEngine;
 
-        uint128 accountId = uint256(log.topics[2]).toUint128();
+        uint128 accountId = uint256(log.topics[LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX]).toUint128();
         (MarketOrder.Data memory marketOrder) = abi.decode(log.data, (MarketOrder.Data));
 
         SettlementConfiguration.Data memory settlementConfiguration =
-            settlementStrategy.getZarosSettlementConfiguration();
+            perpsEngine.getSettlementConfiguration(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
         SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfiguration =
             abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsMarketStrategy));
 
@@ -120,10 +122,6 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         );
     }
 
-    /// TODO: compare gas optimization pre-loading variables here vs in performUpkeep. Remember of Arbitrum's l1
-    /// gas
-    /// cost (calldata is the most expensive place).
-    /// @inheritdoc IStreamsLookupCompatible
     function checkCallback(
         bytes[] calldata values,
         bytes calldata extraData
@@ -159,7 +157,6 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         (IPerpsEngine perpsEngine, address feeReceiver, uint128 marketId) =
             (self.perpsEngine, self.feeReceiver, self.marketId);
 
-        // TODO: Update the fee receiver to an address managed / stored by the keeper.
         perpsEngine.executeMarketOrder(accountId, marketId, feeReceiver, signedReport);
     }
 

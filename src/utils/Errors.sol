@@ -40,22 +40,6 @@ library Errors {
     /// @notice Thrown when the upkeep provided checkData bounds are invalid.
     error InvalidBounds();
 
-    /// @notice Settlement Strategies errors.
-
-    /// @notice Thrown when a Settlement Strategy contract dispatch function receives an invalid action.
-    error InvalidSettlementStrategyAction();
-
-    /// @notice LimitOrderSettlementStrategy errors.
-
-    error LimitOrderInvalidAccountId(uint128 providedAccountId, uint128 expectedAccountId);
-    error MaxLimitOrdersPerAccount();
-    error LimitOrderInvalidPrice(uint256 limitOrderPriceX18, uint256 markPriceX18, bool isBuy);
-
-    /// @notice OcoOrderSettlementStrategy errors.
-
-    /// @notice Thrown when the provided take profit price is lower than the stop loss price.
-    error InvalidOcoOrder();
-
     /// @notice PerpsEngine.OrderModule errors
 
     /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
