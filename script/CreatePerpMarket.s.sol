@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.23;
 
 // Zaros dependencies
@@ -13,18 +12,14 @@ import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 
 // Open Zeppelin dependencies
-import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
 // TODO: update limit order strategies
-// TODO: Create isPremium protocol configurable variable
 // TODO: update owner and forwarder on keeper initialization
 contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
-    using EnumerableMap for EnumerableMap.UintToAddressMap;
-
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -66,7 +61,10 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 isPremium: marketsConfig[i].isPremiumFeed
             });
 
-            address marketOrderKeeper = deployMarketOrderKeeper(marketsConfig[i].marketId);
+            address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
+            console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
+            address marketOrderKeeper =
+                deployMarketOrderKeeper(marketsConfig[i].marketId, marketOrderKeeperImplementation);
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
@@ -99,11 +97,13 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         }
     }
 
-    function deployMarketOrderKeeper(uint128 marketId) internal returns (address marketOrderKeeper) {
-        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
-
-        console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
-
+    function deployMarketOrderKeeper(
+        uint128 marketId,
+        address marketOrderKeeperImplementation
+    )
+        internal
+        returns (address marketOrderKeeper)
+    {
         marketOrderKeeper = address(
             new ERC1967Proxy(
                 marketOrderKeeperImplementation,

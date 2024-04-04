@@ -70,6 +70,7 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
     function setUp() public virtual {
         users = Users({
             owner: createUser({ name: "Owner" }),
+            settlementFeeReceiver: createUser({ name: "Settlement Fee Receiver" }),
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
             sakura: createUser({ name: "Sakura Haruno" }),

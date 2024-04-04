@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -17,6 +17,7 @@ import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 // Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
@@ -28,12 +29,17 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     using Math for UD60x18;
     using SafeCast for int256;
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                     VARIABLES
+    //////////////////////////////////////////////////////////////////////////*/
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
-
-    /// @dev TODO: think about forking tests
+    address internal settlementFeeReceiver = users.settlementFeeReceiver;
     mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                  SET-UP FUNCTION
+    //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Test.setUp();
 
@@ -72,6 +78,9 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         (MarketConfig[] memory marketsConfig) = getMarketsConfig(priceAdapters, streamIds, filteredIndexMarkets);
 
         for (uint256 i = 0; i < marketsConfig.length; i++) {
+            marketOrderKeepers[marketsConfig[i].marketId] =
+                vm.addr({ privateKey: uint256(keccak256("mockMarketOrderUpkeeps")) + marketsConfig[i].marketId });
+
             SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
             SettlementConfiguration.DataStreamsMarketStrategy({
                 chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
@@ -79,7 +88,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
                 queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
                 settlementDelay: marketsConfig[i].settlementDelay,
-                isPremium: false
+                isPremium: marketsConfig[i].isPremiumFeed
             });
             // TODO: set price adapter
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
