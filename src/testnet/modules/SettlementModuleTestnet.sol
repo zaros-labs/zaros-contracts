@@ -51,10 +51,11 @@ contract SettlementModuleTestnet is SettlementModule {
         Position.Data newPosition;
     }
 
-    function _settle(
+    function _executeTrade(
+        uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
-        SettlementPayload memory payload,
+        int128 sizeDelta,
         bytes memory priceData
     )
         internal
@@ -63,18 +64,16 @@ contract SettlementModuleTestnet is SettlementModule {
     {
         SettlementContextTestnet memory ctx;
         ctx.marketId = marketId;
-        ctx.accountId = payload.accountId;
-        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
-        // TODO: Remove this type(int128) logic after testnet
-        ctx.sizeDelta = (payload.sizeDelta == type(int128).min || payload.sizeDelta == type(int128).max)
-            ? unary(sd59x18(oldPosition.size))
-            : sd59x18(payload.sizeDelta);
+        ctx.accountId = accountId;
+        ctx.sizeDelta = sd59x18(sizeDelta);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
+
         ctx.usdToken = globalConfiguration.usdToken;
 
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.

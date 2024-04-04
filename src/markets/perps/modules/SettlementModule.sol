@@ -63,7 +63,13 @@ contract SettlementModule is ISettlementModule {
     {
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
-        _executeTrade(accountId, marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, payload, priceData);
+        _executeTrade(
+            accountId,
+            marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            marketOrder.sizeDelta,
+            priceData
+        );
 
         marketOrder.clear();
 
@@ -93,7 +99,7 @@ contract SettlementModule is ISettlementModule {
         // for (uint256 i = 0; i < payloads.length; i++) {
         //     SettlementPayload memory payload = payloads[i];
 
-        //     _settle(marketId, settlementId, payload, priceData);
+        //     _executeTrade(marketId, settlementId, payload, priceData);
         // }
 
         // _paySettlementFees({
@@ -143,8 +149,8 @@ contract SettlementModule is ISettlementModule {
     {
         SettlementContext memory ctx;
         ctx.marketId = marketId;
-        ctx.accountId = payload.accountId;
-        ctx.sizeDelta = sd59x18(payload.sizeDelta);
+        ctx.accountId = accountId;
+        ctx.sizeDelta = sd59x18(sizeDelta);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);

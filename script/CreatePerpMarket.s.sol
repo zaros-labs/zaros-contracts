@@ -99,12 +99,12 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         }
     }
 
-    function deployMarketOrderKeeper(uint128 marketId) internal {
+    function deployMarketOrderKeeper(uint128 marketId) internal returns (address marketOrderUpkeep) {
         address marketOrderUpkeepImplementation = address(new MarketOrderUpkeep());
 
         console.log("MarketOrderUpkeep Implementation: ", marketOrderUpkeepImplementation);
 
-        address marketOrderUpkeep = address(
+        marketOrderUpkeep = address(
             new ERC1967Proxy(
                 marketOrderUpkeepImplementation,
                 abi.encodeWithSelector(
