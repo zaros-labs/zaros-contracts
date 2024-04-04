@@ -24,4 +24,8 @@ abstract contract EthUsd {
     uint128 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;
     bool internal constant ETH_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
+
+    /// @notice Test only mocks
+    string internal constant MOCK_ETH_USD_STREAM_ID = "MOCK_ETH_USD_STREAM_ID";
+    uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;
 }

@@ -19,7 +19,11 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
-        createMarkets();
+
+        uint256 initialMarketIndex = 0;
+        uint256 finalMarketIndex = 2;
+
+        createMarkets(initialMarketIndex, finalMarketIndex);
         changePrank({ msgSender: users.naruto });
     }
 

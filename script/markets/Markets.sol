@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
+import { MockPriceFeed } from "../../test/mocks/MockPriceFeed.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
@@ -32,6 +33,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         address priceAdapter;
         string streamId;
         OrderFees.Data orderFees;
+        uint256 mockUsdPrice;
     }
 
     function getMarketsConfig(
@@ -43,7 +45,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         pure
         returns (MarketConfig[] memory)
     {
-        MarketConfig[] memory marketsConfig = new MarketConfig[](2);
+        MarketConfig[] memory marketsConfig = new MarketConfig[](3);
 
         MarketConfig memory ethUsdConfig = MarketConfig({
             marketId: ETH_USD_MARKET_ID,
@@ -60,7 +62,8 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             isPremiumFeed: ETH_USD_IS_PREMIUM_FEED,
             priceAdapter: priceAdapters[0],
             streamId: streamIds[0],
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            mockUsdPrice: MOCK_ETH_USD_PRICE
         });
         marketsConfig[0] = ethUsdConfig;
 
@@ -79,9 +82,30 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             isPremiumFeed: LINK_USD_IS_PREMIUM_FEED,
             priceAdapter: priceAdapters[1],
             streamId: streamIds[1],
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            mockUsdPrice: MOCK_LINK_USD_PRICE
         });
         marketsConfig[1] = linkUsdConfig;
+
+        MarketConfig memory btcUsdConfig = MarketConfig({
+            marketId: BTC_USD_MARKET_ID,
+            marketName: BTC_USD_MARKET_NAME,
+            marketSymbol: BTC_USD_MARKET_SYMBOL,
+            imr: BTC_USD_IMR,
+            mmr: BTC_USD_MMR,
+            marginRequirements: BTC_USD_MARGIN_REQUIREMENTS,
+            maxOi: BTC_USD_MAX_OI,
+            skewScale: BTC_USD_SKEW_SCALE,
+            minTradeSize: BTC_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
+            settlementDelay: BTC_USD_SETTLEMENT_DELAY,
+            isPremiumFeed: BTC_USD_IS_PREMIUM_FEED,
+            priceAdapter: priceAdapters[1],
+            streamId: streamIds[1],
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            mockUsdPrice: MOCK_BTC_USD_PRICE
+        });
+        marketsConfig[2] = btcUsdConfig;
 
         uint256 initialMarketIndex = filteredIndexMarkets[0];
         uint256 finalMarketIndex = filteredIndexMarkets[1];
