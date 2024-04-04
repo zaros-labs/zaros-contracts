@@ -98,7 +98,7 @@ contract MarketOrderUpkeep is ILogAutomation, IStreamsLookupCompatible, BaseUpke
         returns (bool, bytes memory)
     {
         MarketOrderUpkeepStorage storage self = _getMarketOrderUpkeepStorage();
-        IPerpsEngine perpsEngine = self.perpsEngine;
+        (IPerpsEngine perpsEngine, uint128 marketId) = (self.perpsEngine, self.marketId);
 
         uint128 accountId = uint256(log.topics[LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX]).toUint128();
         (MarketOrder.Data memory marketOrder) = abi.decode(log.data, (MarketOrder.Data));
