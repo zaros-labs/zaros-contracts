@@ -30,8 +30,8 @@ abstract contract BtcUsd {
     uint256 internal constant MOCK_BTC_USD_PRICE = 100_000e18;
 
     // TODO: Update address value
-    address internal constant BTC_USD_PRICE_FEED = address(0x20);
+    address internal constant BTC_USD_PRICE_FEED = address(0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69);
 
     // TODO: Update stream id value
-    string internal constant BTC_USD_STREAM_ID = "stream-id";
+    string internal constant BTC_USD_STREAM_ID = "0x00020d95813497a566307e6af5f59ca3cbbe8d8cd62672e5b3fc4e0d67787f23";
 }

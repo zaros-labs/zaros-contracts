@@ -386,7 +386,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         uint256 finalMarketIndex
     )
         internal
-        view
+        pure
         returns (MarketConfig memory)
     {
         vm.assume(marketIndex >= initialMarketIndex && marketIndex <= finalMarketIndex);
