@@ -3,8 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { MarketOrderSettlementStrategy } from "@zaros/markets/settlement/MarketOrderSettlementStrategy.sol";
-import { MarketOrderUpkeep } from "@zaros/external/chainlink/upkeeps/market-order/MarketOrderUpkeep.sol";
+import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "../Base.s.sol";
 
@@ -23,26 +22,20 @@ contract UpdateUUPS is BaseScript {
     LimitedMintingERC20 internal usdz;
 
     address internal forwarder;
-    MarketOrderUpkeep internal ethUsdMarketOrderUpkeep;
-    address internal ethUsdMarketOrderSettlementStrategy;
+    MarketOrderKeeper internal ethUsdMarketOrderKeeper;
 
     function run() public broadcaster {
         // usdc = LimitedMintingERC20(vm.envAddress("USDC"));
 
-        ethUsdMarketOrderUpkeep = MarketOrderUpkeep(vm.envAddress("ETH_USD_MARKET_ORDER_UPKEEP"));
-        ethUsdMarketOrderSettlementStrategy = vm.envAddress("ETH_USD_MARKET_ORDER_SETTLEMENT_STRATEGY");
-        // forwarder = vm.envAddress("UPKEEP_FORWARDER");
+        ethUsdMarketOrderKeeper = MarketOrderKeeper(vm.envAddress("ETH_USD_MARKET_ORDER_KEEPER"));
+        // forwarder = vm.envAddress("KEEPER_FORWARDER");
         // address newImplementation = address(new LimitedMintingERC20());
-        address ethUsdMarketOrderUpkeepNewImplementation = address(new MarketOrderUpkeep());
-        address ethUsdMarketOrderSettlementStrategyNewImplementation = address(new MarketOrderSettlementStrategy());
+        address ethUsdMarketOrderKeeperNewImplementation = address(new MarketOrderKeeper());
 
-        UUPSUpgradeable(address(ethUsdMarketOrderUpkeep)).upgradeToAndCall(
-            ethUsdMarketOrderUpkeepNewImplementation, bytes("")
-        );
-        UUPSUpgradeable(ethUsdMarketOrderSettlementStrategy).upgradeToAndCall(
-            ethUsdMarketOrderSettlementStrategyNewImplementation, bytes("")
+        UUPSUpgradeable(address(ethUsdMarketOrderKeeper)).upgradeToAndCall(
+            ethUsdMarketOrderKeeperNewImplementation, bytes("")
         );
 
-        // ethUsdMarketOrderUpkeep.setForwarder(forwarder);
+        // ethUsdMarketOrderKeeper.setForwarder(forwarder);
     }
 }

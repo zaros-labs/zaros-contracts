@@ -61,7 +61,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 //     bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE, false);
 
 //     changePrank({ msgSender: mockDefaultMarketOrderSettlementStrategy });
-//     perpsEngine.settleMarketOrder({
+//     perpsEngine.executeMarketOrder({
 //         accountId: perpsAccountId,
 //         marketId: ETH_USD_MARKET_ID,
 //         settlementFeeReceiver: mockDefaultMarketOrderSettlementStrategy,
@@ -88,7 +88,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 // //     perpsEngine.createMarketOrder(IOrderModule.CreateMarketOrderParams({ payload: payload, extraData: bytes("")
 // });
 
-// //     perpsEngine.settleMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport
+// //     perpsEngine.executeMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport
 // // });
 
 // //     MarketOrder.Payload memory newPayload = MarketOrder.Payload({
@@ -112,7 +112,7 @@ contract SettleOrder_Integration_Test is Base_Integration_Shared_Test {
 // //     vm.expectEmit({ emitter: address(perpsEngine) });
 // //     emit LogSettleOrder(users.naruto, perpsAccountId, ETH_USD_MARKET_ID, expectedPosition);
 
-// //     perpsEngine.settleMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport
+// //     perpsEngine.executeMarketOrder({ accountId: perpsAccountId, marketId: ETH_USD_MARKET_ID, report: mockReport
 // // });
 // // }
 }

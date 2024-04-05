@@ -33,9 +33,15 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_RevertGiven_TheAccountIdDoesNotExist(uint128 perpsAccountId, int128 sizeDelta, uint256 marketIndex) external {
-
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+    function testFuzz_RevertGiven_TheAccountIdDoesNotExist(
+        uint128 perpsAccountId,
+        int128 sizeDelta,
+        uint256 marketIndex
+    )
+        external
+    {
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
         // it should revert
         vm.expectRevert({
@@ -55,9 +61,15 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function testFuzz_RevertGiven_TheSenderIsNotAuthorized(int128 sizeDelta, uint256 marketIndex) external givenTheAccountIdExists {
-
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+    function testFuzz_RevertGiven_TheSenderIsNotAuthorized(
+        int128 sizeDelta,
+        uint256 marketIndex
+    )
+        external
+        givenTheAccountIdExists
+    {
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
         uint128 perpsAccountId = perpsEngine.createPerpsAccount();
 
@@ -81,8 +93,13 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertWhen_TheSizeDeltaIsZero(uint256 marketIndex) external givenTheAccountIdExists givenTheSenderIsAuthorized {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+    function test_RevertWhen_TheSizeDeltaIsZero(uint256 marketIndex)
+        external
+        givenTheAccountIdExists
+        givenTheSenderIsAuthorized
+    {
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
         uint128 perpsAccountId = perpsEngine.createPerpsAccount();
 
@@ -113,7 +130,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -143,7 +161,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
+        });
         perpsEngine.createMarketOrder(
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
@@ -169,7 +189,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsNotZero
         givenThePerpMarketIsEnabled
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
@@ -207,7 +228,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
@@ -220,7 +242,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.ExceedsOpenInterestLimit.selector, fuzzMarketConfig.marketId, fuzzMarketConfig.maxOi, sizeDeltaAbs.intoUint256()
+                Errors.ExceedsOpenInterestLimit.selector,
+                fuzzMarketConfig.marketId,
+                fuzzMarketConfig.maxOi,
+                sizeDeltaAbs.intoUint256()
                 )
         });
         perpsEngine.createMarketOrder(
@@ -252,7 +277,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketWontReachTheOILimit
     {
         uint256 secondMarketIndex = 0;
-        if(marketIndex < finalMarketIndex - 1){
+        if (marketIndex < finalMarketIndex - 1) {
             secondMarketIndex++;
         }
 
@@ -301,8 +326,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-        changePrank({ msgSender: mockDefaultMarketOrderSettlementStrategy });
-        bytes memory mockBasicSignedReport = getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice, false);
+        changePrank({ msgSender: marketOrderKeepers[ETH_USD_MARKET_ID] });
+        bytes memory mockBasicSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice, false);
 
         mockSettleMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, mockBasicSignedReport);
 
@@ -356,7 +382,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
         UD60x18 maxMarginValueUsd = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(ETH_USD_MAX_OI));
         marginValueUsd =
@@ -388,7 +415,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             SD59x18 orderFeeUsdX18,
             UD60x18 settlementFeeUsdX18,
         ) = perpsEngine.simulateTrade(
-            perpsAccountId, fuzzMarketConfig.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, sizeDelta
+            perpsAccountId,
+            fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            sizeDelta
         );
 
         // it should revert
@@ -431,7 +461,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountHasNotReachedThePositionsLimit
         givenTheAccountWillMeetTheMarginRequirements
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -494,7 +525,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountHasNotReachedThePositionsLimit
         givenTheAccountWillMeetTheMarginRequirements
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -527,7 +559,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should emit a {LogCreateMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IOrderModule.LogCreateMarketOrder(users.naruto, perpsAccountId, fuzzMarketConfig.marketId, expectedMarketOrder);
+        emit IOrderModule.LogCreateMarketOrder(
+            users.naruto, perpsAccountId, fuzzMarketConfig.marketId, expectedMarketOrder
+        );
         perpsEngine.createMarketOrder(
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,

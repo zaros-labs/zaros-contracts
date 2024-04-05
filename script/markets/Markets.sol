@@ -37,7 +37,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     }
 
     function getMarketsConfig(
-        address[] memory addressPriceFeeds,
+        address[] memory priceAdapters,
         string[] memory streamIds,
         uint256[] memory filteredIndexMarkets
     )
@@ -60,7 +60,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
             settlementDelay: ETH_USD_SETTLEMENT_DELAY,
             isPremiumFeed: ETH_USD_IS_PREMIUM_FEED,
-            priceAdapter: addressPriceFeeds[0],
+            priceAdapter: priceAdapters[0],
             streamId: streamIds[0],
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_ETH_USD_PRICE
@@ -80,7 +80,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
             settlementDelay: LINK_USD_SETTLEMENT_DELAY,
             isPremiumFeed: LINK_USD_IS_PREMIUM_FEED,
-            priceAdapter: addressPriceFeeds[1],
+            priceAdapter: priceAdapters[1],
             streamId: streamIds[1],
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_LINK_USD_PRICE
@@ -100,7 +100,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
             settlementDelay: BTC_USD_SETTLEMENT_DELAY,
             isPremiumFeed: BTC_USD_IS_PREMIUM_FEED,
-            priceAdapter: addressPriceFeeds[1],
+            priceAdapter: priceAdapters[1],
             streamId: streamIds[1],
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_BTC_USD_PRICE
