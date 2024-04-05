@@ -26,14 +26,14 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IVerifierProxy internal chainlinkVerifier;
-    address internal ethUsdMarketOrderSettlementStrategy;
+    address internal ethUsdMarketOrderKeeper;
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
-        ethUsdMarketOrderSettlementStrategy = vm.envAddress("ETH_USD_MARKET_ORDER_SETTLEMENT_STRATEGY");
+        ethUsdMarketOrderKeeper = vm.envAddress("ETH_USD_MARKET_ORDER_KEEPER");
 
         SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderConfigurationData =
         SettlementConfiguration.DataStreamsMarketStrategy({
@@ -45,10 +45,10 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
             isPremium: ETH_USD_IS_PREMIUM_FEED
         });
         SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
-            settlementStrategy: ethUsdMarketOrderSettlementStrategy,
+            keeper: ethUsdMarketOrderKeeper,
             data: abi.encode(ethUsdMarketOrderConfigurationData)
         });
 

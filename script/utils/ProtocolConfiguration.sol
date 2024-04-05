@@ -39,8 +39,8 @@ abstract contract ProtocolConfiguration is Markets {
     bytes32 internal constant BURN_FEATURE_FLAG = Constants.BURN_FEATURE_FLAG;
     bytes32 internal constant MINT_FEATURE_FLAG = Constants.MINT_FEATURE_FLAG;
 
-    /// @notice Chainlink Automation upkeeps configuration parameters.
-    string internal constant PERPS_LIQUIDATION_UPKEEP_NAME = "Perps Liquidation Upkeep";
+    /// @notice Chainlink Automation keepers configuration parameters.
+    string internal constant PERPS_LIQUIDATION_KEEPER_NAME = "Perps Liquidation Keeper";
 
     /// @notice Margin collateral types configuration parameters.
     uint128 internal constant USDC_DEPOSIT_CAP = 5_000_000_000e18;

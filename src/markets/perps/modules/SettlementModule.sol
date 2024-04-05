@@ -5,9 +5,6 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { ISettlementStrategy } from "@zaros/markets/settlement/interfaces/ISettlementStrategy.sol";
-import { OcoOrderSettlementStrategy } from "@zaros/markets/settlement/OcoOrderSettlementStrategy.sol";
-import { OcoOrder } from "@zaros/markets/settlement/storage/OcoOrder.sol";
 import { ISettlementModule } from "../interfaces/ISettlementModule.sol";
 import { MarketOrder } from "../storage/MarketOrder.sol";
 import { PerpsAccount } from "../storage/PerpsAccount.sol";
@@ -37,39 +34,42 @@ contract SettlementModule is ISettlementModule {
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    modifier onlyValidCustomOrderUpkeep(uint128 marketId, uint128 settlementId) {
+    modifier onlyCustomOrderKeeper(uint128 marketId, uint128 settlementId) {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
-        address settlementStrategy = settlementConfiguration.settlementStrategy;
+        address keeper = settlementConfiguration.keeper;
 
-        _requireIsSettlementStrategy(msg.sender, settlementStrategy);
+        _requireIsKeeper(msg.sender, keeper);
         _;
     }
 
-    modifier onlyMarketOrderUpkeep(uint128 marketId) {
+    modifier onlyMarketOrderKeeper(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
-        address settlementStrategy = settlementConfiguration.settlementStrategy;
+        address keeper = settlementConfiguration.keeper;
 
-        _requireIsSettlementStrategy(msg.sender, settlementStrategy);
+        _requireIsKeeper(msg.sender, keeper);
         _;
     }
 
-    function settleMarketOrder(
+    function executeMarketOrder(
         uint128 accountId,
         uint128 marketId,
         address settlementFeeReceiver,
         bytes calldata priceData
     )
         external
-        onlyMarketOrderUpkeep(marketId)
+        onlyMarketOrderKeeper(marketId)
     {
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
 
-        SettlementPayload memory payload =
-            SettlementPayload({ accountId: accountId, orderId: 0, sizeDelta: marketOrder.sizeDelta });
-
-        _settle(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, payload, priceData);
+        _executeTrade(
+            accountId,
+            marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            marketOrder.sizeDelta,
+            priceData
+        );
 
         marketOrder.clear();
 
@@ -81,7 +81,8 @@ contract SettlementModule is ISettlementModule {
         });
     }
 
-    function settleCustomOrders(
+    // TODO: re-implement
+    function executeCustomOrders(
         uint128 marketId,
         uint128 settlementId,
         address settlementFeeReceiver,
@@ -90,37 +91,37 @@ contract SettlementModule is ISettlementModule {
         address callback
     )
         external
-        onlyValidCustomOrderUpkeep(marketId, settlementId)
+        onlyCustomOrderKeeper(marketId, settlementId)
     {
-        // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
-        // position's
-        // validations and updates.
-        for (uint256 i = 0; i < payloads.length; i++) {
-            SettlementPayload memory payload = payloads[i];
+        // // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
+        // // position's
+        // // validations and updates.
+        // for (uint256 i = 0; i < payloads.length; i++) {
+        //     SettlementPayload memory payload = payloads[i];
 
-            _settle(marketId, settlementId, payload, priceData);
-        }
+        //     _executeTrade(marketId, settlementId, payload, priceData);
+        // }
 
-        _paySettlementFees({
-            settlementFeeReceiver: settlementFeeReceiver,
-            marketId: marketId,
-            settlementId: settlementId,
-            amountOfSettledTrades: payloads.length
-        });
+        // _paySettlementFees({
+        //     settlementFeeReceiver: settlementFeeReceiver,
+        //     marketId: marketId,
+        //     settlementId: settlementId,
+        //     amountOfSettledTrades: payloads.length
+        // });
 
-        if (callback != address(0)) {
-            ISettlementStrategy(callback).callback(payloads);
-        }
+        // if (callback != address(0)) {
+        //     ISettlementStrategy(callback).callback(payloads);
+        // }
 
-        address ocoOrderSettlementStrategy = SettlementConfiguration.load(
-            marketId, SettlementConfiguration.OCO_ORDER_CONFIGURATION_ID
-        ).settlementStrategy;
-        if (ocoOrderSettlementStrategy != address(0) && ocoOrderSettlementStrategy != msg.sender) {
-            ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
-        }
+        // address ocoOrderSettlementStrategy = SettlementConfiguration.load(
+        //     marketId, SettlementConfiguration.OCO_ORDER_CONFIGURATION_ID
+        // ).settlementStrategy;
+        // if (ocoOrderSettlementStrategy != address(0) && ocoOrderSettlementStrategy != msg.sender) {
+        //     ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
+        // }
     }
 
-    struct SettlementContext {
+    struct ExecuteTradeContext {
         address usdToken;
         uint128 marketId;
         uint128 accountId;
@@ -136,29 +137,28 @@ contract SettlementModule is ISettlementModule {
         SD59x18 newSkew;
     }
 
-    function _settle(
+    function _executeTrade(
+        uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
-        SettlementPayload memory payload,
+        int128 sizeDelta,
         bytes memory priceData
     )
         internal
         virtual
     {
-        SettlementContext memory ctx;
+        ExecuteTradeContext memory ctx;
         ctx.marketId = marketId;
-        ctx.accountId = payload.accountId;
-        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
-        // TODO: Remove this type(int128) logic after testnet
-        ctx.sizeDelta = (payload.sizeDelta == type(int128).min || payload.sizeDelta == type(int128).max)
-            ? unary(sd59x18(oldPosition.size))
-            : sd59x18(payload.sizeDelta);
+        ctx.accountId = accountId;
+        ctx.sizeDelta = sd59x18(sizeDelta);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
+
         ctx.usdToken = globalConfiguration.usdToken;
 
         // TODO: Handle state validation without losing the gas fee potentially paid by CL automation.
@@ -177,7 +177,6 @@ contract SettlementModule is ISettlementModule {
         perpMarket.updateFunding(ctx.fundingRate, ctx.fundingFeePerUnit);
 
         ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDelta, ctx.fillPrice);
-        // TODO: add dynamic gas cost in the end
         ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
         {
@@ -267,15 +266,12 @@ contract SettlementModule is ISettlementModule {
 
         // NOTE: testnet only
         LimitedMintingERC20(usdToken).mint(settlementFeeReceiver, totalSettlementFeeUsdX18.intoUint256());
-
-        // TODO: add dynamic gas cost into settlementFee, checking settlementFeeGasCost stored and multiplying by
-        // GasOracle.gasPrice()
         // liquidityEngine.withdrawUsdToken(keeper, ctx.settlementFeeUsdX18);
     }
 
-    function _requireIsSettlementStrategy(address sender, address upkeep) internal pure {
-        if (sender != upkeep && upkeep != address(0)) {
-            revert Errors.OnlyUpkeep(sender, upkeep);
+    function _requireIsKeeper(address sender, address keeper) internal pure {
+        if (sender != keeper && keeper != address(0)) {
+            revert Errors.OnlyKeeper(sender, keeper);
         }
     }
 }

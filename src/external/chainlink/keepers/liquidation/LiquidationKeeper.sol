@@ -5,16 +5,16 @@ pragma solidity 0.8.23;
 import { IAutomationCompatible } from "@zaros/external/chainlink/interfaces/IAutomationCompatible.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { BaseUpkeep } from "../BaseUpkeep.sol";
+import { BaseKeeper } from "../BaseKeeper.sol";
 
-contract LiquidationUpkeep is IAutomationCompatible, BaseUpkeep {
-    bytes32 internal constant LIQUIDATION_UPKEEP_LOCATION = keccak256(
-        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.upkeeps.LiquidationUpkeep")) - 1)
+contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
+    bytes32 internal constant LIQUIDATION_KEEPER_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.LiquidationKeeper")) - 1)
     ) & ~bytes32(uint256(0xff));
 
-    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LiquidationUpkeep
+    /// @custom:storage-location erc7201:fi.zaros.external.chainlink.LiquidationKeeper
     /// @param perpsEngine The address of the PerpsEngine contract.
-    struct LiquidationUpkeepStorage {
+    struct LiquidationKeeperStorage {
         IPerpsEngine perpsEngine;
     }
 
@@ -22,15 +22,15 @@ contract LiquidationUpkeep is IAutomationCompatible, BaseUpkeep {
         _disableInitializers();
     }
 
-    /// @notice {LiquidationUpkeep} UUPS initializer.
+    /// @notice {LiquidationKeeper} UUPS initializer.
     function initialize(address owner) external initializer {
-        __BaseUpkeep_init(owner);
+        __BaseKeeper_init(owner);
     }
 
-    function checkUpkeep(bytes calldata checkData)
+    function checkKeeper(bytes calldata checkData)
         external
         view
-        returns (bool upkeepNeeded, bytes memory performData)
+        returns (bool keeperNeeded, bytes memory performData)
     {
         (uint256 checkLowerBound, uint256 checkUpperBound, uint256 performLowerBound, uint256 performUpperBound) =
             abi.decode(checkData, (uint256, uint256, uint256, uint256));
@@ -39,7 +39,7 @@ contract LiquidationUpkeep is IAutomationCompatible, BaseUpkeep {
             revert Errors.InvalidBounds();
         }
 
-        IPerpsEngine perpsEngine = _getLiquidationUpkeepStorage().perpsEngine;
+        IPerpsEngine perpsEngine = _getLiquidationKeeperStorage().perpsEngine;
         uint128[] memory liquidatableAccountsIds =
             perpsEngine.checkLiquidatableAccounts(checkLowerBound, checkUpperBound);
 
@@ -60,15 +60,15 @@ contract LiquidationUpkeep is IAutomationCompatible, BaseUpkeep {
         return (true, extraData);
     }
 
-    function performUpkeep(bytes calldata peformData) external override onlyForwarder {
+    function performKeeper(bytes calldata peformData) external override onlyForwarder {
         (uint128[] memory accountsToBeLiquidated, address feeReceiver) = abi.decode(peformData, (uint128[], address));
-        IPerpsEngine perpsEngine = _getLiquidationUpkeepStorage().perpsEngine;
+        IPerpsEngine perpsEngine = _getLiquidationKeeperStorage().perpsEngine;
 
         perpsEngine.liquidateAccounts(accountsToBeLiquidated, feeReceiver);
     }
 
-    function _getLiquidationUpkeepStorage() internal pure returns (LiquidationUpkeepStorage storage self) {
-        bytes32 slot = LIQUIDATION_UPKEEP_LOCATION;
+    function _getLiquidationKeeperStorage() internal pure returns (LiquidationKeeperStorage storage self) {
+        bytes32 slot = LIQUIDATION_KEEPER_LOCATION;
 
         assembly {
             self.slot := slot
