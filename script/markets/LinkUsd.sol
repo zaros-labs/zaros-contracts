@@ -28,4 +28,10 @@ abstract contract LinkUsd {
     /// @notice Test only mocks
     string internal constant MOCK_LINK_USD_STREAM_ID = "MOCK_LINK_USD_STREAM_ID";
     uint256 internal constant MOCK_LINK_USD_PRICE = 10e18;
+
+    // TODO: Update address value
+    address internal constant LINK_USD_PRICE_FEED = address(0x20);
+
+    // TODO: Update stream id value
+    string internal constant LINK_USD_STREAM_ID = "stream-id";
 }

@@ -28,4 +28,10 @@ abstract contract BtcUsd {
     /// @notice Test only mocks
     string internal constant MOCK_BTC_USD_STREAM_ID = "MOCK_BTC_USD_STREAM_ID";
     uint256 internal constant MOCK_BTC_USD_PRICE = 100_000e18;
+
+    // TODO: Update address value
+    address internal constant BTC_USD_PRICE_FEED = address(0x20);
+
+    // TODO: Update stream id value
+    string internal constant BTC_USD_STREAM_ID = "stream-id";
 }

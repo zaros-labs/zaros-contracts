@@ -52,19 +52,11 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
 
-        address[] memory addressPriceFeeds = new address[](2);
-        addressPriceFeeds[0] = vm.envAddress("ETH_USD_PRICE_FEED");
-        addressPriceFeeds[1] = vm.envAddress("LINK_USD_PRICE_FEED");
-
-        string[] memory streamIds = new string[](2);
-        streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
-        streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
-
         uint256[] memory filteredIndexMarkets = new uint256[](2);
         filteredIndexMarkets[0] = initialMarketIndex;
         filteredIndexMarkets[1] = finalMarketIndex;
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(addressPriceFeeds, streamIds, filteredIndexMarkets);
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
 
         deploySettlementStrategies(marketsConfig);
         deployKeepers();

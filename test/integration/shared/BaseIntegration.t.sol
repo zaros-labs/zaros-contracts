@@ -174,27 +174,17 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function createMarkets(uint256 initialMarketIndex, uint256 finalMarketIndex) internal {
-
-        address[] memory addressPriceFeeds = new address[](3);
-        addressPriceFeeds[0] = vm.envAddress("ETH_USD_PRICE_FEED");
-        addressPriceFeeds[1] = vm.envAddress("LINK_USD_PRICE_FEED");
-        addressPriceFeeds[2] = vm.envAddress("BTC_USD_PRICE_FEED");
-
-        string[] memory streamIds = new string[](3);
-        streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
-        streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
-        streamIds[2] = vm.envString("BTC_USD_STREAM_ID");
-
         uint256[] memory filteredIndexMarkets = new uint256[](2);
         filteredIndexMarkets[0] = initialMarketIndex;
         filteredIndexMarkets[1] = finalMarketIndex;
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(addressPriceFeeds, streamIds, filteredIndexMarkets);
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
 
-        for(uint256 i = 0; i < marketsConfig.length; i++){
-            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData = SettlementConfiguration.DataStreamsMarketStrategy({
+        for (uint256 i = 0; i < marketsConfig.length; i++) {
+            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
+            SettlementConfiguration.DataStreamsMarketStrategy({
                 chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-                streamId: streamIds[i],
+                streamId: marketsConfig[i].streamId,
                 feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
                 queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
                 settlementDelay: marketsConfig[i].settlementDelay,
@@ -390,22 +380,22 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         perpsEngine.settleMarketOrder(accountId, marketId, marketOrderUpkeep, extraData);
     }
 
-    function getFuzzMarketConfig(uint256 marketIndex, uint256 initialMarketIndex, uint256 finalMarketIndex) internal view returns (MarketConfig memory){
+    function getFuzzMarketConfig(
+        uint256 marketIndex,
+        uint256 initialMarketIndex,
+        uint256 finalMarketIndex
+    )
+        internal
+        view
+        returns (MarketConfig memory)
+    {
         vm.assume(marketIndex >= initialMarketIndex && marketIndex <= finalMarketIndex);
-
-        address[] memory addressPriceFeeds = new address[](2);
-        addressPriceFeeds[0] = vm.envAddress("ETH_USD_PRICE_FEED");
-        addressPriceFeeds[1] = vm.envAddress("LINK_USD_PRICE_FEED");
-
-        string[] memory streamIds = new string[](2);
-        streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
-        streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
 
         uint256[] memory filteredIndexMarkets = new uint256[](2);
         filteredIndexMarkets[0] = marketIndex;
         filteredIndexMarkets[1] = marketIndex;
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(addressPriceFeeds, streamIds, filteredIndexMarkets);
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
 
         return marketsConfig[0];
     }
