@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -17,6 +17,7 @@ import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 // Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
@@ -28,98 +29,22 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     using Math for UD60x18;
     using SafeCast for int256;
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                     VARIABLES
+    //////////////////////////////////////////////////////////////////////////*/
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
+    address internal settlementFeeReceiver = users.settlementFeeReceiver;
+    mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
 
-    /// @dev TODO: think about forking tests
-    mapping(uint256 marketId => address upkeep) internal marketOrderUpkeeps;
-    address internal mockDefaultMarketOrderSettlementStrategy = vm.addr({ privateKey: 0x04 });
-
-    /// @dev BTC / USD market configuration variables.
-    SettlementConfiguration.DataStreamsMarketStrategy internal btcUsdMarketOrderConfigurationData;
-    SettlementConfiguration.Data internal btcUsdMarketOrderConfiguration;
-    // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-    SettlementConfiguration.Data internal btcUsdLimitOrderConfiguration;
-
-    SettlementConfiguration.Data[] internal btcUsdCustomOrderStrategies;
-
-    /// @dev ETH / USD market configuration variables.
-    SettlementConfiguration.DataStreamsMarketStrategy internal ethUsdMarketOrderConfigurationData;
-    SettlementConfiguration.Data internal ethUsdMarketOrderConfiguration;
-    // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-    SettlementConfiguration.Data internal ethUsdLimitOrderConfiguration;
-
-    SettlementConfiguration.Data[] internal ethUsdCustomOrderStrategies;
-
+    /*//////////////////////////////////////////////////////////////////////////
+                                  SET-UP FUNCTION
+    //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Test.setUp();
 
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
-
-        /// @dev BTC / USD market configuration variables.
-        // marketOrderUpkeeps[BTC_USD_MARKET_ID] = address(new MarketOrderUpkeep());
-        marketOrderUpkeeps[BTC_USD_MARKET_ID] = vm.addr({ privateKey: 0x05 });
-
-        btcUsdMarketOrderConfigurationData = SettlementConfiguration.DataStreamsMarketStrategy({
-            chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-            streamId: MOCK_BTC_USD_STREAM_ID,
-            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-            isPremium: false
-        });
-        // TODO: set price adapter
-        btcUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-            isEnabled: true,
-            fee: DATA_STREAMS_SETTLEMENT_FEE,
-            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            data: abi.encode(btcUsdMarketOrderConfigurationData)
-        });
-
-        // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-        // TODO: set price adapter
-        btcUsdLimitOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-            isEnabled: true,
-            fee: DATA_STREAMS_SETTLEMENT_FEE,
-            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            data: abi.encode(btcUsdMarketOrderConfigurationData)
-        });
-
-        /// @dev ETH / USD market configuration variables.
-        marketOrderUpkeeps[ETH_USD_MARKET_ID] = vm.addr({ privateKey: 0x06 });
-
-        ethUsdMarketOrderConfigurationData = SettlementConfiguration.DataStreamsMarketStrategy({
-            chainlinkVerifier: IVerifierProxy((mockChainlinkVerifier)),
-            streamId: MOCK_ETH_USD_STREAM_ID,
-            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-            isPremium: false
-        });
-        // TODO: set price adapter
-        ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_MARKET,
-            isEnabled: true,
-            fee: DATA_STREAMS_SETTLEMENT_FEE,
-            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            data: abi.encode(ethUsdMarketOrderConfigurationData)
-        });
-
-        // TODO: update limit order strategy and move the market's strategies definition to a separate file.
-        // TODO: set price adapter
-        ethUsdLimitOrderConfiguration = SettlementConfiguration.Data({
-            strategyType: SettlementConfiguration.StrategyType.DATA_STREAMS_CUSTOM,
-            isEnabled: true,
-            fee: DATA_STREAMS_SETTLEMENT_FEE,
-            settlementStrategy: mockDefaultMarketOrderSettlementStrategy,
-            data: abi.encode(ethUsdMarketOrderConfigurationData)
-        });
-
-        btcUsdCustomOrderStrategies.push(btcUsdLimitOrderConfiguration);
-        ethUsdCustomOrderStrategies.push(ethUsdLimitOrderConfiguration);
     }
 
     function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
@@ -135,42 +60,67 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         });
     }
 
-    function createMarkets() internal {
-        perpsEngine.createPerpMarket(
-            IGlobalConfigurationModule.CreatePerpMarketParams({
-                marketId: BTC_USD_MARKET_ID,
-                name: BTC_USD_MARKET_NAME,
-                symbol: BTC_USD_MARKET_SYMBOL,
-                priceAdapter: address(mockPriceAdapters.mockBtcUsdPriceAdapter),
-                initialMarginRateX18: BTC_USD_IMR,
-                maintenanceMarginRateX18: BTC_USD_MMR,
-                maxOpenInterest: BTC_USD_MAX_OI,
-                maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
-                skewScale: BTC_USD_SKEW_SCALE,
-                minTradeSizeX18: BTC_USD_MIN_TRADE_SIZE,
-                marketOrderConfiguration: btcUsdMarketOrderConfiguration,
-                customTriggerStrategies: btcUsdCustomOrderStrategies,
-                orderFees: btcUsdOrderFees
-            })
-        );
+    function createMarkets(uint256 initialMarketIndex, uint256 finalMarketIndex) internal {
+        uint256[] memory filteredIndexMarkets = new uint256[](2);
+        filteredIndexMarkets[0] = initialMarketIndex;
+        filteredIndexMarkets[1] = finalMarketIndex;
 
-        perpsEngine.createPerpMarket(
-            IGlobalConfigurationModule.CreatePerpMarketParams({
-                marketId: ETH_USD_MARKET_ID,
-                name: ETH_USD_MARKET_NAME,
-                symbol: ETH_USD_MARKET_SYMBOL,
-                priceAdapter: address(mockPriceAdapters.mockEthUsdPriceAdapter),
-                initialMarginRateX18: ETH_USD_IMR,
-                maintenanceMarginRateX18: ETH_USD_MMR,
-                maxOpenInterest: ETH_USD_MAX_OI,
-                maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-                skewScale: ETH_USD_SKEW_SCALE,
-                minTradeSizeX18: ETH_USD_MIN_TRADE_SIZE,
-                marketOrderConfiguration: ethUsdMarketOrderConfiguration,
-                customTriggerStrategies: ethUsdCustomOrderStrategies,
-                orderFees: ethUsdOrderFees
-            })
-        );
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
+
+        for (uint256 i = 0; i < marketsConfig.length; i++) {
+            marketOrderKeepers[marketsConfig[i].marketId] = address(
+                new ERC1967Proxy(
+                    marketOrderKeeperImplementation,
+                    abi.encodeWithSelector(
+                        MarketOrderKeeper.initialize.selector,
+                        users.owner,
+                        perpsEngine,
+                        users.settlementFeeReceiver,
+                        marketsConfig[i].marketId
+                    )
+                )
+            );
+
+            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
+            SettlementConfiguration.DataStreamsMarketStrategy({
+                chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
+                streamId: marketsConfig[i].streamId,
+                feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+                queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
+                settlementDelay: marketsConfig[i].settlementDelay,
+                isPremium: marketsConfig[i].isPremiumFeed
+            });
+            // TODO: set price adapter
+            SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
+                isEnabled: true,
+                fee: DATA_STREAMS_SETTLEMENT_FEE,
+                keeper: marketOrderKeepers[marketsConfig[i].marketId],
+                data: abi.encode(marketOrderConfigurationData)
+            });
+
+            // TODO: update to API orderbook config
+            SettlementConfiguration.Data[] memory customOrderStrategies;
+
+            perpsEngine.createPerpMarket(
+                IGlobalConfigurationModule.CreatePerpMarketParams({
+                    marketId: marketsConfig[i].marketId,
+                    name: marketsConfig[i].marketName,
+                    symbol: marketsConfig[i].marketSymbol,
+                    priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
+                    initialMarginRateX18: marketsConfig[i].imr,
+                    maintenanceMarginRateX18: marketsConfig[i].mmr,
+                    maxOpenInterest: marketsConfig[i].maxOi,
+                    maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
+                    skewScale: marketsConfig[i].skewScale,
+                    minTradeSizeX18: marketsConfig[i].minTradeSize,
+                    marketOrderConfiguration: marketOrderConfiguration,
+                    customTriggerStrategies: customOrderStrategies,
+                    orderFees: marketsConfig[i].orderFees
+                })
+            );
+        }
     }
 
     function getPrice(MockPriceFeed priceFeed) internal view returns (UD60x18) {
@@ -316,8 +266,28 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
-        address marketOrderUpkeep = marketOrderUpkeeps[marketId];
+        address marketOrderKeeper = marketOrderKeepers[marketId];
 
-        perpsEngine.settleMarketOrder(accountId, marketId, marketOrderUpkeep, extraData);
+        perpsEngine.executeMarketOrder(accountId, marketId, marketOrderKeeper, extraData);
+    }
+
+    function getFuzzMarketConfig(
+        uint256 marketIndex,
+        uint256 initialMarketIndex,
+        uint256 finalMarketIndex
+    )
+        internal
+        pure
+        returns (MarketConfig memory)
+    {
+        vm.assume(marketIndex >= initialMarketIndex && marketIndex <= finalMarketIndex);
+
+        uint256[] memory filteredIndexMarkets = new uint256[](2);
+        filteredIndexMarkets[0] = marketIndex;
+        filteredIndexMarkets[1] = marketIndex;
+
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
+
+        return marketsConfig[0];
     }
 }

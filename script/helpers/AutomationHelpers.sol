@@ -9,7 +9,7 @@ import "forge-std/console.sol";
 struct RegistrationParams {
     string name;
     bytes encryptedEmail;
-    address upkeepContract;
+    address keeperContract;
     uint32 gasLimit;
     address adminAddress;
     uint8 triggerType;
@@ -20,7 +20,7 @@ struct RegistrationParams {
 }
 
 interface AutomationRegistrarInterface {
-    function registerUpkeep(RegistrationParams calldata requestParams) external returns (uint256);
+    function registerKeeper(RegistrationParams calldata requestParams) external returns (uint256);
 }
 
 library AutomationHelpers {
@@ -28,7 +28,7 @@ library AutomationHelpers {
     uint8 internal constant CONDITIONAL_TRIGGER_TYPE = 0;
     uint8 internal constant LOG_TRIGGER_TYPE = 1;
 
-    function getLiquidationUpkeepConfig()
+    function getLiquidationKeeperConfig()
         internal
         pure
         returns (bytes memory checkData, bytes memory triggerConfig)
@@ -43,9 +43,9 @@ library AutomationHelpers {
         triggerConfig = bytes("");
     }
 
-    function registerLiquidationUpkeep(
+    function registerLiquidationKeeper(
         string memory name,
-        address liquidationUpkeep,
+        address liquidationKeeper,
         address link,
         address registrar,
         address adminAddress,
@@ -53,14 +53,14 @@ library AutomationHelpers {
     )
         internal
     {
-        (bytes memory checkData, bytes memory triggerConfig) = getLiquidationUpkeepConfig();
+        (bytes memory checkData, bytes memory triggerConfig) = getLiquidationKeeperConfig();
         console.log(IERC20(link).balanceOf(adminAddress));
         IERC20(link).approve(registrar, linkAmount);
 
         RegistrationParams memory params = RegistrationParams({
             name: name,
             encryptedEmail: bytes(""),
-            upkeepContract: liquidationUpkeep,
+            keeperContract: liquidationKeeper,
             gasLimit: GAS_LIMIT,
             adminAddress: adminAddress,
             triggerType: CONDITIONAL_TRIGGER_TYPE,
@@ -69,6 +69,6 @@ library AutomationHelpers {
             offchainConfig: bytes(""),
             amount: uint96(linkAmount)
         });
-        AutomationRegistrarInterface(registrar).registerUpkeep(params);
+        AutomationRegistrarInterface(registrar).registerKeeper(params);
     }
 }

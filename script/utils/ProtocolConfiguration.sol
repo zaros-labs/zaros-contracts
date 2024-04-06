@@ -39,8 +39,8 @@ abstract contract ProtocolConfiguration is Markets {
     bytes32 internal constant BURN_FEATURE_FLAG = Constants.BURN_FEATURE_FLAG;
     bytes32 internal constant MINT_FEATURE_FLAG = Constants.MINT_FEATURE_FLAG;
 
-    /// @notice Chainlink Automation upkeeps configuration parameters.
-    string internal constant PERPS_LIQUIDATION_UPKEEP_NAME = "Perps Liquidation Upkeep";
+    /// @notice Chainlink Automation keepers configuration parameters.
+    string internal constant PERPS_LIQUIDATION_KEEPER_NAME = "Perps Liquidation Keeper";
 
     /// @notice Margin collateral types configuration parameters.
     uint128 internal constant USDC_DEPOSIT_CAP = 5_000_000_000e18;
@@ -69,12 +69,8 @@ abstract contract ProtocolConfiguration is Markets {
     uint128 internal constant LIQUIDATION_FEE_USD = 5e18;
 
     /// @notice Test only mocks
-    uint256 internal constant MOCK_BTC_USD_PRICE = 100_000e18;
-    uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
     uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
-    string internal constant MOCK_BTC_USD_STREAM_ID = "MOCK_BTC_USD_STREAM_ID";
-    string internal constant MOCK_ETH_USD_STREAM_ID = "MOCK_ETH_USD_STREAM_ID";
 }

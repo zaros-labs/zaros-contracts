@@ -26,7 +26,7 @@ contract SetForwarders is BaseScript, ProtocolConfiguration {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IVerifierProxy internal chainlinkVerifier;
-    address internal ethUsdMarketOrderSettlementStrategy;
+    address internal ethUsdMarketOrderKeepers;
     IPerpsEngine internal perpsEngine;
 
     // TODO: Implement

@@ -46,7 +46,7 @@ interface IPerpMarketModule {
 
     /// @notice Returns a Settlement Strategy used by the given market.
     /// @param marketId The perps market id.
-    /// @param settlementId The perps market settlement strategy id
+    /// @param settlementId The perps market settlement configuration id
     function getSettlementConfiguration(
         uint128 marketId,
         uint128 settlementId

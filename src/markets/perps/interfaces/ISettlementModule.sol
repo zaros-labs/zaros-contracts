@@ -26,7 +26,7 @@ interface ISettlementModule {
         int128 sizeDelta;
     }
 
-    function settleMarketOrder(
+    function executeMarketOrder(
         uint128 accountId,
         uint128 marketId,
         address settlementFeeReceiver,
@@ -34,7 +34,7 @@ interface ISettlementModule {
     )
         external;
 
-    function settleCustomOrders(
+    function executeCustomOrders(
         uint128 marketId,
         uint128 settlementId,
         address settlementFeeReceiver,

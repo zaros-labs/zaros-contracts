@@ -70,6 +70,7 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
     function setUp() public virtual {
         users = Users({
             owner: createUser({ name: "Owner" }),
+            settlementFeeReceiver: createUser({ name: "Settlement Fee Receiver" }),
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
             sakura: createUser({ name: "Sakura Haruno" }),
@@ -90,12 +91,14 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
 
         MockPriceFeed mockBtcUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_BTC_USD_PRICE));
         MockPriceFeed mockEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
+        MockPriceFeed mockLinkUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_LINK_USD_PRICE));
         MockPriceFeed mockUsdcUsdPriceAdapter = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
         MockPriceFeed mockWstEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_WSTETH_USD_PRICE));
 
         mockPriceAdapters = MockPriceAdapters({
             mockBtcUsdPriceAdapter: mockBtcUsdPriceAdapter,
             mockEthUsdPriceAdapter: mockEthUsdPriceAdapter,
+            mockLinkUsdPriceAdapter: mockLinkUsdPriceAdapter,
             mockUsdcUsdPriceAdapter: mockUsdcUsdPriceAdapter,
             mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter
         });

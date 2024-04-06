@@ -31,34 +31,18 @@ library Errors {
     error CannotRemoveFromOtherFacet(address facet, bytes4 functionSelector);
     error InitializableIsNotContract(address initializable);
 
-    /// @notice Chainlink Upkeeps errors.
+    /// @notice Chainlink Keepers errors.
 
     /// @notice Thrown when an oracle returns an unexpected, invalid value.
     error InvalidOracleReturn();
     /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
     error OnlyForwarder(address sender, address forwarder);
-    /// @notice Thrown when the upkeep provided checkData bounds are invalid.
+    /// @notice Thrown when the keeper provided checkData bounds are invalid.
     error InvalidBounds();
-
-    /// @notice Settlement Strategies errors.
-
-    /// @notice Thrown when a Settlement Strategy contract dispatch function receives an invalid action.
-    error InvalidSettlementStrategyAction();
-
-    /// @notice LimitOrderSettlementStrategy errors.
-
-    error LimitOrderInvalidAccountId(uint128 providedAccountId, uint128 expectedAccountId);
-    error MaxLimitOrdersPerAccount();
-    error LimitOrderInvalidPrice(uint256 limitOrderPriceX18, uint256 markPriceX18, bool isBuy);
-
-    /// @notice OcoOrderSettlementStrategy errors.
-
-    /// @notice Thrown when the provided take profit price is lower than the stop loss price.
-    error InvalidOcoOrder();
 
     /// @notice PerpsEngine.OrderModule errors
 
-    /// @notice Thrown when invoking a custom settlement strategy reverts without a downstream error.
+    /// @notice Thrown when invoking a custom settlement configuration reverts without a downstream error.
     error FailedCreateCustomOrder();
     /// @notice Thrown when trying to cancel an active market order and there's none.
     error NoActiveMarketOrder(uint128 accountId);
@@ -105,8 +89,8 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementModule errors.
 
-    /// @notice Thrown when the caller is not the registered Upkeep contract.
-    error OnlyUpkeep(address sender, address upkeep);
+    /// @notice Thrown when the caller is not the registered Keeper contract.
+    error OnlyKeeper(address sender, address keeper);
 
     /// @notice PerpsEngine.PerpMarketModule errors.
     // TODO: create errors
@@ -149,10 +133,10 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementConfiguration errors.
 
-    /// @notice Thrown when a configured settlement strategy is disabled.
+    /// @notice Thrown when a configured settlement configuration is disabled.
     error SettlementDisabled();
-    /// @notice Thrown when the provided `settlementId` is not a valid settlement strategy id.
-    error InvalidSettlementStrategyType(uint8 settlementId);
+    /// @notice Thrown when the provided `settlementId` is not a valid settlement configuration id.
+    error InvalidSettlementConfiguration(uint8 settlementId);
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
     /// one.
     error InvalidDataStreamReport(string settlementStreamId, bytes32 reportStreamId);
