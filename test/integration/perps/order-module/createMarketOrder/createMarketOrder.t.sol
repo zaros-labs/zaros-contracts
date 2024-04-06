@@ -326,7 +326,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-        changePrank({ msgSender: marketOrderKeepers[ETH_USD_MARKET_ID] });
+        changePrank({ msgSender: marketOrderKeepers[fuzzMarketConfig.marketId] });
         bytes memory mockBasicSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice, false);
 

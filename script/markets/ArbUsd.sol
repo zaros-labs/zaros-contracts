@@ -24,4 +24,10 @@ abstract contract ArbUsd {
     uint248 internal constant ARB_USD_SETTLEMENT_DELAY = 1 seconds;
     bool internal constant ARB_USD_IS_PREMIUM_FEED = true;
     OrderFees.Data internal arbUsdOrderFees = OrderFees.Data({ makerFee: 0.008e18, takerFee: 0.016e18 });
+
+    // TODO: Update address value
+    address internal ARB_USD_PRICE_FEED = address(0xD1092a65338d049DB68D7Be6bD89d17a0929945e);
+
+    // TODO: Update stream id value
+    string internal constant ARB_USD_STREAM_ID = "0x0003c90f4d0e133914a02466e44f3392560c86248925ce651ef8e44f1ec2ef4a";
 }

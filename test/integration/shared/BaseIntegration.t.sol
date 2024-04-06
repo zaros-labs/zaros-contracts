@@ -61,30 +61,31 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function createMarkets(uint256 initialMarketIndex, uint256 finalMarketIndex) internal {
-        address[] memory priceAdapters = new address[](3);
-        priceAdapters[0] = vm.envAddress("ETH_USD_PRICE_FEED");
-        priceAdapters[1] = vm.envAddress("LINK_USD_PRICE_FEED");
-        priceAdapters[2] = vm.envAddress("BTC_USD_PRICE_FEED");
-
-        string[] memory streamIds = new string[](3);
-        streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
-        streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
-        streamIds[2] = vm.envString("BTC_USD_STREAM_ID");
-
         uint256[] memory filteredIndexMarkets = new uint256[](2);
         filteredIndexMarkets[0] = initialMarketIndex;
         filteredIndexMarkets[1] = finalMarketIndex;
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(priceAdapters, streamIds, filteredIndexMarkets);
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         for (uint256 i = 0; i < marketsConfig.length; i++) {
-            marketOrderKeepers[marketsConfig[i].marketId] =
-                vm.addr({ privateKey: uint256(keccak256("mockMarketOrderUpkeeps")) + marketsConfig[i].marketId });
+            marketOrderKeepers[marketsConfig[i].marketId] = address(
+                new ERC1967Proxy(
+                    marketOrderKeeperImplementation,
+                    abi.encodeWithSelector(
+                        MarketOrderKeeper.initialize.selector,
+                        users.owner,
+                        perpsEngine,
+                        users.settlementFeeReceiver,
+                        marketsConfig[i].marketId
+                    )
+                )
+            );
 
             SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
             SettlementConfiguration.DataStreamsMarketStrategy({
                 chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-                streamId: streamIds[i],
+                streamId: marketsConfig[i].streamId,
                 feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
                 queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
                 settlementDelay: marketsConfig[i].settlementDelay,
@@ -276,24 +277,16 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         uint256 finalMarketIndex
     )
         internal
-        view
+        pure
         returns (MarketConfig memory)
     {
         vm.assume(marketIndex >= initialMarketIndex && marketIndex <= finalMarketIndex);
-
-        address[] memory priceAdapters = new address[](2);
-        priceAdapters[0] = vm.envAddress("ETH_USD_PRICE_FEED");
-        priceAdapters[1] = vm.envAddress("LINK_USD_PRICE_FEED");
-
-        string[] memory streamIds = new string[](2);
-        streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
-        streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
 
         uint256[] memory filteredIndexMarkets = new uint256[](2);
         filteredIndexMarkets[0] = marketIndex;
         filteredIndexMarkets[1] = marketIndex;
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(priceAdapters, streamIds, filteredIndexMarkets);
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
 
         return marketsConfig[0];
     }

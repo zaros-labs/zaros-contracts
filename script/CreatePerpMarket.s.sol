@@ -36,19 +36,11 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
         settlementFeeReceiver = vm.envAddress("SETTLEMENT_FEE_RECEIVER");
 
-        address[] memory priceAdapters = new address[](2);
-        priceAdapters[0] = vm.envAddress("ETH_USD_PRICE_FEED");
-        priceAdapters[1] = vm.envAddress("LINK_USD_PRICE_FEED");
-
-        string[] memory streamIds = new string[](2);
-        streamIds[0] = vm.envString("ETH_USD_STREAM_ID");
-        streamIds[1] = vm.envString("LINK_USD_STREAM_ID");
-
         uint256[] memory filteredIndexMarkets = new uint256[](2);
         filteredIndexMarkets[0] = initialMarketIndex;
         filteredIndexMarkets[1] = finalMarketIndex;
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(priceAdapters, streamIds, filteredIndexMarkets);
+        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
 
         for (uint256 i = 0; i < marketsConfig.length; i++) {
             SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
