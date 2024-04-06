@@ -66,8 +66,22 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         filteredIndexMarkets[1] = finalMarketIndex;
 
         (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         for (uint256 i = 0; i < marketsConfig.length; i++) {
+            marketOrderKeepers[marketsConfig[i].marketId] = address(
+                new ERC1967Proxy(
+                    marketOrderKeeperImplementation,
+                    abi.encodeWithSelector(
+                        MarketOrderKeeper.initialize.selector,
+                        users.owner,
+                        perpsEngine,
+                        users.settlementFeeReceiver,
+                        marketsConfig[i].marketId
+                    )
+                )
+            );
+
             SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
             SettlementConfiguration.DataStreamsMarketStrategy({
                 chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
