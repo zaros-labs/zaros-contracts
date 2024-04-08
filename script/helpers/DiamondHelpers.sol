@@ -154,8 +154,8 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     bytes4[] memory settlementModuleSelectors = new bytes4[](2);
 
-    settlementModuleSelectors[0] = SettlementModule.executeMarketOrder.selector;
-    settlementModuleSelectors[1] = SettlementModule.executeCustomOrders.selector;
+    settlementModuleSelectors[0] = SettlementModule.fillMarketOrder.selector;
+    settlementModuleSelectors[1] = SettlementModule.fillCustomOrders.selector;
 
     selectors[0] = diamondCutModuleSelectors;
     selectors[1] = diamondLoupeModuleSelectors;

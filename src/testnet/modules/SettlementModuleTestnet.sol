@@ -51,7 +51,7 @@ contract SettlementModuleTestnet is SettlementModule {
         Position.Data newPosition;
     }
 
-    function _executeTrade(
+    function _fillOrder(
         uint128 accountId,
         uint128 marketId,
         uint128 settlementId,
@@ -83,7 +83,7 @@ contract SettlementModuleTestnet is SettlementModule {
 
         bytes memory verifiedPriceData = settlementConfiguration.verifyPriceData(priceData);
         ctx.fillPrice = perpMarket.getMarkPrice(
-            ctx.sizeDelta, settlementConfiguration.getSettlementPrice(verifiedPriceData, ctx.sizeDelta.gt(SD_ZERO))
+            ctx.sizeDelta, settlementConfiguration.getFillPrice(verifiedPriceData, ctx.sizeDelta.gt(SD_ZERO))
         );
 
         ctx.fundingRate = perpMarket.getCurrentFundingRate();

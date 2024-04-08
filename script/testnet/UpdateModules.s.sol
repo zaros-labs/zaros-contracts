@@ -75,8 +75,8 @@ contract UpdateModules is BaseScript {
         // globalConfigurationModuleTestnetSelectorsAdded[1] =
         //     GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
 
-        // settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.executeMarketOrder.selector;
-        // settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.executeCustomOrders.selector;
+        // settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.fillMarketOrder.selector;
+        // settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.fillCustomOrders.selector;
 
         // globalConfigurationModuleTestnetSelectorsAdded[0] =
         //     GlobalConfigurationModule.updateSettlementConfiguration.selector;

@@ -28,7 +28,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderKeeper
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param feeReceiver The address that receives settlement fees.
-    /// @param marketId The perps market id that the keeper should execute market orders for.
+    /// @param marketId The perps market id that the keeper should fill market orders for.
     struct MarketOrderKeeperStorage {
         IPerpsEngine perpsEngine;
         address feeReceiver;
@@ -43,7 +43,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
     /// @param owner The address of the owner of the keeper.
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param feeReceiver The address that receives settlement fees.
-    /// @param marketId The perps market id that the keeper should execute market orders for.
+    /// @param marketId The perps market id that the keeper should fill market orders for.
     function initialize(
         address owner,
         IPerpsEngine perpsEngine,
@@ -157,7 +157,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         (IPerpsEngine perpsEngine, address feeReceiver, uint128 marketId) =
             (self.perpsEngine, self.feeReceiver, self.marketId);
 
-        perpsEngine.executeMarketOrder(accountId, marketId, feeReceiver, signedReport);
+        perpsEngine.fillMarketOrder(accountId, marketId, feeReceiver, signedReport);
     }
 
     function _getMarketOrderKeeperStorage() internal pure returns (MarketOrderKeeperStorage storage self) {

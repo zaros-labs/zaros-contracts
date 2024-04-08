@@ -112,7 +112,7 @@ library SettlementConfiguration {
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param verifiedPriceData The verified report data.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
-    function getSettlementPrice(
+    function getFillPrice(
         Data storage self,
         bytes memory verifiedPriceData,
         bool isBuyOrder
