@@ -137,6 +137,9 @@ library Errors {
     error SettlementDisabled();
     /// @notice Thrown when the provided `settlementConfigurationId` is not a valid settlement configuration id.
     error InvalidSettlementConfiguration(uint8 settlementConfigurationId);
+    /// @notice Thrown when the provided settlement strategy for a perp market is invalid (e.g market order strategy
+    /// for custom configuration).
+    error InvalidSettlementStrategy();
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
     /// one.
     error InvalidDataStreamReport(string settlementStreamId, bytes32 reportStreamId);

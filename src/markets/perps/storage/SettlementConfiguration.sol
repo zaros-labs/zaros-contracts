@@ -98,6 +98,19 @@ library SettlementConfiguration {
         }
     }
 
+    /// @notice Checks during a perp market creation if the provided settlement strategy is compatible.
+    /// @param settlementConfigurationId The settlement configuration id.
+    /// @param strategy The strategy to check.
+    function checkIsValidSettlementStrategy(uint128 settlementConfigurationId, Strategy strategy) internal pure {
+        if (settlementConfigurationId == MARKET_ORDER_CONFIGURATION_ID && strategy != Strategy.DATA_STREAMS_MARKET) {
+            revert Errors.InvalidSettlementStrategy();
+        } else if (
+            settlementConfigurationId != MARKET_ORDER_CONFIGURATION_ID && strategy != Strategy.DATA_STREAMS_CUSTOM
+        ) {
+            revert Errors.InvalidSettlementStrategy();
+        }
+    }
+
     function update(
         uint128 marketId,
         uint128 settlementConfigurationId,
@@ -106,6 +119,8 @@ library SettlementConfiguration {
         internal
     {
         Data storage self = load(marketId, settlementConfigurationId);
+
+        checkIsValidSettlementStrategy(settlementConfigurationId, settlementConfiguration.strategy);
 
         self.strategy = settlementConfiguration.strategy;
         self.isEnabled = settlementConfiguration.isEnabled;
