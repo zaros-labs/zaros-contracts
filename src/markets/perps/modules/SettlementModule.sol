@@ -121,7 +121,7 @@ contract SettlementModule is ISettlementModule {
         // }
     }
 
-    struct ExecuteTradeContext {
+    struct FillOrderContext {
         address usdToken;
         uint128 marketId;
         uint128 accountId;
@@ -147,7 +147,7 @@ contract SettlementModule is ISettlementModule {
         internal
         virtual
     {
-        ExecuteTradeContext memory ctx;
+        FillOrderContext memory ctx;
         ctx.marketId = marketId;
         ctx.accountId = accountId;
         ctx.sizeDelta = sd59x18(sizeDelta);

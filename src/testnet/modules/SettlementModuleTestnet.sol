@@ -34,7 +34,7 @@ contract SettlementModuleTestnet is SettlementModule {
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    struct ExecuteTradeContextTestnet {
+    struct FillOrderContextTestnet {
         address usdToken;
         uint128 marketId;
         uint128 accountId;
@@ -62,7 +62,7 @@ contract SettlementModuleTestnet is SettlementModule {
         virtual
         override
     {
-        ExecuteTradeContextTestnet memory ctx;
+        FillOrderContextTestnet memory ctx;
         ctx.marketId = marketId;
         ctx.accountId = accountId;
         ctx.sizeDelta = sd59x18(sizeDelta);
