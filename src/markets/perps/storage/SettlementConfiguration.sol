@@ -86,20 +86,26 @@ library SettlementConfiguration {
     /// @dev The market order strategy id is always 0.
     function load(
         uint128 marketId,
-        uint128 settlementId
+        uint128 settlementConfigurationId
     )
         internal
         pure
         returns (Data storage settlementConfiguration)
     {
-        bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementId));
+        bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementConfigurationId));
         assembly {
             settlementConfiguration.slot := slot
         }
     }
 
-    function update(uint128 marketId, uint128 settlementId, Data memory settlementConfiguration) internal {
-        Data storage self = load(marketId, settlementId);
+    function update(
+        uint128 marketId,
+        uint128 settlementConfigurationId,
+        Data memory settlementConfiguration
+    )
+        internal
+    {
+        Data storage self = load(marketId, settlementConfigurationId);
 
         self.strategy = settlementConfiguration.strategy;
         self.isEnabled = settlementConfiguration.isEnabled;

@@ -39,7 +39,7 @@ contract OrderModule is IOrderModule {
     function simulateTrade(
         uint128 accountId,
         uint128 marketId,
-        uint128 settlementId,
+        uint128 settlementConfigurationId,
         int128 sizeDelta
     )
         public
@@ -57,7 +57,7 @@ contract OrderModule is IOrderModule {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementId);
+            SettlementConfiguration.load(marketId, settlementConfigurationId);
 
         fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
 
@@ -135,7 +135,7 @@ contract OrderModule is IOrderModule {
         ) = simulateTrade({
             accountId: params.accountId,
             marketId: params.marketId,
-            settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta: params.sizeDelta
         });
         perpsAccount.validateMarginRequirement(
@@ -158,7 +158,7 @@ contract OrderModule is IOrderModule {
     function createCustomOrder(
         uint128 accountId,
         uint128 marketId,
-        uint128 settlementId,
+        uint128 settlementConfigurationId,
         bool isAccountStrategy,
         bytes calldata extraData
     )
@@ -170,11 +170,12 @@ contract OrderModule is IOrderModule {
         // SettlementConfiguration.Data storage settlementConfiguration;
 
         // if (!isAccountStrategy) {
-        //     settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
+        //     settlementConfiguration = SettlementConfiguration.load(marketId, settlementConfigurationId);
         // } else {
         //     // TODO: Implement
-        //     // settlementConfiguration = SettlementConfiguration.load(accountId, marketId, settlementId);
-        //     settlementConfiguration = SettlementConfiguration.load(marketId, settlementId);
+        //     // settlementConfiguration = SettlementConfiguration.load(accountId, marketId,
+        // settlementConfigurationId);
+        //     settlementConfiguration = SettlementConfiguration.load(marketId, settlementConfigurationId);
         // }
 
         // address settlementStrategy = settlementConfiguration.settlementStrategy;

@@ -67,14 +67,14 @@ contract PerpMarketModule is IPerpMarketModule {
     /// @inheritdoc IPerpMarketModule
     function getSettlementConfiguration(
         uint128 marketId,
-        uint128 settlementId
+        uint128 settlementConfigurationId
     )
         external
         pure
         override
         returns (SettlementConfiguration.Data memory)
     {
-        return SettlementConfiguration.load(marketId, settlementId);
+        return SettlementConfiguration.load(marketId, settlementConfigurationId);
     }
 
     /// @inheritdoc IPerpMarketModule

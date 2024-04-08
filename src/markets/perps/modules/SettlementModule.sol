@@ -34,9 +34,9 @@ contract SettlementModule is ISettlementModule {
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    modifier onlyCustomOrderKeeper(uint128 marketId, uint128 settlementId) {
+    modifier onlyCustomOrderKeeper(uint128 marketId, uint128 settlementConfigurationId) {
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementId);
+            SettlementConfiguration.load(marketId, settlementConfigurationId);
         address keeper = settlementConfiguration.keeper;
 
         _requireIsKeeper(msg.sender, keeper);
@@ -76,7 +76,7 @@ contract SettlementModule is ISettlementModule {
         _paySettlementFees({
             settlementFeeReceiver: settlementFeeReceiver,
             marketId: marketId,
-            settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             amountOfSettledTrades: 1
         });
     }
@@ -84,14 +84,14 @@ contract SettlementModule is ISettlementModule {
     // TODO: re-implement
     function fillCustomOrders(
         uint128 marketId,
-        uint128 settlementId,
+        uint128 settlementConfigurationId,
         address settlementFeeReceiver,
         SettlementPayload[] calldata payloads,
         bytes calldata priceData,
         address callback
     )
         external
-        onlyCustomOrderKeeper(marketId, settlementId)
+        onlyCustomOrderKeeper(marketId, settlementConfigurationId)
     {
         // // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
         // // position's
@@ -99,13 +99,13 @@ contract SettlementModule is ISettlementModule {
         // for (uint256 i = 0; i < payloads.length; i++) {
         //     SettlementPayload memory payload = payloads[i];
 
-        //     _fillOrder(marketId, settlementId, payload, priceData);
+        //     _fillOrder(marketId, settlementConfigurationId, payload, priceData);
         // }
 
         // _paySettlementFees({
         //     settlementFeeReceiver: settlementFeeReceiver,
         //     marketId: marketId,
-        //     settlementId: settlementId,
+        //     settlementConfigurationId: settlementConfigurationId,
         //     amountOfSettledTrades: payloads.length
         // });
 
@@ -140,7 +140,7 @@ contract SettlementModule is ISettlementModule {
     function _fillOrder(
         uint128 accountId,
         uint128 marketId,
-        uint128 settlementId,
+        uint128 settlementConfigurationId,
         int128 sizeDelta,
         bytes memory priceData
     )
@@ -155,7 +155,7 @@ contract SettlementModule is ISettlementModule {
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementId);
+            SettlementConfiguration.load(marketId, settlementConfigurationId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
 
@@ -252,14 +252,15 @@ contract SettlementModule is ISettlementModule {
     function _paySettlementFees(
         address settlementFeeReceiver,
         uint128 marketId,
-        uint128 settlementId,
+        uint128 settlementConfigurationId,
         uint256 amountOfSettledTrades
     )
         internal
     {
         address usdToken = GlobalConfiguration.load().usdToken;
 
-        UD60x18 settlementFeePerTradeUsdX18 = ud60x18(SettlementConfiguration.load(marketId, settlementId).fee);
+        UD60x18 settlementFeePerTradeUsdX18 =
+            ud60x18(SettlementConfiguration.load(marketId, settlementConfigurationId).fee);
         UD60x18 totalSettlementFeeUsdX18 = settlementFeePerTradeUsdX18.mul(ud60x18(amountOfSettledTrades));
 
         // NOTE: testnet only

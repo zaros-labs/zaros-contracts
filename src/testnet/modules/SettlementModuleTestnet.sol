@@ -54,7 +54,7 @@ contract SettlementModuleTestnet is SettlementModule {
     function _fillOrder(
         uint128 accountId,
         uint128 marketId,
-        uint128 settlementId,
+        uint128 settlementConfigurationId,
         int128 sizeDelta,
         bytes memory priceData
     )
@@ -70,7 +70,7 @@ contract SettlementModuleTestnet is SettlementModule {
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementId);
+            SettlementConfiguration.load(marketId, settlementConfigurationId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
 

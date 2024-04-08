@@ -206,7 +206,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     struct FuzzOrderSizeDeltaParams {
         uint128 accountId;
         uint128 marketId;
-        uint128 settlementId;
+        uint128 settlementConfigurationId;
         UD60x18 initialMarginRate;
         UD60x18 marginValueUsd;
         UD60x18 maxOpenInterest;
@@ -233,7 +233,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
 
         (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine.simulateTrade(
-            params.accountId, params.marketId, params.settlementId, ctx.sizeDeltaPrePriceImpact
+            params.accountId, params.marketId, params.settlementConfigurationId, ctx.sizeDeltaPrePriceImpact
         );
 
         ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);

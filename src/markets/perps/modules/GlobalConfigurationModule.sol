@@ -314,16 +314,16 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
     /// @inheritdoc IGlobalConfigurationModule
     function updateSettlementConfiguration(
         uint128 marketId,
-        uint128 settlementId,
+        uint128 settlementConfigurationId,
         SettlementConfiguration.Data memory newSettlementConfiguration
     )
         external
         override
         onlyOwner
     {
-        SettlementConfiguration.update(marketId, settlementId, newSettlementConfiguration);
+        SettlementConfiguration.update(marketId, settlementConfigurationId, newSettlementConfiguration);
 
-        emit LogUpdateSettlementConfiguration(msg.sender, marketId, settlementId);
+        emit LogUpdateSettlementConfiguration(msg.sender, marketId, settlementConfigurationId);
     }
 
     function updatePerpMarketStatus(uint128 marketId, bool enable) external override onlyOwner {

@@ -147,7 +147,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(marginRequirement),
                 marginValueUsd: ud60x18(amountToDeposit),
                 maxOpenInterest: ud60x18(ETH_USD_MAX_OI),

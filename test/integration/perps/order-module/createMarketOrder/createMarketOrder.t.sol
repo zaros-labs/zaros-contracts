@@ -144,7 +144,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
@@ -297,7 +297,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
@@ -338,7 +338,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: secondFuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(secondFuzzMarketConfig.maxOi),
@@ -397,7 +397,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
@@ -475,7 +475,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
@@ -539,7 +539,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),

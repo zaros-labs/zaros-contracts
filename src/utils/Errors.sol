@@ -135,8 +135,8 @@ library Errors {
 
     /// @notice Thrown when a configured settlement configuration is disabled.
     error SettlementDisabled();
-    /// @notice Thrown when the provided `settlementId` is not a valid settlement configuration id.
-    error InvalidSettlementConfiguration(uint8 settlementId);
+    /// @notice Thrown when the provided `settlementConfigurationId` is not a valid settlement configuration id.
+    error InvalidSettlementConfiguration(uint8 settlementConfigurationId);
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
     /// one.
     error InvalidDataStreamReport(string settlementStreamId, bytes32 reportStreamId);
