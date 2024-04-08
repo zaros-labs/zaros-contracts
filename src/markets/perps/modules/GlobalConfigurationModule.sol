@@ -250,7 +250,7 @@ contract GlobalConfigurationModule is IGlobalConfigurationModule, Initializable,
                 skewScale: params.skewScale,
                 minTradeSizeX18: params.minTradeSizeX18,
                 marketOrderConfiguration: params.marketOrderConfiguration,
-                customTriggerStrategies: params.customTriggerStrategies,
+                customOrderStrategies: params.customOrderStrategies,
                 orderFees: params.orderFees
             })
         );

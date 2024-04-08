@@ -170,7 +170,7 @@ interface IGlobalConfigurationModule {
         uint256 skewScale;
         uint256 minTradeSizeX18;
         SettlementConfiguration.Data marketOrderConfiguration;
-        SettlementConfiguration.Data[] customTriggerStrategies;
+        SettlementConfiguration.Data[] customOrderStrategies;
         OrderFees.Data orderFees;
     }
 

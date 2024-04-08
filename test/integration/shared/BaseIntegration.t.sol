@@ -116,7 +116,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                     skewScale: marketsConfig[i].skewScale,
                     minTradeSizeX18: marketsConfig[i].minTradeSize,
                     marketOrderConfiguration: marketOrderConfiguration,
-                    customTriggerStrategies: customOrderStrategies,
+                    customOrderStrategies: customOrderStrategies,
                     orderFees: marketsConfig[i].orderFees
                 })
             );
