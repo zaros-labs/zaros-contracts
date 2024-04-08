@@ -57,10 +57,6 @@ library PerpMarket {
         }
     }
 
-    function loadActive(uint128 marketId) internal pure returns (Data storage perpMarket) {
-        perpMarket = load(marketId);
-    }
-
     // TODO: Call a Zaros-deployed price adapter contract instead of calling CL AggregatorV3 interface.
     // TODO: By having a custom price adapter, we can e.g sync a price adapter with a custom settlement strategies
     // contracts to
