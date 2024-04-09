@@ -42,67 +42,17 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
         (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
 
-        for (uint256 i = 0; i < marketsConfig.length; i++) {
-            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
-            SettlementConfiguration.DataStreamsMarketStrategy({
-                chainlinkVerifier: chainlinkVerifier,
-                streamId: marketsConfig[i].streamId,
-                feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-                queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-                settlementDelay: marketsConfig[i].settlementDelay,
-                isPremium: marketsConfig[i].isPremiumFeed
-            });
-
-            address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
-            console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
-            address marketOrderKeeper =
-                deployMarketOrderKeeper(marketsConfig[i].marketId, marketOrderKeeperImplementation);
-
-            SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
-                isEnabled: true,
-                fee: DEFAULT_SETTLEMENT_FEE,
-                keeper: marketOrderKeeper,
-                data: abi.encode(marketOrderConfigurationData)
-            });
-
-            // TODO: configure custom orders and set the API's keeper
-            SettlementConfiguration.Data[] memory customOrdersConfigurations;
-
-            perpsEngine.createPerpMarket({
-                params: IGlobalConfigurationModule.CreatePerpMarketParams({
-                    marketId: marketsConfig[i].marketId,
-                    name: marketsConfig[i].marketName,
-                    symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: marketsConfig[i].priceAdapter,
-                    initialMarginRateX18: marketsConfig[i].imr,
-                    maintenanceMarginRateX18: marketsConfig[i].mmr,
-                    maxOpenInterest: marketsConfig[i].maxOi,
-                    skewScale: marketsConfig[i].skewScale,
-                    minTradeSizeX18: marketsConfig[i].minTradeSize,
-                    maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
-                    marketOrderConfiguration: marketOrderConfiguration,
-                    customTriggerStrategies: customOrdersConfigurations,
-                    orderFees: marketsConfig[i].orderFees
-                })
-            });
-        }
-    }
-
-    function deployMarketOrderKeeper(
-        uint128 marketId,
-        address marketOrderKeeperImplementation
-    )
-        internal
-        returns (address marketOrderKeeper)
-    {
-        marketOrderKeeper = address(
-            new ERC1967Proxy(
-                marketOrderKeeperImplementation,
-                abi.encodeWithSelector(
-                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, settlementFeeReceiver, marketId
-                )
-            )
+        createPerpMarkets(
+            deployer,
+            settlementFeeReceiver,
+            perpsEngine,
+            marketsConfig,
+            IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER")),
+            false
         );
+
+        for (uint256 i = 0; i < marketsConfig.length; i++) {
+            console.log("MarketOrderKeeper Implementation: ", marketOrderKeepers[marketsConfig[i].marketId]);
+        }
     }
 }

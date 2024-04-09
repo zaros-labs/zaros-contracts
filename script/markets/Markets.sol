@@ -146,12 +146,8 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         public
     {
         for (uint256 i = 0; i < marketsConfig.length; i++) {
-            address marketOrderKeeper = deployMarketOrderKeeper(
-                marketsConfig[i].marketId,
-                deployer,
-                perpsEngine,
-                settlementFeeReceiver
-            );
+            address marketOrderKeeper =
+                deployMarketOrderKeeper(marketsConfig[i].marketId, deployer, perpsEngine, settlementFeeReceiver);
 
             SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
             SettlementConfiguration.DataStreamsMarketStrategy({
@@ -179,7 +175,9 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
                     marketId: marketsConfig[i].marketId,
                     name: marketsConfig[i].marketName,
                     symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: isTest ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))) : marketsConfig[i].priceAdapter,
+                    priceAdapter: isTest
+                        ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice)))
+                        : marketsConfig[i].priceAdapter,
                     initialMarginRateX18: marketsConfig[i].imr,
                     maintenanceMarginRateX18: marketsConfig[i].mmr,
                     maxOpenInterest: marketsConfig[i].maxOi,
