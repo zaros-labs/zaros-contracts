@@ -2,13 +2,20 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
 import { MockPriceFeed } from "../../test/mocks/MockPriceFeed.sol";
+import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
+import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
+import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } from "@prb-math/SD59x18.sol";
+
+// Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Markets
 import { ArbUsd } from "./ArbUsd.sol";
@@ -35,6 +42,14 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         OrderFees.Data orderFees;
         uint256 mockUsdPrice;
     }
+
+    mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
+
+    /// @notice General perps engine system configuration parameters.
+    string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
+    string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
+    uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
+    uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
     function getMarketsConfig(uint256[] memory filteredIndexMarkets) internal pure returns (MarketConfig[] memory) {
         MarketConfig[] memory marketsConfig = new MarketConfig[](3);
@@ -118,5 +133,87 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         }
 
         return filteredMarketsConfig;
+    }
+
+    function createPerpMarkets(
+        address deployer,
+        address settlementFeeReceiver,
+        IPerpsEngine perpsEngine,
+        MarketConfig[] memory marketsConfig,
+        IVerifierProxy chainlinkVerifier,
+        bool isTest
+    )
+        public
+    {
+        for (uint256 i = 0; i < marketsConfig.length; i++) {
+            address marketOrderKeeper = deployMarketOrderKeeper(
+                marketsConfig[i].marketId,
+                deployer,
+                perpsEngine,
+                settlementFeeReceiver
+            );
+
+            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
+            SettlementConfiguration.DataStreamsMarketStrategy({
+                chainlinkVerifier: chainlinkVerifier,
+                streamId: marketsConfig[i].streamId,
+                feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+                queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
+                settlementDelay: marketsConfig[i].settlementDelay,
+                isPremium: marketsConfig[i].isPremiumFeed
+            });
+
+            SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
+                isEnabled: true,
+                fee: DEFAULT_SETTLEMENT_FEE,
+                keeper: marketOrderKeeper,
+                data: abi.encode(marketOrderConfigurationData)
+            });
+
+            // TODO: update to API orderbook config
+            SettlementConfiguration.Data[] memory customOrderStrategies;
+
+            perpsEngine.createPerpMarket(
+                IGlobalConfigurationModule.CreatePerpMarketParams({
+                    marketId: marketsConfig[i].marketId,
+                    name: marketsConfig[i].marketName,
+                    symbol: marketsConfig[i].marketSymbol,
+                    priceAdapter: isTest ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))) : marketsConfig[i].priceAdapter,
+                    initialMarginRateX18: marketsConfig[i].imr,
+                    maintenanceMarginRateX18: marketsConfig[i].mmr,
+                    maxOpenInterest: marketsConfig[i].maxOi,
+                    maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
+                    skewScale: marketsConfig[i].skewScale,
+                    minTradeSizeX18: marketsConfig[i].minTradeSize,
+                    marketOrderConfiguration: marketOrderConfiguration,
+                    customTriggerStrategies: customOrderStrategies,
+                    orderFees: marketsConfig[i].orderFees
+                })
+            );
+        }
+    }
+
+    function deployMarketOrderKeeper(
+        uint128 marketId,
+        address deployer,
+        IPerpsEngine perpsEngine,
+        address settlementFeeReceiver
+    )
+        internal
+        returns (address marketOrderKeeper)
+    {
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
+
+        marketOrderKeeper = address(
+            new ERC1967Proxy(
+                marketOrderKeeperImplementation,
+                abi.encodeWithSelector(
+                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, settlementFeeReceiver, marketId
+                )
+            )
+        );
+
+        marketOrderKeepers[marketId] = marketOrderKeeper;
     }
 }

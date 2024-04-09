@@ -32,19 +32,13 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    address internal mockChainlinkFeeManager;
-    address internal mockChainlinkVerifier;
-    address internal settlementFeeReceiver = users.settlementFeeReceiver;
-    mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
+
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Test.setUp();
-
-        mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
-        mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
     }
 
     function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
@@ -66,61 +60,15 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         filteredIndexMarkets[1] = finalMarketIndex;
 
         (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
-        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        for (uint256 i = 0; i < marketsConfig.length; i++) {
-            marketOrderKeepers[marketsConfig[i].marketId] = address(
-                new ERC1967Proxy(
-                    marketOrderKeeperImplementation,
-                    abi.encodeWithSelector(
-                        MarketOrderKeeper.initialize.selector,
-                        users.owner,
-                        perpsEngine,
-                        users.settlementFeeReceiver,
-                        marketsConfig[i].marketId
-                    )
-                )
-            );
-
-            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
-            SettlementConfiguration.DataStreamsMarketStrategy({
-                chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-                streamId: marketsConfig[i].streamId,
-                feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-                queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-                settlementDelay: marketsConfig[i].settlementDelay,
-                isPremium: marketsConfig[i].isPremiumFeed
-            });
-            // TODO: set price adapter
-            SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
-                isEnabled: true,
-                fee: DATA_STREAMS_SETTLEMENT_FEE,
-                keeper: marketOrderKeepers[marketsConfig[i].marketId],
-                data: abi.encode(marketOrderConfigurationData)
-            });
-
-            // TODO: update to API orderbook config
-            SettlementConfiguration.Data[] memory customOrderStrategies;
-
-            perpsEngine.createPerpMarket(
-                IGlobalConfigurationModule.CreatePerpMarketParams({
-                    marketId: marketsConfig[i].marketId,
-                    name: marketsConfig[i].marketName,
-                    symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
-                    initialMarginRateX18: marketsConfig[i].imr,
-                    maintenanceMarginRateX18: marketsConfig[i].mmr,
-                    maxOpenInterest: marketsConfig[i].maxOi,
-                    maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
-                    skewScale: marketsConfig[i].skewScale,
-                    minTradeSizeX18: marketsConfig[i].minTradeSize,
-                    marketOrderConfiguration: marketOrderConfiguration,
-                    customTriggerStrategies: customOrderStrategies,
-                    orderFees: marketsConfig[i].orderFees
-                })
-            );
-        }
+        createPerpMarkets(
+            users.owner,
+            users.settlementFeeReceiver,
+            perpsEngine,
+            marketsConfig,
+            IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER")),
+            true
+        );
     }
 
     function getPrice(MockPriceFeed priceFeed) internal view returns (UD60x18) {
