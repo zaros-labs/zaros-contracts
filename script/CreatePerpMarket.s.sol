@@ -59,7 +59,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 deployMarketOrderKeeper(marketsConfig[i].marketId, marketOrderKeeperImplementation);
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET_ONCHAIN,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
                 keeper: marketOrderKeeper,

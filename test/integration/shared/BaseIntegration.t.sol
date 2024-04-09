@@ -93,7 +93,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             });
             // TODO: set price adapter
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET_ONCHAIN,
                 isEnabled: true,
                 fee: DATA_STREAMS_SETTLEMENT_FEE,
                 keeper: marketOrderKeepers[marketsConfig[i].marketId],

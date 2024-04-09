@@ -21,7 +21,7 @@ library SettlementConfiguration {
     using SafeCast for int256;
 
     /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
-    string internal constant SETTLEMENT_STRATEGY_DOMAIN = "fi.zaros.markets.PerpMarket.SettlementConfiguration";
+    string internal constant SETTLEMENT_CONFIGURATION_DOMAIN = "fi.zaros.markets.PerpMarket.SettlementConfiguration";
     /// @notice The default strategy id for a given market's market orders settlementConfiguration.
     uint128 internal constant MARKET_ORDER_CONFIGURATION_ID = 0;
     /// @notice The default strategy id for a given market's limit orders settlementConfiguration.
@@ -30,13 +30,13 @@ library SettlementConfiguration {
     uint128 internal constant OCO_ORDER_CONFIGURATION_ID = 2;
 
     /// @notice Strategies IDs supported.
-    /// @param DATA_STREAMS_MARKET The strategy ID that uses basic or premium reports from CL Data Streams to
-    /// settle market orders.
-    /// @param DATA_STREAMS_CUSTOM The strategy ID that uses basic or premium reports from CL Data Streams to
-    /// settle any sort of custom order.
+    /// @param DATA_STREAMS_MARKET_ONCHAIN The strategy ID that uses basic or premium reports from CL Data Streams to
+    /// fill onchain market orders.
+    /// @param DATA_STREAMS_OFFCHAIN The strategy ID that uses basic or premium reports from CL Data Streams to
+    /// fill offchain custom orders.
     enum Strategy {
-        DATA_STREAMS_MARKET,
-        DATA_STREAMS_CUSTOM
+        DATA_STREAMS_MARKET_ONCHAIN,
+        DATA_STREAMS_CUSTOM_OFFCHAIN
     }
 
     /// @notice The {SettlementConfiguration} namespace storage structure.
@@ -53,7 +53,6 @@ library SettlementConfiguration {
         bytes data;
     }
 
-    // TODO: Review if we should use settlementDelay or not
     /// @notice Data structure used by the {DATA_STREAMS} settlementConfiguration.
     /// @param streamId The Chainlink Data Streams stream id.
     /// @param feedLabel The Chainlink Data Streams feed label.
@@ -92,7 +91,7 @@ library SettlementConfiguration {
         pure
         returns (Data storage settlementConfiguration)
     {
-        bytes32 slot = keccak256(abi.encode(SETTLEMENT_STRATEGY_DOMAIN, marketId, settlementConfigurationId));
+        bytes32 slot = keccak256(abi.encode(SETTLEMENT_CONFIGURATION_DOMAIN, marketId, settlementConfigurationId));
         assembly {
             settlementConfiguration.slot := slot
         }
@@ -102,10 +101,14 @@ library SettlementConfiguration {
     /// @param settlementConfigurationId The settlement configuration id.
     /// @param strategy The strategy to check.
     function checkIsValidSettlementStrategy(uint128 settlementConfigurationId, Strategy strategy) internal pure {
-        if (settlementConfigurationId == MARKET_ORDER_CONFIGURATION_ID && strategy != Strategy.DATA_STREAMS_MARKET) {
+        if (
+            settlementConfigurationId == MARKET_ORDER_CONFIGURATION_ID
+                && strategy != Strategy.DATA_STREAMS_MARKET_ONCHAIN
+        ) {
             revert Errors.InvalidSettlementStrategy();
         } else if (
-            settlementConfigurationId != MARKET_ORDER_CONFIGURATION_ID && strategy != Strategy.DATA_STREAMS_CUSTOM
+            settlementConfigurationId != MARKET_ORDER_CONFIGURATION_ID
+                && strategy != Strategy.DATA_STREAMS_CUSTOM_OFFCHAIN
         ) {
             revert Errors.InvalidSettlementStrategy();
         }
@@ -142,12 +145,12 @@ library SettlementConfiguration {
         view
         returns (UD60x18 price)
     {
-        if (self.strategy == Strategy.DATA_STREAMS_MARKET) {
+        if (self.strategy == Strategy.DATA_STREAMS_MARKET_ONCHAIN) {
             DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
                 abi.decode(self.data, (DataStreamsMarketStrategy));
 
             price = getDataStreamsReportPrice(verifiedPriceData, dataStreamsMarketStrategy.isPremium, isBuyOrder);
-        } else if (self.strategy == Strategy.DATA_STREAMS_CUSTOM) {
+        } else if (self.strategy == Strategy.DATA_STREAMS_CUSTOM_OFFCHAIN) {
             DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
                 abi.decode(self.data, (DataStreamsCustomStrategy));
 
@@ -217,9 +220,10 @@ library SettlementConfiguration {
         bytes memory extraData
     )
         internal
+        onlyEnabledSettlement(self)
         returns (bytes memory verifiedPriceData)
     {
-        if (self.strategy == Strategy.DATA_STREAMS_MARKET) {
+        if (self.strategy == Strategy.DATA_STREAMS_MARKET_ONCHAIN) {
             DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
                 abi.decode(self.data, (DataStreamsMarketStrategy));
             verifiedPriceData = verifyDataStreamsReport(dataStreamsMarketStrategy, extraData);
@@ -227,7 +231,7 @@ library SettlementConfiguration {
             requireDataStreamsReportIsValid(
                 dataStreamsMarketStrategy.streamId, verifiedPriceData, dataStreamsMarketStrategy.isPremium
             );
-        } else if (self.strategy == Strategy.DATA_STREAMS_CUSTOM) {
+        } else if (self.strategy == Strategy.DATA_STREAMS_CUSTOM_OFFCHAIN) {
             DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
                 abi.decode(self.data, (DataStreamsCustomStrategy));
             verifiedPriceData = verifyDataStreamsReport(dataStreamsCustomStrategy, extraData);

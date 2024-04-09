@@ -45,7 +45,7 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
             isPremium: ETH_USD_IS_PREMIUM_FEED
         });
         SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET_ONCHAIN,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: ethUsdMarketOrderKeeper,
