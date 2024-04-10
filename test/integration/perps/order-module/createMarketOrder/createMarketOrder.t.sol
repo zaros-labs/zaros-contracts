@@ -278,8 +278,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             secondMarketIndex++;
         }
 
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(0);
-        (MarketConfig memory secondFuzzMarketConfig) = getFuzzMarketConfig(1);
+        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        (MarketConfig memory secondFuzzMarketConfig) = getFuzzMarketConfig(secondMarketIndex);
 
         initialMarginRate = bound({
             x: initialMarginRate,
