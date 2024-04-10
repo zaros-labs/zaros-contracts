@@ -25,7 +25,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
 
-        createMarkets(initialMarketIndex, finalMarketIndex);
+        createMarkets();
 
         changePrank({ msgSender: users.naruto });
     }

@@ -55,7 +55,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         });
     }
 
-    function createMarkets(uint256 initialMarketIndex, uint256 finalMarketIndex) internal {
+    function createMarkets() internal {
         uint256[] memory filteredIndexMarkets = new uint256[](2);
         filteredIndexMarkets[0] = initialMarketIndex;
         filteredIndexMarkets[1] = finalMarketIndex;
