@@ -119,11 +119,11 @@ library SettlementConfiguration {
     /// @notice Returns the offchain price for a given order based on the configured strategy and its direction (bid
     /// vs ask).
     /// @param self The {SettlementConfiguration} storage pointer.
-    /// @param verifiedPriceData The verified report data.
+    /// @param priceData The unverified price report data.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
     function getOffchainPrice(
         Data storage self,
-        bytes memory verifiedPriceData,
+        bytes memory priceData,
         bool isBuyOrder
     )
         internal
@@ -132,10 +132,13 @@ library SettlementConfiguration {
     {
         if (self.strategy == Strategy.DATA_STREAMS_ONCHAIN || self.strategy == Strategy.DATA_STREAMS_OFFCHAIN) {
             DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
+            bytes memory verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, priceData);
+
+            requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
 
             price = getDataStreamsReportPrice(verifiedPriceData, isBuyOrder);
         } else {
-            revert Errors.InvalidSettlementConfiguration(uint8(self.strategy));
+            revert Errors.InvalidSettlementStrategy();
         }
     }
 
@@ -183,24 +186,6 @@ library SettlementConfiguration {
         // if (settlementStreamIdHash != reportStreamIdHash) {
         //     revert Errors.InvalidDataStreamReport(settlementStreamId, reportStreamId);
         // }
-    }
-
-    function verifyPriceData(
-        Data storage self,
-        bytes memory extraData
-    )
-        internal
-        onlyEnabledSettlement(self)
-        returns (bytes memory verifiedPriceData)
-    {
-        if (self.strategy == Strategy.DATA_STREAMS_ONCHAIN || self.strategy == Strategy.DATA_STREAMS_OFFCHAIN) {
-            DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
-            verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, extraData);
-
-            requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
-        } else {
-            revert Errors.InvalidSettlementConfiguration(uint8(self.strategy));
-        }
     }
 
     function verifyDataStreamsReport(
