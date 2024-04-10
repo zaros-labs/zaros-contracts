@@ -70,6 +70,13 @@ library PerpMarket {
         indexPrice = ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter));
     }
 
+    /// @notice Returns the given market's mark price.
+    /// @dev The mark price is calculated given the bid/ask or median price of the underlying offchain provider (e.g
+    /// CL Data Streams),
+    /// and the skew of the market which is used to compute the price impact impact oh the trade.
+    /// @dev Liquidity providers of the ZLP Vaults are automatically market making for prices ranging the bid/ask
+    /// spread provided by
+    /// the offchain oracle with the added spread based on the skew and the configured skew scale.
     function getMarkPrice(
         Data storage self,
         SD59x18 skewDelta,

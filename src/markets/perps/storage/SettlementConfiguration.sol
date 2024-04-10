@@ -116,32 +116,6 @@ library SettlementConfiguration {
         self.data = settlementConfiguration.data;
     }
 
-    /// @notice Returns the offchain price for a given order based on the configured strategy and its direction (bid
-    /// vs ask).
-    /// @param self The {SettlementConfiguration} storage pointer.
-    /// @param priceData The unverified price report data.
-    /// @param isBuyOrder Whether the top-level order is a buy or sell order.
-    function getOffchainPrice(
-        Data storage self,
-        bytes memory priceData,
-        bool isBuyOrder
-    )
-        internal
-        view
-        returns (UD60x18 price)
-    {
-        if (self.strategy == Strategy.DATA_STREAMS_ONCHAIN || self.strategy == Strategy.DATA_STREAMS_OFFCHAIN) {
-            DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
-            bytes memory verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, priceData);
-
-            requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
-
-            price = getDataStreamsReportPrice(verifiedPriceData, isBuyOrder);
-        } else {
-            revert Errors.InvalidSettlementStrategy();
-        }
-    }
-
     /// @notice Returns the UD60x18 price from a verified report based on its type and whether the top-level order is
     /// a buy or sell order.
     /// @param verifiedPriceData The verified report data.
@@ -167,6 +141,7 @@ library SettlementConfiguration {
         bytes memory verifiedReportData
     )
         internal
+        view
     {
         // bytes32 settlementStreamIdHash = keccak256(abi.encodePacked(settlementStreamId));
         // bytes32 reportStreamIdHash;
@@ -186,6 +161,31 @@ library SettlementConfiguration {
         // if (settlementStreamIdHash != reportStreamIdHash) {
         //     revert Errors.InvalidDataStreamReport(settlementStreamId, reportStreamId);
         // }
+    }
+
+    /// @notice Returns the offchain price for a given order based on the configured strategy and its direction (bid
+    /// vs ask).
+    /// @param self The {SettlementConfiguration} storage pointer.
+    /// @param priceData The unverified price report data.
+    /// @param isBuyOrder Whether the top-level order is a buy or sell order.
+    function verifyOffchainPrice(
+        Data storage self,
+        bytes memory priceData,
+        bool isBuyOrder
+    )
+        internal
+        returns (UD60x18 price)
+    {
+        if (self.strategy == Strategy.DATA_STREAMS_ONCHAIN || self.strategy == Strategy.DATA_STREAMS_OFFCHAIN) {
+            DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
+            bytes memory verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, priceData);
+
+            requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
+
+            price = getDataStreamsReportPrice(verifiedPriceData, isBuyOrder);
+        } else {
+            revert Errors.InvalidSettlementStrategy();
+        }
     }
 
     function verifyDataStreamsReport(

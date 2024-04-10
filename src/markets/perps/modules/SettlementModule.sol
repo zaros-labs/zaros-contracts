@@ -165,7 +165,7 @@ contract SettlementModule is ISettlementModule {
         perpMarket.checkTradeSize(ctx.sizeDelta);
 
         ctx.fillPrice = perpMarket.getMarkPrice(
-            ctx.sizeDelta, settlementConfiguration.getOffchainPrice(priceData, ctx.sizeDelta.gt(SD_ZERO))
+            ctx.sizeDelta, settlementConfiguration.verifyOffchainPrice(priceData, ctx.sizeDelta.gt(SD_ZERO))
         );
 
         ctx.fundingRate = perpMarket.getCurrentFundingRate();
