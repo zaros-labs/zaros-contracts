@@ -35,6 +35,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
     address internal settlementFeeReceiver = users.settlementFeeReceiver;
+    uint256 internal initialMarketIndex = 0;
+    uint256 internal finalMarketIndex = 2;
     mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
 
     /*//////////////////////////////////////////////////////////////////////////

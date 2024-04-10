@@ -20,9 +20,6 @@ import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     using SafeCast for int256;
 
-    uint256 initialMarketIndex = 0;
-    uint256 finalMarketIndex = 2;
-
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
