@@ -33,7 +33,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
     uint256 initialMarketIndex = 0;
-    uint256 finalMarketIndex = 2;
+    uint256 finalMarketIndex = 3;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION

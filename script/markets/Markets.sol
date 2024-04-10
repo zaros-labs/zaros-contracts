@@ -52,7 +52,27 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
     function getMarketsConfig(uint256[] memory filteredIndexMarkets) internal pure returns (MarketConfig[] memory) {
-        MarketConfig[] memory marketsConfig = new MarketConfig[](3);
+        MarketConfig[] memory marketsConfig = new MarketConfig[](4);
+
+         MarketConfig memory btcUsdConfig = MarketConfig({
+            marketId: BTC_USD_MARKET_ID,
+            marketName: BTC_USD_MARKET_NAME,
+            marketSymbol: BTC_USD_MARKET_SYMBOL,
+            imr: BTC_USD_IMR,
+            mmr: BTC_USD_MMR,
+            marginRequirements: BTC_USD_MARGIN_REQUIREMENTS,
+            maxOi: BTC_USD_MAX_OI,
+            skewScale: BTC_USD_SKEW_SCALE,
+            minTradeSize: BTC_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
+            settlementDelay: BTC_USD_SETTLEMENT_DELAY,
+            isPremiumFeed: BTC_USD_IS_PREMIUM_FEED,
+            priceAdapter: BTC_USD_PRICE_FEED,
+            streamId: BTC_USD_STREAM_ID,
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            mockUsdPrice: MOCK_BTC_USD_PRICE
+        });
+        marketsConfig[0] = btcUsdConfig;
 
         MarketConfig memory ethUsdConfig = MarketConfig({
             marketId: ETH_USD_MARKET_ID,
@@ -72,7 +92,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_ETH_USD_PRICE
         });
-        marketsConfig[0] = ethUsdConfig;
+        marketsConfig[1] = ethUsdConfig;
 
         MarketConfig memory linkUsdConfig = MarketConfig({
             marketId: LINK_USD_MARKET_ID,
@@ -92,27 +112,27 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_LINK_USD_PRICE
         });
-        marketsConfig[1] = linkUsdConfig;
+        marketsConfig[2] = linkUsdConfig;
 
-        MarketConfig memory btcUsdConfig = MarketConfig({
-            marketId: BTC_USD_MARKET_ID,
-            marketName: BTC_USD_MARKET_NAME,
-            marketSymbol: BTC_USD_MARKET_SYMBOL,
-            imr: BTC_USD_IMR,
-            mmr: BTC_USD_MMR,
-            marginRequirements: BTC_USD_MARGIN_REQUIREMENTS,
-            maxOi: BTC_USD_MAX_OI,
-            skewScale: BTC_USD_SKEW_SCALE,
-            minTradeSize: BTC_USD_MIN_TRADE_SIZE,
-            maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
-            settlementDelay: BTC_USD_SETTLEMENT_DELAY,
-            isPremiumFeed: BTC_USD_IS_PREMIUM_FEED,
-            priceAdapter: BTC_USD_PRICE_FEED,
-            streamId: BTC_USD_STREAM_ID,
+        MarketConfig memory arbUsdConfig = MarketConfig({
+            marketId: ARB_USD_MARKET_ID,
+            marketName: ARB_USD_MARKET_NAME,
+            marketSymbol: ARB_USD_MARKET_SYMBOL,
+            imr: ARB_USD_IMR,
+            mmr: ARB_USD_MMR,
+            marginRequirements: ARB_USD_MARGIN_REQUIREMENTS,
+            maxOi: ARB_USD_MAX_OI,
+            skewScale: ARB_USD_SKEW_SCALE,
+            minTradeSize: ARB_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: ARB_USD_MAX_FUNDING_VELOCITY,
+            settlementDelay: ARB_USD_SETTLEMENT_DELAY,
+            isPremiumFeed: ARB_USD_IS_PREMIUM_FEED,
+            priceAdapter: ARB_USD_PRICE_FEED,
+            streamId: ARB_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            mockUsdPrice: MOCK_BTC_USD_PRICE
+            mockUsdPrice: MOCK_ARB_USD_PRICE
         });
-        marketsConfig[2] = btcUsdConfig;
+        marketsConfig[3] = arbUsdConfig;
 
         uint256 initialMarketIndex = filteredIndexMarkets[0];
         uint256 finalMarketIndex = filteredIndexMarkets[1];
