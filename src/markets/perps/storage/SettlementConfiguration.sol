@@ -22,21 +22,19 @@ library SettlementConfiguration {
 
     /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
     string internal constant SETTLEMENT_CONFIGURATION_DOMAIN = "fi.zaros.markets.PerpMarket.SettlementConfiguration";
-    /// @notice The default strategy id for a given market's market orders settlementConfiguration.
+    /// @notice The default strategy id for a given market's onchain market orders settlementConfiguration.
     uint128 internal constant MARKET_ORDER_CONFIGURATION_ID = 0;
-    /// @notice The default strategy id for a given market's limit orders settlementConfiguration.
-    uint128 internal constant LIMIT_ORDER_CONFIGURATION_ID = 1;
-    /// @notice The default strategy id for a given market's OCO orders settlementConfiguration.
-    uint128 internal constant OCO_ORDER_CONFIGURATION_ID = 2;
+    /// @notice The default strategy id for a given market's offchain orders settlementConfiguration.
+    uint128 internal constant OFFCHAIN_ORDER_CONFIGURATION_ID = 1;
 
-    /// @notice Strategies IDs supported.
-    /// @param DATA_STREAMS_MARKET_ONCHAIN The strategy ID that uses basic or premium reports from CL Data Streams to
-    /// fill onchain market orders.
+    /// @notice Supported settlement strategies.
+    /// @param DATA_STREAMS_ONCHAIN The strategy ID that uses basic or premium reports from CL Data Streams to
+    /// fill onchain orders.
     /// @param DATA_STREAMS_OFFCHAIN The strategy ID that uses basic or premium reports from CL Data Streams to
-    /// fill offchain custom orders.
+    /// fill offchain orders.
     enum Strategy {
-        DATA_STREAMS_MARKET_ONCHAIN,
-        DATA_STREAMS_CUSTOM_OFFCHAIN
+        DATA_STREAMS_ONCHAIN,
+        DATA_STREAMS_OFFCHAIN
     }
 
     /// @notice The {SettlementConfiguration} namespace storage structure.
@@ -53,26 +51,17 @@ library SettlementConfiguration {
         bytes data;
     }
 
-    /// @notice Data structure used by the {DATA_STREAMS} settlementConfiguration.
+    // TODO: do we need an additional struct for offchain orders?
+    /// @notice Data structure used by CL Data Streams powered orders.
+    /// @param chainlinkVerifier The Chainlink Verifier contract address.
     /// @param streamId The Chainlink Data Streams stream id.
     /// @param feedLabel The Chainlink Data Streams feed label.
     /// @param queryLabel The Chainlink Data Streams query label.
-    /// @param settlementDelay The delay in seconds to wait for the settlement report.
-    struct DataStreamsMarketStrategy {
+    struct DataStreamsStrategy {
         IVerifierProxy chainlinkVerifier;
         string streamId;
         string feedLabel;
         string queryLabel;
-        uint248 settlementDelay;
-        bool isPremium;
-    }
-
-    struct DataStreamsCustomStrategy {
-        IVerifierProxy chainlinkVerifier;
-        string streamId;
-        string feedLabel;
-        string queryLabel;
-        bool isPremium;
     }
 
     modifier onlyEnabledSettlement(Data storage self) {
@@ -82,7 +71,6 @@ library SettlementConfiguration {
         _;
     }
 
-    /// @dev The market order strategy id is always 0.
     function load(
         uint128 marketId,
         uint128 settlementConfigurationId
@@ -101,14 +89,10 @@ library SettlementConfiguration {
     /// @param settlementConfigurationId The settlement configuration id.
     /// @param strategy The strategy to check.
     function checkIsValidSettlementStrategy(uint128 settlementConfigurationId, Strategy strategy) internal pure {
-        if (
-            settlementConfigurationId == MARKET_ORDER_CONFIGURATION_ID
-                && strategy != Strategy.DATA_STREAMS_MARKET_ONCHAIN
-        ) {
+        if (settlementConfigurationId == MARKET_ORDER_CONFIGURATION_ID && strategy != Strategy.DATA_STREAMS_ONCHAIN) {
             revert Errors.InvalidSettlementStrategy();
         } else if (
-            settlementConfigurationId != MARKET_ORDER_CONFIGURATION_ID
-                && strategy != Strategy.DATA_STREAMS_CUSTOM_OFFCHAIN
+            settlementConfigurationId == OFFCHAIN_ORDER_CONFIGURATION_ID && strategy != Strategy.DATA_STREAMS_OFFCHAIN
         ) {
             revert Errors.InvalidSettlementStrategy();
         }
@@ -132,11 +116,12 @@ library SettlementConfiguration {
         self.data = settlementConfiguration.data;
     }
 
-    /// @notice Returns the settlement index price for a given order based on the configured strategy.
+    /// @notice Returns the offchain price for a given order based on the configured strategy and its direction (bid
+    /// vs ask).
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param verifiedPriceData The verified report data.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
-    function getOffchainIndexPrice(
+    function getOffchainPrice(
         Data storage self,
         bytes memory verifiedPriceData,
         bool isBuyOrder
@@ -145,16 +130,10 @@ library SettlementConfiguration {
         view
         returns (UD60x18 price)
     {
-        if (self.strategy == Strategy.DATA_STREAMS_MARKET_ONCHAIN) {
-            DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
-                abi.decode(self.data, (DataStreamsMarketStrategy));
+        if (self.strategy == Strategy.DATA_STREAMS_ONCHAIN || self.strategy == Strategy.DATA_STREAMS_OFFCHAIN) {
+            DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
 
-            price = getDataStreamsReportPrice(verifiedPriceData, dataStreamsMarketStrategy.isPremium, isBuyOrder);
-        } else if (self.strategy == Strategy.DATA_STREAMS_CUSTOM_OFFCHAIN) {
-            DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-                abi.decode(self.data, (DataStreamsCustomStrategy));
-
-            price = getDataStreamsReportPrice(verifiedPriceData, dataStreamsCustomStrategy.isPremium, isBuyOrder);
+            price = getDataStreamsReportPrice(verifiedPriceData, isBuyOrder);
         } else {
             revert Errors.InvalidSettlementConfiguration(uint8(self.strategy));
         }
@@ -163,35 +142,26 @@ library SettlementConfiguration {
     /// @notice Returns the UD60x18 price from a verified report based on its type and whether the top-level order is
     /// a buy or sell order.
     /// @param verifiedPriceData The verified report data.
-    /// @param isPremium Whether the report is a premium or basic report.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
     function getDataStreamsReportPrice(
         bytes memory verifiedPriceData,
-        bool isPremium,
         bool isBuyOrder
     )
         internal
         pure
         returns (UD60x18 price)
     {
-        if (isPremium) {
-            PremiumReport memory premiumReport = abi.decode(verifiedPriceData, (PremiumReport));
+        PremiumReport memory premiumReport = abi.decode(verifiedPriceData, (PremiumReport));
 
-            price = isBuyOrder
-                ? ud60x18(int256(premiumReport.ask).toUint256())
-                : ud60x18(int256(premiumReport.bid).toUint256());
-        } else {
-            BasicReport memory basicReport = abi.decode(verifiedPriceData, (BasicReport));
-
-            price = ud60x18(int256(basicReport.price).toUint256());
-        }
+        price = isBuyOrder
+            ? ud60x18(int256(premiumReport.ask).toUint256())
+            : ud60x18(int256(premiumReport.bid).toUint256());
     }
 
     // TODO: Implement
     function requireDataStreamsReportIsValid(
         string memory settlementStreamId,
-        bytes memory verifiedReportData,
-        bool isPremium
+        bytes memory verifiedReportData
     )
         internal
     {
@@ -223,47 +193,24 @@ library SettlementConfiguration {
         onlyEnabledSettlement(self)
         returns (bytes memory verifiedPriceData)
     {
-        if (self.strategy == Strategy.DATA_STREAMS_MARKET_ONCHAIN) {
-            DataStreamsMarketStrategy memory dataStreamsMarketStrategy =
-                abi.decode(self.data, (DataStreamsMarketStrategy));
-            verifiedPriceData = verifyDataStreamsReport(dataStreamsMarketStrategy, extraData);
+        if (self.strategy == Strategy.DATA_STREAMS_ONCHAIN || self.strategy == Strategy.DATA_STREAMS_OFFCHAIN) {
+            DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
+            verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, extraData);
 
-            requireDataStreamsReportIsValid(
-                dataStreamsMarketStrategy.streamId, verifiedPriceData, dataStreamsMarketStrategy.isPremium
-            );
-        } else if (self.strategy == Strategy.DATA_STREAMS_CUSTOM_OFFCHAIN) {
-            DataStreamsCustomStrategy memory dataStreamsCustomStrategy =
-                abi.decode(self.data, (DataStreamsCustomStrategy));
-            verifiedPriceData = verifyDataStreamsReport(dataStreamsCustomStrategy, extraData);
-
-            requireDataStreamsReportIsValid(
-                dataStreamsCustomStrategy.streamId, verifiedPriceData, dataStreamsCustomStrategy.isPremium
-            );
+            requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
         } else {
             revert Errors.InvalidSettlementConfiguration(uint8(self.strategy));
         }
     }
 
     function verifyDataStreamsReport(
-        DataStreamsMarketStrategy memory keeper,
+        DataStreamsStrategy memory dataStreamsStrategy,
         bytes memory signedReport
     )
         internal
         returns (bytes memory verifiedReportData)
     {
-        IVerifierProxy chainlinkVerifier = keeper.chainlinkVerifier;
-
-        verifiedReportData = verifyDataStreamsReport(chainlinkVerifier, signedReport);
-    }
-
-    function verifyDataStreamsReport(
-        DataStreamsCustomStrategy memory keeper,
-        bytes memory signedReport
-    )
-        internal
-        returns (bytes memory verifiedReportData)
-    {
-        IVerifierProxy chainlinkVerifier = keeper.chainlinkVerifier;
+        IVerifierProxy chainlinkVerifier = dataStreamsStrategy.chainlinkVerifier;
 
         verifiedReportData = verifyDataStreamsReport(chainlinkVerifier, signedReport);
     }

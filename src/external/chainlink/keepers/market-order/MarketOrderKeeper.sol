@@ -105,12 +105,12 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
 
         SettlementConfiguration.Data memory settlementConfiguration =
             perpsEngine.getSettlementConfiguration(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
-        SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfiguration =
-            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsMarketStrategy));
+        SettlementConfiguration.DataStreamsStrategy memory marketOrderConfiguration =
+            abi.decode(settlementConfiguration.data, (SettlementConfiguration.DataStreamsStrategy));
 
         string[] memory streams = new string[](1);
         streams[0] = marketOrderConfiguration.streamId;
-        uint256 settlementTimestamp = marketOrder.timestamp + marketOrderConfiguration.settlementDelay;
+        uint256 settlementTimestamp = marketOrder.timestamp;
         bytes memory extraData = abi.encode(accountId);
 
         revert StreamsLookup(

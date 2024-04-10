@@ -28,8 +28,6 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint256 skewScale;
         uint256 minTradeSize;
         uint128 maxFundingVelocity;
-        uint248 settlementDelay;
-        bool isPremiumFeed;
         address priceAdapter;
         string streamId;
         OrderFees.Data orderFees;
@@ -50,8 +48,6 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             skewScale: ETH_USD_SKEW_SCALE,
             minTradeSize: ETH_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-            isPremiumFeed: ETH_USD_IS_PREMIUM_FEED,
             priceAdapter: ETH_USD_PRICE_FEED,
             streamId: ETH_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
@@ -70,8 +66,6 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             skewScale: LINK_USD_SKEW_SCALE,
             minTradeSize: LINK_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
-            settlementDelay: LINK_USD_SETTLEMENT_DELAY,
-            isPremiumFeed: LINK_USD_IS_PREMIUM_FEED,
             priceAdapter: LINK_USD_PRICE_FEED,
             streamId: LINK_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
@@ -90,8 +84,6 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             skewScale: BTC_USD_SKEW_SCALE,
             minTradeSize: BTC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
-            settlementDelay: BTC_USD_SETTLEMENT_DELAY,
-            isPremiumFeed: BTC_USD_IS_PREMIUM_FEED,
             priceAdapter: BTC_USD_PRICE_FEED,
             streamId: BTC_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),

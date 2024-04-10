@@ -43,14 +43,12 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
 
         for (uint256 i = 0; i < marketsConfig.length; i++) {
-            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
-            SettlementConfiguration.DataStreamsMarketStrategy({
+            SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+                .DataStreamsStrategy({
                 chainlinkVerifier: chainlinkVerifier,
                 streamId: marketsConfig[i].streamId,
                 feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-                queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-                settlementDelay: marketsConfig[i].settlementDelay,
-                isPremium: marketsConfig[i].isPremiumFeed
+                queryLabel: DATA_STREAMS_TIME_PARAM_KEY
             });
 
             address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
@@ -59,7 +57,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                 deployMarketOrderKeeper(marketsConfig[i].marketId, marketOrderKeeperImplementation);
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET_ONCHAIN,
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
                 keeper: marketOrderKeeper,

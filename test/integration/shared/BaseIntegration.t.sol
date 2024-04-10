@@ -82,18 +82,16 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 )
             );
 
-            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
-            SettlementConfiguration.DataStreamsMarketStrategy({
+            SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+                .DataStreamsStrategy({
                 chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
                 streamId: marketsConfig[i].streamId,
                 feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-                queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-                settlementDelay: marketsConfig[i].settlementDelay,
-                isPremium: marketsConfig[i].isPremiumFeed
+                queryLabel: DATA_STREAMS_TIME_PARAM_KEY
             });
             // TODO: set price adapter
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET_ONCHAIN,
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
                 isEnabled: true,
                 fee: DATA_STREAMS_SETTLEMENT_FEE,
                 keeper: marketOrderKeepers[marketsConfig[i].marketId],
@@ -156,8 +154,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
     function getMockedSignedReport(
         string memory streamId,
-        uint256 price,
-        bool isPremium
+        uint256 price
     )
         internal
         view
@@ -167,33 +164,19 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         bytes32 mockStreamIdBytes32 = bytes32(uint256(keccak256(abi.encodePacked(streamId))));
         bytes memory mockedReportData;
 
-        if (isPremium) {
-            PremiumReport memory premiumReport = PremiumReport({
-                feedId: mockStreamIdBytes32,
-                validFromTimestamp: uint32(block.timestamp),
-                observationsTimestamp: uint32(block.timestamp),
-                nativeFee: 0,
-                linkFee: 0,
-                expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
-                price: int192(int256(price)),
-                bid: int192(int256(price)),
-                ask: int192(int256(price))
-            });
+        PremiumReport memory premiumReport = PremiumReport({
+            feedId: mockStreamIdBytes32,
+            validFromTimestamp: uint32(block.timestamp),
+            observationsTimestamp: uint32(block.timestamp),
+            nativeFee: 0,
+            linkFee: 0,
+            expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
+            price: int192(int256(price)),
+            bid: int192(int256(price)),
+            ask: int192(int256(price))
+        });
 
-            mockedReportData = abi.encode(premiumReport);
-        } else {
-            BasicReport memory basicReport = BasicReport({
-                feedId: mockStreamIdBytes32,
-                validFromTimestamp: uint32(block.timestamp),
-                observationsTimestamp: uint32(block.timestamp),
-                nativeFee: 0,
-                linkFee: 0,
-                expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
-                price: int192(int256(price))
-            });
-
-            mockedReportData = abi.encode(basicReport);
-        }
+        mockedReportData = abi.encode(premiumReport);
 
         bytes32[3] memory mockedSignatures;
         mockedSignatures[0] = bytes32(uint256(keccak256(abi.encodePacked("mockedSignature1"))));

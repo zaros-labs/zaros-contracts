@@ -35,17 +35,15 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
         ethUsdMarketOrderKeeper = vm.envAddress("ETH_USD_MARKET_ORDER_KEEPER");
 
-        SettlementConfiguration.DataStreamsMarketStrategy memory ethUsdMarketOrderConfigurationData =
-        SettlementConfiguration.DataStreamsMarketStrategy({
+        SettlementConfiguration.DataStreamsStrategy memory ethUsdMarketOrderConfigurationData =
+        SettlementConfiguration.DataStreamsStrategy({
             chainlinkVerifier: chainlinkVerifier,
             streamId: ethUsdStreamId,
             feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-            queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-            isPremium: ETH_USD_IS_PREMIUM_FEED
+            queryLabel: DATA_STREAMS_TIME_PARAM_KEY
         });
         SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: ethUsdMarketOrderKeeper,
