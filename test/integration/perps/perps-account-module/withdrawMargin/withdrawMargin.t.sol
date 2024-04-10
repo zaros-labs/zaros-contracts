@@ -118,7 +118,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     }
 
     // TODO: fix pnl issue on settle tests
-    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirements(
+    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement(
         uint256 amountToDeposit,
         uint256 amountToWithdraw,
         uint256 marginRequirement,
@@ -196,7 +196,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
     }
 
-    function testFuzz_GivenTheAccountMeetsTheMarginRequirements(
+    function testFuzz_GivenTheAccountMeetsTheMarginRequirement(
         uint256 amountToDeposit,
         uint256 amountToWithdraw
     )

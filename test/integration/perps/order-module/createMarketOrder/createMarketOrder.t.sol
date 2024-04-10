@@ -367,7 +367,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirements(
+    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement(
         uint256 marginValueUsd,
         uint256 initialMarginRate,
         bool isLong,
@@ -441,7 +441,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
     }
 
-    modifier givenTheAccountWillMeetTheMarginRequirements() {
+    modifier givenTheAccountWillMeetTheMarginRequirement() {
         _;
     }
 
@@ -459,7 +459,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
-        givenTheAccountWillMeetTheMarginRequirements
+        givenTheAccountWillMeetTheMarginRequirement
     {
         (MarketConfig memory fuzzMarketConfig) =
             getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
@@ -523,7 +523,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
-        givenTheAccountWillMeetTheMarginRequirements
+        givenTheAccountWillMeetTheMarginRequirement
     {
         (MarketConfig memory fuzzMarketConfig) =
             getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
