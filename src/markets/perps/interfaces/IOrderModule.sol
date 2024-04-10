@@ -51,7 +51,7 @@ interface IOrderModule {
             UD60x18 fillPriceX18
         );
 
-    function getMarginRequirementsForTrade(
+    function getMarginRequirementForTrade(
         uint128 marketId,
         int128 sizeDelta
     )

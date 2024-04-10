@@ -79,7 +79,7 @@ library Position {
         accruedFundingUsdX18 = sd59x18(self.size).mul(netFundingFeePerUnit);
     }
 
-    function getMarginRequirements(
+    function getMarginRequirement(
         UD60x18 notionalValueX18,
         UD60x18 initialMarginRateX18,
         UD60x18 maintenanceMarginRateX18

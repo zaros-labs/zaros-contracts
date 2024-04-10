@@ -71,7 +71,7 @@ contract OrderModule is IOrderModule {
     }
 
     /// @inheritdoc IOrderModule
-    function getMarginRequirementsForTrade(
+    function getMarginRequirementForTrade(
         uint128 marketId,
         int128 sizeDelta
     )

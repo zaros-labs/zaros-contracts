@@ -208,7 +208,7 @@ library PerpsAccount {
             UD60x18 notionalValueX18 = sd59x18(position.size).add(sizeDeltaX18).abs().intoUD60x18().mul(markPrice);
 
             (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
-                .getMarginRequirements(
+                .getMarginRequirement(
                 notionalValueX18,
                 ud60x18(perpMarket.configuration.initialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
@@ -238,7 +238,7 @@ library PerpsAccount {
             UD60x18 notionalValueX18 = position.getNotionalValue(markPrice);
 
             (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
-                .getMarginRequirements(
+                .getMarginRequirement(
                 notionalValueX18,
                 ud60x18(perpMarket.configuration.initialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)

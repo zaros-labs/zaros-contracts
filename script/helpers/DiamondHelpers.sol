@@ -109,7 +109,7 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     orderModuleSelectors[0] = OrderModule.getConfiguredOrderFees.selector;
     orderModuleSelectors[1] = OrderModule.simulateTrade.selector;
-    orderModuleSelectors[2] = OrderModule.getMarginRequirementsForTrade.selector;
+    orderModuleSelectors[2] = OrderModule.getMarginRequirementForTrade.selector;
     orderModuleSelectors[3] = OrderModule.getActiveMarketOrder.selector;
     orderModuleSelectors[4] = OrderModule.createMarketOrder.selector;
     orderModuleSelectors[5] = OrderModule.createCustomOrder.selector;
