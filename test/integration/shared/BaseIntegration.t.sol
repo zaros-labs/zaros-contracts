@@ -32,6 +32,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
+    uint256 initialMarketIndex = 0;
+    uint256 finalMarketIndex = 2;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -219,12 +221,10 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function getFuzzMarketConfig(
-        uint256 marketIndex,
-        uint256 initialMarketIndex,
-        uint256 finalMarketIndex
+        uint256 marketIndex
     )
         internal
-        pure
+        view
         returns (MarketConfig memory)
     {
         vm.assume(marketIndex >= initialMarketIndex && marketIndex <= finalMarketIndex);
