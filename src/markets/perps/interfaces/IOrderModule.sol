@@ -63,7 +63,6 @@ interface IOrderModule {
         uint128 accountId;
         uint128 marketId;
         int128 sizeDelta;
-        uint128 acceptablePrice;
     }
 
     struct CreateMarketOrderContext {

@@ -48,8 +48,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -80,8 +79,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -106,8 +104,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: 0,
-                acceptablePrice: 0
+                sizeDelta: 0
             })
         );
     }
@@ -165,8 +162,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -203,8 +199,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -249,8 +244,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -318,8 +312,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: firstOrderSizeDelta,
-                acceptablePrice: 0
+                sizeDelta: firstOrderSizeDelta
             })
         );
 
@@ -354,8 +347,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: secondFuzzMarketConfig.marketId,
-                sizeDelta: secondOrderSizeDelta,
-                acceptablePrice: 0
+                sizeDelta: secondOrderSizeDelta
             })
         );
     }
@@ -432,8 +424,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -487,8 +478,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
 
@@ -500,8 +490,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -550,7 +539,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({
             marketId: fuzzMarketConfig.marketId,
             sizeDelta: sizeDelta,
-            acceptablePrice: 0,
             timestamp: uint128(block.timestamp)
         });
 
@@ -563,8 +551,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
 
@@ -572,7 +559,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId });
 
         assertEq(marketOrder.sizeDelta, sizeDelta, "createMarketOrder: sizeDelta");
-        assertEq(marketOrder.acceptablePrice, 0, "createMarketOrder: acceptablePrice");
         assertEq(marketOrder.timestamp, block.timestamp, "createMarketOrder: timestamp");
     }
 }

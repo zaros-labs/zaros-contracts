@@ -163,8 +163,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
             IOrderModule.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: ETH_USD_MARKET_ID,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
 

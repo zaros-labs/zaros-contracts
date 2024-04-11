@@ -14,7 +14,6 @@ library MarketOrder {
     struct Data {
         uint128 marketId;
         int128 sizeDelta;
-        uint128 acceptablePrice;
         uint128 timestamp;
     }
 
@@ -36,10 +35,9 @@ library MarketOrder {
         return self;
     }
 
-    function update(Data storage self, uint128 marketId, int128 sizeDelta, uint128 acceptablePrice) internal {
+    function update(Data storage self, uint128 marketId, int128 sizeDelta) internal {
         self.marketId = marketId;
         self.sizeDelta = sizeDelta;
-        self.acceptablePrice = acceptablePrice;
         self.timestamp = uint128(block.timestamp);
     }
 
@@ -47,7 +45,6 @@ library MarketOrder {
     function clear(Data storage self) internal {
         self.marketId = 0;
         self.sizeDelta = 0;
-        self.acceptablePrice = 0;
         self.timestamp = 0;
     }
 

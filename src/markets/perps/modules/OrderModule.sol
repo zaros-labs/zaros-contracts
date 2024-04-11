@@ -145,11 +145,7 @@ contract OrderModule is IOrderModule {
         );
 
         marketOrder.checkPendingOrder();
-        marketOrder.update({
-            marketId: params.marketId,
-            sizeDelta: params.sizeDelta,
-            acceptablePrice: params.acceptablePrice
-        });
+        marketOrder.update({ marketId: params.marketId, sizeDelta: params.sizeDelta });
 
         emit LogCreateMarketOrder(msg.sender, params.accountId, params.marketId, marketOrder);
     }
