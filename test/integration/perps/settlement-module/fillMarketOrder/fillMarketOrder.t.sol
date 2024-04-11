@@ -3,7 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { BasicReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
+import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { Position } from "@zaros/markets/perps/storage/Position.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
@@ -22,21 +22,46 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_TheSenderIsNotTheKeeper(uint128 perp) external {
-        // (MarketConfig memory fuzzMarketConfig) =
-        //     getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+    function testFuzz_RevertGiven_TheSenderIsNotTheKeeper(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketIndex
+    )
+        external
+    {
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
 
-        // // it should revert
-        // vm.expectRevert({
-        //     revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, perpsAccountId, users.naruto)
-        // });
-        // perpsEngine.createMarketOrder(
-        //     IOrderModule.CreateMarketOrderParams({
-        //         accountId: perpsAccountId,
-        //         marketId: fuzzMarketConfig.marketId,
-        //         sizeDelta: sizeDelta
-        //     })
-        // );
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
+
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: sizeDelta
+            })
+        );
 
         // it should revert
     }

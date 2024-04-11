@@ -250,12 +250,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ).intoInt256().toInt128();
     }
 
-    function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
-        address marketOrderKeeper = marketOrderKeepers[marketId];
-
-        perpsEngine.fillMarketOrder(accountId, marketId, marketOrderKeeper, extraData);
-    }
-
     function getFuzzMarketConfig(
         uint256 marketIndex,
         uint256 initialMarketIndex,

@@ -169,8 +169,9 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: marketOrderKeepers[ETH_USD_MARKET_ID] });
         bytes memory mockBasicSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE);
+        address marketOrderKeeper = marketOrderKeepers[ETH_USD_MARKET_ID];
 
-        mockSettleMarketOrder(perpsAccountId, ETH_USD_MARKET_ID, mockBasicSignedReport);
+        perpsEngine.fillMarketOrder(perpsAccountId, ETH_USD_MARKET_ID, marketOrderKeeper, mockBasicSignedReport);
 
         changePrank({ msgSender: users.naruto });
 

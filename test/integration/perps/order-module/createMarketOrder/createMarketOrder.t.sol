@@ -2,9 +2,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Math } from "@zaros/utils/Math.sol";
 import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
@@ -319,8 +317,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: marketOrderKeepers[fuzzMarketConfig.marketId] });
         bytes memory mockBasicSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        mockSettleMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, mockBasicSignedReport);
+        perpsEngine.fillMarketOrder(
+            perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockBasicSignedReport
+        );
 
         changePrank({ msgSender: users.naruto });
 
