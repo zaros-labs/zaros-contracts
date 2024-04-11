@@ -81,12 +81,30 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_TheMarketOrderDoesNotExist()
+    function testFuzz_RevertGiven_TheMarketOrderDoesNotExist(
+        uint256 marginValueUsd,
+        uint256 marketIndex
+    )
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
     {
+        (MarketConfig memory fuzzMarketConfig) =
+            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
+        bytes memory mockSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+
+        changePrank({ msgSender: marketOrderKeeper });
         // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, perpsAccountId) });
+        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
     }
 
     modifier givenTheMarketOrderExists() {
