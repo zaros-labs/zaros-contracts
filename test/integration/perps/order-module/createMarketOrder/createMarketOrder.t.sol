@@ -315,12 +315,12 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         changePrank({ msgSender: marketOrderKeepers[fuzzMarketConfig.marketId] });
-        bytes memory mockBasicSignedReport =
+        bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
         perpsEngine.fillMarketOrder(
-            perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockBasicSignedReport
+            perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport
         );
 
         changePrank({ msgSender: users.naruto });

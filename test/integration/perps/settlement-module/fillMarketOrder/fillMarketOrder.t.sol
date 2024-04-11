@@ -63,6 +63,12 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
+        bytes memory mockSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+
+        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, priceData);
+
         // it should revert
     }
 
