@@ -3,6 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
 import { Position } from "@zaros/markets/perps/storage/Position.sol";
@@ -67,7 +68,12 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, priceData);
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OnlyKeeper.selector, users.naruto, marketOrderKeepers[fuzzMarketConfig.marketId]
+                )
+        });
+        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
 
         // it should revert
     }

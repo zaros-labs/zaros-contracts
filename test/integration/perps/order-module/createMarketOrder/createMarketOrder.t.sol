@@ -319,9 +319,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        perpsEngine.fillMarketOrder(
-            perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport
-        );
+        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
 
         changePrank({ msgSender: users.naruto });
 
