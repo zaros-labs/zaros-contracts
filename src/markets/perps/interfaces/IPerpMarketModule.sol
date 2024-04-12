@@ -42,7 +42,20 @@ interface IPerpMarketModule {
         view
         returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest);
 
-    function getMarkPrice(uint128 marketId, int256 skewDelta) external view returns (UD60x18);
+    /// @notice Returns the given market's mark price based on the offchain price.
+    /// @dev It returns the adjusted price if the market's skew is being updated.
+    /// @param marketId The perps market id.
+    /// @param indexPrice The offchain index price.
+    /// @param skewDelta The size of the skew update.
+    /// @return markPrice The market's mark price.
+    function getMarkPrice(
+        uint128 marketId,
+        uint256 indexPrice,
+        int256 skewDelta
+    )
+        external
+        view
+        returns (UD60x18 markPrice);
 
     /// @notice Returns a Settlement Strategy used by the given market.
     /// @param marketId The perps market id.
