@@ -31,14 +31,14 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     IPerpsEngine internal perpsEngine;
     address internal settlementFeeReceiver;
 
-    function run(uint256 initialMarketIndex, uint256 finalMarketIndex) public broadcaster {
+    function run(uint256 INITIAL_MARKET_INDEX, uint256 FINAL_MARKET_INDEX) public broadcaster {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
         settlementFeeReceiver = vm.envAddress("SETTLEMENT_FEE_RECEIVER");
 
         uint256[] memory filteredIndexMarkets = new uint256[](2);
-        filteredIndexMarkets[0] = initialMarketIndex;
-        filteredIndexMarkets[1] = finalMarketIndex;
+        filteredIndexMarkets[0] = INITIAL_MARKET_INDEX;
+        filteredIndexMarkets[1] = FINAL_MARKET_INDEX;
 
         (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
 

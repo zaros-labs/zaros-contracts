@@ -68,7 +68,9 @@ abstract contract ProtocolConfiguration is Markets {
     uint128 internal constant MIN_TRADE_SIZE_USD = 200e18;
     uint128 internal constant LIQUIDATION_FEE_USD = 5e18;
 
-    /// @notice Test only mocks
+    /// @notice Test only mocks and constants.
+    uint256 internal constant INITIAL_MARKET_INDEX = 0;
+    uint256 internal constant FINAL_MARKET_INDEX = 2;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
     uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;

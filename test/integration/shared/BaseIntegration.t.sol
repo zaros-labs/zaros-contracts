@@ -35,8 +35,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
     address internal settlementFeeReceiver = users.settlementFeeReceiver;
-    uint256 internal initialMarketIndex = 0;
-    uint256 internal finalMarketIndex = 2;
     mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -62,10 +60,10 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         });
     }
 
-    function createMarkets(uint256 initialMarketIndex, uint256 finalMarketIndex) internal {
+    function createMarkets() internal {
         uint256[] memory filteredIndexMarkets = new uint256[](2);
-        filteredIndexMarkets[0] = initialMarketIndex;
-        filteredIndexMarkets[1] = finalMarketIndex;
+        filteredIndexMarkets[0] = INITIAL_MARKET_INDEX;
+        filteredIndexMarkets[1] = FINAL_MARKET_INDEX;
 
         (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
@@ -250,16 +248,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ).intoInt256().toInt128();
     }
 
-    function getFuzzMarketConfig(
-        uint256 marketIndex,
-        uint256 initialMarketIndex,
-        uint256 finalMarketIndex
-    )
-        internal
-        pure
-        returns (MarketConfig memory)
-    {
-        vm.assume(marketIndex >= initialMarketIndex && marketIndex <= finalMarketIndex);
+    function getFuzzMarketConfig(uint256 marketIndex) internal view returns (MarketConfig memory) {
+        vm.assume(marketIndex >= INITIAL_MARKET_INDEX && marketIndex <= FINAL_MARKET_INDEX);
 
         uint256[] memory filteredIndexMarkets = new uint256[](2);
         filteredIndexMarkets[0] = marketIndex;

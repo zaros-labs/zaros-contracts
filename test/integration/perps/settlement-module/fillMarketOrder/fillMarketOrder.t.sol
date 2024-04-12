@@ -19,7 +19,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
-        createMarkets(initialMarketIndex, finalMarketIndex);
+        createMarkets();
         changePrank({ msgSender: users.naruto });
     }
 
@@ -31,8 +31,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     )
         external
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -89,8 +88,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -122,8 +120,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
 
         vm.assume(fakePerpsAccountId > 1);
         initialMarginRate =

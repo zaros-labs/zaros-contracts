@@ -91,20 +91,20 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         });
         marketsConfig[2] = btcUsdConfig;
 
-        uint256 initialMarketIndex = filteredIndexMarkets[0];
-        uint256 finalMarketIndex = filteredIndexMarkets[1];
+        uint256 INITIAL_MARKET_INDEX = filteredIndexMarkets[0];
+        uint256 FINAL_MARKET_INDEX = filteredIndexMarkets[1];
 
         uint256 lengthFilteredMarkets;
-        if (initialMarketIndex == finalMarketIndex) {
+        if (INITIAL_MARKET_INDEX == FINAL_MARKET_INDEX) {
             lengthFilteredMarkets = 1;
         } else {
-            lengthFilteredMarkets = (finalMarketIndex - initialMarketIndex) + 1;
+            lengthFilteredMarkets = (FINAL_MARKET_INDEX - INITIAL_MARKET_INDEX) + 1;
         }
 
         MarketConfig[] memory filteredMarketsConfig = new MarketConfig[](lengthFilteredMarkets);
 
         uint256 filteredIndex = 0;
-        for (uint256 index = initialMarketIndex; index <= finalMarketIndex; index++) {
+        for (uint256 index = INITIAL_MARKET_INDEX; index <= FINAL_MARKET_INDEX; index++) {
             filteredMarketsConfig[filteredIndex] = marketsConfig[index];
             filteredIndex++;
         }
