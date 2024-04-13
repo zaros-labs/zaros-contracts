@@ -157,6 +157,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
+        changePrank({ msgSender: marketOrderKeeper });
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, fakePerpsAccountId, users.naruto)

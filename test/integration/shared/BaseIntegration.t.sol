@@ -45,6 +45,9 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
+
+        vm.label({ account: mockChainlinkFeeMaanger, newLabel: "Chainlink Fee Manager" });
+        vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
     }
 
     function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
