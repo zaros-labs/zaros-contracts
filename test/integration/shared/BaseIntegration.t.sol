@@ -84,6 +84,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                     )
                 )
             );
+            vm.label({ account: marketOrderKeepers[marketsConfig[i].marketId], newLabel: "Market Order Keeper" });
 
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({

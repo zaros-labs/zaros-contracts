@@ -109,12 +109,60 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_ThePerpMarketIsDisabled()
+    function testFuzz_RevertGiven_ThePerpMarketIsDisabled(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketIndex
+    )
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
     {
+        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
+
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: sizeDelta
+            })
+        );
+
+        bytes memory mockSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.updatePerpMarketStatus({ marketId: fuzzMarketConfig.marketId, enable: false });
+
+        changePrank({ msgSender: marketOrderKeeper });
         // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
+        });
+        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
     }
 
     modifier givenThePerpMarketIsEnabled() {
