@@ -174,6 +174,7 @@ library SettlementConfiguration {
         bool isBuyOrder
     )
         internal
+        onlyEnabledSettlement(self)
         returns (UD60x18 price)
     {
         if (self.strategy == Strategy.DATA_STREAMS_ONCHAIN || self.strategy == Strategy.DATA_STREAMS_OFFCHAIN) {
@@ -197,16 +198,6 @@ library SettlementConfiguration {
     {
         IVerifierProxy chainlinkVerifier = dataStreamsStrategy.chainlinkVerifier;
 
-        verifiedReportData = verifyDataStreamsReport(chainlinkVerifier, signedReport);
-    }
-
-    function verifyDataStreamsReport(
-        IVerifierProxy chainlinkVerifier,
-        bytes memory signedReport
-    )
-        internal
-        returns (bytes memory verifiedReportData)
-    {
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
 

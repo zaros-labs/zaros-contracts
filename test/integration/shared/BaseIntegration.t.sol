@@ -93,7 +93,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
                 queryLabel: DATA_STREAMS_TIME_PARAM_KEY
             });
-            // TODO: set price adapter
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
                 isEnabled: true,

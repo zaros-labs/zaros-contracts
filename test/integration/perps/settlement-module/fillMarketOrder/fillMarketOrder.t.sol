@@ -3,6 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
 import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
@@ -87,6 +88,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
     {
         (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
@@ -109,6 +111,19 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
+    function test_RevertGiven_TheAccountDoesNotExist()
+        external
+        givenTheSenderIsTheKeeper
+        givenTheMarketOrderExists
+        givenTheAccountExists
+    {
+        // it should revert
+    }
+
+    modifier givenTheAccountExists() {
+        _;
+    }
+
     function testFuzz_RevertGiven_ThePerpMarketIsDisabled(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -118,6 +133,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
+        givenTheAccountExists
     {
         (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
         initialMarginRate =
@@ -169,27 +186,98 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertWhen_TheSizeDeltaIsBelowTheMinimum()
+    function testFuzz_RevertWhen_TheSizeDeltaIsBelowTheMinimum(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketIndex
+    )
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
         givenThePerpMarketIsEnabled
-    {
-        // it should revert
-    }
+    { }
 
     modifier whenTheSizeDeltaIsAboveTheMinimum() {
         _;
     }
 
-    function test_RevertGiven_TheSettlementStrategyIsDisabled()
+    function testFuzz_RevertGiven_TheSettlementStrategyIsDisabled(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketIndex
+    )
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsAboveTheMinimum
     {
+        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
+
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: sizeDelta
+            })
+        );
+
+        bytes memory mockSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+
+        SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+            .DataStreamsStrategy({
+            chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
+            streamId: fuzzMarketConfig.streamId,
+            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+            queryLabel: DATA_STREAMS_TIME_PARAM_KEY
+        });
+        SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            isEnabled: false,
+            fee: DATA_STREAMS_SETTLEMENT_FEE,
+            keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
+            data: abi.encode(marketOrderConfigurationData)
+        });
+
+        changePrank({ msgSender: users.owner });
+
+        perpsEngine.updateSettlementConfiguration({
+            marketId: fuzzMarketConfig.marketId,
+            settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            newSettlementConfiguration: marketOrderConfiguration
+        });
+
+        changePrank({ msgSender: marketOrderKeeper });
         // it should revert
+        vm.expectRevert({ revertData: Errors.SettlementDisabled.selector });
+        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
     }
 
     modifier givenTheSettlementStrategyIsEnabled() {
@@ -200,6 +288,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsAboveTheMinimum
         givenTheSettlementStrategyIsEnabled
@@ -211,16 +300,83 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_TheReportVerificationFails()
+    function testFuzz_RevertGiven_TheReportVerificationFails(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketIndex
+    )
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsAboveTheMinimum
         givenTheSettlementStrategyIsEnabled
         givenTheSettlementStrategyExists
     {
+        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
+
+        perpsEngine.createMarketOrder(
+            IOrderModule.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: sizeDelta
+            })
+        );
+
+        bytes memory mockSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+
+        SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+            .DataStreamsStrategy({
+            chainlinkVerifier: IVerifierProxy(address(1)),
+            streamId: fuzzMarketConfig.streamId,
+            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
+            queryLabel: DATA_STREAMS_TIME_PARAM_KEY
+        });
+        SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            isEnabled: true,
+            fee: DATA_STREAMS_SETTLEMENT_FEE,
+            keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
+            data: abi.encode(marketOrderConfigurationData)
+        });
+
+        changePrank({ msgSender: users.owner });
+
+        perpsEngine.updateSettlementConfiguration({
+            marketId: fuzzMarketConfig.marketId,
+            settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            newSettlementConfiguration: marketOrderConfiguration
+        });
+
+        changePrank({ msgSender: marketOrderKeeper });
         // it should revert
+        vm.expectRevert();
+        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
     }
 
     modifier givenTheReportVerificationPasses() {
@@ -231,6 +387,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsAboveTheMinimum
         givenTheSettlementStrategyIsEnabled
@@ -248,6 +405,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsAboveTheMinimum
         givenTheSettlementStrategyIsEnabled
@@ -266,6 +424,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsAboveTheMinimum
         givenTheSettlementStrategyIsEnabled
@@ -281,6 +440,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
+        givenTheAccountExists
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsAboveTheMinimum
         givenTheSettlementStrategyIsEnabled
