@@ -380,5 +380,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should update the account's position
         // it should apply the accrued pnl
         // it should emit a {LogSettleOrder} event
+        // it should pay the settlement fee
     }
 }

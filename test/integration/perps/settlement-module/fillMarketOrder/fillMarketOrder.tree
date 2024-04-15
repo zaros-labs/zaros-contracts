@@ -5,36 +5,28 @@ FillMarketOrder_Integration_Test
     ├── given the market order does not exist
     │   └── it should revert
     └── given the market order exists
-        ├── given the account does not exist
+        ├── given the perp market is disabled
         │   └── it should revert
-        └── given the account exists
-            ├── given the perp market is disabled
+        └── given the perp market is enabled
+            ├── given the settlement strategy is disabled
             │   └── it should revert
-            └── given the perp market is enabled
-                ├── when the size delta is below the minimum
+            └── given the settlement strategy is enabled
+                ├── given the report verification fails
                 │   └── it should revert
-                └── when the size delta is above the minimum
-                    ├── given the settlement strategy is disabled
+                └── given the report verification passes
+                    ├── given the data streams report is invalid
                     │   └── it should revert
-                    └── given the settlement strategy is enabled
-                        ├── given the settlement strategy does not exist
+                    └── given the data streams report is valid
+                        ├── given the account won't meet the margin requirement
                         │   └── it should revert
-                        └── given the settlement strategy exists
-                            ├── given the report verification fails
+                        └── given the account will meet the margin requirement
+                            ├── given the market's OI limit will be exceeded
                             │   └── it should revert
-                            └── given the report verification passes
-                                ├── given the data streams report is invalid
-                                │   └── it should revert
-                                └── given the data streams report is valid
-                                    ├── given the account won't meet the margin requirement
-                                    │   └── it should revert
-                                    └── given the account will meet the margin requirement
-                                        ├── given the market's OI limit will be exceeded
-                                        │   └── it should revert
-                                        └── given the market's OI limit won't be exceeded
-                                            ├── it should update the funding values
-                                            ├── it should update the open interest and skew
-                                            ├── it should update the account's active markets
-                                            ├── it should update the account's position
-                                            ├── it should apply the accrued pnl
-                                            └── it should emit a {LogSettleOrder} event
+                            └── given the market's OI limit won't be exceeded
+                                ├── it should update the funding values
+                                ├── it should update the open interest and skew
+                                ├── it should update the account's active markets
+                                ├── it should update the account's position
+                                ├── it should apply the accrued pnl
+                                ├── it should emit a {LogSettleOrder} event
+                                └── it should pay the settlement fee

@@ -135,32 +135,17 @@ library SettlementConfiguration {
             : ud60x18(int256(premiumReport.bid).toUint256());
     }
 
-    // TODO: Implement
-    function requireDataStreamsReportIsValid(
-        string memory settlementStreamId,
-        bytes memory verifiedReportData
-    )
-        internal
-        view
-    {
-        // bytes32 settlementStreamIdHash = keccak256(abi.encodePacked(settlementStreamId));
-        // bytes32 reportStreamIdHash;
-        // bytes32 reportStreamId;
-        // if (isPremium) {
-        //     PremiumReport memory premiumReport = abi.decode(verifiedReportData, (PremiumReport));
+    function requireDataStreamsReportIsValid(string memory streamId, bytes memory verifiedReportData) internal pure {
+        PremiumReport memory premiumReport = abi.decode(verifiedReportData, (PremiumReport));
 
-        //     reportStreamId = premiumReport.feedId;
-        //     reportStreamIdHash = keccak256(abi.encodePacked(premiumReport.feedId));
-        // } else {
-        //     BasicReport memory basicReport = abi.decode(verifiedReportData, (BasicReport));
+        bytes32 reportStreamId = premiumReport.feedId;
+        bytes32 reportStreamIdHash = keccak256(abi.encodePacked(premiumReport.feedId));
 
-        //     reportStreamId = basicReport.feedId;
-        //     reportStreamIdHash = keccak256(abi.encodePacked(basicReport.feedId));
-        // }
+        bytes32 streamIdHash = keccak256(abi.encodePacked(streamId));
 
-        // if (settlementStreamIdHash != reportStreamIdHash) {
-        //     revert Errors.InvalidDataStreamReport(settlementStreamId, reportStreamId);
-        // }
+        if (streamIdHash != reportStreamIdHash) {
+            revert Errors.InvalidDataStreamReport(streamId, reportStreamId);
+        }
     }
 
     /// @notice Returns the offchain price for a given order based on the configured strategy and its direction (bid

@@ -140,5 +140,5 @@ library Errors {
     error InvalidSettlementStrategy();
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
     /// one.
-    error InvalidDataStreamReport(string settlementStreamId, bytes32 reportStreamId);
+    error InvalidDataStreamReport(string streamId, bytes32 reportStreamId);
 }
