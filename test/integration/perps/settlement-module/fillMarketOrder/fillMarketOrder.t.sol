@@ -88,7 +88,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
-        givenTheAccountExists
     {
         (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
@@ -111,19 +110,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_TheAccountDoesNotExist()
-        external
-        givenTheSenderIsTheKeeper
-        givenTheMarketOrderExists
-        givenTheAccountExists
-    {
-        // it should revert
-    }
-
-    modifier givenTheAccountExists() {
-        _;
-    }
-
     function testFuzz_RevertGiven_ThePerpMarketIsDisabled(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -133,8 +119,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
-        givenTheAccountExists
-        givenTheAccountExists
     {
         (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
         initialMarginRate =
@@ -186,23 +170,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheSizeDeltaIsBelowTheMinimum(
-        uint256 initialMarginRate,
-        uint256 marginValueUsd,
-        bool isLong,
-        uint256 marketIndex
-    )
-        external
-        givenTheSenderIsTheKeeper
-        givenTheMarketOrderExists
-        givenTheAccountExists
-        givenThePerpMarketIsEnabled
-    { }
-
-    modifier whenTheSizeDeltaIsAboveTheMinimum() {
-        _;
-    }
-
     function testFuzz_RevertGiven_TheSettlementStrategyIsDisabled(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -212,9 +179,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
-        givenTheAccountExists
         givenThePerpMarketIsEnabled
-        whenTheSizeDeltaIsAboveTheMinimum
     {
         (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
         initialMarginRate =
@@ -280,26 +245,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
     }
 
-    modifier givenTheSettlementStrategyIsEnabled() {
-        _;
-    }
-
-    function test_RevertGiven_TheSettlementStrategyDoesNotExist()
-        external
-        givenTheSenderIsTheKeeper
-        givenTheMarketOrderExists
-        givenTheAccountExists
-        givenThePerpMarketIsEnabled
-        whenTheSizeDeltaIsAboveTheMinimum
-        givenTheSettlementStrategyIsEnabled
-    {
-        // it should revert
-    }
-
-    modifier givenTheSettlementStrategyExists() {
-        _;
-    }
-
     function testFuzz_RevertGiven_TheReportVerificationFails(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -309,11 +254,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
-        givenTheAccountExists
         givenThePerpMarketIsEnabled
-        whenTheSizeDeltaIsAboveTheMinimum
-        givenTheSettlementStrategyIsEnabled
-        givenTheSettlementStrategyExists
     {
         (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
         initialMarginRate =
@@ -387,11 +328,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
-        givenTheAccountExists
         givenThePerpMarketIsEnabled
-        whenTheSizeDeltaIsAboveTheMinimum
-        givenTheSettlementStrategyIsEnabled
-        givenTheSettlementStrategyExists
         givenTheReportVerificationPasses
     {
         // it should revert
@@ -405,11 +342,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
-        givenTheAccountExists
         givenThePerpMarketIsEnabled
-        whenTheSizeDeltaIsAboveTheMinimum
-        givenTheSettlementStrategyIsEnabled
-        givenTheSettlementStrategyExists
         givenTheReportVerificationPasses
         givenTheDataStreamsReportIsValid
     {
@@ -424,11 +357,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
-        givenTheAccountExists
         givenThePerpMarketIsEnabled
-        whenTheSizeDeltaIsAboveTheMinimum
-        givenTheSettlementStrategyIsEnabled
-        givenTheSettlementStrategyExists
         givenTheReportVerificationPasses
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
@@ -440,11 +369,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
-        givenTheAccountExists
         givenThePerpMarketIsEnabled
-        whenTheSizeDeltaIsAboveTheMinimum
-        givenTheSettlementStrategyIsEnabled
-        givenTheSettlementStrategyExists
         givenTheReportVerificationPasses
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
