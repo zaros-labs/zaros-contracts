@@ -2,10 +2,9 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
-import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
+import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
@@ -135,6 +134,9 @@ library SettlementConfiguration {
             : ud60x18(int256(premiumReport.bid).toUint256());
     }
 
+    /// @notice Checks if the provided data streams report is using the expected stream id.
+    /// @param streamId The expected stream id.
+    /// @param verifiedReportData The verified report data.
     function requireDataStreamsReportIsValid(string memory streamId, bytes memory verifiedReportData) internal pure {
         PremiumReport memory premiumReport = abi.decode(verifiedReportData, (PremiumReport));
 
