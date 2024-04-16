@@ -44,12 +44,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
         for (uint256 i = 0; i < marketsConfig.length; i++) {
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
-                .DataStreamsStrategy({
-                chainlinkVerifier: chainlinkVerifier,
-                streamId: marketsConfig[i].streamId,
-                feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-                queryLabel: DATA_STREAMS_TIME_PARAM_KEY
-            });
+                .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
 
             address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
             console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);

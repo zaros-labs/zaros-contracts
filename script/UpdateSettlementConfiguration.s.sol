@@ -20,7 +20,7 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                     VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    string internal ethUsdStreamId;
+    bytes32 internal ethUsdStreamId;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
@@ -31,17 +31,12 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
 
     function run() public broadcaster {
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
-        ethUsdStreamId = vm.envString("ETH_USD_STREAM_ID");
+        ethUsdStreamId = vm.envBytes32("ETH_USD_STREAM_ID");
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
         ethUsdMarketOrderKeeper = vm.envAddress("ETH_USD_MARKET_ORDER_KEEPER");
 
         SettlementConfiguration.DataStreamsStrategy memory ethUsdMarketOrderConfigurationData =
-        SettlementConfiguration.DataStreamsStrategy({
-            chainlinkVerifier: chainlinkVerifier,
-            streamId: ethUsdStreamId,
-            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-            queryLabel: DATA_STREAMS_TIME_PARAM_KEY
-        });
+        SettlementConfiguration.DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: ethUsdStreamId });
         SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
             isEnabled: true,

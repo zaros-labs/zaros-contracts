@@ -33,5 +33,7 @@ abstract contract BtcUsd {
     address internal constant BTC_USD_PRICE_FEED = address(0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69);
 
     // TODO: Update stream id value
-    string internal constant BTC_USD_STREAM_ID = "0x00020d95813497a566307e6af5f59ca3cbbe8d8cd62672e5b3fc4e0d67787f23";
+    bytes32 internal constant BTC_USD_STREAM_ID = 0x00020d95813497a566307e6af5f59ca3cbbe8d8cd62672e5b3fc4e0d67787f23;
+    string internal constant STRING_BTC_USD_STREAM_ID =
+        "0x00020d95813497a566307e6af5f59ca3cbbe8d8cd62672e5b3fc4e0d67787f23";
 }

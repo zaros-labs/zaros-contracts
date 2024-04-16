@@ -58,9 +58,7 @@ library SettlementConfiguration {
     /// @param queryLabel The Chainlink Data Streams query label.
     struct DataStreamsStrategy {
         IVerifierProxy chainlinkVerifier;
-        string streamId;
-        string feedLabel;
-        string queryLabel;
+        bytes32 streamId;
     }
 
     modifier onlyEnabledSettlement(Data storage self) {
@@ -137,16 +135,11 @@ library SettlementConfiguration {
     /// @notice Checks if the provided data streams report is using the expected stream id.
     /// @param streamId The expected stream id.
     /// @param verifiedReportData The verified report data.
-    function requireDataStreamsReportIsValid(string memory streamId, bytes memory verifiedReportData) internal pure {
+    function requireDataStreamsReportIsValid(bytes32 streamId, bytes memory verifiedReportData) internal pure {
         PremiumReport memory premiumReport = abi.decode(verifiedReportData, (PremiumReport));
 
-        bytes32 reportStreamId = premiumReport.feedId;
-        bytes32 reportStreamIdHash = keccak256(abi.encodePacked(premiumReport.feedId));
-
-        bytes32 streamIdHash = keccak256(abi.encodePacked(streamId));
-
-        if (streamIdHash != reportStreamIdHash) {
-            revert Errors.InvalidDataStreamReport(streamId, reportStreamId);
+        if (streamId != premiumReport.feedId) {
+            revert Errors.InvalidDataStreamReport(streamId, premiumReport.feedId);
         }
     }
 

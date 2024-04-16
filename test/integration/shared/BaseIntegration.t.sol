@@ -89,9 +89,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({
                 chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-                streamId: marketsConfig[i].streamId,
-                feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-                queryLabel: DATA_STREAMS_TIME_PARAM_KEY
+                streamId: marketsConfig[i].streamId
             });
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
@@ -156,19 +154,17 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function getMockedSignedReport(
-        string memory streamId,
+        bytes32 streamId,
         uint256 price
     )
         internal
         view
         returns (bytes memory mockedSignedReport)
     {
-        // TODO: We need to check at the perps engine level if the report's stream id is the market's one.
-        bytes32 mockStreamIdBytes32 = bytes32(uint256(keccak256(abi.encodePacked(streamId))));
         bytes memory mockedReportData;
 
         PremiumReport memory premiumReport = PremiumReport({
-            feedId: mockStreamIdBytes32,
+            feedId: streamId,
             validFromTimestamp: uint32(block.timestamp),
             observationsTimestamp: uint32(block.timestamp),
             nativeFee: 0,

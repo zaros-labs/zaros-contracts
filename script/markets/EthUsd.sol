@@ -33,5 +33,7 @@ abstract contract EthUsd {
     address internal constant ETH_USD_PRICE_FEED = address(0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165);
 
     // TODO: Update stream id value
-    string internal constant ETH_USD_STREAM_ID = "0x00027bbaff688c906a3e20a34fe951715d1018d262a5b66e38eda027a674cd1b";
+    bytes32 internal constant ETH_USD_STREAM_ID = 0x00027bbaff688c906a3e20a34fe951715d1018d262a5b66e38eda027a674cd1b;
+    string internal constant STRING_ETH_USD_STREAM_ID =
+        "0x00027bbaff688c906a3e20a34fe951715d1018d262a5b66e38eda027a674cd1b";
 }

@@ -220,9 +220,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
             .DataStreamsStrategy({
             chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-            streamId: fuzzMarketConfig.streamId,
-            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-            queryLabel: DATA_STREAMS_TIME_PARAM_KEY
+            streamId: fuzzMarketConfig.streamId
         });
         SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
@@ -293,12 +291,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
         SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
-            .DataStreamsStrategy({
-            chainlinkVerifier: IVerifierProxy(address(1)),
-            streamId: fuzzMarketConfig.streamId,
-            feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-            queryLabel: DATA_STREAMS_TIME_PARAM_KEY
-        });
+            .DataStreamsStrategy({ chainlinkVerifier: IVerifierProxy(address(1)), streamId: fuzzMarketConfig.streamId });
         SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
             isEnabled: true,
@@ -338,7 +331,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheReportVerificationPasses
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
-        MarketConfig memory wrongFuzzMarketConfig = getFuzzMarketConfig(marketIndex < FINAL_MARKET_INDEX ? marketIndex + 1 : marketIndex - 1);
+        MarketConfig memory wrongFuzzMarketConfig =
+            getFuzzMarketConfig(marketIndex < FINAL_MARKET_INDEX ? marketIndex + 1 : marketIndex - 1);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });

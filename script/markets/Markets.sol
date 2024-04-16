@@ -29,7 +29,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint256 minTradeSize;
         uint128 maxFundingVelocity;
         address priceAdapter;
-        string streamId;
+        bytes32 streamId;
         OrderFees.Data orderFees;
         uint256 mockUsdPrice;
     }

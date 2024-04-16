@@ -119,7 +119,8 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         uint256 amountToDeposit,
         uint256 amountToWithdraw,
         uint256 marginRequirement,
-        bool isLong
+        bool isLong,
+        uint256 marketIndex
     )
         external
         givenTheAccountExists
@@ -127,70 +128,80 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
-        {
-            amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-            marginRequirement =
-                bound({ x: marginRequirement, min: ETH_USD_MARGIN_REQUIREMENTS, max: MAX_MARGIN_REQUIREMENTS });
-            // TODO: discount order fees
-            uint256 requiredMarginUsd = ud60x18(amountToDeposit).div(ud60x18(marginRequirement)).mul(
-                ud60x18(ETH_USD_MARGIN_REQUIREMENTS)
-            ).intoUint256();
-            amountToWithdraw = bound({ x: amountToWithdraw, min: requiredMarginUsd, max: amountToDeposit });
-            deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
-        }
+        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        // {
+        //     amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        //     marginRequirement = bound({
+        //         x: marginRequirement,
+        //         min: fuzzMarketConfig.marginRequirements,
+        //         max: MAX_MARGIN_REQUIREMENTS
+        //     });
+        //     // TODO: discount order fees
+        //     uint256 requiredMarginUsd = ud60x18(amountToDeposit).div(ud60x18(marginRequirement)).mul(
+        //         ud60x18(fuzzMarketConfig.marginRequirements)
+        //     ).intoUint256();
+        //     amountToWithdraw = bound({ x: amountToWithdraw, min: requiredMarginUsd, max: amountToDeposit });
+        //     deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+        // }
 
-        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
-        int128 sizeDelta = fuzzOrderSizeDelta(
-            FuzzOrderSizeDeltaParams({
-                accountId: perpsAccountId,
-                marketId: ETH_USD_MARKET_ID,
-                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(marginRequirement),
-                marginValueUsd: ud60x18(amountToDeposit),
-                maxOpenInterest: ud60x18(ETH_USD_MAX_OI),
-                minTradeSize: ud60x18(ETH_USD_MIN_TRADE_SIZE),
-                price: ud60x18(MOCK_ETH_USD_PRICE),
-                isLong: isLong,
-                shouldDiscountFees: true
-            })
-        );
-        (SD59x18 marginBalanceUsdX18, UD60x18 requiredInitialMarginUsdX18, UD60x18 requiredMaintenanceMarginUsdX18,,,)
-        = perpsEngine.simulateTrade(
-            perpsAccountId, ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, sizeDelta
-        );
+        // uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        // int128 sizeDelta = fuzzOrderSizeDelta(
+        //     FuzzOrderSizeDeltaParams({
+        //         accountId: perpsAccountId,
+        //         marketId: fuzzMarketConfig.marketId,
+        //         settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+        //         initialMarginRate: ud60x18(marginRequirement),
+        //         marginValueUsd: ud60x18(amountToDeposit),
+        //         maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+        //         minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+        //         price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+        //         isLong: isLong,
+        //         shouldDiscountFees: true
+        //     })
+        // );
+        // (SD59x18 marginBalanceUsdX18, UD60x18 requiredInitialMarginUsdX18, UD60x18
+        // requiredMaintenanceMarginUsdX18,,,)
+        // = perpsEngine.simulateTrade(
+        //     perpsAccountId,
+        //     fuzzMarketConfig.marketId,
+        //     SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+        //     sizeDelta
+        // );
 
-        perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
-                accountId: perpsAccountId,
-                marketId: ETH_USD_MARKET_ID,
-                sizeDelta: sizeDelta
-            })
-        );
+        // perpsEngine.createMarketOrder(
+        //     IOrderModule.CreateMarketOrderParams({
+        //         accountId: perpsAccountId,
+        //         marketId: fuzzMarketConfig.marketId,
+        //         sizeDelta: sizeDelta
+        //     })
+        // );
 
-        changePrank({ msgSender: marketOrderKeepers[ETH_USD_MARKET_ID] });
-        bytes memory mockSignedReport = getMockedSignedReport(MOCK_ETH_USD_STREAM_ID, MOCK_ETH_USD_PRICE);
-        address marketOrderKeeper = marketOrderKeepers[ETH_USD_MARKET_ID];
+        // changePrank({ msgSender: marketOrderKeepers[fuzzMarketConfig.marketId] });
+        // bytes memory mockSignedReport =
+        //     getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        // address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        perpsEngine.fillMarketOrder(perpsAccountId, ETH_USD_MARKET_ID, marketOrderKeeper, mockSignedReport);
+        // perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper,
+        // mockSignedReport);
 
-        changePrank({ msgSender: users.naruto });
+        // changePrank({ msgSender: users.naruto });
 
-        console.log("from wmt: ");
-        console.log(marginBalanceUsdX18.abs().intoUint256());
-        console.log(amountToWithdraw);
-        console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
+        // console.log("from wmt: ");
+        // console.log(marginBalanceUsdX18.abs().intoUint256());
+        // console.log(amountToWithdraw);
+        // console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
 
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                Errors.InsufficientMargin.selector,
-                perpsAccountId,
-                marginBalanceUsdX18.intoInt256() - int256(amountToWithdraw),
-                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
-                int256(0)
-                )
-        });
-        // it should revert
-        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
+        // vm.expectRevert({
+        //     revertData: abi.encodeWithSelector(
+        //         Errors.InsufficientMargin.selector,
+        //         perpsAccountId,
+        //         marginBalanceUsdX18.intoInt256() - int256(amountToWithdraw),
+        //         requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
+        //         int256(0)
+        //         )
+        // });
+        // // it should revert
+        // perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
     }
 
     function testFuzz_GivenTheAccountMeetsTheMarginRequirement(

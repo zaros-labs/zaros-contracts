@@ -27,7 +27,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         __BaseKeeper_init(owner);
     }
 
-    function checkKeeper(bytes calldata checkData)
+    function checkUpkeep(bytes calldata checkData)
         external
         view
         returns (bool keeperNeeded, bytes memory performData)
@@ -60,7 +60,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         return (true, extraData);
     }
 
-    function performKeeper(bytes calldata peformData) external override onlyForwarder {
+    function performUpkeep(bytes calldata peformData) external override onlyForwarder {
         (uint128[] memory accountsToBeLiquidated, address feeReceiver) = abi.decode(peformData, (uint128[], address));
         IPerpsEngine perpsEngine = _getLiquidationKeeperStorage().perpsEngine;
 
