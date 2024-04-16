@@ -80,7 +80,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                         users.owner,
                         perpsEngine,
                         users.settlementFeeReceiver,
-                        marketsConfig[i].marketId
+                        marketsConfig[i].marketId,
+                        marketsConfig[i].streamIdString
                     )
                 )
             );

@@ -30,6 +30,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint128 maxFundingVelocity;
         address priceAdapter;
         bytes32 streamId;
+        string streamIdString;
         OrderFees.Data orderFees;
         uint256 mockUsdPrice;
     }
@@ -50,6 +51,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: ETH_USD_PRICE_FEED,
             streamId: ETH_USD_STREAM_ID,
+            streamIdString: STRING_ETH_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_ETH_USD_PRICE
         });
@@ -68,6 +70,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: LINK_USD_PRICE_FEED,
             streamId: LINK_USD_STREAM_ID,
+            streamIdString: STRING_LINK_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_LINK_USD_PRICE
         });
@@ -86,6 +89,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: BTC_USD_PRICE_FEED,
             streamId: BTC_USD_STREAM_ID,
+            streamIdString: STRING_BTC_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_BTC_USD_PRICE
         });
