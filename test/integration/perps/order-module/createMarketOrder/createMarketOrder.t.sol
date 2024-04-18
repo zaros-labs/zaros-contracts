@@ -35,7 +35,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     )
         external
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         // it should revert
         vm.expectRevert({
@@ -61,7 +61,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheAccountIdExists
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         uint128 perpsAccountId = perpsEngine.createPerpsAccount();
 
@@ -89,7 +89,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountIdExists
         givenTheSenderIsAuthorized
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         uint128 perpsAccountId = perpsEngine.createPerpsAccount();
 
@@ -119,7 +119,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -176,7 +176,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsNotZero
         givenThePerpMarketIsEnabled
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
@@ -213,7 +213,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
@@ -264,7 +264,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             secondMarketIndex++;
         }
 
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(0);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(0);
         (MarketConfig memory secondFuzzMarketConfig) = getFuzzMarketConfig(1);
 
         initialMarginRate = bound({
@@ -364,7 +364,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         UD60x18 maxMarginValueUsd = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(ETH_USD_MAX_OI));
         marginValueUsd =
@@ -441,7 +441,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountHasNotReachedThePositionsLimit
         givenTheAccountWillMeetTheMarginRequirement
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -502,7 +502,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountHasNotReachedThePositionsLimit
         givenTheAccountWillMeetTheMarginRequirement
     {
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
