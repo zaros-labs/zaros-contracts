@@ -162,7 +162,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     )
         public
     {
-        for (uint256 i = initialMarketId; i < finalMarketId; i++) {
+        for (uint256 i = initialMarketId; i <= finalMarketId; i++) {
             address marketOrderKeeper =
                 deployMarketOrderKeeper(marketsConfig[i].marketId, deployer, perpsEngine, settlementFeeReceiver);
 
