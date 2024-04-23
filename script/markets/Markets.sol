@@ -53,7 +53,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
-    function loadMarketsConfig(uint256[] memory marketsIdsRange) internal returns (MarketConfig[] memory) {
+    function setupMarketsConfig() internal {
         MarketConfig memory btcUsdConfig = MarketConfig({
             marketId: BTC_USD_MARKET_ID,
             marketName: BTC_USD_MARKET_NAME,
@@ -129,7 +129,13 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             mockUsdPrice: MOCK_ARB_USD_PRICE
         });
         marketsConfig[ARB_USD_MARKET_ID] = arbUsdConfig;
+    }
 
+    function getFilteredMarketsConfig(uint256[2] memory marketsIdsRange)
+        internal
+        view
+        returns (MarketConfig[] memory)
+    {
         uint256 initialMarketId = marketsIdsRange[0];
         uint256 finalMarketId = marketsIdsRange[1];
         uint256 filteredMarketsLength = finalMarketId - initialMarketId + 1;
@@ -209,7 +215,12 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             new ERC1967Proxy(
                 marketOrderKeeperImplementation,
                 abi.encodeWithSelector(
-                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, settlementFeeReceiver, marketId
+                    MarketOrderKeeper.initialize.selector,
+                    deployer,
+                    perpsEngine,
+                    settlementFeeReceiver,
+                    marketId,
+                    marketsConfig[marketId].streamIdString
                 )
             )
         );

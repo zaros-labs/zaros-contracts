@@ -36,11 +36,11 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
         settlementFeeReceiver = vm.envAddress("SETTLEMENT_FEE_RECEIVER");
 
-        uint256[] memory marketsIdsRange = new uint256[](2);
+        uint256[2] memory marketsIdsRange;
         marketsIdsRange[0] = INITIAL_MARKET_ID;
         marketsIdsRange[1] = FINAL_MARKET_ID;
 
-        MarketConfig[] memory filteredMarketsConfig = loadMarketsConfig(marketsIdsRange);
+        MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 
         for (uint256 i = 0; i < filteredMarketsConfig.length; i++) {
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration

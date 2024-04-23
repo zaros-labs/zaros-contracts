@@ -42,6 +42,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
 
+        setupMarketsConfig();
+
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
         vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
     }
@@ -215,14 +217,14 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ).intoInt256().toInt128();
     }
 
-    function getFuzzMarketConfig(uint256 marketIndex) internal returns (MarketConfig memory) {
+    function getFuzzMarketConfig(uint256 marketIndex) internal view returns (MarketConfig memory) {
         vm.assume(marketIndex >= INITIAL_MARKET_ID && marketIndex <= FINAL_MARKET_ID);
 
-        uint256[] memory marketsIdsRange = new uint256[](2);
+        uint256[2] memory marketsIdsRange;
         marketsIdsRange[0] = marketIndex;
         marketsIdsRange[1] = marketIndex;
 
-        MarketConfig[] memory filteredMarketsConfig = loadMarketsConfig(marketsIdsRange);
+        MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 
         return filteredMarketsConfig[0];
     }
