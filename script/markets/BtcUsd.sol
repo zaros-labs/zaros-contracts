@@ -21,7 +21,6 @@ abstract contract BtcUsd {
     uint128 internal constant BTC_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint256 internal constant BTC_USD_SKEW_SCALE = 100_000e18;
     uint256 internal constant BTC_USD_MIN_TRADE_SIZE = 0.001e18;
-    uint128 internal constant BTC_USD_SETTLEMENT_DELAY = 1 seconds;
     bool internal constant BTC_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal btcUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 

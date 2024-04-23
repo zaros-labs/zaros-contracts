@@ -61,7 +61,6 @@ abstract contract ProtocolConfiguration is Markets {
     /// @notice General perps engine system configuration parameters.
     uint128 internal constant MAX_POSITIONS_PER_ACCOUNT = 10;
     uint128 internal constant MARKET_ORDER_MAX_LIFETIME = 10 seconds;
-    uint128 internal constant MIN_TRADE_SIZE_USD = 200e18;
     uint128 internal constant LIQUIDATION_FEE_USD = 5e18;
 
     /// @notice Test only mocks and constants.
