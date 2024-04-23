@@ -142,10 +142,10 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
 
         MarketConfig[] memory filteredMarketsConfig = new MarketConfig[](filteredMarketsLength);
 
-        uint256 filteredMarketsConfigIndex = 0;
-        for (uint256 id = initialMarketId; id <= finalMarketId; id++) {
-            filteredMarketsConfig[filteredMarketsConfigIndex] = marketsConfig[id];
-            filteredMarketsConfigIndex++;
+        uint256 nextMarketId = initialMarketId;
+        for (uint256 i = 0; i < filteredMarketsLength; i++) {
+            filteredMarketsConfig[i] = marketsConfig[nextMarketId];
+            nextMarketId++;
         }
 
         return filteredMarketsConfig;
