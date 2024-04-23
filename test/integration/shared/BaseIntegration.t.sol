@@ -207,6 +207,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
             orderFees: marketsConfig[marketId].orderFees
         });
+
+        perpsEngine.updatePerpMarketConfiguration(params);
     }
 
     struct FuzzOrderSizeDeltaParams {
