@@ -23,7 +23,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
-        createMarkets();
+        createPerpMarkets();
         changePrank({ msgSender: users.naruto });
     }
 
@@ -334,7 +334,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
         MarketConfig memory wrongFuzzMarketConfig =
-            getFuzzMarketConfig(marketIndex < FINAL_MARKET_INDEX ? marketIndex + 1 : marketIndex - 1);
+            getFuzzMarketConfig(marketIndex < FINAL_MARKET_ID ? marketIndex + 1 : marketIndex - 1);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });

@@ -42,6 +42,9 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint256 mockUsdPrice;
     }
 
+    /// @notice Market configurations mapped by market id.
+    mapping(uint256 marketId => MarketConfig marketConfig) internal marketsConfig;
+    /// @notice Market order keepers contracts mapped by market id.
     mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
 
     /// @notice General perps engine system configuration parameters.
@@ -50,9 +53,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
-    function getMarketsConfig(uint256[] memory filteredIndexMarkets) internal pure returns (MarketConfig[] memory) {
-        MarketConfig[] memory marketsConfig = new MarketConfig[](4);
-
+    function loadMarketsConfig(uint256[] memory marketsIdsRange) internal returns (MarketConfig[] memory) {
         MarketConfig memory btcUsdConfig = MarketConfig({
             marketId: BTC_USD_MARKET_ID,
             marketName: BTC_USD_MARKET_NAME,
@@ -70,7 +71,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_BTC_USD_PRICE
         });
-        marketsConfig[0] = btcUsdConfig;
+        marketsConfig[BTC_USD_MARKET_ID] = btcUsdConfig;
 
         MarketConfig memory ethUsdConfig = MarketConfig({
             marketId: ETH_USD_MARKET_ID,
@@ -89,7 +90,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_ETH_USD_PRICE
         });
-        marketsConfig[1] = ethUsdConfig;
+        marketsConfig[ETH_USD_MARKET_ID] = ethUsdConfig;
 
         MarketConfig memory linkUsdConfig = MarketConfig({
             marketId: LINK_USD_MARKET_ID,
@@ -108,7 +109,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_LINK_USD_PRICE
         });
-        marketsConfig[2] = linkUsdConfig;
+        marketsConfig[LINK_USD_MARKET_ID] = linkUsdConfig;
 
         MarketConfig memory arbUsdConfig = MarketConfig({
             marketId: ARB_USD_MARKET_ID,
@@ -127,24 +128,16 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_ARB_USD_PRICE
         });
-        marketsConfig[3] = arbUsdConfig;
+        marketsConfig[ARB_USD_MARKET_ID] = arbUsdConfig;
 
-        uint256 initialMarketIndex = filteredIndexMarkets[0];
-        uint256 finalMarketIndex = filteredIndexMarkets[1];
+        uint256 initialMarketId = marketsIdsRange[0];
+        uint256 finalMarketId = marketsIdsRange[1];
+        uint256 filteredMarketsLength = finalMarketId - initialMarketId + 1;
 
-        uint256 lengthFilteredMarkets;
-        if (initialMarketIndex == finalMarketIndex) {
-            lengthFilteredMarkets = 1;
-        } else {
-            lengthFilteredMarkets = (finalMarketIndex - initialMarketIndex) + 1;
-        }
+        MarketConfig[] memory filteredMarketsConfig = new MarketConfig[](filteredMarketsLength);
 
-        MarketConfig[] memory filteredMarketsConfig = new MarketConfig[](lengthFilteredMarkets);
-
-        uint256 filteredIndex = 0;
-        for (uint256 index = initialMarketIndex; index <= finalMarketIndex; index++) {
-            filteredMarketsConfig[filteredIndex] = marketsConfig[index];
-            filteredIndex++;
+        for (uint256 id = initialMarketId; id <= finalMarketId; id++) {
+            filteredMarketsConfig[filteredMarketsConfig.length] = marketsConfig[id];
         }
 
         return filteredMarketsConfig;
@@ -154,13 +147,14 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         address deployer,
         address settlementFeeReceiver,
         IPerpsEngine perpsEngine,
-        MarketConfig[] memory marketsConfig,
+        uint256 initialMarketId,
+        uint256 finalMarketId,
         IVerifierProxy chainlinkVerifier,
         bool isTest
     )
         public
     {
-        for (uint256 i = 0; i < marketsConfig.length; i++) {
+        for (uint256 i = initialMarketId; i < finalMarketId; i++) {
             address marketOrderKeeper =
                 deployMarketOrderKeeper(marketsConfig[i].marketId, deployer, perpsEngine, settlementFeeReceiver);
 

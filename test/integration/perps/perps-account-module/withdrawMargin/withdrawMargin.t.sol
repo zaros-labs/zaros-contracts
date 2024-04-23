@@ -20,7 +20,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
 
-        createMarkets();
+        createPerpMarkets();
         changePrank({ msgSender: users.naruto });
     }
 

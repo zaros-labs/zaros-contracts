@@ -3,14 +3,11 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
-import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
+import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
-import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
-import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
@@ -125,73 +122,19 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         });
     }
 
-    function createMarkets() internal {
-        uint256[] memory filteredIndexMarkets = new uint256[](2);
-        filteredIndexMarkets[0] = INITIAL_MARKET_INDEX;
-        filteredIndexMarkets[1] = FINAL_MARKET_INDEX;
-
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
-        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
-
-        for (uint256 i = 0; i < marketsConfig.length; i++) {
-            marketOrderKeepers[marketsConfig[i].marketId] = address(
-                new ERC1967Proxy(
-                    marketOrderKeeperImplementation,
-                    abi.encodeWithSelector(
-                        MarketOrderKeeper.initialize.selector,
-                        users.owner,
-                        perpsEngine,
-                        users.settlementFeeReceiver,
-                        marketsConfig[i].marketId,
-                        marketsConfig[i].streamIdString
-                    )
-                )
-            );
-            vm.label({ account: marketOrderKeepers[marketsConfig[i].marketId], newLabel: "Market Order Keeper" });
-
-            SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
-                .DataStreamsStrategy({
-                chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-                streamId: marketsConfig[i].streamId
-            });
-            SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
-                isEnabled: true,
-                fee: DATA_STREAMS_SETTLEMENT_FEE,
-                keeper: marketOrderKeepers[marketsConfig[i].marketId],
-                data: abi.encode(marketOrderConfigurationData)
-            });
-
-            // TODO: update to API orderbook config
-            SettlementConfiguration.Data[] memory customOrderStrategies;
-
-            perpsEngine.createPerpMarket(
-                IGlobalConfigurationModule.CreatePerpMarketParams({
-                    marketId: marketsConfig[i].marketId,
-                    name: marketsConfig[i].marketName,
-                    symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
-                    initialMarginRateX18: marketsConfig[i].imr,
-                    maintenanceMarginRateX18: marketsConfig[i].mmr,
-                    maxOpenInterest: marketsConfig[i].maxOi,
-                    maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
-                    skewScale: marketsConfig[i].skewScale,
-                    minTradeSizeX18: marketsConfig[i].minTradeSize,
-                    marketOrderConfiguration: marketOrderConfiguration,
-                    customOrderStrategies: customOrderStrategies,
-                    orderFees: marketsConfig[i].orderFees
-                })
-            );
-        }
+    function createPerpMarkets() internal {
+        createPerpMarkets(
+            users.owner,
+            users.settlementFeeReceiver,
+            perpsEngine,
+            INITIAL_MARKET_ID,
+            FINAL_MARKET_ID,
+            IVerifierProxy(mockChainlinkVerifier),
+            true
+        );
     }
 
     function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
-        uint256[] memory filteredIndexMarkets = new uint256[](2);
-        filteredIndexMarkets[0] = INITIAL_MARKET_INDEX;
-        filteredIndexMarkets[1] = FINAL_MARKET_INDEX;
-
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
-
         IGlobalConfigurationModule.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationModule
             .UpdatePerpMarketConfigurationParams({
             marketId: marketId,
@@ -272,15 +215,15 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ).intoInt256().toInt128();
     }
 
-    function getFuzzMarketConfig(uint256 marketIndex) internal pure returns (MarketConfig memory) {
-        vm.assume(marketIndex >= INITIAL_MARKET_INDEX && marketIndex <= FINAL_MARKET_INDEX);
+    function getFuzzMarketConfig(uint256 marketIndex) internal returns (MarketConfig memory) {
+        vm.assume(marketIndex >= INITIAL_MARKET_ID && marketIndex <= FINAL_MARKET_ID);
 
-        uint256[] memory filteredIndexMarkets = new uint256[](2);
-        filteredIndexMarkets[0] = marketIndex;
-        filteredIndexMarkets[1] = marketIndex;
+        uint256[] memory marketsIdsRange = new uint256[](2);
+        marketsIdsRange[0] = marketIndex;
+        marketsIdsRange[1] = marketIndex;
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
+        MarketConfig[] memory filteredMarketsConfig = loadMarketsConfig(marketsIdsRange);
 
-        return marketsConfig[0];
+        return filteredMarketsConfig[0];
     }
 }

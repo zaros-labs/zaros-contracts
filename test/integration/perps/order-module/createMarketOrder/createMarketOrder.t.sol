@@ -23,7 +23,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
 
-        createMarkets();
+        createPerpMarkets();
 
         changePrank({ msgSender: users.naruto });
     }
@@ -260,7 +260,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketWontReachTheOILimit
     {
         uint256 secondMarketIndex = 0;
-        if (marketIndex < FINAL_MARKET_INDEX - 1) {
+        if (marketIndex < FINAL_MARKET_ID - 1) {
             secondMarketIndex++;
         }
 

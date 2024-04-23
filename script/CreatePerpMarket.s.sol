@@ -31,25 +31,25 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     IPerpsEngine internal perpsEngine;
     address internal settlementFeeReceiver;
 
-    function run(uint256 INITIAL_MARKET_INDEX, uint256 FINAL_MARKET_INDEX) public broadcaster {
+    function run(uint256 INITIAL_MARKET_ID, uint256 FINAL_MARKET_ID) public broadcaster {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
         settlementFeeReceiver = vm.envAddress("SETTLEMENT_FEE_RECEIVER");
 
-        uint256[] memory filteredIndexMarkets = new uint256[](2);
-        filteredIndexMarkets[0] = INITIAL_MARKET_INDEX;
-        filteredIndexMarkets[1] = FINAL_MARKET_INDEX;
+        uint256[] memory marketsIdsRange = new uint256[](2);
+        marketsIdsRange[0] = INITIAL_MARKET_ID;
+        marketsIdsRange[1] = FINAL_MARKET_ID;
 
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
+        MarketConfig[] memory filteredMarketsConfig = loadMarketsConfig(marketsIdsRange);
 
-        for (uint256 i = 0; i < marketsConfig.length; i++) {
+        for (uint256 i = 0; i < filteredMarketsConfig.length; i++) {
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
-                .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
+                .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: filteredMarketsConfig[i].streamId });
 
             address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
             console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
             address marketOrderKeeper =
-                deployMarketOrderKeeper(marketsConfig[i].marketId, marketOrderKeeperImplementation);
+                deployMarketOrderKeeper(filteredMarketsConfig[i].marketId, marketOrderKeeperImplementation);
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
@@ -64,19 +64,19 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
             perpsEngine.createPerpMarket({
                 params: IGlobalConfigurationModule.CreatePerpMarketParams({
-                    marketId: marketsConfig[i].marketId,
-                    name: marketsConfig[i].marketName,
-                    symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: marketsConfig[i].priceAdapter,
-                    initialMarginRateX18: marketsConfig[i].imr,
-                    maintenanceMarginRateX18: marketsConfig[i].mmr,
-                    maxOpenInterest: marketsConfig[i].maxOi,
-                    skewScale: marketsConfig[i].skewScale,
-                    minTradeSizeX18: marketsConfig[i].minTradeSize,
-                    maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
+                    marketId: filteredMarketsConfig[i].marketId,
+                    name: filteredMarketsConfig[i].marketName,
+                    symbol: filteredMarketsConfig[i].marketSymbol,
+                    priceAdapter: filteredMarketsConfig[i].priceAdapter,
+                    initialMarginRateX18: filteredMarketsConfig[i].imr,
+                    maintenanceMarginRateX18: filteredMarketsConfig[i].mmr,
+                    maxOpenInterest: filteredMarketsConfig[i].maxOi,
+                    skewScale: filteredMarketsConfig[i].skewScale,
+                    minTradeSizeX18: filteredMarketsConfig[i].minTradeSize,
+                    maxFundingVelocity: filteredMarketsConfig[i].maxFundingVelocity,
                     marketOrderConfiguration: marketOrderConfiguration,
                     customOrderStrategies: customOrdersConfigurations,
-                    orderFees: marketsConfig[i].orderFees
+                    orderFees: filteredMarketsConfig[i].orderFees
                 })
             });
         }
