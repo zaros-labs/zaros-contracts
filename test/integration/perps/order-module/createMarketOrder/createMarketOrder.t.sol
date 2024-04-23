@@ -367,11 +367,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(0.9e18));
-        UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.maxOi))
-            .mul(ud60x18(fuzzMarketConfig.mockUsdPrice));
+        UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.maxOi)).mul(
+            ud60x18(fuzzMarketConfig.mockUsdPrice)
+        );
 
-        // UD60x18 maxMarginValueUsd = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(ETH_USD_MAX_OI));
-        // TODO: fix this
         marginValueUsd =
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
         initialMarginRate = bound({ x: initialMarginRate, min: 1, max: adjustedMarginRequirements.intoUint256() });
