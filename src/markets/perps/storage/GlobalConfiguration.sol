@@ -26,7 +26,7 @@ library GlobalConfiguration {
     bytes32 internal constant GLOBAL_CONFIGURATION_SLOT =
         keccak256(abi.encode("fi.zaros.markets.GlobalConfiguration"));
 
-    /// @notice {PerpConfiguration} namespace storage structure.
+    /// @notice {GlobalConfiguration} namespace storage structure.
     /// TODO: add max active margin collateral types
     struct Data {
         uint128 maxPositionsPerAccount;
