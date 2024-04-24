@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IAutomationCompatible } from "@zaros/external/chainlink/interfaces/IAutomationCompatible.sol";
-import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";
 
@@ -27,10 +27,10 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         __BaseKeeper_init(owner);
     }
 
-    function checkKeeper(bytes calldata checkData)
+    function checkUpkeep(bytes calldata checkData)
         external
         view
-        returns (bool keeperNeeded, bytes memory performData)
+        returns (bool upkeepNeeded, bytes memory performData)
     {
         (uint256 checkLowerBound, uint256 checkUpperBound, uint256 performLowerBound, uint256 performUpperBound) =
             abi.decode(checkData, (uint256, uint256, uint256, uint256));
@@ -60,7 +60,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         return (true, extraData);
     }
 
-    function performKeeper(bytes calldata peformData) external override onlyForwarder {
+    function performUpkeep(bytes calldata peformData) external override onlyForwarder {
         (uint128[] memory accountsToBeLiquidated, address feeReceiver) = abi.decode(peformData, (uint128[], address));
         IPerpsEngine perpsEngine = _getLiquidationKeeperStorage().perpsEngine;
 

@@ -4,23 +4,23 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
-import { Diamond } from "@zaros/diamonds/Diamond.sol";
-import { GlobalConfigurationModuleTestnet } from "@zaros/testnet/modules/GlobalConfigurationModuleTestnet.sol";
-import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountModuleTestnet.sol";
-import { SettlementModuleTestnet } from "@zaros/testnet/modules/SettlementModuleTestnet.sol";
+import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
+import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
+import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
+import { PerpsAccountBranchTestnet } from "@zaros/testnet/branches/PerpsAccountBranchTestnet.sol";
+import { SettlementBranchTestnet } from "@zaros/testnet/branches/SettlementBranchTestnet.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
-import { PerpsAccountModule } from "@zaros/markets/perps/modules/PerpsAccountModule.sol";
-import { PerpMarketModule } from "@zaros/markets/perps/modules/PerpMarketModule.sol";
-import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
-import { SettlementModule } from "@zaros/markets/perps/modules/SettlementModule.sol";
-import { OrderModule } from "@zaros/markets/perps/modules/OrderModule.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
-import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
-import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
+import { PerpsAccountBranch } from "@zaros/perpetuals/branches/PerpsAccountBranch.sol";
+import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
+import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
+import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
+import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "../Base.s.sol";
-import { deployModules, getModulesSelectors, getFacetCuts } from "../helpers/DiamondHelpers.sol";
+import { deployBranchs, getBranchsSelectors, getBranchUpgrades } from "../helpers/TreeProxyHelpers.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -29,104 +29,104 @@ import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract UpdateModules is BaseScript {
+contract UpdateBranchs is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        PerpsAccountModuleTestnet perpsAccountModuleTestnet = new PerpsAccountModuleTestnet();
-        // PerpMarketModule perpMarketModule = new PerpMarketModule();
-        // GlobalConfigurationModuleTestnet globalConfigurationModuleTestnet = new GlobalConfigurationModuleTestnet();
-        // SettlementModuleTestnet settlementModuleTestnet = new SettlementModuleTestnet();
-        // OrderModule orderModule = new OrderModule();
+        PerpsAccountBranchTestnet perpsAccountBranchTestnet = new PerpsAccountBranchTestnet();
+        // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
+        // GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
+        // SettlementBranchTestnet settlementBranchTestnet = new SettlementBranchTestnet();
+        // OrderBranch orderBranch = new OrderBranch();
 
-        // bytes4[] memory perpsAccountModuleTestnetSelectorsAdded = new bytes4[](1);
-        bytes4[] memory perpsAccountModuleTestnetSelectorsUpdated = new bytes4[](1);
-        // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](2);
-        // bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](1);
-        // bytes4[] memory orderModuleTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory perpsAccountBranchTestnetSelectorsAdded = new bytes4[](1);
+        bytes4[] memory perpsAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](2);
+        // bytes4[] memory settlementBranchTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
 
-        // IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
+        // IRootProxy.BranchUpgrade[] memory branchUpgrades = new IRootProxy.BranchUpgrade[](4);
 
-        // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](1);
-        // bytes4[] memory perpMarketModuleSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
+        // bytes4[] memory perpMarketBranchSelectorsUpdated = new bytes4[](1);
 
-        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](1);
+        IRootProxy.BranchUpgrade[] memory branchUpgrades = new IRootProxy.BranchUpgrade[](1);
 
         address[] memory initializables;
         bytes[] memory initializePayloads;
 
-        // perpsAccountModuleTestnetSelectorsAdded[0] = PerpsAccountModule.getPositionState.selector;
-        // perpsAccountModuleTestnetSelectorsAdded[1] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
-        // perpsAccountModuleTestnetSelectorsAdded[2] = PerpsAccountModuleTestnet.getPointsOfUser.selector;
-        // perpsAccountModuleTestnetSelectorsAdded[3] = PerpsAccountModuleTestnet.getUserReferralData.selector;
-        // perpsAccountModuleTestnetSelectorsAdded[4] =
-        // PerpsAccountModuleTestnet.getCustomReferralCodeReferee.selector;
+        // perpsAccountBranchTestnetSelectorsAdded[0] = PerpsAccountBranch.getPositionState.selector;
+        // perpsAccountBranchTestnetSelectorsAdded[1] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
+        // perpsAccountBranchTestnetSelectorsAdded[2] = PerpsAccountBranchTestnet.getPointsOfUser.selector;
+        // perpsAccountBranchTestnetSelectorsAdded[3] = PerpsAccountBranchTestnet.getUserReferralData.selector;
+        // perpsAccountBranchTestnetSelectorsAdded[4] =
+        // PerpsAccountBranchTestnet.getCustomReferralCodeReferee.selector;
 
-        perpsAccountModuleTestnetSelectorsUpdated[0] = PerpsAccountModuleTestnet.getUserReferralData.selector;
-        // perpsAccountModuleTestnetSelectorsUpdated[1] =
+        perpsAccountBranchTestnetSelectorsUpdated[0] = PerpsAccountBranchTestnet.getUserReferralData.selector;
+        // perpsAccountBranchTestnetSelectorsUpdated[1] =
         // bytes4(keccak256("createPerpsAccountAndMulticall(bytes[])"));
-        // perpsAccountModuleTestnetSelectorsUpdated[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
+        // perpsAccountBranchTestnetSelectorsUpdated[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
 
-        // globalConfigurationModuleTestnetSelectorsAdded[0] =
-        // GlobalConfigurationModuleTestnet.setUserPoints.selector;
-        // globalConfigurationModuleTestnetSelectorsAdded[1] =
-        //     GlobalConfigurationModuleTestnet.createCustomReferralCode.selector;
+        // globalConfigurationBranchTestnetSelectorsAdded[0] =
+        // GlobalConfigurationBranchTestnet.setUserPoints.selector;
+        // globalConfigurationBranchTestnetSelectorsAdded[1] =
+        //     GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
 
-        // settlementModuleTestnetSelectorsUpdated[0] = SettlementModule.executeMarketOrder.selector;
-        // settlementModuleTestnetSelectorsUpdated[1] = SettlementModule.executeCustomOrders.selector;
+        // settlementBranchTestnetSelectorsUpdated[0] = SettlementBranch.fillMarketOrder.selector;
+        // settlementBranchTestnetSelectorsUpdated[1] = SettlementBranch.fillCustomOrders.selector;
 
-        // globalConfigurationModuleTestnetSelectorsAdded[0] =
-        //     GlobalConfigurationModule.updateSettlementConfiguration.selector;
+        // globalConfigurationBranchTestnetSelectorsAdded[0] =
+        //     GlobalConfigurationBranch.updateSettlementConfiguration.selector;
 
-        // perpMarketModuleSelectorsUpdated[0] = PerpMarketModule.getOpenInterest.selector;
+        // perpMarketBranchSelectorsUpdated[0] = PerpMarketBranch.getOpenInterest.selector;
 
-        // orderModuleTestnetSelectorsUpdated[0] = OrderModule.createMarketOrder.selector;
+        // orderBranchTestnetSelectorsUpdated[0] = OrderBranch.createMarketOrder.selector;
 
-        facetCuts[0] = (
-            IDiamond.FacetCut({
-                facet: address(perpsAccountModuleTestnet),
-                action: IDiamond.FacetCutAction.Replace,
-                selectors: perpsAccountModuleTestnetSelectorsUpdated
+        branchUpgrades[0] = (
+            IRootProxy.BranchUpgrade({
+                branch: address(perpsAccountBranchTestnet),
+                action: IRootProxy.BranchUpgradeAction.Replace,
+                selectors: perpsAccountBranchTestnetSelectorsUpdated
             })
         );
 
-        // facetCuts[0] = (
-        //     IDiamond.FacetCut({
-        //         facet: address(perpsAccountModuleTestnet),
-        //         action: IDiamond.FacetCutAction.Add,
-        //         selectors: perpsAccountModuleTestnetSelectorsAdded
+        // branchUpgrades[0] = (
+        //     IRootProxy.BranchUpgrade({
+        //         branch: address(perpsAccountBranchTestnet),
+        //         action: IRootProxy.BranchUpgradeAction.Add,
+        //         selectors: perpsAccountBranchTestnetSelectorsAdded
         //     })
         // );
 
-        // facetCuts[1] = (
-        //     IDiamond.FacetCut({
-        //         facet: address(perpsAccountModuleTestnet),
-        //         action: IDiamond.FacetCutAction.Replace,
-        //         selectors: perpsAccountModuleTestnetSelectorsUpdated
+        // branchUpgrades[1] = (
+        //     IRootProxy.BranchUpgrade({
+        //         branch: address(perpsAccountBranchTestnet),
+        //         action: IRootProxy.BranchUpgradeAction.Replace,
+        //         selectors: perpsAccountBranchTestnetSelectorsUpdated
         //     })
         // );
 
-        // facetCuts[2] = (
-        //     IDiamond.FacetCut({
-        //         facet: address(globalConfigurationModuleTestnet),
-        //         action: IDiamond.FacetCutAction.Add,
-        //         selectors: globalConfigurationModuleTestnetSelectorsAdded
+        // branchUpgrades[2] = (
+        //     IRootProxy.BranchUpgrade({
+        //         branch: address(globalConfigurationBranchTestnet),
+        //         action: IRootProxy.BranchUpgradeAction.Add,
+        //         selectors: globalConfigurationBranchTestnetSelectorsAdded
         //     })
         // );
 
-        // facetCuts[3] = (
-        //     IDiamond.FacetCut({
-        //         facet: address(settlementModuleTestnet),
-        //         action: IDiamond.FacetCutAction.Replace,
-        //         selectors: settlementModuleTestnetSelectorsUpdated
+        // branchUpgrades[3] = (
+        //     IRootProxy.BranchUpgrade({
+        //         branch: address(settlementBranchTestnet),
+        //         action: IRootProxy.BranchUpgradeAction.Replace,
+        //         selectors: settlementBranchTestnetSelectorsUpdated
         //     })
         // );
 
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 
-        perpsEngine.updateModules(facetCuts, initializables, initializePayloads);
+        perpsEngine.upgrade(branchUpgrades, initializables, initializePayloads);
     }
 }

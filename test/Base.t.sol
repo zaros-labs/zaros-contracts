@@ -4,12 +4,9 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
-import { Diamond } from "@zaros/diamonds/Diamond.sol";
-import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
-import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
-import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
+import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
+import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "./mocks/MockUSDToken.sol";
@@ -18,12 +15,12 @@ import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 import {
-    deployModules,
-    getModulesSelectors,
-    getFacetCuts,
+    deployBranchs,
+    getBranchsSelectors,
+    getBranchUpgrades,
     getInitializables,
     getInitializePayloads
-} from "script/helpers/DiamondHelpers.sol";
+} from "script/helpers/TreeProxyHelpers.sol";
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";
@@ -53,12 +50,6 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
     MockUSDToken internal usdToken;
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
-    RewardDistributor internal rewardDistributor;
-    LiquidityEngine internal liquidityEngine;
-
-    /// @dev TODO: deploy real contracts instead of mocking them.
-    address internal mockLiquidityEngineAddress = vm.addr({ privateKey: 0x02 });
-    address internal mockRewardDistributorAddress = vm.addr({ privateKey: 0x03 });
 
     /// @dev TODO: think about forking tests
     MockPriceAdapters internal mockPriceAdapters;
@@ -86,8 +77,6 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
             decimals_: 18,
             deployerBalance: 100_000_000e18
         });
-        liquidityEngine = LiquidityEngine(mockLiquidityEngineAddress);
-        rewardDistributor = RewardDistributor(mockRewardDistributorAddress);
 
         MockPriceFeed mockBtcUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_BTC_USD_PRICE));
         MockPriceFeed mockEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
@@ -105,22 +94,17 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
 
         bool isTestnet = false;
         address accessKeyManager = address(0);
-        address[] memory modules = deployModules(isTestnet);
-        bytes4[][] memory modulesSelectors = getModulesSelectors(isTestnet);
-        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
-        address[] memory initializables = getInitializables(modules, isTestnet);
+        address[] memory branches = deployBranchs(isTestnet);
+        bytes4[][] memory branchesSelectors = getBranchsSelectors(isTestnet);
+        IRootProxy.BranchUpgrade[] memory branchUpgrades =
+            getBranchUpgrades(branches, branchesSelectors, IRootProxy.BranchUpgradeAction.Add);
+        address[] memory initializables = getInitializables(branches, isTestnet);
         bytes[] memory initializePayloads = getInitializePayloads(
-            users.owner,
-            address(perpsAccountToken),
-            mockRewardDistributorAddress,
-            address(usdToken),
-            mockLiquidityEngineAddress,
-            accessKeyManager,
-            isTestnet
+            users.owner, address(perpsAccountToken), address(usdToken), accessKeyManager, isTestnet
         );
 
-        IDiamond.InitParams memory initParams = IDiamond.InitParams({
-            baseFacets: facetCuts,
+        IRootProxy.InitParams memory initParams = IRootProxy.InitParams({
+            initBranches: branchUpgrades,
             initializables: initializables,
             initializePayloads: initializePayloads
         });
@@ -130,8 +114,6 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
 
         vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account NFT" });
         vm.label({ account: address(usdToken), newLabel: "Zaros USD" });
-        vm.label({ account: address(liquidityEngine), newLabel: "Zaros" });
-        vm.label({ account: address(rewardDistributor), newLabel: "Reward Distributor" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
         approveContracts();
@@ -175,11 +157,7 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
-        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(liquidityEngine));
-
-        usdToken.addToFeatureFlagAllowlist(BURN_FEATURE_FLAG, address(liquidityEngine));
-
-        // TODO: Temporary
+        // TODO: Temporary, switch to liquidity engine
         usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(perpsEngine));
 
         perpsEngine.configureMarginCollateral(

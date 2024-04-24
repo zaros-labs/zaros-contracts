@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
-import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
+import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
@@ -21,7 +21,6 @@ abstract contract EthUsd {
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
     uint256 internal constant ETH_USD_MIN_TRADE_SIZE = 0.05e18;
-    uint128 internal constant ETH_USD_SETTLEMENT_DELAY = 1 seconds;
     bool internal constant ETH_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
@@ -33,5 +32,7 @@ abstract contract EthUsd {
     address internal constant ETH_USD_PRICE_FEED = address(0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165);
 
     // TODO: Update stream id value
-    string internal constant ETH_USD_STREAM_ID = "0x00027bbaff688c906a3e20a34fe951715d1018d262a5b66e38eda027a674cd1b";
+    bytes32 internal constant ETH_USD_STREAM_ID = 0x00027bbaff688c906a3e20a34fe951715d1018d262a5b66e38eda027a674cd1b;
+    string internal constant STRING_ETH_USD_STREAM_ID =
+        "0x00027bbaff688c906a3e20a34fe951715d1018d262a5b66e38eda027a674cd1b";
 }

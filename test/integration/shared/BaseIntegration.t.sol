@@ -3,14 +3,11 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
-import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
+import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
-import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
-import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
-import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
@@ -35,7 +32,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
     address internal settlementFeeReceiver = users.settlementFeeReceiver;
-    mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -45,82 +41,11 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
-    }
 
-    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
-        accountId = perpsEngine.createPerpsAccount();
-        perpsEngine.depositMargin(accountId, collateralType, amount);
-    }
+        setupMarketsConfig();
 
-    function configureSystemParameters() internal {
-        perpsEngine.configureSystemParameters({
-            maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
-            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
-            liquidationFeeUsdX18: LIQUIDATION_FEE_USD
-        });
-    }
-
-    function createMarkets(uint256 initialMarketIndex, uint256 finalMarketIndex) internal {
-        uint256[] memory filteredIndexMarkets = new uint256[](2);
-        filteredIndexMarkets[0] = initialMarketIndex;
-        filteredIndexMarkets[1] = finalMarketIndex;
-
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
-        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
-
-        for (uint256 i = 0; i < marketsConfig.length; i++) {
-            marketOrderKeepers[marketsConfig[i].marketId] = address(
-                new ERC1967Proxy(
-                    marketOrderKeeperImplementation,
-                    abi.encodeWithSelector(
-                        MarketOrderKeeper.initialize.selector,
-                        users.owner,
-                        perpsEngine,
-                        users.settlementFeeReceiver,
-                        marketsConfig[i].marketId
-                    )
-                )
-            );
-
-            SettlementConfiguration.DataStreamsMarketStrategy memory marketOrderConfigurationData =
-            SettlementConfiguration.DataStreamsMarketStrategy({
-                chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-                streamId: marketsConfig[i].streamId,
-                feedLabel: DATA_STREAMS_FEED_PARAM_KEY,
-                queryLabel: DATA_STREAMS_TIME_PARAM_KEY,
-                settlementDelay: marketsConfig[i].settlementDelay,
-                isPremium: marketsConfig[i].isPremiumFeed
-            });
-            // TODO: set price adapter
-            SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_MARKET,
-                isEnabled: true,
-                fee: DATA_STREAMS_SETTLEMENT_FEE,
-                keeper: marketOrderKeepers[marketsConfig[i].marketId],
-                data: abi.encode(marketOrderConfigurationData)
-            });
-
-            // TODO: update to API orderbook config
-            SettlementConfiguration.Data[] memory customOrderStrategies;
-
-            perpsEngine.createPerpMarket(
-                IGlobalConfigurationModule.CreatePerpMarketParams({
-                    marketId: marketsConfig[i].marketId,
-                    name: marketsConfig[i].marketName,
-                    symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
-                    initialMarginRateX18: marketsConfig[i].imr,
-                    maintenanceMarginRateX18: marketsConfig[i].mmr,
-                    maxOpenInterest: marketsConfig[i].maxOi,
-                    maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
-                    skewScale: marketsConfig[i].skewScale,
-                    minTradeSizeX18: marketsConfig[i].minTradeSize,
-                    marketOrderConfiguration: marketOrderConfiguration,
-                    customTriggerStrategies: customOrderStrategies,
-                    orderFees: marketsConfig[i].orderFees
-                })
-            );
-        }
+        vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
+        vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
     }
 
     function getPrice(MockPriceFeed priceFeed) internal view returns (UD60x18) {
@@ -155,45 +80,28 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function getMockedSignedReport(
-        string memory streamId,
-        uint256 price,
-        bool isPremium
+        bytes32 streamId,
+        uint256 price
     )
         internal
         view
         returns (bytes memory mockedSignedReport)
     {
-        // TODO: We need to check at the perps engine level if the report's stream id is the market's one.
-        bytes32 mockStreamIdBytes32 = bytes32(uint256(keccak256(abi.encodePacked(streamId))));
         bytes memory mockedReportData;
 
-        if (isPremium) {
-            PremiumReport memory premiumReport = PremiumReport({
-                feedId: mockStreamIdBytes32,
-                validFromTimestamp: uint32(block.timestamp),
-                observationsTimestamp: uint32(block.timestamp),
-                nativeFee: 0,
-                linkFee: 0,
-                expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
-                price: int192(int256(price)),
-                bid: int192(int256(price)),
-                ask: int192(int256(price))
-            });
+        PremiumReport memory premiumReport = PremiumReport({
+            feedId: streamId,
+            validFromTimestamp: uint32(block.timestamp),
+            observationsTimestamp: uint32(block.timestamp),
+            nativeFee: 0,
+            linkFee: 0,
+            expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
+            price: int192(int256(price)),
+            bid: int192(int256(price)),
+            ask: int192(int256(price))
+        });
 
-            mockedReportData = abi.encode(premiumReport);
-        } else {
-            BasicReport memory basicReport = BasicReport({
-                feedId: mockStreamIdBytes32,
-                validFromTimestamp: uint32(block.timestamp),
-                observationsTimestamp: uint32(block.timestamp),
-                nativeFee: 0,
-                linkFee: 0,
-                expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
-                price: int192(int256(price))
-            });
-
-            mockedReportData = abi.encode(basicReport);
-        }
+        mockedReportData = abi.encode(premiumReport);
 
         bytes32[3] memory mockedSignatures;
         mockedSignatures[0] = bytes32(uint256(keccak256(abi.encodePacked("mockedSignature1"))));
@@ -203,10 +111,54 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
+    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
+        accountId = perpsEngine.createPerpsAccount();
+        perpsEngine.depositMargin(accountId, collateralType, amount);
+    }
+
+    function configureSystemParameters() internal {
+        perpsEngine.configureSystemParameters({
+            maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
+            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD
+        });
+    }
+
+    function createPerpMarkets() internal {
+        createPerpMarkets(
+            users.owner,
+            users.settlementFeeReceiver,
+            perpsEngine,
+            INITIAL_MARKET_ID,
+            FINAL_MARKET_ID,
+            IVerifierProxy(mockChainlinkVerifier),
+            true
+        );
+    }
+
+    function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
+        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
+            marketId: marketId,
+            name: marketsConfig[marketId].marketName,
+            symbol: marketsConfig[marketId].marketSymbol,
+            priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
+            initialMarginRateX18: newImr.intoUint128(),
+            maintenanceMarginRateX18: newMmr.intoUint128(),
+            maxOpenInterest: marketsConfig[marketId].maxOi,
+            maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
+            skewScale: marketsConfig[marketId].skewScale,
+            minTradeSizeX18: marketsConfig[marketId].minTradeSize,
+            orderFees: marketsConfig[marketId].orderFees
+        });
+
+        perpsEngine.updatePerpMarketConfiguration(params);
+    }
+
     struct FuzzOrderSizeDeltaParams {
         uint128 accountId;
         uint128 marketId;
-        uint128 settlementId;
+        uint128 settlementConfigurationId;
         UD60x18 initialMarginRate;
         UD60x18 marginValueUsd;
         UD60x18 maxOpenInterest;
@@ -233,7 +185,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
 
         (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine.simulateTrade(
-            params.accountId, params.marketId, params.settlementId, ctx.sizeDeltaPrePriceImpact
+            params.accountId, params.marketId, params.settlementConfigurationId, ctx.sizeDeltaPrePriceImpact
         );
 
         ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
@@ -265,29 +217,15 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ).intoInt256().toInt128();
     }
 
-    function mockSettleMarketOrder(uint128 accountId, uint128 marketId, bytes memory extraData) internal {
-        address marketOrderKeeper = marketOrderKeepers[marketId];
+    function getFuzzMarketConfig(uint256 marketIndex) internal view returns (MarketConfig memory) {
+        vm.assume(marketIndex >= INITIAL_MARKET_ID && marketIndex <= FINAL_MARKET_ID);
 
-        perpsEngine.executeMarketOrder(accountId, marketId, marketOrderKeeper, extraData);
-    }
+        uint256[2] memory marketsIdsRange;
+        marketsIdsRange[0] = marketIndex;
+        marketsIdsRange[1] = marketIndex;
 
-    function getFuzzMarketConfig(
-        uint256 marketIndex,
-        uint256 initialMarketIndex,
-        uint256 finalMarketIndex
-    )
-        internal
-        pure
-        returns (MarketConfig memory)
-    {
-        vm.assume(marketIndex >= initialMarketIndex && marketIndex <= finalMarketIndex);
+        MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 
-        uint256[] memory filteredIndexMarkets = new uint256[](2);
-        filteredIndexMarkets[0] = marketIndex;
-        filteredIndexMarkets[1] = marketIndex;
-
-        (MarketConfig[] memory marketsConfig) = getMarketsConfig(filteredIndexMarkets);
-
-        return marketsConfig[0];
+        return filteredMarketsConfig[0];
     }
 }

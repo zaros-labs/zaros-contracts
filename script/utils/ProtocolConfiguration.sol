@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
-import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
+import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { Markets } from "../markets/Markets.sol";
 
 // PRB Math dependencies
@@ -56,19 +56,16 @@ abstract contract ProtocolConfiguration is Markets {
     /// @notice Settlement Strategies configuration parameters.
     uint256 internal constant LIMIT_ORDER_CONFIGURATION_ID = 1;
     uint256 internal constant OCO_ORDER_CONFIGURATION_ID = 2;
-    uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
     uint128 internal constant MAX_ACTIVE_LIMIT_ORDERS_PER_ACCOUNT_PER_MARKET = 5;
 
     /// @notice General perps engine system configuration parameters.
-    string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
-    string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
-    uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
     uint128 internal constant MAX_POSITIONS_PER_ACCOUNT = 10;
     uint128 internal constant MARKET_ORDER_MAX_LIFETIME = 10 seconds;
-    uint128 internal constant MIN_TRADE_SIZE_USD = 200e18;
     uint128 internal constant LIQUIDATION_FEE_USD = 5e18;
 
-    /// @notice Test only mocks
+    /// @notice Test only mocks and constants.
+    uint256 internal constant INITIAL_MARKET_ID = 1;
+    uint256 internal constant FINAL_MARKET_ID = 4;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
     uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;

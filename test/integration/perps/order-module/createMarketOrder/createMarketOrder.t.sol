@@ -2,12 +2,10 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { BasicReport, PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Math } from "@zaros/utils/Math.sol";
-import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
-import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
-import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 // Open Zeppelin dependencies
@@ -20,15 +18,12 @@ import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     using SafeCast for int256;
 
-    uint256 initialMarketIndex = 0;
-    uint256 finalMarketIndex = 2;
-
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
 
-        createMarkets(initialMarketIndex, finalMarketIndex);
+        createPerpMarkets();
 
         changePrank({ msgSender: users.naruto });
     }
@@ -40,19 +35,17 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     )
         external
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, perpsAccountId, users.naruto)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -68,8 +61,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
         givenTheAccountIdExists
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         uint128 perpsAccountId = perpsEngine.createPerpsAccount();
 
@@ -80,11 +72,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, perpsAccountId, users.sasuke)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -98,19 +89,17 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountIdExists
         givenTheSenderIsAuthorized
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         uint128 perpsAccountId = perpsEngine.createPerpsAccount();
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "sizeDelta") });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: 0,
-                acceptablePrice: 0
+                sizeDelta: 0
             })
         );
     }
@@ -130,8 +119,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -144,7 +132,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
@@ -165,11 +153,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -189,8 +176,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsNotZero
         givenThePerpMarketIsEnabled
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
@@ -203,11 +189,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradeSizeTooSmall.selector) });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -228,8 +213,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketIsEnabled
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
@@ -249,11 +233,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 )
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -277,12 +260,12 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketWontReachTheOILimit
     {
         uint256 secondMarketIndex = 0;
-        if (marketIndex < finalMarketIndex - 1) {
+        if (marketIndex < FINAL_MARKET_ID - 1) {
             secondMarketIndex++;
         }
 
-        (MarketConfig memory fuzzMarketConfig) = getFuzzMarketConfig(0, initialMarketIndex, finalMarketIndex);
-        (MarketConfig memory secondFuzzMarketConfig) = getFuzzMarketConfig(1, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(0);
+        (MarketConfig memory secondFuzzMarketConfig) = getFuzzMarketConfig(1);
 
         initialMarginRate = bound({
             x: initialMarginRate,
@@ -297,7 +280,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
@@ -318,19 +301,19 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: firstOrderSizeDelta,
-                acceptablePrice: 0
+                sizeDelta: firstOrderSizeDelta
             })
         );
 
         changePrank({ msgSender: marketOrderKeepers[fuzzMarketConfig.marketId] });
-        bytes memory mockBasicSignedReport =
-            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice, false);
+        bytes memory mockSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        mockSettleMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, mockBasicSignedReport);
+        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
 
         changePrank({ msgSender: users.naruto });
 
@@ -338,7 +321,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: secondFuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(secondFuzzMarketConfig.maxOi),
@@ -354,11 +337,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(Errors.MaxPositionsPerAccountReached.selector, perpsAccountId, 1, 1)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: secondFuzzMarketConfig.marketId,
-                sizeDelta: secondOrderSizeDelta,
-                acceptablePrice: 0
+                sizeDelta: secondOrderSizeDelta
             })
         );
     }
@@ -367,7 +349,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirements(
+    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement(
         uint256 marginValueUsd,
         uint256 initialMarginRate,
         bool isLong,
@@ -382,13 +364,16 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
-        UD60x18 maxMarginValueUsd = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(ETH_USD_MAX_OI));
+        UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(0.9e18));
+        UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.maxOi)).mul(
+            ud60x18(fuzzMarketConfig.mockUsdPrice)
+        );
+
         marginValueUsd =
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
-        initialMarginRate = bound({ x: initialMarginRate, min: 1, max: fuzzMarketConfig.marginRequirements - 1 });
+        initialMarginRate = bound({ x: initialMarginRate, min: 1, max: adjustedMarginRequirements.intoUint256() });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
@@ -397,7 +382,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
@@ -432,16 +417,15 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 )
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
 
-    modifier givenTheAccountWillMeetTheMarginRequirements() {
+    modifier givenTheAccountWillMeetTheMarginRequirement() {
         _;
     }
 
@@ -459,10 +443,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
-        givenTheAccountWillMeetTheMarginRequirements
+        givenTheAccountWillMeetTheMarginRequirement
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -475,7 +458,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
@@ -487,11 +470,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
 
@@ -500,11 +482,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(Errors.MarketOrderStillPending.selector, block.timestamp)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
     }
@@ -523,10 +504,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
-        givenTheAccountWillMeetTheMarginRequirements
+        givenTheAccountWillMeetTheMarginRequirement
     {
-        (MarketConfig memory fuzzMarketConfig) =
-            getFuzzMarketConfig(marketIndex, initialMarketIndex, finalMarketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -539,7 +519,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                settlementId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
@@ -553,21 +533,19 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({
             marketId: fuzzMarketConfig.marketId,
             sizeDelta: sizeDelta,
-            acceptablePrice: 0,
             timestamp: uint128(block.timestamp)
         });
 
         // it should emit a {LogCreateMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IOrderModule.LogCreateMarketOrder(
+        emit IOrderBranch.LogCreateMarketOrder(
             users.naruto, perpsAccountId, fuzzMarketConfig.marketId, expectedMarketOrder
         );
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta,
-                acceptablePrice: 0
+                sizeDelta: sizeDelta
             })
         );
 
@@ -575,7 +553,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder({ accountId: perpsAccountId });
 
         assertEq(marketOrder.sizeDelta, sizeDelta, "createMarketOrder: sizeDelta");
-        assertEq(marketOrder.acceptablePrice, 0, "createMarketOrder: acceptablePrice");
         assertEq(marketOrder.timestamp, block.timestamp, "createMarketOrder: timestamp");
     }
 }

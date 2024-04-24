@@ -33,9 +33,9 @@ interface IStreamsLookupCompatible {
      * implement this interface as well as the automation compatible interface.
      * @param values an array of bytes returned from Mercury endpoint.
      * @param extraData context data from feed lookup process.
-     * @return keeperNeeded boolean to indicate whether the keeper should call performKeeper or not.
-     * @return performData bytes that the keeper should call performKeeper with, if
-     * keeper is needed. If you would like to encode data to decode later, try `abi.encode`.
+     * @return upkeepNeeded boolean to indicate whether the upkeep should call performUpkeep or not.
+     * @return performData bytes that the upkeep should call performUpkeep with, if
+     * upkeep is needed. If you would like to encode data to decode later, try `abi.encode`.
      */
 
     function checkCallback(
@@ -44,5 +44,5 @@ interface IStreamsLookupCompatible {
     )
         external
         view
-        returns (bool keeperNeeded, bytes memory performData);
+        returns (bool upkeepNeeded, bytes memory performData);
 }

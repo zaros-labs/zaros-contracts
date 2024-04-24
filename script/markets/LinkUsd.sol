@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
-import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
+import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
@@ -21,7 +21,6 @@ abstract contract LinkUsd {
     uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint256 internal constant LINK_USD_SKEW_SCALE = 1_151_243_152e18;
     uint256 internal constant LINK_USD_MIN_TRADE_SIZE = 5e18;
-    uint248 internal constant LINK_USD_SETTLEMENT_DELAY = 1 seconds;
     bool internal constant LINK_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal linkUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
@@ -33,5 +32,7 @@ abstract contract LinkUsd {
     address internal constant LINK_USD_PRICE_FEED = address(0x0FB99723Aee6f420beAD13e6bBB79b7E6F034298);
 
     // TODO: Update stream id value
-    string internal constant LINK_USD_STREAM_ID = "0x00026776af33e1916ef83f016a5e7fad5b4322242fe6133b631d612fa7528bbe";
+    bytes32 internal constant LINK_USD_STREAM_ID = 0x00026776af33e1916ef83f016a5e7fad5b4322242fe6133b631d612fa7528bbe;
+    string internal constant STRING_LINK_USD_STREAM_ID =
+        "0x00026776af33e1916ef83f016a5e7fad5b4322242fe6133b631d612fa7528bbe";
 }

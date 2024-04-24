@@ -2,13 +2,20 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { Constants } from "@zaros/utils/Constants.sol";
-import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
+import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { MockPriceFeed } from "../../test/mocks/MockPriceFeed.sol";
+import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } from "@prb-math/SD59x18.sol";
+
+// Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Markets
 import { ArbUsd } from "./ArbUsd.sol";
@@ -28,16 +35,43 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint256 skewScale;
         uint256 minTradeSize;
         uint128 maxFundingVelocity;
-        uint248 settlementDelay;
-        bool isPremiumFeed;
         address priceAdapter;
-        string streamId;
+        bytes32 streamId;
+        string streamIdString;
         OrderFees.Data orderFees;
         uint256 mockUsdPrice;
     }
 
-    function getMarketsConfig(uint256[] memory filteredIndexMarkets) internal pure returns (MarketConfig[] memory) {
-        MarketConfig[] memory marketsConfig = new MarketConfig[](3);
+    /// @notice Market configurations mapped by market id.
+    mapping(uint256 marketId => MarketConfig marketConfig) internal marketsConfig;
+    /// @notice Market order keepers contracts mapped by market id.
+    mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
+
+    /// @notice General perps engine system configuration parameters.
+    string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
+    string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
+    uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
+    uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
+
+    function setupMarketsConfig() internal {
+        MarketConfig memory btcUsdConfig = MarketConfig({
+            marketId: BTC_USD_MARKET_ID,
+            marketName: BTC_USD_MARKET_NAME,
+            marketSymbol: BTC_USD_MARKET_SYMBOL,
+            imr: BTC_USD_IMR,
+            mmr: BTC_USD_MMR,
+            marginRequirements: BTC_USD_MARGIN_REQUIREMENTS,
+            maxOi: BTC_USD_MAX_OI,
+            skewScale: BTC_USD_SKEW_SCALE,
+            minTradeSize: BTC_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
+            priceAdapter: BTC_USD_PRICE_FEED,
+            streamId: BTC_USD_STREAM_ID,
+            streamIdString: STRING_BTC_USD_STREAM_ID,
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            mockUsdPrice: MOCK_BTC_USD_PRICE
+        });
+        marketsConfig[BTC_USD_MARKET_ID] = btcUsdConfig;
 
         MarketConfig memory ethUsdConfig = MarketConfig({
             marketId: ETH_USD_MARKET_ID,
@@ -50,14 +84,13 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             skewScale: ETH_USD_SKEW_SCALE,
             minTradeSize: ETH_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-            settlementDelay: ETH_USD_SETTLEMENT_DELAY,
-            isPremiumFeed: ETH_USD_IS_PREMIUM_FEED,
             priceAdapter: ETH_USD_PRICE_FEED,
             streamId: ETH_USD_STREAM_ID,
+            streamIdString: STRING_ETH_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_ETH_USD_PRICE
         });
-        marketsConfig[0] = ethUsdConfig;
+        marketsConfig[ETH_USD_MARKET_ID] = ethUsdConfig;
 
         MarketConfig memory linkUsdConfig = MarketConfig({
             marketId: LINK_USD_MARKET_ID,
@@ -70,53 +103,130 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             skewScale: LINK_USD_SKEW_SCALE,
             minTradeSize: LINK_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
-            settlementDelay: LINK_USD_SETTLEMENT_DELAY,
-            isPremiumFeed: LINK_USD_IS_PREMIUM_FEED,
             priceAdapter: LINK_USD_PRICE_FEED,
             streamId: LINK_USD_STREAM_ID,
+            streamIdString: STRING_LINK_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             mockUsdPrice: MOCK_LINK_USD_PRICE
         });
-        marketsConfig[1] = linkUsdConfig;
+        marketsConfig[LINK_USD_MARKET_ID] = linkUsdConfig;
 
-        MarketConfig memory btcUsdConfig = MarketConfig({
-            marketId: BTC_USD_MARKET_ID,
-            marketName: BTC_USD_MARKET_NAME,
-            marketSymbol: BTC_USD_MARKET_SYMBOL,
-            imr: BTC_USD_IMR,
-            mmr: BTC_USD_MMR,
-            marginRequirements: BTC_USD_MARGIN_REQUIREMENTS,
-            maxOi: BTC_USD_MAX_OI,
-            skewScale: BTC_USD_SKEW_SCALE,
-            minTradeSize: BTC_USD_MIN_TRADE_SIZE,
-            maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
-            settlementDelay: BTC_USD_SETTLEMENT_DELAY,
-            isPremiumFeed: BTC_USD_IS_PREMIUM_FEED,
-            priceAdapter: BTC_USD_PRICE_FEED,
-            streamId: BTC_USD_STREAM_ID,
+        MarketConfig memory arbUsdConfig = MarketConfig({
+            marketId: ARB_USD_MARKET_ID,
+            marketName: ARB_USD_MARKET_NAME,
+            marketSymbol: ARB_USD_MARKET_SYMBOL,
+            imr: ARB_USD_IMR,
+            mmr: ARB_USD_MMR,
+            marginRequirements: ARB_USD_MARGIN_REQUIREMENTS,
+            maxOi: ARB_USD_MAX_OI,
+            skewScale: ARB_USD_SKEW_SCALE,
+            minTradeSize: ARB_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: ARB_USD_MAX_FUNDING_VELOCITY,
+            priceAdapter: ARB_USD_PRICE_FEED,
+            streamId: ARB_USD_STREAM_ID,
+            streamIdString: STRING_ARB_USD_STREAM_ID,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            mockUsdPrice: MOCK_BTC_USD_PRICE
+            mockUsdPrice: MOCK_ARB_USD_PRICE
         });
-        marketsConfig[2] = btcUsdConfig;
+        marketsConfig[ARB_USD_MARKET_ID] = arbUsdConfig;
+    }
 
-        uint256 initialMarketIndex = filteredIndexMarkets[0];
-        uint256 finalMarketIndex = filteredIndexMarkets[1];
+    function getFilteredMarketsConfig(uint256[2] memory marketsIdsRange)
+        internal
+        view
+        returns (MarketConfig[] memory)
+    {
+        uint256 initialMarketId = marketsIdsRange[0];
+        uint256 finalMarketId = marketsIdsRange[1];
+        uint256 filteredMarketsLength = finalMarketId - initialMarketId + 1;
 
-        uint256 lengthFilteredMarkets;
-        if (initialMarketIndex == finalMarketIndex) {
-            lengthFilteredMarkets = 1;
-        } else {
-            lengthFilteredMarkets = (finalMarketIndex - initialMarketIndex) + 1;
-        }
+        MarketConfig[] memory filteredMarketsConfig = new MarketConfig[](filteredMarketsLength);
 
-        MarketConfig[] memory filteredMarketsConfig = new MarketConfig[](lengthFilteredMarkets);
-
-        uint256 filteredIndex = 0;
-        for (uint256 index = initialMarketIndex; index <= finalMarketIndex; index++) {
-            filteredMarketsConfig[filteredIndex] = marketsConfig[index];
-            filteredIndex++;
+        uint256 nextMarketId = initialMarketId;
+        for (uint256 i = 0; i < filteredMarketsLength; i++) {
+            filteredMarketsConfig[i] = marketsConfig[nextMarketId];
+            nextMarketId++;
         }
 
         return filteredMarketsConfig;
+    }
+
+    function createPerpMarkets(
+        address deployer,
+        address settlementFeeReceiver,
+        IPerpsEngine perpsEngine,
+        uint256 initialMarketId,
+        uint256 finalMarketId,
+        IVerifierProxy chainlinkVerifier,
+        bool isTest
+    )
+        public
+    {
+        for (uint256 i = initialMarketId; i <= finalMarketId; i++) {
+            address marketOrderKeeper =
+                deployMarketOrderKeeper(marketsConfig[i].marketId, deployer, perpsEngine, settlementFeeReceiver);
+
+            SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+                .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
+
+            SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+                isEnabled: true,
+                fee: DEFAULT_SETTLEMENT_FEE,
+                keeper: marketOrderKeeper,
+                data: abi.encode(marketOrderConfigurationData)
+            });
+
+            // TODO: update to API orderbook config
+            SettlementConfiguration.Data[] memory customOrderStrategies;
+
+            perpsEngine.createPerpMarket(
+                IGlobalConfigurationBranch.CreatePerpMarketParams({
+                    marketId: marketsConfig[i].marketId,
+                    name: marketsConfig[i].marketName,
+                    symbol: marketsConfig[i].marketSymbol,
+                    priceAdapter: isTest
+                        ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice)))
+                        : marketsConfig[i].priceAdapter,
+                    initialMarginRateX18: marketsConfig[i].imr,
+                    maintenanceMarginRateX18: marketsConfig[i].mmr,
+                    maxOpenInterest: marketsConfig[i].maxOi,
+                    maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
+                    skewScale: marketsConfig[i].skewScale,
+                    minTradeSizeX18: marketsConfig[i].minTradeSize,
+                    marketOrderConfiguration: marketOrderConfiguration,
+                    customOrderStrategies: customOrderStrategies,
+                    orderFees: marketsConfig[i].orderFees
+                })
+            );
+        }
+    }
+
+    function deployMarketOrderKeeper(
+        uint128 marketId,
+        address deployer,
+        IPerpsEngine perpsEngine,
+        address settlementFeeReceiver
+    )
+        internal
+        returns (address marketOrderKeeper)
+    {
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
+
+        marketOrderKeeper = address(
+            new ERC1967Proxy(
+                marketOrderKeeperImplementation,
+                abi.encodeWithSelector(
+                    MarketOrderKeeper.initialize.selector,
+                    deployer,
+                    perpsEngine,
+                    settlementFeeReceiver,
+                    marketId,
+                    marketsConfig[marketId].streamIdString
+                )
+            )
+        );
+
+        marketOrderKeepers[marketId] = marketOrderKeeper;
     }
 }
