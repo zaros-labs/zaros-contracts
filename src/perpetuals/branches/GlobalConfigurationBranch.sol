@@ -37,20 +37,10 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
     /// TODO: Create inheritable AuthBranch
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {GlobalConfigurationBranch} UUPS initializer.
-    function initialize(
-        address perpsAccountToken,
-        address rewardDistributor,
-        address usdToken,
-        address liquidityEngine
-    )
-        external
-        initializer
-    {
+    function initialize(address perpsAccountToken, address usdToken) external initializer {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.perpsAccountToken = perpsAccountToken;
-        globalConfiguration.rewardDistributor = rewardDistributor;
         globalConfiguration.usdToken = usdToken;
-        globalConfiguration.liquidityEngine = liquidityEngine;
     }
 
     /// @inheritdoc IGlobalConfigurationBranch

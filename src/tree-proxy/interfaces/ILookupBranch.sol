@@ -25,7 +25,7 @@ interface ILookupBranch {
     function branchFunctionSelectors(address branch) external view returns (bytes4[] memory);
 
     /**
-     * @notice Get all the branch addresses used by a diamond.
+     * @notice Get all the branch addresses used by a root proxy.
      * @return branches The branch addresses.
      */
     function branchAddresses() external view returns (address[] memory);
