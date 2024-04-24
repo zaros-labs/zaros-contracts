@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.23;
 
-interface IFeatureFlagModule {
+interface IFeatureFlagBranch {
     event FeatureFlagAllowAllSet(bytes32 indexed feature, bool allowAll);
 
     event FeatureFlagDenyAllSet(bytes32 indexed feature, bool denyAll);

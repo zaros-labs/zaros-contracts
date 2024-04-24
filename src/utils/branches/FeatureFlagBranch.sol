@@ -3,14 +3,14 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IFeatureFlagModule } from "../interfaces/IFeatureFlagModule.sol";
+import { IFeatureFlagBranch } from "../interfaces/IFeatureFlagBranch.sol";
 import { FeatureFlag } from "../storage/FeatureFlag.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
-abstract contract FeatureFlagModule is IFeatureFlagModule, Ownable {
+abstract contract FeatureFlagBranch is IFeatureFlagBranch, Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using FeatureFlag for FeatureFlag.Data;
 

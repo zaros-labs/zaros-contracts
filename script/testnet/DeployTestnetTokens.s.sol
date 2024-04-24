@@ -4,14 +4,12 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { BaseScript } from "../Base.s.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
-import { FeatureFlag } from "@zaros/utils/leaves/FeatureFlag.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Forge dependencies
-import "forge-std/console.sol";
+import { console } from "forge-std/console.sol";
 
 /// @dev This script is used to deploy a token with limited minting per address. It is intended to be used only at the
 /// testnet.
