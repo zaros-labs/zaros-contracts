@@ -125,11 +125,11 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         external
         pure
         override
-        returns (bool keeperNeeded, bytes memory performData)
+        returns (bool upkeepNeeded, bytes memory performData)
     {
         bytes memory signedReport = values[0];
 
-        keeperNeeded = true;
+        upkeepNeeded = true;
         performData = abi.encode(signedReport, extraData);
     }
 

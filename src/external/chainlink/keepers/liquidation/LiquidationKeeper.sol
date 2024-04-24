@@ -30,7 +30,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     function checkUpkeep(bytes calldata checkData)
         external
         view
-        returns (bool keeperNeeded, bytes memory performData)
+        returns (bool upkeepNeeded, bytes memory performData)
     {
         (uint256 checkLowerBound, uint256 checkUpperBound, uint256 performLowerBound, uint256 performUpperBound) =
             abi.decode(checkData, (uint256, uint256, uint256, uint256));

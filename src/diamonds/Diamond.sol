@@ -4,19 +4,15 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { DiamondCut } from "./storage/DiamondCut.sol";
-import { DiamondLoupe } from "./storage/DiamondLoupe.sol";
 import { IDiamond } from "./interfaces/IDiamond.sol";
 
 // Open Zeppelin dependencies
 import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 
-// Open Zeppelin Upgradeable dependencies
-import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
-
-abstract contract Diamond is IDiamond, Proxy, Initializable {
+abstract contract Diamond is IDiamond, Proxy {
     using DiamondCut for DiamondCut.Data;
 
-    constructor(InitParams memory initDiamondCut) initializer {
+    constructor(InitParams memory initDiamondCut) {
         DiamondCut.Data storage diamondCut = DiamondCut.load();
 
         diamondCut.updateModules(
