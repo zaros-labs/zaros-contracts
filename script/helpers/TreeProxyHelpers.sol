@@ -79,7 +79,7 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     lookupBranchSelectors[2] = LookupBranch.branchAddress.selector;
     lookupBranchSelectors[4] = LookupBranch.branchSelectors.selector;
 
-    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 15 : 13);
+    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 14 : 12);
 
     globalConfigurationBranchSelectors[0] = GlobalConfigurationBranch.getAccountsWithActivePositions.selector;
     globalConfigurationBranchSelectors[1] = GlobalConfigurationBranch.getMarginCollateralConfiguration.selector;

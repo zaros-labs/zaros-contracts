@@ -32,9 +32,7 @@ library GlobalConfiguration {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMaxLifetime;
         uint128 liquidationFeeUsdX18;
-        address rewardDistributor;
         address usdToken;
-        address liquidityEngine;
         address perpsAccountToken;
         uint96 nextAccountId;
         mapping(address => bool) isLiquidatorEnabled;
