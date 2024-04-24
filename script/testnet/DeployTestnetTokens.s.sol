@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 import { BaseScript } from "../Base.s.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
-import { FeatureFlag } from "@zaros/utils/storage/FeatureFlag.sol";
+import { FeatureFlag } from "@zaros/utils/leaves/FeatureFlag.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";

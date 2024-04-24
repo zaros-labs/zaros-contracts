@@ -3,9 +3,9 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
-import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
-import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 // Open Zeppelin dependencies
@@ -42,7 +42,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, perpsAccountId, users.naruto)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -72,7 +72,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, perpsAccountId, users.sasuke)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -96,7 +96,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "sizeDelta") });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: 0
@@ -153,7 +153,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -189,7 +189,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradeSizeTooSmall.selector) });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -233,7 +233,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 )
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -301,7 +301,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: firstOrderSizeDelta
@@ -337,7 +337,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(Errors.MaxPositionsPerAccountReached.selector, perpsAccountId, 1, 1)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: secondFuzzMarketConfig.marketId,
                 sizeDelta: secondOrderSizeDelta
@@ -417,7 +417,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 )
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -470,7 +470,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -482,7 +482,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(Errors.MarketOrderStillPending.selector, block.timestamp)
         });
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -538,11 +538,11 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should emit a {LogCreateMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IOrderModule.LogCreateMarketOrder(
+        emit IOrderBranch.LogCreateMarketOrder(
             users.naruto, perpsAccountId, fuzzMarketConfig.marketId, expectedMarketOrder
         );
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta

@@ -3,10 +3,10 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
-import { Position } from "@zaros/markets/perps/storage/Position.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
-/// @notice Abstract contract containing all the events emitted by all modules.
+/// @notice Abstract contract containing all the events emitted by all branches.
 abstract contract Events {
     /*//////////////////////////////////////////////////////////////////////////
                                    PERPS ACCOUNT MODULE

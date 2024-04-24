@@ -3,12 +3,12 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";

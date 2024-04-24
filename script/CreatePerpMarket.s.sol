@@ -4,10 +4,10 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
-import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
-import { IGlobalConfigurationModule } from "@zaros/markets/perps/interfaces/IGlobalConfigurationModule.sol";
-import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
-import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 
@@ -63,7 +63,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             SettlementConfiguration.Data[] memory customOrdersConfigurations;
 
             perpsEngine.createPerpMarket({
-                params: IGlobalConfigurationModule.CreatePerpMarketParams({
+                params: IGlobalConfigurationBranch.CreatePerpMarketParams({
                     marketId: filteredMarketsConfig[i].marketId,
                     name: filteredMarketsConfig[i].marketName,
                     symbol: filteredMarketsConfig[i].marketSymbol,

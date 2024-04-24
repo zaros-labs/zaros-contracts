@@ -4,11 +4,11 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { IRootProxy } from "@zaros/diamonds/interfaces/IRootProxy.sol";
-import { RootProxy } from "@zaros/diamonds/RootProxy.sol";
+import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
+import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { LiquidityEngine } from "@zaros/liquidity/LiquidityEngine.sol";
-import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
-import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
+import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
 import { RewardDistributor } from "@zaros/reward-distributor/RewardDistributor.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
@@ -18,9 +18,9 @@ import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 import {
-    deployModules,
-    getModulesSelectors,
-    getFacetCuts,
+    deployBranchs,
+    getBranchsSelectors,
+    getBranchUpgrades,
     getInitializables,
     getInitializePayloads
 } from "script/helpers/DiamondHelpers.sol";
@@ -105,11 +105,11 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
 
         bool isTestnet = false;
         address accessKeyManager = address(0);
-        address[] memory modules = deployModules(isTestnet);
-        bytes4[][] memory modulesSelectors = getModulesSelectors(isTestnet);
-        IRootProxy.FacetCut[] memory facetCuts =
-            getFacetCuts(modules, modulesSelectors, IRootProxy.FacetCutAction.Add);
-        address[] memory initializables = getInitializables(modules, isTestnet);
+        address[] memory branches = deployBranchs(isTestnet);
+        bytes4[][] memory branchesSelectors = getBranchsSelectors(isTestnet);
+        IRootProxy.BranchUpgrade[] memory branchUpgrades =
+            getBranchUpgrades(branches, branchesSelectors, IRootProxy.BranchUpgradeAction.Add);
+        address[] memory initializables = getInitializables(branches, isTestnet);
         bytes[] memory initializePayloads = getInitializePayloads(
             users.owner,
             address(perpsAccountToken),
@@ -121,7 +121,7 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
         );
 
         IRootProxy.InitParams memory initParams = IRootProxy.InitParams({
-            baseFacets: facetCuts,
+            initBranches: branchUpgrades,
             initializables: initializables,
             initializePayloads: initializePayloads
         });

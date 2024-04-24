@@ -18,17 +18,17 @@ library Errors {
     /// @notice Router errors.
     error UnsupportedFunction(bytes4 functionSignature);
 
-    /// @notice DiamondCut errors.
-    error IncorrectFacetCutAction();
-    error FacetIsZeroAddress();
-    error FacetIsNotContract(address facet);
-    error SelectorArrayEmpty(address facet);
+    /// @notice RootUpgrade errors.
+    error IncorrectBranchUpgradeAction();
+    error BranchIsZeroAddress();
+    error BranchIsNotContract(address branch);
+    error SelectorArrayEmpty(address branch);
     error SelectorIsZero();
     error FunctionAlreadyExists(bytes4 functionSelector);
-    error ImmutableFacet();
-    error FunctionFromSameFacet(bytes4 functionSelector);
+    error ImmutableBranch();
+    error FunctionFromSameBranch(bytes4 functionSelector);
     error NonExistingFunction(bytes4 functionSelector);
-    error CannotRemoveFromOtherFacet(address facet, bytes4 functionSelector);
+    error CannotRemoveFromOtherBranch(address branch, bytes4 functionSelector);
     error InitializableIsNotContract(address initializable);
 
     /// @notice Chainlink Keepers errors.
@@ -40,14 +40,14 @@ library Errors {
     /// @notice Thrown when the keeper provided checkData bounds are invalid.
     error InvalidBounds();
 
-    /// @notice PerpsEngine.OrderModule errors
+    /// @notice PerpsEngine.OrderBranch errors
 
     /// @notice Thrown when invoking a custom settlement configuration reverts without a downstream error.
     error FailedCreateCustomOrder();
     /// @notice Thrown when trying to cancel an active market order and there's none.
     error NoActiveMarketOrder(uint128 accountId);
 
-    /// @notice PerpsEngine.PerpsAccountModule
+    /// @notice PerpsEngine.PerpsAccountBranch
 
     /// @notice Thrown When the provided collateral is not supported.
     error DepositCap(address collateralType, uint256 amount, uint256 depositCap);
@@ -69,7 +69,7 @@ library Errors {
         uint128 accountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, int256 totalFeesUsdX18
     );
 
-    /// @notice PerpsEngine.GlobalConfigurationModule
+    /// @notice PerpsEngine.GlobalConfigurationBranch
 
     /// @notice Thrown when the provided `accountToken` is the zero address.
     error PerpsAccountTokenNotDefined();
@@ -87,12 +87,12 @@ library Errors {
     /// @notice Thrown when a given trade is below the protocol configured min trade size in usd.
     error TradeSizeTooSmall();
 
-    /// @notice PerpsEngine.SettlementModule errors.
+    /// @notice PerpsEngine.SettlementBranch errors.
 
     /// @notice Thrown when the caller is not the registered Keeper contract.
     error OnlyKeeper(address sender, address keeper);
 
-    /// @notice PerpsEngine.PerpMarketModule errors.
+    /// @notice PerpsEngine.PerpMarketBranch errors.
     // TODO: create errors
 
     /// @notice PerpsEngine.GlobalConfiguration errors.
@@ -104,7 +104,7 @@ library Errors {
     /// @notice Thrown when the provided `marketId` is already disabled when trying to disable a market.
     error PerpMarketAlreadyDisabled(uint128 marketId);
 
-    /// @notice PerpsEngine.LiquidationModule errors.
+    /// @notice PerpsEngine.LiquidationBranch errors.
 
     error AccountNotLiquidatable(
         uint128 accountId, uint256 requiredMaintenanceMarginUsdX18, int256 marginBalanceUsdX18

@@ -6,10 +6,10 @@ pragma solidity 0.8.23;
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IOrderModule } from "@zaros/markets/perps/interfaces/IOrderModule.sol";
-import { MarketOrder } from "@zaros/markets/perps/storage/MarketOrder.sol";
-import { Position } from "@zaros/markets/perps/storage/Position.sol";
-import { SettlementConfiguration } from "@zaros/markets/perps/storage/SettlementConfiguration.sol";
+import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 // PRB Math dependencies
@@ -60,7 +60,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -147,7 +147,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -208,7 +208,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -281,7 +281,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -359,7 +359,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -426,7 +426,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
@@ -524,7 +524,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         perpsEngine.createMarketOrder(
-            IOrderModule.CreateMarketOrderParams({
+            IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta

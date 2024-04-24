@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IPerpsAccountModule } from "@zaros/markets/perps/interfaces/IPerpsAccountModule.sol";
+import { IPerpsAccountBranch } from "@zaros/perpetuals/interfaces/IPerpsAccountBranch.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 contract CreatePerpsAccountAndMulticall_Integration_Test is Base_Integration_Shared_Test {
@@ -14,7 +14,7 @@ contract CreatePerpsAccountAndMulticall_Integration_Test is Base_Integration_Sha
 
     function test_RevertWhen_TheDataArrayProvidesARevertingCall() external {
         bytes[] memory data = new bytes[](1);
-        data[0] = abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), uint256(0));
+        data[0] = abi.encodeWithSelector(IPerpsAccountBranch.depositMargin.selector, address(usdToken), uint256(0));
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
@@ -42,7 +42,7 @@ contract CreatePerpsAccountAndMulticall_Integration_Test is Base_Integration_Sha
     function test_WhenTheDataArrayIsNotNull() external whenTheDataArrayDoesNotProvideARevertingCall {
         bytes[] memory data = new bytes[](1);
         uint128 expectedAccountId = 1;
-        data[0] = abi.encodeWithSelector(IPerpsAccountModule.getPerpsAccountToken.selector);
+        data[0] = abi.encodeWithSelector(IPerpsAccountBranch.getPerpsAccountToken.selector);
 
         // it should emit {LogCreatePerpsAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -64,7 +64,7 @@ contract CreatePerpsAccountAndMulticall_Integration_Test is Base_Integration_Sha
 
         bytes[] memory data = new bytes[](1);
         data[0] =
-            abi.encodeWithSelector(IPerpsAccountModule.depositMargin.selector, address(usdToken), amountToDeposit);
+            abi.encodeWithSelector(IPerpsAccountBranch.depositMargin.selector, address(usdToken), amountToDeposit);
         uint128 expectedAccountId = 1;
 
         // it should transfer the amount from the sender to the perps account
