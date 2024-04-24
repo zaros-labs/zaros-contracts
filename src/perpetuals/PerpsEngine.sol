@@ -2,11 +2,10 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 
 contract PerpsEngine is RootProxy {
-    constructor(IRootProxy.InitParams memory initParams) RootProxy(initParams) { }
+    constructor(InitParams memory initParams) RootProxy(initParams) { }
 
     receive() external payable { }
 }

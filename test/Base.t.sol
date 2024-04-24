@@ -20,7 +20,7 @@ import {
     getBranchUpgrades,
     getInitializables,
     getInitializePayloads
-} from "script/helpers/DiamondHelpers.sol";
+} from "script/helpers/TreeProxyHelpers.sol";
 
 // Forge dependencies
 import { Test } from "forge-std/Test.sol";

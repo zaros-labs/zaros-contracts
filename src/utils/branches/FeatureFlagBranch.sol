@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { IFeatureFlagBranch } from "../interfaces/IFeatureFlagBranch.sol";
-import { FeatureFlag } from "../storage/FeatureFlag.sol";
+import { FeatureFlag } from "../leaves/FeatureFlag.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";

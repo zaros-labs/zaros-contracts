@@ -176,7 +176,7 @@ function getBranchUpgrades(
     pure
     returns (IRootProxy.BranchUpgrade[] memory)
 {
-    require(branches.length == branchesSelectors.length, "DiamondHelpers: branchesSelectors length mismatch");
+    require(branches.length == branchesSelectors.length, "TreeProxyHelpers: branchesSelectors length mismatch");
     IRootProxy.BranchUpgrade[] memory branchUpgrades = new IRootProxy.BranchUpgrade[](branches.length);
 
     for (uint256 i = 0; i < branches.length; i++) {
@@ -208,10 +208,8 @@ function getInitializables(address[] memory branches, bool isTestnet) pure retur
 function getInitializePayloads(
     address deployer,
     address perpsAccountToken,
-    address rewardDistributor,
     address usdToken,
-    address zaros,
-    address _accessKeyManager,
+    address accessKeyManager,
     bool isTestnet
 )
     pure
@@ -220,18 +218,17 @@ function getInitializePayloads(
     bytes[] memory initializePayloads = new bytes[](2);
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
-    bytes memory perpsInitializeData = abi.encodeWithSelector(
-        GlobalConfigurationBranch.initialize.selector, perpsAccountToken, rewardDistributor, usdToken, zaros
-    );
+    bytes memory perpsEngineInitializeData =
+        abi.encodeWithSelector(GlobalConfigurationBranch.initialize.selector, perpsAccountToken, usdToken);
 
     initializePayloads = new bytes[](isTestnet ? 3 : 2);
 
     initializePayloads[0] = rootUpgradeInitializeData;
-    initializePayloads[1] = perpsInitializeData;
+    initializePayloads[1] = perpsEngineInitializeData;
 
     if (isTestnet) {
         bytes memory perpsAccountTestnetData =
-            abi.encodeWithSelector(PerpsAccountBranchTestnet.initialize.selector, _accessKeyManager);
+            abi.encodeWithSelector(PerpsAccountBranchTestnet.initialize.selector, accessKeyManager);
         initializePayloads[2] = perpsAccountTestnetData;
     }
 

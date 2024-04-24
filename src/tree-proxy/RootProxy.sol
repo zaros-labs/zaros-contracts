@@ -12,13 +12,6 @@ import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 abstract contract RootProxy is IRootProxy, Proxy {
     using RootUpgrade for RootUpgrade.Data;
 
-    /// @notice Init params of the RootProxy contract.
-    struct InitParams {
-        BranchUpgrade[] initBranches;
-        address[] initializables;
-        bytes[] initializePayloads;
-    }
-
     constructor(InitParams memory initRootUpgrade) {
         RootUpgrade.Data storage rootUpgrade = RootUpgrade.load();
 

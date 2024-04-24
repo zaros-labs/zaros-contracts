@@ -13,6 +13,13 @@ interface IRootProxy {
         Remove
     }
 
+    /// @notice Init params of the RootProxy contract.
+    struct InitParams {
+        BranchUpgrade[] initBranches;
+        address[] initializables;
+        bytes[] initializePayloads;
+    }
+
     /// @notice Describes a branch to be added, replaced or removed.
     /// @param branch Address of the branch, that contains the functions.
     /// @param action The action to be performed.

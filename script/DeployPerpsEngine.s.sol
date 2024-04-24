@@ -18,7 +18,7 @@ import {
     getBranchUpgrades,
     getInitializables,
     getInitializePayloads
-} from "./helpers/DiamondHelpers.sol";
+} from "./helpers/TreeProxyHelpers.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -27,6 +27,7 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
+    bool internal isTestnet;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS

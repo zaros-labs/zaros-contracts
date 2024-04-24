@@ -20,7 +20,7 @@ import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "../Base.s.sol";
-import { deployBranchs, getBranchsSelectors, getBranchUpgrades } from "../helpers/DiamondHelpers.sol";
+import { deployBranchs, getBranchsSelectors, getBranchUpgrades } from "../helpers/TreeProxyHelpers.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
