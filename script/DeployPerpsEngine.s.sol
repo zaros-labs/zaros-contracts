@@ -4,8 +4,8 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
-import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { IRootProxy } from "@zaros/diamonds/interfaces/IRootProxy.sol";
+import { RootProxy } from "@zaros/diamonds/RootProxy.sol";
 import { PerpsEngine } from "@zaros/markets/perps/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/markets/perps/interfaces/IPerpsEngine.sol";
 import { OrderFees } from "@zaros/markets/perps/storage/OrderFees.sol";
@@ -50,7 +50,8 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         address[] memory modules = deployModules(isTestnet);
         bytes4[][] memory modulesSelectors = getModulesSelectors(isTestnet);
 
-        IDiamond.FacetCut[] memory facetCuts = getFacetCuts(modules, modulesSelectors, IDiamond.FacetCutAction.Add);
+        IRootProxy.FacetCut[] memory facetCuts =
+            getFacetCuts(modules, modulesSelectors, IRootProxy.FacetCutAction.Add);
         address[] memory initializables = getInitializables(modules, isTestnet);
         bytes[] memory initializePayloads = getInitializePayloads(
             deployer,
@@ -62,7 +63,7 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
             isTestnet
         );
 
-        IDiamond.InitParams memory initParams = IDiamond.InitParams({
+        IRootProxy.InitParams memory initParams = IRootProxy.InitParams({
             baseFacets: facetCuts,
             initializables: initializables,
             initializePayloads: initializePayloads

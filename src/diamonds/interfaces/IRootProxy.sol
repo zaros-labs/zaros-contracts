@@ -2,10 +2,10 @@
 pragma solidity 0.8.23;
 
 /**
- * @title IDiamond
- * @notice Interface of the Diamond Proxy contract. See [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535).
+ * @title IRootProxy
+ * @notice Interface of the RootProxy Proxy contract.
  */
-interface IDiamond {
+interface IRootProxy {
     /**
      * @notice Expresses the action of adding, replacing, or removing a facet.
      */

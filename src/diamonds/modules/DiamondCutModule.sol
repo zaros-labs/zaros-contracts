@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IDiamond } from "../interfaces/IDiamond.sol";
+import { IRootProxy } from "../interfaces/IRootProxy.sol";
 import { IDiamondCutModule } from "../interfaces/IDiamondCutModule.sol";
 import { DiamondCut } from "../storage/DiamondCut.sol";
 
@@ -22,7 +22,7 @@ contract DiamondCutModule is IDiamondCutModule, Initializable, OwnableUpgradeabl
     }
 
     function updateModules(
-        IDiamond.FacetCut[] memory facetCuts,
+        IRootProxy.FacetCut[] memory facetCuts,
         address[] memory initializables,
         bytes[] memory initializePayloads
     )
@@ -34,5 +34,5 @@ contract DiamondCutModule is IDiamondCutModule, Initializable, OwnableUpgradeabl
         diamondCut.updateModules(facetCuts, initializables, initializePayloads);
     }
 
-    function _authorizeUpgrade(IDiamond.FacetCut[] memory) internal onlyOwner { }
+    function _authorizeUpgrade(IRootProxy.FacetCut[] memory) internal onlyOwner { }
 }

@@ -2,11 +2,11 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
-import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { IRootProxy } from "@zaros/diamonds/interfaces/IRootProxy.sol";
+import { RootProxy } from "@zaros/diamonds/RootProxy.sol";
 
-contract PerpsEngine is Diamond {
-    constructor(IDiamond.InitParams memory initParams) Diamond(initParams) { }
+contract PerpsEngine is RootProxy {
+    constructor(IRootProxy.InitParams memory initParams) RootProxy(initParams) { }
 
     receive() external payable { }
 }

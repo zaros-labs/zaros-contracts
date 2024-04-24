@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
+import { IRootProxy } from "@zaros/diamonds/interfaces/IRootProxy.sol";
 import { DiamondCutModule } from "@zaros/diamonds/modules/DiamondCutModule.sol";
 import { DiamondLoupeModule } from "@zaros/diamonds/modules/DiamondLoupeModule.sol";
 import { GlobalConfigurationModule } from "@zaros/markets/perps/modules/GlobalConfigurationModule.sol";
@@ -172,18 +172,18 @@ function getModulesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 function getFacetCuts(
     address[] memory modules,
     bytes4[][] memory modulesSelectors,
-    IDiamond.FacetCutAction action
+    IRootProxy.FacetCutAction action
 )
     pure
-    returns (IDiamond.FacetCut[] memory)
+    returns (IRootProxy.FacetCut[] memory)
 {
     require(modules.length == modulesSelectors.length, "DiamondHelpers: modulesSelectors length mismatch");
-    IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](modules.length);
+    IRootProxy.FacetCut[] memory facetCuts = new IRootProxy.FacetCut[](modules.length);
 
     for (uint256 i = 0; i < modules.length; i++) {
         bytes4[] memory selectors = modulesSelectors[i];
 
-        facetCuts[i] = IDiamond.FacetCut({ facet: modules[i], action: action, selectors: selectors });
+        facetCuts[i] = IRootProxy.FacetCut({ facet: modules[i], action: action, selectors: selectors });
     }
 
     return facetCuts;

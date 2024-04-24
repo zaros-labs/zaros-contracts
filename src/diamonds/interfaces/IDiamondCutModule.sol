@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { IDiamond } from "./IDiamond.sol";
+import { IRootProxy } from "./IRootProxy.sol";
 
 /**
  * @title IDiamondCut
@@ -18,7 +18,7 @@ interface IDiamondCutModule {
      *                 executed with delegatecall on each initializable contract.
      */
     function updateModules(
-        IDiamond.FacetCut[] calldata facetCuts,
+        IRootProxy.FacetCut[] calldata facetCuts,
         address[] calldata initializables,
         bytes[] calldata initializePayloads
     )

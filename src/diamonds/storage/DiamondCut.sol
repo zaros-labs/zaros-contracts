@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IDiamond } from "../interfaces/IDiamond.sol";
+import { IRootProxy } from "../interfaces/IRootProxy.sol";
 import { IDiamondCutModule } from "../interfaces/IDiamondCutModule.sol";
 import { DiamondCut } from "../storage/DiamondCut.sol";
 import { Facet } from "../storage/Facet.sol";
@@ -32,7 +32,7 @@ library DiamondCut {
         }
     }
 
-    function validateFacetCut(IDiamond.FacetCut memory facetCut) internal view {
+    function validateFacetCut(IRootProxy.FacetCut memory facetCut) internal view {
         if (uint256(facetCut.action) > 2) {
             revert Errors.IncorrectFacetCutAction();
         }
@@ -80,22 +80,22 @@ library DiamondCut {
 
     function updateModules(
         Data storage self,
-        IDiamond.FacetCut[] memory facetCuts,
+        IRootProxy.FacetCut[] memory facetCuts,
         address[] memory initializables,
         bytes[] memory initializePayloads
     )
         internal
     {
         for (uint256 i = 0; i < facetCuts.length; i++) {
-            IDiamond.FacetCut memory facetCut = facetCuts[i];
+            IRootProxy.FacetCut memory facetCut = facetCuts[i];
 
             validateFacetCut(facetCut);
 
-            if (facetCut.action == IDiamond.FacetCutAction.Add) {
+            if (facetCut.action == IRootProxy.FacetCutAction.Add) {
                 addFacet(self, facetCut.facet, facetCut.selectors);
-            } else if (facetCut.action == IDiamond.FacetCutAction.Replace) {
+            } else if (facetCut.action == IRootProxy.FacetCutAction.Replace) {
                 replaceFacet(self, facetCut.facet, facetCut.selectors);
-            } else if (facetCut.action == IDiamond.FacetCutAction.Remove) {
+            } else if (facetCut.action == IRootProxy.FacetCutAction.Remove) {
                 removeFacet(self, facetCut.facet, facetCut.selectors);
             }
         }
@@ -185,7 +185,7 @@ library DiamondCut {
     }
 
     function initializeDiamondCut(
-        IDiamond.FacetCut[] memory,
+        IRootProxy.FacetCut[] memory,
         address[] memory initializables,
         bytes[] memory initializePayloads
     )

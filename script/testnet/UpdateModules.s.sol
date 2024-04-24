@@ -4,8 +4,8 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { IDiamond } from "@zaros/diamonds/interfaces/IDiamond.sol";
-import { Diamond } from "@zaros/diamonds/Diamond.sol";
+import { IRootProxy } from "@zaros/diamonds/interfaces/IRootProxy.sol";
+import { RootProxy } from "@zaros/diamonds/RootProxy.sol";
 import { GlobalConfigurationModuleTestnet } from "@zaros/testnet/modules/GlobalConfigurationModuleTestnet.sol";
 import { PerpsAccountModuleTestnet } from "@zaros/testnet/modules/PerpsAccountModuleTestnet.sol";
 import { SettlementModuleTestnet } from "@zaros/testnet/modules/SettlementModuleTestnet.sol";
@@ -48,12 +48,12 @@ contract UpdateModules is BaseScript {
         // bytes4[] memory settlementModuleTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderModuleTestnetSelectorsUpdated = new bytes4[](1);
 
-        // IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](4);
+        // IRootProxy.FacetCut[] memory facetCuts = new IRootProxy.FacetCut[](4);
 
         // bytes4[] memory globalConfigurationModuleTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory perpMarketModuleSelectorsUpdated = new bytes4[](1);
 
-        IDiamond.FacetCut[] memory facetCuts = new IDiamond.FacetCut[](1);
+        IRootProxy.FacetCut[] memory facetCuts = new IRootProxy.FacetCut[](1);
 
         address[] memory initializables;
         bytes[] memory initializePayloads;
@@ -86,41 +86,41 @@ contract UpdateModules is BaseScript {
         // orderModuleTestnetSelectorsUpdated[0] = OrderModule.createMarketOrder.selector;
 
         facetCuts[0] = (
-            IDiamond.FacetCut({
+            IRootProxy.FacetCut({
                 facet: address(perpsAccountModuleTestnet),
-                action: IDiamond.FacetCutAction.Replace,
+                action: IRootProxy.FacetCutAction.Replace,
                 selectors: perpsAccountModuleTestnetSelectorsUpdated
             })
         );
 
         // facetCuts[0] = (
-        //     IDiamond.FacetCut({
+        //     IRootProxy.FacetCut({
         //         facet: address(perpsAccountModuleTestnet),
-        //         action: IDiamond.FacetCutAction.Add,
+        //         action: IRootProxy.FacetCutAction.Add,
         //         selectors: perpsAccountModuleTestnetSelectorsAdded
         //     })
         // );
 
         // facetCuts[1] = (
-        //     IDiamond.FacetCut({
+        //     IRootProxy.FacetCut({
         //         facet: address(perpsAccountModuleTestnet),
-        //         action: IDiamond.FacetCutAction.Replace,
+        //         action: IRootProxy.FacetCutAction.Replace,
         //         selectors: perpsAccountModuleTestnetSelectorsUpdated
         //     })
         // );
 
         // facetCuts[2] = (
-        //     IDiamond.FacetCut({
+        //     IRootProxy.FacetCut({
         //         facet: address(globalConfigurationModuleTestnet),
-        //         action: IDiamond.FacetCutAction.Add,
+        //         action: IRootProxy.FacetCutAction.Add,
         //         selectors: globalConfigurationModuleTestnetSelectorsAdded
         //     })
         // );
 
         // facetCuts[3] = (
-        //     IDiamond.FacetCut({
+        //     IRootProxy.FacetCut({
         //         facet: address(settlementModuleTestnet),
-        //         action: IDiamond.FacetCutAction.Replace,
+        //         action: IRootProxy.FacetCutAction.Replace,
         //         selectors: settlementModuleTestnetSelectorsUpdated
         //     })
         // );

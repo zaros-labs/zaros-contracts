@@ -4,12 +4,12 @@ pragma solidity 0.8.23;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { DiamondCut } from "./storage/DiamondCut.sol";
-import { IDiamond } from "./interfaces/IDiamond.sol";
+import { IRootProxy } from "./interfaces/IRootProxy.sol";
 
 // Open Zeppelin dependencies
 import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 
-abstract contract Diamond is IDiamond, Proxy {
+abstract contract RootProxy is IRootProxy, Proxy {
     using DiamondCut for DiamondCut.Data;
 
     constructor(InitParams memory initDiamondCut) {
