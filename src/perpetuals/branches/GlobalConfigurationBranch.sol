@@ -96,18 +96,6 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationBranch
-    function setLiquidityEngine(address liquidityEngine) external override {
-        if (liquidityEngine == address(0)) {
-            revert Errors.LiquidityEngineNotDefined();
-        }
-
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.liquidityEngine = liquidityEngine;
-
-        emit LogSetLiquidityEngine(msg.sender, liquidityEngine);
-    }
-
-    /// @inheritdoc IGlobalConfigurationBranch
     function configureCollateralPriority(address[] calldata collateralTypes) external override onlyOwner {
         if (collateralTypes.length == 0) {
             revert Errors.ZeroInput("collateralTypes");

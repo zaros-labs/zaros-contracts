@@ -27,9 +27,6 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    address internal mockRewardDistributorAddress = address(3);
-    address internal mockLiquidityEngineAddress = address(4);
-    bool isTestnet;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
@@ -53,15 +50,8 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         IRootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, IRootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches, isTestnet);
-        bytes[] memory initializePayloads = getInitializePayloads(
-            deployer,
-            address(perpsAccountToken),
-            mockRewardDistributorAddress,
-            usdToken,
-            mockLiquidityEngineAddress,
-            accessKeyManager,
-            isTestnet
-        );
+        bytes[] memory initializePayloads =
+            getInitializePayloads(deployer, address(perpsAccountToken), usdToken, accessKeyManager, isTestnet);
 
         IRootProxy.InitParams memory initParams = IRootProxy.InitParams({
             initBranches: branchUpgrades,

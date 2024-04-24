@@ -14,11 +14,6 @@ interface IGlobalConfigurationBranch {
     /// @notice Emitted when the account token address is set.
     event LogSetPerpsAccountToken(address indexed sender, address indexed perpsAccountToken);
 
-    /// @notice Emitted when the Liquidity Engine address is set.
-    /// @param sender The address that set the Liquidity Engine address.
-    /// @param liquidityEngine The Liquidity Engine address.
-    event LogSetLiquidityEngine(address indexed sender, address indexed liquidityEngine);
-
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
     /// @param collateralTypes The array of collateral type addresses, ordered by priority.
@@ -103,10 +98,6 @@ interface IGlobalConfigurationBranch {
     /// @notice Sets the address of the account token NFT contract.
     /// @param perpsAccountToken The account token address.
     function setPerpsAccountToken(address perpsAccountToken) external;
-
-    /// @notice Sets the address of the Liquidity Engine contract.
-    /// @param liquidityEngine The Liquidity Engine proxy address.
-    function setLiquidityEngine(address liquidityEngine) external;
 
     /// @notice Configures the collateral priority.
     /// @param collateralTypes The array of collateral type addresses.

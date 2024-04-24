@@ -73,8 +73,6 @@ library Errors {
 
     /// @notice Thrown when the provided `accountToken` is the zero address.
     error PerpsAccountTokenNotDefined();
-    /// @notice Thrown when the provided `zaros` is the zero address.
-    error LiquidityEngineNotDefined();
     /// @notice Thrown when the provided `liquidationReward` is less than 1e18.
     error InvalidLiquidationReward(uint128 liquidationFeeUsdX18);
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.

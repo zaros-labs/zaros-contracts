@@ -84,16 +84,15 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationBranchSelectors[0] = GlobalConfigurationBranch.getAccountsWithActivePositions.selector;
     globalConfigurationBranchSelectors[1] = GlobalConfigurationBranch.getMarginCollateralConfiguration.selector;
     globalConfigurationBranchSelectors[2] = GlobalConfigurationBranch.setPerpsAccountToken.selector;
-    globalConfigurationBranchSelectors[3] = GlobalConfigurationBranch.setLiquidityEngine.selector;
-    globalConfigurationBranchSelectors[4] = GlobalConfigurationBranch.configureCollateralPriority.selector;
-    globalConfigurationBranchSelectors[5] = GlobalConfigurationBranch.configureLiquidators.selector;
-    globalConfigurationBranchSelectors[6] = GlobalConfigurationBranch.configureMarginCollateral.selector;
-    globalConfigurationBranchSelectors[7] = GlobalConfigurationBranch.removeCollateralFromPriorityList.selector;
-    globalConfigurationBranchSelectors[8] = GlobalConfigurationBranch.configureSystemParameters.selector;
-    globalConfigurationBranchSelectors[9] = GlobalConfigurationBranch.createPerpMarket.selector;
-    globalConfigurationBranchSelectors[10] = GlobalConfigurationBranch.updatePerpMarketConfiguration.selector;
-    globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updatePerpMarketStatus.selector;
-    globalConfigurationBranchSelectors[12] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
+    globalConfigurationBranchSelectors[3] = GlobalConfigurationBranch.configureCollateralPriority.selector;
+    globalConfigurationBranchSelectors[4] = GlobalConfigurationBranch.configureLiquidators.selector;
+    globalConfigurationBranchSelectors[5] = GlobalConfigurationBranch.configureMarginCollateral.selector;
+    globalConfigurationBranchSelectors[6] = GlobalConfigurationBranch.removeCollateralFromPriorityList.selector;
+    globalConfigurationBranchSelectors[7] = GlobalConfigurationBranch.configureSystemParameters.selector;
+    globalConfigurationBranchSelectors[8] = GlobalConfigurationBranch.createPerpMarket.selector;
+    globalConfigurationBranchSelectors[9] = GlobalConfigurationBranch.updatePerpMarketConfiguration.selector;
+    globalConfigurationBranchSelectors[10] = GlobalConfigurationBranch.updatePerpMarketStatus.selector;
+    globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
 
     if (isTestnet) {
         globalConfigurationBranchSelectors[13] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
