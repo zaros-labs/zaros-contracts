@@ -19,10 +19,8 @@ interface ISettlementBranch {
         Position.Data newPosition
     );
 
-    // TODO: Remove orderId after testnet.
     struct SettlementPayload {
         uint128 accountId;
-        uint128 orderId;
         int128 sizeDelta;
     }
 

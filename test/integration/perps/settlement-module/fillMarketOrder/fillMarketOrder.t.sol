@@ -7,12 +7,14 @@ import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLook
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
+import { ISettlementBranch } from "@zaros/perpetuals/interfaces/ISettlementBranch.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 import { console } from "forge-std/console.sol";
 
@@ -225,7 +227,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
             isEnabled: false,
-            fee: DATA_STREAMS_SETTLEMENT_FEE,
+            fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
             data: abi.encode(marketOrderConfigurationData)
         });
@@ -295,7 +297,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
             isEnabled: true,
-            fee: DATA_STREAMS_SETTLEMENT_FEE,
+            fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
             data: abi.encode(marketOrderConfigurationData)
         });
@@ -464,14 +466,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             sizeDelta
         );
 
-        console.log("FROM TEST SUITE: ");
-        console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
-        console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
-        console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
-        console.log(newMarginRequirements.intoUint256());
-        console.log(fuzzMarketConfig.marginRequirements);
-        console.log(newMarginRequirements.div(ud60x18(2e18)).intoUint256());
-
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
 
@@ -560,7 +554,12 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
     }
 
-    function test_GivenTheMarketsOILimitWontBeExceeded()
+    function testFuzz_GivenTheMarketsOILimitWontBeExceeded(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketIndex
+    )
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
@@ -569,12 +568,89 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
     {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
+
+        (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18,
+        ) = perpsEngine.simulateTrade(
+            perpsAccountId,
+            fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            sizeDelta
+        );
+
+        UD60x18 fillPriceX18 =
+            perpsEngine.getMarkPrice(fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta);
+
+        perpsEngine.createMarketOrder(
+            IOrderBranch.CreateMarketOrderParams({
+                accountId: perpsAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: sizeDelta
+            })
+        );
+
+        bytes memory mockSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+
+        Position.Data memory expectedNewPosition = Position.Data({
+            size: sizeDelta,
+            lastInteractionPrice: fillPriceX18.intoUint128(),
+            lastInteractionFundingFeePerUnit: int128(0)
+        });
+        int256 expectedPnl = unary(orderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())).intoInt256();
+
+        changePrank({ msgSender: marketOrderKeeper });
+
+        console.log("EXPECTED EVENT HERE: ");
+        console.log(fillPriceX18.intoUint256());
+        console.log(orderFeeUsdX18.abs().intoUD60x18().intoUint256());
+        // it should emit a {LogSettleOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit ISettlementBranch.LogSettleOrder({
+            sender: marketOrderKeeper,
+            accountId: perpsAccountId,
+            marketId: fuzzMarketConfig.marketId,
+            sizeDelta: sizeDelta,
+            fillPrice: fillPriceX18.intoUint256(),
+            orderFeeUsd: orderFeeUsdX18.intoInt256(),
+            settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
+            pnl: expectedPnl,
+            newPosition: expectedNewPosition
+        });
+        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
         // it should update the funding values
         // it should update the open interest and skew
         // it should update the account's active markets
         // it should update the account's position
         // it should apply the accrued pnl
-        // it should emit a {LogSettleOrder} event
         // it should pay the settlement fee
     }
 }

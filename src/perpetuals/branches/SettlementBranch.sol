@@ -192,7 +192,7 @@ contract SettlementBranch is ISettlementBranch {
 
         ctx.pnl = oldPosition.getUnrealizedPnl(ctx.fillPrice).add(
             oldPosition.getAccruedFunding(ctx.fundingFeePerUnit)
-        ).add(ctx.orderFeeUsdX18).add(ctx.settlementFeeUsdX18.intoSD59x18());
+        ).add(unary(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())));
 
         ctx.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(ctx.sizeDelta).intoInt256(),
@@ -215,7 +215,7 @@ contract SettlementBranch is ISettlementBranch {
 
         // TODO: Handle negative margin case
         if (ctx.pnl.lt(SD_ZERO)) {
-            UD60x18 amountToDeduct = ctx.pnl.intoUD60x18();
+            UD60x18 amountToDeduct = ctx.pnl.abs().intoUD60x18();
             // TODO: update to liquidation pool and fee pool addresses
             perpsAccount.deductAccountMargin(
                 msg.sender,

@@ -50,7 +50,6 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     /// @notice General perps engine system configuration parameters.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
-    uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
     function setupMarketsConfig() internal {
