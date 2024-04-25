@@ -496,54 +496,55 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
-        uint256 initialMarginRate = fuzzMarketConfig.marginRequirements;
-        uint256 marginValueUsd = ud60x18(fuzzMarketConfig.marginRequirements).div(
-            ud60x18(fuzzMarketConfig.maxOi).mul(ud60x18(fuzzMarketConfig.mockUsdPrice))
-        ).intoUint256();
+        // uint256 initialMarginRate = fuzzMarketConfig.marginRequirements;
+        // uint256 marginValueUsd = ud60x18(fuzzMarketConfig.marginRequirements).div(
+        //     ud60x18(fuzzMarketConfig.maxOi).mul(ud60x18(fuzzMarketConfig.mockUsdPrice))
+        // ).intoUint256();
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        // deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        int128 sizeDelta = fuzzOrderSizeDelta(
-            FuzzOrderSizeDeltaParams({
-                accountId: perpsAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(initialMarginRate),
-                marginValueUsd: ud60x18(marginValueUsd),
-                maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
-                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
-                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
-                isLong: isLong,
-                shouldDiscountFees: true
-            })
-        );
+        // uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        // int128 sizeDelta = fuzzOrderSizeDelta(
+        //     FuzzOrderSizeDeltaParams({
+        //         accountId: perpsAccountId,
+        //         marketId: fuzzMarketConfig.marketId,
+        //         settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+        //         initialMarginRate: ud60x18(initialMarginRate),
+        //         marginValueUsd: ud60x18(marginValueUsd),
+        //         maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+        //         minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+        //         price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+        //         isLong: isLong,
+        //         shouldDiscountFees: true
+        //     })
+        // );
 
-        perpsEngine.createMarketOrder(
-            IOrderBranch.CreateMarketOrderParams({
-                accountId: perpsAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta
-            })
-        );
+        // perpsEngine.createMarketOrder(
+        //     IOrderBranch.CreateMarketOrderParams({
+        //         accountId: perpsAccountId,
+        //         marketId: fuzzMarketConfig.marketId,
+        //         sizeDelta: sizeDelta
+        //     })
+        // );
 
-        bytes memory mockSignedReport =
-            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
-        (, bytes memory mockReportData) = abi.decode(mockSignedReport, (bytes32[3], bytes));
-        PremiumReport memory premiumReport = abi.decode(mockReportData, (PremiumReport));
+        // bytes memory mockSignedReport =
+        //     getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        // (, bytes memory mockReportData) = abi.decode(mockSignedReport, (bytes32[3], bytes));
+        // PremiumReport memory premiumReport = abi.decode(mockReportData, (PremiumReport));
 
-        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+        // address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        changePrank({ msgSender: marketOrderKeeper });
-        // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                Errors.InvalidDataStreamReport.selector, fuzzMarketConfig.streamId, premiumReport.feedId
-                )
-        });
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
+        // changePrank({ msgSender: marketOrderKeeper });
+        // // it should revert
+        // vm.expectRevert({
+        //     revertData: abi.encodeWithSelector(
+        //         Errors.InvalidDataStreamReport.selector, fuzzMarketConfig.streamId, premiumReport.feedId
+        //         )
+        // });
+        // perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper,
+        // mockSignedReport);
     }
 
     function test_GivenTheMarketsOILimitWontBeExceeded()

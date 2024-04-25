@@ -259,13 +259,9 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
         givenThePerpMarketWontReachTheOILimit
     {
-        uint256 secondMarketIndex = 0;
-        if (marketIndex < FINAL_MARKET_ID - 1) {
-            secondMarketIndex++;
-        }
-
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(0);
-        (MarketConfig memory secondFuzzMarketConfig) = getFuzzMarketConfig(1);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory secondFuzzMarketConfig =
+            getFuzzMarketConfig(marketIndex < FINAL_MARKET_ID ? marketIndex + 1 : marketIndex - 1);
 
         initialMarginRate = bound({
             x: initialMarginRate,
