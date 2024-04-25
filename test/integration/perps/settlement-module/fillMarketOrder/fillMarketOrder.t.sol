@@ -407,7 +407,9 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
-        UD60x18 maxMarginValueUsd = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.01e18)).mul(
+        // avoids very small rounding errors in super edge cases
+        UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18));
+        UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(
             ud60x18(fuzzMarketConfig.maxOi)
         ).mul(ud60x18(fuzzMarketConfig.mockUsdPrice));
 
@@ -422,7 +424,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.01e18)),
+                initialMarginRate: adjustedMarginRequirements,
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
@@ -440,13 +442,13 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-        UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18));
+        UD60x18 newMarginRequirements = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18));
 
         changePrank({ msgSender: users.owner });
         updatePerpMarketMarginRequirements(
             fuzzMarketConfig.marketId,
-            adjustedMarginRequirements.div(ud60x18Convert(2)),
-            adjustedMarginRequirements.div(ud60x18Convert(2))
+            newMarginRequirements.div(ud60x18Convert(2)),
+            newMarginRequirements.div(ud60x18Convert(2))
         );
 
         (
@@ -466,9 +468,9 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
         console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
         console.log(orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoUD60x18().intoUint256());
-        console.log(adjustedMarginRequirements.intoUint256());
+        console.log(newMarginRequirements.intoUint256());
         console.log(fuzzMarketConfig.marginRequirements);
-        console.log(adjustedMarginRequirements.div(ud60x18Convert(2)).intoUint256());
+        console.log(newMarginRequirements.div(ud60x18Convert(2)).intoUint256());
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
