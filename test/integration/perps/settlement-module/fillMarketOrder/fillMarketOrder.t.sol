@@ -7,8 +7,6 @@ import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLook
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
-import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 

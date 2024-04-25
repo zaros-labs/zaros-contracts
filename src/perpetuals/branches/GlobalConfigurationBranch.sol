@@ -10,7 +10,6 @@ import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { MarginCollateralConfiguration } from "../leaves/MarginCollateralConfiguration.sol";
 import { MarketConfiguration } from "../leaves/MarketConfiguration.sol";
-import { OrderFees } from "../leaves/OrderFees.sol";
 import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
 
 // OpenZeppelin Upgradeable dependencies
@@ -18,9 +17,6 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
-
-// PRB Math dependencies
-import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 
 /// @notice See {IGlobalConfigurationBranch}.
 contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable, OwnableUpgradeable {
