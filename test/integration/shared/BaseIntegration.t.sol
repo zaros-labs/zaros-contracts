@@ -155,6 +155,25 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         perpsEngine.updatePerpMarketConfiguration(params);
     }
 
+    function updatePerpMarketMaxOi(uint128 marketId, UD60x18 newMaxOi) internal {
+        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
+            marketId: marketId,
+            name: marketsConfig[marketId].marketName,
+            symbol: marketsConfig[marketId].marketSymbol,
+            priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
+            initialMarginRateX18: marketsConfig[marketId].imr,
+            maintenanceMarginRateX18: marketsConfig[marketId].mmr,
+            maxOpenInterest: newMaxOi.intoUint128(),
+            maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
+            skewScale: marketsConfig[marketId].skewScale,
+            minTradeSizeX18: marketsConfig[marketId].minTradeSize,
+            orderFees: marketsConfig[marketId].orderFees
+        });
+
+        perpsEngine.updatePerpMarketConfiguration(params);
+    }
+
     struct FuzzOrderSizeDeltaParams {
         uint128 accountId;
         uint128 marketId;
