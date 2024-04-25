@@ -21,6 +21,8 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 contract OrderBranch is IOrderBranch {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
@@ -68,6 +70,8 @@ contract OrderBranch is IOrderBranch {
         (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
             perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
         marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+
+        console.log(accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().intoUint256());
     }
 
     /// @inheritdoc IOrderBranch

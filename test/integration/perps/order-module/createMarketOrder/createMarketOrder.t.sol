@@ -260,8 +260,19 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketWontReachTheOILimit
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
-        MarketConfig memory secondFuzzMarketConfig =
-            getFuzzMarketConfig(marketIndex < FINAL_MARKET_ID ? marketIndex + 1 : marketIndex - 1);
+        MarketConfig memory secondFuzzMarketConfig;
+
+        {
+            uint256 secondMarketId = fuzzMarketConfig.marketId < FINAL_MARKET_ID
+                ? fuzzMarketConfig.marketId + 1
+                : fuzzMarketConfig.marketId - 1;
+
+            uint256[2] memory marketsIdsRange;
+            marketsIdsRange[0] = secondMarketId;
+            marketsIdsRange[1] = secondMarketId;
+
+            secondFuzzMarketConfig = getFilteredMarketsConfig(marketsIdsRange)[0];
+        }
 
         initialMarginRate = bound({
             x: initialMarginRate,
