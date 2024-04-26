@@ -183,6 +183,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
         givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
         initialMarginRate =
@@ -246,6 +247,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
     }
 
+    modifier givenTheSettlementStrategyIsEnabled() {
+        _;
+    }
+
     function testFuzz_RevertGiven_TheReportVerificationFails(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -256,6 +261,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
         givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
         initialMarginRate =
@@ -330,6 +336,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
         givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
@@ -404,6 +411,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
         givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
         givenTheDataStreamsReportIsValid
     {
@@ -499,6 +507,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
         givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
@@ -568,6 +577,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
         givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
@@ -664,6 +674,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
         givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
         givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
         givenTheDataStreamsReportIsValid
