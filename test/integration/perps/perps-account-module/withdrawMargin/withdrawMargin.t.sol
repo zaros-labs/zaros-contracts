@@ -120,7 +120,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         uint256 amountToWithdraw,
         uint256 marginRequirement,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheAccountExists
@@ -128,7 +128,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
-        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         // {
         //     amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
         //     marginRequirement = bound({

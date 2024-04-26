@@ -236,12 +236,12 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ).intoInt256().toInt128();
     }
 
-    function getFuzzMarketConfig(uint256 marketIndex) internal view returns (MarketConfig memory) {
-        marketIndex = bound({ x: marketIndex, min: INITIAL_MARKET_ID, max: FINAL_MARKET_ID });
+    function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {
+        marketId = bound({ x: marketId, min: INITIAL_MARKET_ID, max: FINAL_MARKET_ID });
 
         uint256[2] memory marketsIdsRange;
-        marketsIdsRange[0] = marketIndex;
-        marketsIdsRange[1] = marketIndex;
+        marketsIdsRange[0] = marketId;
+        marketsIdsRange[1] = marketId;
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 

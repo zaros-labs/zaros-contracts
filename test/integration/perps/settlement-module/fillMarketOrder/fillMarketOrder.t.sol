@@ -31,11 +31,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -86,13 +86,13 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
     function testFuzz_RevertGiven_TheMarketOrderDoesNotExist(
         uint256 marginValueUsd,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -117,13 +117,13 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
@@ -177,7 +177,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheSenderIsTheKeeper
@@ -185,7 +185,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketIsEnabled
         givenTheSettlementStrategyIsEnabled
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
@@ -255,7 +255,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheSenderIsTheKeeper
@@ -263,7 +263,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenThePerpMarketIsEnabled
         givenTheSettlementStrategyIsEnabled
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
@@ -330,7 +330,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheSenderIsTheKeeper
@@ -339,7 +339,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         uint256 wrongMarketId = fuzzMarketConfig.marketId < FINAL_MARKET_ID
             ? fuzzMarketConfig.marketId + 1
@@ -405,7 +405,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement(
         uint256 marginValueUsd,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheSenderIsTheKeeper
@@ -415,7 +415,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheReportVerificationPasses
         givenTheDataStreamsReportIsValid
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // avoids very small rounding errors in super edge cases
         UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18));
@@ -501,7 +501,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheSenderIsTheKeeper
@@ -512,7 +512,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -571,7 +571,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheSenderIsTheKeeper
@@ -583,7 +583,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirement
         givenTheMarketsOILimitWontBeExceeded
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
@@ -623,6 +623,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         UD60x18 fillPriceX18 =
             perpsEngine.getMarkPrice(fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta);
 
+        // second market order
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
                 accountId: perpsAccountId,
@@ -644,9 +645,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: marketOrderKeeper });
 
-        console.log("EXPECTED EVENT HERE: ");
-        console.log(fillPriceX18.intoUint256());
-        console.log(orderFeeUsdX18.abs().intoUD60x18().intoUint256());
         // it should emit a {LogSettleOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit ISettlementBranch.LogSettleOrder({
@@ -660,6 +658,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             pnl: expectedPnl,
             newPosition: expectedNewPosition
         });
+        // fill second order and realize negative pnl
         perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
         // it should update the funding values
         // it should update the open interest and skew
