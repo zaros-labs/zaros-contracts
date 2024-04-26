@@ -554,7 +554,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, mockSignedReport);
     }
 
-    function testFuzz_GivenTheMarketsOILimitWontBeExceeded(
+    modifier givenTheMarketsOILimitWontBeExceeded() {
+        _;
+    }
+
+    function testFuzz_GivenThePnlIsNegative(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -567,6 +571,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheReportVerificationPasses
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
+        givenTheMarketsOILimitWontBeExceeded
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
 
@@ -650,7 +655,27 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should update the open interest and skew
         // it should update the account's active markets
         // it should update the account's position
-        // it should apply the accrued pnl
+        // it should deduct the pnl
+        // it should pay the settlement fee
+    }
+
+    function test_GivenThePnlIsPositive()
+        external
+        givenTheSenderIsTheKeeper
+        givenTheMarketOrderExists
+        givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
+        givenTheReportVerificationPasses
+        givenTheDataStreamsReportIsValid
+        givenTheAccountWillMeetTheMarginRequirement
+        givenTheMarketsOILimitWontBeExceeded
+    {
+        // it should update the funding values
+        // it should update the open interest and skew
+        // it should update the account's active markets
+        // it should update the account's position
+        // it should add the pnl
+        // it should emit a {LogSettleOrder} event
         // it should pay the settlement fee
     }
 }
