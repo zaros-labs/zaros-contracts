@@ -567,6 +567,25 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
+    struct testFuzz_GivenThePnlIsNegative_Context {
+        MarketConfig fuzzMarketConfig;
+        address marketOrderKeeper;
+        uint128 perpsAccountId;
+        int128 firstOrderSizeDelta;
+        SD59x18 firstOrderFeeUsdX18;
+        UD60x18 firstFillPriceX18;
+        Position.Data expectedInitialPosition;
+        int256 firstOrderExpectedPnl;
+        bytes firstMockSignedReport;
+        uint256 newIndexPrice;
+        int128 secondOrderSizeDelta;
+        SD59x18 secondOrderFeeUsdX18;
+        UD60x18 secondFillPriceX18;
+        Position.Data expectedFinalPosition;
+        int256 secondOrderExpectedPnl;
+        bytes secondMockSignedReport;
+    }
+
     function testFuzz_GivenThePnlIsNegative(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -584,139 +603,147 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirement
         givenTheMarketsOILimitWontBeExceeded
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        testFuzz_GivenThePnlIsNegative_Context memory ctx;
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        initialMarginRate = bound({
+            x: initialMarginRate,
+            min: ctx.fuzzMarketConfig.marginRequirements,
+            max: MAX_MARGIN_REQUIREMENTS
+        });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        priceDelta = bound({ x: priceDelta, min: 1, max: ctx.fuzzMarketConfig.mockUsdPrice - 1 });
 
-        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+        ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        int128 firstOrderSizeDelta;
-        {
-            firstOrderSizeDelta = fuzzOrderSizeDelta(
-                FuzzOrderSizeDeltaParams({
-                    accountId: perpsAccountId,
-                    marketId: fuzzMarketConfig.marketId,
-                    settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                    initialMarginRate: ud60x18(initialMarginRate),
-                    marginValueUsd: ud60x18(marginValueUsd),
-                    maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
-                    minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
-                    price: ud60x18(fuzzMarketConfig.mockUsdPrice),
-                    isLong: isLong,
-                    shouldDiscountFees: true
-                })
-            );
+        ctx.perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
-            (,,, SD59x18 firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-                perpsAccountId,
-                fuzzMarketConfig.marketId,
-                SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                firstOrderSizeDelta
-            );
-
-            UD60x18 firstFillPriceX18 = perpsEngine.getMarkPrice(
-                fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, firstOrderSizeDelta
-            );
-
-            // first market order
-            perpsEngine.createMarketOrder(
-                IOrderBranch.CreateMarketOrderParams({
-                    accountId: perpsAccountId,
-                    marketId: fuzzMarketConfig.marketId,
-                    sizeDelta: firstOrderSizeDelta
-                })
-            );
-
-            bytes memory firstMockSignedReport =
-                getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
-
-            Position.Data memory expectedInitialPosition = Position.Data({
-                size: firstOrderSizeDelta,
-                lastInteractionPrice: firstFillPriceX18.intoUint128(),
-                lastInteractionFundingFeePerUnit: int128(0)
-            });
-            int256 firstOrderExpectedPnl =
-                unary(firstOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())).intoInt256();
-
-            changePrank({ msgSender: marketOrderKeeper });
-
-            // it should emit a {LogSettleOrder} event
-            vm.expectEmit({ emitter: address(perpsEngine) });
-            emit ISettlementBranch.LogSettleOrder({
-                sender: marketOrderKeeper,
-                accountId: perpsAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                sizeDelta: firstOrderSizeDelta,
-                fillPrice: firstFillPriceX18.intoUint256(),
-                orderFeeUsd: firstOrderFeeUsdX18.intoInt256(),
-                settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
-                pnl: firstOrderExpectedPnl,
-                newPosition: expectedInitialPosition
-            });
-            // fill first order and open position
-            perpsEngine.fillMarketOrder(
-                perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, firstMockSignedReport
-            );
-
-            changePrank({ msgSender: users.naruto });
-        }
-
-        uint256 newIndexPrice =
-            isLong ? fuzzMarketConfig.mockUsdPrice - priceDelta : fuzzMarketConfig.mockUsdPrice + priceDelta;
-
-        int128 secondOrderSizeDelta = -firstOrderSizeDelta;
-
-        (,,, SD59x18 secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            perpsAccountId,
-            fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            secondOrderSizeDelta
-        );
-
-        UD60x18 secondFillPriceX18 =
-            perpsEngine.getMarkPrice(fuzzMarketConfig.marketId, newIndexPrice, secondOrderSizeDelta);
-
-        // second market order
-        perpsEngine.createMarketOrder(
-            IOrderBranch.CreateMarketOrderParams({
-                accountId: perpsAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                sizeDelta: secondOrderSizeDelta
+        ctx.firstOrderSizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                accountId: ctx.perpsAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(ctx.fuzzMarketConfig.maxOi),
+                minTradeSize: ud60x18(ctx.fuzzMarketConfig.minTradeSize),
+                price: ud60x18(ctx.fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
             })
         );
 
-        bytes memory secondMockSignedReport = getMockedSignedReport(fuzzMarketConfig.streamId, newIndexPrice);
+        (,,, ctx.firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            ctx.perpsAccountId,
+            ctx.fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            ctx.firstOrderSizeDelta
+        );
 
-        Position.Data memory expectedFinalPosition = Position.Data({
-            size: 0,
-            lastInteractionPrice: secondFillPriceX18.intoUint128(),
+        ctx.firstFillPriceX18 = perpsEngine.getMarkPrice(
+            ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice, ctx.firstOrderSizeDelta
+        );
+
+        // first market order
+        perpsEngine.createMarketOrder(
+            IOrderBranch.CreateMarketOrderParams({
+                accountId: ctx.perpsAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.firstOrderSizeDelta
+            })
+        );
+
+        ctx.firstMockSignedReport =
+            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        ctx.expectedInitialPosition = Position.Data({
+            size: ctx.firstOrderSizeDelta,
+            lastInteractionPrice: ctx.firstFillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: int128(0)
         });
-        int256 secondOrderExpectedPnl =
-            unary(secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())).intoInt256();
+        ctx.firstOrderExpectedPnl =
+            unary(ctx.firstOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())).intoInt256();
 
-        changePrank({ msgSender: marketOrderKeeper });
+        changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should emit a {LogSettleOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit ISettlementBranch.LogSettleOrder({
-            sender: marketOrderKeeper,
-            accountId: perpsAccountId,
-            marketId: fuzzMarketConfig.marketId,
-            sizeDelta: secondOrderSizeDelta,
-            fillPrice: secondFillPriceX18.intoUint256(),
-            orderFeeUsd: secondOrderFeeUsdX18.intoInt256(),
+            sender: ctx.marketOrderKeeper,
+            accountId: ctx.perpsAccountId,
+            marketId: ctx.fuzzMarketConfig.marketId,
+            sizeDelta: ctx.firstOrderSizeDelta,
+            fillPrice: ctx.firstFillPriceX18.intoUint256(),
+            orderFeeUsd: ctx.firstOrderFeeUsdX18.intoInt256(),
             settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
-            pnl: secondOrderExpectedPnl,
-            newPosition: expectedFinalPosition
+            pnl: ctx.firstOrderExpectedPnl,
+            newPosition: ctx.expectedInitialPosition
+        });
+        // fill first order and open position
+        perpsEngine.fillMarketOrder(
+            ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, ctx.marketOrderKeeper, ctx.firstMockSignedReport
+        );
+
+        changePrank({ msgSender: users.naruto });
+
+        ctx.newIndexPrice =
+            isLong ? ctx.fuzzMarketConfig.mockUsdPrice - priceDelta : ctx.fuzzMarketConfig.mockUsdPrice + priceDelta;
+
+        ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
+
+        (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            ctx.perpsAccountId,
+            ctx.fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            ctx.secondOrderSizeDelta
+        );
+
+        ctx.secondFillPriceX18 =
+            perpsEngine.getMarkPrice(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice, ctx.secondOrderSizeDelta);
+
+        // second market order
+        perpsEngine.createMarketOrder(
+            IOrderBranch.CreateMarketOrderParams({
+                accountId: ctx.perpsAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.secondOrderSizeDelta
+            })
+        );
+
+        ctx.secondMockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.newIndexPrice);
+
+        ctx.expectedFinalPosition = Position.Data({
+            size: 0,
+            lastInteractionPrice: ctx.secondFillPriceX18.intoUint128(),
+            lastInteractionFundingFeePerUnit: int128(0)
+        });
+        ctx.secondOrderExpectedPnl = unary(
+            ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
+        ).add(
+            isLong
+                ? ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18())
+                : unary(ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18()))
+        ).intoInt256();
+
+        changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        // it should emit a {LogSettleOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit ISettlementBranch.LogSettleOrder({
+            sender: ctx.marketOrderKeeper,
+            accountId: ctx.perpsAccountId,
+            marketId: ctx.fuzzMarketConfig.marketId,
+            sizeDelta: ctx.secondOrderSizeDelta,
+            fillPrice: ctx.secondFillPriceX18.intoUint256(),
+            orderFeeUsd: ctx.secondOrderFeeUsdX18.intoInt256(),
+            settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
+            pnl: ctx.secondOrderExpectedPnl,
+            newPosition: ctx.expectedFinalPosition
         });
         // fill second order and close position
         perpsEngine.fillMarketOrder(
-            perpsAccountId, fuzzMarketConfig.marketId, marketOrderKeeper, secondMockSignedReport
+            ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, ctx.marketOrderKeeper, ctx.secondMockSignedReport
         );
         // it should update the funding values
         // it should update the open interest and skew
