@@ -8,6 +8,7 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
 import { ISettlementBranch } from "@zaros/perpetuals/interfaces/ISettlementBranch.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
@@ -566,7 +567,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    struct testFuzz_GivenThePnlIsNegative_Context {
+    struct TestFuzz_GivenThePnlIsNegative_Context {
         MarketConfig fuzzMarketConfig;
         uint256 adjustedMarginRequirements;
         uint256 priceShiftBps;
@@ -577,6 +578,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         UD60x18 firstFillPriceX18;
         int256 firstOrderExpectedPnl;
         bytes firstMockSignedReport;
+        uint256 expectedOpenInterest;
+        UD60x18 openInterestX18;
+        uint256 expectedActiveMarketId;
+        Position.Data expectedPosition;
+        int256 expectedMarginBalanceUsd;
         uint256 newIndexPrice;
         int128 secondOrderSizeDelta;
         SD59x18 secondOrderFeeUsdX18;
@@ -585,6 +591,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         bytes secondMockSignedReport;
     }
 
+    // TODO: add funding assertions
     function testFuzz_GivenThePnlIsNegative(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -602,7 +609,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirement
         givenTheMarketsOILimitWontBeExceeded
     {
-        testFuzz_GivenThePnlIsNegative_Context memory ctx;
+        TestFuzz_GivenThePnlIsNegative_Context memory ctx;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
         ctx.adjustedMarginRequirements =
             ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18)).intoUint256();
@@ -680,6 +687,23 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.fillMarketOrder(
             ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, ctx.marketOrderKeeper, ctx.firstMockSignedReport
         );
+        // it should update the funding values
+        // it should update the open interest and skew
+        ctx.expectedOpenInterest = sd59x18(ctx.firstOrderSizeDelta).abs().intoUD60x18().intoUint256();
+        (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
+        assertEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), "first fill: open interest");
+        // it should update the account's active markets
+        ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+        // it should update the account's position
+        ctx.expectedPosition = Position.Data({
+            size: ctx.firstOrderSizeDelta,
+            lastInteractionPrice: ctx.firstFillPriceX18.intoUint128(),
+            lastInteractionFundingFeePerUnit: 0
+        });
+
+        // it should deduct the pnl
+        ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
+        // it should pay the settlement fee
 
         changePrank({ msgSender: users.naruto });
 
@@ -710,18 +734,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         ctx.secondMockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.newIndexPrice);
-
-        // ctx.secondOrderExpectedPnl = unary(
-        //     ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
-        // ).add(
-        //     isLong
-        //         ? ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18()).mul(
-        //             sd59x18(ctx.firstOrderSizeDelta)
-        //         )
-        //         : unary(ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18())).mul(
-        //             sd59x18(ctx.firstOrderSizeDelta)
-        //         )
-        // ).intoInt256();
 
         ctx.secondOrderExpectedPnl = unary(
             ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())

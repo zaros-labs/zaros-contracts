@@ -10,8 +10,10 @@ import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary, ZERO as SD_ZERO, convert as sd59x18Convert } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+
+import { console } from "forge-std/console.sol";
 
 /// @notice See {IPerpMarketBranch}.
 contract PerpMarketBranch is IPerpMarketBranch {
@@ -48,11 +50,16 @@ contract PerpMarketBranch is IPerpMarketBranch {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SD59x18 currentSkew = sd59x18(perpMarket.skew);
         SD59x18 currentOpenInterest = ud60x18(perpMarket.openInterest).intoSD59x18();
-        SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18Convert(2));
-        (longsOpenInterest, shortsOpenInterest) = (
-            halfOpenInterest.add(currentSkew).intoUD60x18(),
-            unary(halfOpenInterest).add(currentSkew).abs().intoUD60x18()
-        );
+        SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18(2e18));
+        console.log("from get open interest: ");
+        console.log(currentSkew.lt(sd59x18(0)));
+        console.log(currentSkew.abs().intoUD60x18().intoUint256());
+        console.log(perpMarket.openInterest);
+        console.log(halfOpenInterest.intoUD60x18().intoUint256());
+
+        longsOpenInterest =
+            halfOpenInterest.add(currentSkew).lt(SD_ZERO) ? UD_ZERO : halfOpenInterest.add(currentSkew).intoUD60x18();
+        shortsOpenInterest = unary(halfOpenInterest).add(currentSkew).abs().intoUD60x18();
         totalOpenInterest = longsOpenInterest.add(shortsOpenInterest);
     }
 
