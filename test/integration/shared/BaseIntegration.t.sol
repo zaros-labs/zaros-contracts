@@ -174,6 +174,11 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         perpsEngine.updatePerpMarketConfiguration(params);
     }
 
+    function updateMockPriceFeed(uint128 marketId, uint256 newPrice) internal {
+        MockPriceFeed priceFeed = MockPriceFeed(marketsConfig[marketId].priceAdapter);
+        priceFeed.updateMockPrice(newPrice);
+    }
+
     struct FuzzOrderSizeDeltaParams {
         uint128 accountId;
         uint128 marketId;

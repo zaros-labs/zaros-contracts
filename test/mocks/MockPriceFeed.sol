@@ -22,4 +22,8 @@ contract MockPriceFeed {
     {
         return (0, _price, 0, 0, 0);
     }
+
+    function updateMockPrice(uint256 newPrice) external {
+        _price = int256(newPrice);
+    }
 }

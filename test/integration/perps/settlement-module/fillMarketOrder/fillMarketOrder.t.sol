@@ -8,7 +8,6 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
 import { ISettlementBranch } from "@zaros/perpetuals/interfaces/ISettlementBranch.sol";
-import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
@@ -569,19 +568,19 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
     struct testFuzz_GivenThePnlIsNegative_Context {
         MarketConfig fuzzMarketConfig;
+        uint256 adjustedMarginRequirements;
+        uint256 priceShiftBps;
         address marketOrderKeeper;
         uint128 perpsAccountId;
         int128 firstOrderSizeDelta;
         SD59x18 firstOrderFeeUsdX18;
         UD60x18 firstFillPriceX18;
-        Position.Data expectedInitialPosition;
         int256 firstOrderExpectedPnl;
         bytes firstMockSignedReport;
         uint256 newIndexPrice;
         int128 secondOrderSizeDelta;
         SD59x18 secondOrderFeeUsdX18;
         UD60x18 secondFillPriceX18;
-        Position.Data expectedFinalPosition;
         int256 secondOrderExpectedPnl;
         bytes secondMockSignedReport;
     }
@@ -591,7 +590,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 marginValueUsd,
         bool isLong,
         uint256 marketId,
-        uint256 priceDelta
+        uint256 priceShiftRatio
     )
         external
         givenTheSenderIsTheKeeper
@@ -605,14 +604,16 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     {
         testFuzz_GivenThePnlIsNegative_Context memory ctx;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        initialMarginRate = bound({
-            x: initialMarginRate,
-            min: ctx.fuzzMarketConfig.marginRequirements,
-            max: MAX_MARGIN_REQUIREMENTS
-        });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-        priceDelta = bound({ x: priceDelta, min: 1, max: ctx.fuzzMarketConfig.mockUsdPrice - 1 });
+        ctx.adjustedMarginRequirements =
+            ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18)).intoUint256();
 
+        priceShiftRatio = bound({ x: priceShiftRatio, min: 1, max: 100 });
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: ctx.adjustedMarginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        // fuzz with higher margin values to test higher price shifts
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        ctx.priceShiftBps = ctx.adjustedMarginRequirements / priceShiftRatio;
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -645,6 +646,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice, ctx.firstOrderSizeDelta
         );
 
+        console.log("creating first order: ");
         // first market order
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
@@ -657,16 +659,12 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.firstMockSignedReport =
             getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
 
-        ctx.expectedInitialPosition = Position.Data({
-            size: ctx.firstOrderSizeDelta,
-            lastInteractionPrice: ctx.firstFillPriceX18.intoUint128(),
-            lastInteractionFundingFeePerUnit: int128(0)
-        });
         ctx.firstOrderExpectedPnl =
             unary(ctx.firstOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())).intoInt256();
 
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
+        console.log("filling first order: ");
         // it should emit a {LogSettleOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit ISettlementBranch.LogSettleOrder({
@@ -678,7 +676,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             orderFeeUsd: ctx.firstOrderFeeUsdX18.intoInt256(),
             settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
             pnl: ctx.firstOrderExpectedPnl,
-            newPosition: ctx.expectedInitialPosition
+            fundingFeePerUnit: 0
         });
         // fill first order and open position
         perpsEngine.fillMarketOrder(
@@ -687,10 +685,36 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: users.naruto });
 
-        ctx.newIndexPrice =
-            isLong ? ctx.fuzzMarketConfig.mockUsdPrice - priceDelta : ctx.fuzzMarketConfig.mockUsdPrice + priceDelta;
+        // UD60x18 maxLoss = ud60x18(marginValueUsd).sub(firstOrderFeeUsdX18.abs().mul(sd59x18(2e18)));
+        // priceShiftPnlAbs = bound({ x: priceShiftPnl , min: 1, max: maxLoss.intoUint256() });
+        // ctx.priceDelta = firstOrderSizeDelta / priceShiftPnlAbs;
+
+        // NOTE: roughly calculates the max acceptable loss, based on the price shift,
+        /// while keeping some leftover margin for fees.
+        // NOTE: order fee calculation is not 100% precise since the 2nd order is charged the maker fee,
+        /// which can be lower and turn negative.
+        // NOTE: in any case, there will always be enough margin to cover the loss and fees.
+        // ctx.maxPriceShiftBpsX18 = ud60x18(marginValueUsd).intoSD59x18().sub(
+        //     ctx.firstOrderFeeUsdX18.abs().mul(sd59x18(3e18))
+        // ).div(sd59x18(ctx.firstOrderSizeDelta).abs()).div(ctx.firstFillPriceX18.intoSD59x18()).intoUD60x18();
+        // ctx.priceShiftBps = bound({ctx.priceShiftBpstBps, min: 0.01e18, max: ctx.maxPriceShiftBpsX18.intoUint256()
+        // });
+
+        console.log("price shift bps: ");
+        console.log(ctx.priceShiftBps);
+
+        console.log("here1: ");
+        // ctx.newIndexPrice = isLong
+        //     ? ctx.firstFillPriceX18.intoUint256() - priceDelta
+        //     : ctx.firstFillPriceX18.intoUint256() + priceDelta;
+        ctx.newIndexPrice = isLong
+            ? ud60x18(ctx.fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).sub(ud60x18(ctx.priceShiftBps))).intoUint256()
+            : ud60x18(ctx.fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).add(ud60x18(ctx.priceShiftBps))).intoUint256();
+        updateMockPriceFeed(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice);
 
         ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
+
+        console.log("here2: ");
 
         (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
             ctx.perpsAccountId,
@@ -699,9 +723,17 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             ctx.secondOrderSizeDelta
         );
 
+        console.log("here3: ");
         ctx.secondFillPriceX18 =
             perpsEngine.getMarkPrice(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice, ctx.secondOrderSizeDelta);
 
+        console.log("second order expected pnl: ");
+        console.log(sd59x18(ctx.secondOrderExpectedPnl).lt(sd59x18(0)));
+        console.log(sd59x18(ctx.secondOrderExpectedPnl).abs().intoUD60x18().intoUint256());
+        console.log(ctx.firstFillPriceX18.intoUint256());
+        console.log(ctx.secondFillPriceX18.intoUint256());
+
+        console.log("creating second order: ");
         // second market order
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
@@ -713,20 +745,44 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         ctx.secondMockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.newIndexPrice);
 
-        ctx.expectedFinalPosition = Position.Data({
-            size: 0,
-            lastInteractionPrice: ctx.secondFillPriceX18.intoUint128(),
-            lastInteractionFundingFeePerUnit: int128(0)
-        });
+        // ctx.secondOrderExpectedPnl = unary(
+        //     ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
+        // ).add(
+        //     isLong
+        //         ? ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18()).mul(
+        //             sd59x18(ctx.firstOrderSizeDelta)
+        //         )
+        //         : unary(ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18())).mul(
+        //             sd59x18(ctx.firstOrderSizeDelta)
+        //         )
+        // ).intoInt256();
+
         ctx.secondOrderExpectedPnl = unary(
             ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
         ).add(
-            isLong
-                ? ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18())
-                : unary(ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18()))
+            ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18()).mul(
+                sd59x18(ctx.firstOrderSizeDelta)
+            )
         ).intoInt256();
 
+        // ctx.secondOrderExpectedPnl = unary(
+        //     ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
+        // ).add(
+        //   perpsEngine.getPositionState(ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId).unrealizedPnlUsdX18
+        // ).intoInt256();
+
         changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        console.log("filling second order: ");
+        console.log(sd59x18(ctx.secondOrderSizeDelta).lt(sd59x18(0)));
+        console.log(sd59x18(ctx.secondOrderSizeDelta).abs().intoUD60x18().intoUint256());
+        console.log(ctx.secondFillPriceX18.intoUint256());
+        console.log(ctx.secondOrderFeeUsdX18.abs().intoUD60x18().intoUint256());
+        console.log("accrued funding: ");
+        console.log(
+            perpsEngine.getPositionState(ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId).accruedFundingUsdX18.abs()
+                .intoUD60x18().intoUint256()
+        );
 
         // it should emit a {LogSettleOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -739,7 +795,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             orderFeeUsd: ctx.secondOrderFeeUsdX18.intoInt256(),
             settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
             pnl: ctx.secondOrderExpectedPnl,
-            newPosition: ctx.expectedFinalPosition
+            fundingFeePerUnit: 0
         });
         // fill second order and close position
         perpsEngine.fillMarketOrder(

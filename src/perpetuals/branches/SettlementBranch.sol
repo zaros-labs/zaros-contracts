@@ -242,7 +242,7 @@ contract SettlementBranch is ISettlementBranch {
             ctx.orderFeeUsdX18.intoInt256(),
             ctx.settlementFeeUsdX18.intoUint256(),
             ctx.pnl.intoInt256(),
-            ctx.newPosition
+            ctx.fundingFeePerUnit.intoInt256()
         );
     }
 

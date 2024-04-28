@@ -16,7 +16,7 @@ interface ISettlementBranch {
         int256 orderFeeUsd,
         uint256 settlementFeeUsd,
         int256 pnl,
-        Position.Data newPosition
+        int256 fundingFeePerUnit
     );
 
     struct SettlementPayload {

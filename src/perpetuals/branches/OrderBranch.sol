@@ -71,7 +71,10 @@ contract OrderBranch is IOrderBranch {
             perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
         marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
+        console.log("from simulate trade: ");
+        console.log(accountTotalUnrealizedPnlUsdX18.lt(sd59x18(0)));
         console.log(accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().intoUint256());
+        console.log(marginBalanceUsdX18.abs().intoUint256());
     }
 
     /// @inheritdoc IOrderBranch

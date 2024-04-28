@@ -179,14 +179,19 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             // TODO: update to API orderbook config
             SettlementConfiguration.Data[] memory customOrderStrategies;
 
+            // update stored price adapter at tests
+            address priceAdapter = isTest
+                ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice)))
+                : marketsConfig[i].priceAdapter;
+
+            marketsConfig[i].priceAdapter = priceAdapter;
+
             perpsEngine.createPerpMarket(
                 IGlobalConfigurationBranch.CreatePerpMarketParams({
                     marketId: marketsConfig[i].marketId,
                     name: marketsConfig[i].marketName,
                     symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: isTest
-                        ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice)))
-                        : marketsConfig[i].priceAdapter,
+                    priceAdapter: priceAdapter,
                     initialMarginRateX18: marketsConfig[i].imr,
                     maintenanceMarginRateX18: marketsConfig[i].mmr,
                     maxOpenInterest: marketsConfig[i].maxOi,
