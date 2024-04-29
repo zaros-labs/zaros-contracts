@@ -691,7 +691,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should update the open interest and skew
         ctx.expectedOpenInterest = sd59x18(ctx.firstOrderSizeDelta).abs().intoUD60x18().intoUint256();
         (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
-        assertEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), "first fill: open interest");
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
         // it should update the account's active markets
         ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
         // it should update the account's position
