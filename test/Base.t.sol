@@ -22,9 +22,6 @@ import {
     getInitializePayloads
 } from "script/helpers/TreeProxyHelpers.sol";
 
-// Forge dependencies
-import { Test } from "forge-std/Test.sol";
-
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
@@ -34,7 +31,13 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
+// PRB Test dependencies
+import { PRBTest } from "prb-test/PRBTest.sol";
+
+// Forge dependencies
+import { StdCheats, StdUtils } from "forge-std/Test.sol";
+
+abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Events, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
