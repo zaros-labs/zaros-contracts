@@ -13,7 +13,6 @@ import { Position } from "../leaves/Position.sol";
 import { MarginCollateralConfiguration } from "../leaves/MarginCollateralConfiguration.sol";
 
 // Open Zeppelin dependencies
-import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -27,7 +26,6 @@ import { console } from "forge-std/console.sol";
 
 /// @notice See {IPerpsAccountBranch}.
 contract PerpsAccountBranch is IPerpsAccountBranch {
-    // using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for *;
     using PerpsAccount for PerpsAccount.Data;
     using PerpMarket for PerpMarket.Data;
@@ -220,6 +218,7 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
         _requireAmountNotZero(ud60x18Amount);
         _requireEnoughDepositCap(collateralType, ud60x18Amount, ud60x18(marginCollateralConfiguration.depositCap));
+        _requireCollateralPriorityDefined(collateralType);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.deposit(collateralType, ud60x18Amount);
@@ -266,6 +265,13 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         if (amount.gt(depositCap)) {
             revert Errors.DepositCap(collateralType, amount.intoUint256(), depositCap.intoUint256());
         }
+    }
+
+    function _requireCollateralPriorityDefined(address collateralType) internal view {
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        bool isInCollateralPriority = globalConfiguration.collateralPriority.contains(collateralType);
+
+        if (!isInCollateralPriority) revert Errors.CollateralPriorityNotDefined(collateralType);
     }
 
     /// @notice Checks if there's enough margin collateral balance to be withdrawn.

@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.23;
 
-/// TODO: Add require helpers in the lib.
+// TODO: organize branches / leaves errors.
 library Errors {
     /// @notice Generic protocol errors.
 
@@ -68,6 +68,8 @@ library Errors {
     error InsufficientMargin(
         uint128 accountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, int256 totalFeesUsdX18
     );
+    /// @notice Thrown when trying to deposit a collteral type that isn't in the liquidation priority configuration.
+    error CollateralPriorityNotDefined(address collateralType);
 
     /// @notice PerpsEngine.GlobalConfigurationBranch
 

@@ -4,9 +4,9 @@ pragma solidity 0.8.23;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { MarginCollateralConfiguration } from "./MarginCollateralConfiguration.sol";
-import { MarketOrder } from "./MarketOrder.sol";
+import { FeeRecipients } from "./FeeRecipients.sol";
 import { GlobalConfiguration } from "./GlobalConfiguration.sol";
+import { MarginCollateralConfiguration } from "./MarginCollateralConfiguration.sol";
 import { PerpMarket } from "./PerpMarket.sol";
 import { Position } from "./Position.sol";
 import { SettlementConfiguration } from "./SettlementConfiguration.sol";
