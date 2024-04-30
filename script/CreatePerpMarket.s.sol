@@ -73,7 +73,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration, Markets, Base_Te
         IVerifierProxy chainlinkVerifierProxy,
         bool isTest
     )
-        public
+        internal
     {
         for (uint256 i = initialMarketId; i <= finalMarketId; i++) {
             address marketOrderKeeper =
