@@ -6,6 +6,7 @@ import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { PerpsAccount } from "@zaros/perpetuals/leaves/PerpsAccount.sol";
+import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
@@ -56,6 +57,7 @@ contract SettlementBranchTestnet is SettlementBranch {
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta,
+        FeeRecipients.Data memory feeRecipients,
         bytes memory priceData
     )
         internal

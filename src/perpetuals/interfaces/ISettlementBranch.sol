@@ -3,8 +3,7 @@
 pragma solidity 0.8.23;
 
 // Zaros dependencies
-import { MarketOrder } from "../leaves/MarketOrder.sol";
-import { Position } from "../leaves/Position.sol";
+import { FeeRecipients } from "../leaves/FeeRecipients.sol";
 
 interface ISettlementBranch {
     event LogSettleOrder(
@@ -27,7 +26,7 @@ interface ISettlementBranch {
     function fillMarketOrder(
         uint128 accountId,
         uint128 marketId,
-        address settlementFeeReceiver,
+        FeeRecipients.Data calldata feeRecipients,
         bytes calldata priceData
     )
         external;
@@ -35,7 +34,7 @@ interface ISettlementBranch {
     function fillCustomOrders(
         uint128 marketId,
         uint128 settlementConfigurationId,
-        address settlementFeeReceiver,
+        address settlementFeeRecipient,
         SettlementPayload[] calldata payloads,
         bytes calldata priceData,
         address callback

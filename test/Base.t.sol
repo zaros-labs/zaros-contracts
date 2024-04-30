@@ -64,7 +64,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function setUp() public virtual {
         users = Users({
             owner: createUser({ name: "Owner" }),
-            settlementFeeReceiver: createUser({ name: "Settlement Fee Receiver" }),
+            settlementFeeRecipient: createUser({ name: "Settlement Fee Recipient" }),
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
             sakura: createUser({ name: "Sakura Haruno" }),

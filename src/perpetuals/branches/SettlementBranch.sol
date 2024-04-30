@@ -8,6 +8,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementBranch } from "../interfaces/ISettlementBranch.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
 import { PerpsAccount } from "../leaves/PerpsAccount.sol";
+import { FeeRecipients } from "../leaves/FeeRecipients.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { Position } from "../leaves/Position.sol";
@@ -55,7 +56,7 @@ contract SettlementBranch is ISettlementBranch {
     function fillMarketOrder(
         uint128 accountId,
         uint128 marketId,
-        address settlementFeeReceiver,
+        FeeRecipients.Data calldata feeRecipients,
         bytes calldata priceData
     )
         external
@@ -68,24 +69,18 @@ contract SettlementBranch is ISettlementBranch {
             marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             marketOrder.sizeDelta,
+            feeRecipients,
             priceData
         );
 
         marketOrder.clear();
-
-        _paySettlementFees({
-            settlementFeeReceiver: settlementFeeReceiver,
-            marketId: marketId,
-            settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            amountOfSettledTrades: 1
-        });
     }
 
     // TODO: re-implement
     function fillCustomOrders(
         uint128 marketId,
         uint128 settlementConfigurationId,
-        address settlementFeeReceiver,
+        address settlementFeeRecipient,
         SettlementPayload[] calldata payloads,
         bytes calldata priceData,
         address callback
@@ -103,7 +98,7 @@ contract SettlementBranch is ISettlementBranch {
         // }
 
         // _paySettlementFees({
-        //     settlementFeeReceiver: settlementFeeReceiver,
+        //     settlementFeeRecipient: settlementFeeRecipient,
         //     marketId: marketId,
         //     settlementConfigurationId: settlementConfigurationId,
         //     amountOfSettledTrades: payloads.length
@@ -142,6 +137,7 @@ contract SettlementBranch is ISettlementBranch {
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta,
+        FeeRecipients.Data memory feeRecipients,
         bytes memory priceData
     )
         internal
@@ -244,27 +240,6 @@ contract SettlementBranch is ISettlementBranch {
             ctx.pnl.intoInt256(),
             ctx.fundingFeePerUnit.intoInt256()
         );
-    }
-
-    /// @dev We assume that the settlement fees are always properly deducted from the trading accounts, either from
-    /// their margin or pnl.
-    function _paySettlementFees(
-        address settlementFeeReceiver,
-        uint128 marketId,
-        uint128 settlementConfigurationId,
-        uint256 amountOfSettledTrades
-    )
-        internal
-    {
-        address usdToken = GlobalConfiguration.load().usdToken;
-
-        UD60x18 settlementFeePerTradeUsdX18 =
-            ud60x18(SettlementConfiguration.load(marketId, settlementConfigurationId).fee);
-        UD60x18 totalSettlementFeeUsdX18 = settlementFeePerTradeUsdX18.mul(ud60x18(amountOfSettledTrades));
-
-        // NOTE: testnet only
-        LimitedMintingERC20(usdToken).mint(settlementFeeReceiver, totalSettlementFeeUsdX18.intoUint256());
-        // liquidityEngine.withdrawUsdToken(keeper, ctx.settlementFeeUsdX18);
     }
 
     function _requireIsKeeper(address sender, address keeper) internal pure {

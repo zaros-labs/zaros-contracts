@@ -339,8 +339,8 @@ library PerpsAccount {
 
     function deductAccountMargin(
         Data storage self,
-        address marginReceiver,
-        address orderFeeReceiver,
+        address marginRecipient,
+        address orderFeeRecipient,
         UD60x18 totalMarginAmountUsdX18,
         UD60x18 orderFeeUsdX18
     )
@@ -367,13 +367,13 @@ library PerpsAccount {
                     withdraw(self, collateralType, pendingFeeInCollateralX18);
                     marginDeductedUsdX18 = marginDeductedUsdX18.add(pendingFeeUsdX18);
 
-                    IERC20(collateralType).safeTransfer(orderFeeReceiver, pendingFeeInCollateralX18.intoUint256());
+                    IERC20(collateralType).safeTransfer(orderFeeRecipient, pendingFeeInCollateralX18.intoUint256());
                 } else {
                     UD60x18 feeToDeductUsdX18 = marginCollateralPriceUsdX18.mul(marginCollateralBalanceX18);
                     withdraw(self, collateralType, marginCollateralBalanceX18);
                     marginDeductedUsdX18 = marginDeductedUsdX18.add(feeToDeductUsdX18);
 
-                    IERC20(collateralType).safeTransfer(orderFeeReceiver, marginCollateralBalanceX18.intoUint256());
+                    IERC20(collateralType).safeTransfer(orderFeeRecipient, marginCollateralBalanceX18.intoUint256());
 
                     continue;
                 }
@@ -387,7 +387,7 @@ library PerpsAccount {
                     withdraw(self, collateralType, pendingMarginInCollateralX18);
                     marginDeductedUsdX18 = marginDeductedUsdX18.add(pendingMarginUsdX18);
 
-                    IERC20(collateralType).safeTransfer(marginReceiver, pendingMarginInCollateralX18.intoUint256());
+                    IERC20(collateralType).safeTransfer(marginRecipient, pendingMarginInCollateralX18.intoUint256());
 
                     break;
                 } else {
@@ -395,7 +395,7 @@ library PerpsAccount {
                     withdraw(self, collateralType, marginCollateralBalanceX18);
                     marginDeductedUsdX18 = marginDeductedUsdX18.add(marginToDeductUsdX18);
 
-                    IERC20(collateralType).safeTransfer(marginReceiver, marginCollateralBalanceX18.intoUint256());
+                    IERC20(collateralType).safeTransfer(marginRecipient, marginCollateralBalanceX18.intoUint256());
                 }
             }
         }

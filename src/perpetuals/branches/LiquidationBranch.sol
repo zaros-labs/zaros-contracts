@@ -83,7 +83,7 @@ contract LiquidationBranch is ILiquidationBranch {
 
     function liquidateAccounts(
         uint128[] calldata accountsIds,
-        address feeReceiver
+        address feeRecipient
     )
         external
         onlyRegisteredLiquidator
@@ -119,8 +119,8 @@ contract LiquidationBranch is ILiquidationBranch {
             // TODO: Update liquidation fee to estimate gas costs (i.edefault gas cost stored + gas price from
             // GasOracle)
             UD60x18 liquidatedCollateralUsdX18 = perpsAccount.deductAccountMargin(
-                feeReceiver,
-                feeReceiver,
+                feeRecipient,
+                feeRecipient,
                 ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
                     ? ctx.marginBalanceUsdX18.intoUD60x18().add(ctx.liquidationFeeUsdX18)
                     : requiredMaintenanceMarginUsdX18.add(ctx.liquidationFeeUsdX18),
@@ -164,7 +164,7 @@ contract LiquidationBranch is ILiquidationBranch {
             emit LogLiquidateAccount(
                 msg.sender,
                 ctx.accountId,
-                feeReceiver,
+                feeRecipient,
                 ctx.amountOfOpenPositions,
                 ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
                 ctx.marginBalanceUsdX18.intoInt256(),

@@ -31,7 +31,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
-    address internal settlementFeeReceiver = users.settlementFeeReceiver;
+    address internal settlementFeeRecipient = users.settlementFeeRecipient;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -127,7 +127,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     function createPerpMarkets() internal {
         createPerpMarkets(
             users.owner,
-            users.settlementFeeReceiver,
+            users.settlementFeeRecipient,
             perpsEngine,
             INITIAL_MARKET_ID,
             FINAL_MARKET_ID,

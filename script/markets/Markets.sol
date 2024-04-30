@@ -152,7 +152,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
 
     function createPerpMarkets(
         address deployer,
-        address settlementFeeReceiver,
+        address settlementFeeRecipient,
         IPerpsEngine perpsEngine,
         uint256 initialMarketId,
         uint256 finalMarketId,
@@ -163,7 +163,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     {
         for (uint256 i = initialMarketId; i <= finalMarketId; i++) {
             address marketOrderKeeper =
-                deployMarketOrderKeeper(marketsConfig[i].marketId, deployer, perpsEngine, settlementFeeReceiver);
+                deployMarketOrderKeeper(marketsConfig[i].marketId, deployer, perpsEngine, settlementFeeRecipient);
 
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
@@ -210,7 +210,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint128 marketId,
         address deployer,
         IPerpsEngine perpsEngine,
-        address settlementFeeReceiver
+        address settlementFeeRecipient
     )
         internal
         returns (address marketOrderKeeper)
@@ -224,7 +224,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
                     MarketOrderKeeper.initialize.selector,
                     deployer,
                     perpsEngine,
-                    settlementFeeReceiver,
+                    settlementFeeRecipient,
                     marketId,
                     marketsConfig[marketId].streamIdString
                 )

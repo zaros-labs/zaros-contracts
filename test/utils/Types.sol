@@ -8,7 +8,7 @@ struct Users {
     // Default owner for all Zaros contracts.
     address payable owner;
     // User that is paid settlement fees.
-    address payable settlementFeeReceiver;
+    address payable settlementFeeRecipient;
     // Impartial user 1.
     address payable naruto;
     // Impartial user 2.
