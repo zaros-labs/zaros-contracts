@@ -12,6 +12,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -31,7 +32,11 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
-    address internal settlementFeeRecipient = users.settlementFeeRecipient;
+    FeeRecipients.Data internal feeRecipients = FeeRecipients.Data({
+        marginCollateralRecipient: users.settlementFeeRecipient,
+        orderFeeRecipient: users.settlementFeeRecipient,
+        settlementFeeRecipient: users.settlementFeeRecipient
+    });
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
