@@ -175,6 +175,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             WSTETH_LOAN_TO_VALUE,
             address(mockPriceAdapters.mockWstEthUsdPriceAdapter)
         );
+
+        address[] memory collateralLiquidationPriority = new address[](2);
+        collateralLiquidationPriority[0] = address(usdToken);
+        collateralLiquidationPriority[1] = address(mockWstEth);
+
+        perpsEngine.configureCollateralPriority(collateralLiquidationPriority);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
