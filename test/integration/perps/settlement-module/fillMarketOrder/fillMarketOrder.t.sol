@@ -583,6 +583,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 expectedActiveMarketId;
         Position.Data expectedPosition;
         int256 expectedMarginBalanceUsd;
+        SD59x18 marginBalanceUsdX18;
         uint256 newIndexPrice;
         int128 secondOrderSizeDelta;
         SD59x18 secondOrderFeeUsdX18;
@@ -687,13 +688,16 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.fillMarketOrder(
             ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, ctx.marketOrderKeeper, ctx.firstMockSignedReport
         );
+        // TODO: assert after funding task is done
         // it should update the funding values
         // it should update the open interest and skew
         ctx.expectedOpenInterest = sd59x18(ctx.firstOrderSizeDelta).abs().intoUD60x18().intoUint256();
         (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
         assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
+        // TODO: assert after harnesses are done
         // it should update the account's active markets
         ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+        // TODO: assert after harnesses are done
         // it should update the account's position
         ctx.expectedPosition = Position.Data({
             size: ctx.firstOrderSizeDelta,
@@ -703,6 +707,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should deduct the pnl
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
+        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
+        assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256());
         // it should pay the settlement fee
 
         changePrank({ msgSender: users.naruto });
