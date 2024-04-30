@@ -4,13 +4,12 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
-import { Markets } from "../markets/Markets.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } from "@prb-math/SD59x18.sol";
 
-abstract contract ProtocolConfiguration is Markets {
+abstract contract ProtocolConfiguration {
     /// @notice Admin addresses.
 
     // TODO: Update to actual EDAO multisig address

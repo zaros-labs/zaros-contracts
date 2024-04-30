@@ -7,7 +7,8 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
-import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
+import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
+import { Markets } from "script/markets/Markets.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -16,7 +17,7 @@ import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
+contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration, Markets {
     /*//////////////////////////////////////////////////////////////////////////
                                     VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

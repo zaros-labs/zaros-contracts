@@ -14,6 +14,7 @@ import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
+import { Markets } from "script/markets/Markets.sol";
 import {
     deployBranchs,
     getBranchsSelectors,

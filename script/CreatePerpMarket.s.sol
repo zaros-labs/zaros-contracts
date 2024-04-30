@@ -9,7 +9,8 @@ import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobal
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
-import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
+import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
+import { Markets } from "script/markets/Markets.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -19,7 +20,7 @@ import { console } from "forge-std/console.sol";
 
 // TODO: update limit order strategies
 // TODO: update owner and forwarder on keeper initialization
-contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
+contract CreatePerpMarket is BaseScript, ProtocolConfiguration, Markets {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
