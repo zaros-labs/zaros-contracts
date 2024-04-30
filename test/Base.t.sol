@@ -22,6 +22,10 @@ import {
     getInitializables,
     getInitializePayloads
 } from "script/helpers/TreeProxyHelpers.sol";
+import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
+import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
+import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -42,8 +46,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-
     Users internal users;
+    address internal mockChainlinkFeeManager;
+    address internal mockChainlinkVerifier;
+    FeeRecipients.Data internal feeRecipients;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -63,6 +69,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     //////////////////////////////////////////////////////////////////////////*/
 
     function setUp() public virtual {
+        mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
+        mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
+        feeRecipients = FeeRecipients.Data({
+            marginCollateralRecipient: users.marginCollateralRecipient,
+            orderFeeRecipient: users.orderFeeRecipient,
+            settlementFeeRecipient: users.settlementFeeRecipient
+        });
+
         users = Users({
             owner: createUser({ name: "Owner" }),
             marginCollateralRecipient: createUser({ name: "Margin Collateral Recipient" }),

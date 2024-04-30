@@ -12,7 +12,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
-import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
+import { CreatePerpMarket } from "script/CreatePerpMarket.s.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -23,30 +23,20 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract Base_Integration_Shared_Test is Base_Test {
+abstract contract Base_Integration_Shared_Test is Base_Test, CreatePerpMarket {
     using Math for UD60x18;
     using SafeCast for int256;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    address internal mockChainlinkFeeManager;
-    address internal mockChainlinkVerifier;
-    FeeRecipients.Data internal feeRecipients;
+    address internal settlementFeeReceiver = users.settlementFeeReceiver;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Test.setUp();
-
-        mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
-        mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
-        feeRecipients = FeeRecipients.Data({
-            marginCollateralRecipient: users.marginCollateralRecipient,
-            orderFeeRecipient: users.orderFeeRecipient,
-            settlementFeeRecipient: users.settlementFeeRecipient
-        });
 
         setupMarketsConfig();
 
@@ -131,15 +121,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function createPerpMarkets() internal {
-        createPerpMarkets(
-            users.owner,
-            users.settlementFeeRecipient,
-            perpsEngine,
-            INITIAL_MARKET_ID,
-            FINAL_MARKET_ID,
-            IVerifierProxy(mockChainlinkVerifier),
-            true
-        );
+        CreatePerpMarket.run(INITIAL_MARKET_ID, FINAL_MARKET_ID, true);
     }
 
     function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
