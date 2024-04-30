@@ -218,7 +218,7 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
         _requireAmountNotZero(ud60x18Amount);
         _requireEnoughDepositCap(collateralType, ud60x18Amount, ud60x18(marginCollateralConfiguration.depositCap));
-        _requireCollateralPriorityDefined(collateralType);
+        _requireCollateralLiquidationPriorityDefined(collateralType);
 
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         perpsAccount.deposit(collateralType, ud60x18Amount);
@@ -267,11 +267,12 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         }
     }
 
-    function _requireCollateralPriorityDefined(address collateralType) internal view {
+    function _requireCollateralLiquidationPriorityDefined(address collateralType) internal view {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        bool isInCollateralPriority = globalConfiguration.collateralPriority.contains(collateralType);
+        bool isInCollateralLiquidationPriority =
+            globalConfiguration.collateralLiquidationPriority.contains(collateralType);
 
-        if (!isInCollateralPriority) revert Errors.CollateralPriorityNotDefined(collateralType);
+        if (!isInCollateralLiquidationPriority) revert Errors.CollateralLiquidationPriorityNotDefined(collateralType);
     }
 
     /// @notice Checks if there's enough margin collateral balance to be withdrawn.

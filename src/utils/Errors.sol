@@ -69,7 +69,7 @@ library Errors {
         uint128 accountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, int256 totalFeesUsdX18
     );
     /// @notice Thrown when trying to deposit a collteral type that isn't in the liquidation priority configuration.
-    error CollateralPriorityNotDefined(address collateralType);
+    error CollateralLiquidationPriorityNotDefined(address collateralType);
 
     /// @notice PerpsEngine.GlobalConfigurationBranch
 

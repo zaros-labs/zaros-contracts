@@ -180,7 +180,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         collateralLiquidationPriority[0] = address(usdToken);
         collateralLiquidationPriority[1] = address(mockWstEth);
 
-        perpsEngine.configureCollateralPriority(collateralLiquidationPriority);
+        perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

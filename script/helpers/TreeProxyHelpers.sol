@@ -84,7 +84,7 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationBranchSelectors[0] = GlobalConfigurationBranch.getAccountsWithActivePositions.selector;
     globalConfigurationBranchSelectors[1] = GlobalConfigurationBranch.getMarginCollateralConfiguration.selector;
     globalConfigurationBranchSelectors[2] = GlobalConfigurationBranch.setPerpsAccountToken.selector;
-    globalConfigurationBranchSelectors[3] = GlobalConfigurationBranch.configureCollateralPriority.selector;
+    globalConfigurationBranchSelectors[3] = GlobalConfigurationBranch.configureCollateralLiquidationPriority.selector;
     globalConfigurationBranchSelectors[4] = GlobalConfigurationBranch.configureLiquidators.selector;
     globalConfigurationBranchSelectors[5] = GlobalConfigurationBranch.configureMarginCollateral.selector;
     globalConfigurationBranchSelectors[6] = GlobalConfigurationBranch.removeCollateralFromPriorityList.selector;

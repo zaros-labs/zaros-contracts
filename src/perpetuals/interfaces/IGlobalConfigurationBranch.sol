@@ -17,7 +17,7 @@ interface IGlobalConfigurationBranch {
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
     /// @param collateralTypes The array of collateral type addresses, ordered by priority.
-    event LogConfigureCollateralPriority(address indexed sender, address[] collateralTypes);
+    event LogConfigureCollateralLiquidationPriority(address indexed sender, address[] collateralTypes);
 
     /// @notice Emitted when the liquidators are configured.
     /// @param sender The address that configured the liquidators.
@@ -101,7 +101,7 @@ interface IGlobalConfigurationBranch {
 
     /// @notice Configures the collateral priority.
     /// @param collateralTypes The array of collateral type addresses.
-    function configureCollateralPriority(address[] calldata collateralTypes) external;
+    function configureCollateralLiquidationPriority(address[] calldata collateralTypes) external;
 
     /// @notice Configures the liquidators.
     /// @param liquidators The array of liquidator addresses.

@@ -82,15 +82,15 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationBranch
-    function configureCollateralPriority(address[] calldata collateralTypes) external override onlyOwner {
+    function configureCollateralLiquidationPriority(address[] calldata collateralTypes) external override onlyOwner {
         if (collateralTypes.length == 0) {
             revert Errors.ZeroInput("collateralTypes");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.configureCollateralPriority(collateralTypes);
+        globalConfiguration.configureCollateralLiquidationPriority(collateralTypes);
 
-        emit LogConfigureCollateralPriority(msg.sender, collateralTypes);
+        emit LogConfigureCollateralLiquidationPriority(msg.sender, collateralTypes);
     }
 
     /// @inheritdoc IGlobalConfigurationBranch

@@ -36,7 +36,7 @@ library GlobalConfiguration {
         address perpsAccountToken;
         uint96 nextAccountId;
         mapping(address => bool) isLiquidatorEnabled;
-        EnumerableSet.AddressSet collateralPriority;
+        EnumerableSet.AddressSet collateralLiquidationPriority;
         EnumerableSet.UintSet enabledMarketsIds;
         EnumerableSet.UintSet accountsIdsWithActivePositions;
     }
@@ -85,9 +85,9 @@ library GlobalConfiguration {
     /// @notice Configures the collateral priority.
     /// @param self The global configuration storage pointer.
     /// @param collateralTypes The array of collateral type addresses.
-    function configureCollateralPriority(Data storage self, address[] memory collateralTypes) internal {
+    function configureCollateralLiquidationPriority(Data storage self, address[] memory collateralTypes) internal {
         for (uint256 i = 0; i < collateralTypes.length; i++) {
-            self.collateralPriority.add(collateralTypes[i]);
+            self.collateralLiquidationPriority.add(collateralTypes[i]);
         }
     }
 
@@ -96,7 +96,7 @@ library GlobalConfiguration {
     /// @param self The global configuration storage pointer.
     /// @param collateralType The address of the collateral type to remove.
     function removeCollateralTypeFromPriorityList(Data storage self, address collateralType) internal {
-        bool removed = self.collateralPriority.remove(collateralType);
+        bool removed = self.collateralLiquidationPriority.remove(collateralType);
 
         if (!removed) {
             revert Errors.MarginCollateralTypeNotInPriority(collateralType);

@@ -349,8 +349,8 @@ library PerpsAccount {
     {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        for (uint256 i = 0; i < globalConfiguration.collateralPriority.length(); i++) {
-            address collateralType = globalConfiguration.collateralPriority.at(i);
+        for (uint256 i = 0; i < globalConfiguration.collateralLiquidationPriority.length(); i++) {
+            address collateralType = globalConfiguration.collateralLiquidationPriority.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
 

@@ -64,7 +64,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         collateralLiquidationPriority[0] = usdToken;
         collateralLiquidationPriority[1] = usdc;
 
-        perpsEngine.configureCollateralPriority(collateralLiquidationPriority);
+        perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
 
         // TODO: add margin collateral configuration paremeters to a JSON file and use ffi
         perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdcUsdPriceFeed);
