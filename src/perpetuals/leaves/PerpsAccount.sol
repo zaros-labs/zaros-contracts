@@ -19,7 +19,9 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
+
+import { console } from "forge-std/console.sol";
 
 /// @title The PerpsAccount namespace.
 library PerpsAccount {
@@ -175,6 +177,8 @@ library PerpsAccount {
             UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18)).mul(
                 ud60x18(marginCollateralConfiguration.loanToValue)
             );
+            console.log("from perps account leaf: ");
+            console.log(adjustedBalanceUsdX18.intoUint256());
 
             marginBalanceUsdX18 = marginBalanceUsdX18.add(adjustedBalanceUsdX18.intoSD59x18());
         }
@@ -231,7 +235,7 @@ library PerpsAccount {
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(self.id, marketId);
 
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
+            UD60x18 markPrice = perpMarket.getMarkPrice(unary(sd59x18(position.size)), perpMarket.getIndexPrice());
             SD59x18 fundingFeePerUnit =
                 perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
 
@@ -260,7 +264,7 @@ library PerpsAccount {
             Position.Data storage position = Position.load(self.id, marketId);
 
             UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
-            UD60x18 markPriceX18 = perpMarket.getMarkPrice(SD_ZERO, indexPriceX18);
+            UD60x18 markPriceX18 = perpMarket.getMarkPrice(unary(sd59x18(position.size)), indexPriceX18);
 
             SD59x18 fundingRateX18 = perpMarket.getCurrentFundingRate();
             SD59x18 fundingFeePerUnitX18 = perpMarket.getNextFundingFeePerUnit(fundingRateX18, markPriceX18);
@@ -412,7 +416,7 @@ library PerpsAccount {
     {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        if (oldPositionSize.eq(SD_ZERO) && newPositionSize.neq(SD_ZERO)) {
+        if (oldPositionSize.isZero() && !newPositionSize.isZero()) {
             if (!globalConfiguration.accountsIdsWithActivePositions.contains(self.id)) {
                 globalConfiguration.accountsIdsWithActivePositions.add(self.id);
             }

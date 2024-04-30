@@ -21,9 +21,9 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-import "forge-std/console.sol";
+import { console } from "forge-std/console.sol";
 
 /// @notice See {IPerpsAccountBranch}.
 contract PerpsAccountBranch is IPerpsAccountBranch {
@@ -81,7 +81,13 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
         SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
 
+        console.log("from perps account branch: ");
+        console.log(activePositionsUnrealizedPnlUsdX18.lt(SD_ZERO));
+        console.log(activePositionsUnrealizedPnlUsdX18.abs().intoUD60x18().intoUint256());
+
         marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
+
+        console.log(marginBalanceUsdX18.abs().intoUD60x18().intoUint256());
 
         for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
@@ -90,7 +96,7 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
             Position.Data storage position = Position.load(accountId, marketId);
 
             UD60x18 indexPrice = perpMarket.getIndexPrice();
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
+            UD60x18 markPrice = perpMarket.getMarkPrice(unary(sd59x18(position.size)), indexPrice);
 
             UD60x18 notionalValueX18 = position.getNotionalValue(markPrice);
             (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
@@ -131,7 +137,7 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
             Position.Data storage position = Position.load(accountId, marketId);
 
             UD60x18 indexPrice = perpMarket.getIndexPrice();
-            UD60x18 markPrice = perpMarket.getMarkPrice(SD_ZERO, indexPrice);
+            UD60x18 markPrice = perpMarket.getMarkPrice(unary(sd59x18(position.size)), indexPrice);
 
             UD60x18 positionNotionalValueX18 = position.getNotionalValue(markPrice);
             totalPositionsNotionalValue = totalPositionsNotionalValue.add(positionNotionalValueX18);
@@ -155,7 +161,7 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         Position.Data storage position = Position.load(accountId, marketId);
 
-        UD60x18 markPriceX18 = perpMarket.getMarkPrice(SD_ZERO, perpMarket.getIndexPrice());
+        UD60x18 markPriceX18 = perpMarket.getMarkPrice(unary(sd59x18(position.size)), perpMarket.getIndexPrice());
         SD59x18 fundingFeePerUnit =
             perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPriceX18);
 
@@ -301,6 +307,7 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         console.log(accountTotalUnrealizedPnlUsdX18.lt(SD_ZERO));
         console.log(marginBalanceUsdX18.abs().intoUD60x18().intoUint256());
 
+        // TODO: add closing positions + settlement fees
         perpsAccount.validateMarginRequirement(
             requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18), marginBalanceUsdX18, SD_ZERO
         );
