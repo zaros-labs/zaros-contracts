@@ -355,7 +355,8 @@ library PerpsAccount {
 
             IERC20(collateralType).safeTransfer(recipient, requiredMarginInCollateralX18.intoUint256());
 
-            return (withdrawnMarginUsdX18, false);
+            isMissingMargin = false;
+            return (withdrawnMarginUsdX18, isMissingMargin);
         } else {
             UD60x18 marginToWithdrawUsdX18 = marginCollateralPriceUsdX18.mul(marginCollateralBalanceX18);
             withdraw(self, collateralType, marginCollateralBalanceX18);
@@ -363,7 +364,8 @@ library PerpsAccount {
 
             IERC20(collateralType).safeTransfer(recipient, marginCollateralBalanceX18.intoUint256());
 
-            return (withdrawnMarginUsdX18, true);
+            isMissingMargin = true;
+            return (withdrawnMarginUsdX18, isMissingMargin);
         }
     }
 
