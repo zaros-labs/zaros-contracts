@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
@@ -230,7 +230,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 fuzzMarketConfig.marketId,
                 fuzzMarketConfig.maxOi,
                 sizeDeltaAbs.intoUint256()
-                )
+            )
         });
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
@@ -420,7 +420,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 marginBalanceUsdX18.intoInt256(),
                 requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
                 orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
-                )
+            )
         });
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({

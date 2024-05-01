@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { AccessKeyManager } from "@zaros/testnet/access-key-manager/AccessKeyManager.sol";

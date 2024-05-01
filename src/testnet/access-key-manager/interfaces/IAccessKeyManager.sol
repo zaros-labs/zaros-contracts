@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 /// @title A contract to manage the user access trough the generated keys.
 interface IAccessKeyManager {

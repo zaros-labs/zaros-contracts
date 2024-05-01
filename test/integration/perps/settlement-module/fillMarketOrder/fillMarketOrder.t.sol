@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
@@ -391,7 +391,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidDataStreamReport.selector, fuzzMarketConfig.streamId, premiumReport.feedId
-                )
+            )
         });
         perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
@@ -486,7 +486,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 marginBalanceUsdX18.intoInt256(),
                 requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
                 orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
-                )
+            )
         });
         perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
@@ -556,7 +556,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.ExceedsOpenInterestLimit.selector, fuzzMarketConfig.marketId, newMaxOi, sizeDeltaAbs
-                )
+            )
         });
         perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
