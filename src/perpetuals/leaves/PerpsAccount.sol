@@ -370,6 +370,16 @@ library PerpsAccount {
         }
     }
 
+    struct DeductAccountMarginContext {
+        UD60x18 marginCollateralBalanceX18;
+        UD60x18 marginCollateralPriceUsdX18;
+        UD60x18 settlementFeeDeductedUsdX18;
+        UD60x18 withdrawnMarginUsdX18;
+        bool isMissingMargin;
+        UD60x18 orderFeeDeductedUsdX18;
+        UD60x18 pnlDeductedUsdX18;
+    }
+
     function deductAccountMargin(
         Data storage self,
         FeeRecipients.Data memory feeRecipients,
@@ -380,6 +390,8 @@ library PerpsAccount {
         internal
         returns (UD60x18 marginDeductedUsdX18)
     {
+        DeductAccountMarginContext memory ctx;
+
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         for (uint256 i = 0; i < globalConfiguration.collateralLiquidationPriority.length(); i++) {
@@ -387,60 +399,57 @@ library PerpsAccount {
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
 
-            UD60x18 marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
-            if (marginCollateralBalanceX18.isZero()) continue;
+            ctx.marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
+            if (ctx.marginCollateralBalanceX18.isZero()) continue;
 
-            UD60x18 marginCollateralPriceUsdX18 = marginCollateralConfiguration.getPrice();
+            ctx.marginCollateralPriceUsdX18 = marginCollateralConfiguration.getPrice();
 
-            UD60x18 settlementFeeDeductedUsdX18;
-            if (settlementFeeUsdX18.gt(UD_ZERO) && settlementFeeDeductedUsdX18.lt(settlementFeeUsdX18)) {
-                (UD60x18 withdrawnMarginUsdX18, bool missingMargin) = withdrawMarginUsd(
+            if (settlementFeeUsdX18.gt(UD_ZERO) && ctx.settlementFeeDeductedUsdX18.lt(settlementFeeUsdX18)) {
+                (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
                     collateralType,
-                    marginCollateralPriceUsdX18,
-                    settlementFeeUsdX18.sub(settlementFeeDeductedUsdX18),
+                    ctx.marginCollateralPriceUsdX18,
+                    settlementFeeUsdX18.sub(ctx.settlementFeeDeductedUsdX18),
                     feeRecipients.settlementFeeRecipient
                 );
-                settlementFeeDeductedUsdX18 = settlementFeeDeductedUsdX18.add(withdrawnMarginUsdX18);
+                ctx.settlementFeeDeductedUsdX18 = ctx.settlementFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
 
-                if (missingMargin) continue;
+                if (ctx.isMissingMargin) continue;
             }
 
-            marginDeductedUsdX18 = marginDeductedUsdX18.add(settlementFeeDeductedUsdX18);
+            marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.settlementFeeDeductedUsdX18);
 
-            UD60x18 orderFeeDeductedUsdX18;
-            if (orderFeeUsdX18.gt(UD_ZERO) && orderFeeDeductedUsdX18.lt(orderFeeUsdX18)) {
-                (UD60x18 withdrawnMarginUsdX18, bool missingMargin) = withdrawMarginUsd(
+            if (orderFeeUsdX18.gt(UD_ZERO) && ctx.orderFeeDeductedUsdX18.lt(orderFeeUsdX18)) {
+                (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
                     collateralType,
-                    marginCollateralPriceUsdX18,
-                    orderFeeUsdX18.sub(orderFeeDeductedUsdX18),
+                    ctx.marginCollateralPriceUsdX18,
+                    orderFeeUsdX18.sub(ctx.orderFeeDeductedUsdX18),
                     feeRecipients.orderFeeRecipient
                 );
-                orderFeeDeductedUsdX18 = orderFeeDeductedUsdX18.add(withdrawnMarginUsdX18);
+                ctx.orderFeeDeductedUsdX18 = ctx.orderFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
 
-                if (missingMargin) continue;
+                if (ctx.isMissingMargin) continue;
             }
 
-            marginDeductedUsdX18 = marginDeductedUsdX18.add(orderFeeDeductedUsdX18);
+            marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18);
 
-            UD60x18 pnlDeductedUsdX18;
-            if (pnlUsdX18.gt(UD_ZERO) && pnlDeductedUsdX18.lt(pnlUsdX18)) {
-                (UD60x18 withdrawnMarginUsdX18, bool missingMargin) = withdrawMarginUsd(
+            if (pnlUsdX18.gt(UD_ZERO) && ctx.pnlDeductedUsdX18.lt(pnlUsdX18)) {
+                (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
                     collateralType,
-                    marginCollateralPriceUsdX18,
-                    pnlUsdX18.sub(pnlDeductedUsdX18),
+                    ctx.marginCollateralPriceUsdX18,
+                    pnlUsdX18.sub(ctx.pnlDeductedUsdX18),
                     feeRecipients.marginCollateralRecipient
                 );
-                pnlDeductedUsdX18 = pnlDeductedUsdX18.add(withdrawnMarginUsdX18);
+                ctx.pnlDeductedUsdX18 = ctx.pnlDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
 
-                if (!missingMargin) {
-                    marginDeductedUsdX18 = marginDeductedUsdX18.add(pnlDeductedUsdX18);
+                if (!ctx.isMissingMargin) {
+                    marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.pnlDeductedUsdX18);
                     break;
                 }
             }
-            marginDeductedUsdX18 = marginDeductedUsdX18.add(pnlDeductedUsdX18);
+            marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.pnlDeductedUsdX18);
         }
     }
 

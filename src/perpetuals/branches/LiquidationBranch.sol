@@ -131,8 +131,6 @@ contract LiquidationBranch is ILiquidationBranch {
             });
             ctx.liquidatedCollateralUsdX18 = liquidatedCollateralUsdX18;
             MarketOrder.load(ctx.accountId).clear();
-            // clear all possible custom orders (limit, tp/sl). Create account nonce to cancel all?
-            // perpsAccount.clearCustomOrders();
 
             ctx.amountOfOpenPositions = perpsAccount.activeMarketsIds.length();
 
