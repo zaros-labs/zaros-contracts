@@ -7,6 +7,7 @@ import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";
 
+// TODO: store margin and liquidation fee recipients
 contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     bytes32 internal constant LIQUIDATION_KEEPER_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.LiquidationKeeper")) - 1)

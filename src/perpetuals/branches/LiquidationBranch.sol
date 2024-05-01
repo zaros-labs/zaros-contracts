@@ -82,6 +82,7 @@ contract LiquidationBranch is ILiquidationBranch {
         SD59x18 fundingFeePerUnitUsdX18;
     }
 
+    // TODO: pass margin and liquidation fee recipients
     function liquidateAccounts(
         uint128[] calldata accountsIds,
         address feeRecipient
@@ -159,7 +160,7 @@ contract LiquidationBranch is ILiquidationBranch {
                 perpsAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
             }
 
-            // must be an invariant
+            // asserts invariant
             assert(perpsAccount.activeMarketsIds.length() == 0);
 
             emit LogLiquidateAccount(

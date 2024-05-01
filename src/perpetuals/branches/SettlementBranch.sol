@@ -234,6 +234,7 @@ contract SettlementBranch is ISettlementBranch {
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
+        // TODO: log margin deducted vs required
         emit LogSettleOrder(
             msg.sender,
             ctx.accountId,
