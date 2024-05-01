@@ -4,6 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ILiquidationBranch } from "../interfaces/ILiquidationBranch.sol";
+import { FeeRecipients } from "../leaves/FeeRecipients.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpsAccount } from "../leaves/PerpsAccount.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
@@ -15,7 +16,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 contract LiquidationBranch is ILiquidationBranch {
@@ -120,7 +121,7 @@ contract LiquidationBranch is ILiquidationBranch {
                 feeRecipients: FeeRecipients.Data({
                     marginCollateralRecipient: feeRecipient,
                     orderFeeRecipient: address(0),
-                    settlementFeeRecipient: ctx.liquidationFeeUsdX18
+                    settlementFeeRecipient: feeRecipient
                 }),
                 pnlUsdX18: ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
                     ? ctx.marginBalanceUsdX18.intoUD60x18()

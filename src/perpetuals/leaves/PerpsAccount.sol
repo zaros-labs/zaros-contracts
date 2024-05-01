@@ -347,9 +347,10 @@ library PerpsAccount {
         internal
         returns (UD60x18 withdrawnMarginUsdX18, bool isMissingMargin)
     {
-        if (marginCollateralBalanceX18.gte(pendingMarginInCollateralX18)) {
-            UD60x18 requiredMarginInCollateralX18 = amountUsdX18.div(marginCollateralPriceUsdX18);
-            withdraw(self, collateralType, pendingMarginInCollateralX18);
+        UD60x18 marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
+        UD60x18 requiredMarginInCollateralX18 = amountUsdX18.div(marginCollateralPriceUsdX18);
+        if (marginCollateralBalanceX18.gte(requiredMarginInCollateralX18)) {
+            withdraw(self, collateralType, requiredMarginInCollateralX18);
 
             withdrawnMarginUsdX18 = withdrawnMarginUsdX18.add(amountUsdX18);
 

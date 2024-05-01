@@ -209,15 +209,21 @@ contract SettlementBranch is ISettlementBranch {
             oldPosition.update(ctx.newPosition);
         }
 
-        // TODO: Handle negative margin case
         if (ctx.pnl.lt(SD_ZERO)) {
-            UD60x18 amountToDeduct = ctx.pnl.abs().intoUD60x18();
-            // TODO: update to liquidation pool and fee pool addresses
-            perpsAccount.deductAccountMargin(
-                feeRecipients,
-                amountToDeduct,
-                ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO
-            );
+            UD60x18 marginToDeductUsdX18 = ctx.orderFeeUsdX18.gt(SD_ZERO)
+                ? ctx.pnl.abs().intoUD60x18().add(ctx.orderFeeUsdX18.intoUD60x18())
+                : ctx.pnl.abs().intoUD60x18();
+
+            perpsAccount.deductAccountMargin({
+                feeRecipients: FeeRecipients.Data({
+                    marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
+                    orderFeeRecipient: feeRecipients.orderFeeRecipient,
+                    settlementFeeRecipient: feeRecipients.settlementFeeRecipient
+                }),
+                pnlUsdX18: marginToDeductUsdX18,
+                orderFeeUsdX18: ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO,
+                settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            });
         } else if (ctx.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
             perpsAccount.deposit(ctx.usdToken, amountToIncrease);
