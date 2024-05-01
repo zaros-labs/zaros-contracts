@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
@@ -50,7 +50,6 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     /// @notice General perps engine system configuration parameters.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
-    uint80 internal constant DATA_STREAMS_SETTLEMENT_FEE = 1e18;
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
     function setupMarketsConfig() internal {
@@ -153,7 +152,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
 
     function createPerpMarkets(
         address deployer,
-        address settlementFeeReceiver,
+        address settlementFeeRecipient,
         IPerpsEngine perpsEngine,
         uint256 initialMarketId,
         uint256 finalMarketId,
@@ -164,7 +163,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     {
         for (uint256 i = initialMarketId; i <= finalMarketId; i++) {
             address marketOrderKeeper =
-                deployMarketOrderKeeper(marketsConfig[i].marketId, deployer, perpsEngine, settlementFeeReceiver);
+                deployMarketOrderKeeper(marketsConfig[i].marketId, deployer, perpsEngine, settlementFeeRecipient);
 
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
@@ -180,14 +179,19 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             // TODO: update to API orderbook config
             SettlementConfiguration.Data[] memory customOrderStrategies;
 
+            // update stored price adapter at tests
+            address priceAdapter = isTest
+                ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice)))
+                : marketsConfig[i].priceAdapter;
+
+            marketsConfig[i].priceAdapter = priceAdapter;
+
             perpsEngine.createPerpMarket(
                 IGlobalConfigurationBranch.CreatePerpMarketParams({
                     marketId: marketsConfig[i].marketId,
                     name: marketsConfig[i].marketName,
                     symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: isTest
-                        ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice)))
-                        : marketsConfig[i].priceAdapter,
+                    priceAdapter: priceAdapter,
                     initialMarginRateX18: marketsConfig[i].imr,
                     maintenanceMarginRateX18: marketsConfig[i].mmr,
                     maxOpenInterest: marketsConfig[i].maxOi,
@@ -206,7 +210,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint128 marketId,
         address deployer,
         IPerpsEngine perpsEngine,
-        address settlementFeeReceiver
+        address settlementFeeRecipient
     )
         internal
         returns (address marketOrderKeeper)
@@ -220,7 +224,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
                     MarketOrderKeeper.initialize.selector,
                     deployer,
                     perpsEngine,
-                    settlementFeeReceiver,
+                    settlementFeeRecipient,
                     marketId,
                     marketsConfig[marketId].streamIdString
                 )

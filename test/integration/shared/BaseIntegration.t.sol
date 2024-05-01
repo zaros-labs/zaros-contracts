@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
@@ -12,6 +12,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -31,7 +32,11 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
-    address internal settlementFeeReceiver = users.settlementFeeReceiver;
+    FeeRecipients.Data internal feeRecipients = FeeRecipients.Data({
+        marginCollateralRecipient: users.settlementFeeRecipient,
+        orderFeeRecipient: users.settlementFeeRecipient,
+        settlementFeeRecipient: users.settlementFeeRecipient
+    });
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -127,7 +132,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     function createPerpMarkets() internal {
         createPerpMarkets(
             users.owner,
-            users.settlementFeeReceiver,
+            users.settlementFeeRecipient,
             perpsEngine,
             INITIAL_MARKET_ID,
             FINAL_MARKET_ID,
@@ -153,6 +158,30 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         });
 
         perpsEngine.updatePerpMarketConfiguration(params);
+    }
+
+    function updatePerpMarketMaxOi(uint128 marketId, UD60x18 newMaxOi) internal {
+        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
+            marketId: marketId,
+            name: marketsConfig[marketId].marketName,
+            symbol: marketsConfig[marketId].marketSymbol,
+            priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
+            initialMarginRateX18: marketsConfig[marketId].imr,
+            maintenanceMarginRateX18: marketsConfig[marketId].mmr,
+            maxOpenInterest: newMaxOi.intoUint128(),
+            maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
+            skewScale: marketsConfig[marketId].skewScale,
+            minTradeSizeX18: marketsConfig[marketId].minTradeSize,
+            orderFees: marketsConfig[marketId].orderFees
+        });
+
+        perpsEngine.updatePerpMarketConfiguration(params);
+    }
+
+    function updateMockPriceFeed(uint128 marketId, uint256 newPrice) internal {
+        MockPriceFeed priceFeed = MockPriceFeed(marketsConfig[marketId].priceAdapter);
+        priceFeed.updateMockPrice(newPrice);
     }
 
     struct FuzzOrderSizeDeltaParams {
@@ -217,12 +246,12 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ).intoInt256().toInt128();
     }
 
-    function getFuzzMarketConfig(uint256 marketIndex) internal view returns (MarketConfig memory) {
-        vm.assume(marketIndex >= INITIAL_MARKET_ID && marketIndex <= FINAL_MARKET_ID);
+    function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {
+        marketId = bound({ x: marketId, min: INITIAL_MARKET_ID, max: FINAL_MARKET_ID });
 
         uint256[2] memory marketsIdsRange;
-        marketsIdsRange[0] = marketIndex;
-        marketsIdsRange[1] = marketIndex;
+        marketsIdsRange[0] = marketId;
+        marketsIdsRange[1] = marketId;
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 

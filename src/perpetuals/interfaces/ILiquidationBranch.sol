@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 interface ILiquidationBranch {
     event LogLiquidateAccount(
         address indexed keeper,
         uint128 indexed accountId,
-        address feeReceiver,
+        address feeRecipient,
         uint256 amountOfOpenPositions,
         uint256 requiredMaintenanceMarginUsd,
         int256 marginBalanceUsd,
@@ -21,5 +21,5 @@ interface ILiquidationBranch {
         view
         returns (uint128[] memory liquidatableAccountsIds);
 
-    function liquidateAccounts(uint128[] calldata accountsIds, address feeReceiver) external;
+    function liquidateAccounts(uint128[] calldata accountsIds, address feeRecipient) external;
 }

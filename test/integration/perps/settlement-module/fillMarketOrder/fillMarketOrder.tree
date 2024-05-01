@@ -23,10 +23,19 @@ FillMarketOrder_Integration_Test
                             ├── given the market's OI limit will be exceeded
                             │   └── it should revert
                             └── given the market's OI limit won't be exceeded
-                                ├── it should update the funding values
-                                ├── it should update the open interest and skew
-                                ├── it should update the account's active markets
-                                ├── it should update the account's position
-                                ├── it should apply the accrued pnl
-                                ├── it should emit a {LogSettleOrder} event
-                                └── it should pay the settlement fee
+                                ├── given the pnl is negative
+                                │   ├── it should update the funding values
+                                │   ├── it should update the open interest and skew
+                                │   ├── it should update the account's active markets
+                                │   ├── it should update the account's position
+                                │   ├── it should deduct the pnl
+                                │   ├── it should emit a {LogSettleOrder} event
+                                │   └── it should pay the settlement fee
+                                └── given the pnl is positive
+                                    ├── it should update the funding values
+                                    ├── it should update the open interest and skew
+                                    ├── it should update the account's active markets
+                                    ├── it should update the account's position
+                                    ├── it should add the pnl
+                                    ├── it should emit a {LogSettleOrder} event
+                                    └── it should pay the settlement fee

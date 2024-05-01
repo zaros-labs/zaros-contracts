@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 struct BasicReport {
     bytes32 feedId; // The feed ID the report has data for

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ILiquidationBranch } from "../interfaces/ILiquidationBranch.sol";
+import { FeeRecipients } from "../leaves/FeeRecipients.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpsAccount } from "../leaves/PerpsAccount.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
@@ -15,7 +16,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
 contract LiquidationBranch is ILiquidationBranch {
@@ -81,9 +82,10 @@ contract LiquidationBranch is ILiquidationBranch {
         SD59x18 fundingFeePerUnitUsdX18;
     }
 
+    // TODO: pass margin and liquidation fee recipients
     function liquidateAccounts(
         uint128[] calldata accountsIds,
-        address feeReceiver
+        address feeRecipient
     )
         external
         onlyRegisteredLiquidator
@@ -115,21 +117,21 @@ contract LiquidationBranch is ILiquidationBranch {
                 );
             }
 
-            // TODO: Update margin receiver
-            // TODO: Update liquidation fee to estimate gas costs (i.edefault gas cost stored + gas price from
-            // GasOracle)
-            UD60x18 liquidatedCollateralUsdX18 = perpsAccount.deductAccountMargin(
-                feeReceiver,
-                feeReceiver,
-                ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
-                    ? ctx.marginBalanceUsdX18.intoUD60x18().add(ctx.liquidationFeeUsdX18)
-                    : requiredMaintenanceMarginUsdX18.add(ctx.liquidationFeeUsdX18),
-                ctx.liquidationFeeUsdX18
-            );
+            // TODO: Update margin recipient
+            UD60x18 liquidatedCollateralUsdX18 = perpsAccount.deductAccountMargin({
+                feeRecipients: FeeRecipients.Data({
+                    marginCollateralRecipient: feeRecipient,
+                    orderFeeRecipient: address(0),
+                    settlementFeeRecipient: feeRecipient
+                }),
+                pnlUsdX18: ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
+                    ? ctx.marginBalanceUsdX18.intoUD60x18()
+                    : requiredMaintenanceMarginUsdX18,
+                orderFeeUsdX18: UD_ZERO,
+                settlementFeeUsdX18: ctx.liquidationFeeUsdX18
+            });
             ctx.liquidatedCollateralUsdX18 = liquidatedCollateralUsdX18;
             MarketOrder.load(ctx.accountId).clear();
-            // clear all possible custom orders (limit, tp/sl). Create account nonce to cancel all?
-            // perpsAccount.clearCustomOrders();
 
             ctx.amountOfOpenPositions = perpsAccount.activeMarketsIds.length();
 
@@ -158,13 +160,13 @@ contract LiquidationBranch is ILiquidationBranch {
                 perpsAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
             }
 
-            // must be an invariant
+            // asserts invariant
             assert(perpsAccount.activeMarketsIds.length() == 0);
 
             emit LogLiquidateAccount(
                 msg.sender,
                 ctx.accountId,
-                feeReceiver,
+                feeRecipient,
                 ctx.amountOfOpenPositions,
                 ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
                 ctx.marginBalanceUsdX18.intoInt256(),

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
@@ -29,12 +29,12 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
-    address internal settlementFeeReceiver;
+    address internal settlementFeeRecipient;
 
     function run(uint256 INITIAL_MARKET_ID, uint256 FINAL_MARKET_ID) public broadcaster {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
-        settlementFeeReceiver = vm.envAddress("SETTLEMENT_FEE_RECEIVER");
+        settlementFeeRecipient = vm.envAddress("SETTLEMENT_FEE_RECEIVER");
 
         uint256[2] memory marketsIdsRange;
         marketsIdsRange[0] = INITIAL_MARKET_ID;
@@ -93,7 +93,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             new ERC1967Proxy(
                 marketOrderKeeperImplementation,
                 abi.encodeWithSelector(
-                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, settlementFeeReceiver, marketId
+                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, settlementFeeRecipient, marketId
                 )
             )
         );

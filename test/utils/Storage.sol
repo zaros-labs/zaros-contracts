@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 abstract contract Storage {
     /// @dev GlobalConfiguration namespace storage slot.
@@ -9,4 +9,6 @@ abstract contract Storage {
     string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
     /// @dev Constant base domain used to access a given PerpMarket's storage slot.
     string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpMarket";
+    /// @notice Constant base domain used to access a given Position's storage slot.
+    string internal constant POSITION_DOMAIN = "fi.zaros.markets.perps.storage.Position";
 }

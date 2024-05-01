@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
@@ -64,7 +64,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         collateralLiquidationPriority[0] = usdToken;
         collateralLiquidationPriority[1] = usdc;
 
-        perpsEngine.configureCollateralPriority(collateralLiquidationPriority);
+        perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
 
         // TODO: add margin collateral configuration paremeters to a JSON file and use ffi
         perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdcUsdPriceFeed);

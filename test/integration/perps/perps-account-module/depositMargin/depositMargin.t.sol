@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
@@ -11,7 +11,24 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         Base_Integration_Shared_Test.setUp();
     }
 
-    function testFuzz_RevertGiven_TheCollateralTypeHasInsufficientDepositCap(uint256 amountToDeposit) external {
+    function test_RevertWhen_TheAmountIsZero() external {
+        uint256 amountToDeposit = 0;
+        uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
+
+        perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
+    }
+
+    modifier whenTheAmountIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertGiven_TheCollateralTypeHasInsufficientDepositCap(uint256 amountToDeposit)
+        external
+        whenTheAmountIsNotZero
+    {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
@@ -35,17 +52,30 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertWhen_TheAmountIsZero() external givenTheCollateralTypeHasSufficientDepositCap {
-        uint256 amountToDeposit = 0;
+    function testFuzz_RevertGiven_TheCollateralTypeIsNotInTheLiquidationPriority(uint256 amountToDeposit)
+        external
+        whenTheAmountIsNotZero
+        givenTheCollateralTypeHasSufficientDepositCap
+    {
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        changePrank({ msgSender: users.owner });
+
+        perpsEngine.removeCollateralFromLiquidationPriority(address(usdToken));
+
+        changePrank({ msgSender: users.naruto });
+
         uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
-
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.CollateralLiquidationPriorityNotDefined.selector, address(usdToken))
+        });
         perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
     }
 
-    modifier whenTheAmountIsNotZero() {
+    modifier givenTheCollateralTypeIsInTheLiquidationPriority() {
         _;
     }
 
@@ -54,8 +84,9 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         uint256 amountToDeposit
     )
         external
-        givenTheCollateralTypeHasSufficientDepositCap
         whenTheAmountIsNotZero
+        givenTheCollateralTypeHasSufficientDepositCap
+        givenTheCollateralTypeIsInTheLiquidationPriority
     {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
@@ -70,8 +101,9 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
     function testFuzz_GivenThePerpsAccountExists(uint256 amountToDeposit)
         external
-        givenTheCollateralTypeHasSufficientDepositCap
         whenTheAmountIsNotZero
+        givenTheCollateralTypeHasSufficientDepositCap
+        givenTheCollateralTypeIsInTheLiquidationPriority
     {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });

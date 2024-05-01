@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
-/// TODO: Add require helpers in the lib.
+// TODO: organize branches / leaves errors.
 library Errors {
     /// @notice Generic protocol errors.
 
@@ -68,6 +68,8 @@ library Errors {
     error InsufficientMargin(
         uint128 accountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, int256 totalFeesUsdX18
     );
+    /// @notice Thrown when trying to deposit a collteral type that isn't in the liquidation priority configuration.
+    error CollateralLiquidationPriorityNotDefined(address collateralType);
 
     /// @notice PerpsEngine.GlobalConfigurationBranch
 
@@ -114,7 +116,7 @@ library Errors {
     /// @notice Thrown when there's no price adapter configured for a given perp market.
     error PriceAdapterNotDefined(uint128 marketId);
     /// @notice Thrown when an order tries to exceed the market's open interest cap.
-    error ExceedsOpenInterestLimit(uint128 marketId, uint256 openInterest, uint256 openInterestDesired);
+    error ExceedsOpenInterestLimit(uint128 marketId, uint256 maxOpenInterest, uint256 newOpenInterest);
     /// @notice Thrown when a perps market id has already been used.
     error MarketAlreadyExists(uint128 marketId);
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { IPerpMarketBranch } from "../interfaces/IPerpMarketBranch.sol";
@@ -10,8 +10,10 @@ import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary, ZERO as SD_ZERO, convert as sd59x18Convert } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+
+import { console } from "forge-std/console.sol";
 
 /// @notice See {IPerpMarketBranch}.
 contract PerpMarketBranch is IPerpMarketBranch {
@@ -46,13 +48,22 @@ contract PerpMarketBranch is IPerpMarketBranch {
         returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest)
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-        SD59x18 currentSkew = sd59x18(perpMarket.skew);
+        SD59x18 halfSkew = sd59x18(perpMarket.skew).div(sd59x18(2e18));
         SD59x18 currentOpenInterest = ud60x18(perpMarket.openInterest).intoSD59x18();
-        SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18Convert(2));
-        (longsOpenInterest, shortsOpenInterest) = (
-            halfOpenInterest.add(currentSkew).intoUD60x18(),
-            unary(halfOpenInterest).add(currentSkew).abs().intoUD60x18()
-        );
+        SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18(2e18));
+        console.log("from get open interest: ");
+        // console.log(currentSkew.lt(sd59x18(0)));
+        // console.log(currentSkew.abs().intoUD60x18().intoUint256());
+        console.log(perpMarket.openInterest);
+        console.log(halfOpenInterest.intoUD60x18().intoUint256());
+
+        longsOpenInterest =
+            halfOpenInterest.add(halfSkew).lt(SD_ZERO) ? UD_ZERO : halfOpenInterest.add(halfSkew).intoUD60x18();
+        console.log("LONG OI: ");
+        console.log();
+        console.log(longsOpenInterest.intoUint256());
+        shortsOpenInterest = unary(halfOpenInterest).add(halfSkew).abs().intoUD60x18();
+        console.log(shortsOpenInterest.intoUint256());
         totalOpenInterest = longsOpenInterest.add(shortsOpenInterest);
     }
 

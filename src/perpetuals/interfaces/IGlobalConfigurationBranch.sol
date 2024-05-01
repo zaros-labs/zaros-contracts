@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { MarginCollateralConfiguration } from "../leaves/MarginCollateralConfiguration.sol";
@@ -17,7 +17,7 @@ interface IGlobalConfigurationBranch {
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
     /// @param collateralTypes The array of collateral type addresses, ordered by priority.
-    event LogConfigureCollateralPriority(address indexed sender, address[] collateralTypes);
+    event LogConfigureCollateralLiquidationPriority(address indexed sender, address[] collateralTypes);
 
     /// @notice Emitted when the liquidators are configured.
     /// @param sender The address that configured the liquidators.
@@ -38,7 +38,7 @@ interface IGlobalConfigurationBranch {
     /// @notice Emitted when a collateral type is removed from the collateral priority.
     /// @param sender The address that removed the collateral type from the priority list.
     /// @param collateralType The address of the collateral type.
-    event LogRemoveCollateralFromPriorityList(address indexed sender, address indexed collateralType);
+    event LogRemoveCollateralFromLiquidationPriority(address indexed sender, address indexed collateralType);
 
     /// @notice Emitted when the global system parameters are configured.
     /// @param sender The address that configured the system parameters.
@@ -101,7 +101,7 @@ interface IGlobalConfigurationBranch {
 
     /// @notice Configures the collateral priority.
     /// @param collateralTypes The array of collateral type addresses.
-    function configureCollateralPriority(address[] calldata collateralTypes) external;
+    function configureCollateralLiquidationPriority(address[] calldata collateralTypes) external;
 
     /// @notice Configures the liquidators.
     /// @param liquidators The array of liquidator addresses.
@@ -123,7 +123,7 @@ interface IGlobalConfigurationBranch {
 
     /// @notice Removes the given collateral type from the collateral priority.
     /// @param collateralType The address of the collateral type to remove.
-    function removeCollateralFromPriorityList(address collateralType) external;
+    function removeCollateralFromLiquidationPriority(address collateralType) external;
 
     /// @notice Configures the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.

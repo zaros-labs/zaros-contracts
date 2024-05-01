@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 contract MockPriceFeed {
     uint8 private _decimals;
@@ -21,5 +21,9 @@ contract MockPriceFeed {
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         return (0, _price, 0, 0, 0);
+    }
+
+    function updateMockPrice(uint256 newPrice) external {
+        _price = int256(newPrice);
     }
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
@@ -8,6 +8,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementBranch } from "../interfaces/ISettlementBranch.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
 import { PerpsAccount } from "../leaves/PerpsAccount.sol";
+import { FeeRecipients } from "../leaves/FeeRecipients.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { Position } from "../leaves/Position.sol";
@@ -55,7 +56,7 @@ contract SettlementBranch is ISettlementBranch {
     function fillMarketOrder(
         uint128 accountId,
         uint128 marketId,
-        address settlementFeeReceiver,
+        FeeRecipients.Data calldata feeRecipients,
         bytes calldata priceData
     )
         external
@@ -68,24 +69,18 @@ contract SettlementBranch is ISettlementBranch {
             marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             marketOrder.sizeDelta,
+            feeRecipients,
             priceData
         );
 
         marketOrder.clear();
-
-        _paySettlementFees({
-            settlementFeeReceiver: settlementFeeReceiver,
-            marketId: marketId,
-            settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            amountOfSettledTrades: 1
-        });
     }
 
     // TODO: re-implement
     function fillCustomOrders(
         uint128 marketId,
         uint128 settlementConfigurationId,
-        address settlementFeeReceiver,
+        address settlementFeeRecipient,
         SettlementPayload[] calldata payloads,
         bytes calldata priceData,
         address callback
@@ -103,7 +98,7 @@ contract SettlementBranch is ISettlementBranch {
         // }
 
         // _paySettlementFees({
-        //     settlementFeeReceiver: settlementFeeReceiver,
+        //     settlementFeeRecipient: settlementFeeRecipient,
         //     marketId: marketId,
         //     settlementConfigurationId: settlementConfigurationId,
         //     amountOfSettledTrades: payloads.length
@@ -142,6 +137,7 @@ contract SettlementBranch is ISettlementBranch {
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta,
+        FeeRecipients.Data memory feeRecipients,
         bytes memory priceData
     )
         internal
@@ -192,7 +188,7 @@ contract SettlementBranch is ISettlementBranch {
 
         ctx.pnl = oldPosition.getUnrealizedPnl(ctx.fillPrice).add(
             oldPosition.getAccruedFunding(ctx.fundingFeePerUnit)
-        ).add(ctx.orderFeeUsdX18).add(ctx.settlementFeeUsdX18.intoSD59x18());
+        ).add(unary(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())));
 
         ctx.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(ctx.sizeDelta).intoInt256(),
@@ -213,16 +209,21 @@ contract SettlementBranch is ISettlementBranch {
             oldPosition.update(ctx.newPosition);
         }
 
-        // TODO: Handle negative margin case
         if (ctx.pnl.lt(SD_ZERO)) {
-            UD60x18 amountToDeduct = ctx.pnl.intoUD60x18();
-            // TODO: update to liquidation pool and fee pool addresses
-            perpsAccount.deductAccountMargin(
-                msg.sender,
-                msg.sender,
-                amountToDeduct,
-                ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO
-            );
+            UD60x18 marginToDeductUsdX18 = ctx.orderFeeUsdX18.gt(SD_ZERO)
+                ? ctx.pnl.abs().intoUD60x18().add(ctx.orderFeeUsdX18.intoUD60x18())
+                : ctx.pnl.abs().intoUD60x18();
+
+            perpsAccount.deductAccountMargin({
+                feeRecipients: FeeRecipients.Data({
+                    marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
+                    orderFeeRecipient: feeRecipients.orderFeeRecipient,
+                    settlementFeeRecipient: feeRecipients.settlementFeeRecipient
+                }),
+                pnlUsdX18: marginToDeductUsdX18,
+                orderFeeUsdX18: ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO,
+                settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            });
         } else if (ctx.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
             perpsAccount.deposit(ctx.usdToken, amountToIncrease);
@@ -233,6 +234,7 @@ contract SettlementBranch is ISettlementBranch {
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
+        // TODO: log margin deducted vs required
         emit LogSettleOrder(
             msg.sender,
             ctx.accountId,
@@ -242,29 +244,8 @@ contract SettlementBranch is ISettlementBranch {
             ctx.orderFeeUsdX18.intoInt256(),
             ctx.settlementFeeUsdX18.intoUint256(),
             ctx.pnl.intoInt256(),
-            ctx.newPosition
+            ctx.fundingFeePerUnit.intoInt256()
         );
-    }
-
-    /// @dev We assume that the settlement fees are always properly deducted from the trading accounts, either from
-    /// their margin or pnl.
-    function _paySettlementFees(
-        address settlementFeeReceiver,
-        uint128 marketId,
-        uint128 settlementConfigurationId,
-        uint256 amountOfSettledTrades
-    )
-        internal
-    {
-        address usdToken = GlobalConfiguration.load().usdToken;
-
-        UD60x18 settlementFeePerTradeUsdX18 =
-            ud60x18(SettlementConfiguration.load(marketId, settlementConfigurationId).fee);
-        UD60x18 totalSettlementFeeUsdX18 = settlementFeePerTradeUsdX18.mul(ud60x18(amountOfSettledTrades));
-
-        // NOTE: testnet only
-        LimitedMintingERC20(usdToken).mint(settlementFeeReceiver, totalSettlementFeeUsdX18.intoUint256());
-        // liquidityEngine.withdrawUsdToken(keeper, ctx.settlementFeeUsdX18);
     }
 
     function _requireIsKeeper(address sender, address keeper) internal pure {

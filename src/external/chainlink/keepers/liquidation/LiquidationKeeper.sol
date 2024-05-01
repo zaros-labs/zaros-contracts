@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { IAutomationCompatible } from "@zaros/external/chainlink/interfaces/IAutomationCompatible.sol";
@@ -7,6 +7,7 @@ import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";
 
+// TODO: store margin and liquidation fee recipients
 contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     bytes32 internal constant LIQUIDATION_KEEPER_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.LiquidationKeeper")) - 1)
@@ -61,10 +62,10 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     }
 
     function performUpkeep(bytes calldata peformData) external override onlyForwarder {
-        (uint128[] memory accountsToBeLiquidated, address feeReceiver) = abi.decode(peformData, (uint128[], address));
+        (uint128[] memory accountsToBeLiquidated, address feeRecipient) = abi.decode(peformData, (uint128[], address));
         IPerpsEngine perpsEngine = _getLiquidationKeeperStorage().perpsEngine;
 
-        perpsEngine.liquidateAccounts(accountsToBeLiquidated, feeReceiver);
+        perpsEngine.liquidateAccounts(accountsToBeLiquidated, feeRecipient);
     }
 
     function _getLiquidationKeeperStorage() internal pure returns (LiquidationKeeperStorage storage self) {

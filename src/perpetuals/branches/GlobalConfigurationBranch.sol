@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -10,7 +10,6 @@ import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { MarginCollateralConfiguration } from "../leaves/MarginCollateralConfiguration.sol";
 import { MarketConfiguration } from "../leaves/MarketConfiguration.sol";
-import { OrderFees } from "../leaves/OrderFees.sol";
 import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
 
 // OpenZeppelin Upgradeable dependencies
@@ -18,9 +17,6 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
-
-// PRB Math dependencies
-import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 
 /// @notice See {IGlobalConfigurationBranch}.
 contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable, OwnableUpgradeable {
@@ -86,15 +82,15 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationBranch
-    function configureCollateralPriority(address[] calldata collateralTypes) external override onlyOwner {
+    function configureCollateralLiquidationPriority(address[] calldata collateralTypes) external override onlyOwner {
         if (collateralTypes.length == 0) {
             revert Errors.ZeroInput("collateralTypes");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.configureCollateralPriority(collateralTypes);
+        globalConfiguration.configureCollateralLiquidationPriority(collateralTypes);
 
-        emit LogConfigureCollateralPriority(msg.sender, collateralTypes);
+        emit LogConfigureCollateralLiquidationPriority(msg.sender, collateralTypes);
     }
 
     /// @inheritdoc IGlobalConfigurationBranch
@@ -144,15 +140,15 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationBranch
-    function removeCollateralFromPriorityList(address collateralType) external override onlyOwner {
+    function removeCollateralFromLiquidationPriority(address collateralType) external override onlyOwner {
         if (collateralType == address(0)) {
             revert Errors.ZeroInput("collateralType");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.removeCollateralTypeFromPriorityList(collateralType);
+        globalConfiguration.removeCollateralFromLiquidationPriority(collateralType);
 
-        emit LogRemoveCollateralFromPriorityList(msg.sender, collateralType);
+        emit LogRemoveCollateralFromLiquidationPriority(msg.sender, collateralType);
     }
 
     /// @inheritdoc IGlobalConfigurationBranch

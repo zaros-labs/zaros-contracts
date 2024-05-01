@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 library LookupTable {
     bytes32 internal constant LOOKUP_TABLE_STORAGE = keccak256("fi.zaros.tree-proxy.LookupTable");

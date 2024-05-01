@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
@@ -22,9 +22,6 @@ import {
     getInitializePayloads
 } from "script/helpers/TreeProxyHelpers.sol";
 
-// Forge dependencies
-import { Test } from "forge-std/Test.sol";
-
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
@@ -34,7 +31,13 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // PRB Math dependencies
 import { uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
+// PRB Test dependencies
+import { PRBTest } from "prb-test/PRBTest.sol";
+
+// Forge dependencies
+import { StdCheats, StdUtils } from "forge-std/Test.sol";
+
+abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Events, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -61,7 +64,7 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
     function setUp() public virtual {
         users = Users({
             owner: createUser({ name: "Owner" }),
-            settlementFeeReceiver: createUser({ name: "Settlement Fee Receiver" }),
+            settlementFeeRecipient: createUser({ name: "Settlement Fee Recipient" }),
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
             sakura: createUser({ name: "Sakura Haruno" }),
@@ -172,6 +175,12 @@ abstract contract Base_Test is Test, ProtocolConfiguration, Events, Storage {
             WSTETH_LOAN_TO_VALUE,
             address(mockPriceAdapters.mockWstEthUsdPriceAdapter)
         );
+
+        address[] memory collateralLiquidationPriority = new address[](2);
+        collateralLiquidationPriority[0] = address(usdToken);
+        collateralLiquidationPriority[1] = address(mockWstEth);
+
+        perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

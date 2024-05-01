@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
@@ -105,7 +105,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InsufficientCollateralBalance.selector, amountToWithdraw, expectedMarginCollateralBalance
-                )
+            )
         });
         perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
     }
@@ -120,7 +120,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         uint256 amountToWithdraw,
         uint256 marginRequirement,
         bool isLong,
-        uint256 marketIndex
+        uint256 marketId
     )
         external
         givenTheAccountExists
@@ -128,7 +128,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
-        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketIndex);
+        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         // {
         //     amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
         //     marginRequirement = bound({
