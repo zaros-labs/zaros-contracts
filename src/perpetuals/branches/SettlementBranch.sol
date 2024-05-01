@@ -214,8 +214,7 @@ contract SettlementBranch is ISettlementBranch {
             UD60x18 amountToDeduct = ctx.pnl.abs().intoUD60x18();
             // TODO: update to liquidation pool and fee pool addresses
             perpsAccount.deductAccountMargin(
-                msg.sender,
-                msg.sender,
+                feeRecipients,
                 amountToDeduct,
                 ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO
             );
