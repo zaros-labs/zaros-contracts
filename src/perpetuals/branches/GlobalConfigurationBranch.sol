@@ -140,15 +140,15 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationBranch
-    function removeCollateralFromPriorityList(address collateralType) external override onlyOwner {
+    function removeCollateralFromLiquidationPriority(address collateralType) external override onlyOwner {
         if (collateralType == address(0)) {
             revert Errors.ZeroInput("collateralType");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.removeCollateralTypeFromPriorityList(collateralType);
+        globalConfiguration.removeCollateralFromLiquidationPriority(collateralType);
 
-        emit LogRemoveCollateralFromPriorityList(msg.sender, collateralType);
+        emit LogRemoveCollateralFromLiquidationPriority(msg.sender, collateralType);
     }
 
     /// @inheritdoc IGlobalConfigurationBranch

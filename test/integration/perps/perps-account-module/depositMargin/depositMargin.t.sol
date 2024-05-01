@@ -62,10 +62,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: users.owner });
 
-        address[] memory newCollateralLiquidationPriority = new address[](1);
-        address mockCollateral = makeAddr("mockCollateral");
-        newCollateralLiquidationPriority[0] = mockCollateral;
-        perpsEngine.configureCollateralLiquidationPriority(newCollateralLiquidationPriority);
+        perpsEngine.removeCollateralFromLiquidationPriority(address(usdToken));
 
         changePrank({ msgSender: users.naruto });
 

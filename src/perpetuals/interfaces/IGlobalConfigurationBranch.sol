@@ -38,7 +38,7 @@ interface IGlobalConfigurationBranch {
     /// @notice Emitted when a collateral type is removed from the collateral priority.
     /// @param sender The address that removed the collateral type from the priority list.
     /// @param collateralType The address of the collateral type.
-    event LogRemoveCollateralFromPriorityList(address indexed sender, address indexed collateralType);
+    event LogRemoveCollateralFromLiquidationPriority(address indexed sender, address indexed collateralType);
 
     /// @notice Emitted when the global system parameters are configured.
     /// @param sender The address that configured the system parameters.
@@ -123,7 +123,7 @@ interface IGlobalConfigurationBranch {
 
     /// @notice Removes the given collateral type from the collateral priority.
     /// @param collateralType The address of the collateral type to remove.
-    function removeCollateralFromPriorityList(address collateralType) external;
+    function removeCollateralFromLiquidationPriority(address collateralType) external;
 
     /// @notice Configures the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
