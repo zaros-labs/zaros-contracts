@@ -115,17 +115,19 @@ contract LiquidationBranch is ILiquidationBranch {
                 );
             }
 
-            // TODO: Update margin receiver
-            // TODO: Update liquidation fee to estimate gas costs (i.edefault gas cost stored + gas price from
-            // GasOracle)
-            UD60x18 liquidatedCollateralUsdX18 = perpsAccount.deductAccountMargin(
-                feeRecipient,
-                feeRecipient,
-                ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
-                    ? ctx.marginBalanceUsdX18.intoUD60x18().add(ctx.liquidationFeeUsdX18)
-                    : requiredMaintenanceMarginUsdX18.add(ctx.liquidationFeeUsdX18),
-                ctx.liquidationFeeUsdX18
-            );
+            // TODO: Update margin recipient
+            UD60x18 liquidatedCollateralUsdX18 = perpsAccount.deductAccountMargin({
+                feeRecipients: FeeRecipients.Data({
+                    marginCollateralRecipient: feeRecipient,
+                    orderFeeRecipient: address(0),
+                    settlementFeeRecipient: ctx.liquidationFeeUsdX18
+                }),
+                pnlUsdX18: ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
+                    ? ctx.marginBalanceUsdX18.intoUD60x18()
+                    : requiredMaintenanceMarginUsdX18,
+                orderFeeUsdX18: UD_ZERO,
+                settlementFeeUsdX18: ctx.liquidationFeeUsdX18
+            });
             ctx.liquidatedCollateralUsdX18 = liquidatedCollateralUsdX18;
             MarketOrder.load(ctx.accountId).clear();
             // clear all possible custom orders (limit, tp/sl). Create account nonce to cancel all?
