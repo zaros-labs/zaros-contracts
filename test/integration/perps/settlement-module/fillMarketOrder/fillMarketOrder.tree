@@ -28,9 +28,8 @@ FillMarketOrder_Integration_Test
                                 │   ├── it should update the open interest and skew
                                 │   ├── it should update the account's active markets
                                 │   ├── it should update the account's position
-                                │   ├── it should deduct the pnl
+                                │   ├── it should deduct the pnl and fees
                                 │   ├── it should emit a {LogSettleOrder} event
-                                │   └── it should pay the settlement fee
                                 └── given the pnl is positive
                                     ├── it should update the funding values
                                     ├── it should update the open interest and skew
@@ -38,4 +37,3 @@ FillMarketOrder_Integration_Test
                                     ├── it should update the account's position
                                     ├── it should add the pnl
                                     ├── it should emit a {LogSettleOrder} event
-                                    └── it should pay the settlement fee

@@ -211,7 +211,7 @@ contract SettlementBranch is ISettlementBranch {
 
         if (ctx.pnl.lt(SD_ZERO)) {
             UD60x18 marginToDeductUsdX18 = ctx.orderFeeUsdX18.gt(SD_ZERO)
-                ? ctx.pnl.abs().intoUD60x18().add(ctx.orderFeeUsdX18.intoUD60x18())
+                ? ctx.pnl.abs().intoUD60x18().sub(ctx.orderFeeUsdX18.intoUD60x18().add(ctx.settlementFeeUsdX18))
                 : ctx.pnl.abs().intoUD60x18();
 
             perpsAccount.deductAccountMargin({

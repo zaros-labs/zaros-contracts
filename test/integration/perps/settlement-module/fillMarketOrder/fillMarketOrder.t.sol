@@ -703,13 +703,12 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             lastInteractionFundingFeePerUnit: 0
         });
 
-        // it should deduct the pnl
+        // it should deduct the pnl and fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
         console.log("returned margin bal: ");
         console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
-        // it should pay the settlement fee
 
         changePrank({ msgSender: users.naruto });
 
