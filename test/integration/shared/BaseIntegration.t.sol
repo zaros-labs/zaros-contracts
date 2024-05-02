@@ -32,11 +32,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
-    FeeRecipients.Data internal feeRecipients = FeeRecipients.Data({
-        marginCollateralRecipient: users.settlementFeeRecipient,
-        orderFeeRecipient: users.settlementFeeRecipient,
-        settlementFeeRecipient: users.settlementFeeRecipient
-    });
+    FeeRecipients.Data internal feeRecipients;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -46,6 +42,11 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
+        feeRecipients = FeeRecipients.Data({
+            marginCollateralRecipient: users.marginCollateralRecipient,
+            orderFeeRecipient: users.orderFeeRecipient,
+            settlementFeeRecipient: users.settlementFeeRecipient
+        });
 
         setupMarketsConfig();
 
