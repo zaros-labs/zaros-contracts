@@ -973,7 +973,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             lastInteractionFundingFeePerUnit: 0
         });
 
-        // it should deduct the pnl and fees
+        // it should deduct fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
         console.log("returned margin bal: ");
@@ -1020,7 +1020,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should emit a {LogSettleOrder} event
-        // it should mint USDz to the perps engine
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit ISettlementBranch.LogSettleOrder({
             sender: ctx.marketOrderKeeper,
@@ -1059,7 +1058,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.expectedPosition =
             Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
 
-        // it should deduct the pnl and fees
+        // it should add the pnl into the account's margin
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
         console.log("returned margin bal: ");
