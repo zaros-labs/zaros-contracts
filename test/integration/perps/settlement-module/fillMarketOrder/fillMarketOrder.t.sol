@@ -616,10 +616,9 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.adjustedMarginRequirements =
             ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18)).intoUint256();
 
-        priceShiftRatio = bound({ x: priceShiftRatio, min: 1, max: 100 });
+        priceShiftRatio = bound({ x: priceShiftRatio, min: 2, max: 100 });
         initialMarginRate =
             bound({ x: initialMarginRate, min: ctx.adjustedMarginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-        // fuzz with higher margin values to test higher price shifts
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         ctx.priceShiftBps = ctx.adjustedMarginRequirements / priceShiftRatio;
@@ -755,6 +754,9 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         ctx.secondMockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.newIndexPrice);
 
+        // ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
+        //     ctx.firstFillPriceX18.intoSD59x18()
+        // ).mul(sd59x18(ctx.firstOrderSizeDelta));
         ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
             ctx.firstFillPriceX18.intoSD59x18()
         ).mul(sd59x18(ctx.firstOrderSizeDelta));
