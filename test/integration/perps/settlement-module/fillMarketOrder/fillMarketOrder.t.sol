@@ -578,6 +578,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         bytes firstMockSignedReport;
         uint256 expectedOpenInterest;
         UD60x18 openInterestX18;
+        int256 expectedSkew;
+        SD59x18 skewX18;
         uint256 expectedActiveMarketId;
         Position.Data expectedPosition;
         int256 expectedMarginBalanceUsd;
@@ -586,6 +588,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         int128 secondOrderSizeDelta;
         SD59x18 secondOrderFeeUsdX18;
         UD60x18 secondFillPriceX18;
+        SD59x18 secondOrderExpectedPriceShiftPnlX18;
         int256 secondOrderExpectedPnl;
         bytes secondMockSignedReport;
     }
@@ -670,7 +673,12 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should emit a {LogSettleOrder} event
+        // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
+        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(
+            usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUD60x18().intoUint256()
+        );
         emit ISettlementBranch.LogSettleOrder({
             sender: ctx.marketOrderKeeper,
             accountId: ctx.perpsAccountId,
@@ -682,19 +690,26 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             pnl: ctx.firstOrderExpectedPnl,
             fundingFeePerUnit: 0
         });
+
         // fill first order and open position
         perpsEngine.fillMarketOrder(
             ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.firstMockSignedReport
         );
         // TODO: assert after funding task is done
         // it should update the funding values
+
         // it should update the open interest and skew
         ctx.expectedOpenInterest = sd59x18(ctx.firstOrderSizeDelta).abs().intoUD60x18().intoUint256();
+        ctx.expectedSkew = ctx.firstOrderSizeDelta;
         (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
+        ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
         assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
+        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "first fill: skew");
+
         // TODO: assert after harnesses are done
         // it should update the account's active markets
         ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+
         // TODO: assert after harnesses are done
         // it should update the account's position
         ctx.expectedPosition = Position.Data({
@@ -740,6 +755,9 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         ctx.secondMockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.newIndexPrice);
 
+        ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
+            ctx.firstFillPriceX18.intoSD59x18()
+        ).mul(sd59x18(ctx.firstOrderSizeDelta));
         ctx.secondOrderExpectedPnl = unary(
             ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
         ).add(
@@ -751,7 +769,17 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should emit a {LogSettleOrder} event
+        // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
+        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(
+            usdToken, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUD60x18().intoUint256()
+        );
+        expectCallToTransfer(
+            usdToken,
+            feeRecipients.marginCollateralRecipient,
+            ctx.secondOrderExpectedPriceShiftPnlX18.abs().intoUD60x18().intoUint256()
+        );
         emit ISettlementBranch.LogSettleOrder({
             sender: ctx.marketOrderKeeper,
             accountId: ctx.perpsAccountId,
@@ -767,12 +795,33 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.fillMarketOrder(
             ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.secondMockSignedReport
         );
+
+        // TODO: assert after funding task is done
         // it should update the funding values
+
         // it should update the open interest and skew
+        ctx.expectedOpenInterest = 0;
+        ctx.expectedSkew = 0;
+        (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
+        ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
+        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "first fill: skew");
+
+        // TODO: assert after harnesses are done
         // it should update the account's active markets
+        ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+
+        // TODO: assert after harnesses are done
         // it should update the account's position
-        // it should deduct the pnl
-        // it should pay the settlement fee
+        ctx.expectedPosition =
+            Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
+
+        // it should deduct the pnl and fees
+        ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
+        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
+        console.log("returned margin bal: ");
+        console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
+        assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
     }
 
     function test_GivenThePnlIsPositive()
