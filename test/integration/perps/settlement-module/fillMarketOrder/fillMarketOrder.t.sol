@@ -760,11 +760,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ).mul(sd59x18(ctx.firstOrderSizeDelta));
         ctx.secondOrderExpectedPnl = unary(
             ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
-        ).add(
-            ctx.secondFillPriceX18.intoSD59x18().sub(ctx.firstFillPriceX18.intoSD59x18()).mul(
-                sd59x18(ctx.firstOrderSizeDelta)
-            )
-        ).intoInt256();
+        ).add(ctx.secondOrderExpectedPriceShiftPnlX18).intoInt256();
 
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
@@ -824,7 +820,41 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
     }
 
-    function test_GivenThePnlIsPositive()
+    struct TestFuzz_GivenThePnlIsPositive_Context {
+        MarketConfig fuzzMarketConfig;
+        uint256 adjustedMarginRequirements;
+        uint256 priceShiftBps;
+        address marketOrderKeeper;
+        uint128 perpsAccountId;
+        int128 firstOrderSizeDelta;
+        SD59x18 firstOrderFeeUsdX18;
+        UD60x18 firstFillPriceX18;
+        int256 firstOrderExpectedPnl;
+        bytes firstMockSignedReport;
+        uint256 expectedOpenInterest;
+        UD60x18 openInterestX18;
+        int256 expectedSkew;
+        SD59x18 skewX18;
+        uint256 expectedActiveMarketId;
+        Position.Data expectedPosition;
+        int256 expectedMarginBalanceUsd;
+        SD59x18 marginBalanceUsdX18;
+        uint256 newIndexPrice;
+        int128 secondOrderSizeDelta;
+        SD59x18 secondOrderFeeUsdX18;
+        UD60x18 secondFillPriceX18;
+        SD59x18 secondOrderExpectedPriceShiftPnlX18;
+        int256 secondOrderExpectedPnl;
+        bytes secondMockSignedReport;
+    }
+
+    function testFuzz_GivenThePnlIsPositive(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketId,
+        uint256 priceShift
+    )
         external
         givenTheSenderIsTheKeeper
         givenTheMarketOrderExists
@@ -836,12 +866,204 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirement
         givenTheMarketsOILimitWontBeExceeded
     {
-        // it should update the funding values
-        // it should update the open interest and skew
-        // it should update the account's active markets
-        // it should update the account's position
-        // it should add the pnl
+        TestFuzz_GivenThePnlIsPositive_Context memory ctx;
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        ctx.adjustedMarginRequirements =
+            ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18)).intoUint256();
+
+        priceShift = bound({ x: priceShift, min: 1.1e18, max: 10e18 });
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: ctx.adjustedMarginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        // fuzz with higher margin values to test higher price shifts
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        ctx.perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+
+        ctx.firstOrderSizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                accountId: ctx.perpsAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(ctx.fuzzMarketConfig.maxOi),
+                minTradeSize: ud60x18(ctx.fuzzMarketConfig.minTradeSize),
+                price: ud60x18(ctx.fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
+
+        (,,, ctx.firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            ctx.perpsAccountId,
+            ctx.fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            ctx.firstOrderSizeDelta
+        );
+
+        ctx.firstFillPriceX18 = perpsEngine.getMarkPrice(
+            ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice, ctx.firstOrderSizeDelta
+        );
+
+        // first market order
+        perpsEngine.createMarketOrder(
+            IOrderBranch.CreateMarketOrderParams({
+                accountId: ctx.perpsAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.firstOrderSizeDelta
+            })
+        );
+
+        ctx.firstMockSignedReport =
+            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        ctx.firstOrderExpectedPnl =
+            unary(ctx.firstOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())).intoInt256();
+
+        changePrank({ msgSender: ctx.marketOrderKeeper });
+
         // it should emit a {LogSettleOrder} event
-        // it should pay the settlement fee
+        // it should transfer the pnl and fees
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(
+            usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUD60x18().intoUint256()
+        );
+        emit ISettlementBranch.LogSettleOrder({
+            sender: ctx.marketOrderKeeper,
+            accountId: ctx.perpsAccountId,
+            marketId: ctx.fuzzMarketConfig.marketId,
+            sizeDelta: ctx.firstOrderSizeDelta,
+            fillPrice: ctx.firstFillPriceX18.intoUint256(),
+            orderFeeUsd: ctx.firstOrderFeeUsdX18.intoInt256(),
+            settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
+            pnl: ctx.firstOrderExpectedPnl,
+            fundingFeePerUnit: 0
+        });
+
+        // fill first order and open position
+        console.log("filling first order: ");
+        perpsEngine.fillMarketOrder(
+            ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.firstMockSignedReport
+        );
+        // TODO: assert after funding task is done
+        // it should update the funding values
+
+        // it should update the open interest and skew
+        ctx.expectedOpenInterest = sd59x18(ctx.firstOrderSizeDelta).abs().intoUD60x18().intoUint256();
+        ctx.expectedSkew = ctx.firstOrderSizeDelta;
+        (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
+        ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
+        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "first fill: skew");
+
+        // TODO: assert after harnesses are done
+        // it should update the account's active markets
+        ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+
+        // TODO: assert after harnesses are done
+        // it should update the account's position
+        ctx.expectedPosition = Position.Data({
+            size: ctx.firstOrderSizeDelta,
+            lastInteractionPrice: ctx.firstFillPriceX18.intoUint128(),
+            lastInteractionFundingFeePerUnit: 0
+        });
+
+        // it should deduct the pnl and fees
+        ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
+        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
+        console.log("returned margin bal: ");
+        console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
+        assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
+
+        changePrank({ msgSender: users.naruto });
+
+        ctx.newIndexPrice = isLong
+            ? ud60x18(ctx.fuzzMarketConfig.mockUsdPrice).mul(ud60x18(priceShift)).intoUint256()
+            : ud60x18(ctx.fuzzMarketConfig.mockUsdPrice).div(ud60x18(priceShift)).intoUint256();
+        updateMockPriceFeed(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice);
+
+        ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
+
+        (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            ctx.perpsAccountId,
+            ctx.fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            ctx.secondOrderSizeDelta
+        );
+
+        ctx.secondFillPriceX18 =
+            perpsEngine.getMarkPrice(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice, ctx.secondOrderSizeDelta);
+
+        // second market order
+        perpsEngine.createMarketOrder(
+            IOrderBranch.CreateMarketOrderParams({
+                accountId: ctx.perpsAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.secondOrderSizeDelta
+            })
+        );
+
+        ctx.secondMockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.newIndexPrice);
+
+        ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
+            ctx.firstFillPriceX18.intoSD59x18()
+        ).mul(sd59x18(ctx.firstOrderSizeDelta));
+        ctx.secondOrderExpectedPnl = unary(
+            ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
+        ).add(ctx.secondOrderExpectedPriceShiftPnlX18).intoInt256();
+
+        changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        // it should emit a {LogSettleOrder} event
+        // it should mint USDz to the perps engine
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit ISettlementBranch.LogSettleOrder({
+            sender: ctx.marketOrderKeeper,
+            accountId: ctx.perpsAccountId,
+            marketId: ctx.fuzzMarketConfig.marketId,
+            sizeDelta: ctx.secondOrderSizeDelta,
+            fillPrice: ctx.secondFillPriceX18.intoUint256(),
+            orderFeeUsd: ctx.secondOrderFeeUsdX18.intoInt256(),
+            settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
+            pnl: ctx.secondOrderExpectedPnl,
+            fundingFeePerUnit: 0
+        });
+        // fill second order and close position
+        console.log("filling second order: ");
+        perpsEngine.fillMarketOrder(
+            ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.secondMockSignedReport
+        );
+
+        // TODO: assert after funding task is done
+        // it should update the funding values
+
+        // it should update the open interest and skew
+        ctx.expectedOpenInterest = 0;
+        ctx.expectedSkew = 0;
+        (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
+        ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
+        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "first fill: skew");
+
+        // TODO: assert after harnesses are done
+        // it should update the account's active markets
+        ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+
+        // TODO: assert after harnesses are done
+        // it should update the account's position
+        ctx.expectedPosition =
+            Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
+
+        // it should deduct the pnl and fees
+        ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
+        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
+        console.log("returned margin bal: ");
+        console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
+        assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
     }
 }
