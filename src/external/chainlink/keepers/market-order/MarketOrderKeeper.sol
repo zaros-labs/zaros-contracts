@@ -14,6 +14,7 @@ import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
+// TODO: configure different fee recipients
 contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeeper {
     using SafeCast for uint256;
 
