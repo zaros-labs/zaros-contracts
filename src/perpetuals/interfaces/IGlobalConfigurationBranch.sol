@@ -60,7 +60,7 @@ interface IGlobalConfigurationBranch {
     /// @notice Emitted when a perps market is reconfigured.
     /// @param sender The address that configured the perps market.
     /// @param marketId The perps market id.
-    event LogConfigurePerpMarket(address indexed sender, uint128 marketId);
+    event LogUpdatePerpMarketConfiguration(address indexed sender, uint128 marketId);
 
     /// @notice Emitted when the settlement configuration of a given market is updated.
     /// @param sender The address that updated the settlement configuration.

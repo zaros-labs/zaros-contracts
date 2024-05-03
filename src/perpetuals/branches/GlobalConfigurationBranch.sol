@@ -282,7 +282,7 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
             params.orderFees
         );
 
-        emit LogConfigurePerpMarket(msg.sender, params.marketId);
+        emit LogUpdatePerpMarketConfiguration(msg.sender, params.marketId);
     }
 
     /// @inheritdoc IGlobalConfigurationBranch
