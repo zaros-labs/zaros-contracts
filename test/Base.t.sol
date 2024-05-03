@@ -7,7 +7,6 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
-import { USDToken } from "@zaros/usd/USDToken.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "./mocks/MockUSDToken.sol";
