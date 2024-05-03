@@ -7,7 +7,11 @@ import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 struct Users {
     // Default owner for all Zaros contracts.
     address payable owner;
-    // User that is paid settlement fees.
+    // Address that receives margin collateral from trading accounts.
+    address payable marginCollateralRecipient;
+    // Address that receives order fee payments.
+    address payable orderFeeRecipient;
+    // Address that receives settlement fee payments.
     address payable settlementFeeRecipient;
     // Impartial user 1.
     address payable naruto;
