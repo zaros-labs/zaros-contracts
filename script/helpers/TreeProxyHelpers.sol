@@ -116,8 +116,8 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     bytes4[] memory perpMarketBranchSelectors = new bytes4[](10);
 
-    perpMarketBranchSelectors[0] = PerpMarketBranch.name.selector;
-    perpMarketBranchSelectors[1] = PerpMarketBranch.symbol.selector;
+    perpMarketBranchSelectors[0] = PerpMarketBranch.getName.selector;
+    perpMarketBranchSelectors[1] = PerpMarketBranch.getSymbol.selector;
     perpMarketBranchSelectors[2] = PerpMarketBranch.getMaxOpenInterest.selector;
     perpMarketBranchSelectors[3] = PerpMarketBranch.getSkew.selector;
     perpMarketBranchSelectors[4] = PerpMarketBranch.getOpenInterest.selector;
@@ -125,7 +125,7 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpMarketBranchSelectors[6] = PerpMarketBranch.getSettlementConfiguration.selector;
     perpMarketBranchSelectors[7] = PerpMarketBranch.getFundingRate.selector;
     perpMarketBranchSelectors[8] = PerpMarketBranch.getFundingVelocity.selector;
-    perpMarketBranchSelectors[9] = PerpMarketBranch.getMarketData.selector;
+    perpMarketBranchSelectors[9] = PerpMarketBranch.getPerpMarketConfiguration.selector;
 
     bytes4[] memory perpsAccountBranchSelectors = new bytes4[](isTestnet ? 16 : 12);
 

@@ -21,12 +21,12 @@ contract PerpMarketBranch is IPerpMarketBranch {
     using Position for Position.Data;
 
     /// @inheritdoc IPerpMarketBranch
-    function name(uint128 marketId) external view override returns (string memory) {
+    function getName(uint128 marketId) external view override returns (string memory) {
         return PerpMarket.load(marketId).configuration.name;
     }
 
     /// @inheritdoc IPerpMarketBranch
-    function symbol(uint128 marketId) external view override returns (string memory) {
+    function getSymbol(uint128 marketId) external view override returns (string memory) {
         return PerpMarket.load(marketId).configuration.symbol;
     }
 
@@ -107,7 +107,7 @@ contract PerpMarketBranch is IPerpMarketBranch {
     }
 
     /// @inheritdoc IPerpMarketBranch
-    function getMarketData(uint128 marketId)
+    function getPerpMarketConfiguration(uint128 marketId)
         external
         view
         returns (
@@ -116,8 +116,8 @@ contract PerpMarketBranch is IPerpMarketBranch {
             uint128 initialMarginRateX18,
             uint128 maintenanceMarginRateX18,
             uint128 maxOpenInterest,
-            int128 skew,
-            uint128 openInterest,
+            uint256 skewScale,
+            uint256 minTradeSizeX18,
             OrderFees.Data memory orderFees
         )
     {
@@ -128,8 +128,8 @@ contract PerpMarketBranch is IPerpMarketBranch {
         initialMarginRateX18 = perpMarket.configuration.initialMarginRateX18;
         maintenanceMarginRateX18 = perpMarket.configuration.maintenanceMarginRateX18;
         maxOpenInterest = perpMarket.configuration.maxOpenInterest;
-        skew = perpMarket.skew;
-        openInterest = perpMarket.openInterest;
+        skewScale = perpMarket.configuration.skewScale;
+        minTradeSizeX18 = perpMarket.configuration.minTradeSizeX18;
         orderFees = perpMarket.configuration.orderFees;
     }
 }

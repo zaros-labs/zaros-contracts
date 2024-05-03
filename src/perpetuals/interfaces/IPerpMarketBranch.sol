@@ -16,11 +16,11 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 interface IPerpMarketBranch {
     /// @notice Returns the given perps market name.
     /// @param marketId The perps market id.
-    function name(uint128 marketId) external view returns (string memory);
+    function getName(uint128 marketId) external view returns (string memory);
 
     /// @notice Returns the given perps market symbol.
     /// @param marketId The perps market id.
-    function symbol(uint128 marketId) external view returns (string memory);
+    function getSymbol(uint128 marketId) external view returns (string memory);
 
     /// @notice Returns the maximum open interest on a side of the given market.
     /// @param marketId The perps market id.
@@ -83,10 +83,10 @@ interface IPerpMarketBranch {
     /// @return initialMarginRateX18 The minimum initial margin rate for the market.
     /// @return maintenanceMarginRateX18 The maintenance margin rate for the market.
     /// @return maxOpenInterest The maximum open interest for the market.
-    /// @return skew The skew of the market.
-    /// @return openInterest The openInterest of the market
+    /// @return skewScale The configured skew scale of the market.
+    /// @return minTradeSizeX18 The minimum trade size of the market.
     /// @return orderFees The configured maker and taker order fees of the market.
-    function getMarketData(uint128 marketId)
+    function getPerpMarketConfiguration(uint128 marketId)
         external
         view
         returns (
@@ -95,8 +95,8 @@ interface IPerpMarketBranch {
             uint128 initialMarginRateX18,
             uint128 maintenanceMarginRateX18,
             uint128 maxOpenInterest,
-            int128 skew,
-            uint128 openInterest,
+            uint256 skewScale,
+            uint256 minTradeSizeX18,
             OrderFees.Data memory orderFees
         );
 }
