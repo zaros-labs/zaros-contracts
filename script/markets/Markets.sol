@@ -42,12 +42,6 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint256 mockUsdPrice;
     }
 
-    struct FuzzMarginProfile {
-        MarketConfig marketConfig;
-        uint256 marginRate;
-        uint256 marginValueUsd;
-    }
-
     /// @notice Market configurations mapped by market id.
     mapping(uint256 marketId => MarketConfig marketConfig) internal marketsConfig;
     /// @notice Market order keepers contracts mapped by market id.

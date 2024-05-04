@@ -37,6 +37,15 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     FeeRecipients.Data internal feeRecipients;
 
     /*//////////////////////////////////////////////////////////////////////////
+                                     STRUCTS
+    //////////////////////////////////////////////////////////////////////////*/
+    struct FuzzMarginProfile {
+        MarketConfig marketConfig;
+        uint256 marginRate;
+        uint256 marginValueUsd;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
