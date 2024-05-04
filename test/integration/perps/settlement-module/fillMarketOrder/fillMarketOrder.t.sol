@@ -31,12 +31,13 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate,
         uint256 initialMarginValueUsd,
         bool isLong,
-        uint256 quantityFuzzMarginProfile
+        uint256 quantityFuzzMarginProfile,
+        uint256 initialMarketId
     )
         external
     {
         FuzzMarginProfile[] memory fuzzMarginProfiles = getFuzzMarginProfiles(
-            quantityFuzzMarginProfile, quantityFuzzMarginProfile, initialMarginRate, initialMarginValueUsd
+            quantityFuzzMarginProfile, initialMarketId, initialMarginRate, initialMarginValueUsd
         );
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
@@ -104,7 +105,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheMarketOrderExists
     {
         FuzzMarginProfile[] memory fuzzMarginProfiles =
-            getFuzzMarginProfiles(quantityFuzzMarginProfile, quantityFuzzMarginProfile, 0, initialMarginValueUsd);
+            getFuzzMarginProfiles(quantityFuzzMarginProfile, initialMarketId, 0, initialMarginValueUsd);
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
@@ -145,7 +146,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheMarketOrderExists
     {
         FuzzMarginProfile[] memory fuzzMarginProfiles = getFuzzMarginProfiles(
-            quantityFuzzMarginProfile, quantityFuzzMarginProfile, initialMarginRate, initialMarginValueUsd
+            quantityFuzzMarginProfile, initialMarketId, initialMarginRate, initialMarginValueUsd
         );
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
@@ -223,7 +224,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSettlementStrategyIsEnabled
     {
         FuzzMarginProfile[] memory fuzzMarginProfiles = getFuzzMarginProfiles(
-            quantityFuzzMarginProfile, quantityFuzzMarginProfile, initialMarginRate, initialMarginValueUsd
+            quantityFuzzMarginProfile, initialMarketId, initialMarginRate, initialMarginValueUsd
         );
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
@@ -315,7 +316,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSettlementStrategyIsEnabled
     {
         FuzzMarginProfile[] memory fuzzMarginProfiles = getFuzzMarginProfiles(
-            quantityFuzzMarginProfile, quantityFuzzMarginProfile, initialMarginRate, initialMarginValueUsd
+            quantityFuzzMarginProfile, initialMarketId, initialMarginRate, initialMarginValueUsd
         );
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
@@ -484,7 +485,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheDataStreamsReportIsValid
     {
         FuzzMarginProfile[] memory fuzzMarginProfiles =
-            getFuzzMarginProfiles(quantityFuzzMarginProfile, quantityFuzzMarginProfile, 0, initialMarginValueUsd);
+            getFuzzMarginProfiles(quantityFuzzMarginProfile, initialMarketId, 0, initialMarginValueUsd);
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
@@ -594,7 +595,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirement
     {
         FuzzMarginProfile[] memory fuzzMarginProfiles = getFuzzMarginProfiles(
-            quantityFuzzMarginProfile, quantityFuzzMarginProfile, initialMarginRate, initialMarginValueUsd
+            quantityFuzzMarginProfile, initialMarketId, initialMarginRate, initialMarginValueUsd
         );
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
@@ -708,7 +709,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheMarketsOILimitWontBeExceeded
     {
         FuzzMarginProfile[] memory fuzzMarginProfiles = getFuzzMarginProfiles(
-            quantityFuzzMarginProfile, quantityFuzzMarginProfile, initialMarginRate, initialMarginValueUsd
+            quantityFuzzMarginProfile, initialMarketId, initialMarginRate, initialMarginValueUsd
         );
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
@@ -990,7 +991,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheMarketsOILimitWontBeExceeded
     {
         FuzzMarginProfile[] memory fuzzMarginProfiles = getFuzzMarginProfiles(
-            quantityFuzzMarginProfile, quantityFuzzMarginProfile, initialMarginRate, initialMarginValueUsd
+            quantityFuzzMarginProfile, initialMarketId, initialMarginRate, initialMarginValueUsd
         );
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
