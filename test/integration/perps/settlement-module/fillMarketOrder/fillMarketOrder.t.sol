@@ -43,14 +43,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
 
-            initialMarginRate = bound({
-                x: marginProfile.marginRate,
-                min: marginProfile.marketConfig.marginRequirements,
-                max: MAX_MARGIN_REQUIREMENTS
-            });
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
 
             uint128 perpsAccountId = createAccountAndDeposit(marginProfile.marginValueUsd, address(usdToken));
@@ -110,9 +102,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
 
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
 
             uint128 perpsAccountId = createAccountAndDeposit(marginProfile.marginValueUsd, address(usdToken));
@@ -151,14 +140,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
-
-            initialMarginRate = bound({
-                x: marginProfile.marginRate,
-                min: marginProfile.marketConfig.marginRequirements,
-                max: MAX_MARGIN_REQUIREMENTS
-            });
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
 
@@ -229,14 +210,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
-
-            initialMarginRate = bound({
-                x: marginProfile.marginRate,
-                min: marginProfile.marketConfig.marginRequirements,
-                max: MAX_MARGIN_REQUIREMENTS
-            });
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
 
@@ -321,14 +294,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
-
-            initialMarginRate = bound({
-                x: marginProfile.marginRate,
-                min: marginProfile.marketConfig.marginRequirements,
-                max: MAX_MARGIN_REQUIREMENTS
-            });
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
 
@@ -601,14 +566,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
 
-            initialMarginRate = bound({
-                x: marginProfile.marginRate,
-                min: marginProfile.marketConfig.marginRequirements,
-                max: MAX_MARGIN_REQUIREMENTS
-            });
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
 
             uint128 perpsAccountId = createAccountAndDeposit(marginProfile.marginValueUsd, address(usdToken));
@@ -726,8 +683,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 min: ctx.adjustedMarginRequirements,
                 max: MAX_MARGIN_REQUIREMENTS
             });
-            initialMarginValueUsd =
-                bound({ x: ctx.marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
             ctx.priceShiftBps = ctx.adjustedMarginRequirements / priceShiftRatio;
             ctx.marketOrderKeeper = marketOrderKeepers[ctx.marginProfile.marketConfig.marketId];
@@ -1009,8 +964,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 max: MAX_MARGIN_REQUIREMENTS
             });
             // fuzz with higher margin values to test higher price shifts
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
             ctx.marketOrderKeeper = marketOrderKeepers[ctx.marginProfile.marketConfig.marketId];
 

@@ -189,9 +189,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
 
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
             SD59x18 sizeDeltaAbs = ud60x18(marginProfile.marketConfig.minTradeSize).intoSD59x18().sub(sd59x18(1));
 
@@ -233,9 +230,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
-
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
             deal({ token: address(usdToken), to: users.naruto, give: initialMarginValueUsd });
             SD59x18 sizeDeltaAbs = ud60x18(marginProfile.marketConfig.maxOi).intoSD59x18().add(sd59x18(1));
@@ -496,14 +490,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
 
-            initialMarginRate = bound({
-                x: marginProfile.marginRate,
-                min: marginProfile.marketConfig.marginRequirements,
-                max: MAX_MARGIN_REQUIREMENTS
-            });
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-
             deal({ token: address(usdToken), to: users.naruto, give: initialMarginValueUsd });
 
             uint128 perpsAccountId = createAccountAndDeposit(initialMarginValueUsd, address(usdToken));
@@ -567,14 +553,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
-
-            initialMarginRate = bound({
-                x: marginProfile.marginRate,
-                min: marginProfile.marketConfig.marginRequirements,
-                max: MAX_MARGIN_REQUIREMENTS
-            });
-            initialMarginValueUsd =
-                bound({ x: marginProfile.marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
 

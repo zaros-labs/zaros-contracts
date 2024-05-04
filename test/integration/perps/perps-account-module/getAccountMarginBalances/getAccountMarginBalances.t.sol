@@ -26,8 +26,6 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
 
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
-
-            initialMarginValueUsd = bound({ x: marginProfile.marginValueUsd, min: 1, max: USDZ_DEPOSIT_CAP });
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
 
             uint256 expectedMarginBalance = getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(
@@ -69,7 +67,6 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
             FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
 
-            initialMarginValueUsd = bound({ x: marginProfile.marginValueUsd, min: 1, max: WSTETH_DEPOSIT_CAP });
             deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
             deal({ token: address(mockWstEth), to: users.naruto, give: marginProfile.marginValueUsd });
 
