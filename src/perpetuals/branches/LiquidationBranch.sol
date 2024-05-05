@@ -82,7 +82,6 @@ contract LiquidationBranch is ILiquidationBranch {
         SD59x18 fundingFeePerUnitUsdX18;
     }
 
-    // TODO: pass margin and liquidation fee recipients
     function liquidateAccounts(
         uint128[] calldata accountsIds,
         address feeRecipient

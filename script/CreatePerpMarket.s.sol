@@ -17,8 +17,6 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-// TODO: update limit order strategies
-// TODO: update owner and forwarder on keeper initialization
 contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES

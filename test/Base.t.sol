@@ -56,7 +56,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     IPerpsEngine internal perpsEngineImplementation;
     address[] marginCollateralAddress = new address[](3);
 
-    /// @dev TODO: think about forking tests
     MockPriceAdapters internal mockPriceAdapters;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -176,7 +175,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
 
-        // TODO: Temporary, switch to liquidity engine
+        // Temporary, switch to liquidity engine
         usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(perpsEngine));
 
         perpsEngine.configureMarginCollateral(

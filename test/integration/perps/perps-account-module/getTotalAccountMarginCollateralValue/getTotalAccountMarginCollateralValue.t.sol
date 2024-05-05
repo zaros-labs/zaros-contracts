@@ -27,7 +27,6 @@ contract getAccountEquityUsd_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_getAccountEquityUsdMultipleCollateral(uint256 amountToDeposit) external {
-        // TODO: let's fuzz the tokens used here
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: WSTETH_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
         deal({ token: address(mockWstEth), to: users.naruto, give: amountToDeposit });

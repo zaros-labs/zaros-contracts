@@ -85,10 +85,6 @@ library PerpsAccount {
         }
     }
 
-    // TODO: Should we create a Service to handle this?
-    // TODO: Check with Cyfrin if we must actually update the position / perp market state and validate after the core
-    // settlement logic. Is it a risk to use the perpMarket's size and skew before sizeDelta is applied, while we use
-    // the new sizeDelta to calculate the position's new notional value?
     /// @notice Validates if the given account will still meet margin requirements after a new settlement.
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.
@@ -255,7 +251,6 @@ library PerpsAccount {
         }
     }
 
-    // TODO: Should we create a Service to handle this?
     function getAccountUnrealizedPnlUsd(Data storage self) internal view returns (SD59x18 totalUnrealizedPnlUsdX18) {
         for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();

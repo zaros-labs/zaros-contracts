@@ -2,13 +2,12 @@
 
 pragma solidity 0.8.25;
 
-// TODO: organize branches / leaves errors.
 library Errors {
     /// @notice Generic protocol errors.
 
     /// @notice Thrown when the given input of a function is its zero value.
     error ZeroInput(string parameter);
-    /// TODO: Remove this error in the future and add meaningful errors to the functions that throw it.
+    /// @notice General error thrown when a given parameter is invalid.
     error InvalidParameter(string parameter, string reason);
     /// @notice Thrown when the sender is not authorized to perform a given action.
     error Unauthorized(address sender);
@@ -91,7 +90,6 @@ library Errors {
     error OnlyKeeper(address sender, address keeper);
 
     /// @notice PerpsEngine.PerpMarketBranch errors.
-    // TODO: create errors
 
     /// @notice PerpsEngine.GlobalConfiguration errors.
 
