@@ -44,7 +44,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration, Markets, Base_Te
         if (isTest) {
             createPerpMarkets(
                 users.owner,
-                users.settlementFeeReceiver,
+                users.settlementFeeRecipient,
                 perpsEngine,
                 INITIAL_MARKET_ID,
                 FINAL_MARKET_ID,
@@ -130,7 +130,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration, Markets, Base_Te
             new ERC1967Proxy(
                 marketOrderKeeperImplementation,
                 abi.encodeWithSelector(
-                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, settlementFeeRecipient, marketId
+                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, settlementFeeReceiver, marketId
                 )
             )
         );

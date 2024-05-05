@@ -42,7 +42,7 @@ import { PRBTest } from "prb-test/PRBTest.sol";
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
-abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Events, Storage {
+abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Events, Storage, Markets {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
