@@ -15,10 +15,12 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         uint256 amountToDeposit = 0;
         uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
+        address[] memory fuzzMarginCollateralAddress = getFuzzMarginCollateralAddress(1);
+
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
 
-        perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
+        perpsEngine.depositMargin(userPerpsAccountId, fuzzMarginCollateralAddress[0], amountToDeposit);
     }
 
     modifier whenTheAmountIsNotZero() {

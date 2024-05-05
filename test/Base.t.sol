@@ -50,9 +50,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     AccountNFT internal perpsAccountToken;
     MockERC20 internal mockWstEth;
+    MockERC20 internal mockWeEth;
     MockUSDToken internal usdToken;
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
+    address[] marginCollateralAddress = new address[](3);
 
     /// @dev TODO: think about forking tests
     MockPriceAdapters internal mockPriceAdapters;
@@ -82,20 +84,32 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             decimals_: 18,
             deployerBalance: 100_000_000e18
         });
+        mockWeEth = new MockERC20({
+            name: "Wrapped eETH",
+            symbol: "weETH",
+            decimals_: 18,
+            deployerBalance: 100_000_000e18
+        });
 
         MockPriceFeed mockBtcUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_BTC_USD_PRICE));
         MockPriceFeed mockEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
         MockPriceFeed mockLinkUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_LINK_USD_PRICE));
         MockPriceFeed mockUsdcUsdPriceAdapter = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
         MockPriceFeed mockWstEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_WSTETH_USD_PRICE));
+        MockPriceFeed mockWeEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_WEETH_USD_PRICE));
 
         mockPriceAdapters = MockPriceAdapters({
             mockBtcUsdPriceAdapter: mockBtcUsdPriceAdapter,
             mockEthUsdPriceAdapter: mockEthUsdPriceAdapter,
             mockLinkUsdPriceAdapter: mockLinkUsdPriceAdapter,
             mockUsdcUsdPriceAdapter: mockUsdcUsdPriceAdapter,
-            mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter
+            mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter,
+            mockWeEthUsdPriceAdapter: mockWeEthUsdPriceAdapter
         });
+
+        marginCollateralAddress[0] = address(usdToken);
+        marginCollateralAddress[1] = address(mockWstEth);
+        marginCollateralAddress[2] = address(mockWeEth);
 
         bool isTestnet = false;
         address accessKeyManager = address(0);
@@ -142,18 +156,22 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         changePrank({ msgSender: users.naruto });
         usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
         mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWeEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sasuke });
         usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
         mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWeEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sakura });
         usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
         mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWeEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.madara });
         usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
         mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockWeEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });
@@ -177,10 +195,17 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             WSTETH_LOAN_TO_VALUE,
             address(mockPriceAdapters.mockWstEthUsdPriceAdapter)
         );
+        perpsEngine.configureMarginCollateral(
+            address(mockWeEth),
+            WEETH_DEPOSIT_CAP,
+            WEETH_LOAN_TO_VALUE,
+            address(mockPriceAdapters.mockWeEthUsdPriceAdapter)
+        );
 
-        address[] memory collateralLiquidationPriority = new address[](2);
+        address[] memory collateralLiquidationPriority = new address[](3);
         collateralLiquidationPriority[0] = address(usdToken);
         collateralLiquidationPriority[1] = address(mockWstEth);
+        collateralLiquidationPriority[2] = address(mockWeEth);
 
         perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
     }

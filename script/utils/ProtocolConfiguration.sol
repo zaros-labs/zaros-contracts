@@ -46,12 +46,15 @@ abstract contract ProtocolConfiguration is Markets {
     uint128 internal constant USDC_DEPOSIT_CAP = 5_000_000_000e18;
     uint128 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
     uint128 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
+    uint128 internal constant WEETH_DEPOSIT_CAP = 1_000_000e18;
     uint120 internal constant USDC_LOAN_TO_VALUE = 1e18;
     uint120 internal constant USDZ_LOAN_TO_VALUE = 1e18;
     uint120 internal constant WSTETH_LOAN_TO_VALUE = 0.7e18;
+    uint120 internal constant WEETH_LOAN_TO_VALUE = 0.7e18;
     uint256 internal constant USDC_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant USDZ_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant WSTETH_MIN_DEPOSIT_MARGIN = 0.025e18;
+    uint256 internal constant WEETH_MIN_DEPOSIT_MARGIN = 0.025e18;
 
     /// @notice Settlement Strategies configuration parameters.
     uint256 internal constant LIMIT_ORDER_CONFIGURATION_ID = 1;
@@ -68,6 +71,7 @@ abstract contract ProtocolConfiguration is Markets {
     uint256 internal constant FINAL_MARKET_ID = 4;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
     uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
+    uint256 internal constant MOCK_WEETH_USD_PRICE = 2000e18;
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
 }
