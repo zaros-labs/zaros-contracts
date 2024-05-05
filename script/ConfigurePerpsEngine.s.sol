@@ -17,7 +17,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    /// @dev TODO: We need a USDz price feed
+    address internal usdzUsdPriceFeed;
     address internal usdcUsdPriceFeed;
     uint256 internal keeperInitialLinkFunding;
 
@@ -38,10 +38,10 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         usdc = vm.envAddress("USDC");
         link = vm.envAddress("LINK");
         automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
+        usdzUsdPriceFeed = vm.envAddress("USDZ_USD_PRICE_FEED");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
         keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
 
-        // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
         payable(address(perpsEngine)).transfer(0.03 ether);
 
         configureContracts();
@@ -49,8 +49,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
-
-        // TODO: add missing configurations
 
         perpsEngine.setPerpsAccountToken(address(perpsAccountToken));
 
@@ -66,8 +64,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
 
-        // TODO: add margin collateral configuration paremeters to a JSON file and use ffi
-        perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdcUsdPriceFeed);
+        perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdzUsdPriceFeed);
         perpsEngine.configureMarginCollateral(usdc, USDC_DEPOSIT_CAP, USDC_LOAN_TO_VALUE, usdcUsdPriceFeed);
 
         address liquidationKeeper = address(new LiquidationKeeper());
@@ -78,7 +75,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         //     liquidationKeeper: liquidationKeeper,
         //     link: link,
         //     registrar: automationRegistrar,
-        //     adminAddress: EDAO_ADDRESS,
+        //     adminAddress: MSIG_ADDRESS,
         //     linkAmount: keeperInitialLinkFunding
         // });
 

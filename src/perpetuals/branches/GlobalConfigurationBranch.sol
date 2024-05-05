@@ -30,7 +30,6 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
         _disableInitializers();
     }
 
-    /// TODO: Create inheritable AuthBranch
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {GlobalConfigurationBranch} UUPS initializer.
     function initialize(address perpsAccountToken, address usdToken) external initializer {
@@ -184,7 +183,6 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
         );
     }
 
-    // TODO: add missing zero checks
     /// @inheritdoc IGlobalConfigurationBranch
     function createPerpMarket(CreatePerpMarketParams calldata params) external override onlyOwner {
         if (params.marketId == 0) {
@@ -207,6 +205,15 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
         }
         if (params.initialMarginRateX18 == 0) {
             revert Errors.ZeroInput("initialMarginRateX18");
+        }
+        if (params.maintenanceMarginRateX18 == 0) {
+            revert Errors.ZeroInput("maintenanceMarginRateX18");
+        }
+        if (params.skewScale == 0) {
+            revert Errors.ZeroInput("skewScale");
+        }
+        if (params.minTradeSizeX18 == 0) {
+            revert Errors.ZeroInput("minTradeSizeX18");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();

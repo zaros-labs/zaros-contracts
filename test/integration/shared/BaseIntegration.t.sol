@@ -285,7 +285,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         quantityFuzzMarginProfile =
             bound({ x: quantityFuzzMarginProfile, min: INITIAL_MARKET_ID, max: maxNumberOfMarkets });
 
-        FuzzMarginProfile[] memory fuzzMarginProfiles = new FuzzMarginProfile[](quantityFuzzMarginProfile);
+        fuzzMarginProfiles = new FuzzMarginProfile[](quantityFuzzMarginProfile);
 
         uint256[2] memory marketsIdsRange;
 

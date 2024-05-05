@@ -13,8 +13,8 @@ import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } fr
 abstract contract ProtocolConfiguration is Markets {
     /// @notice Admin addresses.
 
-    // TODO: Update to actual EDAO multisig address
-    address internal constant EDAO_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
+    // TODO: Update to actual multisig address
+    address internal constant MSIG_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
 
     /// @notice The maximum value that can be represented in a UD60x18.
     uint256 internal constant uMAX_UD60x18 = LIB_uMAX_UD60x18;

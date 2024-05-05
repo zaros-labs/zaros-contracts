@@ -27,7 +27,6 @@ library GlobalConfiguration {
         keccak256(abi.encode("fi.zaros.markets.GlobalConfiguration"));
 
     /// @notice {GlobalConfiguration} namespace storage structure.
-    /// TODO: add max active margin collateral types
     struct Data {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMaxLifetime;

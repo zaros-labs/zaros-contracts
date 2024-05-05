@@ -210,7 +210,6 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         }
     }
 
-    // TODO: rollback to external
     /// @inheritdoc IPerpsAccountBranch
     function depositMargin(uint128 accountId, address collateralType, uint256 amount) public virtual override {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
@@ -307,14 +306,6 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
         SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
-        console.log("from perps account: ");
-
-        console.log(requiredInitialMarginUsdX18.intoUint256(), requiredMaintenanceMarginUsdX18.intoUint256());
-        console.log(accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().intoUint256());
-        console.log(accountTotalUnrealizedPnlUsdX18.lt(SD_ZERO));
-        console.log(marginBalanceUsdX18.abs().intoUD60x18().intoUint256());
-
-        // TODO: add closing positions + settlement fees
         perpsAccount.validateMarginRequirement(
             requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18), marginBalanceUsdX18, SD_ZERO
         );

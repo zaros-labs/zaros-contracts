@@ -84,7 +84,6 @@ library ChainlinkUtil {
         returns (FeeAsset memory)
     {
         IFeeManager chainlinkFeeManager = chainlinkVerifier.s_feeManager();
-        // TODO: Store preferred fee token instead of querying i_nativeAddress?
         address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
         (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
 

@@ -50,7 +50,6 @@ library SettlementConfiguration {
         bytes data;
     }
 
-    // TODO: do we need an additional struct for offchain orders?
     /// @notice Data structure used by CL Data Streams powered orders.
     /// @param chainlinkVerifier The Chainlink Verifier contract address.
     /// @param streamId The Chainlink Data Streams stream id.

@@ -57,10 +57,6 @@ library PerpMarket {
         }
     }
 
-    // TODO: Call a Zaros-deployed price adapter contract instead of calling CL AggregatorV3 interface.
-    // TODO: By having a custom price adapter, we can e.g sync a price adapter with a custom settlement strategies
-    // contracts to
-    // deploy custom index markets.
     function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
         address priceAdapter = self.configuration.priceAdapter;
         if (priceAdapter == address(0)) {
@@ -177,7 +173,6 @@ library PerpMarket {
     }
 
     function getProportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
-        // TODO: add funding interval variable
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_INTERVAL));
     }
 
@@ -202,7 +197,6 @@ library PerpMarket {
                 self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
             );
         }
-        // TODO: validate skew
     }
 
     function checkTradeSize(Data storage self, SD59x18 sizeDeltaX18) internal view {
@@ -244,7 +238,6 @@ library PerpMarket {
             revert Errors.MarketAlreadyExists(params.marketId);
         }
 
-        // TODO: remember to test gas cost / number of sstores here
         self.id = params.marketId;
         self.initialized = true;
 
