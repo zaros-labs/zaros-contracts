@@ -317,19 +317,22 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         }
     }
 
-    function getFuzzMarginCollateralAddress(uint256 quantityFuzzMarginCollateralAddress) internal view returns (address[] memory){
-
+    function getFuzzMarginCollateralAddress(uint256 quantityFuzzMarginCollateralAddress)
+        internal
+        view
+        returns (address[] memory)
+    {
         uint256 maxNumberOfCollateralTypes = marginCollateralAddress.length;
 
-        quantityFuzzMarginCollateralAddress = bound({ x: quantityFuzzMarginCollateralAddress, min: 1, max: maxNumberOfCollateralTypes });
+        quantityFuzzMarginCollateralAddress =
+            bound({ x: quantityFuzzMarginCollateralAddress, min: 1, max: maxNumberOfCollateralTypes });
 
         address[] memory fuzzMarginCollateralAddress = new address[](quantityFuzzMarginCollateralAddress);
 
-        for(uint256 i = 0; i < quantityFuzzMarginCollateralAddress; i++) {
+        for (uint256 i = 0; i < quantityFuzzMarginCollateralAddress; i++) {
             fuzzMarginCollateralAddress[i] = marginCollateralAddress[i];
         }
 
         return fuzzMarginCollateralAddress;
-
     }
 }

@@ -84,12 +84,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             decimals_: 18,
             deployerBalance: 100_000_000e18
         });
-        mockWeEth = new MockERC20({
-            name: "Wrapped eETH",
-            symbol: "weETH",
-            decimals_: 18,
-            deployerBalance: 100_000_000e18
-        });
+        mockWeEth =
+            new MockERC20({ name: "Wrapped eETH", symbol: "weETH", decimals_: 18, deployerBalance: 100_000_000e18 });
 
         MockPriceFeed mockBtcUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_BTC_USD_PRICE));
         MockPriceFeed mockEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));

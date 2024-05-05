@@ -16,7 +16,8 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
 
         uint256 quantityFuzzMarginCollateralAddress = 1;
-        address[] memory fuzzMarginCollateralAddress = getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
+        address[] memory fuzzMarginCollateralAddress =
+            getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
@@ -49,7 +50,8 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         });
 
         uint256 quantityFuzzMarginCollateralAddress = 1;
-        address[] memory fuzzMarginCollateralAddress = getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
+        address[] memory fuzzMarginCollateralAddress =
+            getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
 
         perpsEngine.depositMargin(userPerpsAccountId, fuzzMarginCollateralAddress[0], amountToDeposit);
     }
@@ -80,7 +82,8 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         });
 
         uint256 quantityFuzzMarginCollateralAddress = 1;
-        address[] memory fuzzMarginCollateralAddress = getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
+        address[] memory fuzzMarginCollateralAddress =
+            getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
 
         perpsEngine.depositMargin(userPerpsAccountId, fuzzMarginCollateralAddress[0], amountToDeposit);
     }
@@ -107,7 +110,8 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         });
 
         uint256 quantityFuzzMarginCollateralAddress = 1;
-        address[] memory fuzzMarginCollateralAddress = getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
+        address[] memory fuzzMarginCollateralAddress =
+            getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
 
         perpsEngine.depositMargin(userPerpsAccountId, fuzzMarginCollateralAddress[0], amountToDeposit);
     }
@@ -131,7 +135,8 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
 
         uint256 quantityFuzzMarginCollateralAddress = 1;
-        address[] memory fuzzMarginCollateralAddress = getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
+        address[] memory fuzzMarginCollateralAddress =
+            getFuzzMarginCollateralAddress(quantityFuzzMarginCollateralAddress);
 
         perpsEngine.depositMargin(userPerpsAccountId, fuzzMarginCollateralAddress[0], amountToDeposit);
 
