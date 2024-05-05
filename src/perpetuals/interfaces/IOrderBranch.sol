@@ -79,14 +79,4 @@ interface IOrderBranch {
     /// @dev Reverts if there is no active market order for the given account and market.
     /// @param accountId The trading account id.
     function cancelMarketOrder(uint128 accountId) external;
-
-    function createCustomOrder(
-        uint128 accountId,
-        uint128 marketId,
-        uint128 settlementConfigurationId,
-        bool isAccountStrategy,
-        bytes calldata extraData
-    )
-        external
-        returns (bytes memory);
 }

@@ -41,7 +41,6 @@ library MarketOrder {
         self.timestamp = uint128(block.timestamp);
     }
 
-    // TODO: Implement
     function clear(Data storage self) internal {
         self.marketId = 0;
         self.sizeDelta = 0;

@@ -43,7 +43,6 @@ library PerpsAccount {
     /// @param owner The perps account owner.
     /// @param marginCollateralBalanceX18 The perps account margin collateral enumerable map.
     /// @param activeMarketsIds The perps account active markets ids enumerable set.
-    /// @dev TODO: implement role based access control.
     struct Data {
         uint128 id;
         address owner;

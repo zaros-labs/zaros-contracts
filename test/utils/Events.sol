@@ -6,7 +6,6 @@ pragma solidity 0.8.25;
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
-// TODO: use native branches events
 /// @notice Abstract contract containing all the events emitted by all branches.
 abstract contract Events {
     /*//////////////////////////////////////////////////////////////////////////

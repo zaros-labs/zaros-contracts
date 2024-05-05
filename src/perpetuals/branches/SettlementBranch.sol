@@ -76,7 +76,6 @@ contract SettlementBranch is ISettlementBranch {
         marketOrder.clear();
     }
 
-    // TODO: re-implement
     function fillCustomOrders(
         uint128 marketId,
         uint128 settlementConfigurationId,

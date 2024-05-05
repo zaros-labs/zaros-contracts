@@ -157,46 +157,6 @@ contract OrderBranch is IOrderBranch {
         emit LogCreateMarketOrder(msg.sender, params.accountId, params.marketId, marketOrder);
     }
 
-    // TODO: re-implement
-    function createCustomOrder(
-        uint128 accountId,
-        uint128 marketId,
-        uint128 settlementConfigurationId,
-        bool isAccountStrategy,
-        bytes calldata extraData
-    )
-        external
-        override
-        returns (bytes memory)
-    {
-        // PerpsAccount.verifySender(accountId);
-        // SettlementConfiguration.Data storage settlementConfiguration;
-
-        // if (!isAccountStrategy) {
-        //     settlementConfiguration = SettlementConfiguration.load(marketId, settlementConfigurationId);
-        // } else {
-        //     // TODO: Implement
-        //     // settlementConfiguration = SettlementConfiguration.load(accountId, marketId,
-        // settlementConfigurationId);
-        //     settlementConfiguration = SettlementConfiguration.load(marketId, settlementConfigurationId);
-        // }
-
-        // address settlementStrategy = settlementConfiguration.settlementStrategy;
-
-        // bytes memory callData = abi.encodeWithSelector(ISettlementStrategy.dispatch.selector, accountId,
-        // extraData);
-        // (bool success, bytes memory returnData) = settlementStrategy.call(callData);
-
-        // if (!success) {
-        //     if (returnData.length == 0) revert Errors.FailedCreateCustomOrder();
-        //     assembly {
-        //         revert(add(returnData, 0x20), mload(returnData))
-        //     }
-        // }
-
-        // return returnData;
-    }
-
     /// @inheritdoc IOrderBranch
     function cancelMarketOrder(uint128 accountId) external override {
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);

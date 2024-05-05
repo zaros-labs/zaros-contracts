@@ -42,8 +42,6 @@ library Errors {
 
     /// @notice PerpsEngine.OrderBranch errors
 
-    /// @notice Thrown when invoking a custom settlement configuration reverts without a downstream error.
-    error FailedCreateCustomOrder();
     /// @notice Thrown when trying to cancel an active market order and there's none.
     error NoActiveMarketOrder(uint128 accountId);
 

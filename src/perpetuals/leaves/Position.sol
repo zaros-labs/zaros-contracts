@@ -101,7 +101,6 @@ library Position {
         unrealizedPnlUsdX18 = sd59x18(self.size).mul(priceShift);
     }
 
-    // TODO: update notional value to handle non-USD markets, e.g ETHBTC
     /// @dev Returns the notional value of the position.
     /// @param self The position storage pointer.
     /// @param price The market's current reference price.
