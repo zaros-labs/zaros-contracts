@@ -311,11 +311,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                 marginValueUsd: marginValueUsd
             });
 
-            console.log("JOAOOOOOOO");
-            console.log(fuzzMarginProfiles[i].marketConfig.marketId);
-            console.log(fuzzMarginProfiles[i].marginRate);
-            console.log(fuzzMarginProfiles[i].marginValueUsd);
-
             marketId++;
             marginRate = marginRate * 2;
             marginValueUsd = marginValueUsd * 2;
