@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
-import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { Markets } from "../markets/Markets.sol";
 
 // PRB Math dependencies
