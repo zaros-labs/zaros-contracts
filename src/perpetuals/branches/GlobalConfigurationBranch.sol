@@ -183,7 +183,6 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
         );
     }
 
-    // TODO: add missing zero checks
     /// @inheritdoc IGlobalConfigurationBranch
     function createPerpMarket(CreatePerpMarketParams calldata params) external override onlyOwner {
         if (params.marketId == 0) {

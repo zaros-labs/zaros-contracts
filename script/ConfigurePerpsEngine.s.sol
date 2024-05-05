@@ -42,7 +42,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
         keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
 
-        // TODO: need to update this once we properly configure the CL Data Streams fee payment tokens
         payable(address(perpsEngine)).transfer(0.03 ether);
 
         configureContracts();
@@ -50,8 +49,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
     function configureContracts() internal {
         perpsAccountToken.transferOwnership(address(perpsEngine));
-
-        // TODO: add missing configurations
 
         perpsEngine.setPerpsAccountToken(address(perpsAccountToken));
 
@@ -78,7 +75,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         //     liquidationKeeper: liquidationKeeper,
         //     link: link,
         //     registrar: automationRegistrar,
-        //     adminAddress: EDAO_ADDRESS,
+        //     adminAddress: MSIG_ADDRESS,
         //     linkAmount: keeperInitialLinkFunding
         // });
 

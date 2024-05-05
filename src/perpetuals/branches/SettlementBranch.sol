@@ -227,9 +227,7 @@ contract SettlementBranch is ISettlementBranch {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
             perpsAccount.deposit(ctx.usdToken, amountToIncrease);
 
-            // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
-            // NOTE: testnet only
-            // TODO: Move to testnet version
+            // NOTE: testnet only - will be updated once Liquidity Engine is finalized
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
