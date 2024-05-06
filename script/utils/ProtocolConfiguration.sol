@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
+import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { Markets } from "../markets/Markets.sol";
 
 // PRB Math dependencies
@@ -12,7 +13,7 @@ import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } fr
 abstract contract ProtocolConfiguration is Markets {
     /// @notice Admin addresses.
 
-    // TODO: Update to actual multisig address
+     // TODO: Update to actual multisig address
     address internal constant MSIG_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
 
     /// @notice The maximum value that can be represented in a UD60x18.
@@ -45,15 +46,12 @@ abstract contract ProtocolConfiguration is Markets {
     uint128 internal constant USDC_DEPOSIT_CAP = 5_000_000_000e18;
     uint128 internal constant USDZ_DEPOSIT_CAP = 50_000_000_000e18;
     uint128 internal constant WSTETH_DEPOSIT_CAP = 1_000_000e18;
-    uint128 internal constant WEETH_DEPOSIT_CAP = 1_000_000e18;
     uint120 internal constant USDC_LOAN_TO_VALUE = 1e18;
     uint120 internal constant USDZ_LOAN_TO_VALUE = 1e18;
     uint120 internal constant WSTETH_LOAN_TO_VALUE = 0.7e18;
-    uint120 internal constant WEETH_LOAN_TO_VALUE = 0.7e18;
     uint256 internal constant USDC_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant USDZ_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant WSTETH_MIN_DEPOSIT_MARGIN = 0.025e18;
-    uint256 internal constant WEETH_MIN_DEPOSIT_MARGIN = 0.025e18;
 
     /// @notice Settlement Strategies configuration parameters.
     uint256 internal constant LIMIT_ORDER_CONFIGURATION_ID = 1;
@@ -70,7 +68,6 @@ abstract contract ProtocolConfiguration is Markets {
     uint256 internal constant FINAL_MARKET_ID = 4;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
     uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
-    uint256 internal constant MOCK_WEETH_USD_PRICE = 2000e18;
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
 }

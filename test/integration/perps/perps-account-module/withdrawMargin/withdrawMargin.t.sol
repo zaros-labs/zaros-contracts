@@ -41,62 +41,43 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotAuthorized(
-        uint256 initialMarginValueUsd,
-        uint256 amountToWithdraw,
-        uint256 initialMarketId,
-        uint256 quantityFuzzMarginProfile
+        uint256 amountToDeposit,
+        uint256 amountToWithdraw
     )
         external
         givenTheAccountExists
     {
-        FuzzMarginProfile[] memory fuzzMarginProfiles =
-            getFuzzMarginProfiles(quantityFuzzMarginProfile, initialMarketId, 0, initialMarginValueUsd);
+        amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        amountToWithdraw = bound({ x: amountToWithdraw, min: USDZ_MIN_DEPOSIT_MARGIN, max: amountToDeposit });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
-            FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        changePrank({ msgSender: users.sasuke });
 
-            amountToWithdraw =
-                bound({ x: amountToWithdraw, min: USDZ_MIN_DEPOSIT_MARGIN, max: marginProfile.marginValueUsd });
-            deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
-
-            uint128 perpsAccountId = createAccountAndDeposit(marginProfile.marginValueUsd, address(usdToken));
-            changePrank({ msgSender: users.sasuke });
-
-            // it should revert
-            vm.expectRevert({
-                revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, perpsAccountId, users.sasuke)
-            });
-            perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
-        }
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, perpsAccountId, users.sasuke)
+        });
+        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
     }
 
     modifier givenTheSenderIsAuthorized() {
         _;
     }
 
-    function testFuzz_RevertWhen_TheAmountIsZero(
-        uint256 initialMarginValueUsd,
-        uint256 initialMarketId,
-        uint256 quantityFuzzMarginProfile
-    )
+    function testFuzz_RevertWhen_TheAmountIsZero(uint256 amountToDeposit)
         external
         givenTheAccountExists
         givenTheSenderIsAuthorized
     {
-        FuzzMarginProfile[] memory fuzzMarginProfiles =
-            getFuzzMarginProfiles(quantityFuzzMarginProfile, initialMarketId, 0, initialMarginValueUsd);
+        amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
-            FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-            deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
-
-            uint128 perpsAccountId = createAccountAndDeposit(marginProfile.marginValueUsd, address(usdToken));
-
-            // it should revert
-            vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
-            perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), UD_ZERO);
-        }
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
+        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), UD_ZERO);
     }
 
     modifier whenTheAmountIsNotZero() {
@@ -104,43 +85,36 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_RevertGiven_ThereIsntEnoughMarginCollateral(
-        uint256 initialMarginValueUsd,
-        uint256 amountToWithdraw,
-        uint256 initialMarketId,
-        uint256 quantityFuzzMarginProfile
+        uint256 amountToDeposit,
+        uint256 amountToWithdraw
     )
         external
         givenTheAccountExists
         givenTheSenderIsAuthorized
         whenTheAmountIsNotZero
     {
-        FuzzMarginProfile[] memory fuzzMarginProfiles =
-            getFuzzMarginProfiles(quantityFuzzMarginProfile, initialMarketId, 0, initialMarginValueUsd);
+        amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        vm.assume(amountToWithdraw > amountToDeposit);
+        uint256 expectedMarginCollateralBalance =
+            convertTokenAmountToUd60x18(address(usdToken), amountToDeposit).intoUint256();
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
-            FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-            vm.assume(amountToWithdraw > marginProfile.marginValueUsd);
-            uint256 expectedMarginCollateralBalance =
-                convertTokenAmountToUd60x18(address(usdToken), marginProfile.marginValueUsd).intoUint256();
-            deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
-
-            uint128 perpsAccountId = createAccountAndDeposit(marginProfile.marginValueUsd, address(usdToken));
-
-            // it should revert
-            vm.expectRevert({
-                revertData: abi.encodeWithSelector(
-                    Errors.InsufficientCollateralBalance.selector, amountToWithdraw, expectedMarginCollateralBalance
-                )
-            });
-            perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
-        }
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InsufficientCollateralBalance.selector, amountToWithdraw, expectedMarginCollateralBalance
+            )
+        });
+        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
     }
 
     modifier givenThereIsEnoughMarginCollateral() {
         _;
     }
 
+    // TODO: fix pnl issue on settle tests
     function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement(
         uint256 amountToDeposit,
         uint256 amountToWithdraw,
@@ -231,10 +205,8 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function testFuzz_GivenTheAccountMeetsTheMarginRequirement(
-        uint256 initialMarginValueUsd,
-        uint256 amountToWithdraw,
-        uint256 initialMarketId,
-        uint256 quantityFuzzMarginProfile
+        uint256 amountToDeposit,
+        uint256 amountToWithdraw
     )
         external
         givenTheAccountExists
@@ -242,31 +214,25 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
-        FuzzMarginProfile[] memory fuzzMarginProfiles =
-            getFuzzMarginProfiles(quantityFuzzMarginProfile, initialMarketId, 0, initialMarginValueUsd);
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
+        amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        for (uint256 i = 0; i < fuzzMarginProfiles.length; i++) {
-            FuzzMarginProfile memory marginProfile = fuzzMarginProfiles[i];
+        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-            amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: marginProfile.marginValueUsd });
-            deal({ token: address(usdToken), to: users.naruto, give: marginProfile.marginValueUsd });
+        // it should emit a {LogWithdrawMargin} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);
 
-            uint128 perpsAccountId = createAccountAndDeposit(marginProfile.marginValueUsd, address(usdToken));
+        // it should transfer the withdrawn amount to the sender
+        expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
+        perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
 
-            // it should emit a {LogWithdrawMargin} event
-            vm.expectEmit({ emitter: address(perpsEngine) });
-            emit LogWithdrawMargin(users.naruto, perpsAccountId, address(usdToken), amountToWithdraw);
+        uint256 expectedMargin = amountToDeposit - amountToWithdraw;
+        uint256 newMarginCollateralBalance =
+            perpsEngine.getAccountMarginCollateralBalance(perpsAccountId, address(usdToken)).intoUint256();
 
-            // it should transfer the withdrawn amount to the sender
-            expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
-            perpsEngine.withdrawMargin(perpsAccountId, address(usdToken), ud60x18(amountToWithdraw));
-
-            uint256 expectedMargin = marginProfile.marginValueUsd - amountToWithdraw;
-            uint256 newMarginCollateralBalance =
-                perpsEngine.getAccountMarginCollateralBalance(perpsAccountId, address(usdToken)).intoUint256();
-
-            // it should decrease the margin collateral balance
-            assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
-        }
+        // it should decrease the margin collateral balance
+        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
     }
 }

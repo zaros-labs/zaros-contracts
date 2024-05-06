@@ -23,8 +23,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 abstract contract Base_Integration_Shared_Test is Base_Test {
     using Math for UD60x18;
     using SafeCast for int256;
@@ -35,15 +33,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
     FeeRecipients.Data internal feeRecipients;
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                     STRUCTS
-    //////////////////////////////////////////////////////////////////////////*/
-    struct FuzzMarginProfile {
-        MarketConfig marketConfig;
-        uint256 marginRate;
-        uint256 marginValueUsd;
-    }
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -268,71 +257,5 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 
         return filteredMarketsConfig[0];
-    }
-
-    function getFuzzMarginProfiles(
-        uint256 quantityFuzzMarginProfile,
-        uint256 marketId,
-        uint256 marginRate,
-        uint256 marginValueUsd
-    )
-        internal
-        view
-        returns (FuzzMarginProfile[] memory fuzzMarginProfiles)
-    {
-        uint256 maxNumberOfMarkets = (FINAL_MARKET_ID + 1) - INITIAL_MARKET_ID;
-
-        quantityFuzzMarginProfile =
-            bound({ x: quantityFuzzMarginProfile, min: INITIAL_MARKET_ID, max: maxNumberOfMarkets });
-
-        fuzzMarginProfiles = new FuzzMarginProfile[](quantityFuzzMarginProfile);
-
-        uint256[2] memory marketsIdsRange;
-
-        for (uint256 i = 0; i < quantityFuzzMarginProfile; i++) {
-            marketId = bound({ x: marketId, min: INITIAL_MARKET_ID, max: FINAL_MARKET_ID });
-
-            marketsIdsRange[0] = marketId;
-            marketsIdsRange[1] = marketId;
-
-            MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
-
-            marginRate = bound({
-                x: marginRate,
-                min: filteredMarketsConfig[0].marginRequirements,
-                max: MAX_MARGIN_REQUIREMENTS
-            });
-
-            marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-
-            fuzzMarginProfiles[i] = FuzzMarginProfile({
-                marketConfig: filteredMarketsConfig[0],
-                marginRate: marginRate,
-                marginValueUsd: marginValueUsd
-            });
-
-            marketId++;
-            marginRate = marginRate * 2;
-            marginValueUsd = marginValueUsd * 2;
-        }
-    }
-
-    function getFuzzMarginCollateralAddress(uint256 quantityFuzzMarginCollateralAddress)
-        internal
-        view
-        returns (address[] memory)
-    {
-        uint256 maxNumberOfCollateralTypes = marginCollateralAddress.length;
-
-        quantityFuzzMarginCollateralAddress =
-            bound({ x: quantityFuzzMarginCollateralAddress, min: 1, max: maxNumberOfCollateralTypes });
-
-        address[] memory fuzzMarginCollateralAddress = new address[](quantityFuzzMarginCollateralAddress);
-
-        for (uint256 i = 0; i < quantityFuzzMarginCollateralAddress; i++) {
-            fuzzMarginCollateralAddress[i] = marginCollateralAddress[i];
-        }
-
-        return fuzzMarginCollateralAddress;
     }
 }
