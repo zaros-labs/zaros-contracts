@@ -35,6 +35,14 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     FeeRecipients.Data internal feeRecipients;
 
     /*//////////////////////////////////////////////////////////////////////////
+                                     STRUCTS
+    //////////////////////////////////////////////////////////////////////////*/
+    struct FuzzMarginPortfolio {
+        uint256 initialMarginRate;
+        uint256 marginValueUsd;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
@@ -49,6 +57,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         });
 
         setupMarketsConfig();
+        setupMarginCollaterals();
 
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
         vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
@@ -257,5 +266,24 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 
         return filteredMarketsConfig[0];
+    }
+
+    function getFuzzMarginPortfolio(
+        MarketConfig memory marketConfig,
+        uint256 initialMarginRate,
+        uint256 marginValueUsd
+    )
+        internal
+        returns (FuzzMarginPortfolio memory fuzzMarginPortfolio)
+    {
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: marketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        fuzzMarginPortfolio =
+            FuzzMarginPortfolio({ initialMarginRate: initialMarginRate, marginValueUsd: marginValueUsd });
     }
 }
