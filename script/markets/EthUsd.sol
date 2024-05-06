@@ -13,7 +13,7 @@ abstract contract EthUsd {
     /// @notice ETH/USD market configuration parameters.
     uint128 internal constant ETH_USD_MARKET_ID = 2;
     string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
-    string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD PERP";
+    string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD-PERP";
     uint128 internal constant ETH_USD_IMR = 0.005e18;
     uint128 internal constant ETH_USD_MMR = 0.005e18;
     uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR;
@@ -32,7 +32,7 @@ abstract contract EthUsd {
     address internal constant ETH_USD_PRICE_FEED = address(0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165);
 
     // TODO: Update stream id value
-    bytes32 internal constant ETH_USD_STREAM_ID = 0x00027bbaff688c906a3e20a34fe951715d1018d262a5b66e38eda027a674cd1b;
+    bytes32 internal constant ETH_USD_STREAM_ID = 0x000359843a543ee2fe414dc14c7e7920ef10f4372990b79d6361cdc0dd1ba782;
     string internal constant STRING_ETH_USD_STREAM_ID =
-        "0x00027bbaff688c906a3e20a34fe951715d1018d262a5b66e38eda027a674cd1b";
+        "0x000359843a543ee2fe414dc14c7e7920ef10f4372990b79d6361cdc0dd1ba782";
 }

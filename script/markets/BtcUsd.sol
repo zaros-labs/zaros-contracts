@@ -13,7 +13,7 @@ abstract contract BtcUsd {
     /// @notice BTC/USD market configuration parameters.
     uint128 internal constant BTC_USD_MARKET_ID = 1;
     string internal constant BTC_USD_MARKET_NAME = "BTC/USD Perpetual Futures";
-    string internal constant BTC_USD_MARKET_SYMBOL = "BTC/USD PERP";
+    string internal constant BTC_USD_MARKET_SYMBOL = "BTC/USD-PERP";
     uint128 internal constant BTC_USD_IMR = 0.01e18;
     uint128 internal constant BTC_USD_MMR = 0.005e18;
     uint128 internal constant BTC_USD_MARGIN_REQUIREMENTS = BTC_USD_IMR + BTC_USD_MMR;
@@ -32,7 +32,7 @@ abstract contract BtcUsd {
     address internal constant BTC_USD_PRICE_FEED = address(0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69);
 
     // TODO: Update stream id value
-    bytes32 internal constant BTC_USD_STREAM_ID = 0x00020d95813497a566307e6af5f59ca3cbbe8d8cd62672e5b3fc4e0d67787f23;
+    bytes32 internal constant BTC_USD_STREAM_ID = 0x00037da06d56d083fe599397a4769a042d63aa73dc4ef57709d31e9971a5b439;
     string internal constant STRING_BTC_USD_STREAM_ID =
-        "0x00020d95813497a566307e6af5f59ca3cbbe8d8cd62672e5b3fc4e0d67787f23";
+        "0x00037da06d56d083fe599397a4769a042d63aa73dc4ef57709d31e9971a5b439";
 }

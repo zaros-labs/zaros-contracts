@@ -32,7 +32,7 @@ abstract contract LinkUsd {
     address internal constant LINK_USD_PRICE_FEED = address(0x0FB99723Aee6f420beAD13e6bBB79b7E6F034298);
 
     // TODO: Update stream id value
-    bytes32 internal constant LINK_USD_STREAM_ID = 0x00026776af33e1916ef83f016a5e7fad5b4322242fe6133b631d612fa7528bbe;
+    bytes32 internal constant LINK_USD_STREAM_ID = 0x00036fe43f87884450b4c7e093cd5ed99cac6640d8c2000e6afc02c8838d0265;
     string internal constant STRING_LINK_USD_STREAM_ID =
-        "0x00026776af33e1916ef83f016a5e7fad5b4322242fe6133b631d612fa7528bbe";
+        "0x00036fe43f87884450b4c7e093cd5ed99cac6640d8c2000e6afc02c8838d0265";
 }
