@@ -13,7 +13,7 @@ import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } fr
 abstract contract ProtocolConfiguration is Markets {
     /// @notice Admin addresses.
 
-     // TODO: Update to actual multisig address
+    // TODO: Update to actual multisig address
     address internal constant MSIG_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
 
     /// @notice The maximum value that can be represented in a UD60x18.
