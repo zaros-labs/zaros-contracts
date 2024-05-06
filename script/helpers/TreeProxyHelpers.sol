@@ -95,8 +95,8 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
 
     if (isTestnet) {
-        globalConfigurationBranchSelectors[13] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
-        globalConfigurationBranchSelectors[14] = GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
+        globalConfigurationBranchSelectors[12] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
+        globalConfigurationBranchSelectors[13] = GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
     }
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);

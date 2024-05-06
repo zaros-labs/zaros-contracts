@@ -38,6 +38,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         usdc = vm.envAddress("USDC");
         link = vm.envAddress("LINK");
         automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
+        // TODO: Move to MarginCollateral configuration
         usdzUsdPriceFeed = vm.envAddress("USDZ_USD_PRICE_FEED");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
         keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");

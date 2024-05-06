@@ -29,25 +29,32 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
     IPerpsEngine internal perpsEngine;
     address internal settlementFeeRecipient;
 
-    function run(uint256 INITIAL_MARKET_ID, uint256 FINAL_MARKET_ID) public broadcaster {
+    function run(uint256 initialMarketId, uint256 finalMarketId) public broadcaster {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
-        settlementFeeRecipient = vm.envAddress("SETTLEMENT_FEE_RECEIVER");
+        settlementFeeRecipient = MSIG_ADDRESS;
 
         uint256[2] memory marketsIdsRange;
-        marketsIdsRange[0] = INITIAL_MARKET_ID;
-        marketsIdsRange[1] = FINAL_MARKET_ID;
+        marketsIdsRange[0] = initialMarketId;
+        marketsIdsRange[1] = finalMarketId;
+
+        setupMarketsConfig();
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
+
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
+        console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
 
         for (uint256 i = 0; i < filteredMarketsConfig.length; i++) {
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: filteredMarketsConfig[i].streamId });
 
-            address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
-            console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
-            address marketOrderKeeper =
-                deployMarketOrderKeeper(filteredMarketsConfig[i].marketId, marketOrderKeeperImplementation);
+            console.log(filteredMarketsConfig[i].marketId);
+            address marketOrderKeeper = deployMarketOrderKeeper(
+                filteredMarketsConfig[i].marketId,
+                filteredMarketsConfig[i].streamIdString,
+                marketOrderKeeperImplementation
+            );
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
@@ -82,6 +89,7 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
 
     function deployMarketOrderKeeper(
         uint128 marketId,
+        string memory streamIdString,
         address marketOrderKeeperImplementation
     )
         internal
@@ -91,9 +99,16 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             new ERC1967Proxy(
                 marketOrderKeeperImplementation,
                 abi.encodeWithSelector(
-                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, settlementFeeRecipient, marketId
+                    MarketOrderKeeper.initialize.selector,
+                    deployer,
+                    perpsEngine,
+                    settlementFeeRecipient,
+                    marketId,
+                    streamIdString
                 )
             )
         );
+
+        console.log("Market Order Keeper Deployed: Market ID: ", marketId, " Keeper Address: ", marketOrderKeeper);
     }
 }
