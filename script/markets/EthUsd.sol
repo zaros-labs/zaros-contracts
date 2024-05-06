@@ -21,7 +21,6 @@ abstract contract EthUsd {
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.025e18;
     uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
     uint256 internal constant ETH_USD_MIN_TRADE_SIZE = 0.05e18;
-    bool internal constant ETH_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice Test only mocks

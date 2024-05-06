@@ -21,7 +21,6 @@ abstract contract ArbUsd {
     uint128 internal constant ARB_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint256 internal constant ARB_USD_SKEW_SCALE = 100_243_316_353e18;
     uint256 internal constant ARB_USD_MIN_TRADE_SIZE = 40e18;
-    bool internal constant ARB_USD_IS_PREMIUM_FEED = true;
     OrderFees.Data internal arbUsdOrderFees = OrderFees.Data({ makerFee: 0.008e18, takerFee: 0.016e18 });
 
     /// @notice Test only mocks

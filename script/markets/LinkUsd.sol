@@ -21,7 +21,6 @@ abstract contract LinkUsd {
     uint128 internal constant LINK_USD_MAX_FUNDING_VELOCITY = 0.25e18;
     uint256 internal constant LINK_USD_SKEW_SCALE = 1_151_243_152e18;
     uint256 internal constant LINK_USD_MIN_TRADE_SIZE = 5e18;
-    bool internal constant LINK_USD_IS_PREMIUM_FEED = false;
     OrderFees.Data internal linkUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice Test only mocks
