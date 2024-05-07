@@ -122,7 +122,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsNotZero
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -448,7 +449,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirement
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -504,7 +506,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirement
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(

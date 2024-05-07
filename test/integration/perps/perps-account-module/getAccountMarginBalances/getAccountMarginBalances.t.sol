@@ -14,16 +14,17 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Integration_Shared_T
         Base_Integration_Shared_Test.setUp();
     }
 
-    function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+    function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit, uint256 marketId) external {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, 0, amountToDeposit);
 
-        uint256 expectedMarginBalance =
-            getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(ud60x18(amountToDeposit)).intoUint256();
+        uint256 expectedMarginBalance = getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(
+            ud60x18(fuzzMarginPortfolio.marginValueUsd)
+        ).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
 
         (
             SD59x18 marginBalanceUsdX18,

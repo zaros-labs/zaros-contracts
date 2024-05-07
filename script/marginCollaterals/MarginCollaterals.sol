@@ -8,7 +8,6 @@ import { WeEth } from "script/marginCollaterals/WeEth.sol";
 import { WstEth } from "script/marginCollaterals/WstEth.sol";
 
 contract MarginCollaterals is Usdc, Usdz, WeEth, WstEth {
-
     struct MarginCollateral {
         uint256 marginCollateralId;
         uint128 depositCap;
