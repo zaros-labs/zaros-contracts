@@ -10,16 +10,16 @@ contract GetAccountMarginCollateralBalance_Integration_Test is Base_Integration_
         Base_Integration_Shared_Test.setUp();
     }
 
-    function testFuzz_GetAccountMarginCollateralBalance(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+    function testFuzz_GetAccountMarginCollateralBalance(uint256 amountToDeposit, uint256 marketId) external {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, 0, amountToDeposit);
 
-        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
 
         uint256 marginCollateralAmount = perpsEngine.getAccountMarginCollateralBalance({
             accountId: perpsAccountId,
             collateralType: address(usdToken)
         }).intoUint256();
-        assertEq(marginCollateralAmount, amountToDeposit, "getAccountMarginCollateralBalance");
+        assertEq(marginCollateralAmount, fuzzMarginPortfolio.marginValueUsd, "getAccountMarginCollateralBalance");
     }
 }
