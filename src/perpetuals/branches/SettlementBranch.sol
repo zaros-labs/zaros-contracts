@@ -54,7 +54,7 @@ contract SettlementBranch is ISettlementBranch {
     }
 
     function fillMarketOrder(
-        uint128 accountId,
+        uint128 tradingAccountId,
         uint128 marketId,
         FeeRecipients.Data calldata feeRecipients,
         bytes calldata priceData
@@ -62,10 +62,10 @@ contract SettlementBranch is ISettlementBranch {
         external
         onlyMarketOrderKeeper(marketId)
     {
-        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
+        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
 
         _fillOrder(
-            accountId,
+            tradingAccountId,
             marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             marketOrder.sizeDelta,
@@ -118,7 +118,7 @@ contract SettlementBranch is ISettlementBranch {
     struct FillOrderContext {
         address usdToken;
         uint128 marketId;
-        uint128 accountId;
+        uint128 tradingAccountId;
         SD59x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         SD59x18 sizeDelta;
@@ -132,7 +132,7 @@ contract SettlementBranch is ISettlementBranch {
     }
 
     function _fillOrder(
-        uint128 accountId,
+        uint128 tradingAccountId,
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta,
@@ -144,15 +144,15 @@ contract SettlementBranch is ISettlementBranch {
     {
         FillOrderContext memory ctx;
         ctx.marketId = marketId;
-        ctx.accountId = accountId;
+        ctx.tradingAccountId = tradingAccountId;
         ctx.sizeDelta = sd59x18(sizeDelta);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
+        Position.Data storage oldPosition = Position.load(ctx.tradingAccountId, ctx.marketId);
 
         ctx.usdToken = globalConfiguration.usdToken;
 
@@ -234,7 +234,7 @@ contract SettlementBranch is ISettlementBranch {
         // TODO: log margin deducted vs required
         emit LogSettleOrder(
             msg.sender,
-            ctx.accountId,
+            ctx.tradingAccountId,
             ctx.marketId,
             ctx.sizeDelta.intoInt256(),
             ctx.fillPrice.intoUint256(),

@@ -147,7 +147,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         // uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         // int128 sizeDelta = fuzzOrderSizeDelta(
         //     FuzzOrderSizeDeltaParams({
-        //         accountId: tradingAccountId,
+        //         tradingAccountId: tradingAccountId,
         //         marketId: fuzzMarketConfig.marketId,
         //         settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
         //         initialMarginRate: ud60x18(marginRequirement),
@@ -170,7 +170,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // perpsEngine.createMarketOrder(
         //     IOrderBranch.CreateMarketOrderParams({
-        //         accountId: tradingAccountId,
+        //         tradingAccountId: tradingAccountId,
         //         marketId: fuzzMarketConfig.marketId,
         //         sizeDelta: sizeDelta
         //     })

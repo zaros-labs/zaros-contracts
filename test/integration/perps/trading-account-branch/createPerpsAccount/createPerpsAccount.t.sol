@@ -30,10 +30,10 @@ contract CreateTradingAccount_Integration_Test is Base_Integration_Shared_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateTradingAccount(expectedAccountId, users.naruto);
 
-        uint128 accountId = perpsEngine.createTradingAccount();
+        uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
-        // it should return a valid accountId
-        assertEq(accountId, expectedAccountId, "createTradingAccount");
+        // it should return a valid tradingAccountId
+        assertEq(tradingAccountId, expectedAccountId, "createTradingAccount");
     }
 
     function test_GivenTheCallerHasAPreviouslyCreatedTradingAccount() external givenTheTradingAccountTokenIsSet {
@@ -43,9 +43,9 @@ contract CreateTradingAccount_Integration_Test is Base_Integration_Shared_Test {
         // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit LogCreateTradingAccount(expectedAccountId, users.naruto);
-        uint128 accountId = perpsEngine.createTradingAccount();
+        uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
-        // it should return a valid accountId
-        assertEq(accountId, expectedAccountId, "createTradingAccount");
+        // it should return a valid tradingAccountId
+        assertEq(tradingAccountId, expectedAccountId, "createTradingAccount");
     }
 }

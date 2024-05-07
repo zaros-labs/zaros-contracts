@@ -42,7 +42,7 @@ contract TradingAccountBranch is ITradingAccountBranch {
 
     /// @inheritdoc ITradingAccountBranch
     function getAccountMarginCollateralBalance(
-        uint128 accountId,
+        uint128 tradingAccountId,
         address collateralType
     )
         external
@@ -50,22 +50,22 @@ contract TradingAccountBranch is ITradingAccountBranch {
         override
         returns (UD60x18)
     {
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         UD60x18 marginCollateralBalanceX18 = tradingAccount.getMarginCollateralBalance(collateralType);
 
         return marginCollateralBalanceX18;
     }
 
     /// @inheritdoc ITradingAccountBranch
-    function getAccountEquityUsd(uint128 accountId) external view override returns (SD59x18) {
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+    function getAccountEquityUsd(uint128 tradingAccountId) external view override returns (SD59x18) {
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         SD59x18 activePositionsUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
 
         return tradingAccount.getEquityUsd(activePositionsUnrealizedPnlUsdX18);
     }
 
     /// @inheritdoc ITradingAccountBranch
-    function getAccountMarginBreakdown(uint128 accountId)
+    function getAccountMarginBreakdown(uint128 tradingAccountId)
         external
         view
         override
@@ -76,7 +76,7 @@ contract TradingAccountBranch is ITradingAccountBranch {
             SD59x18 availableMarginUsdX18
         )
     {
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         SD59x18 activePositionsUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
 
         console.log("from trading account branch: ");
@@ -91,7 +91,7 @@ contract TradingAccountBranch is ITradingAccountBranch {
             uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
 
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-            Position.Data storage position = Position.load(accountId, marketId);
+            Position.Data storage position = Position.load(tradingAccountId, marketId);
 
             UD60x18 indexPrice = perpMarket.getIndexPrice();
             UD60x18 markPrice = perpMarket.getMarkPrice(unary(sd59x18(position.size)), indexPrice);
@@ -113,17 +113,17 @@ contract TradingAccountBranch is ITradingAccountBranch {
     }
 
     /// @inheritdoc ITradingAccountBranch
-    function getAccountTotalUnrealizedPnl(uint128 accountId)
+    function getAccountTotalUnrealizedPnl(uint128 tradingAccountId)
         external
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18)
     {
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         accountTotalUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
     }
 
-    function getAccountLeverage(uint128 accountId) external view returns (UD60x18) {
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+    function getAccountLeverage(uint128 tradingAccountId) external view returns (UD60x18) {
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
         SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(tradingAccount.getAccountUnrealizedPnlUsd());
         UD60x18 totalPositionsNotionalValue;
@@ -132,7 +132,7 @@ contract TradingAccountBranch is ITradingAccountBranch {
             uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
 
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-            Position.Data storage position = Position.load(accountId, marketId);
+            Position.Data storage position = Position.load(tradingAccountId, marketId);
 
             UD60x18 indexPrice = perpMarket.getIndexPrice();
             UD60x18 markPrice = perpMarket.getMarkPrice(unary(sd59x18(position.size)), indexPrice);
@@ -148,7 +148,7 @@ contract TradingAccountBranch is ITradingAccountBranch {
 
     /// @inheritdoc ITradingAccountBranch
     function getPositionState(
-        uint128 accountId,
+        uint128 tradingAccountId,
         uint128 marketId
     )
         external
@@ -157,7 +157,7 @@ contract TradingAccountBranch is ITradingAccountBranch {
         returns (Position.State memory positionState)
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-        Position.Data storage position = Position.load(accountId, marketId);
+        Position.Data storage position = Position.load(tradingAccountId, marketId);
 
         UD60x18 markPriceX18 = perpMarket.getMarkPrice(unary(sd59x18(position.size)), perpMarket.getIndexPrice());
         SD59x18 fundingFeePerUnit =
@@ -174,14 +174,14 @@ contract TradingAccountBranch is ITradingAccountBranch {
     /// @inheritdoc ITradingAccountBranch
     function createTradingAccount() public virtual override returns (uint128) {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        uint128 accountId = ++globalConfiguration.nextAccountId;
+        uint128 tradingAccountId = ++globalConfiguration.nextAccountId;
         IAccountNFT tradingAccountToken = IAccountNFT(globalConfiguration.tradingAccountToken);
-        TradingAccount.create(accountId, msg.sender);
+        TradingAccount.create(tradingAccountId, msg.sender);
 
-        tradingAccountToken.mint(msg.sender, accountId);
+        tradingAccountToken.mint(msg.sender, tradingAccountId);
 
-        emit LogCreateTradingAccount(accountId, msg.sender);
-        return accountId;
+        emit LogCreateTradingAccount(tradingAccountId, msg.sender);
+        return tradingAccountId;
     }
 
     /// @inheritdoc ITradingAccountBranch
@@ -192,11 +192,11 @@ contract TradingAccountBranch is ITradingAccountBranch {
         override
         returns (bytes[] memory results)
     {
-        uint128 accountId = createTradingAccount();
+        uint128 tradingAccountId = createTradingAccount();
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
-            bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(accountId), data[i][4:]);
+            bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(tradingAccountId), data[i][4:]);
             (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
 
             if (!success) {
@@ -211,7 +211,15 @@ contract TradingAccountBranch is ITradingAccountBranch {
     }
 
     /// @inheritdoc ITradingAccountBranch
-    function depositMargin(uint128 accountId, address collateralType, uint256 amount) public virtual override {
+    function depositMargin(
+        uint128 tradingAccountId,
+        address collateralType,
+        uint256 amount
+    )
+        public
+        virtual
+        override
+    {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
         UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
@@ -219,16 +227,17 @@ contract TradingAccountBranch is ITradingAccountBranch {
         _requireEnoughDepositCap(collateralType, ud60x18Amount, ud60x18(marginCollateralConfiguration.depositCap));
         _requireCollateralLiquidationPriorityDefined(collateralType);
 
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         tradingAccount.deposit(collateralType, ud60x18Amount);
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), ud60x18Amount.intoUint256());
 
-        emit LogDepositMargin(msg.sender, accountId, collateralType, amount);
+        emit LogDepositMargin(msg.sender, tradingAccountId, collateralType, amount);
     }
 
     /// @inheritdoc ITradingAccountBranch
-    function withdrawMargin(uint128 accountId, address collateralType, UD60x18 amount) external override {
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExistingAccountAndVerifySender(accountId);
+    function withdrawMargin(uint128 tradingAccountId, address collateralType, UD60x18 amount) external override {
+        TradingAccount.Data storage tradingAccount =
+            TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
         _requireAmountNotZero(amount);
         _requireEnoughMarginCollateral(tradingAccount, collateralType, amount);
 
@@ -241,14 +250,14 @@ contract TradingAccountBranch is ITradingAccountBranch {
 
         IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
 
-        emit LogWithdrawMargin(msg.sender, accountId, collateralType, tokenAmount);
+        emit LogWithdrawMargin(msg.sender, tradingAccountId, collateralType, tokenAmount);
     }
 
     /// @inheritdoc ITradingAccountBranch
-    function notifyAccountTransfer(address to, uint128 accountId) external override {
+    function notifyAccountTransfer(address to, uint128 tradingAccountId) external override {
         _onlyTradingAccountToken();
 
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         tradingAccount.owner = to;
     }
 

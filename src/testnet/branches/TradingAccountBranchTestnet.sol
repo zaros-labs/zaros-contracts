@@ -115,11 +115,11 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
         payable
         returns (bytes[] memory results)
     {
-        uint128 accountId = createTradingAccount(referralCode, isCustomReferralCode);
+        uint128 tradingAccountId = createTradingAccount(referralCode, isCustomReferralCode);
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
-            bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(accountId), data[i][4:]);
+            bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(tradingAccountId), data[i][4:]);
             (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
 
             if (!success) {
@@ -133,10 +133,18 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
         }
     }
 
-    function depositMargin(uint128 accountId, address collateralType, uint256 amount) public virtual override {
-        super.depositMargin(accountId, collateralType, amount);
+    function depositMargin(
+        uint128 tradingAccountId,
+        address collateralType,
+        uint256 amount
+    )
+        public
+        virtual
+        override
+    {
+        super.depositMargin(tradingAccountId, collateralType, amount);
 
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         UD60x18 marginCollateralBalance = tradingAccount.getMarginCollateralBalance(collateralType);
 
         if (marginCollateralBalance > ud60x18(100_000e18)) {

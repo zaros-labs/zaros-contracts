@@ -39,7 +39,7 @@ contract OrderBranch is IOrderBranch {
 
     /// @inheritdoc IOrderBranch
     function simulateTrade(
-        uint128 accountId,
+        uint128 tradingAccountId,
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta
@@ -56,7 +56,7 @@ contract OrderBranch is IOrderBranch {
             UD60x18 fillPriceX18
         )
     {
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
@@ -101,8 +101,13 @@ contract OrderBranch is IOrderBranch {
     }
 
     /// @inheritdoc IOrderBranch
-    function getActiveMarketOrder(uint128 accountId) external pure override returns (MarketOrder.Data memory) {
-        MarketOrder.Data storage marketOrder = MarketOrder.load(accountId);
+    function getActiveMarketOrder(uint128 tradingAccountId)
+        external
+        pure
+        override
+        returns (MarketOrder.Data memory)
+    {
+        MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
 
         return marketOrder;
     }
@@ -110,10 +115,10 @@ contract OrderBranch is IOrderBranch {
     /// @inheritdoc IOrderBranch
     function createMarketOrder(CreateMarketOrderParams calldata params) external override {
         TradingAccount.Data storage tradingAccount =
-            TradingAccount.loadExistingAccountAndVerifySender(params.accountId);
+            TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
-        MarketOrder.Data storage marketOrder = MarketOrder.load(params.accountId);
-        Position.Data storage position = Position.load(params.accountId, params.marketId);
+        MarketOrder.Data storage marketOrder = MarketOrder.load(params.tradingAccountId);
+        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         CreateMarketOrderContext memory ctx;
@@ -141,7 +146,7 @@ contract OrderBranch is IOrderBranch {
             ctx.orderFeeUsdX18,
             ctx.settlementFeeUsdX18,
         ) = simulateTrade({
-            accountId: params.accountId,
+            tradingAccountId: params.tradingAccountId,
             marketId: params.marketId,
             settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta: params.sizeDelta
@@ -155,15 +160,15 @@ contract OrderBranch is IOrderBranch {
         marketOrder.checkPendingOrder();
         marketOrder.update({ marketId: params.marketId, sizeDelta: params.sizeDelta });
 
-        emit LogCreateMarketOrder(msg.sender, params.accountId, params.marketId, marketOrder);
+        emit LogCreateMarketOrder(msg.sender, params.tradingAccountId, params.marketId, marketOrder);
     }
 
     /// @inheritdoc IOrderBranch
-    function cancelMarketOrder(uint128 accountId) external override {
-        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
+    function cancelMarketOrder(uint128 tradingAccountId) external override {
+        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
 
         marketOrder.clear();
 
-        emit LogCancelMarketOrder(msg.sender, accountId);
+        emit LogCancelMarketOrder(msg.sender, tradingAccountId);
     }
 }

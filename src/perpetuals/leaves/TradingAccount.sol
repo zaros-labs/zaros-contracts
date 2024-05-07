@@ -51,22 +51,22 @@ library TradingAccount {
     }
 
     /// @notice Loads a {TradingAccount} object.
-    /// @param accountId The trading account id.
+    /// @param tradingAccountId The trading account id.
     /// @return tradingAccount The loaded trading account storage pointer.
-    function load(uint128 accountId) internal pure returns (Data storage tradingAccount) {
-        bytes32 slot = keccak256(abi.encode(TRADING_ACCOUNT_DOMAIN, accountId));
+    function load(uint128 tradingAccountId) internal pure returns (Data storage tradingAccount) {
+        bytes32 slot = keccak256(abi.encode(TRADING_ACCOUNT_DOMAIN, tradingAccountId));
         assembly {
             tradingAccount.slot := slot
         }
     }
 
     /// @notice Checks whether the given trading account exists.
-    /// @param accountId The trading account id.
+    /// @param tradingAccountId The trading account id.
     /// @return tradingAccount if the trading account exists, its storage pointer is returned.
-    function loadExisting(uint128 accountId) internal view returns (Data storage tradingAccount) {
-        tradingAccount = load(accountId);
+    function loadExisting(uint128 tradingAccountId) internal view returns (Data storage tradingAccount) {
+        tradingAccount = load(tradingAccountId);
         if (tradingAccount.owner == address(0)) {
-            revert Errors.AccountNotFound(accountId, msg.sender);
+            revert Errors.AccountNotFound(tradingAccountId, msg.sender);
         }
     }
 
@@ -113,15 +113,15 @@ library TradingAccount {
     }
 
     /// @notice Loads an existing trading account and checks if the `msg.sender` is authorized.
-    /// @param accountId The trading account id.
+    /// @param tradingAccountId The trading account id.
     /// @return tradingAccount The loaded trading account storage pointer.
-    function loadExistingAccountAndVerifySender(uint128 accountId)
+    function loadExistingAccountAndVerifySender(uint128 tradingAccountId)
         internal
         view
         returns (Data storage tradingAccount)
     {
-        tradingAccount = loadExisting(accountId);
-        verifySender(accountId);
+        tradingAccount = loadExisting(tradingAccountId);
+        verifySender(tradingAccountId);
     }
 
     /// @notice Returns the amount of the given margin collateral type.
@@ -271,11 +271,11 @@ library TradingAccount {
     }
 
     /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given trading account id.
-    /// @param accountId The trading account id.
-    function verifySender(uint128 accountId) internal view {
-        Data storage self = load(accountId);
+    /// @param tradingAccountId The trading account id.
+    function verifySender(uint128 tradingAccountId) internal view {
+        Data storage self = load(tradingAccountId);
         if (self.owner != msg.sender) {
-            revert Errors.AccountPermissionDenied(accountId, msg.sender);
+            revert Errors.AccountPermissionDenied(tradingAccountId, msg.sender);
         }
     }
 
@@ -296,12 +296,12 @@ library TradingAccount {
     }
 
     /// @notice Creates a new trading account.
-    /// @param accountId The trading account id.
+    /// @param tradingAccountId The trading account id.
     /// @param owner The trading account owner.
     /// @return tradingAccount The created trading account storage pointer.
-    function create(uint128 accountId, address owner) internal returns (Data storage tradingAccount) {
-        tradingAccount = load(accountId);
-        tradingAccount.id = accountId;
+    function create(uint128 tradingAccountId, address owner) internal returns (Data storage tradingAccount) {
+        tradingAccount = load(tradingAccountId);
+        tradingAccount.id = tradingAccountId;
         tradingAccount.owner = owner;
     }
 

@@ -7,4 +7,4 @@ CreateTradingAccount_Unit_Test
     │   └── it should return a valid accountId2
     └── given the caller has a previously created trading account
         ├── it should emit {LogCreateTradingAccount}
-        └── it should return a valid accountId
+        └── it should return a valid tradingAccountId

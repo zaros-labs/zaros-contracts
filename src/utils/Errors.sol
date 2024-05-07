@@ -42,7 +42,7 @@ library Errors {
     /// @notice PerpsEngine.OrderBranch errors
 
     /// @notice Thrown when trying to cancel an active market order and there's none.
-    error NoActiveMarketOrder(uint128 accountId);
+    error NoActiveMarketOrder(uint128 tradingAccountId);
 
     /// @notice PerpsEngine.TradingAccountBranch
 
@@ -53,17 +53,17 @@ library Errors {
     /// @notice Thrown When the caller is not the account token contract.
     error OnlyTradingAccountToken(address sender);
     /// @notice Thrown when the caller is not authorized by the owner of the TradingAccount.
-    error AccountPermissionDenied(uint128 accountId, address sender);
-    /// @notice Thrown when the given `accountId` doesn't exist.
-    error AccountNotFound(uint128 accountId, address sender);
-    /// @notice Thrown when the given `accountId` tries to open a new position but it has already reached the
+    error AccountPermissionDenied(uint128 tradingAccountId, address sender);
+    /// @notice Thrown when the given `tradingAccountId` doesn't exist.
+    error AccountNotFound(uint128 tradingAccountId, address sender);
+    /// @notice Thrown when the given `tradingAccountId` tries to open a new position but it has already reached the
     /// limit.
     error MaxPositionsPerAccountReached(
-        uint128 accountId, uint256 activePositionsLength, uint256 maxPositionsPerAccount
+        uint128 tradingAccountId, uint256 activePositionsLength, uint256 maxPositionsPerAccount
     );
     /// @notice Thrown when trying to settle an order and the account has insufficient margin for the new position.
     error InsufficientMargin(
-        uint128 accountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, int256 totalFeesUsdX18
+        uint128 tradingAccountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, int256 totalFeesUsdX18
     );
     /// @notice Thrown when trying to deposit a collteral type that isn't in the liquidation priority configuration.
     error CollateralLiquidationPriorityNotDefined(address collateralType);
@@ -103,7 +103,7 @@ library Errors {
     /// @notice PerpsEngine.LiquidationBranch errors.
 
     error AccountNotLiquidatable(
-        uint128 accountId, uint256 requiredMaintenanceMarginUsdX18, int256 marginBalanceUsdX18
+        uint128 tradingAccountId, uint256 requiredMaintenanceMarginUsdX18, int256 marginBalanceUsdX18
     );
     error LiquidatorNotRegistered(address sender);
 

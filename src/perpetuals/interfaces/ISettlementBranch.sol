@@ -8,7 +8,7 @@ import { FeeRecipients } from "../leaves/FeeRecipients.sol";
 interface ISettlementBranch {
     event LogSettleOrder(
         address indexed sender,
-        uint128 indexed accountId,
+        uint128 indexed tradingAccountId,
         uint128 indexed marketId,
         int256 sizeDelta,
         uint256 fillPrice,
@@ -19,12 +19,12 @@ interface ISettlementBranch {
     );
 
     struct SettlementPayload {
-        uint128 accountId;
+        uint128 tradingAccountId;
         int128 sizeDelta;
     }
 
     function fillMarketOrder(
-        uint128 accountId,
+        uint128 tradingAccountId,
         uint128 marketId,
         FeeRecipients.Data calldata feeRecipients,
         bytes calldata priceData

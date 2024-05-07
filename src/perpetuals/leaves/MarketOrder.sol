@@ -17,19 +17,19 @@ library MarketOrder {
         uint128 timestamp;
     }
 
-    function load(uint128 accountId) internal pure returns (Data storage self) {
-        bytes32 slot = keccak256(abi.encode(MARKET_ORDER_DOMAIN, accountId));
+    function load(uint128 tradingAccountId) internal pure returns (Data storage self) {
+        bytes32 slot = keccak256(abi.encode(MARKET_ORDER_DOMAIN, tradingAccountId));
 
         assembly {
             self.slot := slot
         }
     }
 
-    function loadExisting(uint128 accountId) internal view returns (Data storage self) {
-        self = load(accountId);
+    function loadExisting(uint128 tradingAccountId) internal view returns (Data storage self) {
+        self = load(tradingAccountId);
 
         if (self.marketId == 0) {
-            revert Errors.NoActiveMarketOrder(accountId);
+            revert Errors.NoActiveMarketOrder(tradingAccountId);
         }
 
         return self;

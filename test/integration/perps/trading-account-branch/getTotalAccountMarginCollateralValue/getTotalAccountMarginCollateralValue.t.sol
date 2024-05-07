@@ -21,7 +21,8 @@ contract getAccountEquityUsd_Integration_Test is Base_Integration_Shared_Test {
             getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(ud60x18(amountToDeposit)).intoUint256();
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
-        uint256 marginCollateralValue = perpsEngine.getAccountEquityUsd({ accountId: tradingAccountId }).intoUint256();
+        uint256 marginCollateralValue =
+            perpsEngine.getAccountEquityUsd({ tradingAccountId: tradingAccountId }).intoUint256();
 
         assertEq(marginCollateralValue, expectedMarginCollateralValue, "getAccountEquityUsd");
     }
@@ -37,7 +38,8 @@ contract getAccountEquityUsd_Integration_Test is Base_Integration_Shared_Test {
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
         perpsEngine.depositMargin(tradingAccountId, address(mockWstEth), amountToDeposit);
 
-        uint256 marginCollateralValue = perpsEngine.getAccountEquityUsd({ accountId: tradingAccountId }).intoUint256();
+        uint256 marginCollateralValue =
+            perpsEngine.getAccountEquityUsd({ tradingAccountId: tradingAccountId }).intoUint256();
 
         assertEq(marginCollateralValue, expectedMarginCollateralValue, "getAccountEquityUsd");
     }

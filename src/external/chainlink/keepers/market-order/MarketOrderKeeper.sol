@@ -106,7 +106,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         override
         returns (bool, bytes memory)
     {
-        uint128 accountId = uint256(log.topics[LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX]).toUint128();
+        uint128 tradingAccountId = uint256(log.topics[LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX]).toUint128();
         (MarketOrder.Data memory marketOrder) = abi.decode(log.data, (MarketOrder.Data));
 
         MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
@@ -114,7 +114,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         string[] memory streams = new string[](1);
         streams[0] = self.streamId;
         uint256 settlementTimestamp = marketOrder.timestamp;
-        bytes memory extraData = abi.encode(accountId);
+        bytes memory extraData = abi.encode(tradingAccountId);
 
         revert StreamsLookup(self.feedLabel, streams, self.queryLabel, settlementTimestamp, extraData);
     }
@@ -170,7 +170,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
         (bytes memory signedReport, bytes memory extraData) = abi.decode(performData, (bytes, bytes));
-        uint128 accountId = abi.decode(extraData, (uint128));
+        uint128 tradingAccountId = abi.decode(extraData, (uint128));
 
         MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
         (IPerpsEngine perpsEngine, address feeRecipient, uint128 marketId) =
@@ -182,7 +182,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
             settlementFeeRecipient: feeRecipient
         });
 
-        perpsEngine.fillMarketOrder(accountId, marketId, feeRecipients, signedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, marketId, feeRecipients, signedReport);
     }
 
     function _getMarketOrderKeeperStorage() internal pure returns (MarketOrderKeeperStorage storage self) {
