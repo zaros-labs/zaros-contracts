@@ -32,14 +32,14 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
-    AccountNFT internal perpsAccountToken;
+    AccountNFT internal tradingAccountToken;
     IPerpsEngine internal perpsEngine;
     address internal accessKeyManager;
     address internal usdToken;
 
     function run() public broadcaster {
-        perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
-        console.log("Perps Account NFT: ", address(perpsAccountToken));
+        tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
+        console.log("Trading Account NFT: ", address(tradingAccountToken));
         usdToken = vm.envAddress("USDZ");
 
         isTestnet = vm.envBool("IS_TESTNET");
@@ -52,7 +52,7 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
             getBranchUpgrades(branches, branchesSelectors, IRootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches, isTestnet);
         bytes[] memory initializePayloads =
-            getInitializePayloads(deployer, address(perpsAccountToken), usdToken, accessKeyManager, isTestnet);
+            getInitializePayloads(deployer, address(tradingAccountToken), usdToken, accessKeyManager, isTestnet);
 
         IRootProxy.InitParams memory initParams = IRootProxy.InitParams({
             initBranches: branchUpgrades,

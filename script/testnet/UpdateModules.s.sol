@@ -7,10 +7,10 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
-import { PerpsAccountBranchTestnet } from "@zaros/testnet/branches/PerpsAccountBranchTestnet.sol";
+import { TradingAccountBranchTestnet } from "@zaros/testnet/branches/TradingAccountBranchTestnet.sol";
 import { SettlementBranchTestnet } from "@zaros/testnet/branches/SettlementBranchTestnet.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
-import { PerpsAccountBranch } from "@zaros/perpetuals/branches/PerpsAccountBranch.sol";
+import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
@@ -36,14 +36,14 @@ contract UpdateBranchs is BaseScript {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        PerpsAccountBranchTestnet perpsAccountBranchTestnet = new PerpsAccountBranchTestnet();
+        TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
         // GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
         // SettlementBranchTestnet settlementBranchTestnet = new SettlementBranchTestnet();
         // OrderBranch orderBranch = new OrderBranch();
 
-        // bytes4[] memory perpsAccountBranchTestnetSelectorsAdded = new bytes4[](1);
-        bytes4[] memory perpsAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
+        bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](2);
         // bytes4[] memory settlementBranchTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
@@ -58,17 +58,18 @@ contract UpdateBranchs is BaseScript {
         address[] memory initializables;
         bytes[] memory initializePayloads;
 
-        // perpsAccountBranchTestnetSelectorsAdded[0] = PerpsAccountBranch.getPositionState.selector;
-        // perpsAccountBranchTestnetSelectorsAdded[1] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
-        // perpsAccountBranchTestnetSelectorsAdded[2] = PerpsAccountBranchTestnet.getPointsOfUser.selector;
-        // perpsAccountBranchTestnetSelectorsAdded[3] = PerpsAccountBranchTestnet.getUserReferralData.selector;
-        // perpsAccountBranchTestnetSelectorsAdded[4] =
-        // PerpsAccountBranchTestnet.getCustomReferralCodeReferee.selector;
+        // tradingAccountBranchTestnetSelectorsAdded[0] = TradingAccountBranch.getPositionState.selector;
+        // tradingAccountBranchTestnetSelectorsAdded[1] = bytes4(keccak256("createTradingAccount(bytes,bool)"));
+        // tradingAccountBranchTestnetSelectorsAdded[2] = TradingAccountBranchTestnet.getPointsOfUser.selector;
+        // tradingAccountBranchTestnetSelectorsAdded[3] = TradingAccountBranchTestnet.getUserReferralData.selector;
+        // tradingAccountBranchTestnetSelectorsAdded[4] =
+        // TradingAccountBranchTestnet.getCustomReferralCodeReferee.selector;
 
-        perpsAccountBranchTestnetSelectorsUpdated[0] = PerpsAccountBranchTestnet.getUserReferralData.selector;
-        // perpsAccountBranchTestnetSelectorsUpdated[1] =
-        // bytes4(keccak256("createPerpsAccountAndMulticall(bytes[])"));
-        // perpsAccountBranchTestnetSelectorsUpdated[2] = bytes4(keccak256("depositMargin(uint128,address,uint256)"));
+        tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranchTestnet.getUserReferralData.selector;
+        // tradingAccountBranchTestnetSelectorsUpdated[1] =
+        // bytes4(keccak256("createTradingAccountAndMulticall(bytes[])"));
+        // tradingAccountBranchTestnetSelectorsUpdated[2] =
+        // bytes4(keccak256("depositMargin(uint128,address,uint256)"));
 
         // globalConfigurationBranchTestnetSelectorsAdded[0] =
         // GlobalConfigurationBranchTestnet.setUserPoints.selector;
@@ -87,25 +88,25 @@ contract UpdateBranchs is BaseScript {
 
         branchUpgrades[0] = (
             IRootProxy.BranchUpgrade({
-                branch: address(perpsAccountBranchTestnet),
+                branch: address(tradingAccountBranchTestnet),
                 action: IRootProxy.BranchUpgradeAction.Replace,
-                selectors: perpsAccountBranchTestnetSelectorsUpdated
+                selectors: tradingAccountBranchTestnetSelectorsUpdated
             })
         );
 
         // branchUpgrades[0] = (
         //     IRootProxy.BranchUpgrade({
-        //         branch: address(perpsAccountBranchTestnet),
+        //         branch: address(tradingAccountBranchTestnet),
         //         action: IRootProxy.BranchUpgradeAction.Add,
-        //         selectors: perpsAccountBranchTestnetSelectorsAdded
+        //         selectors: tradingAccountBranchTestnetSelectorsAdded
         //     })
         // );
 
         // branchUpgrades[1] = (
         //     IRootProxy.BranchUpgrade({
-        //         branch: address(perpsAccountBranchTestnet),
+        //         branch: address(tradingAccountBranchTestnet),
         //         action: IRootProxy.BranchUpgradeAction.Replace,
-        //         selectors: perpsAccountBranchTestnetSelectorsUpdated
+        //         selectors: tradingAccountBranchTestnetSelectorsUpdated
         //     })
         // );
 

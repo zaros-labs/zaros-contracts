@@ -23,8 +23,8 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol"
 
 import { console } from "forge-std/console.sol";
 
-/// @title The PerpsAccount namespace.
-library PerpsAccount {
+/// @title The TradingAccount namespace.
+library TradingAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for *;
     using PerpMarket for PerpMarket.Data;
@@ -35,14 +35,14 @@ library PerpsAccount {
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    /// @notice Constant base domain used to access a given PerpsAccount's storage slot.
-    string internal constant PERPS_ACCOUNT_DOMAIN = "fi.zaros.markets.PerpsAccount";
+    /// @notice Constant base domain used to access a given TradingAccount's storage slot.
+    string internal constant TRADING_ACCOUNT_DOMAIN = "fi.zaros.markets.TradingAccount";
 
-    /// @notice {PerpsAccount} namespace storage structure.
-    /// @param id The perps account id.
-    /// @param owner The perps account owner.
-    /// @param marginCollateralBalanceX18 The perps account margin collateral enumerable map.
-    /// @param activeMarketsIds The perps account active markets ids enumerable set.
+    /// @notice {TradingAccount} namespace storage structure.
+    /// @param id The trading account id.
+    /// @param owner The trading account owner.
+    /// @param marginCollateralBalanceX18 The trading account margin collateral enumerable map.
+    /// @param activeMarketsIds The trading account active markets ids enumerable set.
     struct Data {
         uint128 id;
         address owner;
@@ -50,28 +50,28 @@ library PerpsAccount {
         EnumerableSet.UintSet activeMarketsIds;
     }
 
-    /// @notice Loads a {PerpsAccount} object.
-    /// @param accountId The perps account id.
-    /// @return perpsAccount The loaded perps account storage pointer.
-    function load(uint128 accountId) internal pure returns (Data storage perpsAccount) {
-        bytes32 slot = keccak256(abi.encode(PERPS_ACCOUNT_DOMAIN, accountId));
+    /// @notice Loads a {TradingAccount} object.
+    /// @param accountId The trading account id.
+    /// @return tradingAccount The loaded trading account storage pointer.
+    function load(uint128 accountId) internal pure returns (Data storage tradingAccount) {
+        bytes32 slot = keccak256(abi.encode(TRADING_ACCOUNT_DOMAIN, accountId));
         assembly {
-            perpsAccount.slot := slot
+            tradingAccount.slot := slot
         }
     }
 
-    /// @notice Checks whether the given perps account exists.
-    /// @param accountId The perps account id.
-    /// @return perpsAccount if the perps account exists, its storage pointer is returned.
-    function loadExisting(uint128 accountId) internal view returns (Data storage perpsAccount) {
-        perpsAccount = load(accountId);
-        if (perpsAccount.owner == address(0)) {
+    /// @notice Checks whether the given trading account exists.
+    /// @param accountId The trading account id.
+    /// @return tradingAccount if the trading account exists, its storage pointer is returned.
+    function loadExisting(uint128 accountId) internal view returns (Data storage tradingAccount) {
+        tradingAccount = load(accountId);
+        if (tradingAccount.owner == address(0)) {
             revert Errors.AccountNotFound(accountId, msg.sender);
         }
     }
 
-    /// @notice Validates if the perps account is under the configured positions limit.
-    /// @dev This function must be called when the perps account is going to open a new position. If called in a
+    /// @notice Validates if the trading account is under the configured positions limit.
+    /// @dev This function must be called when the trading account is going to open a new position. If called in a
     /// context
     /// of an already active market, the check may be misleading.
     function validatePositionsLimit(Data storage self) internal view {
@@ -88,7 +88,7 @@ library PerpsAccount {
     /// @notice Validates if the given account will still meet margin requirements after a new settlement.
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
     /// @dev Must be called whenever a position is updated.
-    /// @param self The perps account storage pointer.
+    /// @param self The trading account storage pointer.
     /// @param requiredMarginUsdX18 Either the sum of initial margin + maintenance margin, or only the maintenace
     /// margin, depending on the context.
     /// @param marginBalanceUsdX18 The account's margin balance.
@@ -112,20 +112,20 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Loads an existing perps account and checks if the `msg.sender` is authorized.
-    /// @param accountId The perps account id.
-    /// @return perpsAccount The loaded perps account storage pointer.
+    /// @notice Loads an existing trading account and checks if the `msg.sender` is authorized.
+    /// @param accountId The trading account id.
+    /// @return tradingAccount The loaded trading account storage pointer.
     function loadExistingAccountAndVerifySender(uint128 accountId)
         internal
         view
-        returns (Data storage perpsAccount)
+        returns (Data storage tradingAccount)
     {
-        perpsAccount = loadExisting(accountId);
+        tradingAccount = loadExisting(accountId);
         verifySender(accountId);
     }
 
     /// @notice Returns the amount of the given margin collateral type.
-    /// @param self The perps account storage pointer.
+    /// @param self The trading account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @return marginCollateralBalanceX18 The margin collateral balance for the given collateral type.
     function getMarginCollateralBalance(Data storage self, address collateralType) internal view returns (UD60x18) {
@@ -135,7 +135,7 @@ library PerpsAccount {
     }
 
     /// @notice Returns the notional value of all margin collateral in the account.
-    /// @param self The perps account storage pointer.
+    /// @param self The trading account storage pointer.
     /// @return equityUsdX18 The total margin collateral value.
     function getEquityUsd(
         Data storage self,
@@ -172,7 +172,7 @@ library PerpsAccount {
             UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18)).mul(
                 ud60x18(marginCollateralConfiguration.loanToValue)
             );
-            console.log("from perps account leaf: ");
+            console.log("from trading account leaf: ");
             console.log(adjustedBalanceUsdX18.intoUint256());
 
             marginBalanceUsdX18 = marginBalanceUsdX18.add(adjustedBalanceUsdX18.intoSD59x18());
@@ -270,8 +270,8 @@ library PerpsAccount {
         }
     }
 
-    /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given perps account id.
-    /// @param accountId The perps account id.
+    /// @notice Verifies if the `msg.sender` is authorized to perform actions on the given trading account id.
+    /// @param accountId The trading account id.
     function verifySender(uint128 accountId) internal view {
         Data storage self = load(accountId);
         if (self.owner != msg.sender) {
@@ -295,18 +295,18 @@ library PerpsAccount {
         return self.activeMarketsIds.contains(marketId);
     }
 
-    /// @notice Creates a new perps account.
-    /// @param accountId The perps account id.
-    /// @param owner The perps account owner.
-    /// @return perpsAccount The created perps account storage pointer.
-    function create(uint128 accountId, address owner) internal returns (Data storage perpsAccount) {
-        perpsAccount = load(accountId);
-        perpsAccount.id = accountId;
-        perpsAccount.owner = owner;
+    /// @notice Creates a new trading account.
+    /// @param accountId The trading account id.
+    /// @param owner The trading account owner.
+    /// @return tradingAccount The created trading account storage pointer.
+    function create(uint128 accountId, address owner) internal returns (Data storage tradingAccount) {
+        tradingAccount = load(accountId);
+        tradingAccount.id = accountId;
+        tradingAccount.owner = owner;
     }
 
-    /// @notice Deposits the given collateral type into the perps account.
-    /// @param self The perps account storage pointer.
+    /// @notice Deposits the given collateral type into the trading account.
+    /// @param self The trading account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @param amountX18 The amount of margin collateral to be added.
     function deposit(Data storage self, address collateralType, UD60x18 amountX18) internal {
@@ -316,8 +316,8 @@ library PerpsAccount {
         marginCollateralBalanceX18.set(collateralType, newMarginCollateralBalance.intoUint256());
     }
 
-    /// @notice Withdraws the given collateral type from the perps account.
-    /// @param self The perps account storage pointer.
+    /// @notice Withdraws the given collateral type from the trading account.
+    /// @param self The trading account storage pointer.
     /// @param collateralType The address of the collateral type.
     /// @param amountX18 The amount of margin collateral to be removed.
     function withdraw(Data storage self, address collateralType, UD60x18 amountX18) internal {
@@ -448,7 +448,7 @@ library PerpsAccount {
     }
 
     /// @notice Updates the account's active markets ids based on the position's state transition.
-    /// @param self The perps account storage pointer.
+    /// @param self The trading account storage pointer.
     /// @param marketId The perps market id.
     /// @param oldPositionSize The old position size.
     /// @param newPositionSize The new position size.

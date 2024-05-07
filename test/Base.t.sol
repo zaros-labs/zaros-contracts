@@ -48,7 +48,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    AccountNFT internal perpsAccountToken;
+    AccountNFT internal tradingAccountToken;
     MockERC20 internal mockWstEth;
     MockUSDToken internal usdToken;
     IPerpsEngine internal perpsEngine;
@@ -74,7 +74,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
         vm.startPrank({ msgSender: users.owner });
 
-        perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
+        tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
         usdToken = new MockUSDToken({ owner: users.owner, deployerBalance: 100_000_000e18 });
         mockWstEth = new MockERC20({
             name: "Wrapped Staked Ether",
@@ -105,7 +105,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             getBranchUpgrades(branches, branchesSelectors, IRootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches, isTestnet);
         bytes[] memory initializePayloads = getInitializePayloads(
-            users.owner, address(perpsAccountToken), address(usdToken), accessKeyManager, isTestnet
+            users.owner, address(tradingAccountToken), address(usdToken), accessKeyManager, isTestnet
         );
 
         IRootProxy.InitParams memory initParams = IRootProxy.InitParams({
@@ -117,7 +117,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         configureContracts();
 
-        vm.label({ account: address(perpsAccountToken), newLabel: "Perps Account NFT" });
+        vm.label({ account: address(tradingAccountToken), newLabel: "Trading Account NFT" });
         vm.label({ account: address(usdToken), newLabel: "Zaros USD" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
@@ -160,7 +160,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function configureContracts() internal {
-        perpsAccountToken.transferOwnership(address(perpsEngine));
+        tradingAccountToken.transferOwnership(address(perpsEngine));
 
         // TODO: Temporary, switch to liquidity engine
         usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(perpsEngine));

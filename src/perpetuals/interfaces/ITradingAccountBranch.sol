@@ -10,15 +10,15 @@ import { Position } from "../leaves/Position.sol";
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-/// @title Perps Account Branch.
-/// @notice This branch is used by users in order to mint perps account nfts
+/// @title Trading Account Branch.
+/// @notice This branch is used by users in order to mint trading account nfts
 /// to use them as trading subaccounts, managing their cross margin collateral and
 /// trading on different perps markets.
-interface IPerpsAccountBranch {
-    /// @notice Emitted when a new perps account is created.
+interface ITradingAccountBranch {
+    /// @notice Emitted when a new trading account is created.
     /// @param accountId The trading account id.
     /// @param sender The `msg.sender` of the create account transaction.
-    event LogCreatePerpsAccount(uint128 accountId, address sender);
+    event LogCreateTradingAccount(uint128 accountId, address sender);
 
     /// @notice Emitted when `msg.sender` deposits `amount` of `collateralType` into `accountId`.
     /// @param sender The `msg.sender`.
@@ -39,8 +39,8 @@ interface IPerpsAccountBranch {
     );
 
     /// @notice Gets the contract address of the trading accounts NFTs.
-    /// @return perpsAccountToken The account token address.
-    function getPerpsAccountToken() external view returns (address perpsAccountToken);
+    /// @return tradingAccountToken The account token address.
+    function getTradingAccountToken() external view returns (address tradingAccountToken);
 
     /// @notice Returns the account's margin amount of the given collateral type.
     /// @param accountId The trading account id.
@@ -54,7 +54,7 @@ interface IPerpsAccountBranch {
         view
         returns (UD60x18 marginCollateralBalanceX18);
 
-    /// @notice Returns the total equity of all assets under the perps account without considering the collateral
+    /// @notice Returns the total equity of all assets under the trading account without considering the collateral
     /// value
     /// ratio
     /// @dev This function doesn't take open positions into account.
@@ -62,7 +62,7 @@ interface IPerpsAccountBranch {
     /// @return equityUsdX18 The USD denominated total margin collateral value.
     function getAccountEquityUsd(uint128 accountId) external view returns (SD59x18 equityUsdX18);
 
-    /// @notice Returns the perps account's total margin balance, available balance and maintenance margin.
+    /// @notice Returns the trading account's total margin balance, available balance and maintenance margin.
     /// @dev This function does take open positions data such as unrealized pnl into account.
     /// @dev The margin balance value takes into account the margin collateral's configured ratio (LTV).
     /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
@@ -82,7 +82,7 @@ interface IPerpsAccountBranch {
             SD59x18 availableMarginUsdX18
         );
 
-    /// @notice Returns the total perps account's unrealized pnl across open positions.
+    /// @notice Returns the total trading account's unrealized pnl across open positions.
     /// @param accountId The trading account id.
     /// @return accountTotalUnrealizedPnlUsdX18 The account's total unrealized pnl.
     function getAccountTotalUnrealizedPnl(uint128 accountId)
@@ -97,7 +97,7 @@ interface IPerpsAccountBranch {
     function getAccountLeverage(uint128 accountId) external view returns (UD60x18 leverage);
 
     /// @notice Gets the given market's position state.
-    /// @param accountId The perps account id.
+    /// @param accountId The trading account id.
     /// @param marketId The perps market id.
     /// @return positionState The position's current state.
     function getPositionState(
@@ -110,12 +110,12 @@ interface IPerpsAccountBranch {
 
     /// @notice Creates a new trading account and mints its NFT
     /// @return accountId The trading account id.
-    function createPerpsAccount() external returns (uint128 accountId);
+    function createTradingAccount() external returns (uint128 accountId);
 
     /// @notice Creates a new trading account and multicalls using the provided data payload.
     /// @param data The data payload to be multicalled.
     /// @return results The array of results of the multicall.
-    function createPerpsAccountAndMulticall(bytes[] calldata data)
+    function createTradingAccountAndMulticall(bytes[] calldata data)
         external
         payable
         returns (bytes[] memory results);
@@ -134,7 +134,7 @@ interface IPerpsAccountBranch {
 
     /// @notice Used by the Account NFT contract to notify an account transfer.
     /// @dev Can only be called by the Account NFT contract.
-    /// @dev It updates the Perps Account stored access control data.
+    /// @dev It updates the Trading Account stored access control data.
     /// @param to The recipient of the account transfer.
     /// @param accountId The trading account id.
     function notifyAccountTransfer(address to, uint128 accountId) external;

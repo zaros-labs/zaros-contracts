@@ -13,12 +13,12 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
     function test_RevertWhen_TheAmountIsZero() external {
         uint256 amountToDeposit = 0;
-        uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
+        uint128 userTradingAccountId = perpsEngine.createTradingAccount();
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
 
-        perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
+        perpsEngine.depositMargin(userTradingAccountId, address(usdToken), amountToDeposit);
     }
 
     modifier whenTheAmountIsNotZero() {
@@ -38,14 +38,14 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         );
         changePrank({ msgSender: users.naruto });
 
-        uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
+        uint128 userTradingAccountId = perpsEngine.createTradingAccount();
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.DepositCap.selector, address(usdToken), amountToDeposit, 0)
         });
 
-        perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
+        perpsEngine.depositMargin(userTradingAccountId, address(usdToken), amountToDeposit);
     }
 
     modifier givenTheCollateralTypeHasSufficientDepositCap() {
@@ -66,21 +66,21 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: users.naruto });
 
-        uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
+        uint128 userTradingAccountId = perpsEngine.createTradingAccount();
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.CollateralLiquidationPriorityNotDefined.selector, address(usdToken))
         });
-        perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
+        perpsEngine.depositMargin(userTradingAccountId, address(usdToken), amountToDeposit);
     }
 
     modifier givenTheCollateralTypeIsInTheLiquidationPriority() {
         _;
     }
 
-    function testFuzz_RevertGiven_ThePerpsAccountDoesNotExist(
-        uint128 userPerpsAccountId,
+    function testFuzz_RevertGiven_TheTradingAccountDoesNotExist(
+        uint128 userTradingAccountId,
         uint256 amountToDeposit
     )
         external
@@ -93,13 +93,13 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, userPerpsAccountId, users.naruto)
+            revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, userTradingAccountId, users.naruto)
         });
 
-        perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
+        perpsEngine.depositMargin(userTradingAccountId, address(usdToken), amountToDeposit);
     }
 
-    function testFuzz_GivenThePerpsAccountExists(uint256 amountToDeposit)
+    function testFuzz_GivenTheTradingAccountExists(uint256 amountToDeposit)
         external
         whenTheAmountIsNotZero
         givenTheCollateralTypeHasSufficientDepositCap
@@ -108,18 +108,18 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint128 userPerpsAccountId = perpsEngine.createPerpsAccount();
+        uint128 userTradingAccountId = perpsEngine.createTradingAccount();
 
         // it should emit {LogDepositMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogDepositMargin(users.naruto, userPerpsAccountId, address(usdToken), amountToDeposit);
+        emit LogDepositMargin(users.naruto, userTradingAccountId, address(usdToken), amountToDeposit);
 
-        // it should transfer the amount from the sender to the perps account
+        // it should transfer the amount from the sender to the trading account
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
-        perpsEngine.depositMargin(userPerpsAccountId, address(usdToken), amountToDeposit);
+        perpsEngine.depositMargin(userTradingAccountId, address(usdToken), amountToDeposit);
 
         uint256 newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(userPerpsAccountId, address(usdToken)).intoUint256();
+            perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdToken)).intoUint256();
 
         // it should increase the amount of margin collateral
         assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");

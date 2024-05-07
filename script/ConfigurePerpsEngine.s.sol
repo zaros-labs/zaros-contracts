@@ -24,7 +24,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
-    AccountNFT internal perpsAccountToken;
+    AccountNFT internal tradingAccountToken;
     address internal usdToken;
     address internal usdc;
     address internal link;
@@ -32,7 +32,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        perpsAccountToken = AccountNFT(vm.envAddress("PERPS_ACCOUNT_NFT"));
+        tradingAccountToken = AccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         usdToken = vm.envAddress("USDZ");
         usdc = vm.envAddress("USDC");
@@ -49,9 +49,9 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     }
 
     function configureContracts() internal {
-        perpsAccountToken.transferOwnership(address(perpsEngine));
+        tradingAccountToken.transferOwnership(address(perpsEngine));
 
-        perpsEngine.setPerpsAccountToken(address(perpsAccountToken));
+        perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,

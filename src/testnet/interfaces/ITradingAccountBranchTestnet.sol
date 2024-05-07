@@ -2,10 +2,10 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IPerpsAccountBranch } from "@zaros/perpetuals/interfaces/IPerpsAccountBranch.sol";
+import { ITradingAccountBranch } from "@zaros/perpetuals/interfaces/ITradingAccountBranch.sol";
 import { ReferralTestnet } from "../leaves/ReferralTestnet.sol";
 
-interface IPerpsAccountBranchTestnet is IPerpsAccountBranch {
+interface ITradingAccountBranchTestnet is ITradingAccountBranch {
     event LogReferralSet(
         address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode
     );
@@ -20,9 +20,9 @@ interface IPerpsAccountBranchTestnet is IPerpsAccountBranch {
 
     function getCustomReferralCodeReferee(string memory customReferralCode) external view returns (address);
 
-    function createPerpsAccount(bytes memory referralCode, bool isCustomReferralCode) external returns (uint128);
+    function createTradingAccount(bytes memory referralCode, bool isCustomReferralCode) external returns (uint128);
 
-    function createPerpsAccountAndMulticall(
+    function createTradingAccountAndMulticall(
         bytes[] calldata data,
         bytes memory referralCode,
         bool isCustomReferralCode

@@ -1,11 +1,11 @@
-CreatePerpsAccountAndMulticall_Unit_Test
+CreateTradingAccountAndMulticall_Unit_Test
 ├── when the data array provides a reverting call
 │   └── it should revert
 └── when the data array does not provide a reverting call
     ├── when the data array is null
-    │   ├── it should emit {LogCreatePerpsAccount}
+    │   ├── it should emit {LogCreateTradingAccount}
     │   └── it should return a null results array
     └── when the data array is not null
-        ├── it should emit {LogCreatePerpsAccount}t
+        ├── it should emit {LogCreateTradingAccount}t
         └── it should return a valid results array
 

@@ -14,10 +14,10 @@ contract GetAccountMarginCollateralBalance_Integration_Test is Base_Integration_
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
-        uint128 perpsAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
 
         uint256 marginCollateralAmount = perpsEngine.getAccountMarginCollateralBalance({
-            accountId: perpsAccountId,
+            accountId: tradingAccountId,
             collateralType: address(usdToken)
         }).intoUint256();
         assertEq(marginCollateralAmount, amountToDeposit, "getAccountMarginCollateralBalance");

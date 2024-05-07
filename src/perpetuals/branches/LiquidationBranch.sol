@@ -6,7 +6,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { ILiquidationBranch } from "../interfaces/ILiquidationBranch.sol";
 import { FeeRecipients } from "../leaves/FeeRecipients.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
-import { PerpsAccount } from "../leaves/PerpsAccount.sol";
+import { TradingAccount } from "../leaves/TradingAccount.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { Position } from "../leaves/Position.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
@@ -22,7 +22,7 @@ import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol"
 contract LiquidationBranch is ILiquidationBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
-    using PerpsAccount for PerpsAccount.Data;
+    using TradingAccount for TradingAccount.Data;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using MarketOrder for MarketOrder.Data;
@@ -51,14 +51,14 @@ contract LiquidationBranch is ILiquidationBranch {
 
         for (uint256 i = lowerBound; i < upperBound; i++) {
             uint128 accountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
-            PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
+            TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
 
             (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
-                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
-            SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+                tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
+            SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
             if (
-                PerpsAccount.isLiquidatable(
+                TradingAccount.isLiquidatable(
                     requiredMaintenanceMarginUsdX18, liquidationFeeUsdX18, marginBalanceUsdX18
                 )
             ) {
@@ -98,16 +98,16 @@ contract LiquidationBranch is ILiquidationBranch {
 
         for (uint256 i = 0; i < accountsIds.length; i++) {
             ctx.accountId = accountsIds[i];
-            PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
+            TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.accountId);
 
             (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
-                perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
+                tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
 
             ctx.requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18;
-            ctx.marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+            ctx.marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
             if (
-                !PerpsAccount.isLiquidatable(
+                !TradingAccount.isLiquidatable(
                     requiredMaintenanceMarginUsdX18, ctx.liquidationFeeUsdX18, ctx.marginBalanceUsdX18
                 )
             ) {
@@ -117,7 +117,7 @@ contract LiquidationBranch is ILiquidationBranch {
             }
 
             // TODO: Update margin recipient
-            UD60x18 liquidatedCollateralUsdX18 = perpsAccount.deductAccountMargin({
+            UD60x18 liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
                     marginCollateralRecipient: feeRecipient,
                     orderFeeRecipient: address(0),
@@ -132,10 +132,10 @@ contract LiquidationBranch is ILiquidationBranch {
             ctx.liquidatedCollateralUsdX18 = liquidatedCollateralUsdX18;
             MarketOrder.load(ctx.accountId).clear();
 
-            ctx.amountOfOpenPositions = perpsAccount.activeMarketsIds.length();
+            ctx.amountOfOpenPositions = tradingAccount.activeMarketsIds.length();
 
             for (uint256 j = 0; j < ctx.amountOfOpenPositions; j++) {
-                ctx.marketId = perpsAccount.activeMarketsIds.at(j).toUint128();
+                ctx.marketId = tradingAccount.activeMarketsIds.at(j).toUint128();
                 PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
                 Position.Data storage position = Position.load(ctx.accountId, ctx.marketId);
 
@@ -156,11 +156,11 @@ contract LiquidationBranch is ILiquidationBranch {
                     perpMarket.checkOpenInterestLimits(ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD_ZERO);
                 perpMarket.updateOpenInterest(newOpenInterest, newSkew);
 
-                perpsAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
+                tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
             }
 
             // asserts invariant
-            assert(perpsAccount.activeMarketsIds.length() == 0);
+            assert(tradingAccount.activeMarketsIds.length() == 0);
 
             emit LogLiquidateAccount(
                 msg.sender,

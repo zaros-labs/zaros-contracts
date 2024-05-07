@@ -4,21 +4,21 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IPerpsAccountBranch } from "@zaros/perpetuals/interfaces/IPerpsAccountBranch.sol";
+import { ITradingAccountBranch } from "@zaros/perpetuals/interfaces/ITradingAccountBranch.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
-contract CreatePerpsAccountAndMulticall_Integration_Test is Base_Integration_Shared_Test {
+contract CreateTradingAccountAndMulticall_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
     }
 
     function test_RevertWhen_TheDataArrayProvidesARevertingCall() external {
         bytes[] memory data = new bytes[](1);
-        data[0] = abi.encodeWithSelector(IPerpsAccountBranch.depositMargin.selector, address(usdToken), uint256(0));
+        data[0] = abi.encodeWithSelector(ITradingAccountBranch.depositMargin.selector, address(usdToken), uint256(0));
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
-        perpsEngine.createPerpsAccountAndMulticall(data);
+        perpsEngine.createTradingAccountAndMulticall(data);
     }
 
     modifier whenTheDataArrayDoesNotProvideARevertingCall() {
@@ -30,32 +30,32 @@ contract CreatePerpsAccountAndMulticall_Integration_Test is Base_Integration_Sha
         uint128 expectedAccountId = 1;
         uint256 expectedResultsLength = 0;
 
-        // it should emit {LogCreatePerpsAccount}
+        // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
+        emit LogCreateTradingAccount(expectedAccountId, users.naruto);
 
-        bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
+        bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
         // it should return a null results array
-        assertEq(results.length, expectedResultsLength, "createPerpsAccountAndMulticall");
+        assertEq(results.length, expectedResultsLength, "createTradingAccountAndMulticall");
     }
 
     function test_WhenTheDataArrayIsNotNull() external whenTheDataArrayDoesNotProvideARevertingCall {
         bytes[] memory data = new bytes[](1);
         uint128 expectedAccountId = 1;
-        data[0] = abi.encodeWithSelector(IPerpsAccountBranch.getPerpsAccountToken.selector);
+        data[0] = abi.encodeWithSelector(ITradingAccountBranch.getTradingAccountToken.selector);
 
-        // it should emit {LogCreatePerpsAccount}
+        // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogCreatePerpsAccount(expectedAccountId, users.naruto);
+        emit LogCreateTradingAccount(expectedAccountId, users.naruto);
 
-        bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
-        address perpsAccountTokenReturned = abi.decode(results[0], (address));
+        bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
+        address tradingAccountTokenReturned = abi.decode(results[0], (address));
 
         // it should return a valid results array
-        assertEq(perpsAccountTokenReturned, address(perpsAccountToken), "createPerpsAccountAndMulticall");
+        assertEq(tradingAccountTokenReturned, address(tradingAccountToken), "createTradingAccountAndMulticall");
     }
 
-    function testFuzz_CreatePerpsAccountAndDepositMargin(uint256 amountToDeposit)
+    function testFuzz_CreateTradingAccountAndDepositMargin(uint256 amountToDeposit)
         external
         whenTheDataArrayDoesNotProvideARevertingCall
     {
@@ -64,18 +64,18 @@ contract CreatePerpsAccountAndMulticall_Integration_Test is Base_Integration_Sha
 
         bytes[] memory data = new bytes[](1);
         data[0] =
-            abi.encodeWithSelector(IPerpsAccountBranch.depositMargin.selector, address(usdToken), amountToDeposit);
+            abi.encodeWithSelector(ITradingAccountBranch.depositMargin.selector, address(usdToken), amountToDeposit);
         uint128 expectedAccountId = 1;
 
-        // it should transfer the amount from the sender to the perps account
+        // it should transfer the amount from the sender to the trading account
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
-        bytes[] memory results = perpsEngine.createPerpsAccountAndMulticall(data);
+        bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
 
         uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdToken)).intoUint256();
 
         // it should increase the amount of margin collateral
-        assertEq(results.length, 1, "createPerpsAccountAndMulticall: results");
-        assertEq(newMarginCollateralBalance, amountToDeposit, "createPerpsAccountAndMulticall: account margin");
+        assertEq(results.length, 1, "createTradingAccountAndMulticall: results");
+        assertEq(newMarginCollateralBalance, amountToDeposit, "createTradingAccountAndMulticall: account margin");
     }
 }

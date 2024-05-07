@@ -6,7 +6,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { IOrderBranch } from "../interfaces/IOrderBranch.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
 import { OrderFees } from "../leaves/OrderFees.sol";
-import { PerpsAccount } from "../leaves/PerpsAccount.sol";
+import { TradingAccount } from "../leaves/TradingAccount.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { Position } from "../leaves/Position.sol";
@@ -27,7 +27,7 @@ contract OrderBranch is IOrderBranch {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
     using MarketOrder for MarketOrder.Data;
-    using PerpsAccount for PerpsAccount.Data;
+    using TradingAccount for TradingAccount.Data;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
@@ -56,7 +56,7 @@ contract OrderBranch is IOrderBranch {
             UD60x18 fillPriceX18
         )
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
@@ -68,8 +68,8 @@ contract OrderBranch is IOrderBranch {
 
         SD59x18 accountTotalUnrealizedPnlUsdX18;
         (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
-            perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
-        marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
+        marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
         console.log("from simulate trade: ");
         console.log(accountTotalUnrealizedPnlUsdX18.lt(sd59x18(0)));
@@ -109,7 +109,8 @@ contract OrderBranch is IOrderBranch {
 
     /// @inheritdoc IOrderBranch
     function createMarketOrder(CreateMarketOrderParams calldata params) external override {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(params.accountId);
+        TradingAccount.Data storage tradingAccount =
+            TradingAccount.loadExistingAccountAndVerifySender(params.accountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
         MarketOrder.Data storage marketOrder = MarketOrder.load(params.accountId);
         Position.Data storage position = Position.load(params.accountId, params.marketId);
@@ -128,9 +129,9 @@ contract OrderBranch is IOrderBranch {
             sd59x18(params.sizeDelta), sd59x18(position.size), sd59x18(position.size).add(sd59x18(params.sizeDelta))
         );
 
-        bool isMarketWithActivePosition = perpsAccount.isMarketWithActivePosition(params.marketId);
+        bool isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(params.marketId);
         if (!isMarketWithActivePosition) {
-            perpsAccount.validatePositionsLimit();
+            tradingAccount.validatePositionsLimit();
         }
 
         (
@@ -145,7 +146,7 @@ contract OrderBranch is IOrderBranch {
             settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta: params.sizeDelta
         });
-        perpsAccount.validateMarginRequirement(
+        tradingAccount.validateMarginRequirement(
             ctx.requiredInitialMarginUsdX18.add(ctx.requiredMaintenanceMarginUsdX18),
             ctx.marginBalanceUsdX18,
             ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())

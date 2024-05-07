@@ -43,10 +43,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
@@ -61,7 +61,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
             })
@@ -75,7 +75,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.OnlyKeeper.selector, users.naruto, marketOrderKeeper)
         });
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
 
     modifier givenTheSenderIsTheKeeper() {
@@ -95,7 +95,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
@@ -103,8 +103,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: marketOrderKeeper });
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, perpsAccountId) });
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, tradingAccountId) });
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
 
     modifier givenTheMarketOrderExists() {
@@ -128,10 +128,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
@@ -146,7 +146,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
             })
@@ -164,7 +164,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
         });
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
 
     modifier givenThePerpMarketIsEnabled() {
@@ -190,10 +190,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
@@ -208,7 +208,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
             })
@@ -242,7 +242,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: marketOrderKeeper });
         // it should revert
         vm.expectRevert({ revertData: Errors.SettlementDisabled.selector });
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
 
     modifier givenTheSettlementStrategyIsEnabled() {
@@ -268,10 +268,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
@@ -286,7 +286,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
             })
@@ -317,7 +317,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: marketOrderKeeper });
         // it should revert
         vm.expectRevert();
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
 
     modifier givenTheReportVerificationPasses() {
@@ -355,10 +355,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
@@ -373,7 +373,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
             })
@@ -393,7 +393,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 Errors.InvalidDataStreamReport.selector, fuzzMarketConfig.streamId, premiumReport.feedId
             )
         });
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
 
     modifier givenTheDataStreamsReportIsValid() {
@@ -426,10 +426,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: adjustedMarginRequirements,
@@ -444,7 +444,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
             })
@@ -466,7 +466,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             SD59x18 orderFeeUsdX18,
             UD60x18 settlementFeeUsdX18,
         ) = perpsEngine.simulateTrade(
-            perpsAccountId,
+            tradingAccountId,
             fuzzMarketConfig.marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta
@@ -482,13 +482,13 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InsufficientMargin.selector,
-                perpsAccountId,
+                tradingAccountId,
                 marginBalanceUsdX18.intoInt256(),
                 requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
                 orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
             )
         });
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
 
     modifier givenTheAccountWillMeetTheMarginRequirement() {
@@ -518,10 +518,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128 perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
@@ -536,7 +536,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: perpsAccountId,
+                accountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
             })
@@ -558,7 +558,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 Errors.ExceedsOpenInterestLimit.selector, fuzzMarketConfig.marketId, newMaxOi, sizeDeltaAbs
             )
         });
-        perpsEngine.fillMarketOrder(perpsAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
     }
 
     modifier givenTheMarketsOILimitWontBeExceeded() {
@@ -570,7 +570,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 adjustedMarginRequirements;
         uint256 priceShiftBps;
         address marketOrderKeeper;
-        uint128 perpsAccountId;
+        uint128 tradingAccountId;
         int128 firstOrderSizeDelta;
         SD59x18 firstOrderFeeUsdX18;
         UD60x18 firstFillPriceX18;
@@ -626,11 +626,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        ctx.perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         ctx.firstOrderSizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
-                accountId: ctx.perpsAccountId,
+                accountId: ctx.tradingAccountId,
                 marketId: ctx.fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
@@ -644,7 +644,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         (,,, ctx.firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.perpsAccountId,
+            ctx.tradingAccountId,
             ctx.fuzzMarketConfig.marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             ctx.firstOrderSizeDelta
@@ -657,7 +657,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // first market order
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: ctx.perpsAccountId,
+                accountId: ctx.tradingAccountId,
                 marketId: ctx.fuzzMarketConfig.marketId,
                 sizeDelta: ctx.firstOrderSizeDelta
             })
@@ -680,7 +680,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
         emit ISettlementBranch.LogSettleOrder({
             sender: ctx.marketOrderKeeper,
-            accountId: ctx.perpsAccountId,
+            accountId: ctx.tradingAccountId,
             marketId: ctx.fuzzMarketConfig.marketId,
             sizeDelta: ctx.firstOrderSizeDelta,
             fillPrice: ctx.firstFillPriceX18.intoUint256(),
@@ -692,7 +692,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // fill first order and open position
         perpsEngine.fillMarketOrder(
-            ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.firstMockSignedReport
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.firstMockSignedReport
         );
         // TODO: assert after funding task is done
         // it should update the funding values
@@ -719,7 +719,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should deduct the pnl and fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
-        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
+        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
         console.log("returned margin bal: ");
         console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
@@ -734,7 +734,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
 
         (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.perpsAccountId,
+            ctx.tradingAccountId,
             ctx.fuzzMarketConfig.marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             ctx.secondOrderSizeDelta
@@ -746,7 +746,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // second market order
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: ctx.perpsAccountId,
+                accountId: ctx.tradingAccountId,
                 marketId: ctx.fuzzMarketConfig.marketId,
                 sizeDelta: ctx.secondOrderSizeDelta
             })
@@ -780,7 +780,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
         emit ISettlementBranch.LogSettleOrder({
             sender: ctx.marketOrderKeeper,
-            accountId: ctx.perpsAccountId,
+            accountId: ctx.tradingAccountId,
             marketId: ctx.fuzzMarketConfig.marketId,
             sizeDelta: ctx.secondOrderSizeDelta,
             fillPrice: ctx.secondFillPriceX18.intoUint256(),
@@ -791,7 +791,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         });
         // fill second order and close position
         perpsEngine.fillMarketOrder(
-            ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.secondMockSignedReport
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.secondMockSignedReport
         );
 
         // TODO: assert after funding task is done
@@ -816,7 +816,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should deduct the pnl and fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
-        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
+        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
         console.log("returned margin bal: ");
         console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
@@ -827,7 +827,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 adjustedMarginRequirements;
         uint256 priceShiftBps;
         address marketOrderKeeper;
-        uint128 perpsAccountId;
+        uint128 tradingAccountId;
         int128 firstOrderSizeDelta;
         SD59x18 firstOrderFeeUsdX18;
         UD60x18 firstFillPriceX18;
@@ -883,11 +883,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        ctx.perpsAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         ctx.firstOrderSizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
-                accountId: ctx.perpsAccountId,
+                accountId: ctx.tradingAccountId,
                 marketId: ctx.fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
@@ -901,7 +901,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         (,,, ctx.firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.perpsAccountId,
+            ctx.tradingAccountId,
             ctx.fuzzMarketConfig.marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             ctx.firstOrderSizeDelta
@@ -914,7 +914,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // first market order
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: ctx.perpsAccountId,
+                accountId: ctx.tradingAccountId,
                 marketId: ctx.fuzzMarketConfig.marketId,
                 sizeDelta: ctx.firstOrderSizeDelta
             })
@@ -937,7 +937,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
         emit ISettlementBranch.LogSettleOrder({
             sender: ctx.marketOrderKeeper,
-            accountId: ctx.perpsAccountId,
+            accountId: ctx.tradingAccountId,
             marketId: ctx.fuzzMarketConfig.marketId,
             sizeDelta: ctx.firstOrderSizeDelta,
             fillPrice: ctx.firstFillPriceX18.intoUint256(),
@@ -950,7 +950,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // fill first order and open position
         console.log("filling first order: ");
         perpsEngine.fillMarketOrder(
-            ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.firstMockSignedReport
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.firstMockSignedReport
         );
         // TODO: assert after funding task is done
         // it should update the funding values
@@ -977,7 +977,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should deduct fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
-        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
+        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
         console.log("returned margin bal: ");
         console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
@@ -992,7 +992,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
 
         (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.perpsAccountId,
+            ctx.tradingAccountId,
             ctx.fuzzMarketConfig.marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             ctx.secondOrderSizeDelta
@@ -1004,7 +1004,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // second market order
         perpsEngine.createMarketOrder(
             IOrderBranch.CreateMarketOrderParams({
-                accountId: ctx.perpsAccountId,
+                accountId: ctx.tradingAccountId,
                 marketId: ctx.fuzzMarketConfig.marketId,
                 sizeDelta: ctx.secondOrderSizeDelta
             })
@@ -1025,7 +1025,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit ISettlementBranch.LogSettleOrder({
             sender: ctx.marketOrderKeeper,
-            accountId: ctx.perpsAccountId,
+            accountId: ctx.tradingAccountId,
             marketId: ctx.fuzzMarketConfig.marketId,
             sizeDelta: ctx.secondOrderSizeDelta,
             fillPrice: ctx.secondFillPriceX18.intoUint256(),
@@ -1037,7 +1037,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // fill second order and close position
         console.log("filling second order: ");
         perpsEngine.fillMarketOrder(
-            ctx.perpsAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.secondMockSignedReport
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.secondMockSignedReport
         );
 
         // TODO: assert after funding task is done
@@ -1062,7 +1062,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // it should add the pnl into the account's margin
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
-        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
+        (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
         console.log("returned margin bal: ");
         console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");

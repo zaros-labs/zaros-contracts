@@ -5,8 +5,8 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IPerpsAccountBranch } from "../interfaces/IPerpsAccountBranch.sol";
-import { PerpsAccount } from "../leaves/PerpsAccount.sol";
+import { ITradingAccountBranch } from "../interfaces/ITradingAccountBranch.sol";
+import { TradingAccount } from "../leaves/TradingAccount.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { Position } from "../leaves/Position.sol";
@@ -24,10 +24,10 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol"
 
 import { console } from "forge-std/console.sol";
 
-/// @notice See {IPerpsAccountBranch}.
-contract PerpsAccountBranch is IPerpsAccountBranch {
+/// @notice See {ITradingAccountBranch}.
+contract TradingAccountBranch is ITradingAccountBranch {
     using EnumerableSet for *;
-    using PerpsAccount for PerpsAccount.Data;
+    using TradingAccount for TradingAccount.Data;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
@@ -35,12 +35,12 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
-    /// @inheritdoc IPerpsAccountBranch
-    function getPerpsAccountToken() public view override returns (address) {
-        return GlobalConfiguration.load().perpsAccountToken;
+    /// @inheritdoc ITradingAccountBranch
+    function getTradingAccountToken() public view override returns (address) {
+        return GlobalConfiguration.load().tradingAccountToken;
     }
 
-    /// @inheritdoc IPerpsAccountBranch
+    /// @inheritdoc ITradingAccountBranch
     function getAccountMarginCollateralBalance(
         uint128 accountId,
         address collateralType
@@ -50,21 +50,21 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         override
         returns (UD60x18)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        UD60x18 marginCollateralBalanceX18 = perpsAccount.getMarginCollateralBalance(collateralType);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        UD60x18 marginCollateralBalanceX18 = tradingAccount.getMarginCollateralBalance(collateralType);
 
         return marginCollateralBalanceX18;
     }
 
-    /// @inheritdoc IPerpsAccountBranch
+    /// @inheritdoc ITradingAccountBranch
     function getAccountEquityUsd(uint128 accountId) external view override returns (SD59x18) {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        SD59x18 activePositionsUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
 
-        return perpsAccount.getEquityUsd(activePositionsUnrealizedPnlUsdX18);
+        return tradingAccount.getEquityUsd(activePositionsUnrealizedPnlUsdX18);
     }
 
-    /// @inheritdoc IPerpsAccountBranch
+    /// @inheritdoc ITradingAccountBranch
     function getAccountMarginBreakdown(uint128 accountId)
         external
         view
@@ -76,19 +76,19 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
             SD59x18 availableMarginUsdX18
         )
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        SD59x18 activePositionsUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
 
-        console.log("from perps account branch: ");
+        console.log("from trading account branch: ");
         console.log(activePositionsUnrealizedPnlUsdX18.lt(SD_ZERO));
         console.log(activePositionsUnrealizedPnlUsdX18.abs().intoUD60x18().intoUint256());
 
-        marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
+        marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
 
         console.log(marginBalanceUsdX18.abs().intoUD60x18().intoUint256());
 
-        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
-            uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
+        for (uint256 i = 0; i < tradingAccount.activeMarketsIds.length(); i++) {
+            uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
 
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(accountId, marketId);
@@ -112,24 +112,24 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
             marginBalanceUsdX18.sub((initialMarginUsdX18.add(maintenanceMarginUsdX18)).intoSD59x18());
     }
 
-    /// @inheritdoc IPerpsAccountBranch
+    /// @inheritdoc ITradingAccountBranch
     function getAccountTotalUnrealizedPnl(uint128 accountId)
         external
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18)
     {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        accountTotalUnrealizedPnlUsdX18 = perpsAccount.getAccountUnrealizedPnlUsd();
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        accountTotalUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
     }
 
     function getAccountLeverage(uint128 accountId) external view returns (UD60x18) {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
 
-        SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(perpsAccount.getAccountUnrealizedPnlUsd());
+        SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(tradingAccount.getAccountUnrealizedPnlUsd());
         UD60x18 totalPositionsNotionalValue;
 
-        for (uint256 i = 0; i < perpsAccount.activeMarketsIds.length(); i++) {
-            uint128 marketId = perpsAccount.activeMarketsIds.at(i).toUint128();
+        for (uint256 i = 0; i < tradingAccount.activeMarketsIds.length(); i++) {
+            uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
 
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(accountId, marketId);
@@ -146,7 +146,7 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
             : totalPositionsNotionalValue.intoSD59x18().div(marginBalanceUsdX18).intoUD60x18();
     }
 
-    /// @inheritdoc IPerpsAccountBranch
+    /// @inheritdoc ITradingAccountBranch
     function getPositionState(
         uint128 accountId,
         uint128 marketId
@@ -171,28 +171,28 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         );
     }
 
-    /// @inheritdoc IPerpsAccountBranch
-    function createPerpsAccount() public virtual override returns (uint128) {
+    /// @inheritdoc ITradingAccountBranch
+    function createTradingAccount() public virtual override returns (uint128) {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         uint128 accountId = ++globalConfiguration.nextAccountId;
-        IAccountNFT perpsAccountToken = IAccountNFT(globalConfiguration.perpsAccountToken);
-        PerpsAccount.create(accountId, msg.sender);
+        IAccountNFT tradingAccountToken = IAccountNFT(globalConfiguration.tradingAccountToken);
+        TradingAccount.create(accountId, msg.sender);
 
-        perpsAccountToken.mint(msg.sender, accountId);
+        tradingAccountToken.mint(msg.sender, accountId);
 
-        emit LogCreatePerpsAccount(accountId, msg.sender);
+        emit LogCreateTradingAccount(accountId, msg.sender);
         return accountId;
     }
 
-    /// @inheritdoc IPerpsAccountBranch
-    function createPerpsAccountAndMulticall(bytes[] calldata data)
+    /// @inheritdoc ITradingAccountBranch
+    function createTradingAccountAndMulticall(bytes[] calldata data)
         external
         payable
         virtual
         override
         returns (bytes[] memory results)
     {
-        uint128 accountId = createPerpsAccount();
+        uint128 accountId = createTradingAccount();
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
@@ -210,7 +210,7 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         }
     }
 
-    /// @inheritdoc IPerpsAccountBranch
+    /// @inheritdoc ITradingAccountBranch
     function depositMargin(uint128 accountId, address collateralType, uint256 amount) public virtual override {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
@@ -219,21 +219,21 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         _requireEnoughDepositCap(collateralType, ud60x18Amount, ud60x18(marginCollateralConfiguration.depositCap));
         _requireCollateralLiquidationPriorityDefined(collateralType);
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        perpsAccount.deposit(collateralType, ud60x18Amount);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        tradingAccount.deposit(collateralType, ud60x18Amount);
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), ud60x18Amount.intoUint256());
 
         emit LogDepositMargin(msg.sender, accountId, collateralType, amount);
     }
 
-    /// @inheritdoc IPerpsAccountBranch
+    /// @inheritdoc ITradingAccountBranch
     function withdrawMargin(uint128 accountId, address collateralType, UD60x18 amount) external override {
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExistingAccountAndVerifySender(accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExistingAccountAndVerifySender(accountId);
         _requireAmountNotZero(amount);
-        _requireEnoughMarginCollateral(perpsAccount, collateralType, amount);
+        _requireEnoughMarginCollateral(tradingAccount, collateralType, amount);
 
-        perpsAccount.withdraw(collateralType, amount);
-        _requireMarginRequirementIsValid(perpsAccount);
+        tradingAccount.withdraw(collateralType, amount);
+        _requireMarginRequirementIsValid(tradingAccount);
 
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
@@ -244,12 +244,12 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
         emit LogWithdrawMargin(msg.sender, accountId, collateralType, tokenAmount);
     }
 
-    /// @inheritdoc IPerpsAccountBranch
+    /// @inheritdoc ITradingAccountBranch
     function notifyAccountTransfer(address to, uint128 accountId) external override {
-        _onlyPerpsAccountToken();
+        _onlyTradingAccountToken();
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        perpsAccount.owner = to;
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        tradingAccount.owner = to;
     }
 
     /// @dev Reverts if the amount is zero.
@@ -275,18 +275,18 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
     }
 
     /// @notice Checks if there's enough margin collateral balance to be withdrawn.
-    /// @param perpsAccount The perps account storage pointer.
+    /// @param tradingAccount The trading account storage pointer.
     /// @param collateralType The margin collateral address.
     /// @param amount The amount of margin collateral to be withdrawn.
     function _requireEnoughMarginCollateral(
-        PerpsAccount.Data storage perpsAccount,
+        TradingAccount.Data storage tradingAccount,
         address collateralType,
         UD60x18 amount
     )
         internal
         view
     {
-        UD60x18 marginCollateralBalanceX18 = perpsAccount.getMarginCollateralBalance(collateralType);
+        UD60x18 marginCollateralBalanceX18 = tradingAccount.getMarginCollateralBalance(collateralType);
 
         if (marginCollateralBalanceX18.lt(amount)) {
             revert Errors.InsufficientCollateralBalance(
@@ -297,24 +297,24 @@ contract PerpsAccountBranch is IPerpsAccountBranch {
 
     /// @dev Checks if the account will still meet margin requirements after a withdrawal.
     /// @dev Iterates over active positions in order to take uPnL and margin requirements into account.
-    /// @param perpsAccount The perps account storage pointer.
-    function _requireMarginRequirementIsValid(PerpsAccount.Data storage perpsAccount) internal view {
+    /// @param tradingAccount The trading account storage pointer.
+    function _requireMarginRequirementIsValid(TradingAccount.Data storage tradingAccount) internal view {
         (
             UD60x18 requiredInitialMarginUsdX18,
             UD60x18 requiredMaintenanceMarginUsdX18,
             SD59x18 accountTotalUnrealizedPnlUsdX18
-        ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
-        SD59x18 marginBalanceUsdX18 = perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+        ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
+        SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
-        perpsAccount.validateMarginRequirement(
+        tradingAccount.validateMarginRequirement(
             requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18), marginBalanceUsdX18, SD_ZERO
         );
     }
 
     /// @dev Reverts if the caller is not the account owner.
-    function _onlyPerpsAccountToken() internal view {
-        if (msg.sender != address(getPerpsAccountToken())) {
-            revert Errors.OnlyPerpsAccountToken(msg.sender);
+    function _onlyTradingAccountToken() internal view {
+        if (msg.sender != address(getTradingAccountToken())) {
+            revert Errors.OnlyTradingAccountToken(msg.sender);
         }
     }
 }

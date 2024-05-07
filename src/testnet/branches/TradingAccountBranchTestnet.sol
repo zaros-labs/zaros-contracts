@@ -4,8 +4,8 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { AccessKeyManager } from "@zaros/testnet/access-key-manager/AccessKeyManager.sol";
-import { PerpsAccountBranch } from "@zaros/perpetuals/branches/PerpsAccountBranch.sol";
-import { PerpsAccount } from "@zaros/perpetuals/leaves/PerpsAccount.sol";
+import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
+import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
 import { Points } from "../leaves/Points.sol";
 import { CustomReferralConfigurationTestnet } from "../leaves/CustomReferralConfigurationTestnet.sol";
 import { ReferralTestnet } from "../leaves/ReferralTestnet.sol";
@@ -18,8 +18,8 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-contract PerpsAccountBranchTestnet is PerpsAccountBranch, Initializable, OwnableUpgradeable {
-    using PerpsAccount for PerpsAccount.Data;
+contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, OwnableUpgradeable {
+    using TradingAccount for TradingAccount.Data;
     using ReferralTestnet for ReferralTestnet.Data;
 
     AccessKeyManager internal accessKeyManager;
@@ -60,15 +60,15 @@ contract PerpsAccountBranchTestnet is PerpsAccountBranch, Initializable, Ownable
         return (referral.referralCode, referral.isCustomReferralCode);
     }
 
-    function createPerpsAccount() public override returns (uint128) { }
+    function createTradingAccount() public override returns (uint128) { }
 
-    function createPerpsAccount(bytes memory referralCode, bool isCustomReferralCode) public returns (uint128) {
+    function createTradingAccount(bytes memory referralCode, bool isCustomReferralCode) public returns (uint128) {
         bool userHasAccount = isAccountCreated[msg.sender];
         if (userHasAccount) {
             revert UserAlreadyHasAccount();
         }
 
-        uint128 perpsAccountId = super.createPerpsAccount();
+        uint128 tradingAccountId = super.createTradingAccount();
         isAccountCreated[msg.sender] = true;
 
         ReferralTestnet.Data storage referral = ReferralTestnet.load(msg.sender);
@@ -96,17 +96,17 @@ contract PerpsAccountBranchTestnet is PerpsAccountBranch, Initializable, Ownable
             emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
         }
 
-        return perpsAccountId;
+        return tradingAccountId;
     }
 
-    function createPerpsAccountAndMulticall(bytes[] calldata data)
+    function createTradingAccountAndMulticall(bytes[] calldata data)
         external
         payable
         override
         returns (bytes[] memory results)
     { }
 
-    function createPerpsAccountAndMulticall(
+    function createTradingAccountAndMulticall(
         bytes[] calldata data,
         bytes memory referralCode,
         bool isCustomReferralCode
@@ -115,7 +115,7 @@ contract PerpsAccountBranchTestnet is PerpsAccountBranch, Initializable, Ownable
         payable
         returns (bytes[] memory results)
     {
-        uint128 accountId = createPerpsAccount(referralCode, isCustomReferralCode);
+        uint128 accountId = createTradingAccount(referralCode, isCustomReferralCode);
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
@@ -136,8 +136,8 @@ contract PerpsAccountBranchTestnet is PerpsAccountBranch, Initializable, Ownable
     function depositMargin(uint128 accountId, address collateralType, uint256 amount) public virtual override {
         super.depositMargin(accountId, collateralType, amount);
 
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(accountId);
-        UD60x18 marginCollateralBalance = perpsAccount.getMarginCollateralBalance(collateralType);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(accountId);
+        UD60x18 marginCollateralBalance = tradingAccount.getMarginCollateralBalance(collateralType);
 
         if (marginCollateralBalance > ud60x18(100_000e18)) {
             revert FaucetAlreadyDeposited();

@@ -9,10 +9,10 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
-import { PerpsAccountBranch } from "@zaros/perpetuals/branches/PerpsAccountBranch.sol";
+import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
-import { PerpsAccountBranchTestnet } from "@zaros/testnet/branches/PerpsAccountBranchTestnet.sol";
+import { TradingAccountBranchTestnet } from "@zaros/testnet/branches/TradingAccountBranchTestnet.sol";
 import { SettlementBranchTestnet } from "@zaros/testnet/branches/SettlementBranchTestnet.sol";
 
 // Forge dependencies
@@ -37,19 +37,19 @@ function deployBranchs(bool isTestnet) returns (address[] memory) {
     console.log("PerpMarketBranch: ", perpMarketBranch);
 
     address globalConfigurationBranch;
-    address perpsAccountBranch;
+    address tradingAccountBranch;
     address settlementBranch;
     if (isTestnet) {
         globalConfigurationBranch = address(new GlobalConfigurationBranchTestnet());
-        perpsAccountBranch = address(new PerpsAccountBranchTestnet());
+        tradingAccountBranch = address(new TradingAccountBranchTestnet());
         settlementBranch = address(new SettlementBranchTestnet());
     } else {
         globalConfigurationBranch = address(new GlobalConfigurationBranch());
-        perpsAccountBranch = address(new PerpsAccountBranch());
+        tradingAccountBranch = address(new TradingAccountBranch());
         settlementBranch = address(new SettlementBranch());
     }
     console.log("GlobalConfigurationBranch: ", globalConfigurationBranch);
-    console.log("PerpsAccountBranch: ", perpsAccountBranch);
+    console.log("TradingAccountBranch: ", tradingAccountBranch);
     console.log("SettlementBranch: ", settlementBranch);
 
     branches[0] = upgradeBranch;
@@ -58,7 +58,7 @@ function deployBranchs(bool isTestnet) returns (address[] memory) {
     branches[3] = liquidationBranch;
     branches[4] = orderBranch;
     branches[5] = perpMarketBranch;
-    branches[6] = perpsAccountBranch;
+    branches[6] = tradingAccountBranch;
     branches[7] = settlementBranch;
 
     return branches;
@@ -83,7 +83,7 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     globalConfigurationBranchSelectors[0] = GlobalConfigurationBranch.getAccountsWithActivePositions.selector;
     globalConfigurationBranchSelectors[1] = GlobalConfigurationBranch.getMarginCollateralConfiguration.selector;
-    globalConfigurationBranchSelectors[2] = GlobalConfigurationBranch.setPerpsAccountToken.selector;
+    globalConfigurationBranchSelectors[2] = GlobalConfigurationBranch.setTradingAccountToken.selector;
     globalConfigurationBranchSelectors[3] = GlobalConfigurationBranch.configureCollateralLiquidationPriority.selector;
     globalConfigurationBranchSelectors[4] = GlobalConfigurationBranch.configureLiquidators.selector;
     globalConfigurationBranchSelectors[5] = GlobalConfigurationBranch.configureMarginCollateral.selector;
@@ -126,28 +126,28 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpMarketBranchSelectors[8] = PerpMarketBranch.getFundingVelocity.selector;
     perpMarketBranchSelectors[9] = PerpMarketBranch.getPerpMarketConfiguration.selector;
 
-    bytes4[] memory perpsAccountBranchSelectors = new bytes4[](isTestnet ? 16 : 12);
+    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 16 : 12);
 
-    perpsAccountBranchSelectors[0] = PerpsAccountBranch.getPerpsAccountToken.selector;
-    perpsAccountBranchSelectors[1] = PerpsAccountBranch.getAccountMarginCollateralBalance.selector;
-    perpsAccountBranchSelectors[2] = PerpsAccountBranch.getAccountEquityUsd.selector;
-    perpsAccountBranchSelectors[3] = PerpsAccountBranch.getAccountMarginBreakdown.selector;
-    perpsAccountBranchSelectors[4] = PerpsAccountBranch.getAccountTotalUnrealizedPnl.selector;
-    perpsAccountBranchSelectors[5] = PerpsAccountBranch.getAccountLeverage.selector;
-    perpsAccountBranchSelectors[6] = PerpsAccountBranch.getPositionState.selector;
-    perpsAccountBranchSelectors[7] = PerpsAccountBranch.createPerpsAccount.selector;
-    perpsAccountBranchSelectors[8] = PerpsAccountBranch.createPerpsAccountAndMulticall.selector;
-    perpsAccountBranchSelectors[9] = PerpsAccountBranch.depositMargin.selector;
-    perpsAccountBranchSelectors[10] = PerpsAccountBranch.withdrawMargin.selector;
-    perpsAccountBranchSelectors[11] = PerpsAccountBranch.notifyAccountTransfer.selector;
+    tradingAccountBranchSelectors[0] = TradingAccountBranch.getTradingAccountToken.selector;
+    tradingAccountBranchSelectors[1] = TradingAccountBranch.getAccountMarginCollateralBalance.selector;
+    tradingAccountBranchSelectors[2] = TradingAccountBranch.getAccountEquityUsd.selector;
+    tradingAccountBranchSelectors[3] = TradingAccountBranch.getAccountMarginBreakdown.selector;
+    tradingAccountBranchSelectors[4] = TradingAccountBranch.getAccountTotalUnrealizedPnl.selector;
+    tradingAccountBranchSelectors[5] = TradingAccountBranch.getAccountLeverage.selector;
+    tradingAccountBranchSelectors[6] = TradingAccountBranch.getPositionState.selector;
+    tradingAccountBranchSelectors[7] = TradingAccountBranch.createTradingAccount.selector;
+    tradingAccountBranchSelectors[8] = TradingAccountBranch.createTradingAccountAndMulticall.selector;
+    tradingAccountBranchSelectors[9] = TradingAccountBranch.depositMargin.selector;
+    tradingAccountBranchSelectors[10] = TradingAccountBranch.withdrawMargin.selector;
+    tradingAccountBranchSelectors[11] = TradingAccountBranch.notifyAccountTransfer.selector;
 
     if (isTestnet) {
-        perpsAccountBranchSelectors[7] = bytes4(keccak256("createPerpsAccount(bytes,bool)"));
-        perpsAccountBranchSelectors[8] = bytes4(keccak256("createPerpsAccountAndMulticall(bytes[],bytes,bool)"));
-        perpsAccountBranchSelectors[12] = PerpsAccountBranchTestnet.getAccessKeyManager.selector;
-        perpsAccountBranchSelectors[13] = PerpsAccountBranchTestnet.isUserAccountCreated.selector;
-        perpsAccountBranchSelectors[14] = PerpsAccountBranchTestnet.getPointsOfUser.selector;
-        perpsAccountBranchSelectors[15] = PerpsAccountBranchTestnet.getUserReferralData.selector;
+        tradingAccountBranchSelectors[7] = bytes4(keccak256("createTradingAccount(bytes,bool)"));
+        tradingAccountBranchSelectors[8] = bytes4(keccak256("createTradingAccountAndMulticall(bytes[],bytes,bool)"));
+        tradingAccountBranchSelectors[12] = TradingAccountBranchTestnet.getAccessKeyManager.selector;
+        tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
+        tradingAccountBranchSelectors[14] = TradingAccountBranchTestnet.getPointsOfUser.selector;
+        tradingAccountBranchSelectors[15] = TradingAccountBranchTestnet.getUserReferralData.selector;
     }
 
     bytes4[] memory settlementBranchSelectors = new bytes4[](2);
@@ -161,7 +161,7 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     selectors[3] = liquidationBranchSelectors;
     selectors[4] = orderBranchSelectors;
     selectors[5] = perpMarketBranchSelectors;
-    selectors[6] = perpsAccountBranchSelectors;
+    selectors[6] = tradingAccountBranchSelectors;
     selectors[7] = settlementBranchSelectors;
 
     return selectors;
@@ -197,8 +197,8 @@ function getInitializables(address[] memory branches, bool isTestnet) pure retur
     initializables[1] = globalConfigurationBranch;
 
     if (isTestnet) {
-        address perpsAccountBranchTestnet = branches[6];
-        initializables[2] = perpsAccountBranchTestnet;
+        address tradingAccountBranchTestnet = branches[6];
+        initializables[2] = tradingAccountBranchTestnet;
     }
 
     return initializables;
@@ -206,7 +206,7 @@ function getInitializables(address[] memory branches, bool isTestnet) pure retur
 
 function getInitializePayloads(
     address deployer,
-    address perpsAccountToken,
+    address tradingAccountToken,
     address usdToken,
     address accessKeyManager,
     bool isTestnet
@@ -218,7 +218,7 @@ function getInitializePayloads(
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
     bytes memory perpsEngineInitializeData =
-        abi.encodeWithSelector(GlobalConfigurationBranch.initialize.selector, perpsAccountToken, usdToken);
+        abi.encodeWithSelector(GlobalConfigurationBranch.initialize.selector, tradingAccountToken, usdToken);
 
     initializePayloads = new bytes[](isTestnet ? 3 : 2);
 
@@ -226,9 +226,9 @@ function getInitializePayloads(
     initializePayloads[1] = perpsEngineInitializeData;
 
     if (isTestnet) {
-        bytes memory perpsAccountTestnetData =
-            abi.encodeWithSelector(PerpsAccountBranchTestnet.initialize.selector, accessKeyManager);
-        initializePayloads[2] = perpsAccountTestnetData;
+        bytes memory tradingAccountTestnetData =
+            abi.encodeWithSelector(TradingAccountBranchTestnet.initialize.selector, accessKeyManager);
+        initializePayloads[2] = tradingAccountTestnetData;
     }
 
     return initializePayloads;

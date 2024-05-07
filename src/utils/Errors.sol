@@ -44,15 +44,15 @@ library Errors {
     /// @notice Thrown when trying to cancel an active market order and there's none.
     error NoActiveMarketOrder(uint128 accountId);
 
-    /// @notice PerpsEngine.PerpsAccountBranch
+    /// @notice PerpsEngine.TradingAccountBranch
 
     /// @notice Thrown When the provided collateral is not supported.
     error DepositCap(address collateralType, uint256 amount, uint256 depositCap);
     /// @notice Thrown when there's not enough margin collateral to be withdrawn.
     error InsufficientCollateralBalance(uint256 amount, uint256 balance);
     /// @notice Thrown When the caller is not the account token contract.
-    error OnlyPerpsAccountToken(address sender);
-    /// @notice Thrown when the caller is not authorized by the owner of the PerpsAccount.
+    error OnlyTradingAccountToken(address sender);
+    /// @notice Thrown when the caller is not authorized by the owner of the TradingAccount.
     error AccountPermissionDenied(uint128 accountId, address sender);
     /// @notice Thrown when the given `accountId` doesn't exist.
     error AccountNotFound(uint128 accountId, address sender);
@@ -71,7 +71,7 @@ library Errors {
     /// @notice PerpsEngine.GlobalConfigurationBranch
 
     /// @notice Thrown when the provided `accountToken` is the zero address.
-    error PerpsAccountTokenNotDefined();
+    error TradingAccountTokenNotDefined();
     /// @notice Thrown when the provided `liquidationReward` is less than 1e18.
     error InvalidLiquidationReward(uint128 liquidationFeeUsdX18);
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.

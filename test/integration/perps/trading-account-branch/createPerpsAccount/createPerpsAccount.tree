@@ -1,0 +1,10 @@
+CreateTradingAccount_Unit_Test
+├── given the trading account token is not set
+│   └── it should revert
+└── given the trading account token is set
+    ├── given the caller has no previous trading account
+    │   ├── it should emit {LogCreateTradingAccount}
+    │   └── it should return a valid accountId2
+    └── given the caller has a previously created trading account
+        ├── it should emit {LogCreateTradingAccount}
+        └── it should return a valid accountId
