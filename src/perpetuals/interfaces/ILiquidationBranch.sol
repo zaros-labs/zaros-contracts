@@ -5,7 +5,6 @@ interface ILiquidationBranch {
     event LogLiquidateAccount(
         address indexed keeper,
         uint128 indexed tradingAccountId,
-        address feeRecipient,
         uint256 amountOfOpenPositions,
         uint256 requiredMaintenanceMarginUsd,
         int256 marginBalanceUsd,
@@ -21,5 +20,10 @@ interface ILiquidationBranch {
         view
         returns (uint128[] memory liquidatableAccountsIds);
 
-    function liquidateAccounts(uint128[] calldata accountsIds, address feeRecipient) external;
+    function liquidateAccounts(
+        uint128[] calldata accountsIds,
+        address marginCollateralRecipient,
+        address liquidationFeeRecipient
+    )
+        external;
 }

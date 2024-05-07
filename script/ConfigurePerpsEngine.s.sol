@@ -10,6 +10,9 @@ import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 
+// Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
@@ -68,9 +71,21 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdzUsdPriceFeed);
         perpsEngine.configureMarginCollateral(usdc, USDC_DEPOSIT_CAP, USDC_LOAN_TO_VALUE, usdcUsdPriceFeed);
 
-        address liquidationKeeper = address(new LiquidationKeeper());
+        address liquidationKeeperImplementation = address(new LiquidationKeeper());
 
-        console.log("Liquidation Keeper: ", liquidationKeeper);
+        console.log("Liquidation Keeper Implementation: ", liquidationKeeperImplementation);
+
+        address liquidationKeeper = address(
+            new ERC1967Proxy(
+                liquidationKeeperImplementation,
+                abi.encodeWithSelector(
+                    LiquidationKeeper(liquidationKeeperImplementation).initialize.selector,
+                    address(perpsEngine),
+                    MSIG_ADDRESS,
+                    MSIG_ADDRESS
+                )
+            )
+        );
         // AutomationHelpers.registerLiquidationKeeper({
         //     name: PERPS_LIQUIDATION_KEEPER_NAME,
         //     liquidationKeeper: liquidationKeeper,

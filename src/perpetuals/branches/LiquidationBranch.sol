@@ -84,7 +84,8 @@ contract LiquidationBranch is ILiquidationBranch {
 
     function liquidateAccounts(
         uint128[] calldata accountsIds,
-        address feeRecipient
+        address marginCollateralRecipient,
+        address liquidationFeeRecipient
     )
         external
         onlyRegisteredLiquidator
@@ -121,9 +122,9 @@ contract LiquidationBranch is ILiquidationBranch {
             // TODO: Update margin recipient
             UD60x18 liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
-                    marginCollateralRecipient: feeRecipient,
+                    marginCollateralRecipient: marginCollateralRecipient,
                     orderFeeRecipient: address(0),
-                    settlementFeeRecipient: feeRecipient
+                    settlementFeeRecipient: liquidationFeeRecipient
                 }),
                 pnlUsdX18: ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
                     ? ctx.marginBalanceUsdX18.intoUD60x18()
@@ -167,7 +168,6 @@ contract LiquidationBranch is ILiquidationBranch {
             emit LogLiquidateAccount(
                 msg.sender,
                 ctx.tradingAccountId,
-                feeRecipient,
                 ctx.amountOfOpenPositions,
                 ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
                 ctx.marginBalanceUsdX18.intoInt256(),
