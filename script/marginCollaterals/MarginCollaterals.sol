@@ -7,8 +7,6 @@ import { Usdz } from "script/marginCollaterals/Usdz.sol";
 import { WeEth } from "script/marginCollaterals/WeEth.sol";
 import { WstEth } from "script/marginCollaterals/WstEth.sol";
 
-import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
-
 contract MarginCollaterals is Usdc, Usdz, WeEth, WstEth {
 
     struct MarginCollateral {
