@@ -7,7 +7,7 @@ import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ISettlementBranch } from "../interfaces/ISettlementBranch.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
-import { PerpsAccount } from "../leaves/PerpsAccount.sol";
+import { TradingAccount } from "../leaves/TradingAccount.sol";
 import { FeeRecipients } from "../leaves/FeeRecipients.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
@@ -27,7 +27,7 @@ contract SettlementBranch is ISettlementBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarketOrder for MarketOrder.Data;
-    using PerpsAccount for PerpsAccount.Data;
+    using TradingAccount for TradingAccount.Data;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SafeCast for uint256;
@@ -54,7 +54,7 @@ contract SettlementBranch is ISettlementBranch {
     }
 
     function fillMarketOrder(
-        uint128 accountId,
+        uint128 tradingAccountId,
         uint128 marketId,
         FeeRecipients.Data calldata feeRecipients,
         bytes calldata priceData
@@ -62,10 +62,10 @@ contract SettlementBranch is ISettlementBranch {
         external
         onlyMarketOrderKeeper(marketId)
     {
-        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(accountId);
+        MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
 
         _fillOrder(
-            accountId,
+            tradingAccountId,
             marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             marketOrder.sizeDelta,
@@ -118,7 +118,7 @@ contract SettlementBranch is ISettlementBranch {
     struct FillOrderContext {
         address usdToken;
         uint128 marketId;
-        uint128 accountId;
+        uint128 tradingAccountId;
         SD59x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         SD59x18 sizeDelta;
@@ -132,7 +132,7 @@ contract SettlementBranch is ISettlementBranch {
     }
 
     function _fillOrder(
-        uint128 accountId,
+        uint128 tradingAccountId,
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta,
@@ -144,15 +144,15 @@ contract SettlementBranch is ISettlementBranch {
     {
         FillOrderContext memory ctx;
         ctx.marketId = marketId;
-        ctx.accountId = accountId;
+        ctx.tradingAccountId = tradingAccountId;
         ctx.sizeDelta = sd59x18(sizeDelta);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
+        Position.Data storage oldPosition = Position.load(ctx.tradingAccountId, ctx.marketId);
 
         ctx.usdToken = globalConfiguration.usdToken;
 
@@ -176,11 +176,11 @@ contract SettlementBranch is ISettlementBranch {
                 UD60x18 requiredInitialMarginUsdX18,
                 UD60x18 requiredMaintenanceMarginUsdX18,
                 SD59x18 accountTotalUnrealizedPnlUsdX18
-            ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDelta);
+            ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDelta);
 
-            perpsAccount.validateMarginRequirement(
+            tradingAccount.validateMarginRequirement(
                 requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
-                perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
+                tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
                 ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
             );
         }
@@ -200,7 +200,7 @@ contract SettlementBranch is ISettlementBranch {
         );
         perpMarket.updateOpenInterest(ctx.newOpenInterest, ctx.newSkew);
 
-        perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+        tradingAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
         if (ctx.newPosition.size == 0) {
             oldPosition.clear();
@@ -213,7 +213,7 @@ contract SettlementBranch is ISettlementBranch {
                 ? ctx.pnl.abs().intoUD60x18().sub(ctx.orderFeeUsdX18.intoUD60x18().add(ctx.settlementFeeUsdX18))
                 : ctx.pnl.abs().intoUD60x18();
 
-            perpsAccount.deductAccountMargin({
+            tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
                     marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
                     orderFeeRecipient: feeRecipients.orderFeeRecipient,
@@ -225,7 +225,7 @@ contract SettlementBranch is ISettlementBranch {
             });
         } else if (ctx.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
-            perpsAccount.deposit(ctx.usdToken, amountToIncrease);
+            tradingAccount.deposit(ctx.usdToken, amountToIncrease);
 
             // NOTE: testnet only - will be updated once Liquidity Engine is finalized
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
@@ -234,7 +234,7 @@ contract SettlementBranch is ISettlementBranch {
         // TODO: log margin deducted vs required
         emit LogSettleOrder(
             msg.sender,
-            ctx.accountId,
+            ctx.tradingAccountId,
             ctx.marketId,
             ctx.sizeDelta.intoInt256(),
             ctx.fillPrice.intoUint256(),

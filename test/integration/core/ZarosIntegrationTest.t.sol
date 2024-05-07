@@ -110,8 +110,8 @@ pragma solidity 0.8.25;
 //         assertEq(sFrxEth.balanceOf(address(liquidityEngine)), amount);
 //         // get account id of the user's first created account
 //         // TODO: improve handling account id query
-//         uint128 accountId = uint128(accountNft.tokenOfOwnerByIndex(deployer, 0));
-//         _undelegateAndWithdraw(accountId, address(sFrxEth), amount);
+//         uint128 tradingAccountId = uint128(accountNft.tokenOfOwnerByIndex(deployer, 0));
+//         _undelegateAndWithdraw(tradingAccountId, address(sFrxEth), amount);
 //         assertEq(sFrxEth.balanceOf(address(liquidityEngine)), 0);
 //     }
 
@@ -128,13 +128,14 @@ pragma solidity 0.8.25;
 //         liquidityEngine.createAccountAndMulticall(data);
 //     }
 
-//     function _undelegateAndWithdraw(uint128 accountId, address collateralType, uint256 amount) internal {
-//         (uint256 positionCollateralAmount,) = liquidityEngine.getPositionCollateral(accountId, collateralType);
+//     function _undelegateAndWithdraw(uint128 tradingAccountId, address collateralType, uint256 amount) internal {
+//         (uint256 positionCollateralAmount,) = liquidityEngine.getPositionCollateral(tradingAccountId,
+// collateralType);
 //         uint256 newAmount = positionCollateralAmount - amount;
 //         bytes memory delegateCollateralData =
-//             abi.encodeWithSelector(liquidityEngine.delegateCollateral.selector, accountId, collateralType,
+//             abi.encodeWithSelector(liquidityEngine.delegateCollateral.selector, tradingAccountId, collateralType,
 // newAmount);
-//         bytes memory withdrawData = abi.encodeWithSelector(liquidityEngine.withdraw.selector, accountId,
+//         bytes memory withdrawData = abi.encodeWithSelector(liquidityEngine.withdraw.selector, tradingAccountId,
 // collateralType,
 // amount);
 //         bytes[] memory data = new bytes[](2);

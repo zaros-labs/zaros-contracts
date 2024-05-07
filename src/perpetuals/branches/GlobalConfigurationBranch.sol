@@ -32,9 +32,9 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
 
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {GlobalConfigurationBranch} UUPS initializer.
-    function initialize(address perpsAccountToken, address usdToken) external initializer {
+    function initialize(address tradingAccountToken, address usdToken) external initializer {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.perpsAccountToken = perpsAccountToken;
+        globalConfiguration.tradingAccountToken = tradingAccountToken;
         globalConfiguration.usdToken = usdToken;
     }
 
@@ -69,15 +69,15 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
     }
 
     /// @inheritdoc IGlobalConfigurationBranch
-    function setPerpsAccountToken(address perpsAccountToken) external {
-        if (perpsAccountToken == address(0)) {
-            revert Errors.PerpsAccountTokenNotDefined();
+    function setTradingAccountToken(address tradingAccountToken) external {
+        if (tradingAccountToken == address(0)) {
+            revert Errors.TradingAccountTokenNotDefined();
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.perpsAccountToken = perpsAccountToken;
+        globalConfiguration.tradingAccountToken = tradingAccountToken;
 
-        emit LogSetPerpsAccountToken(msg.sender, perpsAccountToken);
+        emit LogSetTradingAccountToken(msg.sender, tradingAccountToken);
     }
 
     /// @inheritdoc IGlobalConfigurationBranch

@@ -14,17 +14,23 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 interface IOrderBranch {
     event LogCreateMarketOrder(
-        address indexed sender, uint128 indexed accountId, uint128 indexed marketId, MarketOrder.Data marketOrder
+        address indexed sender,
+        uint128 indexed tradingAccountId,
+        uint128 indexed marketId,
+        MarketOrder.Data marketOrder
     );
-    event LogCancelMarketOrder(address indexed sender, uint128 indexed accountId);
+    event LogCancelMarketOrder(address indexed sender, uint128 indexed tradingAccountId);
 
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory orderFees);
 
-    function getActiveMarketOrder(uint128 accountId) external view returns (MarketOrder.Data memory marketOrder);
+    function getActiveMarketOrder(uint128 tradingAccountId)
+        external
+        view
+        returns (MarketOrder.Data memory marketOrder);
 
     /// @notice Simulates the settlement costs and validity of a given order.
     /// @dev Reverts if there's not enough margin to cover the trade.
-    /// @param accountId The trading account id.
+    /// @param tradingAccountId The trading account id.
     /// @param marketId The perp market id.
     /// @param settlementConfigurationId The perp market settlement configuration id.
     /// @param sizeDelta The size delta of the order.
@@ -35,7 +41,7 @@ interface IOrderBranch {
     /// @return settlementFeeUsdX18 The settlement fee in USD.
     /// @return fillPriceX18 The fill price quote.
     function simulateTrade(
-        uint128 accountId,
+        uint128 tradingAccountId,
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta
@@ -60,7 +66,7 @@ interface IOrderBranch {
         returns (UD60x18 initialMarginUsdX18, UD60x18 maintenanceMarginUsdX18);
 
     struct CreateMarketOrderParams {
-        uint128 accountId;
+        uint128 tradingAccountId;
         uint128 marketId;
         int128 sizeDelta;
     }
@@ -77,6 +83,6 @@ interface IOrderBranch {
 
     /// @notice Cancels an active market order.
     /// @dev Reverts if there is no active market order for the given account and market.
-    /// @param accountId The trading account id.
-    function cancelMarketOrder(uint128 accountId) external;
+    /// @param tradingAccountId The trading account id.
+    function cancelMarketOrder(uint128 tradingAccountId) external;
 }

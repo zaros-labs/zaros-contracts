@@ -32,7 +32,7 @@ library GlobalConfiguration {
         uint128 marketOrderMaxLifetime;
         uint128 liquidationFeeUsdX18;
         address usdToken;
-        address perpsAccountToken;
+        address tradingAccountToken;
         uint96 nextAccountId;
         mapping(address => bool) isLiquidatorEnabled;
         EnumerableSet.AddressSet collateralLiquidationPriority;

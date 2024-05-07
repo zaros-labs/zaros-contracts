@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 interface ILiquidationBranch {
     event LogLiquidateAccount(
         address indexed keeper,
-        uint128 indexed accountId,
+        uint128 indexed tradingAccountId,
         address feeRecipient,
         uint256 amountOfOpenPositions,
         uint256 requiredMaintenanceMarginUsd,

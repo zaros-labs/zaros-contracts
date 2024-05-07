@@ -38,8 +38,8 @@ library Position {
         SD59x18 unrealizedPnlUsdX18;
     }
 
-    function load(uint128 accountId, uint128 marketId) internal pure returns (Data storage position) {
-        bytes32 slot = keccak256(abi.encode(POSITION_DOMAIN, accountId, marketId));
+    function load(uint128 tradingAccountId, uint128 marketId) internal pure returns (Data storage position) {
+        bytes32 slot = keccak256(abi.encode(POSITION_DOMAIN, tradingAccountId, marketId));
 
         assembly {
             position.slot := slot

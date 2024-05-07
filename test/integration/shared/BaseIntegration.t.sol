@@ -117,9 +117,15 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
-    function createAccountAndDeposit(uint256 amount, address collateralType) internal returns (uint128 accountId) {
-        accountId = perpsEngine.createPerpsAccount();
-        perpsEngine.depositMargin(accountId, collateralType, amount);
+    function createAccountAndDeposit(
+        uint256 amount,
+        address collateralType
+    )
+        internal
+        returns (uint128 tradingAccountId)
+    {
+        tradingAccountId = perpsEngine.createTradingAccount();
+        perpsEngine.depositMargin(tradingAccountId, collateralType, amount);
     }
 
     function configureSystemParameters() internal {
@@ -186,7 +192,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     struct FuzzOrderSizeDeltaParams {
-        uint128 accountId;
+        uint128 tradingAccountId;
         uint128 marketId;
         uint128 settlementConfigurationId;
         UD60x18 initialMarginRate;
@@ -215,7 +221,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
 
         (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine.simulateTrade(
-            params.accountId, params.marketId, params.settlementConfigurationId, ctx.sizeDeltaPrePriceImpact
+            params.tradingAccountId, params.marketId, params.settlementConfigurationId, ctx.sizeDeltaPrePriceImpact
         );
 
         ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);

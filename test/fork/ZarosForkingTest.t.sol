@@ -47,7 +47,7 @@ pragma solidity 0.8.25;
 //         sFrxEth = MockERC20(vm.envAddress("SFRXETH"));
 //         usdc = MockERC20(vm.envAddress("USDC"));
 //         usdToken = MockERC20(vm.envAddress("USDZ"));
-//         accountNft = AccountNFT(vm.envAddress("PERPS_ACCOUNT_NFT"));
+//         accountNft = AccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
 //         liquidityEngine = LiquidityEngine(vm.envAddress("ZAROS"));
 //         ethUsdOracle = vm.envAddress("ETH_USD_ORACLE");
 //         usdcUsdOracle = vm.envAddress("USDC_USD_ORACLE");
@@ -59,8 +59,8 @@ pragma solidity 0.8.25;
 //         _createAccountDepositAndDelegate(address(sFrxEth), amount);
 //         // get account id of the user's first created account
 //         // TODO: improve handling account id query
-//         uint128 accountId = uint128(accountNft.tokenOfOwnerByIndex(deployer, 0));
-//         _undelegateAndWithdraw(accountId, address(sFrxEth), amount);
+//         uint128 tradingAccountId = uint128(accountNft.tokenOfOwnerByIndex(deployer, 0));
+//         _undelegateAndWithdraw(tradingAccountId, address(sFrxEth), amount);
 //     }
 
 //     function _createAccountDepositAndDelegate(address collateralType, uint256 amount) internal {
@@ -77,23 +77,24 @@ pragma solidity 0.8.25;
 //         (uint256 positionCollateral,) = liquidityEngine.getPositionCollateral(uint128(1), collateralType);
 //     }
 
-//     function _undelegateAndWithdraw(uint128 accountId, address collateralType, uint256 amount) internal {
-//         (uint256 positionCollateralAmount,) = liquidityEngine.getPositionCollateral(accountId, collateralType);
+//     function _undelegateAndWithdraw(uint128 tradingAccountId, address collateralType, uint256 amount) internal {
+//         (uint256 positionCollateralAmount,) = liquidityEngine.getPositionCollateral(tradingAccountId,
+// collateralType);
 //         uint256 newAmount = positionCollateralAmount - amount;
 //         bytes memory delegateCollateralData =
-//             abi.encodeWithSelector(liquidityEngine.delegateCollateral.selector, accountId, collateralType,
+//             abi.encodeWithSelector(liquidityEngine.delegateCollateral.selector, tradingAccountId, collateralType,
 // newAmount);
-//         bytes memory withdrawData = abi.encodeWithSelector(liquidityEngine.withdraw.selector, accountId,
+//         bytes memory withdrawData = abi.encodeWithSelector(liquidityEngine.withdraw.selector, tradingAccountId,
 // collateralType,
 // amount);
 //         bytes[] memory data = new bytes[](2);
 //         data[0] = delegateCollateralData;
 //         data[1] = withdrawData;
 
-//         (uint256 collateralBefore,) = liquidityEngine.getPositionCollateral(accountId, collateralType);
+//         (uint256 collateralBefore,) = liquidityEngine.getPositionCollateral(tradingAccountId, collateralType);
 
 //         // Undelegates and withdraws the given amount of sFrxEth
 //         liquidityEngine.multicall(data);
-//         (uint256 collateralAfter,) = liquidityEngine.getPositionCollateral(accountId, collateralType);
+//         (uint256 collateralAfter,) = liquidityEngine.getPositionCollateral(tradingAccountId, collateralType);
 //     }
 // }

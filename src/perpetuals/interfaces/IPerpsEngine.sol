@@ -8,7 +8,7 @@ import { IGlobalConfigurationBranch } from "./IGlobalConfigurationBranch.sol";
 import { ILiquidationBranch } from "./ILiquidationBranch.sol";
 import { IOrderBranch } from "./IOrderBranch.sol";
 import { IPerpMarketBranch } from "./IPerpMarketBranch.sol";
-import { IPerpsAccountBranch } from "./IPerpsAccountBranch.sol";
+import { ITradingAccountBranch } from "./ITradingAccountBranch.sol";
 import { ISettlementBranch } from "./ISettlementBranch.sol";
 
 interface IPerpsEngine is
@@ -18,6 +18,6 @@ interface IPerpsEngine is
     ILiquidationBranch,
     IOrderBranch,
     IPerpMarketBranch,
-    IPerpsAccountBranch,
+    ITradingAccountBranch,
     ISettlementBranch
 { }

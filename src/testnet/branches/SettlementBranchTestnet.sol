@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-import { PerpsAccount } from "@zaros/perpetuals/leaves/PerpsAccount.sol";
+import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
@@ -26,7 +26,7 @@ contract SettlementBranchTestnet is SettlementBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarketOrder for MarketOrder.Data;
-    using PerpsAccount for PerpsAccount.Data;
+    using TradingAccount for TradingAccount.Data;
     using PerpMarket for PerpMarket.Data;
     using Points for Points.Data;
     using Position for Position.Data;
@@ -38,7 +38,7 @@ contract SettlementBranchTestnet is SettlementBranch {
     struct FillOrderContextTestnet {
         address usdToken;
         uint128 marketId;
-        uint128 accountId;
+        uint128 tradingAccountId;
         SD59x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         SD59x18 sizeDelta;
@@ -53,7 +53,7 @@ contract SettlementBranchTestnet is SettlementBranch {
     }
 
     function _fillOrder(
-        uint128 accountId,
+        uint128 tradingAccountId,
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta,
@@ -66,15 +66,15 @@ contract SettlementBranchTestnet is SettlementBranch {
     {
         // FillOrderContextTestnet memory ctx;
         // ctx.marketId = marketId;
-        // ctx.accountId = accountId;
+        // ctx.tradingAccountId = tradingAccountId;
         // ctx.sizeDelta = sd59x18(sizeDelta);
 
         // PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
-        // PerpsAccount.Data storage perpsAccount = PerpsAccount.loadExisting(ctx.accountId);
+        // TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
         // SettlementConfiguration.Data storage settlementConfiguration =
         //     SettlementConfiguration.load(marketId, settlementConfigurationId);
         // GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        // Position.Data storage oldPosition = Position.load(ctx.accountId, ctx.marketId);
+        // Position.Data storage oldPosition = Position.load(ctx.tradingAccountId, ctx.marketId);
 
         // ctx.usdToken = globalConfiguration.usdToken;
 
@@ -102,11 +102,11 @@ contract SettlementBranchTestnet is SettlementBranch {
         //         UD60x18 requiredInitialMarginUsdX18,
         //         UD60x18 requiredMaintenanceMarginUsdX18,
         //         SD59x18 accountTotalUnrealizedPnlUsdX18
-        //     ) = perpsAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDelta);
+        //     ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDelta);
 
-        //     perpsAccount.validateMarginRequirement(
+        //     tradingAccount.validateMarginRequirement(
         //         requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
-        //         perpsAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
+        //         tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
         //         ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
         //     );
         // }
@@ -125,7 +125,7 @@ contract SettlementBranchTestnet is SettlementBranch {
         //     ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size)
         // );
         // perpMarket.updateOpenInterest(ctx.newOpenInterest, ctx.newSkew);
-        // perpsAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+        // tradingAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
         // if (ctx.newPosition.size == 0) {
         //     oldPosition.clear();
@@ -137,7 +137,7 @@ contract SettlementBranchTestnet is SettlementBranch {
         // if (ctx.pnl.lt(SD_ZERO)) {
         //     UD60x18 amountToDeduct = ctx.pnl.intoUD60x18();
         //     // TODO: update to liquidation pool and fee pool addresses
-        //     perpsAccount.deductAccountMargin(
+        //     tradingAccount.deductAccountMargin(
         //         msg.sender,
         //         msg.sender,
         //         amountToDeduct,
@@ -145,19 +145,20 @@ contract SettlementBranchTestnet is SettlementBranch {
         //     );
         // } else if (ctx.pnl.gt(SD_ZERO)) {
         //     UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
-        //     perpsAccount.deposit(ctx.usdToken, amountToIncrease);
-        //     Points.updatePnlPoints(perpsAccount.owner, ctx.pnl);
+        //     tradingAccount.deposit(ctx.usdToken, amountToIncrease);
+        //     Points.updatePnlPoints(tradingAccount.owner, ctx.pnl);
 
         //     // liquidityEngine.withdrawUsdToken(address(this), amountToIncrease);
         //     // NOTE: testnet only
         //     LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         // }
 
-        // Points.updateTradingVolumePoints(perpsAccount.owner, ctx.sizeDelta.abs().intoUD60x18().mul(ctx.fillPrice));
+        // Points.updateTradingVolumePoints(tradingAccount.owner,
+        // ctx.sizeDelta.abs().intoUD60x18().mul(ctx.fillPrice));
 
         // emit LogSettleOrder(
         //     msg.sender,
-        //     ctx.accountId,
+        //     ctx.tradingAccountId,
         //     ctx.marketId,
         //     ctx.sizeDelta.intoInt256(),
         //     ctx.fillPrice.intoUint256(),

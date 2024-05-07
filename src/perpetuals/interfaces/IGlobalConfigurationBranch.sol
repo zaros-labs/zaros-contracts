@@ -12,7 +12,7 @@ import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
 /// exchange system.
 interface IGlobalConfigurationBranch {
     /// @notice Emitted when the account token address is set.
-    event LogSetPerpsAccountToken(address indexed sender, address indexed perpsAccountToken);
+    event LogSetTradingAccountToken(address indexed sender, address indexed tradingAccountToken);
 
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
@@ -96,8 +96,8 @@ interface IGlobalConfigurationBranch {
         returns (MarginCollateralConfiguration.Data memory marginCollateralConfiguration);
 
     /// @notice Sets the address of the account token NFT contract.
-    /// @param perpsAccountToken The account token address.
-    function setPerpsAccountToken(address perpsAccountToken) external;
+    /// @param tradingAccountToken The account token address.
+    function setTradingAccountToken(address tradingAccountToken) external;
 
     /// @notice Configures the collateral priority.
     /// @param collateralTypes The array of collateral type addresses.

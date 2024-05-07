@@ -8,7 +8,7 @@ import { IGlobalConfigurationBranchTestnet } from "./IGlobalConfigurationBranchT
 import { ILiquidationBranch } from "@zaros/perpetuals/interfaces/ILiquidationBranch.sol";
 import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
 import { IPerpMarketBranch } from "@zaros/perpetuals/interfaces/IPerpMarketBranch.sol";
-import { IPerpsAccountBranchTestnet } from "./IPerpsAccountBranchTestnet.sol";
+import { ITradingAccountBranchTestnet } from "./ITradingAccountBranchTestnet.sol";
 import { ISettlementBranch } from "@zaros/perpetuals/interfaces/ISettlementBranch.sol";
 
 interface IPerpsEngineTestnet is
@@ -18,6 +18,6 @@ interface IPerpsEngineTestnet is
     ILiquidationBranch,
     IOrderBranch,
     IPerpMarketBranch,
-    IPerpsAccountBranchTestnet,
+    ITradingAccountBranchTestnet,
     ISettlementBranch
 { }
