@@ -28,5 +28,7 @@ struct MockPriceAdapters {
     MockPriceFeed mockEthUsdPriceAdapter;
     MockPriceFeed mockLinkUsdPriceAdapter;
     MockPriceFeed mockUsdcUsdPriceAdapter;
+    MockPriceFeed mockUsdzUsdPriceAdapter;
     MockPriceFeed mockWstEthUsdPriceAdapter;
+    MockPriceFeed mockWeEthUsdPriceAdapter;
 }

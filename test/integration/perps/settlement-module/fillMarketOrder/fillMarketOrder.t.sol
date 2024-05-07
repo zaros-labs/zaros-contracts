@@ -36,7 +36,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         external
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -115,7 +116,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheMarketOrderExists
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-         FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -173,7 +175,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSettlementStrategyIsEnabled
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -247,7 +250,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSettlementStrategyIsEnabled
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -319,7 +323,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheReportVerificationPasses
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         uint256 wrongMarketId = fuzzMarketConfig.marketId < FINAL_MARKET_ID
             ? fuzzMarketConfig.marketId + 1
@@ -487,7 +492,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheAccountWillMeetTheMarginRequirement
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -584,7 +590,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     {
         TestFuzz_GivenThePnlIsNegative_Context memory ctx;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(ctx.fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(ctx.fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         ctx.adjustedMarginRequirements =
             ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18)).intoUint256();
@@ -785,7 +792,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
 
         // it should deduct the pnl and fees
-        ctx.expectedMarginBalanceUsd = int256(fuzzMarginPortfolio.marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
+        ctx.expectedMarginBalanceUsd =
+            int256(fuzzMarginPortfolio.marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
         console.log("returned margin bal: ");
         console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
@@ -840,7 +848,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     {
         TestFuzz_GivenThePnlIsPositive_Context memory ctx;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(ctx.fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        FuzzMarginPortfolio memory fuzzMarginPortfolio =
+            getFuzzMarginPortfolio(ctx.fuzzMarketConfig, initialMarginRate, marginValueUsd);
 
         ctx.adjustedMarginRequirements =
             ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18)).intoUint256();
@@ -1029,7 +1038,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
 
         // it should add the pnl into the account's margin
-        ctx.expectedMarginBalanceUsd = int256(fuzzMarginPortfolio.marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
+        ctx.expectedMarginBalanceUsd =
+            int256(fuzzMarginPortfolio.marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.perpsAccountId);
         console.log("returned margin bal: ");
         console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());

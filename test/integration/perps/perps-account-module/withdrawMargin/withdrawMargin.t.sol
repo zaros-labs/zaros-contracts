@@ -51,7 +51,8 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, 0, amountToDeposit);
 
-        amountToWithdraw = bound({ x: amountToWithdraw, min: USDZ_MIN_DEPOSIT_MARGIN, max: fuzzMarginPortfolio.marginValueUsd });
+        amountToWithdraw =
+            bound({ x: amountToWithdraw, min: USDZ_MIN_DEPOSIT_MARGIN, max: fuzzMarginPortfolio.marginValueUsd });
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
         changePrank({ msgSender: users.sasuke });
@@ -67,7 +68,10 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheAmountIsZero(uint256 amountToDeposit, uint256 marketId)
+    function testFuzz_RevertWhen_TheAmountIsZero(
+        uint256 amountToDeposit,
+        uint256 marketId
+    )
         external
         givenTheAccountExists
         givenTheSenderIsAuthorized
@@ -102,8 +106,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         vm.assume(amountToWithdraw > fuzzMarginPortfolio.marginValueUsd);
 
         uint256 expectedMarginCollateralBalance =
-            convertTokenAmountToUd60x18(address(usdToken), fuzzMarginPortfolio.marginValueUsd
-            ).intoUint256();
+            convertTokenAmountToUd60x18(address(usdToken), fuzzMarginPortfolio.marginValueUsd).intoUint256();
 
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
 

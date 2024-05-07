@@ -114,7 +114,8 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
-        uint256 marketId
+        uint256 marketId,
+        uint256 amountOfCollaterals
     )
         external
         givenTheAccountIdExists
@@ -122,17 +123,29 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         whenTheSizeDeltaIsNotZero
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        FuzzMarginPortfolio memory fuzzMarginPortfolio =
-            getFuzzMarginPortfolio(fuzzMarketConfig, initialMarginRate, marginValueUsd);
+        CollateralConfig memory fuzzCollateralConfig = getFuzzCollateralConfig(collateralId);
 
-        uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: fuzzCollateralConfig.collateralConfig.minDepositMargin,
+            max: fuzzCollateralConfig.collateralConfig.depositCap
+        });
+
+        amountOfCollaterals = bound({x: amountOfCollaterals, min: 1, max: marginCollaterals.length})
+
+        //perceutual de 0 100 quando procentagem daquel collaterla que vai pra margem do usuario
+
+        // uint128 perpsAccountId =
+        //     createAccountAndFuzzMarginPortfolio(users.naruto, amountOfCollaterals);
+
+
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 accountId: perpsAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(fuzzMarginPortfolio.initialMarginRate),
-                marginValueUsd: ud60x18(fuzzMarginPortfolio.marginValueUsd),
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
                 maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),

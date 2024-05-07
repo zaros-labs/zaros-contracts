@@ -286,4 +286,51 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         fuzzMarginPortfolio =
             FuzzMarginPortfolio({ initialMarginRate: initialMarginRate, marginValueUsd: marginValueUsd });
     }
+
+    function getFuzzCollateralConfig(uint256 collateralId) internal view returns (CollateralConfig memory) {
+        collateralId = bound({ x: collateralId, min: INITIAL_COLLATERAL_CONFIG_ID, max: FINAL_COLLATERAL_CONFIG_ID });
+
+        return collateralsConfig[collateralId];
+    }
+
+    function createAccountAndFuzzMarginPortfolio(
+        address user,
+        uint256 amountOfCollaterals
+    )
+        internal
+        returns (uint128 perpsAccountId)
+    {
+        uint256 marginValueUsd = bound({
+            x: marginValueUsd,
+            min: fuzzCollateralConfig.collateralConfig.minDepositMargin,
+            max: fuzzCollateralConfig.collateralConfig.depositCap
+        });
+
+        uint256[] memory collateralDepositAmount = new uint256[](amountOfCollaterals);
+
+        for (uint256 i = 0; i < amountOfCollaterals; i++) {
+            collateralDepositAmount[i] = marginValueUsd.div(amountOfCollaterals).mul(
+                fuzzCollateralConfig.collateralConfig.mockUsdPrice
+            );
+        }
+
+        createFuzzMarginPortfolio(user, amountOfCollaterals);
+        perpsAccountId = createAccountAndDeposit(marginValueUsd, collateral);
+
+
+    }
+
+    function createFuzzMarginPortfolio(address user, uint256 marginValueUsd, uint256 amountOfCollaterals) internal {
+
+        for(uint256 i = 0; i < amountOfCollaterals; i++){
+
+            //deal({ token: collateralsM[i].collateralConfig.marginCollateralId, to: user, give: marginValueUsd });
+            // marginValused / amountofCollatral * collateralConfig.mockUsdPrice
+
+        }
+
+
+
+
+    }
 }

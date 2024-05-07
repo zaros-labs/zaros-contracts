@@ -50,12 +50,21 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     AccountNFT internal perpsAccountToken;
     MockERC20 internal mockWstEth;
+    MockERC20 internal mockWeEth;
     MockUSDToken internal usdToken;
+    MockUSDToken internal usdzToken;
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
 
     /// @dev TODO: think about forking tests
     MockPriceAdapters internal mockPriceAdapters;
+
+    struct CollateralConfig {
+        address collateralAddress;
+        MarginCollateral collateralConfig;
+    }
+
+    mapping(uint256 id => CollateralConfig collateral) internal collateralsConfig;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -75,26 +84,25 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.startPrank({ msgSender: users.owner });
 
         perpsAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
-        usdToken = new MockUSDToken({ owner: users.owner, deployerBalance: 100_000_000e18 });
-        mockWstEth = new MockERC20({
-            name: "Wrapped Staked Ether",
-            symbol: "wstETH",
-            decimals_: 18,
-            deployerBalance: 100_000_000e18
-        });
+
+        setupCollateralsConfig();
 
         MockPriceFeed mockBtcUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_BTC_USD_PRICE));
         MockPriceFeed mockEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
         MockPriceFeed mockLinkUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_LINK_USD_PRICE));
         MockPriceFeed mockUsdcUsdPriceAdapter = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
+        MockPriceFeed mockUsdzUsdPriceAdapter = new MockPriceFeed(6, int256(MOCK_USDZ_USD_PRICE));
         MockPriceFeed mockWstEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_WSTETH_USD_PRICE));
+        MockPriceFeed mockWeEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_WEETH_USD_PRICE));
 
         mockPriceAdapters = MockPriceAdapters({
             mockBtcUsdPriceAdapter: mockBtcUsdPriceAdapter,
             mockEthUsdPriceAdapter: mockEthUsdPriceAdapter,
             mockLinkUsdPriceAdapter: mockLinkUsdPriceAdapter,
             mockUsdcUsdPriceAdapter: mockUsdcUsdPriceAdapter,
-            mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter
+            mockUsdzUsdPriceAdapter: mockUsdzUsdPriceAdapter,
+            mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter,
+            mockWeEthUsdPriceAdapter: mockWeEthUsdPriceAdapter
         });
 
         bool isTestnet = false;
@@ -172,17 +180,87 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             address(mockPriceAdapters.mockUsdcUsdPriceAdapter)
         );
         perpsEngine.configureMarginCollateral(
+            address(usdzToken),
+            USDZ_DEPOSIT_CAP,
+            USDZ_LOAN_TO_VALUE,
+            address(mockPriceAdapters.mockUsdzUsdPriceAdapter)
+        );
+        perpsEngine.configureMarginCollateral(
             address(mockWstEth),
             WSTETH_DEPOSIT_CAP,
             WSTETH_LOAN_TO_VALUE,
             address(mockPriceAdapters.mockWstEthUsdPriceAdapter)
         );
+        perpsEngine.configureMarginCollateral(
+            address(mockWeEth),
+            WEETH_DEPOSIT_CAP,
+            WEETH_LOAN_TO_VALUE,
+            address(mockPriceAdapters.mockWeEthUsdPriceAdapter)
+        );
 
-        address[] memory collateralLiquidationPriority = new address[](2);
+        address[] memory collateralLiquidationPriority = new address[](4);
         collateralLiquidationPriority[0] = address(usdToken);
-        collateralLiquidationPriority[1] = address(mockWstEth);
+        collateralLiquidationPriority[1] = address(usdzToken);
+        collateralLiquidationPriority[2] = address(mockWstEth);
+        collateralLiquidationPriority[3] = address(mockWeEth);
 
         perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
+    }
+
+    function setupCollateralsConfig() public {
+        usdToken = new MockUSDToken({ owner: users.owner, deployerBalance: 100_000_000e18 });
+        collateralsConfig[USDC_MARGIN_COLLATERAL_ID] = CollateralConfig({
+            collateralAddress: address(usdToken),
+            collateralConfig: MarginCollateral({
+                marginCollateralId: USDC_MARGIN_COLLATERAL_ID,
+                depositCap: USDZ_DEPOSIT_CAP,
+                loanToValue: USDZ_LOAN_TO_VALUE,
+                minDepositMargin: USDZ_MIN_DEPOSIT_MARGIN,
+                mockUsdPrice: MOCK_USDZ_USD_PRICE
+            })
+        });
+
+        usdzToken = new MockUSDToken({ owner: users.owner, deployerBalance: 100_000_000e18 });
+        collateralsConfig[USDZ_MARGIN_COLLATERAL_ID] = CollateralConfig({
+            collateralAddress: address(usdzToken),
+            collateralConfig: MarginCollateral({
+                marginCollateralId: USDZ_MARGIN_COLLATERAL_ID,
+                depositCap: USDZ_DEPOSIT_CAP,
+                loanToValue: USDZ_LOAN_TO_VALUE,
+                minDepositMargin: USDZ_MIN_DEPOSIT_MARGIN,
+                mockUsdPrice: MOCK_USDZ_USD_PRICE
+            })
+        });
+
+        mockWstEth = new MockERC20({
+            name: "Wrapped Staked Ether",
+            symbol: "wstETH",
+            decimals_: 18,
+            deployerBalance: 100_000_000e18
+        });
+        collateralsConfig[WSTETH_MARGIN_COLLATERAL_ID] = CollateralConfig({
+            collateralAddress: address(mockWstEth),
+            collateralConfig: MarginCollateral({
+                marginCollateralId: WSTETH_MARGIN_COLLATERAL_ID,
+                depositCap: WSTETH_DEPOSIT_CAP,
+                loanToValue: WSTETH_LOAN_TO_VALUE,
+                minDepositMargin: WSTETH_MIN_DEPOSIT_MARGIN,
+                mockUsdPrice: MOCK_WSTETH_USD_PRICE
+            })
+        });
+
+        mockWeEth =
+            new MockERC20({ name: "Wrapped eETH", symbol: "weETH", decimals_: 18, deployerBalance: 100_000_000e18 });
+        collateralsConfig[WEETH_MARGIN_COLLATERAL_ID] = CollateralConfig({
+            collateralAddress: address(mockWeEth),
+            collateralConfig: MarginCollateral({
+                marginCollateralId: WEETH_MARGIN_COLLATERAL_ID,
+                depositCap: WEETH_DEPOSIT_CAP,
+                loanToValue: WEETH_LOAN_TO_VALUE,
+                minDepositMargin: WEETH_MIN_DEPOSIT_MARGIN,
+                mockUsdPrice: MOCK_WEETH_USD_PRICE
+            })
+        });
     }
 
     /*//////////////////////////////////////////////////////////////////////////

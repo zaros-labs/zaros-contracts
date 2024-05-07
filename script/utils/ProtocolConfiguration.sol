@@ -56,6 +56,8 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals {
     /// @notice Test only mocks and constants.
     uint256 internal constant INITIAL_MARKET_ID = 1;
     uint256 internal constant FINAL_MARKET_ID = 4;
+    uint256 internal constant INITIAL_COLLATERAL_CONFIG_ID = 1;
+    uint256 internal constant FINAL_COLLATERAL_CONFIG_ID = 4;
 
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;

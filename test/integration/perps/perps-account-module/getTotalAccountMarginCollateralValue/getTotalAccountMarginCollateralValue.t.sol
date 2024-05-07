@@ -17,8 +17,9 @@ contract getAccountEquityUsd_Integration_Test is Base_Integration_Shared_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         FuzzMarginPortfolio memory fuzzMarginPortfolio = getFuzzMarginPortfolio(fuzzMarketConfig, 0, amountToDeposit);
 
-        uint256 expectedMarginCollateralValue =
-            getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(ud60x18(fuzzMarginPortfolio.marginValueUsd)).intoUint256();
+        uint256 expectedMarginCollateralValue = getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(
+            ud60x18(fuzzMarginPortfolio.marginValueUsd)
+        ).intoUint256();
         uint128 perpsAccountId = createAccountAndDeposit(fuzzMarginPortfolio.marginValueUsd, address(usdToken));
 
         uint256 marginCollateralValue = perpsEngine.getAccountEquityUsd({ accountId: perpsAccountId }).intoUint256();
