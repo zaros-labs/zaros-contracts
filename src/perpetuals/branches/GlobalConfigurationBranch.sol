@@ -13,7 +13,6 @@ import { MarketConfiguration } from "../leaves/MarketConfiguration.sol";
 import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
 import { OrderFees } from "../leaves/OrderFees.sol";
 
-
 // OpenZeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -115,7 +114,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     )
         external
         view
-
         returns (uint128[] memory accountsIds)
     {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -132,7 +130,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     function getMarginCollateralConfiguration(address collateralType)
         external
         pure
-
         returns (MarginCollateralConfiguration.Data memory)
     {
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
@@ -156,7 +153,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @notice Configures the collateral priority.
     /// @param collateralTypes The array of collateral type addresses.
-    function configureCollateralLiquidationPriority(address[] calldata collateralTypes) external  onlyOwner {
+    function configureCollateralLiquidationPriority(address[] calldata collateralTypes) external onlyOwner {
         if (collateralTypes.length == 0) {
             revert Errors.ZeroInput("collateralTypes");
         }
@@ -170,14 +167,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Configures the liquidators.
     /// @param liquidators The array of liquidator addresses.
     /// @param enable The array of boolean values that enable or disable the liquidator.
-    function configureLiquidators(
-        address[] calldata liquidators,
-        bool[] calldata enable
-    )
-        external
-
-        onlyOwner
-    {
+    function configureLiquidators(address[] calldata liquidators, bool[] calldata enable) external onlyOwner {
         if (liquidators.length == 0) {
             revert Errors.ZeroInput("liquidators");
         }
@@ -204,7 +194,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         address priceFeed
     )
         external
-
         onlyOwner
     {
         try ERC20(collateralType).decimals() returns (uint8 decimals) {
@@ -221,7 +210,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @notice Removes the given collateral type from the collateral priority.
     /// @param collateralType The address of the collateral type to remove.
-    function removeCollateralFromLiquidationPriority(address collateralType) external  onlyOwner {
+    function removeCollateralFromLiquidationPriority(address collateralType) external onlyOwner {
         if (collateralType == address(0)) {
             revert Errors.ZeroInput("collateralType");
         }
@@ -242,7 +231,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 liquidationFeeUsdX18
     )
         external
-
         onlyOwner
     {
         if (maxPositionsPerAccount == 0) {
@@ -299,7 +287,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @notice Creates a new market with the requested market id.
     /// @dev See {CreatePerpMarketParams}.
-    function createPerpMarket(CreatePerpMarketParams calldata params) external  onlyOwner {
+    function createPerpMarket(CreatePerpMarketParams calldata params) external onlyOwner {
         if (params.marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
@@ -385,11 +373,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
     /// impact open positions.
     /// @dev See {UpdatePerpMarketConfigurationParams}.
-    function updatePerpMarketConfiguration(UpdatePerpMarketConfigurationParams calldata params)
-        external
-
-        onlyOwner
-    {
+    function updatePerpMarketConfiguration(UpdatePerpMarketConfigurationParams calldata params) external onlyOwner {
         PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
         MarketConfiguration.Data storage perpMarketConfiguration = perpMarket.configuration;
 
@@ -446,7 +430,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         SettlementConfiguration.Data memory newSettlementConfiguration
     )
         external
-
         onlyOwner
     {
         SettlementConfiguration.update(marketId, settlementConfigurationId, newSettlementConfiguration);
@@ -457,7 +440,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Enables or disabled the perp market of the given market id.
     /// @param marketId The perps market id.
     /// @param enable Whether the market should be enabled or disabled.
-    function updatePerpMarketStatus(uint128 marketId, bool enable) external  onlyOwner {
+    function updatePerpMarketStatus(uint128 marketId, bool enable) external onlyOwner {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 

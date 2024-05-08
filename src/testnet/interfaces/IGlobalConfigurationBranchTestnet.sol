@@ -7,7 +7,7 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 abstract contract IGlobalConfigurationBranchTestnet is GlobalConfigurationBranch {
     event LogCreateCustomReferralCode(address indexed referrer, string customReferralCode);
 
-    function setUserPoints(address user, uint256 value) virtual external;
+    function setUserPoints(address user, uint256 value) external virtual;
 
-    function createCustomReferralCode(address referrer, string memory customReferralCode) virtual external;
+    function createCustomReferralCode(address referrer, string memory customReferralCode) external virtual;
 }
