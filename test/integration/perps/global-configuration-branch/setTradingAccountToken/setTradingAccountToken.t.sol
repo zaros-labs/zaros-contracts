@@ -7,16 +7,13 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
 
 contract SetTradingAccountToken_Integration_Test is Base_Integration_Shared_Test {
-
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
     }
 
     function test_RevertGiven_TheTradingAccountTokenIsZero() external {
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.TradingAccountTokenNotDefined.selector)
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradingAccountTokenNotDefined.selector) });
 
         perpsEngine.setTradingAccountToken(address(0));
     }
