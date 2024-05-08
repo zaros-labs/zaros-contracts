@@ -2,25 +2,31 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { ITradingAccountBranch } from "@zaros/perpetuals/interfaces/ITradingAccountBranch.sol";
+import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { ReferralTestnet } from "../leaves/ReferralTestnet.sol";
 
-interface ITradingAccountBranchTestnet is ITradingAccountBranch {
+abstract contract ITradingAccountBranchTestnet is TradingAccountBranch {
     event LogReferralSet(
         address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode
     );
 
-    function getAccessKeyManager() external view returns (address);
+    function getAccessKeyManager() external view virtual returns (address);
 
-    function isUserAccountCreated(address user) external view returns (bool);
+    function isUserAccountCreated(address user) external view virtual returns (bool);
 
-    function getPointsOfUser(address user) external view returns (uint256 amount);
+    function getPointsOfUser(address user) external view virtual returns (uint256 amount);
 
-    function getUserReferralData(address user) external pure returns (ReferralTestnet.Data memory);
+    function getUserReferralData(address user) external pure virtual returns (ReferralTestnet.Data memory);
 
-    function getCustomReferralCodeReferee(string memory customReferralCode) external view returns (address);
+    function getCustomReferralCodeReferee(string memory customReferralCode) external view virtual returns (address);
 
-    function createTradingAccount(bytes memory referralCode, bool isCustomReferralCode) external returns (uint128);
+    function createTradingAccount(
+        bytes memory referralCode,
+        bool isCustomReferralCode
+    )
+        external
+        virtual
+        returns (uint128);
 
     function createTradingAccountAndMulticall(
         bytes[] calldata data,
@@ -29,5 +35,6 @@ interface ITradingAccountBranchTestnet is ITradingAccountBranch {
     )
         external
         payable
+        virtual
         returns (bytes[] memory results);
 }
