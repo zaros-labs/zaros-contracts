@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { ILiquidationBranch } from "../interfaces/ILiquidationBranch.sol";
 import { FeeRecipients } from "../leaves/FeeRecipients.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { TradingAccount } from "../leaves/TradingAccount.sol";
@@ -19,7 +18,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-contract LiquidationBranch is ILiquidationBranch {
+contract LiquidationBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using TradingAccount for TradingAccount.Data;
@@ -27,6 +26,17 @@ contract LiquidationBranch is ILiquidationBranch {
     using Position for Position.Data;
     using MarketOrder for MarketOrder.Data;
     using SafeCast for uint256;
+
+    event LogLiquidateAccount(
+        address indexed keeper,
+        uint128 indexed tradingAccountId,
+        address feeRecipient,
+        uint256 amountOfOpenPositions,
+        uint256 requiredMaintenanceMarginUsd,
+        int256 marginBalanceUsd,
+        uint256 liquidatedCollateralUsd,
+        uint128 liquidationFeeUsd
+    );
 
     modifier onlyRegisteredLiquidator() {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
