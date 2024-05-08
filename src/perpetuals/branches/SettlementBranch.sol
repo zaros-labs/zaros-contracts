@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { ISettlementBranch } from "../interfaces/ISettlementBranch.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
 import { TradingAccount } from "../leaves/TradingAccount.sol";
 import { FeeRecipients } from "../leaves/FeeRecipients.sol";
@@ -23,7 +22,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-contract SettlementBranch is ISettlementBranch {
+contract SettlementBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarketOrder for MarketOrder.Data;
@@ -34,6 +33,18 @@ contract SettlementBranch is ISettlementBranch {
     using SafeCast for int256;
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
+
+    event LogSettleOrder(
+        address indexed sender,
+        uint128 indexed tradingAccountId,
+        uint128 indexed marketId,
+        int256 sizeDelta,
+        uint256 fillPrice,
+        int256 orderFeeUsd,
+        uint256 settlementFeeUsd,
+        int256 pnl,
+        int256 fundingFeePerUnit
+    );
 
     modifier onlyCustomOrderKeeper(uint128 marketId, uint128 settlementConfigurationId) {
         SettlementConfiguration.Data storage settlementConfiguration =
@@ -74,6 +85,11 @@ contract SettlementBranch is ISettlementBranch {
         );
 
         marketOrder.clear();
+    }
+
+    struct SettlementPayload {
+        uint128 tradingAccountId;
+        int128 sizeDelta;
     }
 
     function fillCustomOrders(
