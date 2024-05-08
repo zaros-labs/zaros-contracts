@@ -6,13 +6,14 @@ pragma solidity 0.8.25;
 import { Constants } from "@zaros/utils/Constants.sol";
 import { FeatureFlagBranch } from "@zaros/utils/branches/FeatureFlagBranch.sol";
 import { FeatureFlag } from "@zaros/utils/leaves/FeatureFlag.sol";
-import { IUSDToken } from "./interfaces/IUSDToken.sol";
 
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { ERC20, ERC20Permit } from "@openzeppelin/token/ERC20/extensions/ERC20Permit.sol";
 
-contract USDToken is IUSDToken, ERC20Permit, Ownable, FeatureFlagBranch {
+contract USDToken is ERC20Permit, Ownable, FeatureFlagBranch {
+    error USDToken_ZeroAmount();
+
     constructor(address owner) ERC20("Zaros USD", "USDz") ERC20Permit("Zaros USD") Ownable(owner) { }
 
     function mint(address to, uint256 amount) external {
