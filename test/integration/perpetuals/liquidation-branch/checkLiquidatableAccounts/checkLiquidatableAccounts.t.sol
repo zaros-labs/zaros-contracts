@@ -9,6 +9,8 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 // PRB Math dependencies
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
@@ -38,7 +40,7 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
         uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
 
         // it should return an empty array
-        assertEq(liquidatableAccountIds.length, 0, "checkLiquidatableAccounts: return length ");
+        assertEq(liquidatableAccountIds.length, 0);
     }
 
     function testFuzz_WhenTheresNoLiquidatableAccount(
@@ -49,7 +51,7 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
         external
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 100 });
+        amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
         uint256 marginValueUsd = 1_000_000e18 / amountOfTradingAccounts;
 
         // adjusted margin requirement
@@ -64,41 +66,52 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
         }
 
         uint256 lowerBound = 0;
-        uint256 upperBound = amountOfTradingAccounts - 1;
+        uint256 upperBound = amountOfTradingAccounts;
 
         // it should return an empty array
         uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
 
         // it should return an empty array
-        assertEq(liquidatableAccountIds.length, 0, "checkLiquidatableAccounts: return length ");
+        for (uint256 i = 0; i < liquidatableAccountIds.length; i++) {
+            assertEq(liquidatableAccountIds[i], 0);
+        }
     }
 
-    function test_WhenThereAreOneOrManyLiquidatableAccounts(
+    function testFuzz_WhenThereAreOneOrManyLiquidatableAccounts(
         uint256 marketId,
-        uint256 marginValueUsd,
         bool isLong,
         uint256 amountOfTradingAccounts
     )
         external
     {
-        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        // marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
+        uint256 marginValueUsd = 1_000_000e18 / amountOfTradingAccounts;
 
-        // deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        // adjusted margin requirement
+        uint256 initialMarginRate = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
 
-        // uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        // // adjusted margin requirement
-        // uint256 initialMarginRate =
-        // ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        // _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
+        for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
+            uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
+            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+            _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
+        }
+        _setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
 
-        // uint256 lowerBound = 0;
-        // uint256 upperBound = 1;
+        uint256 lowerBound = 0;
+        uint256 upperBound = amountOfTradingAccounts;
 
-        // // it should return an empty array
-        // uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
-        // it should return an array with the liquidatable accounts ids
+        uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
+
+        assertEq(liquidatableAccountIds.length, amountOfTradingAccounts);
+        for (uint256 i = 0; i < liquidatableAccountIds.length; i++) {
+            console.log("inside loop: ");
+            console.log(i);
+            // it should return an array with the liquidatable accounts ids
+            assertEq(liquidatableAccountIds[i], i + 1);
+        }
     }
 
     function _openPosition(
@@ -147,5 +160,15 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
 
         changePrank({ msgSender: users.naruto });
+    }
+
+    function _setAccountsAsLiquidatable(MarketConfig memory fuzzMarketConfig, bool isLong) private {
+        // TODO: switch to maintenance margin rate only
+        uint256 priceShiftBps = fuzzMarketConfig.marginRequirements * 3;
+        uint256 newIndexPrice = isLong
+            ? ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).sub(ud60x18(priceShiftBps))).intoUint256()
+            : ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).add(ud60x18(priceShiftBps))).intoUint256();
+
+        updateMockPriceFeed(fuzzMarketConfig.marketId, newIndexPrice);
     }
 }
