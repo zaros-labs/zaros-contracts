@@ -30,44 +30,78 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
         // adjusted margin requirement
         uint256 initialMarginRate = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
 
-        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
+        _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
 
         uint256 lowerBound = 0;
         uint256 upperBound = 0;
 
-        // it should return an empty array
         uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
 
+        // it should return an empty array
         assertEq(liquidatableAccountIds.length, 0, "checkLiquidatableAccounts: return length ");
     }
 
-    function testFuzz_WhenTheresNoLiquidatableAccount(uint256 marketId, uint256 marginValueUsd, bool isLong) external {
+    function testFuzz_WhenTheresNoLiquidatableAccount(
+        uint256 marketId,
+        bool isLong,
+        uint256 amountOfTradingAccounts
+    )
+        external
+    {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 100 });
+        uint256 marginValueUsd = 1_000_000e18 / amountOfTradingAccounts;
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         // adjusted margin requirement
         uint256 initialMarginRate = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
 
-        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
+            uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
+            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+            _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
+        }
 
         uint256 lowerBound = 0;
-        uint256 upperBound = 1;
+        uint256 upperBound = amountOfTradingAccounts - 1;
 
         // it should return an empty array
         uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
 
-        assertEq(liquidatableAccountIds.length, 0, "checkLiquidatableAccounts: return length ");
         // it should return an empty array
+        assertEq(liquidatableAccountIds.length, 0, "checkLiquidatableAccounts: return length ");
     }
 
-    function test_WhenThereAreOneOrManyLiquidatableAccounts() external {
+    function test_WhenThereAreOneOrManyLiquidatableAccounts(
+        uint256 marketId,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 amountOfTradingAccounts
+    )
+        external
+    {
+        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        // marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        // deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        // uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        // // adjusted margin requirement
+        // uint256 initialMarginRate =
+        // ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
+
+        // _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
+
+        // uint256 lowerBound = 0;
+        // uint256 upperBound = 1;
+
+        // // it should return an empty array
+        // uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
         // it should return an array with the liquidatable accounts ids
     }
 
-    function openPosition(
+    function _openPosition(
         MarketConfig memory fuzzMarketConfig,
         uint128 tradingAccountId,
         uint256 initialMarginRate,
@@ -111,5 +145,7 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
 
         // fill first order and open position
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+
+        changePrank({ msgSender: users.naruto });
     }
 }

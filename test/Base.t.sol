@@ -140,7 +140,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
         changePrank({ msgSender: users.naruto });
-        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        usdToken.approve({ spender: address(perpsEngine), value: type(uint256).max });
         mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sasuke });
