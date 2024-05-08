@@ -48,6 +48,8 @@ contract LiquidationBranch {
         _;
     }
 
+    /// @param lowerBound The lower bound of the accounts to check
+    /// @param upperBound The upper bound of the accounts to check
     function checkLiquidatableAccounts(
         uint256 lowerBound,
         uint256 upperBound
@@ -92,6 +94,8 @@ contract LiquidationBranch {
         SD59x18 fundingFeePerUnitUsdX18;
     }
 
+    /// @param accountsIds The list of accounts to liquidate
+    /// @param feeRecipient The address to receive the liquidation fee
     function liquidateAccounts(
         uint128[] calldata accountsIds,
         address feeRecipient

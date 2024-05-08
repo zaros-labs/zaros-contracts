@@ -39,6 +39,8 @@ contract OrderBranch {
     );
     event LogCancelMarketOrder(address indexed sender, uint128 indexed tradingAccountId);
 
+    /// @param marketId The perp market id.
+    /// @return The order fees for the given market.
     function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory) {
         return PerpMarket.load(marketId).configuration.orderFees;
     }
@@ -93,6 +95,10 @@ contract OrderBranch {
         console.log(marginBalanceUsdX18.abs().intoUint256());
     }
 
+    /// @param marketId The perp market id.
+    /// @param sizeDelta The size delta of the order.
+    /// @return initialMarginUsdX18 The initial margin requirement for the given trade.
+    /// @return maintenanceMarginUsdX18 The maintenance margin requirement for the given trade.
     function getMarginRequirementForTrade(
         uint128 marketId,
         int128 sizeDelta
@@ -114,6 +120,7 @@ contract OrderBranch {
         return (initialMarginUsdX18, maintenanceMarginUsdX18);
     }
 
+    /// @param tradingAccountId The trading account id to get the active market
     function getActiveMarketOrder(uint128 tradingAccountId) external pure returns (MarketOrder.Data memory) {
         MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
 
@@ -134,6 +141,7 @@ contract OrderBranch {
         UD60x18 settlementFeeUsdX18;
     }
 
+    /// @dev See {CreateMarketOrderParams}.
     function createMarketOrder(CreateMarketOrderParams calldata params) external {
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);

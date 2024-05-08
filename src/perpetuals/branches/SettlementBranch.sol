@@ -64,6 +64,10 @@ contract SettlementBranch {
         _;
     }
 
+    /// @param tradingAccountId The trading account id.
+    /// @param marketId The perp market id.
+    /// @param feeRecipients The fee recipients. See {FeeRecipients.Data}
+    /// @param priceData The price data of market order.
     function fillMarketOrder(
         uint128 tradingAccountId,
         uint128 marketId,
@@ -92,6 +96,12 @@ contract SettlementBranch {
         int128 sizeDelta;
     }
 
+    /// @param marketId The perp market id.
+    /// @param settlementConfigurationId The perp market settlement configuration id.
+    /// @param settlementFeeRecipient The settlement fee recipient.
+    /// @param payloads The list of settlement payloads.
+    /// @param priceData The price data of custom orders.
+    /// @param callback The callback address.
     function fillCustomOrders(
         uint128 marketId,
         uint128 settlementConfigurationId,
@@ -147,6 +157,12 @@ contract SettlementBranch {
         SD59x18 newSkew;
     }
 
+    /// @param tradingAccountId The trading account id.
+    /// @param marketId The perp market id.
+    /// @param settlementConfigurationId The perp market settlement configuration id.
+    /// @param sizeDelta The size delta of the order.
+    /// @param feeRecipients The fee recipients. See {FeeRecipients.Data}
+    /// @param priceData The price data of the order.
     function _fillOrder(
         uint128 tradingAccountId,
         uint128 marketId,
@@ -261,6 +277,8 @@ contract SettlementBranch {
         );
     }
 
+    /// @param sender The sender address.
+    /// @param keeper The keeper address.
     function _requireIsKeeper(address sender, address keeper) internal pure {
         if (sender != keeper && keeper != address(0)) {
             revert Errors.OnlyKeeper(sender, keeper);

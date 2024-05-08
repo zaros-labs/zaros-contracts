@@ -108,6 +108,8 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         globalConfiguration.usdToken = usdToken;
     }
 
+    /// @param lowerBound The lower bound of the accounts to retrieve.
+    /// @param upperBound The upper bound of the accounts to retrieve.
     function getAccountsWithActivePositions(
         uint256 lowerBound,
         uint256 upperBound
