@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { MockPriceFeed } from "../../test/mocks/MockPriceFeed.sol";
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";

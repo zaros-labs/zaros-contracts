@@ -16,7 +16,7 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
 import { BaseScript } from "../Base.s.sol";

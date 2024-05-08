@@ -7,7 +7,7 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
