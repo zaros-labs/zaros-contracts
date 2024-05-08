@@ -120,8 +120,12 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        for (uint256 i = lowerBound; i < upperBound; i++) {
-            accountsIds[i] = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
+        accountsIds = new uint128[](upperBound - lowerBound + 1);
+
+        uint256 index = 0;
+        for (uint256 i = lowerBound; i <= upperBound; i++) {
+            accountsIds[index] = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
+            index++;
         }
     }
 
