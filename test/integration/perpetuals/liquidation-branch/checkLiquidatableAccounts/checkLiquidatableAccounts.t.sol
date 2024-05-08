@@ -41,7 +41,25 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
         assertEq(liquidatableAccountIds.length, 0, "checkLiquidatableAccounts: return length ");
     }
 
-    function test_WhenTheresNoLiquidatableAccount() external {
+    function testFuzz_WhenTheresNoLiquidatableAccount(uint256 marketId, uint256 marginValueUsd, bool isLong) external {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        // adjusted margin requirement
+        uint256 initialMarginRate = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
+
+        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
+
+        uint256 lowerBound = 0;
+        uint256 upperBound = 1;
+
+        // it should return an empty array
+        uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
+
+        assertEq(liquidatableAccountIds.length, 0, "checkLiquidatableAccounts: return length ");
         // it should return an empty array
     }
 
