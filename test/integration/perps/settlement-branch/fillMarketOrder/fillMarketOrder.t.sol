@@ -871,7 +871,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         TestFuzz_GivenThePnlIsPositive_Context memory ctx;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
         ctx.adjustedMarginRequirements =
-            ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18)).intoUint256();
+            ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
 
         priceShift = bound({ x: priceShift, min: 1.1e18, max: 10e18 });
         initialMarginRate =
