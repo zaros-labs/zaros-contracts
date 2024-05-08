@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { IRootProxy } from "../interfaces/IRootProxy.sol";
-import { IUpgradeBranch } from "../interfaces/IUpgradeBranch.sol";
 import { RootUpgrade } from "../leaves/RootUpgrade.sol";
 
 // Open Zeppelin dependencies
@@ -14,13 +13,25 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
-contract UpgradeBranch is IUpgradeBranch, Initializable, OwnableUpgradeable {
+/**
+ * @title RootUpgrade
+ * @notice Interface of the RootUpgrade branch. See [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535).
+ */
+contract UpgradeBranch is Initializable, OwnableUpgradeable {
     using RootUpgrade for RootUpgrade.Data;
 
     function initialize(address owner) external initializer {
         __Ownable_init(owner);
     }
 
+    /**
+     * @notice Add/replace/remove any number of functions and optionally execute
+     *         a function with delegatecall.
+     * @param branchUpgrades Contains the branch addresses and function selectors.
+     * @param initializables The addresses of the contracts or branches to execute initializePayloads.
+     * @param initializePayloads An array of function calls, including function selectors and arguments
+     *                 executed with delegatecall on each initializable contract.
+     */
     function upgrade(
         IRootProxy.BranchUpgrade[] memory branchUpgrades,
         address[] memory initializables,

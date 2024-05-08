@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IRootProxy } from "../interfaces/IRootProxy.sol";
-import { IUpgradeBranch } from "../interfaces/IUpgradeBranch.sol";
 import { RootUpgrade } from "../leaves/RootUpgrade.sol";
 import { Branch } from "../leaves/Branch.sol";
 
