@@ -7,7 +7,7 @@ import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.so
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
@@ -149,7 +149,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: marketId,
             name: marketsConfig[marketId].marketName,
@@ -168,7 +168,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     }
 
     function updatePerpMarketMaxOi(uint128 marketId, UD60x18 newMaxOi) internal {
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: marketId,
             name: marketsConfig[marketId].marketName,

@@ -8,7 +8,7 @@ import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-orde
 import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
@@ -187,7 +187,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             marketsConfig[i].priceAdapter = priceAdapter;
 
             perpsEngine.createPerpMarket(
-                IGlobalConfigurationBranch.CreatePerpMarketParams({
+                GlobalConfigurationBranch.CreatePerpMarketParams({
                     marketId: marketsConfig[i].marketId,
                     name: marketsConfig[i].marketName,
                     symbol: marketsConfig[i].marketSymbol,

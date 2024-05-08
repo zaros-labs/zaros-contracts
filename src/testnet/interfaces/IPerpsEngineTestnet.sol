@@ -4,20 +4,20 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { IUpgradeBranch } from "@zaros/tree-proxy/interfaces/IUpgradeBranch.sol";
 import { ILookupBranch } from "@zaros/tree-proxy/interfaces/ILookupBranch.sol";
-import { IGlobalConfigurationBranchTestnet } from "./IGlobalConfigurationBranchTestnet.sol";
-import { ILiquidationBranch } from "@zaros/perpetuals/interfaces/ILiquidationBranch.sol";
-import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
-import { IPerpMarketBranch } from "@zaros/perpetuals/interfaces/IPerpMarketBranch.sol";
-import { ITradingAccountBranchTestnet } from "./ITradingAccountBranchTestnet.sol";
-import { ISettlementBranch } from "@zaros/perpetuals/interfaces/ISettlementBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
+import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
+import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
+import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
+import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
+import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 
-interface IPerpsEngineTestnet is
+abstract contract IPerpsEngineTestnet is
     IUpgradeBranch,
     ILookupBranch,
-    IGlobalConfigurationBranchTestnet,
-    ILiquidationBranch,
-    IOrderBranch,
-    IPerpMarketBranch,
-    ITradingAccountBranchTestnet,
-    ISettlementBranch
+    GlobalConfigurationBranch,
+    LiquidationBranch,
+    OrderBranch,
+    PerpMarketBranch,
+    SettlementBranch,
+    TradingAccountBranch
 { }
