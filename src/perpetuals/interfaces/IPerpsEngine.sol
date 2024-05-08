@@ -4,20 +4,20 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { IUpgradeBranch } from "@zaros/tree-proxy/interfaces/IUpgradeBranch.sol";
 import { ILookupBranch } from "@zaros/tree-proxy/interfaces/ILookupBranch.sol";
-import { IGlobalConfigurationBranch } from "./IGlobalConfigurationBranch.sol";
-import { ILiquidationBranch } from "./ILiquidationBranch.sol";
-import { IOrderBranch } from "./IOrderBranch.sol";
-import { IPerpMarketBranch } from "./IPerpMarketBranch.sol";
-import { ITradingAccountBranch } from "./ITradingAccountBranch.sol";
-import { ISettlementBranch } from "./ISettlementBranch.sol";
+import { GlobalConfigurationBranch } from "../branches/GlobalConfigurationBranch.sol";
+import { LiquidationBranch } from "../branches/LiquidationBranch.sol";
+import { OrderBranch } from "../branches/OrderBranch.sol";
+import { PerpMarketBranch } from "../branches/PerpMarketBranch.sol";
+import { SettlementBranch } from "../branches/SettlementBranch.sol";
+import { TradingAccountBranch } from "../branches/TradingAccountBranch.sol";
 
-interface IPerpsEngine is
+abstract contract IPerpsEngine is
     IUpgradeBranch,
     ILookupBranch,
-    IGlobalConfigurationBranch,
-    ILiquidationBranch,
-    IOrderBranch,
-    IPerpMarketBranch,
-    ITradingAccountBranch,
-    ISettlementBranch
+    GlobalConfigurationBranch,
+    LiquidationBranch,
+    OrderBranch,
+    PerpMarketBranch,
+    SettlementBranch,
+    TradingAccountBranch
 { }
