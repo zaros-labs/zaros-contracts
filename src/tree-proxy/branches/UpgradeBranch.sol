@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IRootProxy } from "../interfaces/IRootProxy.sol";
+import { RootProxy } from "../RootProxy.sol";
 import { RootUpgrade } from "../leaves/RootUpgrade.sol";
 
 // Open Zeppelin dependencies
@@ -33,7 +33,7 @@ contract UpgradeBranch is Initializable, OwnableUpgradeable {
      *                 executed with delegatecall on each initializable contract.
      */
     function upgrade(
-        IRootProxy.BranchUpgrade[] memory branchUpgrades,
+        RootProxy.BranchUpgrade[] memory branchUpgrades,
         address[] memory initializables,
         bytes[] memory initializePayloads
     )
@@ -45,5 +45,5 @@ contract UpgradeBranch is Initializable, OwnableUpgradeable {
         rootUpgrade.upgrade(branchUpgrades, initializables, initializePayloads);
     }
 
-    function _authorizeUpgrade(IRootProxy.BranchUpgrade[] memory) internal onlyOwner { }
+    function _authorizeUpgrade(RootProxy.BranchUpgrade[] memory) internal onlyOwner { }
 }

@@ -4,7 +4,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
 import { TradingAccountBranchTestnet } from "@zaros/testnet/branches/TradingAccountBranchTestnet.sol";
@@ -48,12 +47,12 @@ contract UpdateBranchs is BaseScript {
         // bytes4[] memory settlementBranchTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
 
-        // IRootProxy.BranchUpgrade[] memory branchUpgrades = new IRootProxy.BranchUpgrade[](4);
+        // RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](4);
 
         // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory perpMarketBranchSelectorsUpdated = new bytes4[](1);
 
-        IRootProxy.BranchUpgrade[] memory branchUpgrades = new IRootProxy.BranchUpgrade[](1);
+        RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](1);
 
         address[] memory initializables;
         bytes[] memory initializePayloads;
@@ -87,41 +86,41 @@ contract UpdateBranchs is BaseScript {
         // orderBranchTestnetSelectorsUpdated[0] = OrderBranch.createMarketOrder.selector;
 
         branchUpgrades[0] = (
-            IRootProxy.BranchUpgrade({
+            RootProxy.BranchUpgrade({
                 branch: address(tradingAccountBranchTestnet),
-                action: IRootProxy.BranchUpgradeAction.Replace,
+                action: RootProxy.BranchUpgradeAction.Replace,
                 selectors: tradingAccountBranchTestnetSelectorsUpdated
             })
         );
 
         // branchUpgrades[0] = (
-        //     IRootProxy.BranchUpgrade({
+        //     RootProxy.BranchUpgrade({
         //         branch: address(tradingAccountBranchTestnet),
-        //         action: IRootProxy.BranchUpgradeAction.Add,
+        //         action: RootProxy.BranchUpgradeAction.Add,
         //         selectors: tradingAccountBranchTestnetSelectorsAdded
         //     })
         // );
 
         // branchUpgrades[1] = (
-        //     IRootProxy.BranchUpgrade({
+        //     RootProxy.BranchUpgrade({
         //         branch: address(tradingAccountBranchTestnet),
-        //         action: IRootProxy.BranchUpgradeAction.Replace,
+        //         action: RootProxy.BranchUpgradeAction.Replace,
         //         selectors: tradingAccountBranchTestnetSelectorsUpdated
         //     })
         // );
 
         // branchUpgrades[2] = (
-        //     IRootProxy.BranchUpgrade({
+        //     RootProxy.BranchUpgrade({
         //         branch: address(globalConfigurationBranchTestnet),
-        //         action: IRootProxy.BranchUpgradeAction.Add,
+        //         action: RootProxy.BranchUpgradeAction.Add,
         //         selectors: globalConfigurationBranchTestnetSelectorsAdded
         //     })
         // );
 
         // branchUpgrades[3] = (
-        //     IRootProxy.BranchUpgrade({
+        //     RootProxy.BranchUpgrade({
         //         branch: address(settlementBranchTestnet),
-        //         action: IRootProxy.BranchUpgradeAction.Replace,
+        //         action: RootProxy.BranchUpgradeAction.Replace,
         //         selectors: settlementBranchTestnetSelectorsUpdated
         //     })
         // );

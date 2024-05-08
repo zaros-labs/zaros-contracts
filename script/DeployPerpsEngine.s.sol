@@ -4,7 +4,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
@@ -48,13 +47,13 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         address[] memory branches = deployBranchs(isTestnet);
         bytes4[][] memory branchesSelectors = getBranchsSelectors(isTestnet);
 
-        IRootProxy.BranchUpgrade[] memory branchUpgrades =
-            getBranchUpgrades(branches, branchesSelectors, IRootProxy.BranchUpgradeAction.Add);
+        RootProxy.BranchUpgrade[] memory branchUpgrades =
+            getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches, isTestnet);
         bytes[] memory initializePayloads =
             getInitializePayloads(deployer, address(tradingAccountToken), usdToken, accessKeyManager, isTestnet);
 
-        IRootProxy.InitParams memory initParams = IRootProxy.InitParams({
+        RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,
             initializables: initializables,
             initializePayloads: initializePayloads
