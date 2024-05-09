@@ -17,7 +17,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
+contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

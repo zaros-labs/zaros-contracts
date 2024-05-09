@@ -86,6 +86,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
                 )
             )
         );
+        console.log("Liquidation Keeper: ", liquidationKeeper);
         // AutomationHelpers.registerLiquidationKeeper({
         //     name: PERPS_LIQUIDATION_KEEPER_NAME,
         //     liquidationKeeper: liquidationKeeper,
