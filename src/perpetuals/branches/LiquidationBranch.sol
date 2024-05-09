@@ -155,13 +155,7 @@ contract LiquidationBranch is ILiquidationBranch {
                     perpMarket.getNextFundingFeePerUnit(ctx.fundingRateUsdX18, ctx.markPriceX18);
 
                 perpMarket.updateFunding(ctx.fundingRateUsdX18, ctx.fundingFeePerUnitUsdX18);
-
                 position.clear();
-
-                (UD60x18 newOpenInterest, SD59x18 newSkew) =
-                    perpMarket.checkOpenInterestLimits(ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD_ZERO);
-                perpMarket.updateOpenInterest(newOpenInterest, newSkew);
-
                 tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
             }
 
