@@ -1,0 +1,11 @@
+UpdateSettlementConfiguration_Integration_Test
+├── given market order configuration on chain with different strategy
+│   └── it should revert
+├── given off chain configuration with different strategy
+│   └── it should revert
+├── given market order configuration on chain with your strategy
+│   ├── it should update
+│   └── it should emit {LogUpdateSettlementConfiguration} event
+└── given off chain configuration with your strategy
+    ├── it should update
+    └── it should emit {LogUpdateSettlementConfiguration} event

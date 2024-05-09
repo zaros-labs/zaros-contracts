@@ -34,7 +34,10 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
         _;
     }
 
-    function test_RevertWhen_PerpMarketIsEnabledAndNewEnableStatusIsTrue(uint256 marketId) external givenPerpMarketIsInitialized {
+    function test_RevertWhen_PerpMarketIsEnabledAndNewEnableStatusIsTrue(uint256 marketId)
+        external
+        givenPerpMarketIsInitialized
+    {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // it should revert
@@ -44,13 +47,15 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
 
         changePrank({ msgSender: users.owner });
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, true);
-
     }
 
-    function test_WhenPerpMarketIsEnabledAndNewEnableStatusIsFalse(uint256 marketId) external givenPerpMarketIsInitialized {
+    function test_WhenPerpMarketIsEnabledAndNewEnableStatusIsFalse(uint256 marketId)
+        external
+        givenPerpMarketIsInitialized
+    {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        changePrank({ msgSender: users.owner});
+        changePrank({ msgSender: users.owner });
 
         // it should emit {LogDisablePerpMarket} event
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -58,13 +63,15 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
 
         // it should remove market
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, false);
-
     }
 
-    function test_WhenPerpMarketIsNotEnabledAndNewEnableStatusIsTrue(uint256 marketId) external givenPerpMarketIsInitialized {
-         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+    function test_WhenPerpMarketIsNotEnabledAndNewEnableStatusIsTrue(uint256 marketId)
+        external
+        givenPerpMarketIsInitialized
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        changePrank({ msgSender: users.owner});
+        changePrank({ msgSender: users.owner });
 
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, false);
 
@@ -82,7 +89,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        changePrank({ msgSender: users.owner});
+        changePrank({ msgSender: users.owner });
 
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, false);
 

@@ -386,6 +386,5 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         // it should create perp market
         // it should enable perp market
         perpsEngine.createPerpMarket({ params: params });
-
     }
 }
