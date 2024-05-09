@@ -29,8 +29,7 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        // adjusted margin requirement
-        uint256 initialMarginRate = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
+        uint256 initialMarginRate = fuzzMarketConfig.marginRequirements;
 
         _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
 
@@ -53,9 +52,7 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
         uint256 marginValueUsd = 1_000_000e18 / amountOfTradingAccounts;
-
-        // adjusted margin requirement
-        uint256 initialMarginRate = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
+        uint256 initialMarginRate = fuzzMarketConfig.marginRequirements;
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
@@ -86,16 +83,15 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
-        uint256 marginValueUsd = 1_000_000e18 / amountOfTradingAccounts;
-
-        // adjusted margin requirement
-        uint256 initialMarginRate = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
+        uint256 marginValueUsd = 10_000e18 / amountOfTradingAccounts;
+        uint256 initialMarginRate = fuzzMarketConfig.marginRequirements;
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
         for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
             uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
             uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+
             _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
         }
         _setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
@@ -107,8 +103,6 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
 
         assertEq(liquidatableAccountIds.length, amountOfTradingAccounts);
         for (uint256 i = 0; i < liquidatableAccountIds.length; i++) {
-            console.log("inside loop: ");
-            console.log(i);
             // it should return an array with the liquidatable accounts ids
             assertEq(liquidatableAccountIds[i], i + 1);
         }
@@ -164,7 +158,7 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_T
 
     function _setAccountsAsLiquidatable(MarketConfig memory fuzzMarketConfig, bool isLong) private {
         // TODO: switch to maintenance margin rate only
-        uint256 priceShiftBps = fuzzMarketConfig.marginRequirements * 3;
+        uint256 priceShiftBps = fuzzMarketConfig.marginRequirements;
         uint256 newIndexPrice = isLong
             ? ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).sub(ud60x18(priceShiftBps))).intoUint256()
             : ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).add(ud60x18(priceShiftBps))).intoUint256();

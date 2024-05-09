@@ -19,8 +19,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract LiquidationBranch is ILiquidationBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
@@ -53,13 +51,11 @@ contract LiquidationBranch is ILiquidationBranch {
 
         liquidatableAccountsIds = new uint128[](upperBound - lowerBound);
 
-        for (uint256 i = lowerBound; i < upperBound; i++) {
-            console.log("from checkLiquidatableAccounts: ", i);
-            uint128 tradingAccountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
-            console.log(tradingAccountId);
-            TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
+        if (liquidatableAccountsIds.length == 0) return liquidatableAccountsIds;
 
-            console.log("here2");
+        for (uint256 i = lowerBound; i < upperBound; i++) {
+            uint128 tradingAccountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
+            TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
             (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
@@ -69,13 +65,10 @@ contract LiquidationBranch is ILiquidationBranch {
                 TradingAccount.isLiquidatable(
                     requiredMaintenanceMarginUsdX18, liquidationFeeUsdX18, marginBalanceUsdX18
                 )
-            )
-            {
+            ) {
                 liquidatableAccountsIds[i] = tradingAccountId;
             }
         }
-        console.log("testlog: ");
-        console.log(liquidatableAccountsIds[0]);
     }
 
     struct LiquidationContext {
