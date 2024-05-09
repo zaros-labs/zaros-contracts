@@ -1,0 +1,11 @@
+ConfigureSystemParameters_Integration_Test
+├── given max positions per account is zero
+│   └── it should revert
+└── given max positions per account is not zero
+    ├── when market order max lifetime is zero
+    │   └── it should revert
+    └── given market order max lifetime is not zero
+        ├── when liquidation fee is zero
+        │   └── it should revert
+        └── given liquidation fee is not zero
+            └── it should emit {LogConfigureSystemParameters} event
