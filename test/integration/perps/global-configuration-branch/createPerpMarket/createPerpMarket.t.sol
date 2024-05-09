@@ -383,15 +383,9 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit IGlobalConfigurationBranch.LogCreatePerpMarket(users.owner, params.marketId);
 
-        perpsEngine.createPerpMarket({ params: params});
-
-        // TODO
         // it should create perp market
-        // PerpMarket.Data memory createdPerpMarket = PerpMarket.load(params.marketId);
-        // assertEq(createdPerpMarket.id, params.marketId, "createdPerpMarket.id params.marketId");
-
-        // TODO
         // it should enable perp market
+        perpsEngine.createPerpMarket({ params: params });
 
     }
 }

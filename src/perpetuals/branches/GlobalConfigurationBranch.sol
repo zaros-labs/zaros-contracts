@@ -399,6 +399,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
+        if (params.maxOpenInterest == 0) {
+            revert Errors.ZeroInput("maxOpenInterest");
+        }
         if (params.skewScale == 0) {
             revert Errors.ZeroInput("skewScale");
         }

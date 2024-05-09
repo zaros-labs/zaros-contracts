@@ -12,7 +12,7 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 
 import "forge-std/console.sol";
 
-contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shared_Test{
+contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -42,7 +42,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PerpMarketNotInitialized.selector, marketIdNotInitialized) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.PerpMarketNotInitialized.selector, marketIdNotInitialized)
+        });
 
         changePrank({ msgSender: users.owner });
         perpsEngine.updatePerpMarketConfiguration(params);
@@ -81,7 +83,11 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function test_RevertWhen_LengthOfSymbolIsZero(uint256 marketId) external givenMarketIsInitialized givenLengthOfNameIsNotZero {
+    function test_RevertWhen_LengthOfSymbolIsZero(uint256 marketId)
+        external
+        givenMarketIsInitialized
+        givenLengthOfNameIsNotZero
+    {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
@@ -187,28 +193,28 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         givenPriceAdapterIsNotZero
         givenMaintenanceMarginRateIsNotZero
     {
-        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        // IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
-        //     .UpdatePerpMarketConfigurationParams({
-        //     marketId: fuzzMarketConfig.marketId,
-        //     name: fuzzMarketConfig.marketName,
-        //     symbol: fuzzMarketConfig.marketSymbol,
-        //     priceAdapter: fuzzMarketConfig.priceAdapter,
-        //     initialMarginRateX18: fuzzMarketConfig.imr,
-        //     maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-        //     maxOpenInterest: 0,
-        //     maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
-        //     skewScale: fuzzMarketConfig.skewScale,
-        //     minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-        //     orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
-        // });
+        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
+            marketId: fuzzMarketConfig.marketId,
+            name: fuzzMarketConfig.marketName,
+            symbol: fuzzMarketConfig.marketSymbol,
+            priceAdapter: fuzzMarketConfig.priceAdapter,
+            initialMarginRateX18: fuzzMarketConfig.imr,
+            maintenanceMarginRateX18: fuzzMarketConfig.mmr,
+            maxOpenInterest: 0,
+            maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
+            skewScale: fuzzMarketConfig.skewScale,
+            minTradeSizeX18: fuzzMarketConfig.minTradeSize,
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+        });
 
-        // // it should revert
-        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maintenanceMarginRateX18") });
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxOpenInterest") });
 
-        // changePrank({ msgSender: users.owner });
-        // perpsEngine.updatePerpMarketConfiguration(params);
+        changePrank({ msgSender: users.owner });
+        perpsEngine.updatePerpMarketConfiguration(params);
     }
 
     modifier givenMaxOpenInterestIsNotZero() {
@@ -355,14 +361,11 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
-         // it should emit {LogUpdatePerpMarketConfiguration} event
-         vm.expectEmit({ emitter: address(perpsEngine) });
-         emit IGlobalConfigurationBranch.LogUpdatePerpMarketConfiguration(users.owner, fuzzMarketConfig.marketId);
+        // it should emit {LogUpdatePerpMarketConfiguration} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit IGlobalConfigurationBranch.LogUpdatePerpMarketConfiguration(users.owner, fuzzMarketConfig.marketId);
 
-        perpsEngine.updatePerpMarketConfiguration(params);
-
-        // TODO
         // it should update perp market
-
+        perpsEngine.updatePerpMarketConfiguration(params);
     }
 }
