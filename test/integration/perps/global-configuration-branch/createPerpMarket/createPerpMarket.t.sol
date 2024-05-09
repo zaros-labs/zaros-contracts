@@ -9,13 +9,6 @@ import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguratio
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
-import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
-import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
-import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
-
-import "forge-std/console.sol";
 
 contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
