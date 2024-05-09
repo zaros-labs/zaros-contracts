@@ -21,8 +21,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 /// @title The TradingAccount namespace.
 library TradingAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -166,14 +164,12 @@ library TradingAccount {
         returns (SD59x18 marginBalanceUsdX18)
     {
         for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
-            (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
+            (address collateralType, uint256 balance) = self.marginCollateralBalanceX18.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
-            UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18)).mul(
+            UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balance)).mul(
                 ud60x18(marginCollateralConfiguration.loanToValue)
             );
-            console.log("from trading account leaf: ");
-            console.log(adjustedBalanceUsdX18.intoUint256());
 
             marginBalanceUsdX18 = marginBalanceUsdX18.add(adjustedBalanceUsdX18.intoSD59x18());
         }
