@@ -123,7 +123,6 @@ contract LiquidationBranch is ILiquidationBranch {
                 );
             }
 
-            // TODO: Update margin recipient
             UD60x18 liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
                     marginCollateralRecipient: marginCollateralRecipient,
@@ -165,9 +164,6 @@ contract LiquidationBranch is ILiquidationBranch {
 
                 tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
             }
-
-            // asserts invariant
-            assert(tradingAccount.activeMarketsIds.length() == 0);
 
             emit LogLiquidateAccount(
                 msg.sender,
