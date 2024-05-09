@@ -6,8 +6,8 @@ import { IFeeManager, FeeAsset } from "../interfaces/IFeeManager.sol";
 import { IVerifierProxy } from "../interfaces/IVerifierProxy.sol";
 import { ChainlinkUtil } from "../ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
-import { ISettlementBranch } from "@zaros/perpetuals/interfaces/ISettlementBranch.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 
 // Open Zeppelin dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";

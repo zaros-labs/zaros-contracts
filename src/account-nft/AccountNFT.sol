@@ -3,7 +3,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 
 // Open Zeppelin dependencies
 import { ERC721, ERC721Enumerable } from "@openzeppelin/token/ERC721/extensions/ERC721Enumerable.sol";

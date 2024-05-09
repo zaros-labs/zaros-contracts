@@ -3,7 +3,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { ILogAutomation, Log as AutomationLog } from "../../interfaces/ILogAutomation.sol";
 import { IStreamsLookupCompatible } from "../../interfaces/IStreamsLookupCompatible.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";

@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { ITradingAccountBranch } from "@zaros/perpetuals/interfaces/ITradingAccountBranch.sol";
+import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 contract CreateTradingAccountAndMulticall_Integration_Test is Base_Integration_Shared_Test {
@@ -14,7 +14,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Integration_S
 
     function test_RevertWhen_TheDataArrayProvidesARevertingCall() external {
         bytes[] memory data = new bytes[](1);
-        data[0] = abi.encodeWithSelector(ITradingAccountBranch.depositMargin.selector, address(usdToken), uint256(0));
+        data[0] = abi.encodeWithSelector(TradingAccountBranch.depositMargin.selector, address(usdToken), uint256(0));
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
@@ -42,7 +42,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Integration_S
     function test_WhenTheDataArrayIsNotNull() external whenTheDataArrayDoesNotProvideARevertingCall {
         bytes[] memory data = new bytes[](1);
         uint128 expectedAccountId = 1;
-        data[0] = abi.encodeWithSelector(ITradingAccountBranch.getTradingAccountToken.selector);
+        data[0] = abi.encodeWithSelector(TradingAccountBranch.getTradingAccountToken.selector);
 
         // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -64,7 +64,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Integration_S
 
         bytes[] memory data = new bytes[](1);
         data[0] =
-            abi.encodeWithSelector(ITradingAccountBranch.depositMargin.selector, address(usdToken), amountToDeposit);
+            abi.encodeWithSelector(TradingAccountBranch.depositMargin.selector, address(usdToken), amountToDeposit);
         uint128 expectedAccountId = 1;
 
         // it should transfer the amount from the sender to the trading account

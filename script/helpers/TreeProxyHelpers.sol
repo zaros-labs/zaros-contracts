@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
+import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { UpgradeBranch } from "@zaros/tree-proxy/branches/UpgradeBranch.sol";
 import { LookupBranch } from "@zaros/tree-proxy/branches/LookupBranch.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
@@ -170,18 +170,18 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 function getBranchUpgrades(
     address[] memory branches,
     bytes4[][] memory branchesSelectors,
-    IRootProxy.BranchUpgradeAction action
+    RootProxy.BranchUpgradeAction action
 )
     pure
-    returns (IRootProxy.BranchUpgrade[] memory)
+    returns (RootProxy.BranchUpgrade[] memory)
 {
     require(branches.length == branchesSelectors.length, "TreeProxyHelpers: branchesSelectors length mismatch");
-    IRootProxy.BranchUpgrade[] memory branchUpgrades = new IRootProxy.BranchUpgrade[](branches.length);
+    RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](branches.length);
 
     for (uint256 i = 0; i < branches.length; i++) {
         bytes4[] memory selectors = branchesSelectors[i];
 
-        branchUpgrades[i] = IRootProxy.BranchUpgrade({ branch: branches[i], action: action, selectors: selectors });
+        branchUpgrades[i] = RootProxy.BranchUpgrade({ branch: branches[i], action: action, selectors: selectors });
     }
 
     return branchUpgrades;
