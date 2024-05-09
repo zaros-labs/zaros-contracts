@@ -101,10 +101,4 @@ library GlobalConfiguration {
             revert Errors.MarginCollateralTypeNotInPriority(collateralType);
         }
     }
-
-    function configureLiquidators(Data storage self, address[] memory liquidators, bool[] memory enable) internal {
-        for (uint256 i = 0; i < liquidators.length; i++) {
-            self.isLiquidatorEnabled[liquidators[i]] = enable[i];
-        }
-    }
 }

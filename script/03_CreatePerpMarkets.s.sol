@@ -51,7 +51,9 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
 
             address marketOrderKeeper = deployMarketOrderKeeper(
                 filteredMarketsConfig[i].marketId,
-                filteredMarketsConfig[i].streamIdString,
+                deployer,
+                perpsEngine,
+                settlementFeeRecipient,
                 marketOrderKeeperImplementation
             );
 

@@ -72,7 +72,7 @@ contract UpdateBranchs is BaseScript {
         // bytes4(keccak256("depositMargin(uint128,address,uint256)"));
 
         globalConfigurationBranchTestnetSelectorsAdded[0] =
-        GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
+            GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
         // globalConfigurationBranchTestnetSelectorsAdded[1] =
         //     GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
 

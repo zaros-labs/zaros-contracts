@@ -7,6 +7,7 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "./mocks/MockUSDToken.sol";
@@ -183,6 +184,27 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         collateralLiquidationPriority[1] = address(mockWstEth);
 
         perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
+        address liquidationKeeperImplementation = address(new LiquidationKeeper());
+
+        address liquidationKeeper = address(
+            new ERC1967Proxy(
+                liquidationKeeperImplementation,
+                abi.encodeWithSelector(
+                    LiquidationKeeper(liquidationKeeperImplementation).initialize.selector,
+                    address(perpsEngine),
+                    users.marginCollateralRecipient,
+                    users.settlementFeeRecipient
+                )
+            )
+        );
+
+        address[] memory liquidators = new address[](1);
+        bool[] memory liquidatorStatus = new bool[](1);
+
+        liquidators[0] = liquidationKeeper;
+        liquidatorStatus[0] = true;
+
+        perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

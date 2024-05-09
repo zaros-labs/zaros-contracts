@@ -110,7 +110,10 @@ contract GlobalConfigurationBranch is IGlobalConfigurationBranch, Initializable,
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.configureLiquidators(liquidators, enable);
+
+        for (uint256 i = 0; i < liquidators.length; i++) {
+            globalConfiguration.isLiquidatorEnabled[liquidators[i]] = enable[i];
+        }
 
         emit LogConfigureLiquidators(msg.sender, liquidators, enable);
     }
