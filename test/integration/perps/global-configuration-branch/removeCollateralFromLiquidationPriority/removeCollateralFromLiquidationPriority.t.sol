@@ -19,7 +19,6 @@ contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Integr
     }
 
     function test_RevertGiven_CollateralAddressIsZero() external {
-
         changePrank({ msgSender: users.owner });
 
         address collateral = address(0);
@@ -42,7 +41,9 @@ contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Integr
         perpsEngine.removeCollateralFromLiquidationPriority(collateral);
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarginCollateralTypeNotInPriority.selector, collateral) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.MarginCollateralTypeNotInPriority.selector, collateral)
+        });
 
         perpsEngine.removeCollateralFromLiquidationPriority(collateral);
     }
@@ -58,6 +59,5 @@ contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Integr
 
         // it should remove
         perpsEngine.removeCollateralFromLiquidationPriority(collateral);
-
     }
 }
