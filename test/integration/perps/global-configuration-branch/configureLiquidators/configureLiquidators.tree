@@ -1,4 +1,4 @@
-ConfigureLiquidators_Integration_Teste
+ConfigureLiquidators_Integration_Test
 ├── given there are no liquidators
 │   └── it should revert
 └── given there are liquidators
