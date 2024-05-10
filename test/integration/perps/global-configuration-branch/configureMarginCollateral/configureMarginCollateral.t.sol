@@ -11,8 +11,6 @@ import { MockERC20 } from "test/mocks/MockERC20.sol";
 // OpenZeppelin Upgradeable dependencies
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
-contract MockEmptyContract { }
-
 contract ConfigureMarginCollateral_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();

@@ -8,7 +8,6 @@ import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobal
 import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
-import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
 import "forge-std/console.sol";
 

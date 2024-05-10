@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
-import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {

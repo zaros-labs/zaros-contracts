@@ -7,7 +7,6 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 
 contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
