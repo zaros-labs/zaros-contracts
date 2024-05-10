@@ -32,7 +32,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Integration_S
 
         // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogCreateTradingAccount(expectedAccountId, users.naruto);
+        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto);
 
         bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
         // it should return a null results array
@@ -46,7 +46,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Integration_S
 
         // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogCreateTradingAccount(expectedAccountId, users.naruto);
+        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto);
 
         bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
         address tradingAccountTokenReturned = abi.decode(results[0], (address));
