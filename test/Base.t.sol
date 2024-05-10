@@ -15,6 +15,7 @@ import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
+import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
 import {
     deployBranchs,
     getBranchsSelectors,
@@ -184,18 +185,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         collateralLiquidationPriority[1] = address(mockWstEth);
 
         perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
-        address liquidationKeeperImplementation = address(new LiquidationKeeper());
 
-        address liquidationKeeper = address(
-            new ERC1967Proxy(
-                liquidationKeeperImplementation,
-                abi.encodeWithSelector(
-                    LiquidationKeeper(liquidationKeeperImplementation).initialize.selector,
-                    address(perpsEngine),
-                    users.marginCollateralRecipient,
-                    users.settlementFeeRecipient
-                )
-            )
+        address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
+            address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
         );
 
         address[] memory liquidators = new address[](1);
