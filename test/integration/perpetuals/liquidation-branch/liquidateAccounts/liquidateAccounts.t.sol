@@ -3,8 +3,14 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { LiquidationBranch_Integration_Test } from "../LiquidationBranchIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+
+// PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Test {
     function test_RevertGiven_TheSenderIsNotARegisteredLiquidator() external {
@@ -105,15 +111,27 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
                 continue;
             }
 
+            Position.State memory positionState =
+                perpsEngine.getPositionState(accountsIds[i], fuzzMarketConfig.marketId);
+            (SD59x18 marginBalanceUsdX18,, UD60x18 requiredMaintenanceMarginUsdX18,,,) = perpsEngine.simulateTrade(
+                accountsIds[i],
+                fuzzMarketConfig.marketId,
+                SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                -int128(positionState.sizeX18.intoInt256())
+            );
+
             // it should emit a {LogLiquidateAccount} event
             vm.expectEmit({ emitter: address(perpsEngine) });
+            uint256 liquidatedCollateralUsd = marginBalanceUsdX18.gt(
+                requiredMaintenanceMarginUsdX18.intoSD59x18()
+            ) ? marginBalanceUsdX18.intoUD60x18().intoUint256() : requiredMaintenanceMarginUsdX18.intoUint256();
             emit LiquidationBranch.LogLiquidateAccount({
                 keeper: liquidationKeeper,
                 tradingAccountId: accountsIds[i],
                 amountOfOpenPositions: 1,
-                requiredMaintenanceMarginUsd: accountMarginValueUsd,
-                marginBalanceUsd: int256(accountMarginValueUsd),
-                liquidatedCollateralUsd: accountMarginValueUsd,
+                requiredMaintenanceMarginUsd: requiredMaintenanceMarginUsdX18.intoUint256(),
+                marginBalanceUsd: marginBalanceUsdX18.intoInt256(),
+                liquidatedCollateralUsd: liquidatedCollateralUsd,
                 liquidationFeeUsd: LIQUIDATION_FEE_USD
             });
         }
