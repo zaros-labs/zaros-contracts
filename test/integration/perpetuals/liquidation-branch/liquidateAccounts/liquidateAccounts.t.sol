@@ -64,13 +64,46 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
         _;
     }
 
-    function test_RevertGiven_OneOfTheAccountsIsNotLiquidatable()
+    function testFuzz_RevertGiven_OneOfTheAccountsIsNotLiquidatable(
+        uint256 marketId,
+        bool isLong,
+        uint256 amountOfTradingAccounts
+    )
         external
         givenTheSenderIsARegisteredLiquidator
         whenTheAccountsIdsArrayIsNotEmpty
         givenAllAccountsExist
     {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
+        uint256 marginValueUsd = 10_000e18 / amountOfTradingAccounts;
+        uint256 initialMarginRate = fuzzMarketConfig.marginRequirements;
+
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+
+        uint128[] memory accountsIds = new uint128[](amountOfTradingAccounts + 1);
+
+        uint256 accountMarginValueUsd = marginValueUsd / (amountOfTradingAccounts + 1);
+
+        for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
+            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+
+            _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
+
+            accountsIds[i] = tradingAccountId;
+        }
+        _setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
+
+        uint128 nonLiquidatableTradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+        accountsIds[amountOfTradingAccounts] = nonLiquidatableTradingAccountId;
+
+        changePrank({ msgSender: liquidationKeeper });
+
         // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.AccountNotLiquidatable.selector, nonLiquidatableTradingAccountId)
+        });
+        perpsEngine.liquidateAccounts(accountsIds, users.marginCollateralRecipient, users.settlementFeeRecipient);
     }
 
     function test_GivenAllAccountsAreLiquidatable()
