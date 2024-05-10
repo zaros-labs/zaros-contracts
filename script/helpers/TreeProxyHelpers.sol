@@ -18,7 +18,7 @@ import { SettlementBranchTestnet } from "@zaros/testnet/branches/SettlementBranc
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-function deployBranchs(bool isTestnet) returns (address[] memory) {
+function deployBranches(bool isTestnet) returns (address[] memory) {
     address[] memory branches = new address[](8);
 
     address upgradeBranch = address(new UpgradeBranch());
@@ -64,7 +64,7 @@ function deployBranchs(bool isTestnet) returns (address[] memory) {
     return branches;
 }
 
-function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
+function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
     bytes4[] memory upgradeBranchSelectors = new bytes4[](1);

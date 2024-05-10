@@ -12,8 +12,8 @@ import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 import {
-    deployBranchs,
-    getBranchsSelectors,
+    deployBranches,
+    getBranchesSelectors,
     getBranchUpgrades,
     getInitializables,
     getInitializePayloads
@@ -44,8 +44,8 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         isTestnet = vm.envBool("IS_TESTNET");
         accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
 
-        address[] memory branches = deployBranchs(isTestnet);
-        bytes4[][] memory branchesSelectors = getBranchsSelectors(isTestnet);
+        address[] memory branches = deployBranches(isTestnet);
+        bytes4[][] memory branchesSelectors = getBranchesSelectors(isTestnet);
 
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);

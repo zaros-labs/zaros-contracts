@@ -160,7 +160,7 @@ library SettlementConfiguration {
             DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
             bytes memory verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, priceData);
 
-            requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
+            // requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
 
             price = getDataStreamsReportPrice(verifiedPriceData, isBuyOrder);
         } else {

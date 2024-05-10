@@ -97,8 +97,6 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         marketId = self.marketId;
     }
 
-    event LogDsError(uint256 errorCode);
-
     // function checkErrorHandler(
     //     uint256 errorCode,
     //     bytes memory extraData
@@ -127,7 +125,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
 
         string[] memory streams = new string[](1);
         streams[0] = self.streamId;
-        uint256 settlementTimestamp = marketOrder.settlementTimestamp;
+        uint256 settlementTimestamp = marketOrder.timestamp;
         bytes memory extraData = abi.encode(tradingAccountId);
 
         revert StreamsLookup(
@@ -184,7 +182,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
     }
 
     /// @inheritdoc ILogAutomation
-    function performUpkeep(bytes calldata performData) external {
+    function performUpkeep(bytes calldata performData) external onlyForwarder {
         (bytes memory signedReport, bytes memory extraData) = abi.decode(performData, (bytes, bytes));
         uint128 tradingAccountId = abi.decode(extraData, (uint128));
 
@@ -198,7 +196,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
             settlementFeeRecipient: feeRecipient
         });
 
-        // perpsEngine.fillMarketOrder(tradingAccountId, marketId, feeRecipients, signedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, marketId, feeRecipients, signedReport);
     }
 
     function _getMarketOrderKeeperStorage() internal pure returns (MarketOrderKeeperStorage storage self) {
