@@ -33,6 +33,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
+    address internal liquidationKeeper;
     FeeRecipients.Data internal feeRecipients;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -164,7 +165,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
 
     function configureLiquidationKeepers() internal {
         changePrank({ msgSender: users.owner });
-        address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
+        liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
             address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
         );
 

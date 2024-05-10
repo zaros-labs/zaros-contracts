@@ -33,7 +33,16 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
     }
 
     function test_WhenTheAccountsIdsArrayIsEmpty() external givenTheSenderIsARegisteredLiquidator {
+        uint128[] memory accountsIds;
+
+        changePrank({ msgSender: liquidationKeeper });
+
         // it should return
+        perpsEngine.liquidateAccounts({
+            accountsIds: accountsIds,
+            marginCollateralRecipient: users.marginCollateralRecipient,
+            liquidationFeeRecipient: users.settlementFeeRecipient
+        });
     }
 
     modifier whenTheAccountsIdsArrayIsNotEmpty() {
