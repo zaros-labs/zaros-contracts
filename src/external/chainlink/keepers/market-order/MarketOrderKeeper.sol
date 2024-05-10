@@ -97,6 +97,19 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         marketId = self.marketId;
     }
 
+    event LogDsError(uint256 errorCode);
+
+    function checkErrorHandler(
+        uint256 errorCode,
+        bytes memory extraData
+    )
+        external
+        pure
+        returns (bool upkeepNeeded, bytes memory performData)
+    {
+        return (true, abi.encode(errorCode));
+    }
+
     /// @inheritdoc ILogAutomation
     function checkLog(
         AutomationLog calldata log,
@@ -107,18 +120,19 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         override
         returns (bool, bytes memory)
     {
-        uint128 tradingAccountId = uint256(log.topics[LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX]).toUint128();
-        (MarketOrder.Data memory marketOrder) = abi.decode(log.data, (MarketOrder.Data));
+        // uint128 tradingAccountId = uint256(log.topics[LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX]).toUint128();
+        // (MarketOrder.Data memory marketOrder) = abi.decode(log.data, (MarketOrder.Data));
 
-        MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
+        // MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
 
         string[] memory streams = new string[](1);
-        streams[0] = self.streamId;
-        uint256 settlementTimestamp = marketOrder.timestamp;
-        bytes memory extraData = abi.encode(tradingAccountId);
+        // streams[0] = self.streamId;
+        streams[0] = "0x000359843a543ee2fe414dc14c7e7920ef10f4372990b79d6361cdc0dd1ba782";
+        uint256 settlementTimestamp = block.timestamp;
+        // bytes memory extraData = abi.encode(tradingAccountId);
 
         revert StreamsLookup(
-            DATA_STREAMS_FEED_LABEL, streams, DATA_STREAMS_QUERY_LABEL, settlementTimestamp, extraData
+            DATA_STREAMS_FEED_LABEL, streams, DATA_STREAMS_QUERY_LABEL, settlementTimestamp, bytes("")
         );
     }
 
@@ -131,10 +145,10 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        bytes memory signedReport = values[0];
+        // bytes memory signedReport = values[0];
 
         upkeepNeeded = true;
-        performData = abi.encode(signedReport, extraData);
+        // performData = abi.encode(signedReport, extraData);
     }
 
     /// @notice Updates the market order keeper configuration.
@@ -170,8 +184,15 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         self.streamId = streamId;
     }
 
+    event Test();
     /// @inheritdoc ILogAutomation
-    function performUpkeep(bytes calldata performData) external onlyForwarder {
+    function performUpkeep(bytes calldata performData) external {
+
+        emit Test();
+        // uint256 errorCode = abi.decode(performData, (uint256));
+
+        // emit LogDsError(errorCode);
+
         // (bytes memory signedReport, bytes memory extraData) = abi.decode(performData, (bytes, bytes));
         // uint128 tradingAccountId = abi.decode(extraData, (uint128));
 
