@@ -7,7 +7,6 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
 import { TradingAccountBranchTestnet } from "@zaros/testnet/branches/TradingAccountBranchTestnet.sol";
-import { SettlementBranchTestnet } from "@zaros/testnet/branches/SettlementBranchTestnet.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
@@ -38,7 +37,6 @@ contract UpgradeBranches is BaseScript {
         // TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
         // GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
-        // SettlementBranchTestnet settlementBranchTestnet = new SettlementBranchTestnet();
         SettlementBranch settlementBranch = new SettlementBranch();
         // OrderBranch orderBranch = new OrderBranch();
 
@@ -77,7 +75,6 @@ contract UpgradeBranches is BaseScript {
         //     GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
 
         settlementBranchSelectorsUpdated[0] = SettlementBranch.fillMarketOrder.selector;
-        // settlementBranchTestnetSelectorsUpdated[1] = SettlementBranch.fillCustomOrders.selector;
 
         // globalConfigurationBranchTestnetSelectorsAdded[0] =
         //     GlobalConfigurationBranch.updateSettlementConfiguration.selector;
@@ -115,14 +112,6 @@ contract UpgradeBranches is BaseScript {
         //         branch: address(globalConfigurationBranchTestnet),
         //         action: RootProxy.BranchUpgradeAction.Add,
         //         selectors: globalConfigurationBranchTestnetSelectorsAdded
-        //     })
-        // );
-
-        // branchUpgrades[3] = (
-        //     RootProxy.BranchUpgrade({
-        //         branch: address(settlementBranchTestnet),
-        //         action: RootProxy.BranchUpgradeAction.Replace,
-        //         selectors: settlementBranchTestnetSelectorsUpdated
         //     })
         // );
 

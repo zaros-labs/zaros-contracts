@@ -13,7 +13,6 @@ import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountB
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
 import { TradingAccountBranchTestnet } from "@zaros/testnet/branches/TradingAccountBranchTestnet.sol";
-import { SettlementBranchTestnet } from "@zaros/testnet/branches/SettlementBranchTestnet.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -36,21 +35,20 @@ function deployBranches(bool isTestnet) returns (address[] memory) {
     address perpMarketBranch = address(new PerpMarketBranch());
     console.log("PerpMarketBranch: ", perpMarketBranch);
 
+    address settlementBranch = address(new SettlementBranch());
+    console.log("SettlementBranch: ", settlementBranch);
+
     address globalConfigurationBranch;
     address tradingAccountBranch;
-    address settlementBranch;
     if (isTestnet) {
         globalConfigurationBranch = address(new GlobalConfigurationBranchTestnet());
         tradingAccountBranch = address(new TradingAccountBranchTestnet());
-        settlementBranch = address(new SettlementBranchTestnet());
     } else {
         globalConfigurationBranch = address(new GlobalConfigurationBranch());
         tradingAccountBranch = address(new TradingAccountBranch());
-        settlementBranch = address(new SettlementBranch());
     }
     console.log("GlobalConfigurationBranch: ", globalConfigurationBranch);
     console.log("TradingAccountBranch: ", tradingAccountBranch);
-    console.log("SettlementBranch: ", settlementBranch);
 
     branches[0] = upgradeBranch;
     branches[1] = lookupBranch;
