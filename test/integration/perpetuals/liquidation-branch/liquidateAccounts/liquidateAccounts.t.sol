@@ -50,7 +50,9 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
         changePrank({ msgSender: liquidationKeeper });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, accountsIds[0], liquidationKeeper) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, accountsIds[0], liquidationKeeper)
+        });
         perpsEngine.liquidateAccounts({
             accountsIds: accountsIds,
             marginCollateralRecipient: users.marginCollateralRecipient,
