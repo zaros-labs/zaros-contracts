@@ -8,9 +8,7 @@ LiquidateAccounts_Integration_Test
         ├── given one of the accounts does not exist
         │   └── it should revert
         └── given all accounts exist
-            ├── given one of the accounts is not liquidatable
-            │   └── it should revert
-            └── given all accounts are liquidatable
+            └── given there are liquidatable accounts in the array
                 ├── it should clear any active market order
                 ├── it should update each active market funding values
                 ├── it should close all active positions

@@ -102,7 +102,6 @@ library Errors {
 
     /// @notice PerpsEngine.LiquidationBranch errors.
 
-    error AccountNotLiquidatable(uint128 tradingAccountId);
     error LiquidatorNotRegistered(address sender);
 
     /// @notice PerpsEngine.PerpMarket errors.

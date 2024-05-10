@@ -116,7 +116,7 @@ contract LiquidationBranch is ILiquidationBranch {
                     requiredMaintenanceMarginUsdX18, ctx.liquidationFeeUsdX18, ctx.marginBalanceUsdX18
                 )
             ) {
-                revert Errors.AccountNotLiquidatable(ctx.tradingAccountId);
+                continue;
             }
 
             UD60x18 liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({

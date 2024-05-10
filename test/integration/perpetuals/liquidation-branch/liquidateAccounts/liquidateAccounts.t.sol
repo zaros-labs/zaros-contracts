@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { LiquidationBranch_Integration_Test } from "../LiquidationBranchIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
@@ -64,7 +65,7 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
         _;
     }
 
-    function testFuzz_RevertGiven_OneOfTheAccountsIsNotLiquidatable(
+    function testFuzz_GivenThereAreLiquidatableAccountsInTheArray(
         uint256 marketId,
         bool isLong,
         uint256 amountOfTradingAccounts
@@ -99,23 +100,28 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
 
         changePrank({ msgSender: liquidationKeeper });
 
-        // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.AccountNotLiquidatable.selector, nonLiquidatableTradingAccountId)
-        });
-        perpsEngine.liquidateAccounts(accountsIds, users.marginCollateralRecipient, users.settlementFeeRecipient);
-    }
+        for (uint256 i = 0; i < accountsIds.length; i++) {
+            if (accountsIds[i] == nonLiquidatableTradingAccountId) {
+                continue;
+            }
 
-    function test_GivenAllAccountsAreLiquidatable()
-        external
-        givenTheSenderIsARegisteredLiquidator
-        whenTheAccountsIdsArrayIsNotEmpty
-        givenAllAccountsExist
-    {
-        // it should clear any active market order
-        // it should update each active market funding values
-        // it should close all active positions
-        // it should remove the account from all active markets
-        // it should emit a {LogLiquidateAccount} event
+            // it should emit a {LogLiquidateAccount} event
+            vm.expectEmit({ emitter: address(perpsEngine) });
+            emit LiquidationBranch.LogLiquidateAccount({
+                keeper: liquidationKeeper,
+                tradingAccountId: accountsIds[i],
+                amountOfOpenPositions: 1,
+                requiredMaintenanceMarginUsd: accountMarginValueUsd,
+                marginBalanceUsd: int256(accountMarginValueUsd),
+                liquidatedCollateralUsd: accountMarginValueUsd,
+                liquidationFeeUsd: LIQUIDATION_FEE_USD,
+                liquidationFeeRecipient: users.settlementFeeRecipient,
+                marginCollateralRecipient: users.marginCollateralRecipient
+            });
+
+        }
+
+        // it should revert
+        perpsEngine.liquidateAccounts(accountsIds, users.marginCollateralRecipient, users.settlementFeeRecipient);
     }
 }
