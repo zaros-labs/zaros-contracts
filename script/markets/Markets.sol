@@ -5,10 +5,10 @@ pragma solidity 0.8.25;
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { MockPriceFeed } from "../../test/mocks/MockPriceFeed.sol";
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
@@ -193,7 +193,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             marketsConfig[i].priceAdapter = priceAdapter;
 
             perpsEngine.createPerpMarket(
-                IGlobalConfigurationBranch.CreatePerpMarketParams({
+                GlobalConfigurationBranch.CreatePerpMarketParams({
                     marketId: marketsConfig[i].marketId,
                     name: marketsConfig[i].marketName,
                     symbol: marketsConfig[i].marketSymbol,

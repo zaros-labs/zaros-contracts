@@ -4,14 +4,12 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { IRootProxy } from "@zaros/tree-proxy/interfaces/IRootProxy.sol";
+import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/interfaces/IPerpsEngine.sol";
-import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "./mocks/MockUSDToken.sol";
-import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -38,7 +36,7 @@ import { PRBTest } from "prb-test/PRBTest.sol";
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
-abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Events, Storage {
+abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -102,14 +100,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         address accessKeyManager = address(0);
         address[] memory branches = deployBranchs(isTestnet);
         bytes4[][] memory branchesSelectors = getBranchsSelectors(isTestnet);
-        IRootProxy.BranchUpgrade[] memory branchUpgrades =
-            getBranchUpgrades(branches, branchesSelectors, IRootProxy.BranchUpgradeAction.Add);
+        RootProxy.BranchUpgrade[] memory branchUpgrades =
+            getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches, isTestnet);
         bytes[] memory initializePayloads = getInitializePayloads(
             users.owner, address(tradingAccountToken), address(usdToken), accessKeyManager, isTestnet
         );
 
-        IRootProxy.InitParams memory initParams = IRootProxy.InitParams({
+        RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,
             initializables: initializables,
             initializePayloads: initializePayloads

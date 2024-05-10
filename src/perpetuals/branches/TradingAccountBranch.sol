@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { ITradingAccountBranch } from "../interfaces/ITradingAccountBranch.sol";
 import { TradingAccount } from "../leaves/TradingAccount.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
@@ -24,8 +23,11 @@ import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol"
 
 import { console } from "forge-std/console.sol";
 
-/// @notice See {ITradingAccountBranch}.
-contract TradingAccountBranch is ITradingAccountBranch {
+/// @title Trading Account Branch.
+/// @notice This branch is used by users in order to mint trading account nfts
+/// to use them as trading subaccounts, managing their cross margin collateral and
+/// trading on different perps markets.
+contract TradingAccountBranch {
     using EnumerableSet for *;
     using TradingAccount for TradingAccount.Data;
     using PerpMarket for PerpMarket.Data;
@@ -35,19 +37,45 @@ contract TradingAccountBranch is ITradingAccountBranch {
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
 
-    /// @inheritdoc ITradingAccountBranch
-    function getTradingAccountToken() public view override returns (address) {
+    /// @notice Emitted when a new trading account is created.
+    /// @param tradingAccountId The trading account id.
+    /// @param sender The `msg.sender` of the create account transaction.
+    event LogCreateTradingAccount(uint128 tradingAccountId, address sender);
+
+    /// @notice Emitted when `msg.sender` deposits `amount` of `collateralType` into `tradingAccountId`.
+    /// @param sender The `msg.sender`.
+    /// @param tradingAccountId The trading account id.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
+    event LogDepositMargin(
+        address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
+    );
+
+    /// @notice Emitted when `msg.sender` withdraws `amount` of `collateralType` from `tradingAccountId`.
+    /// @param sender The `msg.sender`.
+    /// @param tradingAccountId The trading account id.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
+    event LogWithdrawMargin(
+        address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
+    );
+
+    /// @notice Gets the contract address of the trading accounts NFTs.
+    /// @return tradingAccountToken The account token address.
+    function getTradingAccountToken() public view returns (address) {
         return GlobalConfiguration.load().tradingAccountToken;
     }
 
-    /// @inheritdoc ITradingAccountBranch
+    /// @notice Returns the account's margin amount of the given collateral type.
+    /// @param tradingAccountId The trading account id.
+    /// @param collateralType The margin collateral address.
+    /// @return marginCollateralBalanceX18 The margin amount of the given collateral type.
     function getAccountMarginCollateralBalance(
         uint128 tradingAccountId,
         address collateralType
     )
         external
         view
-        override
         returns (UD60x18)
     {
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
@@ -56,19 +84,32 @@ contract TradingAccountBranch is ITradingAccountBranch {
         return marginCollateralBalanceX18;
     }
 
-    /// @inheritdoc ITradingAccountBranch
-    function getAccountEquityUsd(uint128 tradingAccountId) external view override returns (SD59x18) {
+    /// @notice Returns the total equity of all assets under the trading account without considering the collateral
+    /// value
+    /// ratio
+    /// @dev This function doesn't take open positions into account.
+    /// @param tradingAccountId The trading account id.
+    /// @return equityUsdX18 The USD denominated total margin collateral value.
+    function getAccountEquityUsd(uint128 tradingAccountId) external view returns (SD59x18) {
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         SD59x18 activePositionsUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
 
         return tradingAccount.getEquityUsd(activePositionsUnrealizedPnlUsdX18);
     }
 
-    /// @inheritdoc ITradingAccountBranch
+    /// @notice Returns the trading account's total margin balance, available balance and maintenance margin.
+    /// @dev This function does take open positions data such as unrealized pnl into account.
+    /// @dev The margin balance value takes into account the margin collateral's configured ratio (LTV).
+    /// @dev If the account's maintenance margin rate rises to 100% or above (MMR >= 1e18),
+    /// the liquidation engine will be triggered.
+    /// @param tradingAccountId The trading account id.
+    /// @return marginBalanceUsdX18 The account's total margin balance.
+    /// @return initialMarginUsdX18 The account's initial margin in positions.
+    /// @return maintenanceMarginUsdX18 The account's maintenance margin.
+    /// @return availableMarginUsdX18 The account's withdrawable margin balance.
     function getAccountMarginBreakdown(uint128 tradingAccountId)
         external
         view
-        override
         returns (
             SD59x18 marginBalanceUsdX18,
             UD60x18 initialMarginUsdX18,
@@ -112,7 +153,9 @@ contract TradingAccountBranch is ITradingAccountBranch {
             marginBalanceUsdX18.sub((initialMarginUsdX18.add(maintenanceMarginUsdX18)).intoSD59x18());
     }
 
-    /// @inheritdoc ITradingAccountBranch
+    /// @notice Returns the total trading account's unrealized pnl across open positions.
+    /// @param tradingAccountId The trading account id.
+    /// @return accountTotalUnrealizedPnlUsdX18 The account's total unrealized pnl.
     function getAccountTotalUnrealizedPnl(uint128 tradingAccountId)
         external
         view
@@ -122,6 +165,10 @@ contract TradingAccountBranch is ITradingAccountBranch {
         accountTotalUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
     }
 
+    /// @notice Returns the current leverage of a given account id, based on its cross margin collateral and open
+    /// positions.
+    /// @param tradingAccountId The trading account id.
+    /// @return leverage The account leverage.
     function getAccountLeverage(uint128 tradingAccountId) external view returns (UD60x18) {
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
@@ -146,14 +193,16 @@ contract TradingAccountBranch is ITradingAccountBranch {
             : totalPositionsNotionalValue.intoSD59x18().div(marginBalanceUsdX18).intoUD60x18();
     }
 
-    /// @inheritdoc ITradingAccountBranch
+    /// @notice Gets the given market's position state.
+    /// @param tradingAccountId The trading account id.
+    /// @param marketId The perps market id.
+    /// @return positionState The position's current state.
     function getPositionState(
         uint128 tradingAccountId,
         uint128 marketId
     )
         external
         view
-        override
         returns (Position.State memory positionState)
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
@@ -171,8 +220,9 @@ contract TradingAccountBranch is ITradingAccountBranch {
         );
     }
 
-    /// @inheritdoc ITradingAccountBranch
-    function createTradingAccount() public virtual override returns (uint128) {
+    /// @notice Creates a new trading account and mints its NFT
+    /// @return tradingAccountId The trading account id.
+    function createTradingAccount() public virtual returns (uint128) {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         uint128 tradingAccountId = ++globalConfiguration.nextAccountId;
         IAccountNFT tradingAccountToken = IAccountNFT(globalConfiguration.tradingAccountToken);
@@ -184,12 +234,13 @@ contract TradingAccountBranch is ITradingAccountBranch {
         return tradingAccountId;
     }
 
-    /// @inheritdoc ITradingAccountBranch
+    /// @notice Creates a new trading account and multicalls using the provided data payload.
+    /// @param data The data payload to be multicalled.
+    /// @return results The array of results of the multicall.
     function createTradingAccountAndMulticall(bytes[] calldata data)
         external
         payable
         virtual
-        override
         returns (bytes[] memory results)
     {
         uint128 tradingAccountId = createTradingAccount();
@@ -210,16 +261,11 @@ contract TradingAccountBranch is ITradingAccountBranch {
         }
     }
 
-    /// @inheritdoc ITradingAccountBranch
-    function depositMargin(
-        uint128 tradingAccountId,
-        address collateralType,
-        uint256 amount
-    )
-        public
-        virtual
-        override
-    {
+    /// @notice Deposits margin collateral into the given trading account.
+    /// @param tradingAccountId The trading account id.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The amount of margin collateral to deposit.
+    function depositMargin(uint128 tradingAccountId, address collateralType, uint256 amount) public virtual {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
         UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
@@ -234,8 +280,11 @@ contract TradingAccountBranch is ITradingAccountBranch {
         emit LogDepositMargin(msg.sender, tradingAccountId, collateralType, amount);
     }
 
-    /// @inheritdoc ITradingAccountBranch
-    function withdrawMargin(uint128 tradingAccountId, address collateralType, UD60x18 amount) external override {
+    /// @notice Withdraws available margin collateral from the given trading account.
+    /// @param tradingAccountId The trading account id.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The UD60x18 amount of margin collateral to withdraw.
+    function withdrawMargin(uint128 tradingAccountId, address collateralType, UD60x18 amount) external {
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
         _requireAmountNotZero(amount);
@@ -253,8 +302,12 @@ contract TradingAccountBranch is ITradingAccountBranch {
         emit LogWithdrawMargin(msg.sender, tradingAccountId, collateralType, tokenAmount);
     }
 
-    /// @inheritdoc ITradingAccountBranch
-    function notifyAccountTransfer(address to, uint128 tradingAccountId) external override {
+    /// @notice Used by the Account NFT contract to notify an account transfer.
+    /// @dev Can only be called by the Account NFT contract.
+    /// @dev It updates the Trading Account stored access control data.
+    /// @param to The recipient of the account transfer.
+    /// @param tradingAccountId The trading account id.
+    function notifyAccountTransfer(address to, uint128 tradingAccountId) external {
         _onlyTradingAccountToken();
 
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);

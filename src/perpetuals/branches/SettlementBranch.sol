@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { ISettlementBranch } from "../interfaces/ISettlementBranch.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
 import { TradingAccount } from "../leaves/TradingAccount.sol";
 import { FeeRecipients } from "../leaves/FeeRecipients.sol";
@@ -23,7 +22,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-contract SettlementBranch is ISettlementBranch {
+contract SettlementBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarketOrder for MarketOrder.Data;
@@ -34,6 +33,18 @@ contract SettlementBranch is ISettlementBranch {
     using SafeCast for int256;
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
+
+    event LogSettleOrder(
+        address indexed sender,
+        uint128 indexed tradingAccountId,
+        uint128 indexed marketId,
+        int256 sizeDelta,
+        uint256 fillPrice,
+        int256 orderFeeUsd,
+        uint256 settlementFeeUsd,
+        int256 pnl,
+        int256 fundingFeePerUnit
+    );
 
     modifier onlyCustomOrderKeeper(uint128 marketId, uint128 settlementConfigurationId) {
         SettlementConfiguration.Data storage settlementConfiguration =
@@ -53,6 +64,10 @@ contract SettlementBranch is ISettlementBranch {
         _;
     }
 
+    /// @param tradingAccountId The trading account id.
+    /// @param marketId The perp market id.
+    /// @param feeRecipients The fee recipients. See {FeeRecipients.Data}
+    /// @param priceData The price data of market order.
     function fillMarketOrder(
         uint128 tradingAccountId,
         uint128 marketId,
@@ -76,6 +91,17 @@ contract SettlementBranch is ISettlementBranch {
         marketOrder.clear();
     }
 
+    struct SettlementPayload {
+        uint128 tradingAccountId;
+        int128 sizeDelta;
+    }
+
+    /// @param marketId The perp market id.
+    /// @param settlementConfigurationId The perp market settlement configuration id.
+    /// @param settlementFeeRecipient The settlement fee recipient.
+    /// @param payloads The list of settlement payloads.
+    /// @param priceData The price data of custom orders.
+    /// @param callback The callback address.
     function fillCustomOrders(
         uint128 marketId,
         uint128 settlementConfigurationId,
@@ -131,6 +157,12 @@ contract SettlementBranch is ISettlementBranch {
         SD59x18 newSkew;
     }
 
+    /// @param tradingAccountId The trading account id.
+    /// @param marketId The perp market id.
+    /// @param settlementConfigurationId The perp market settlement configuration id.
+    /// @param sizeDelta The size delta of the order.
+    /// @param feeRecipients The fee recipients. See {FeeRecipients.Data}
+    /// @param priceData The price data of the order.
     function _fillOrder(
         uint128 tradingAccountId,
         uint128 marketId,
@@ -245,6 +277,8 @@ contract SettlementBranch is ISettlementBranch {
         );
     }
 
+    /// @param sender The sender address.
+    /// @param keeper The keeper address.
     function _requireIsKeeper(address sender, address keeper) internal pure {
         if (sender != keeper && keeper != address(0)) {
             revert Errors.OnlyKeeper(sender, keeper);

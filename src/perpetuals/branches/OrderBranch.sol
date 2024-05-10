@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IOrderBranch } from "../interfaces/IOrderBranch.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
 import { OrderFees } from "../leaves/OrderFees.sol";
 import { TradingAccount } from "../leaves/TradingAccount.sol";
@@ -23,7 +22,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 import { console } from "forge-std/console.sol";
 
-contract OrderBranch is IOrderBranch {
+contract OrderBranch {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
     using MarketOrder for MarketOrder.Data;
@@ -32,12 +31,32 @@ contract OrderBranch is IOrderBranch {
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
 
-    /// @inheritdoc IOrderBranch
-    function getConfiguredOrderFees(uint128 marketId) external view override returns (OrderFees.Data memory) {
+    event LogCreateMarketOrder(
+        address indexed sender,
+        uint128 indexed tradingAccountId,
+        uint128 indexed marketId,
+        MarketOrder.Data marketOrder
+    );
+    event LogCancelMarketOrder(address indexed sender, uint128 indexed tradingAccountId);
+
+    /// @param marketId The perp market id.
+    /// @return The order fees for the given market.
+    function getConfiguredOrderFees(uint128 marketId) external view returns (OrderFees.Data memory) {
         return PerpMarket.load(marketId).configuration.orderFees;
     }
 
-    /// @inheritdoc IOrderBranch
+    /// @notice Simulates the settlement costs and validity of a given order.
+    /// @dev Reverts if there's not enough margin to cover the trade.
+    /// @param tradingAccountId The trading account id.
+    /// @param marketId The perp market id.
+    /// @param settlementConfigurationId The perp market settlement configuration id.
+    /// @param sizeDelta The size delta of the order.
+    /// @return marginBalanceUsdX18 The given account's current margin balance.
+    /// @return requiredInitialMarginUsdX18 The required initial margin to settle the given trade.
+    /// @return requiredMaintenanceMarginUsdX18 The required maintenance margin to settle the given trade.
+    /// @return orderFeeUsdX18 The order fee in USD.
+    /// @return settlementFeeUsdX18 The settlement fee in USD.
+    /// @return fillPriceX18 The fill price quote.
     function simulateTrade(
         uint128 tradingAccountId,
         uint128 marketId,
@@ -46,7 +65,6 @@ contract OrderBranch is IOrderBranch {
     )
         public
         view
-        override
         returns (
             SD59x18 marginBalanceUsdX18,
             UD60x18 requiredInitialMarginUsdX18,
@@ -77,14 +95,16 @@ contract OrderBranch is IOrderBranch {
         console.log(marginBalanceUsdX18.abs().intoUint256());
     }
 
-    /// @inheritdoc IOrderBranch
+    /// @param marketId The perp market id.
+    /// @param sizeDelta The size delta of the order.
+    /// @return initialMarginUsdX18 The initial margin requirement for the given trade.
+    /// @return maintenanceMarginUsdX18 The maintenance margin requirement for the given trade.
     function getMarginRequirementForTrade(
         uint128 marketId,
         int128 sizeDelta
     )
         external
         view
-        override
         returns (UD60x18, UD60x18)
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
@@ -100,20 +120,29 @@ contract OrderBranch is IOrderBranch {
         return (initialMarginUsdX18, maintenanceMarginUsdX18);
     }
 
-    /// @inheritdoc IOrderBranch
-    function getActiveMarketOrder(uint128 tradingAccountId)
-        external
-        pure
-        override
-        returns (MarketOrder.Data memory)
-    {
+    /// @param tradingAccountId The trading account id to get the active market
+    function getActiveMarketOrder(uint128 tradingAccountId) external pure returns (MarketOrder.Data memory) {
         MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
 
         return marketOrder;
     }
 
-    /// @inheritdoc IOrderBranch
-    function createMarketOrder(CreateMarketOrderParams calldata params) external override {
+    struct CreateMarketOrderParams {
+        uint128 tradingAccountId;
+        uint128 marketId;
+        int128 sizeDelta;
+    }
+
+    struct CreateMarketOrderContext {
+        SD59x18 marginBalanceUsdX18;
+        UD60x18 requiredInitialMarginUsdX18;
+        UD60x18 requiredMaintenanceMarginUsdX18;
+        SD59x18 orderFeeUsdX18;
+        UD60x18 settlementFeeUsdX18;
+    }
+
+    /// @dev See {CreateMarketOrderParams}.
+    function createMarketOrder(CreateMarketOrderParams calldata params) external {
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
         PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
@@ -163,8 +192,10 @@ contract OrderBranch is IOrderBranch {
         emit LogCreateMarketOrder(msg.sender, params.tradingAccountId, params.marketId, marketOrder);
     }
 
-    /// @inheritdoc IOrderBranch
-    function cancelMarketOrder(uint128 tradingAccountId) external override {
+    /// @notice Cancels an active market order.
+    /// @dev Reverts if there is no active market order for the given account and market.
+    /// @param tradingAccountId The trading account id.
+    function cancelMarketOrder(uint128 tradingAccountId) external {
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
 
         marketOrder.clear();

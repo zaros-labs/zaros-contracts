@@ -114,11 +114,8 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
                 requiredMaintenanceMarginUsd: accountMarginValueUsd,
                 marginBalanceUsd: int256(accountMarginValueUsd),
                 liquidatedCollateralUsd: accountMarginValueUsd,
-                liquidationFeeUsd: LIQUIDATION_FEE_USD,
-                liquidationFeeRecipient: users.settlementFeeRecipient,
-                marginCollateralRecipient: users.marginCollateralRecipient
+                liquidationFeeUsd: LIQUIDATION_FEE_USD
             });
-
         }
 
         // it should revert

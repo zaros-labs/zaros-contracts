@@ -4,8 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IRootProxy } from "../interfaces/IRootProxy.sol";
-import { IUpgradeBranch } from "../interfaces/IUpgradeBranch.sol";
+import { RootProxy } from "../RootProxy.sol";
 import { RootUpgrade } from "../leaves/RootUpgrade.sol";
 import { Branch } from "../leaves/Branch.sol";
 
@@ -32,7 +31,7 @@ library RootUpgrade {
         }
     }
 
-    function validateBranchUpgrade(IRootProxy.BranchUpgrade memory branchUpgrade) internal view {
+    function validateBranchUpgrade(RootProxy.BranchUpgrade memory branchUpgrade) internal view {
         if (uint256(branchUpgrade.action) > 2) {
             revert Errors.IncorrectBranchUpgradeAction();
         }
@@ -87,22 +86,22 @@ library RootUpgrade {
 
     function upgrade(
         Data storage self,
-        IRootProxy.BranchUpgrade[] memory branchUpgrades,
+        RootProxy.BranchUpgrade[] memory branchUpgrades,
         address[] memory initializables,
         bytes[] memory initializePayloads
     )
         internal
     {
         for (uint256 i = 0; i < branchUpgrades.length; i++) {
-            IRootProxy.BranchUpgrade memory branchUpgrade = branchUpgrades[i];
+            RootProxy.BranchUpgrade memory branchUpgrade = branchUpgrades[i];
 
             validateBranchUpgrade(branchUpgrade);
 
-            if (branchUpgrade.action == IRootProxy.BranchUpgradeAction.Add) {
+            if (branchUpgrade.action == RootProxy.BranchUpgradeAction.Add) {
                 addBranch(self, branchUpgrade.branch, branchUpgrade.selectors);
-            } else if (branchUpgrade.action == IRootProxy.BranchUpgradeAction.Replace) {
+            } else if (branchUpgrade.action == RootProxy.BranchUpgradeAction.Replace) {
                 replaceBranch(self, branchUpgrade.branch, branchUpgrade.selectors);
-            } else if (branchUpgrade.action == IRootProxy.BranchUpgradeAction.Remove) {
+            } else if (branchUpgrade.action == RootProxy.BranchUpgradeAction.Remove) {
                 removeBranch(self, branchUpgrade.branch, branchUpgrade.selectors);
             }
         }
@@ -192,7 +191,7 @@ library RootUpgrade {
     }
 
     function initializeRootUpgrade(
-        IRootProxy.BranchUpgrade[] memory,
+        RootProxy.BranchUpgrade[] memory,
         address[] memory initializables,
         bytes[] memory initializePayloads
     )

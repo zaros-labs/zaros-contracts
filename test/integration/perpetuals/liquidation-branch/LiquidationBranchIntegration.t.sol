@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
+import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
@@ -51,7 +51,7 @@ contract LiquidationBranch_Integration_Test is Base_Integration_Shared_Test {
 
         // first market order
         perpsEngine.createMarketOrder(
-            IOrderBranch.CreateMarketOrderParams({
+            OrderBranch.CreateMarketOrderParams({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
