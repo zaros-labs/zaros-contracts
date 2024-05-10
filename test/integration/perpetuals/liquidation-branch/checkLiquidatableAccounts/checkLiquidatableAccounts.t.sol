@@ -5,17 +5,7 @@ pragma solidity 0.8.25;
 import { LiquidationBranch_Integration_Test } from "../LiquidationBranchIntegration.t.sol";
 
 contract CheckLiquidatableAccounts_Integration_Test is LiquidationBranch_Integration_Test {
-    function testFuzz_WhenTheBoundsAreZero(uint256 marketId, uint256 marginValueUsd, bool isLong) external {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        uint256 initialMarginRate = fuzzMarketConfig.marginRequirements;
-
-        _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
-
+    function test_WhenTheBoundsAreZero() external {
         uint256 lowerBound = 0;
         uint256 upperBound = 0;
 
