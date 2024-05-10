@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-// import { IGlobalConfigurationBranch } from "../interfaces/IGlobalConfigurationBranch.sol";
 import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { MarginCollateralConfiguration } from "../leaves/MarginCollateralConfiguration.sol";
@@ -120,8 +119,12 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        for (uint256 i = lowerBound; i < upperBound; i++) {
-            accountsIds[i] = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
+        accountsIds = new uint128[](upperBound - lowerBound + 1);
+
+        uint256 index = 0;
+        for (uint256 i = lowerBound; i <= upperBound; i++) {
+            accountsIds[index] = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
+            index++;
         }
     }
 
@@ -311,9 +314,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.initialMarginRateX18 == 0) {
             revert Errors.ZeroInput("initialMarginRateX18");
         }
-        if (params.maintenanceMarginRateX18 == 0) {
-            revert Errors.ZeroInput("maintenanceMarginRateX18");
-        }
         if (params.skewScale == 0) {
             revert Errors.ZeroInput("skewScale");
         }
@@ -395,9 +395,11 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.initialMarginRateX18 == 0) {
             revert Errors.ZeroInput("initialMarginRateX18");
         }
-
         if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
+        }
+        if (params.maxOpenInterest == 0) {
+            revert Errors.ZeroInput("maxOpenInterest");
         }
         if (params.skewScale == 0) {
             revert Errors.ZeroInput("skewScale");
