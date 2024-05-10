@@ -15,7 +15,6 @@ import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
-import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
 import {
     deployBranchs,
     getBranchsSelectors,
@@ -185,18 +184,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         collateralLiquidationPriority[1] = address(mockWstEth);
 
         perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
-
-        address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
-            address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
-        );
-
-        address[] memory liquidators = new address[](1);
-        bool[] memory liquidatorStatus = new bool[](1);
-
-        liquidators[0] = liquidationKeeper;
-        liquidatorStatus[0] = true;
-
-        perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
