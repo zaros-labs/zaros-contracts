@@ -7,6 +7,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
+import { MockERC20WithNoDecimals } from "test/mocks/MockERC20WithNoDecimals.sol";
 
 // OpenZeppelin Upgradeable dependencies
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -21,14 +22,25 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Integration_Shared_T
     }
 
     function test_RevertGiven_CollateralThatDoesNotHaveDecimals(
-        address collateralType,
         uint128 depositCap,
         uint120 loanToValue,
         address priceFeed
     )
         external
     {
-        // TODO
+        changePrank({ msgSender: users.owner });
+
+        MockERC20WithNoDecimals collateral =
+            new MockERC20WithNoDecimals({ name: "Collateral", symbol: "COL", deployerBalance: 100_000_000e18 });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InvalidMarginCollateralConfiguration.selector, address(collateral), 0, priceFeed
+            )
+        });
+
+        perpsEngine.configureMarginCollateral(address(collateral), depositCap, loanToValue, priceFeed);
     }
 
     modifier givenCollateralThatHasDecimals() {
