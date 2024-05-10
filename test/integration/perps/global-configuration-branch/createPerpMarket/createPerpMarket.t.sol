@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
@@ -21,7 +21,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 0,
             name: "BTC/USD",
@@ -53,7 +53,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 1,
             name: "",
@@ -85,7 +85,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 1,
             name: "BTC/USD",
@@ -122,7 +122,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 1,
             name: "BTC/USD",
@@ -160,7 +160,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 1,
             name: "BTC/USD",
@@ -199,7 +199,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 1,
             name: "BTC/USD",
@@ -239,7 +239,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 1,
             name: "BTC/USD",
@@ -280,7 +280,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 1,
             name: "BTC/USD",
@@ -322,7 +322,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 1,
             name: "BTC/USD",
@@ -362,7 +362,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
-        IGlobalConfigurationBranch.CreatePerpMarketParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
             .CreatePerpMarketParams({
             marketId: 1,
             name: "BTC/USD",
@@ -381,7 +381,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
 
         // it should emit {LogCreatePerpMarket} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogCreatePerpMarket(users.owner, params.marketId);
+        emit GlobalConfigurationBranch.LogCreatePerpMarket(users.owner, params.marketId);
 
         // it should create perp market
         // it should enable perp market

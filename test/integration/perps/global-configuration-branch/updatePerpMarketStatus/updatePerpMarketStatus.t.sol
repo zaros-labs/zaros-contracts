@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 
 contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -58,7 +58,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
 
         // it should emit {LogDisablePerpMarket} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogDisablePerpMarket(users.owner, fuzzMarketConfig.marketId);
+        emit GlobalConfigurationBranch.LogDisablePerpMarket(users.owner, fuzzMarketConfig.marketId);
 
         // it should remove market
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, false);
@@ -76,7 +76,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
 
         // it should emit {LogEnablePerpMarket} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogEnablePerpMarket(users.owner, fuzzMarketConfig.marketId);
+        emit GlobalConfigurationBranch.LogEnablePerpMarket(users.owner, fuzzMarketConfig.marketId);
 
         // it should add market
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, true);

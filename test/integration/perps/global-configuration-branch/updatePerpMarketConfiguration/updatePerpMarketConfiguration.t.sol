@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
@@ -25,7 +25,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
 
         uint128 marketIdNotInitialized = uint128(FINAL_MARKET_ID) + 1;
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: marketIdNotInitialized,
             name: fuzzMarketConfig.marketName,
@@ -56,7 +56,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
     function test_RevertWhen_LengthOfNameIsZero(uint256 marketId) external givenMarketIsInitialized {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: fuzzMarketConfig.marketId,
             name: "",
@@ -89,7 +89,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
@@ -123,7 +123,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
@@ -158,7 +158,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
@@ -194,7 +194,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
@@ -231,7 +231,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
@@ -269,7 +269,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
@@ -308,7 +308,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
@@ -345,7 +345,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        IGlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = IGlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             marketId: fuzzMarketConfig.marketId,
             name: "New market name",
@@ -362,7 +362,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
 
         // it should emit {LogUpdatePerpMarketConfiguration} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogUpdatePerpMarketConfiguration(users.owner, fuzzMarketConfig.marketId);
+        emit GlobalConfigurationBranch.LogUpdatePerpMarketConfiguration(users.owner, fuzzMarketConfig.marketId);
 
         // it should update perp market
         perpsEngine.updatePerpMarketConfiguration(params);

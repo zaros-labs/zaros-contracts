@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 
@@ -89,7 +89,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Integration_Shar
 
         // it should emit {LogUpdateSettlementConfiguration} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogUpdateSettlementConfiguration(
+        emit GlobalConfigurationBranch.LogUpdateSettlementConfiguration(
             users.owner, fuzzMarketConfig.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID
         );
 
@@ -121,7 +121,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Integration_Shar
 
         // it should emit {LogUpdateSettlementConfiguration} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogUpdateSettlementConfiguration(
+        emit GlobalConfigurationBranch.LogUpdateSettlementConfiguration(
             users.owner, fuzzMarketConfig.marketId, SettlementConfiguration.OFFCHAIN_ORDER_CONFIGURATION_ID
         );
 

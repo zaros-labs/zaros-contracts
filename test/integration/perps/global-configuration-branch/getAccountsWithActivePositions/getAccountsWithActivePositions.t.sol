@@ -4,8 +4,9 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IOrderBranch } from "@zaros/perpetuals/interfaces/IOrderBranch.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
+import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 
@@ -66,7 +67,7 @@ contract GetAccountsWithActivePositions_Integration_Test is Base_Integration_Sha
         );
 
         perpsEngine.createMarketOrder(
-            IOrderBranch.CreateMarketOrderParams({
+            OrderBranch.CreateMarketOrderParams({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta

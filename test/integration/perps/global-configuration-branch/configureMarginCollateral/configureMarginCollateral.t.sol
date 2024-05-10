@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 
 // OpenZeppelin Upgradeable dependencies
@@ -117,7 +117,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Integration_Shared_T
 
         // it should emit {LogConfigureMarginCollateral} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogConfigureMarginCollateral(
+        emit GlobalConfigurationBranch.LogConfigureMarginCollateral(
             users.owner, address(collateral), depositCap, Constants.SYSTEM_DECIMALS, priceFeed
         );
 

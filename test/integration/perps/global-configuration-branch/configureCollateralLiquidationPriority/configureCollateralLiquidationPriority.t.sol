@@ -4,7 +4,8 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 
 contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -33,7 +34,7 @@ contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Integra
 
         // it should emit {LogConfigureCollateralLiquidationPriority} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogConfigureCollateralLiquidationPriority(users.owner, collateralTypes);
+        emit GlobalConfigurationBranch.LogConfigureCollateralLiquidationPriority(users.owner, collateralTypes);
 
         // it should add
         perpsEngine.configureCollateralLiquidationPriority(collateralTypes);

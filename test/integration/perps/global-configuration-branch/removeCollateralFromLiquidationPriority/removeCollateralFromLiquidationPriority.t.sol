@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
@@ -54,7 +54,7 @@ contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Integr
 
         // it should emit {LogRemoveCollateralFromLiquidationPriority} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogRemoveCollateralFromLiquidationPriority(users.owner, collateral);
+        emit GlobalConfigurationBranch.LogRemoveCollateralFromLiquidationPriority(users.owner, collateral);
 
         // it should remove
         perpsEngine.removeCollateralFromLiquidationPriority(collateral);

@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 
 contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_Test {
@@ -88,7 +88,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
 
         // it should emit {LogConfigureSystemParameters} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogConfigureSystemParameters(
+        emit GlobalConfigurationBranch.LogConfigureSystemParameters(
             users.owner, maxPositionsPerAccount, marketOrderMaxLifetime, liquidationFeeUsdX18
         );
 

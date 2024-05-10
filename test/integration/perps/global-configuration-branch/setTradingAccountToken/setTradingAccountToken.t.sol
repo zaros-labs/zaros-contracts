@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IGlobalConfigurationBranch } from "@zaros/perpetuals/interfaces/IGlobalConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 
 contract SetTradingAccountToken_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -23,7 +23,7 @@ contract SetTradingAccountToken_Integration_Test is Base_Integration_Shared_Test
 
         // it should emit a {LogSetTradingAccountToken} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit IGlobalConfigurationBranch.LogSetTradingAccountToken(users.naruto, tradingAccountToken);
+        emit GlobalConfigurationBranch.LogSetTradingAccountToken(users.naruto, tradingAccountToken);
 
         perpsEngine.setTradingAccountToken(tradingAccountToken);
     }
