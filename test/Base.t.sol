@@ -10,7 +10,6 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "./mocks/MockUSDToken.sol";
-import { Events } from "./utils/Events.sol";
 import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -37,7 +36,7 @@ import { PRBTest } from "prb-test/PRBTest.sol";
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
-abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Events, Storage {
+abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/

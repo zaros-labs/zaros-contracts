@@ -3,8 +3,9 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 
 contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -112,7 +113,7 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should emit {LogDepositMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit LogDepositMargin(users.naruto, userTradingAccountId, address(usdToken), amountToDeposit);
+        emit TradingAccountBranch.LogDepositMargin(users.naruto, userTradingAccountId, address(usdToken), amountToDeposit);
 
         // it should transfer the amount from the sender to the trading account
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
