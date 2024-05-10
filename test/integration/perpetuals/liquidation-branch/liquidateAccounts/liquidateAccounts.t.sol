@@ -2,20 +2,10 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { LiquidationBranch_Integration_Test } from "../LiquidationBranchIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
-contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
-    function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
-        changePrank({ msgSender: users.owner });
-        configureSystemParameters();
-
-        createPerpMarkets();
-
-        changePrank({ msgSender: users.naruto });
-    }
-
+contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Test {
     function test_RevertGiven_TheSenderIsNotARegisteredLiquidator() external {
         uint128[] memory accountsIds = new uint128[](1);
 
@@ -59,9 +49,8 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: liquidationKeeper });
 
-
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, accountsIds[0]) });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, accountsIds[0], liquidationKeeper) });
         perpsEngine.liquidateAccounts({
             accountsIds: accountsIds,
             marginCollateralRecipient: users.marginCollateralRecipient,
