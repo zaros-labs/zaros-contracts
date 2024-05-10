@@ -113,7 +113,9 @@ contract DepositMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should emit {LogDepositMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogDepositMargin(users.naruto, userTradingAccountId, address(usdToken), amountToDeposit);
+        emit TradingAccountBranch.LogDepositMargin(
+            users.naruto, userTradingAccountId, address(usdToken), amountToDeposit
+        );
 
         // it should transfer the amount from the sender to the trading account
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);

@@ -223,7 +223,9 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should emit a {LogWithdrawMargin} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogWithdrawMargin(users.naruto, tradingAccountId, address(usdToken), amountToWithdraw);
+        emit TradingAccountBranch.LogWithdrawMargin(
+            users.naruto, tradingAccountId, address(usdToken), amountToWithdraw
+        );
 
         // it should transfer the withdrawn amount to the sender
         expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
