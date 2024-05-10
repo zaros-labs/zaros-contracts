@@ -54,7 +54,19 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
         givenTheSenderIsARegisteredLiquidator
         whenTheAccountsIdsArrayIsNotEmpty
     {
+        uint128[] memory accountsIds = new uint128[](1);
+        accountsIds[0] = 1;
+
+        changePrank({ msgSender: liquidationKeeper });
+
+
         // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, accountsIds[0]) });
+        perpsEngine.liquidateAccounts({
+            accountsIds: accountsIds,
+            marginCollateralRecipient: users.marginCollateralRecipient,
+            liquidationFeeRecipient: users.settlementFeeRecipient
+        });
     }
 
     modifier givenAllAccountsExist() {
