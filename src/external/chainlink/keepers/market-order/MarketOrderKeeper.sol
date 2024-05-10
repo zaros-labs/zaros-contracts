@@ -25,6 +25,9 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
     /// @notice index of the account id param at LogCreateMarketOrder.
     uint256 internal constant LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX = 2;
 
+    string public constant DATA_STREAMS_FEED_LABEL = "feedIDs";
+    string public constant DATA_STREAMS_QUERY_LABEL = "timestamp";
+
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderKeeper
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param feeRecipient The address that receives settlement fees.
@@ -35,8 +38,6 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         address feeRecipient;
         uint128 marketId;
         string streamId;
-        string feedLabel;
-        string queryLabel;
     }
 
     constructor() {
@@ -116,7 +117,9 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         uint256 settlementTimestamp = marketOrder.timestamp;
         bytes memory extraData = abi.encode(tradingAccountId);
 
-        revert StreamsLookup(self.feedLabel, streams, self.queryLabel, settlementTimestamp, extraData);
+        revert StreamsLookup(
+            DATA_STREAMS_FEED_LABEL, streams, DATA_STREAMS_QUERY_LABEL, settlementTimestamp, extraData
+        );
     }
 
     function checkCallback(
@@ -169,20 +172,20 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
 
     /// @inheritdoc ILogAutomation
     function performUpkeep(bytes calldata performData) external onlyForwarder {
-        (bytes memory signedReport, bytes memory extraData) = abi.decode(performData, (bytes, bytes));
-        uint128 tradingAccountId = abi.decode(extraData, (uint128));
+        // (bytes memory signedReport, bytes memory extraData) = abi.decode(performData, (bytes, bytes));
+        // uint128 tradingAccountId = abi.decode(extraData, (uint128));
 
-        MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
-        (IPerpsEngine perpsEngine, address feeRecipient, uint128 marketId) =
-            (self.perpsEngine, self.feeRecipient, self.marketId);
+        // MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
+        // (IPerpsEngine perpsEngine, address feeRecipient, uint128 marketId) =
+        //     (self.perpsEngine, self.feeRecipient, self.marketId);
 
-        FeeRecipients.Data memory feeRecipients = FeeRecipients.Data({
-            marginCollateralRecipient: feeRecipient,
-            orderFeeRecipient: feeRecipient,
-            settlementFeeRecipient: feeRecipient
-        });
+        // FeeRecipients.Data memory feeRecipients = FeeRecipients.Data({
+        //     marginCollateralRecipient: feeRecipient,
+        //     orderFeeRecipient: feeRecipient,
+        //     settlementFeeRecipient: feeRecipient
+        // });
 
-        perpsEngine.fillMarketOrder(tradingAccountId, marketId, feeRecipients, signedReport);
+        // perpsEngine.fillMarketOrder(tradingAccountId, marketId, feeRecipients, signedReport);
     }
 
     function _getMarketOrderKeeperStorage() internal pure returns (MarketOrderKeeperStorage storage self) {

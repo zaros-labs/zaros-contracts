@@ -122,9 +122,9 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
 
             // it should emit a {LogLiquidateAccount} event
             vm.expectEmit({ emitter: address(perpsEngine) });
-            uint256 liquidatedCollateralUsd = marginBalanceUsdX18.gt(
-                requiredMaintenanceMarginUsdX18.intoSD59x18()
-            ) ? marginBalanceUsdX18.intoUD60x18().intoUint256() : requiredMaintenanceMarginUsdX18.intoUint256();
+            uint256 liquidatedCollateralUsd = marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
+                ? marginBalanceUsdX18.intoUD60x18().intoUint256()
+                : requiredMaintenanceMarginUsdX18.intoUint256();
             emit LiquidationBranch.LogLiquidateAccount({
                 keeper: liquidationKeeper,
                 tradingAccountId: accountsIds[i],
