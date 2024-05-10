@@ -28,7 +28,7 @@ import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract UpdateBranches is BaseScript {
+contract UpgradeBranches is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -37,14 +37,15 @@ contract UpdateBranches is BaseScript {
     function run() public broadcaster {
         // TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
-        GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
+        // GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
         // SettlementBranchTestnet settlementBranchTestnet = new SettlementBranchTestnet();
+        SettlementBranch settlementBranch = new SettlementBranch();
         // OrderBranch orderBranch = new OrderBranch();
 
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
-        bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
-        // bytes4[] memory settlementBranchTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
+        bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
 
         // RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](4);
@@ -70,12 +71,12 @@ contract UpdateBranches is BaseScript {
         // tradingAccountBranchTestnetSelectorsUpdated[2] =
         // bytes4(keccak256("depositMargin(uint128,address,uint256)"));
 
-        globalConfigurationBranchTestnetSelectorsAdded[0] =
-            GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
+        // globalConfigurationBranchTestnetSelectorsAdded[0] =
+        //     GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
         // globalConfigurationBranchTestnetSelectorsAdded[1] =
         //     GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
 
-        // settlementBranchTestnetSelectorsUpdated[0] = SettlementBranch.fillMarketOrder.selector;
+        settlementBranchSelectorsUpdated[0] = SettlementBranch.fillMarketOrder.selector;
         // settlementBranchTestnetSelectorsUpdated[1] = SettlementBranch.fillCustomOrders.selector;
 
         // globalConfigurationBranchTestnetSelectorsAdded[0] =
@@ -87,9 +88,9 @@ contract UpdateBranches is BaseScript {
 
         branchUpgrades[0] = (
             RootProxy.BranchUpgrade({
-                branch: address(globalConfigurationBranchTestnet),
-                action: RootProxy.BranchUpgradeAction.Add,
-                selectors: globalConfigurationBranchTestnetSelectorsAdded
+                branch: address(settlementBranch),
+                action: RootProxy.BranchUpgradeAction.Replace,
+                selectors: settlementBranchSelectorsUpdated
             })
         );
 
