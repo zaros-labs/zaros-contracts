@@ -472,6 +472,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             sizeDelta
         );
 
+        console.log("test simulate trade vals: ");
+        console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
+        console.log(requiredInitialMarginUsdX18.intoUint256(), requiredMaintenanceMarginUsdX18.intoUint256());
+        console.log(orderFeeUsdX18.intoUD60x18().intoUint256());
+
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
 

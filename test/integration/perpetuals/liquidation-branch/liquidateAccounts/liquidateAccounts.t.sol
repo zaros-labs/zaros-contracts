@@ -131,7 +131,6 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
             });
         }
 
-        // it should revert
         perpsEngine.liquidateAccounts(accountsIds, users.marginCollateralRecipient, users.settlementFeeRecipient);
     }
 }
