@@ -144,6 +144,15 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
             assertEq(marketOrder.marketId, 0);
             assertEq(marketOrder.sizeDelta, 0);
             assertEq(marketOrder.timestamp, 0);
+
+            // TODO: funding task
+            // it should update the market's funding values
+
+            // TODO: setup storage for unit tests
+            // it should close all active positions
+
+            // TODO: setup storage for unit tests
+            // it should remove the account's all active markets
         }
     }
 }
