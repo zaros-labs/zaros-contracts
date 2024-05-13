@@ -16,13 +16,18 @@ MarketOrderKeeper_Integration_Test
     │   └── it should return market id
     ├── given call updateConfig function
     │   ├── when call updateConfig and address of perps engine is zero
-    │   │   └── it should revert
+    │   │   └── it should return
     │   ├── when call updateConfig and address of fee recipient is zero
-    │   │   └── it should revert
+    │   │   └── it should return
     │   ├── when call updateConfig and market id is zero
-    │   │   └── it should revert
+    │   │   └── it should return
     │   ├── when call updateConfig and stream id is zero
-    │   │   └── it should revert
+    │   │   └── it should return
     │   └── it should update the config
-    └── given call performUpkeep function
-        └── it should emit {LogSettleOrder} event
+    ├── given call performUpkeep function
+    │   └── it should emit {LogSettleOrder} event
+    ├── given call checkLog function
+    │   └── it should revert
+    └── given call checkCallback function
+        ├── it should return upkeepNeeded
+        └── it should return performData
