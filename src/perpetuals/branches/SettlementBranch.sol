@@ -34,7 +34,7 @@ contract SettlementBranch {
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    event LogSettleOrder(
+    event LogFillOrder(
         address indexed sender,
         uint128 indexed tradingAccountId,
         uint128 indexed marketId,
@@ -264,7 +264,7 @@ contract SettlementBranch {
         }
 
         // TODO: log margin deducted vs required
-        emit LogSettleOrder(
+        emit LogFillOrder(
             msg.sender,
             ctx.tradingAccountId,
             ctx.marketId,

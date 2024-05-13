@@ -671,14 +671,14 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
-        // it should emit a {LogSettleOrder} event
+        // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
         expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(
             usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUD60x18().intoUint256()
         );
-        emit SettlementBranch.LogSettleOrder({
+        emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
             marketId: ctx.fuzzMarketConfig.marketId,
@@ -766,7 +766,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
-        // it should emit a {LogSettleOrder} event
+        // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
         expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
@@ -778,7 +778,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             feeRecipients.marginCollateralRecipient,
             ctx.secondOrderExpectedPriceShiftPnlX18.abs().intoUD60x18().intoUint256()
         );
-        emit SettlementBranch.LogSettleOrder({
+        emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
             marketId: ctx.fuzzMarketConfig.marketId,
@@ -928,14 +928,14 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
-        // it should emit a {LogSettleOrder} event
+        // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
         expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(
             usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUD60x18().intoUint256()
         );
-        emit SettlementBranch.LogSettleOrder({
+        emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
             marketId: ctx.fuzzMarketConfig.marketId,
@@ -1021,9 +1021,9 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
-        // it should emit a {LogSettleOrder} event
+        // it should emit a {LogFillOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit SettlementBranch.LogSettleOrder({
+        emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
             marketId: ctx.fuzzMarketConfig.marketId,
