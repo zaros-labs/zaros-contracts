@@ -126,7 +126,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpMarketBranchSelectors[8] = PerpMarketBranch.getFundingVelocity.selector;
     perpMarketBranchSelectors[9] = PerpMarketBranch.getPerpMarketConfiguration.selector;
 
-    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 16 : 12);
+    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 14 : 12);
 
     tradingAccountBranchSelectors[0] = TradingAccountBranch.getTradingAccountToken.selector;
     tradingAccountBranchSelectors[1] = TradingAccountBranch.getAccountMarginCollateralBalance.selector;
@@ -144,10 +144,8 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     if (isTestnet) {
         tradingAccountBranchSelectors[7] = bytes4(keccak256("createTradingAccount(bytes,bool)"));
         tradingAccountBranchSelectors[8] = bytes4(keccak256("createTradingAccountAndMulticall(bytes[],bytes,bool)"));
-        tradingAccountBranchSelectors[12] = TradingAccountBranchTestnet.getAccessKeyManager.selector;
-        tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
-        tradingAccountBranchSelectors[14] = TradingAccountBranchTestnet.getPointsOfUser.selector;
-        tradingAccountBranchSelectors[15] = TradingAccountBranchTestnet.getUserReferralData.selector;
+        tradingAccountBranchSelectors[12] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
+        tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.getUserReferralData.selector;
     }
 
     bytes4[] memory settlementBranchSelectors = new bytes4[](2);
@@ -207,9 +205,7 @@ function getInitializables(address[] memory branches, bool isTestnet) pure retur
 function getInitializePayloads(
     address deployer,
     address tradingAccountToken,
-    address usdToken,
-    address accessKeyManager,
-    bool isTestnet
+    address usdToken
 )
     pure
     returns (bytes[] memory)
@@ -220,16 +216,10 @@ function getInitializePayloads(
     bytes memory perpsEngineInitializeData =
         abi.encodeWithSelector(GlobalConfigurationBranch.initialize.selector, tradingAccountToken, usdToken);
 
-    initializePayloads = new bytes[](isTestnet ? 3 : 2);
+    initializePayloads = new bytes[](2);
 
     initializePayloads[0] = rootUpgradeInitializeData;
     initializePayloads[1] = perpsEngineInitializeData;
-
-    if (isTestnet) {
-        bytes memory tradingAccountTestnetData =
-            abi.encodeWithSelector(TradingAccountBranchTestnet.initialize.selector, accessKeyManager);
-        initializePayloads[2] = tradingAccountTestnetData;
-    }
 
     return initializePayloads;
 }

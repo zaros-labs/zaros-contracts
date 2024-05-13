@@ -33,7 +33,6 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     //////////////////////////////////////////////////////////////////////////*/
     AccountNFT internal tradingAccountToken;
     IPerpsEngine internal perpsEngine;
-    address internal accessKeyManager;
     address internal usdToken;
 
     function run() public broadcaster {
@@ -42,7 +41,6 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         usdToken = vm.envAddress("USDZ");
 
         isTestnet = vm.envBool("IS_TESTNET");
-        accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
 
         address[] memory branches = deployBranches(isTestnet);
         bytes4[][] memory branchesSelectors = getBranchesSelectors(isTestnet);
@@ -50,8 +48,7 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches, isTestnet);
-        bytes[] memory initializePayloads =
-            getInitializePayloads(deployer, address(tradingAccountToken), usdToken, accessKeyManager, isTestnet);
+        bytes[] memory initializePayloads = getInitializePayloads(deployer, address(tradingAccountToken), usdToken);
 
         RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,

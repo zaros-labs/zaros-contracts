@@ -101,14 +101,14 @@ contract OrderBranch {
                 revert Errors.AccountIsLiquidatable(tradingAccountId);
             }
         }
-        {
-            Position.Data storage position = Position.load(tradingAccountId, marketId);
-            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sd59x18(sizeDelta));
+        // {
+        //     Position.Data storage position = Position.load(tradingAccountId, marketId);
+        //     SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sd59x18(sizeDelta));
 
-            if (newPositionSizeX18.abs().lt(sd59x18(int256(perpMarket.configuration.minTradeSizeX18)))) {
-                revert Errors.NewPositionSizeTooSmall();
-            }
-        }
+        //     if (newPositionSizeX18.abs().lt(sd59x18(int256(perpMarket.configuration.minTradeSizeX18)))) {
+        //         revert Errors.NewPositionSizeTooSmall();
+        //     }
+        // }
     }
 
     /// @param marketId The perp market id.
