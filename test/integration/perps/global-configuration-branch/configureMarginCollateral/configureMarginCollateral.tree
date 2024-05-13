@@ -1,0 +1,12 @@
+ConfigureMarginCollateral_Integration_Test
+├── given collateral that does not have decimals
+│   └── it should revert
+└── given collateral that has decimals
+    ├── when collateral decimals is greater than system decimals
+    │   └── it should revert
+    └── given collateral decimals is not greather than system decimals
+        ├── when price feed is zero
+        │   └── it should revert
+        └── given price feed is not zero
+            ├── it should configure
+            └── it should emit {LogConfigureMarginCollateral} event

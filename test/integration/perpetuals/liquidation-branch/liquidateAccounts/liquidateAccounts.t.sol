@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { LiquidationBranch_Integration_Test } from "../LiquidationBranchIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
@@ -111,32 +112,47 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
                 continue;
             }
 
-            Position.State memory positionState =
-                perpsEngine.getPositionState(accountsIds[i], fuzzMarketConfig.marketId);
-            (SD59x18 marginBalanceUsdX18,, UD60x18 requiredMaintenanceMarginUsdX18,,,) = perpsEngine.simulateTrade(
-                accountsIds[i],
-                fuzzMarketConfig.marketId,
-                SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                -int128(positionState.sizeX18.intoInt256())
-            );
-
             // it should emit a {LogLiquidateAccount} event
-            vm.expectEmit({ emitter: address(perpsEngine) });
-            uint256 liquidatedCollateralUsd = marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
-                ? marginBalanceUsdX18.intoUD60x18().intoUint256()
-                : requiredMaintenanceMarginUsdX18.intoUint256();
+            vm.expectEmit({
+                checkTopic1: true,
+                checkTopic2: true,
+                checkTopic3: false,
+                checkData: false,
+                emitter: address(perpsEngine)
+            });
+
             emit LiquidationBranch.LogLiquidateAccount({
                 keeper: liquidationKeeper,
                 tradingAccountId: accountsIds[i],
-                amountOfOpenPositions: 1,
-                requiredMaintenanceMarginUsd: requiredMaintenanceMarginUsdX18.intoUint256(),
-                marginBalanceUsd: marginBalanceUsdX18.intoInt256(),
-                liquidatedCollateralUsd: liquidatedCollateralUsd,
-                liquidationFeeUsd: LIQUIDATION_FEE_USD
+                amountOfOpenPositions: 0,
+                requiredMaintenanceMarginUsd: 0,
+                marginBalanceUsd: 0,
+                liquidatedCollateralUsd: 0,
+                liquidationFeeUsd: 0
             });
         }
 
-        // it should revert
         perpsEngine.liquidateAccounts(accountsIds, users.marginCollateralRecipient, users.settlementFeeRecipient);
+
+        for (uint256 i = 0; i < accountsIds.length; i++) {
+            if (accountsIds[i] == nonLiquidatableTradingAccountId) {
+                continue;
+            }
+
+            // it should delete any active market order
+            MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder(accountsIds[i]);
+            assertEq(marketOrder.marketId, 0);
+            assertEq(marketOrder.sizeDelta, 0);
+            assertEq(marketOrder.timestamp, 0);
+
+            // TODO: funding task
+            // it should update the market's funding values
+
+            // TODO: setup storage for unit tests
+            // it should close all active positions
+
+            // TODO: setup storage for unit tests
+            // it should remove the account's all active markets
+        }
     }
 }

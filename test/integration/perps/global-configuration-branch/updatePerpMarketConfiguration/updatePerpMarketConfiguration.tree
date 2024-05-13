@@ -1,0 +1,30 @@
+UpdatePerpMarketConfiguration_Integration_Test
+├── given market is not initialized
+│   └── it should revert
+└── given market is initialized
+    ├── when length of name is zero
+    │   └── it should revert
+    └── given length of name is not zero
+        ├── when length of symbol is zero
+        │   └── it should revert
+        └── given length of symbol is not zero
+            ├── when price adapter is zero
+            │   └── it should revert
+            └── given price adapter is not zero
+                ├── when maintenance margin rate is zero
+                │   └── it should revert
+                └── given maintenance margin rate is not zero
+                    ├── when max open interest is zero
+                    │   └── it should revert
+                    └── given max open interest is not zero
+                        ├── when initial margin rate is zero
+                        │   └── it should revert
+                        └── given initial margin rate is not zero
+                            ├── when skew scale is zero
+                            │   └── it should revert
+                            └── given skew scale is not zero
+                                ├── when min trade size is zero
+                                │   └── it should revert
+                                └── given min trade size is not zero
+                                    ├── it should update perp market
+                                    └── it should emit {LogUpdatePerpMarketConfiguration} event
