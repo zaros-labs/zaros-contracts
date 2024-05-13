@@ -45,10 +45,18 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
 
         Markets markets = new Markets();
 
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
+
         (, bytes memory data) = address(markets).call(
             abi.encodeCall(
                 markets.deployMarketOrderKeeper,
-                (fuzzMarketConfig.marketId, users.owner, IPerpsEngine(address(0)), settlementFeeRecipient)
+                (
+                    fuzzMarketConfig.marketId,
+                    users.owner,
+                    IPerpsEngine(address(0)),
+                    settlementFeeRecipient,
+                    marketOrderKeeperImplementation
+                )
             )
         );
 
@@ -65,11 +73,18 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         Markets markets = new Markets();
         address settlementFeeRecipient = address(0);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         (, bytes memory data) = address(markets).call(
             abi.encodeCall(
                 markets.deployMarketOrderKeeper,
-                (fuzzMarketConfig.marketId, users.owner, perpsEngine, settlementFeeRecipient)
+                (
+                    fuzzMarketConfig.marketId,
+                    users.owner,
+                    perpsEngine,
+                    settlementFeeRecipient,
+                    marketOrderKeeperImplementation
+                )
             )
         );
 
@@ -82,9 +97,13 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     function test_RevertWhen_MarketIdIsZero() external givenInitializeContractWithSomeWrongInformation {
         Markets markets = new Markets();
         address settlementFeeRecipient = address(0x20);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         (, bytes memory data) = address(markets).call(
-            abi.encodeCall(markets.deployMarketOrderKeeper, (0, users.owner, perpsEngine, settlementFeeRecipient))
+            abi.encodeCall(
+                markets.deployMarketOrderKeeper,
+                (0, users.owner, perpsEngine, settlementFeeRecipient, marketOrderKeeperImplementation)
+            )
         );
 
         bytes memory expectedError = abi.encodeWithSelector(Errors.ZeroInput.selector, "marketId");
@@ -96,11 +115,18 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     function test_RevertWhen_StreamIdIsZero() external givenInitializeContractWithSomeWrongInformation {
         Markets markets = new Markets();
         address settlementFeeRecipient = address(0x20);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         (, bytes memory data) = address(markets).call(
             abi.encodeCall(
                 markets.deployMarketOrderKeeper,
-                (uint128(FINAL_MARKET_ID + 1), users.owner, perpsEngine, settlementFeeRecipient)
+                (
+                    uint128(FINAL_MARKET_ID + 1),
+                    users.owner,
+                    perpsEngine,
+                    settlementFeeRecipient,
+                    marketOrderKeeperImplementation
+                )
             )
         );
 
@@ -117,9 +143,15 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     function testFuzz_GivenCallGetConfigFunction(uint256 marketId) external givenInitializeContract {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         address settlementFeeRecipient = address(0x20);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        address marketOrderKeeper =
-            deployMarketOrderKeeper(fuzzMarketConfig.marketId, users.owner, perpsEngine, settlementFeeRecipient);
+        address marketOrderKeeper = deployMarketOrderKeeper(
+            fuzzMarketConfig.marketId,
+            users.owner,
+            perpsEngine,
+            settlementFeeRecipient,
+            marketOrderKeeperImplementation
+        );
 
         (address keeperOwner,, address perpsEngine, address feeRecipient, uint256 marketIdConfig) =
             MarketOrderKeeper(marketOrderKeeper).getConfig();
@@ -148,9 +180,15 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         address settlementFeeRecipient = address(0x20);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        address marketOrderKeeper =
-            deployMarketOrderKeeper(fuzzMarketConfig.marketId, users.owner, perpsEngine, settlementFeeRecipient);
+        address marketOrderKeeper = deployMarketOrderKeeper(
+            fuzzMarketConfig.marketId,
+            users.owner,
+            perpsEngine,
+            settlementFeeRecipient,
+            marketOrderKeeperImplementation
+        );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
         address newFeeRecipient = address(0x456);
@@ -178,9 +216,15 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         address settlementFeeRecipient = address(0x20);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        address marketOrderKeeper =
-            deployMarketOrderKeeper(fuzzMarketConfig.marketId, users.owner, perpsEngine, settlementFeeRecipient);
+        address marketOrderKeeper = deployMarketOrderKeeper(
+            fuzzMarketConfig.marketId,
+            users.owner,
+            perpsEngine,
+            settlementFeeRecipient,
+            marketOrderKeeperImplementation
+        );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0));
         address newFeeRecipient = address(0x456);
@@ -201,9 +245,15 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         address settlementFeeRecipient = address(0x20);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        address marketOrderKeeper =
-            deployMarketOrderKeeper(fuzzMarketConfig.marketId, users.owner, perpsEngine, settlementFeeRecipient);
+        address marketOrderKeeper = deployMarketOrderKeeper(
+            fuzzMarketConfig.marketId,
+            users.owner,
+            perpsEngine,
+            settlementFeeRecipient,
+            marketOrderKeeperImplementation
+        );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
         address newFeeRecipient = address(0);
@@ -224,9 +274,15 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         address settlementFeeRecipient = address(0x20);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        address marketOrderKeeper =
-            deployMarketOrderKeeper(fuzzMarketConfig.marketId, users.owner, perpsEngine, settlementFeeRecipient);
+        address marketOrderKeeper = deployMarketOrderKeeper(
+            fuzzMarketConfig.marketId,
+            users.owner,
+            perpsEngine,
+            settlementFeeRecipient,
+            marketOrderKeeperImplementation
+        );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
         address newFeeRecipient = address(0x456);
@@ -247,9 +303,15 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         address settlementFeeRecipient = address(0x20);
+        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        address marketOrderKeeper =
-            deployMarketOrderKeeper(fuzzMarketConfig.marketId, users.owner, perpsEngine, settlementFeeRecipient);
+        address marketOrderKeeper = deployMarketOrderKeeper(
+            fuzzMarketConfig.marketId,
+            users.owner,
+            perpsEngine,
+            settlementFeeRecipient,
+            marketOrderKeeperImplementation
+        );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
         address newFeeRecipient = address(0x456);
