@@ -203,20 +203,6 @@ contract SettlementBranch {
         ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDelta, ctx.fillPrice);
         ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
-        {
-            (
-                UD60x18 requiredInitialMarginUsdX18,
-                UD60x18 requiredMaintenanceMarginUsdX18,
-                SD59x18 accountTotalUnrealizedPnlUsdX18
-            ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDelta);
-
-            tradingAccount.validateMarginRequirement(
-                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
-                tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
-                ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
-            );
-        }
-
         ctx.pnl = oldPosition.getUnrealizedPnl(ctx.fillPrice).add(
             oldPosition.getAccruedFunding(ctx.fundingFeePerUnit)
         ).add(unary(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())));
@@ -261,6 +247,20 @@ contract SettlementBranch {
 
             // NOTE: testnet only - will be updated once Liquidity Engine is finalized
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
+        }
+
+        {
+            (
+                UD60x18 requiredInitialMarginUsdX18,
+                UD60x18 requiredMaintenanceMarginUsdX18,
+                SD59x18 accountTotalUnrealizedPnlUsdX18
+            ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
+
+            tradingAccount.validateMarginRequirement(
+                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18),
+                tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
+                ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
+            );
         }
 
         // TODO: log margin deducted vs required

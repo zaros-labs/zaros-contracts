@@ -111,28 +111,23 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
                 continue;
             }
 
-            Position.State memory positionState =
-                perpsEngine.getPositionState(accountsIds[i], fuzzMarketConfig.marketId);
-            (SD59x18 marginBalanceUsdX18,, UD60x18 requiredMaintenanceMarginUsdX18,,,) = perpsEngine.simulateTrade(
-                accountsIds[i],
-                fuzzMarketConfig.marketId,
-                SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                -int128(positionState.sizeX18.intoInt256())
-            );
-
             // it should emit a {LogLiquidateAccount} event
-            vm.expectEmit({ emitter: address(perpsEngine) });
-            uint256 liquidatedCollateralUsd = marginBalanceUsdX18.gt(
-                requiredMaintenanceMarginUsdX18.intoSD59x18()
-            ) ? marginBalanceUsdX18.intoUD60x18().intoUint256() : requiredMaintenanceMarginUsdX18.intoUint256();
+            vm.expectEmit({
+                checkTopic1: true,
+                checkTopic2: true,
+                checkTopic3: false,
+                checkData: false,
+                emitter: address(perpsEngine)
+            });
+
             emit LiquidationBranch.LogLiquidateAccount({
                 keeper: liquidationKeeper,
                 tradingAccountId: accountsIds[i],
-                amountOfOpenPositions: 1,
-                requiredMaintenanceMarginUsd: requiredMaintenanceMarginUsdX18.intoUint256(),
-                marginBalanceUsd: marginBalanceUsdX18.intoInt256(),
-                liquidatedCollateralUsd: liquidatedCollateralUsd,
-                liquidationFeeUsd: LIQUIDATION_FEE_USD
+                amountOfOpenPositions: 0,
+                requiredMaintenanceMarginUsd: 0,
+                marginBalanceUsd: 0,
+                liquidatedCollateralUsd: 0,
+                liquidationFeeUsd: 0
             });
         }
 

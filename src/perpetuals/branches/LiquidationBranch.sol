@@ -58,7 +58,6 @@ contract LiquidationBranch {
         returns (uint128[] memory liquidatableAccountsIds)
     {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        UD60x18 liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
 
         liquidatableAccountsIds = new uint128[](upperBound - lowerBound);
 
@@ -72,11 +71,7 @@ contract LiquidationBranch {
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
             SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
-            if (
-                TradingAccount.isLiquidatable(
-                    requiredMaintenanceMarginUsdX18, liquidationFeeUsdX18, marginBalanceUsdX18
-                )
-            ) {
+            if (TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
                 liquidatableAccountsIds[i] = tradingAccountId;
             }
         }
@@ -125,11 +120,7 @@ contract LiquidationBranch {
             ctx.requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18;
             ctx.marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
-            if (
-                !TradingAccount.isLiquidatable(
-                    requiredMaintenanceMarginUsdX18, ctx.liquidationFeeUsdX18, ctx.marginBalanceUsdX18
-                )
-            ) {
+            if (!TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, ctx.marginBalanceUsdX18)) {
                 continue;
             }
 

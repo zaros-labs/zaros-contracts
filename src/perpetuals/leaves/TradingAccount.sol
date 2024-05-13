@@ -179,7 +179,7 @@ library TradingAccount {
 
     function getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
         Data storage self,
-        uint128 settlementMarketId,
+        uint128 targetMarketId,
         SD59x18 sizeDeltaX18
     )
         internal
@@ -190,11 +190,11 @@ library TradingAccount {
             SD59x18 accountTotalUnrealizedPnlUsdX18
         )
     {
-        if (settlementMarketId != 0) {
-            PerpMarket.Data storage perpMarket = PerpMarket.load(settlementMarketId);
-            Position.Data storage position = Position.load(self.id, settlementMarketId);
+        if (targetMarketId != 0) {
+            PerpMarket.Data storage perpMarket = PerpMarket.load(targetMarketId);
+            Position.Data storage position = Position.load(self.id, targetMarketId);
 
-            UD60x18 markPrice = perpMarket.getMarkPrice(sizeDeltaX18, perpMarket.getIndexPrice());
+            UD60x18 markPrice = perpMarket.getMarkPrice(unary(sd59x18(position.size)), perpMarket.getIndexPrice());
             SD59x18 fundingFeePerUnit =
                 perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
 
@@ -219,7 +219,7 @@ library TradingAccount {
         for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
 
-            if (marketId == settlementMarketId) {
+            if (marketId == targetMarketId) {
                 continue;
             }
 
@@ -277,14 +277,13 @@ library TradingAccount {
 
     function isLiquidatable(
         UD60x18 requiredMaintenanceMarginUsdX18,
-        UD60x18 liquidationFeeUsdX18,
         SD59x18 marginBalanceUsdX18
     )
         internal
         pure
         returns (bool)
     {
-        return requiredMaintenanceMarginUsdX18.add(liquidationFeeUsdX18).intoSD59x18().gte(marginBalanceUsdX18);
+        return requiredMaintenanceMarginUsdX18.intoSD59x18().gte(marginBalanceUsdX18);
     }
 
     function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {

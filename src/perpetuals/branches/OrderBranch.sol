@@ -88,11 +88,19 @@ contract OrderBranch {
         (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
             tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
         marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+        {
+            // GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+            // UD60x18 liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
+            (, UD60x18 previousRequiredMaintenanceMarginUsdX18,) =
+                tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
+            // console.log("simulate trade values: ");
+            // console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
+            // console.log(previousRequiredMaintenanceMarginUsdX18.intoUint256());
 
-        console.log("from simulate trade: ");
-        console.log(accountTotalUnrealizedPnlUsdX18.lt(sd59x18(0)));
-        console.log(accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().intoUint256());
-        console.log(marginBalanceUsdX18.abs().intoUint256());
+            if (TradingAccount.isLiquidatable(previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
+                revert Errors.AccountIsLiquidatable(tradingAccountId);
+            }
+        }
     }
 
     /// @param marketId The perp market id.
