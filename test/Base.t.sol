@@ -101,7 +101,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         bytes4[][] memory branchesSelectors = getBranchesSelectors(isTestnet);
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
-        address[] memory initializables = getInitializables(branches, isTestnet);
+        address[] memory initializables = getInitializables(branches);
         bytes[] memory initializePayloads =
             getInitializePayloads(users.owner, address(tradingAccountToken), address(usdToken));
 

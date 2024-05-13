@@ -185,19 +185,14 @@ function getBranchUpgrades(
     return branchUpgrades;
 }
 
-function getInitializables(address[] memory branches, bool isTestnet) pure returns (address[] memory) {
-    address[] memory initializables = new address[](isTestnet ? 3 : 2);
+function getInitializables(address[] memory branches) pure returns (address[] memory) {
+    address[] memory initializables = new address[](2);
 
     address upgradeBranch = branches[0];
     address globalConfigurationBranch = branches[2];
 
     initializables[0] = upgradeBranch;
     initializables[1] = globalConfigurationBranch;
-
-    if (isTestnet) {
-        address tradingAccountBranchTestnet = branches[6];
-        initializables[2] = tradingAccountBranchTestnet;
-    }
 
     return initializables;
 }
