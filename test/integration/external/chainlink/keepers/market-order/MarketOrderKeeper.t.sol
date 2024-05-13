@@ -34,7 +34,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertWhen_AddressOfPerpsEngineIsZero(
+    function testFuzz_RevertWhen_AddressOfPerpsEngineIsZero(
         uint256 marketId,
         address settlementFeeRecipient
     )
@@ -45,9 +45,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
 
         Markets markets = new Markets();
 
-        string memory streamId;
-
-        (bool ok, bytes memory data) = address(markets).call(
+        (, bytes memory data) = address(markets).call(
             abi.encodeCall(
                 markets.deployMarketOrderKeeper,
                 (fuzzMarketConfig.marketId, users.owner, IPerpsEngine(address(0)), settlementFeeRecipient)
@@ -60,7 +58,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         assertEq(data, expectedError);
     }
 
-    function test_RevertWhen_AddressOfFeeRecipientIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_AddressOfFeeRecipientIsZero(uint256 marketId)
         external
         givenInitializeContractWithSomeWrongInformation
     {
@@ -68,7 +66,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         Markets markets = new Markets();
         address settlementFeeRecipient = address(0);
 
-        (bool ok, bytes memory data) = address(markets).call(
+        (, bytes memory data) = address(markets).call(
             abi.encodeCall(
                 markets.deployMarketOrderKeeper,
                 (fuzzMarketConfig.marketId, users.owner, perpsEngine, settlementFeeRecipient)
@@ -85,7 +83,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         Markets markets = new Markets();
         address settlementFeeRecipient = address(0x20);
 
-        (bool ok, bytes memory data) = address(markets).call(
+        (, bytes memory data) = address(markets).call(
             abi.encodeCall(markets.deployMarketOrderKeeper, (0, users.owner, perpsEngine, settlementFeeRecipient))
         );
 
@@ -99,7 +97,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         Markets markets = new Markets();
         address settlementFeeRecipient = address(0x20);
 
-        (bool ok, bytes memory data) = address(markets).call(
+        (, bytes memory data) = address(markets).call(
             abi.encodeCall(
                 markets.deployMarketOrderKeeper,
                 (uint128(FINAL_MARKET_ID + 1), users.owner, perpsEngine, settlementFeeRecipient)
@@ -116,14 +114,14 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_GivenCallGetConfigFunction(uint256 marketId) external givenInitializeContract {
+    function testFuzz_GivenCallGetConfigFunction(uint256 marketId) external givenInitializeContract {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         address settlementFeeRecipient = address(0x20);
 
         address marketOrderKeeper =
             deployMarketOrderKeeper(fuzzMarketConfig.marketId, users.owner, perpsEngine, settlementFeeRecipient);
 
-        (address keeperOwner, address forwarder, address perpsEngine, address feeRecipient, uint128 marketId) =
+        (address keeperOwner,, address perpsEngine, address feeRecipient, uint256 marketIdConfig) =
             MarketOrderKeeper(marketOrderKeeper).getConfig();
 
         // it should return keeper owner
@@ -136,14 +134,14 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         assertEq(settlementFeeRecipient, feeRecipient, "fee recipient is not correct");
 
         // it should return market id
-        assertEq(fuzzMarketConfig.marketId, marketId, "market id is not correct");
+        assertEq(fuzzMarketConfig.marketId, marketIdConfig, "market id is not correct");
     }
 
     modifier givenCallUpdateConfigFunction() {
         _;
     }
 
-    function test_GivenCallUpdateConfigFunction(uint256 marketId)
+    function testFuzz_GivenCallUpdateConfigFunction(uint256 marketId)
         external
         givenInitializeContract
         givenCallUpdateConfigFunction
@@ -164,17 +162,16 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         // it should update the config
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
 
-        (address keeperOwner, address forwarder, address perpsEngine, address feeRecipient, uint128 marketId) =
+        (address keeperOwner,, address perpsEngine, address feeRecipient, uint256 marketIdConfig) =
             MarketOrderKeeper(marketOrderKeeper).getConfig();
 
         assertEq(users.owner, keeperOwner, "keeper owner is not correct");
         assertEq(address(newPersEngine), perpsEngine, "perps engine is not correct");
         assertEq(newFeeRecipient, feeRecipient, "fee recipient is not correct");
-        assertEq(newMarketId, marketId, "market id is not correct");
-        assertEq(newMarketId, marketId, "market id is not correct");
+        assertEq(newMarketId, marketIdConfig, "market id is not correct");
     }
 
-    function test_WhenCallUpdateConfigAndAddressOfPerpsEngineIsZero(uint256 marketId)
+    function testFuzz_WhenCallUpdateConfigAndAddressOfPerpsEngineIsZero(uint256 marketId)
         external
         givenInitializeContract
         givenCallUpdateConfigFunction
@@ -197,7 +194,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
     }
 
-    function test_WhenCallUpdateConfigAndAddressOfFeeRecipientIsZero(uint256 marketId)
+    function testFuzz_WhenCallUpdateConfigAndAddressOfFeeRecipientIsZero(uint256 marketId)
         external
         givenInitializeContract
         givenCallUpdateConfigFunction
@@ -220,7 +217,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
     }
 
-    function test_WhenCallUpdateConfigAndMarketIdIsZero(uint256 marketId)
+    function testFuzz_WhenCallUpdateConfigAndMarketIdIsZero(uint256 marketId)
         external
         givenInitializeContract
         givenCallUpdateConfigFunction
@@ -243,7 +240,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
     }
 
-    function test_WhenCallUpdateConfigAndStreamIdIsZero(uint256 marketId)
+    function testFuzz_WhenCallUpdateConfigAndStreamIdIsZero(uint256 marketId)
         external
         givenInitializeContract
         givenCallUpdateConfigFunction
@@ -266,7 +263,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
     }
 
-    function test_GivenCallPerformUpkeepFunction(
+    function testFuzz_GivenCallPerformUpkeepFunction(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -350,7 +347,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         MarketOrderKeeper(marketOrderKeeper).performUpkeep(performData);
     }
 
-    function test_RevertGiven_CallCheckLogFunction(
+    function testFuzz_RevertGiven_CallCheckLogFunction(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,

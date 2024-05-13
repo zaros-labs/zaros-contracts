@@ -15,9 +15,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_PerpMarketIsNotInitialized(uint256 marketId) external {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-
+    function testFuzz_RevertGiven_PerpMarketIsNotInitialized() external {
         uint128 marketIdNotInitialized = uint128(FINAL_MARKET_ID) + 1;
 
         // it should revert
@@ -33,7 +31,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
         _;
     }
 
-    function test_RevertWhen_PerpMarketIsEnabledAndNewEnableStatusIsTrue(uint256 marketId)
+    function testFuzz_RevertWhen_PerpMarketIsEnabledAndNewEnableStatusIsTrue(uint256 marketId)
         external
         givenPerpMarketIsInitialized
     {
@@ -48,7 +46,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, true);
     }
 
-    function test_WhenPerpMarketIsEnabledAndNewEnableStatusIsFalse(uint256 marketId)
+    function testFuzz_WhenPerpMarketIsEnabledAndNewEnableStatusIsFalse(uint256 marketId)
         external
         givenPerpMarketIsInitialized
     {
@@ -64,7 +62,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, false);
     }
 
-    function test_WhenPerpMarketIsNotEnabledAndNewEnableStatusIsTrue(uint256 marketId)
+    function testFuzz_WhenPerpMarketIsNotEnabledAndNewEnableStatusIsTrue(uint256 marketId)
         external
         givenPerpMarketIsInitialized
     {
@@ -82,7 +80,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Integration_Shared_Test
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, true);
     }
 
-    function test_RevertWhen_PerpMarketIsNotEnabledAndNewEnableStatusIsFalse(uint256 marketId)
+    function testFuzz_RevertWhen_PerpMarketIsNotEnabledAndNewEnableStatusIsFalse(uint256 marketId)
         external
         givenPerpMarketIsInitialized
     {

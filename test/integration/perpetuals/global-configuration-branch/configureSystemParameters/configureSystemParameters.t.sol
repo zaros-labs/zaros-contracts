@@ -18,7 +18,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_MaxPositionsPerAccountIsZero(
+    function testFuzz_RevertGiven_MaxPositionsPerAccountIsZero(
         uint128 marketOrderMaxLifetime,
         uint128 liquidationFeeUsdX18
     )
@@ -35,7 +35,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
         _;
     }
 
-    function test_RevertWhen_MarketOrderMaxLifetimeIsZero(
+    function testFuzz_RevertWhen_MarketOrderMaxLifetimeIsZero(
         uint128 maxPositionsPerAccount,
         uint128 liquidationFeeUsdX18
     )
@@ -55,7 +55,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
         _;
     }
 
-    function test_RevertWhen_LiquidationFeeIsZero(
+    function testFuzz_RevertWhen_LiquidationFeeIsZero(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime
     )
@@ -73,7 +73,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
         perpsEngine.configureSystemParameters(maxPositionsPerAccount, marketOrderMaxLifetime, 0);
     }
 
-    function test_GivenLiquidationFeeIsNotZero(
+    function testFuzz_GivenLiquidationFeeIsNotZero(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime,
         uint128 liquidationFeeUsdX18
@@ -94,7 +94,5 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
 
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters(maxPositionsPerAccount, marketOrderMaxLifetime, liquidationFeeUsdX18);
-
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
     }
 }

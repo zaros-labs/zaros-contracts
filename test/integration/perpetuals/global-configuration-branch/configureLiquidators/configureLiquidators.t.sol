@@ -29,7 +29,7 @@ contract ConfigureLiquidators_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function test_RevertGiven_NumberOfLiquidatorsAndArrayOfEnableIsDifferent(address randomLiquidator)
+    function testFuzz_RevertGiven_NumberOfLiquidatorsAndArrayOfEnableIsDifferent(address randomLiquidator)
         external
         givenThereAreLiquidators
     {
@@ -50,7 +50,7 @@ contract ConfigureLiquidators_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_GivenNumberOfLiquidatorsAndArrayOfEnableIsEqual(address randomLiquidator)
+    function testFuzz_GivenNumberOfLiquidatorsAndArrayOfEnableIsEqual(address randomLiquidator)
         external
         givenThereAreLiquidators
     {

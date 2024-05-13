@@ -10,7 +10,7 @@ contract MockChainlinkFeeManager {
         bytes memory,
         address
     )
-        external
+        external pure
         returns (FeeAsset memory, FeeAsset memory, uint256)
     {
         return

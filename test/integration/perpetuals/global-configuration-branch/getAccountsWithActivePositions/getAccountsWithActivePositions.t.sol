@@ -31,7 +31,7 @@ contract GetAccountsWithActivePositions_Integration_Test is Base_Integration_Sha
         perpsEngine.getAccountsWithActivePositions(0, 0);
     }
 
-    function test_GivenHaveAccountWithActivePositions(
+    function testFuzz_GivenHaveAccountWithActivePositions(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
