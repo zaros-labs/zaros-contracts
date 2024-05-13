@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { LiquidationBranch_Integration_Test } from "../LiquidationBranchIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
@@ -132,5 +133,17 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
         }
 
         perpsEngine.liquidateAccounts(accountsIds, users.marginCollateralRecipient, users.settlementFeeRecipient);
+
+        for (uint256 i = 0; i < accountsIds.length; i++) {
+            if (accountsIds[i] == nonLiquidatableTradingAccountId) {
+                continue;
+            }
+
+            // it should delete any active market order
+            MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder(accountsIds[i]);
+            assertEq(marketOrder.marketId, 0);
+            assertEq(marketOrder.sizeDelta, 0);
+            assertEq(marketOrder.timestamp, 0);
+        }
     }
 }

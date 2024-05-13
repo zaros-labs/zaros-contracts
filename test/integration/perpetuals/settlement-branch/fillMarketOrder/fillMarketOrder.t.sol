@@ -7,6 +7,7 @@ import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLook
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
@@ -596,6 +597,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         SD59x18 secondOrderExpectedPriceShiftPnlX18;
         int256 secondOrderExpectedPnl;
         bytes secondMockSignedReport;
+        MarketOrder.Data marketOrder;
     }
 
     // TODO: add funding assertions
@@ -759,9 +761,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         ctx.secondMockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.newIndexPrice);
 
-        // ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
-        //     ctx.firstFillPriceX18.intoSD59x18()
-        // ).mul(sd59x18(ctx.firstOrderSizeDelta));
         ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
             ctx.firstFillPriceX18.intoSD59x18()
         ).mul(sd59x18(ctx.firstOrderSizeDelta));
@@ -825,6 +824,12 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         console.log("returned margin bal: ");
         console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
+
+        // it should delete any active market order
+        ctx.marketOrder = perpsEngine.getActiveMarketOrder(ctx.tradingAccountId);
+        assertEq(ctx.marketOrder.marketId, 0);
+        assertEq(ctx.marketOrder.sizeDelta, 0);
+        assertEq(ctx.marketOrder.timestamp, 0);
     }
 
     struct TestFuzz_GivenThePnlIsPositive_Context {
@@ -853,6 +858,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         SD59x18 secondOrderExpectedPriceShiftPnlX18;
         int256 secondOrderExpectedPnl;
         bytes secondMockSignedReport;
+        MarketOrder.Data marketOrder;
     }
 
     function testFuzz_GivenThePnlIsPositive(
@@ -1071,5 +1077,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         console.log("returned margin bal: ");
         console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
+
+        // it should delete any active market order
+        ctx.marketOrder = perpsEngine.getActiveMarketOrder(ctx.tradingAccountId);
+        assertEq(ctx.marketOrder.marketId, 0);
+        assertEq(ctx.marketOrder.sizeDelta, 0);
+        assertEq(ctx.marketOrder.timestamp, 0);
     }
 }

@@ -9,7 +9,7 @@ LiquidateAccounts_Integration_Test
         │   └── it should revert
         └── given all accounts exist
             └── given there are liquidatable accounts in the array
-                ├── it should clear any active market order
+                ├── it should delete any active market order
                 ├── it should update each active market funding values
                 ├── it should close all active positions
                 ├── it should remove the account from all active markets
