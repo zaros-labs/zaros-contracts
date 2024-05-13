@@ -57,6 +57,6 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         });
 
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
-        console.log("Perps Engine Proxy: ", address(perpsEngine));
+        console.log("Perps Engine: ", address(perpsEngine));
     }
 }

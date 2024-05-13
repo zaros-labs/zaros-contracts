@@ -57,6 +57,13 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                 marketOrderKeeperImplementation
             );
 
+            console.log(
+                "Market Order Keeper Deployed: Market ID: ",
+                filteredMarketsConfig[i].marketId,
+                " Keeper Address: ",
+                marketOrderKeeper
+            );
+
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
                 isEnabled: true,
@@ -109,7 +116,5 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                 )
             )
         );
-
-        console.log("Market Order Keeper Deployed: Market ID: ", marketId, " Keeper Address: ", marketOrderKeeper);
     }
 }
