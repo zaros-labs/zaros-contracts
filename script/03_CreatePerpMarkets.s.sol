@@ -17,7 +17,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
+contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -49,10 +49,11 @@ contract CreatePerpMarket is BaseScript, ProtocolConfiguration {
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: filteredMarketsConfig[i].streamId });
 
-            console.log(filteredMarketsConfig[i].marketId);
             address marketOrderKeeper = deployMarketOrderKeeper(
                 filteredMarketsConfig[i].marketId,
-                filteredMarketsConfig[i].streamIdString,
+                deployer,
+                perpsEngine,
+                settlementFeeRecipient,
                 marketOrderKeeperImplementation
             );
 

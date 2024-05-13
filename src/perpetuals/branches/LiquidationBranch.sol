@@ -30,7 +30,6 @@ contract LiquidationBranch {
     event LogLiquidateAccount(
         address indexed keeper,
         uint128 indexed tradingAccountId,
-        address feeRecipient,
         uint256 amountOfOpenPositions,
         uint256 requiredMaintenanceMarginUsd,
         int256 marginBalanceUsd,
@@ -59,7 +58,10 @@ contract LiquidationBranch {
         returns (uint128[] memory liquidatableAccountsIds)
     {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        UD60x18 liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
+
+        liquidatableAccountsIds = new uint128[](upperBound - lowerBound);
+
+        if (liquidatableAccountsIds.length == 0) return liquidatableAccountsIds;
 
         for (uint256 i = lowerBound; i < upperBound; i++) {
             uint128 tradingAccountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
@@ -69,12 +71,8 @@ contract LiquidationBranch {
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
             SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
-            if (
-                TradingAccount.isLiquidatable(
-                    requiredMaintenanceMarginUsdX18, liquidationFeeUsdX18, marginBalanceUsdX18
-                )
-            ) {
-                liquidatableAccountsIds[liquidatableAccountsIds.length] = tradingAccountId;
+            if (TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
+                liquidatableAccountsIds[i] = tradingAccountId;
             }
         }
     }
@@ -95,10 +93,12 @@ contract LiquidationBranch {
     }
 
     /// @param accountsIds The list of accounts to liquidate
-    /// @param feeRecipient The address to receive the liquidation fee
+    /// @param marginCollateralRecipient The address to receive the liquidated margin collateral
+    /// @param liquidationFeeRecipient The address to receive the liquidation fee
     function liquidateAccounts(
         uint128[] calldata accountsIds,
-        address feeRecipient
+        address marginCollateralRecipient,
+        address liquidationFeeRecipient
     )
         external
         onlyRegisteredLiquidator
@@ -120,24 +120,15 @@ contract LiquidationBranch {
             ctx.requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18;
             ctx.marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
-            if (
-                !TradingAccount.isLiquidatable(
-                    requiredMaintenanceMarginUsdX18, ctx.liquidationFeeUsdX18, ctx.marginBalanceUsdX18
-                )
-            ) {
-                revert Errors.AccountNotLiquidatable(
-                    ctx.tradingAccountId,
-                    requiredMaintenanceMarginUsdX18.intoUint256(),
-                    ctx.marginBalanceUsdX18.intoInt256()
-                );
+            if (!TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, ctx.marginBalanceUsdX18)) {
+                continue;
             }
 
-            // TODO: Update margin recipient
             UD60x18 liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
-                    marginCollateralRecipient: feeRecipient,
+                    marginCollateralRecipient: marginCollateralRecipient,
                     orderFeeRecipient: address(0),
-                    settlementFeeRecipient: feeRecipient
+                    settlementFeeRecipient: liquidationFeeRecipient
                 }),
                 pnlUsdX18: ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
                     ? ctx.marginBalanceUsdX18.intoUD60x18()
@@ -165,23 +156,13 @@ contract LiquidationBranch {
                     perpMarket.getNextFundingFeePerUnit(ctx.fundingRateUsdX18, ctx.markPriceX18);
 
                 perpMarket.updateFunding(ctx.fundingRateUsdX18, ctx.fundingFeePerUnitUsdX18);
-
                 position.clear();
-
-                (UD60x18 newOpenInterest, SD59x18 newSkew) =
-                    perpMarket.checkOpenInterestLimits(ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD_ZERO);
-                perpMarket.updateOpenInterest(newOpenInterest, newSkew);
-
                 tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
             }
-
-            // asserts invariant
-            assert(tradingAccount.activeMarketsIds.length() == 0);
 
             emit LogLiquidateAccount(
                 msg.sender,
                 ctx.tradingAccountId,
-                feeRecipient,
                 ctx.amountOfOpenPositions,
                 ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
                 ctx.marginBalanceUsdX18.intoInt256(),

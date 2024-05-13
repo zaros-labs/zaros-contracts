@@ -4,11 +4,14 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
-import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
+import { AutomationHelpers } from "./helpers/AutomationHelpers.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
+
+// Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -68,9 +71,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdzUsdPriceFeed);
         perpsEngine.configureMarginCollateral(usdc, USDC_DEPOSIT_CAP, USDC_LOAN_TO_VALUE, usdcUsdPriceFeed);
 
-        address liquidationKeeper = address(new LiquidationKeeper());
-
-        console.log("Liquidation Keeper: ", liquidationKeeper);
         // AutomationHelpers.registerLiquidationKeeper({
         //     name: PERPS_LIQUIDATION_KEEPER_NAME,
         //     liquidationKeeper: liquidationKeeper,
@@ -79,6 +79,10 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         //     adminAddress: MSIG_ADDRESS,
         //     linkAmount: keeperInitialLinkFunding
         // });
+
+        address liquidationKeeper =
+            AutomationHelpers.deployLiquidationKeeper(address(perpsEngine), MSIG_ADDRESS, MSIG_ADDRESS);
+        console.log("Liquidation Keeper: ", liquidationKeeper);
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);

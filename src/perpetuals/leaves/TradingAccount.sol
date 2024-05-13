@@ -21,8 +21,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 /// @title The TradingAccount namespace.
 library TradingAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -166,14 +164,12 @@ library TradingAccount {
         returns (SD59x18 marginBalanceUsdX18)
     {
         for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
-            (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
+            (address collateralType, uint256 balance) = self.marginCollateralBalanceX18.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
-            UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18)).mul(
+            UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balance)).mul(
                 ud60x18(marginCollateralConfiguration.loanToValue)
             );
-            console.log("from trading account leaf: ");
-            console.log(adjustedBalanceUsdX18.intoUint256());
 
             marginBalanceUsdX18 = marginBalanceUsdX18.add(adjustedBalanceUsdX18.intoSD59x18());
         }
@@ -183,7 +179,7 @@ library TradingAccount {
 
     function getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
         Data storage self,
-        uint128 settlementMarketId,
+        uint128 targetMarketId,
         SD59x18 sizeDeltaX18
     )
         internal
@@ -194,10 +190,11 @@ library TradingAccount {
             SD59x18 accountTotalUnrealizedPnlUsdX18
         )
     {
-        if (settlementMarketId != 0) {
-            PerpMarket.Data storage perpMarket = PerpMarket.load(settlementMarketId);
-            Position.Data storage position = Position.load(self.id, settlementMarketId);
+        if (targetMarketId != 0) {
+            PerpMarket.Data storage perpMarket = PerpMarket.load(targetMarketId);
+            Position.Data storage position = Position.load(self.id, targetMarketId);
 
+            // TODO: validate this at margin requirement task
             UD60x18 markPrice = perpMarket.getMarkPrice(sizeDeltaX18, perpMarket.getIndexPrice());
             SD59x18 fundingFeePerUnit =
                 perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
@@ -223,7 +220,7 @@ library TradingAccount {
         for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
 
-            if (marketId == settlementMarketId) {
+            if (marketId == targetMarketId) {
                 continue;
             }
 
@@ -281,14 +278,13 @@ library TradingAccount {
 
     function isLiquidatable(
         UD60x18 requiredMaintenanceMarginUsdX18,
-        UD60x18 liquidationFeeUsdX18,
         SD59x18 marginBalanceUsdX18
     )
         internal
         pure
         returns (bool)
     {
-        return requiredMaintenanceMarginUsdX18.add(liquidationFeeUsdX18).intoSD59x18().gte(marginBalanceUsdX18);
+        return requiredMaintenanceMarginUsdX18.intoSD59x18().gte(marginBalanceUsdX18);
     }
 
     function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {

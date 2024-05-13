@@ -79,7 +79,7 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     lookupBranchSelectors[2] = LookupBranch.branchAddress.selector;
     lookupBranchSelectors[4] = LookupBranch.branchSelectors.selector;
 
-    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 14 : 12);
+    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 15 : 12);
 
     globalConfigurationBranchSelectors[0] = GlobalConfigurationBranch.getAccountsWithActivePositions.selector;
     globalConfigurationBranchSelectors[1] = GlobalConfigurationBranch.getMarginCollateralConfiguration.selector;
@@ -95,8 +95,10 @@ function getBranchsSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
 
     if (isTestnet) {
-        globalConfigurationBranchSelectors[12] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
-        globalConfigurationBranchSelectors[13] = GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
+        globalConfigurationBranchSelectors[12] =
+            GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
+        globalConfigurationBranchSelectors[13] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
+        globalConfigurationBranchSelectors[14] = GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
     }
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);

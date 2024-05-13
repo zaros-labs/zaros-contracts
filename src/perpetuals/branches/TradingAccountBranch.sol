@@ -291,7 +291,16 @@ contract TradingAccountBranch {
         _requireEnoughMarginCollateral(tradingAccount, collateralType, amount);
 
         tradingAccount.withdraw(collateralType, amount);
-        _requireMarginRequirementIsValid(tradingAccount);
+        (
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 accountTotalUnrealizedPnlUsdX18
+        ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
+        SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+
+        tradingAccount.validateMarginRequirement(
+            requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18), marginBalanceUsdX18, SD_ZERO
+        );
 
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
@@ -355,22 +364,6 @@ contract TradingAccountBranch {
                 amount.intoUint256(), marginCollateralBalanceX18.intoUint256()
             );
         }
-    }
-
-    /// @dev Checks if the account will still meet margin requirements after a withdrawal.
-    /// @dev Iterates over active positions in order to take uPnL and margin requirements into account.
-    /// @param tradingAccount The trading account storage pointer.
-    function _requireMarginRequirementIsValid(TradingAccount.Data storage tradingAccount) internal view {
-        (
-            UD60x18 requiredInitialMarginUsdX18,
-            UD60x18 requiredMaintenanceMarginUsdX18,
-            SD59x18 accountTotalUnrealizedPnlUsdX18
-        ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
-        SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
-
-        tradingAccount.validateMarginRequirement(
-            requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18), marginBalanceUsdX18, SD_ZERO
-        );
     }
 
     /// @dev Reverts if the caller is not the account owner.

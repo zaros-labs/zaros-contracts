@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
+
 // Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 import "forge-std/console.sol";
@@ -19,7 +23,7 @@ struct RegistrationParams {
     uint96 amount;
 }
 
-interface AutomationRegistrarInterface {
+interface IAutomationRegistrar {
     function registerUpkeep(RegistrationParams calldata requestParams) external returns (uint256);
 }
 
@@ -28,7 +32,7 @@ library AutomationHelpers {
     uint8 internal constant CONDITIONAL_TRIGGER_TYPE = 0;
     uint8 internal constant LOG_TRIGGER_TYPE = 1;
 
-    function getLiquidationUpkeepConfig()
+    function getLiquidationKeeperConfig()
         internal
         pure
         returns (bytes memory checkData, bytes memory triggerConfig)
@@ -43,9 +47,9 @@ library AutomationHelpers {
         triggerConfig = bytes("");
     }
 
-    function registerLiquidationUpkeep(
+    function registerLiquidationKeeper(
         string memory name,
-        address liquidationUpkeep,
+        address liquidationKeeper,
         address link,
         address registrar,
         address adminAddress,
@@ -53,14 +57,14 @@ library AutomationHelpers {
     )
         internal
     {
-        (bytes memory checkData, bytes memory triggerConfig) = getLiquidationUpkeepConfig();
+        (bytes memory checkData, bytes memory triggerConfig) = getLiquidationKeeperConfig();
         console.log(IERC20(link).balanceOf(adminAddress));
         IERC20(link).approve(registrar, linkAmount);
 
         RegistrationParams memory params = RegistrationParams({
             name: name,
             encryptedEmail: bytes(""),
-            upkeepContract: liquidationUpkeep,
+            upkeepContract: liquidationKeeper,
             gasLimit: GAS_LIMIT,
             adminAddress: adminAddress,
             triggerType: CONDITIONAL_TRIGGER_TYPE,
@@ -69,6 +73,31 @@ library AutomationHelpers {
             offchainConfig: bytes(""),
             amount: uint96(linkAmount)
         });
-        AutomationRegistrarInterface(registrar).registerUpkeep(params);
+        IAutomationRegistrar(registrar).registerUpkeep(params);
+    }
+
+    function deployLiquidationKeeper(
+        address perpsEngine,
+        address marginCollateralRecipient,
+        address settlementFeeRecipient
+    )
+        internal
+        returns (address)
+    {
+        address liquidationKeeperImplementation = address(new LiquidationKeeper());
+
+        address liquidationKeeper = address(
+            new ERC1967Proxy(
+                liquidationKeeperImplementation,
+                abi.encodeWithSelector(
+                    LiquidationKeeper(liquidationKeeperImplementation).initialize.selector,
+                    perpsEngine,
+                    marginCollateralRecipient,
+                    settlementFeeRecipient
+                )
+            )
+        );
+
+        return liquidationKeeper;
     }
 }

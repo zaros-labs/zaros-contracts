@@ -35,15 +35,15 @@ contract UpdateBranchs is BaseScript {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
+        // TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
-        // GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
+        GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
         // SettlementBranchTestnet settlementBranchTestnet = new SettlementBranchTestnet();
         // OrderBranch orderBranch = new OrderBranch();
 
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
-        bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
-        // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](2);
+        // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
+        bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory settlementBranchTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
 
@@ -64,14 +64,14 @@ contract UpdateBranchs is BaseScript {
         // tradingAccountBranchTestnetSelectorsAdded[4] =
         // TradingAccountBranchTestnet.getCustomReferralCodeReferee.selector;
 
-        tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranchTestnet.getUserReferralData.selector;
+        // tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranchTestnet.getUserReferralData.selector;
         // tradingAccountBranchTestnetSelectorsUpdated[1] =
         // bytes4(keccak256("createTradingAccountAndMulticall(bytes[])"));
         // tradingAccountBranchTestnetSelectorsUpdated[2] =
         // bytes4(keccak256("depositMargin(uint128,address,uint256)"));
 
-        // globalConfigurationBranchTestnetSelectorsAdded[0] =
-        // GlobalConfigurationBranchTestnet.setUserPoints.selector;
+        globalConfigurationBranchTestnetSelectorsAdded[0] =
+            GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
         // globalConfigurationBranchTestnetSelectorsAdded[1] =
         //     GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
 
@@ -87,9 +87,9 @@ contract UpdateBranchs is BaseScript {
 
         branchUpgrades[0] = (
             RootProxy.BranchUpgrade({
-                branch: address(tradingAccountBranchTestnet),
-                action: RootProxy.BranchUpgradeAction.Replace,
-                selectors: tradingAccountBranchTestnetSelectorsUpdated
+                branch: address(globalConfigurationBranchTestnet),
+                action: RootProxy.BranchUpgradeAction.Add,
+                selectors: globalConfigurationBranchTestnetSelectorsAdded
             })
         );
 

@@ -162,8 +162,14 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         public
     {
         for (uint256 i = initialMarketId; i <= finalMarketId; i++) {
-            address marketOrderKeeper =
-                deployMarketOrderKeeper(marketsConfig[i].marketId, deployer, perpsEngine, settlementFeeRecipient);
+            address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
+            address marketOrderKeeper = deployMarketOrderKeeper(
+                marketsConfig[i].marketId,
+                deployer,
+                perpsEngine,
+                settlementFeeRecipient,
+                marketOrderKeeperImplementation
+            );
 
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
@@ -210,13 +216,12 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         uint128 marketId,
         address deployer,
         IPerpsEngine perpsEngine,
-        address settlementFeeRecipient
+        address settlementFeeRecipient,
+        address marketOrderKeeperImplementation
     )
         internal
         returns (address marketOrderKeeper)
     {
-        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
-
         marketOrderKeeper = address(
             new ERC1967Proxy(
                 marketOrderKeeperImplementation,

@@ -13,6 +13,7 @@ import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol"
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
+import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -32,6 +33,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
+    address internal liquidationKeeper;
     FeeRecipients.Data internal feeRecipients;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -49,9 +51,22 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         });
 
         setupMarketsConfig();
+        configureLiquidationKeepers();
 
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
         vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
+    }
+
+    function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {
+        marketId = bound({ x: marketId, min: INITIAL_MARKET_ID, max: FINAL_MARKET_ID });
+
+        uint256[2] memory marketsIdsRange;
+        marketsIdsRange[0] = marketId;
+        marketsIdsRange[1] = marketId;
+
+        MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
+
+        return filteredMarketsConfig[0];
     }
 
     function getPrice(MockPriceFeed priceFeed) internal view returns (UD60x18) {
@@ -146,6 +161,23 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             IVerifierProxy(mockChainlinkVerifier),
             true
         );
+    }
+
+    function configureLiquidationKeepers() internal {
+        changePrank({ msgSender: users.owner });
+        liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
+            address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
+        );
+
+        address[] memory liquidators = new address[](1);
+        bool[] memory liquidatorStatus = new bool[](1);
+
+        liquidators[0] = liquidationKeeper;
+        liquidatorStatus[0] = true;
+
+        perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
+
+        changePrank({ msgSender: users.naruto });
     }
 
     function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
@@ -251,17 +283,5 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
                     unary(params.minTradeSize.intoSD59x18())
                 )
         ).intoInt256().toInt128();
-    }
-
-    function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {
-        marketId = bound({ x: marketId, min: INITIAL_MARKET_ID, max: FINAL_MARKET_ID });
-
-        uint256[2] memory marketsIdsRange;
-        marketsIdsRange[0] = marketId;
-        marketsIdsRange[1] = marketId;
-
-        MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
-
-        return filteredMarketsConfig[0];
     }
 }

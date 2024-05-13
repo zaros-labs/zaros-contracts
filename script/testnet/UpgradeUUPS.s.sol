@@ -22,20 +22,20 @@ contract UpdateUUPS is BaseScript {
     LimitedMintingERC20 internal usdz;
 
     address internal forwarder;
-    MarketOrderKeeper internal ethUsdMarketOrderKeeper;
+    MarketOrderKeeper internal btcUsdMarketOrderKeeper;
 
     function run() public broadcaster {
         // usdc = LimitedMintingERC20(vm.envAddress("USDC"));
 
-        ethUsdMarketOrderKeeper = MarketOrderKeeper(vm.envAddress("ETH_USD_MARKET_ORDER_KEEPER"));
+        btcUsdMarketOrderKeeper = MarketOrderKeeper(vm.envAddress("BTC_USD_MARKET_ORDER_KEEPER"));
         // forwarder = vm.envAddress("KEEPER_FORWARDER");
         // address newImplementation = address(new LimitedMintingERC20());
-        address ethUsdMarketOrderKeeperNewImplementation = address(new MarketOrderKeeper());
+        address btcUsdMarketOrderKeeperNewImplementation = address(new MarketOrderKeeper());
 
-        UUPSUpgradeable(address(ethUsdMarketOrderKeeper)).upgradeToAndCall(
-            ethUsdMarketOrderKeeperNewImplementation, bytes("")
+        UUPSUpgradeable(address(btcUsdMarketOrderKeeper)).upgradeToAndCall(
+            btcUsdMarketOrderKeeperNewImplementation, bytes("")
         );
 
-        // ethUsdMarketOrderKeeper.setForwarder(forwarder);
+        // btcUsdMarketOrderKeeper.setForwarder(forwarder);
     }
 }

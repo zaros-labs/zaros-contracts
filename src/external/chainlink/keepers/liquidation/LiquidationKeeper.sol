@@ -17,6 +17,8 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     /// @param perpsEngine The address of the PerpsEngine contract.
     struct LiquidationKeeperStorage {
         IPerpsEngine perpsEngine;
+        address marginCollateralRecipient;
+        address liquidationFeeRecipient;
     }
 
     constructor() {
@@ -24,8 +26,19 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     }
 
     /// @notice {LiquidationKeeper} UUPS initializer.
-    function initialize(address owner) external initializer {
+    function initialize(
+        address owner,
+        address marginCollateralRecipient,
+        address liquidationFeeRecipient
+    )
+        external
+        initializer
+    {
         __BaseKeeper_init(owner);
+
+        LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
+        self.marginCollateralRecipient = marginCollateralRecipient;
+        self.liquidationFeeRecipient = liquidationFeeRecipient;
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -61,11 +74,28 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         return (true, extraData);
     }
 
-    function performUpkeep(bytes calldata peformData) external override onlyForwarder {
-        (uint128[] memory accountsToBeLiquidated, address feeRecipient) = abi.decode(peformData, (uint128[], address));
-        IPerpsEngine perpsEngine = _getLiquidationKeeperStorage().perpsEngine;
+    function setConfig(
+        address perpsEngine,
+        address marginCollateralRecipeint,
+        address feeRecipient
+    )
+        external
+        onlyOwner
+    {
+        LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
 
-        perpsEngine.liquidateAccounts(accountsToBeLiquidated, feeRecipient);
+        self.perpsEngine = IPerpsEngine(perpsEngine);
+        self.marginCollateralRecipient = marginCollateralRecipeint;
+        self.liquidationFeeRecipient = feeRecipient;
+    }
+
+    function performUpkeep(bytes calldata peformData) external override onlyForwarder {
+        uint128[] memory accountsToBeLiquidated = abi.decode(peformData, (uint128[]));
+        LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
+        (IPerpsEngine perpsEngine, address marginCollateralRecipient, address liquidationFeeRecipient) =
+            (self.perpsEngine, self.marginCollateralRecipient, self.liquidationFeeRecipient);
+
+        perpsEngine.liquidateAccounts(accountsToBeLiquidated, marginCollateralRecipient, liquidationFeeRecipient);
     }
 
     function _getLiquidationKeeperStorage() internal pure returns (LiquidationKeeperStorage storage self) {
