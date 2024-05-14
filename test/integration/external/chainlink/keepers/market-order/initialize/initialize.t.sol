@@ -5,10 +5,10 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-import { Markets } from "script/markets/Markets.sol";
-import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
+
+// Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -25,36 +25,28 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_AddressOfPerpsEngineIsZero(
-        uint256 marketId,
-        address settlementFeeRecipient
-    )
+    function testFuzz_RevertWhen_AddressOfPerpsEngineIsZero(uint256 marketId)
         external
         givenInitializeContractWithSomeWrongInformation
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        Markets markets = new Markets();
-
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        (, bytes memory data) = address(markets).call(
-            abi.encodeCall(
-                markets.deployMarketOrderKeeper,
-                (
-                    fuzzMarketConfig.marketId,
-                    users.owner,
-                    IPerpsEngine(address(0)),
-                    settlementFeeRecipient,
-                    marketOrderKeeperImplementation
-                )
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "perpsEngine") });
+
+        new ERC1967Proxy(
+            marketOrderKeeperImplementation,
+            abi.encodeWithSelector(
+                MarketOrderKeeper.initialize.selector,
+                users.owner,
+                IPerpsEngine(address(0)),
+                users.settlementFeeRecipient,
+                fuzzMarketConfig.marketId,
+                fuzzMarketConfig.streamIdString
             )
         );
-
-        bytes memory expectedError = abi.encodeWithSelector(Errors.ZeroInput.selector, "perpsEngine");
-
-        // it should revert
-        assertEq(data, expectedError);
     }
 
     function testFuzz_RevertWhen_AddressOfFeeRecipientIsZero(uint256 marketId)
@@ -62,68 +54,71 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         givenInitializeContractWithSomeWrongInformation
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        Markets markets = new Markets();
-        address settlementFeeRecipient = address(0);
+
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        (, bytes memory data) = address(markets).call(
-            abi.encodeCall(
-                markets.deployMarketOrderKeeper,
-                (
-                    fuzzMarketConfig.marketId,
-                    users.owner,
-                    perpsEngine,
-                    settlementFeeRecipient,
-                    marketOrderKeeperImplementation
-                )
-            )
-        );
-
-        bytes memory expectedError = abi.encodeWithSelector(Errors.ZeroInput.selector, "feeRecipient");
+        address settlementFeeRecipient = address(0);
 
         // it should revert
-        assertEq(data, expectedError);
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "feeRecipient") });
+
+        new ERC1967Proxy(
+            marketOrderKeeperImplementation,
+            abi.encodeWithSelector(
+                MarketOrderKeeper.initialize.selector,
+                users.owner,
+                perpsEngine,
+                settlementFeeRecipient,
+                fuzzMarketConfig.marketId,
+                fuzzMarketConfig.streamIdString
+            )
+        );
     }
 
     function test_RevertWhen_MarketIdIsZero() external givenInitializeContractWithSomeWrongInformation {
-        Markets markets = new Markets();
-        address settlementFeeRecipient = address(0x20);
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        (, bytes memory data) = address(markets).call(
-            abi.encodeCall(
-                markets.deployMarketOrderKeeper,
-                (0, users.owner, perpsEngine, settlementFeeRecipient, marketOrderKeeperImplementation)
-            )
-        );
-
-        bytes memory expectedError = abi.encodeWithSelector(Errors.ZeroInput.selector, "marketId");
+        uint128 marketId = 0;
+        string memory streamIdString = "0x";
 
         // it should revert
-        assertEq(data, expectedError);
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketId") });
+
+        new ERC1967Proxy(
+            marketOrderKeeperImplementation,
+            abi.encodeWithSelector(
+                MarketOrderKeeper.initialize.selector,
+                users.owner,
+                perpsEngine,
+                users.settlementFeeRecipient,
+                marketId,
+                streamIdString
+            )
+        );
     }
 
-    function test_RevertWhen_StreamIdIsZero() external givenInitializeContractWithSomeWrongInformation {
-        Markets markets = new Markets();
-        address settlementFeeRecipient = address(0x20);
+    function testFuzz_RevertWhen_StreamIdIsZero(uint256 marketId)
+        external
+        givenInitializeContractWithSomeWrongInformation
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
-        (, bytes memory data) = address(markets).call(
-            abi.encodeCall(
-                markets.deployMarketOrderKeeper,
-                (
-                    uint128(FINAL_MARKET_ID + 1),
-                    users.owner,
-                    perpsEngine,
-                    settlementFeeRecipient,
-                    marketOrderKeeperImplementation
-                )
-            )
-        );
-
-        bytes memory expectedError = abi.encodeWithSelector(Errors.ZeroInput.selector, "streamId");
+        string memory streamIdString = "";
 
         // it should revert
-        assertEq(data, expectedError);
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "streamId") });
+
+        new ERC1967Proxy(
+            marketOrderKeeperImplementation,
+            abi.encodeWithSelector(
+                MarketOrderKeeper.initialize.selector,
+                users.owner,
+                perpsEngine,
+                users.settlementFeeRecipient,
+                fuzzMarketConfig.marketId,
+                streamIdString
+            )
+        );
     }
 }

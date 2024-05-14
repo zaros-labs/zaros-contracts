@@ -4,8 +4,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-import { Markets } from "script/markets/Markets.sol";
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 
 // Open Zeppelin dependencies
@@ -56,9 +54,7 @@ contract LiquidationKeeper_Integration_Test is Base_Integration_Shared_Test {
         address liquidationFeeRecipient = address(0);
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeRecipient")
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeRecipient") });
 
         new ERC1967Proxy(
             liquidationKeeperImplementation,

@@ -219,7 +219,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
         address settlementFeeRecipient,
         address marketOrderKeeperImplementation
     )
-        public
+        internal
         returns (address marketOrderKeeper)
     {
         marketOrderKeeper = address(
