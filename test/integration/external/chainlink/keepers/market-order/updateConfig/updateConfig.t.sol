@@ -10,7 +10,7 @@ import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 
-contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
+contract MarketOrderKeeperUpdateConfig_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });

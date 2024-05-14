@@ -1,4 +1,4 @@
-MarketOrderKeeper_Integration_Test
+MarketOrderKeeperGetConfig_Integration_Test
 └── given initialize contract
     └── when call getConfig function
         ├── it should return keeper owner

@@ -9,7 +9,7 @@ import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract LiquidationKeeper_Integration_Test is Base_Integration_Shared_Test {
+contract LiquidationKeeperInitialize_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
