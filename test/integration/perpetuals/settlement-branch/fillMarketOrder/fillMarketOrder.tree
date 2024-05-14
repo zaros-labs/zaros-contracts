@@ -23,20 +23,23 @@ FillMarketOrder_Integration_Test
                             ├── given the market's OI limit will be exceeded
                             │   └── it should revert
                             └── given the market's OI limit won't be exceeded
-                                ├── given the pnl is negative
-                                │   ├── it should update the funding values
-                                │   ├── it should update the open interest and skew
-                                │   ├── it should update the account's active markets
-                                │   ├── it should update the account's position
-                                │   ├── it should deduct the pnl and fees
-                                │   ├── it should transfer the pnl and fees
-                                │   ├── it should emit a {LogFillOrder} event
-                                │   ├── it should delete the market order
-                                └── given the pnl is positive
-                                    ├── it should update the funding values
-                                    ├── it should update the open interest and skew
-                                    ├── it should update the account's active markets
-                                    ├── it should update the account's position
-                                    ├── it should add the pnl into the account's margin
-                                    ├── it should emit a {LogFillOrder} event
-                                    ├── it should delete the market order
+                                ├── given the position size will be below the limit
+                                │   └── it should revert
+                                └── given the position size won't be below the limit
+                                    ├── given the pnl is negative
+                                    │   ├── it should update the funding values
+                                    │   ├── it should update the open interest and skew
+                                    │   ├── it should update the account's active markets
+                                    │   ├── it should update the account's position
+                                    │   ├── it should deduct the pnl and fees
+                                    │   ├── it should transfer the pnl and fees
+                                    │   ├── it should emit a {LogFillOrder} event
+                                    │   └── it should delete the market order
+                                    └── given the pnl is positive
+                                        ├── it should update the funding values
+                                        ├── it should update the open interest and skew
+                                        ├── it should update the account's active markets
+                                        ├── it should update the account's position
+                                        ├── it should add the pnl into the account's margin
+                                        ├── it should emit a {LogFillOrder} event
+                                        └── it should delete the market order
