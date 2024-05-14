@@ -102,7 +102,7 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
 
         // it should emit {LogSettleOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit SettlementBranch.LogSettleOrder(
+        emit SettlementBranch.LogFillOrder(
             marketOrderKeeper,
             tradingAccountId,
             fuzzMarketConfig.marketId,
