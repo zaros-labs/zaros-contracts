@@ -173,7 +173,9 @@ library PerpMarket {
     }
 
     function getProportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
-        return ud60x18Convert(block.timestamp - self.lastFundingTime).div(ud60x18Convert(Constants.FUNDING_INTERVAL));
+        return ud60x18Convert(block.timestamp - self.lastFundingTime).div(
+            ud60x18Convert(Constants.PROPORTIONAL_FUNDING_PERIOD)
+        );
     }
 
     function checkOpenInterestLimits(
