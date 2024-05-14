@@ -6,7 +6,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 
-contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test{
+contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });

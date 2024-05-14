@@ -18,7 +18,6 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-
     modifier givenInitializeContract() {
         _;
     }
@@ -51,5 +50,4 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         // it should return market id
         assertEq(fuzzMarketConfig.marketId, marketIdConfig, "market id is not correct");
     }
-
 }
