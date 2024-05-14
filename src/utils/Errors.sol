@@ -45,6 +45,7 @@ library Errors {
     error NoActiveMarketOrder(uint128 tradingAccountId);
     /// @notice Thrown when trying to trade and the account is eligible for liquidation.
     error AccountIsLiquidatable(uint128 tradingAccountId);
+    error NewPositionSizeTooSmall();
 
     /// @notice PerpsEngine.TradingAccountBranch
 

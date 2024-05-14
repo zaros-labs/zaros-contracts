@@ -25,6 +25,9 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
     /// @notice index of the account id param at LogCreateMarketOrder.
     uint256 internal constant LOG_CREATE_MARKET_ORDER_ACCOUNT_ID_INDEX = 2;
 
+    string public constant DATA_STREAMS_FEED_LABEL = "feedIDs";
+    string public constant DATA_STREAMS_QUERY_LABEL = "timestamp";
+
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderKeeper
     /// @param perpsEngine The address of the PerpsEngine contract.
     /// @param feeRecipient The address that receives settlement fees.
@@ -35,8 +38,6 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         address feeRecipient;
         uint128 marketId;
         string streamId;
-        string feedLabel;
-        string queryLabel;
     }
 
     constructor() {
@@ -96,6 +97,17 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         marketId = self.marketId;
     }
 
+    // function checkErrorHandler(
+    //     uint256 errorCode,
+    //     bytes memory extraData
+    // )
+    //     external
+    //     pure
+    //     returns (bool upkeepNeeded, bytes memory performData)
+    // {
+    //     return (true, abi.encode(errorCode));
+    // }
+
     /// @inheritdoc ILogAutomation
     function checkLog(
         AutomationLog calldata log,
@@ -116,7 +128,9 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         uint256 settlementTimestamp = marketOrder.timestamp;
         bytes memory extraData = abi.encode(tradingAccountId);
 
-        revert StreamsLookup(self.feedLabel, streams, self.queryLabel, settlementTimestamp, extraData);
+        revert StreamsLookup(
+            DATA_STREAMS_FEED_LABEL, streams, DATA_STREAMS_QUERY_LABEL, settlementTimestamp, extraData
+        );
     }
 
     function checkCallback(

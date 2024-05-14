@@ -3,10 +3,8 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { AccessKeyManager } from "@zaros/testnet/access-key-manager/AccessKeyManager.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
-import { Points } from "../leaves/Points.sol";
 import { CustomReferralConfigurationTestnet } from "../leaves/CustomReferralConfigurationTestnet.sol";
 import { ReferralTestnet } from "../leaves/ReferralTestnet.sol";
 
@@ -22,7 +20,6 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
     using TradingAccount for TradingAccount.Data;
     using ReferralTestnet for ReferralTestnet.Data;
 
-    AccessKeyManager internal accessKeyManager;
     mapping(address user => bool accountCreated) internal isAccountCreated;
 
     error UserWithoutAccess();
@@ -38,20 +35,8 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
         _disableInitializers();
     }
 
-    function initialize(address _accessKeyManager) external initializer {
-        accessKeyManager = AccessKeyManager(_accessKeyManager);
-    }
-
-    function getAccessKeyManager() external view returns (address) {
-        return address(accessKeyManager);
-    }
-
     function isUserAccountCreated(address user) external view returns (bool) {
         return isAccountCreated[user];
-    }
-
-    function getPointsOfUser(address user) external view returns (uint256 amount) {
-        amount = Points.load(user).amount;
     }
 
     function getUserReferralData(address user) external pure returns (bytes memory, bool) {

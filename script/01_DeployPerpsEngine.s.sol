@@ -12,8 +12,8 @@ import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 import {
-    deployBranchs,
-    getBranchsSelectors,
+    deployBranches,
+    getBranchesSelectors,
     getBranchUpgrades,
     getInitializables,
     getInitializePayloads
@@ -33,7 +33,6 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     //////////////////////////////////////////////////////////////////////////*/
     AccountNFT internal tradingAccountToken;
     IPerpsEngine internal perpsEngine;
-    address internal accessKeyManager;
     address internal usdToken;
 
     function run() public broadcaster {
@@ -42,16 +41,14 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         usdToken = vm.envAddress("USDZ");
 
         isTestnet = vm.envBool("IS_TESTNET");
-        accessKeyManager = vm.envOr("ACCESS_KEY_MANAGER", address(0));
 
-        address[] memory branches = deployBranchs(isTestnet);
-        bytes4[][] memory branchesSelectors = getBranchsSelectors(isTestnet);
+        address[] memory branches = deployBranches(isTestnet);
+        bytes4[][] memory branchesSelectors = getBranchesSelectors(isTestnet);
 
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
-        address[] memory initializables = getInitializables(branches, isTestnet);
-        bytes[] memory initializePayloads =
-            getInitializePayloads(deployer, address(tradingAccountToken), usdToken, accessKeyManager, isTestnet);
+        address[] memory initializables = getInitializables(branches);
+        bytes[] memory initializePayloads = getInitializePayloads(deployer, address(tradingAccountToken), usdToken);
 
         RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,
@@ -60,6 +57,6 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         });
 
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
-        console.log("Perps Engine Proxy: ", address(perpsEngine));
+        console.log("Perps Engine: ", address(perpsEngine));
     }
 }

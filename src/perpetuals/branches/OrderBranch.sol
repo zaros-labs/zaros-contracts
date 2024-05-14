@@ -89,16 +89,26 @@ contract OrderBranch {
             tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
         marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
         {
-            // GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-            // UD60x18 liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
             (, UD60x18 previousRequiredMaintenanceMarginUsdX18,) =
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
-            // console.log("simulate trade values: ");
-            // console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
-            // console.log(previousRequiredMaintenanceMarginUsdX18.intoUint256());
 
             if (TradingAccount.isLiquidatable(previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
                 revert Errors.AccountIsLiquidatable(tradingAccountId);
+            }
+        }
+        {
+            Position.Data storage position = Position.load(tradingAccountId, marketId);
+            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sd59x18(sizeDelta));
+
+            console.log("new pos size from simulate trade: ");
+            console.log(newPositionSizeX18.lt(sd59x18(0)));
+            console.log(newPositionSizeX18.abs().intoUD60x18().intoUint256());
+
+            if (
+                !newPositionSizeX18.isZero()
+                    && newPositionSizeX18.abs().lt(sd59x18(int256(perpMarket.configuration.minTradeSizeX18)))
+            ) {
+                revert Errors.NewPositionSizeTooSmall();
             }
         }
     }

@@ -14,8 +14,8 @@ import { Storage } from "./utils/Storage.sol";
 import { Users, MockPriceAdapters } from "./utils/Types.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 import {
-    deployBranchs,
-    getBranchsSelectors,
+    deployBranches,
+    getBranchesSelectors,
     getBranchUpgrades,
     getInitializables,
     getInitializePayloads
@@ -97,15 +97,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
 
         bool isTestnet = false;
-        address accessKeyManager = address(0);
-        address[] memory branches = deployBranchs(isTestnet);
-        bytes4[][] memory branchesSelectors = getBranchsSelectors(isTestnet);
+        address[] memory branches = deployBranches(isTestnet);
+        bytes4[][] memory branchesSelectors = getBranchesSelectors(isTestnet);
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
-        address[] memory initializables = getInitializables(branches, isTestnet);
-        bytes[] memory initializePayloads = getInitializePayloads(
-            users.owner, address(tradingAccountToken), address(usdToken), accessKeyManager, isTestnet
-        );
+        address[] memory initializables = getInitializables(branches);
+        bytes[] memory initializePayloads =
+            getInitializePayloads(users.owner, address(tradingAccountToken), address(usdToken));
 
         RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,

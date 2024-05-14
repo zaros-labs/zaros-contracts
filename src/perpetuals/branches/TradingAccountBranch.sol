@@ -21,8 +21,6 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 /// @title Trading Account Branch.
 /// @notice This branch is used by users in order to mint trading account nfts
 /// to use them as trading subaccounts, managing their cross margin collateral and
@@ -120,13 +118,7 @@ contract TradingAccountBranch {
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         SD59x18 activePositionsUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
 
-        console.log("from trading account branch: ");
-        console.log(activePositionsUnrealizedPnlUsdX18.lt(SD_ZERO));
-        console.log(activePositionsUnrealizedPnlUsdX18.abs().intoUD60x18().intoUint256());
-
         marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
-
-        console.log(marginBalanceUsdX18.abs().intoUD60x18().intoUint256());
 
         for (uint256 i = 0; i < tradingAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
