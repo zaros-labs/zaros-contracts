@@ -105,10 +105,4 @@ contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
         // it should revert
         // MarketOrderKeeper(marketOrderKeeper).checkLog(mockedLog, empty);
     }
-
-    function test_GivenCallCheckCallbackFunction() external givenInitializeContract {
-        // TODO
-        // it should return upkeepNeeded
-        // it should return performData
-    }
 }
