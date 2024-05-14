@@ -267,7 +267,6 @@ contract SettlementBranch {
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 
-        // TODO: log margin deducted vs required
         emit LogFillOrder(
             msg.sender,
             ctx.tradingAccountId,
