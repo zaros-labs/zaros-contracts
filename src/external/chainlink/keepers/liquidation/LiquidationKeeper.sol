@@ -36,6 +36,14 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     {
         __BaseKeeper_init(owner);
 
+        if (marginCollateralRecipient == address(0)) {
+            revert Errors.ZeroInput("marginCollateralRecipient");
+        }
+
+        if (liquidationFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("liquidationFeeRecipient");
+        }
+
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
         self.marginCollateralRecipient = marginCollateralRecipient;
         self.liquidationFeeRecipient = liquidationFeeRecipient;
