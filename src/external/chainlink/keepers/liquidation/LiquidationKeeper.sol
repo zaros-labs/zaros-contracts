@@ -49,6 +49,18 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         self.liquidationFeeRecipient = liquidationFeeRecipient;
     }
 
+    function getConfig()
+        public
+        view
+        returns (address keeperOwner, address marginCollateralRecipient, address liquidationFeeRecipient)
+    {
+        LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
+
+        keeperOwner = owner();
+        marginCollateralRecipient = self.marginCollateralRecipient;
+        liquidationFeeRecipient = self.liquidationFeeRecipient;
+    }
+
     function checkUpkeep(bytes calldata checkData)
         external
         view

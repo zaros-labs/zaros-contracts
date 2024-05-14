@@ -50,7 +50,6 @@ contract LiquidationKeeperInitialize_Integration_Test is Base_Integration_Shared
     {
         address liquidationKeeperImplementation = address((new LiquidationKeeper()));
 
-        address marginCollateralRecipient = address(0x123);
         address liquidationFeeRecipient = address(0);
 
         // it should revert
@@ -59,7 +58,10 @@ contract LiquidationKeeperInitialize_Integration_Test is Base_Integration_Shared
         new ERC1967Proxy(
             liquidationKeeperImplementation,
             abi.encodeWithSelector(
-                LiquidationKeeper.initialize.selector, users.owner, marginCollateralRecipient, liquidationFeeRecipient
+                LiquidationKeeper.initialize.selector,
+                users.owner,
+                users.marginCollateralRecipient,
+                liquidationFeeRecipient
             )
         );
     }
