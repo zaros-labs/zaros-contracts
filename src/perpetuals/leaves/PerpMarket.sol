@@ -228,7 +228,7 @@ library PerpMarket {
         uint256 skewScale;
         uint256 minTradeSizeX18;
         SettlementConfiguration.Data marketOrderConfiguration;
-        SettlementConfiguration.Data[] customOrderStrategies;
+        SettlementConfiguration.Data[] customOrdersConfiguration;
         OrderFees.Data orderFees;
     }
 
@@ -257,10 +257,10 @@ library PerpMarket {
             params.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, params.marketOrderConfiguration
         );
 
-        if (params.customOrderStrategies.length > 0) {
-            for (uint256 i = 0; i < params.customOrderStrategies.length; i++) {
+        if (params.customOrdersConfiguration.length > 0) {
+            for (uint256 i = 0; i < params.customOrdersConfiguration.length; i++) {
                 uint128 nextStrategyId = ++self.nextStrategyId;
-                SettlementConfiguration.update(params.marketId, nextStrategyId, params.customOrderStrategies[i]);
+                SettlementConfiguration.update(params.marketId, nextStrategyId, params.customOrdersConfiguration[i]);
             }
         }
     }

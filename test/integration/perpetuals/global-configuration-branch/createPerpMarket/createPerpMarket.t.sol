@@ -34,7 +34,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 1,
             minTradeSizeX18: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -66,7 +66,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 1,
             minTradeSizeX18: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -98,7 +98,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 1,
             minTradeSizeX18: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -135,7 +135,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 1,
             minTradeSizeX18: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -173,7 +173,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 1,
             minTradeSizeX18: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -212,7 +212,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 1,
             minTradeSizeX18: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -252,7 +252,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 1,
             minTradeSizeX18: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -293,7 +293,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 0,
             minTradeSizeX18: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -335,7 +335,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 1,
             minTradeSizeX18: 0,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -375,7 +375,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             skewScale: 1,
             minTradeSizeX18: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrderStrategies: customOrdersConfigurations,
+            customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
