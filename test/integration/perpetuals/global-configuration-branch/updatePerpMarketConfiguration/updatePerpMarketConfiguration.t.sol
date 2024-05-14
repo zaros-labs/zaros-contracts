@@ -20,7 +20,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_MarketIsNotInitialized(uint256 marketId) external {
+    function testFuzz_RevertGiven_MarketIsNotInitialized(uint256 marketId) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         uint128 marketIdNotInitialized = uint128(FINAL_MARKET_ID) + 1;
@@ -53,7 +53,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function test_RevertWhen_LengthOfNameIsZero(uint256 marketId) external givenMarketIsInitialized {
+    function testFuzz_RevertWhen_LengthOfNameIsZero(uint256 marketId) external givenMarketIsInitialized {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
@@ -82,7 +82,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function test_RevertWhen_LengthOfSymbolIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_LengthOfSymbolIsZero(uint256 marketId)
         external
         givenMarketIsInitialized
         givenLengthOfNameIsNotZero
@@ -115,7 +115,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function test_RevertWhen_PriceAdapterIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_PriceAdapterIsZero(uint256 marketId)
         external
         givenMarketIsInitialized
         givenLengthOfNameIsNotZero
@@ -149,7 +149,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function test_RevertWhen_MaintenanceMarginRateIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_MaintenanceMarginRateIsZero(uint256 marketId)
         external
         givenMarketIsInitialized
         givenLengthOfNameIsNotZero
@@ -184,7 +184,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function test_RevertWhen_MaxOpenInterestIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_MaxOpenInterestIsZero(uint256 marketId)
         external
         givenMarketIsInitialized
         givenLengthOfNameIsNotZero
@@ -220,7 +220,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function test_RevertWhen_InitialMarginRateIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_InitialMarginRateIsZero(uint256 marketId)
         external
         givenMarketIsInitialized
         givenLengthOfNameIsNotZero
@@ -257,7 +257,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function test_RevertWhen_SkewScaleIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_SkewScaleIsZero(uint256 marketId)
         external
         givenMarketIsInitialized
         givenLengthOfNameIsNotZero
@@ -295,7 +295,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function test_RevertWhen_MinTradeSizeIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_MinTradeSizeIsZero(uint256 marketId)
         external
         givenMarketIsInitialized
         givenLengthOfNameIsNotZero
@@ -330,7 +330,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         perpsEngine.updatePerpMarketConfiguration(params);
     }
 
-    function test_GivenMinTradeSizeIsNotZero(uint256 marketId)
+    function testFuzz_GivenMinTradeSizeIsNotZero(uint256 marketId)
         external
         givenMarketIsInitialized
         givenLengthOfNameIsNotZero

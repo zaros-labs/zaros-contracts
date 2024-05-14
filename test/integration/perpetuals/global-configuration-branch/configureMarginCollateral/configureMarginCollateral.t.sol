@@ -21,7 +21,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Integration_Shared_T
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_CollateralThatDoesNotHaveDecimals(
+    function testFuzz_RevertGiven_CollateralThatDoesNotHaveDecimals(
         uint128 depositCap,
         uint120 loanToValue,
         address priceFeed
@@ -47,7 +47,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Integration_Shared_T
         _;
     }
 
-    function test_RevertWhen_CollateralDecimalsIsGreaterThanSystemDecimals(
+    function testFuzz_RevertWhen_CollateralDecimalsIsGreaterThanSystemDecimals(
         uint128 depositCap,
         uint120 loanToValue
     )
@@ -76,7 +76,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Integration_Shared_T
         _;
     }
 
-    function test_RevertWhen_PriceFeedIsZero(
+    function testFuzz_RevertWhen_PriceFeedIsZero(
         uint128 depositCap,
         uint120 loanToValue
     )
@@ -108,7 +108,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Integration_Shared_T
         perpsEngine.configureMarginCollateral(address(collateral), depositCap, loanToValue, priceFeed);
     }
 
-    function test_GivenPriceFeedIsNotZero(
+    function testFuzz_GivenPriceFeedIsNotZero(
         uint128 depositCap,
         uint120 loanToValue
     )

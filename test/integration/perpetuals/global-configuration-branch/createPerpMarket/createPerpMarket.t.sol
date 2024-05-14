@@ -17,7 +17,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         configureSystemParameters();
     }
 
-    function test_RevertGiven_MarketIdIsZero(uint256 marketId) external {
+    function test_RevertGiven_MarketIdIsZero() external {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
@@ -346,7 +346,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    function test_GivenMinTradeSizeIsNotZero(uint256 marketId)
+    function test_GivenMinTradeSizeIsNotZero()
         external
         givenMarketIdIsNotZero
         givenLengthOfNameIsNotZero

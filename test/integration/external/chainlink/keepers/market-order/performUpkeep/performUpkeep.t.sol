@@ -4,16 +4,22 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
-import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
+import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { Markets } from "script/markets/Markets.sol";
+import { Log as AutomationLog } from "@zaros/external/chainlink/interfaces/ILogAutomation.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 
+import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
+
 // PRB Math dependencies
-import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
-contract GetAccountsWithActivePositions_Integration_Test is Base_Integration_Shared_Test {
+contract MarketOrderKeeper_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -24,20 +30,18 @@ contract GetAccountsWithActivePositions_Integration_Test is Base_Integration_Sha
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_DontHaveAccountWithActivePositions() external {
-        // it should revert
-        vm.expectRevert();
-
-        perpsEngine.getAccountsWithActivePositions(0, 0);
+    modifier givenInitializeContract() {
+        _;
     }
 
-    function testFuzz_GivenHaveAccountWithActivePositions(
+    function testFuzz_GivenCallPerformUpkeepFunction(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
         uint256 marketId
     )
         external
+        givenInitializeContract
     {
         changePrank({ msgSender: users.naruto });
 
@@ -78,10 +82,39 @@ contract GetAccountsWithActivePositions_Integration_Test is Base_Integration_Sha
 
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        changePrank({ msgSender: users.owner });
+        MarketOrderKeeper(marketOrderKeeper).setForwarder(marketOrderKeeper);
 
-        uint128[] memory accountsIds = perpsEngine.getAccountsWithActivePositions(0, 0);
-        assertEq(accountsIds[0], tradingAccountId, "getAccountsWithActivePositions: invalid account id");
+        bytes memory performData = abi.encode(mockSignedReport, abi.encode(tradingAccountId));
+
+        UD60x18 firstFillPriceX18 =
+            perpsEngine.getMarkPrice(fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta);
+
+        (,,, SD59x18 firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            tradingAccountId,
+            fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            sizeDelta
+        );
+
+        int256 firstOrderExpectedPnl =
+            unary(firstOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())).intoInt256();
+
+        // it should emit {LogSettleOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit SettlementBranch.LogFillOrder(
+            marketOrderKeeper,
+            tradingAccountId,
+            fuzzMarketConfig.marketId,
+            sizeDelta,
+            firstFillPriceX18.intoUint256(),
+            firstOrderFeeUsdX18.intoInt256(),
+            DEFAULT_SETTLEMENT_FEE,
+            firstOrderExpectedPnl,
+            0
+        );
+
+        changePrank({ msgSender: marketOrderKeeper });
+        MarketOrderKeeper(marketOrderKeeper).performUpkeep(performData);
     }
 }

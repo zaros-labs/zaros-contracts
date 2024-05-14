@@ -17,7 +17,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Integration_Shar
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_MarketOrderConfigurationOnChainWithDifferentStrategy(uint256 marketId) external {
+    function testFuzz_RevertGiven_MarketOrderConfigurationOnChainWithDifferentStrategy(uint256 marketId) external {
         changePrank({ msgSender: users.owner });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -43,7 +43,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Integration_Shar
         );
     }
 
-    function test_RevertGiven_OffChainConfigurationWithDifferentStrategy(uint256 marketId) external {
+    function testFuzz_RevertGiven_OffChainConfigurationWithDifferentStrategy(uint256 marketId) external {
         changePrank({ msgSender: users.owner });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -69,7 +69,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Integration_Shar
         );
     }
 
-    function test_GivenMarketOrderConfigurationOnChainWithYourStrategy(uint256 marketId) external {
+    function testFuzz_GivenMarketOrderConfigurationOnChainWithYourStrategy(uint256 marketId) external {
         changePrank({ msgSender: users.owner });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -101,7 +101,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Integration_Shar
         );
     }
 
-    function test_GivenOffChainConfigurationWithYourStrategy(uint256 marketId) external {
+    function testFuzz_GivenOffChainConfigurationWithYourStrategy(uint256 marketId) external {
         changePrank({ msgSender: users.owner });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);

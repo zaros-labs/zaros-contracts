@@ -18,7 +18,7 @@ contract SetTradingAccountToken_Integration_Test is Base_Integration_Shared_Test
         perpsEngine.setTradingAccountToken(address(0));
     }
 
-    function test_GivenTheTradingAccountTokenIsNotAZero(address tradingAccountToken) external {
+    function testFuzz_GivenTheTradingAccountTokenIsNotAZero(address tradingAccountToken) external {
         vm.assume(tradingAccountToken != address(0));
 
         // it should emit a {LogSetTradingAccountToken} event
