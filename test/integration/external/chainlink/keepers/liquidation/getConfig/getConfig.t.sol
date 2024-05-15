@@ -7,8 +7,6 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
 
-// Open Zeppelin dependencies
-
 contract LiquidationKeeperGetConfig_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();

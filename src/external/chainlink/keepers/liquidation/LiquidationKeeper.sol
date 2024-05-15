@@ -94,19 +94,19 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         return (true, extraData);
     }
 
-    function setConfig(
-        address perpsEngine,
-        address marginCollateralRecipeint,
-        address feeRecipient
-    )
-        external
-        onlyOwner
-    {
+    function setConfig(address marginCollateralRecipient, address liquidationFeeRecipient) external onlyOwner {
+        if (marginCollateralRecipient == address(0)) {
+            revert Errors.ZeroInput("marginCollateralRecipient");
+        }
+
+        if (liquidationFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("liquidationFeeRecipient");
+        }
+
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
 
-        self.perpsEngine = IPerpsEngine(perpsEngine);
-        self.marginCollateralRecipient = marginCollateralRecipeint;
-        self.liquidationFeeRecipient = feeRecipient;
+        self.marginCollateralRecipient = marginCollateralRecipient;
+        self.liquidationFeeRecipient = liquidationFeeRecipient;
     }
 
     function performUpkeep(bytes calldata peformData) external override onlyForwarder {
