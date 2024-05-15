@@ -7,10 +7,10 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
-contract PerpMarketBranchGetSkew_Integration_Test is Base_Integration_Shared_Test {
+contract PerpMarketBranchGetOpenInterest_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -19,7 +19,7 @@ contract PerpMarketBranchGetSkew_Integration_Test is Base_Integration_Shared_Tes
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_WhenCallGetSkewFunctionPassingTheMarketId(
+    function testFuzz_WhenCallGetOpenInterestFunctionPassingTheMarketId(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -72,11 +72,27 @@ contract PerpMarketBranchGetSkew_Integration_Test is Base_Integration_Shared_Tes
         changePrank({ msgSender: marketOrderKeeper });
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
 
-        // it should return the skew
-        SD59x18 skew = perpsEngine.getSkew(fuzzMarketConfig.marketId);
+        (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest) =
+            perpsEngine.getOpenInterest(fuzzMarketConfig.marketId);
 
-        int128 expectedSkew = sizeDelta;
-        assertEq(expectedSkew, skew.intoInt256(), "skew value is not correct");
+        uint256 expectedOpenInterest = sd59x18(sizeDelta).abs().intoUD60x18().intoUint256();
+
+        // it should return longs open interest
+        if (isLong) {
+            assertAlmostEq(
+                expectedOpenInterest, longsOpenInterest.intoUint256(), 1, "longs open interest is not correct"
+            );
+        }
+
+        // it should return shorts open interest
+        if (!isLong) {
+            assertAlmostEq(
+                expectedOpenInterest, shortsOpenInterest.intoUint256(), 1, "shorts open interest is not correct"
+            );
+        }
+
+        // it should return total open interest
+        assertAlmostEq(expectedOpenInterest, totalOpenInterest.intoUint256(), 1, "open interest is not correct");
 
         // Create a second order
         changePrank({ msgSender: users.naruto });
@@ -104,10 +120,20 @@ contract PerpMarketBranchGetSkew_Integration_Test is Base_Integration_Shared_Tes
             tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, secondMockSignedReport
         );
 
-        // it should return the skew
-        skew = perpsEngine.getSkew(fuzzMarketConfig.marketId);
+        (longsOpenInterest, shortsOpenInterest, totalOpenInterest) =
+            perpsEngine.getOpenInterest(fuzzMarketConfig.marketId);
 
-        expectedSkew = 0;
-        assertEq(expectedSkew, skew.intoInt256(), "skew value is not correct");
+        expectedOpenInterest = 0;
+
+        // it should return longs open interest
+        assertAlmostEq(expectedOpenInterest, longsOpenInterest.intoUint256(), 1, "longs open interest is not correct");
+
+        // it should return shorts open interest
+        assertAlmostEq(
+            expectedOpenInterest, shortsOpenInterest.intoUint256(), 1, "shorts open interest is not correct"
+        );
+
+        // it should return total open interest
+        assertAlmostEq(expectedOpenInterest, totalOpenInterest.intoUint256(), 1, "open interest is not correct");
     }
 }

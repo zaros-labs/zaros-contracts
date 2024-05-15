@@ -1,0 +1,5 @@
+PerpMarketBranchGetOpenInterest_Integration_Test
+└── when call getOpenInterest function passing the market id
+    ├── it should return longs open interest
+    ├── it should return shorts open interest
+    └── it should return total open interest
