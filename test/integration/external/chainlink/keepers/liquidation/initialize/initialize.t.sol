@@ -51,7 +51,6 @@ contract LiquidationKeeperInitialize_Integration_Test is Base_Integration_Shared
         address liquidationKeeperImplementation = address(new LiquidationKeeper());
 
         address marginCollateralRecipient = address(0);
-        address liquidationFeeRecipient = address(0x123);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marginCollateralRecipient") });
@@ -63,7 +62,7 @@ contract LiquidationKeeperInitialize_Integration_Test is Base_Integration_Shared
                 users.owner,
                 address(perpsEngine),
                 marginCollateralRecipient,
-                liquidationFeeRecipient
+                users.settlementFeeRecipient
             )
         );
     }
