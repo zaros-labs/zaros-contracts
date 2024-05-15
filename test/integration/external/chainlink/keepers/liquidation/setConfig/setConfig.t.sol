@@ -41,7 +41,9 @@ contract LiquidationKeeperSetConfig_Integration_Test is Base_Integration_Shared_
             revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto)
         });
 
-        LiquidationKeeper(liquidationKeeper).setConfig(users.marginCollateralRecipient, users.settlementFeeRecipient);
+        LiquidationKeeper(liquidationKeeper).setConfig(
+            address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
+        );
     }
 
     modifier whenIAmTheOwner() {
@@ -58,16 +60,48 @@ contract LiquidationKeeperSetConfig_Integration_Test is Base_Integration_Shared_
         address newMarginCollateralRecipient = address(0x123);
         address newSettlementFeeRecipient = address(0x456);
 
-        LiquidationKeeper(liquidationKeeper).setConfig(newMarginCollateralRecipient, newSettlementFeeRecipient);
+        LiquidationKeeper(liquidationKeeper).setConfig(
+            address(perpsEngine), newMarginCollateralRecipient, newSettlementFeeRecipient
+        );
 
         // it should update config
-        (, address marginCollateralRecipient, address liquidationFeeRecipient) =
-            LiquidationKeeper(liquidationKeeper).getConfig();
+        (
+            address keeperOwner,
+            address perpsEngineOfLiquidationKeeper,
+            address marginCollateralRecipient,
+            address liquidationFeeRecipient
+        ) = LiquidationKeeper(liquidationKeeper).getConfig();
+
+        assertEq(keeperOwner, users.owner, "owner is not correct");
+
+        assertEq(perpsEngineOfLiquidationKeeper, address(perpsEngine), "owner is not correct");
 
         assertEq(
             marginCollateralRecipient, newMarginCollateralRecipient, "margin collateral recipient is not correct"
         );
         assertEq(newSettlementFeeRecipient, liquidationFeeRecipient, "liquidation fee recipient is not correct");
+    }
+
+    function test_RevertWhen_PerpsEngineIsZero()
+        external
+        givenInitializeContract
+        givenCallSetConfigFunction
+        whenIAmTheOwner
+    {
+        changePrank({ msgSender: users.owner });
+
+        address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
+            users.owner, address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
+        );
+
+        address perpsEngine = address(0);
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "perpsEngine") });
+
+        LiquidationKeeper(liquidationKeeper).setConfig(
+            perpsEngine, users.marginCollateralRecipient, users.settlementFeeRecipient
+        );
     }
 
     function test_RevertWhen_MarginCollateralRecipientIsZero()
@@ -87,7 +121,9 @@ contract LiquidationKeeperSetConfig_Integration_Test is Base_Integration_Shared_
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marginCollateralRecipient") });
 
-        LiquidationKeeper(liquidationKeeper).setConfig(newMarginCollateralRecipient, users.settlementFeeRecipient);
+        LiquidationKeeper(liquidationKeeper).setConfig(
+            address(perpsEngine), newMarginCollateralRecipient, users.settlementFeeRecipient
+        );
     }
 
     function test_RevertWhen_LiquidationFeeRecipientIsZero()
@@ -107,6 +143,8 @@ contract LiquidationKeeperSetConfig_Integration_Test is Base_Integration_Shared_
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeRecipient") });
 
-        LiquidationKeeper(liquidationKeeper).setConfig(users.marginCollateralRecipient, newSettlementFeeRecipient);
+        LiquidationKeeper(liquidationKeeper).setConfig(
+            address(perpsEngine), users.marginCollateralRecipient, newSettlementFeeRecipient
+        );
     }
 }

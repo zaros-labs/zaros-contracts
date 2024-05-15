@@ -58,11 +58,17 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     function getConfig()
         public
         view
-        returns (address keeperOwner, address marginCollateralRecipient, address liquidationFeeRecipient)
+        returns (
+            address keeperOwner,
+            address perpsEngine,
+            address marginCollateralRecipient,
+            address liquidationFeeRecipient
+        )
     {
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
 
         keeperOwner = owner();
+        perpsEngine = address(self.perpsEngine);
         marginCollateralRecipient = self.marginCollateralRecipient;
         liquidationFeeRecipient = self.liquidationFeeRecipient;
     }
@@ -100,7 +106,18 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         return (true, extraData);
     }
 
-    function setConfig(address marginCollateralRecipient, address liquidationFeeRecipient) external onlyOwner {
+    function setConfig(
+        address perpsEngine,
+        address marginCollateralRecipient,
+        address liquidationFeeRecipient
+    )
+        external
+        onlyOwner
+    {
+        if (perpsEngine == address(0)) {
+            revert Errors.ZeroInput("perpsEngine");
+        }
+
         if (marginCollateralRecipient == address(0)) {
             revert Errors.ZeroInput("marginCollateralRecipient");
         }
@@ -111,6 +128,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
 
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
 
+        self.perpsEngine = IPerpsEngine(perpsEngine);
         self.marginCollateralRecipient = marginCollateralRecipient;
         self.liquidationFeeRecipient = liquidationFeeRecipient;
     }
