@@ -4,7 +4,10 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
-contract PerpMarketBranchGetSymbol_Integration_Test is Base_Integration_Shared_Test {
+// PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+
+contract PerpMarketBranchGetMaxOpenInterest_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -13,12 +16,12 @@ contract PerpMarketBranchGetSymbol_Integration_Test is Base_Integration_Shared_T
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_WhenCallGetSymbolFunctionPassingTheMarketId(uint256 marketId) external {
+    function testFuzz_WhenCallGetMaxOpenInterestFunctionPassingTheMarketId(uint256 marketId) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        // it should return the symbol of market
-        string memory marketSymbol = perpsEngine.getSymbol(fuzzMarketConfig.marketId);
+        // it should return the max open interest
+        UD60x18 maxOpenInterest = perpsEngine.getMaxOpenInterest(fuzzMarketConfig.marketId);
 
-        assertEq(fuzzMarketConfig.marketSymbol, marketSymbol, "Invalid market symbol");
+        assertEq(fuzzMarketConfig.maxOi, maxOpenInterest.intoUint128(), "Invalid max open interest");
     }
 }

@@ -1,0 +1,3 @@
+PerpMarketBranchGetMaxOpenInterest_Integration_Test
+└── when call getMaxOpenInterest function passing the market id
+    └── it should return the max open interest
