@@ -97,17 +97,6 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         marketId = self.marketId;
     }
 
-    // function checkErrorHandler(
-    //     uint256 errorCode,
-    //     bytes memory extraData
-    // )
-    //     external
-    //     pure
-    //     returns (bool upkeepNeeded, bytes memory performData)
-    // {
-    //     return (true, abi.encode(errorCode));
-    // }
-
     /// @inheritdoc ILogAutomation
     function checkLog(
         AutomationLog calldata log,
