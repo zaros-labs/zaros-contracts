@@ -158,6 +158,11 @@ contract LiquidationBranch {
                 perpMarket.updateFunding(ctx.fundingRateUsdX18, ctx.fundingFeePerUnitUsdX18);
                 position.clear();
                 tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
+
+                (UD60x18 newOpenInterest, SD59x18 newSkew) = perpMarket.checkOpenInterestLimits(
+                    -ctx.oldPositionSizeX18, ctx.oldPositionSizeX18, sd59x18(position.size)
+                );
+                perpMarket.updateOpenInterest(newOpenInterest, newSkew);
             }
 
             emit LogLiquidateAccount(

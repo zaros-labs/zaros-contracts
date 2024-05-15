@@ -13,4 +13,7 @@ LiquidateAccounts_Integration_Test
                 ├── it should update each active market funding values
                 ├── it should close all active positions
                 ├── it should remove the account's all active markets
-                └── it should emit a {LogLiquidateAccount} event
+                ├── it should emit a {LogLiquidateAccount} event
+                ├── it should update open interest value
+                └── it should update skew value
+

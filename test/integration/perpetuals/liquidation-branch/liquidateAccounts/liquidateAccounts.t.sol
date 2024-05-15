@@ -151,6 +151,14 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
 
             // TODO: setup storage for unit tests
             // it should remove the account's all active markets
+
+            // it should update open interest value
+            (,, UD60x18 openInterestX18) = perpsEngine.getOpenInterest(marketOrder.marketId);
+            assertEq(0, openInterestX18.intoUint256(), "open interest value should be zero");
+
+            // it should update skew value
+            SD59x18 skewX18 = perpsEngine.getSkew(marketOrder.marketId);
+            assertEq(0, skewX18.intoInt256(), "skew value should be zero");
         }
     }
 }
