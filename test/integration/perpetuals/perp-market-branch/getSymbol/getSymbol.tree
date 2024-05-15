@@ -1,0 +1,3 @@
+PerpMarketBranchGetSymbol_Integration_Test
+└── when call getName function passing the market id
+    └── it should return the symbol of market
