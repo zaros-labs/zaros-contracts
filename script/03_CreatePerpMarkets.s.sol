@@ -88,7 +88,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                     minTradeSizeX18: filteredMarketsConfig[i].minTradeSize,
                     maxFundingVelocity: filteredMarketsConfig[i].maxFundingVelocity,
                     marketOrderConfiguration: marketOrderConfiguration,
-                    customOrderStrategies: customOrdersConfigurations,
+                    customOrdersConfiguration: customOrdersConfigurations,
                     orderFees: filteredMarketsConfig[i].orderFees
                 })
             });

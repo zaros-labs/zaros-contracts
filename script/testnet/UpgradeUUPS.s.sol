@@ -14,7 +14,7 @@ import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract UpdateUUPS is BaseScript {
+contract UpgradeUUPS is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/

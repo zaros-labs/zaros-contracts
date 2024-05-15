@@ -41,7 +41,7 @@ contract UpgradeBranches is BaseScript {
         // OrderBranch orderBranch = new OrderBranch();
 
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
-        // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](3);
         // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
         bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
@@ -62,6 +62,10 @@ contract UpgradeBranches is BaseScript {
         // tradingAccountBranchTestnetSelectorsAdded[3] = TradingAccountBranchTestnet.getUserReferralData.selector;
         // tradingAccountBranchTestnetSelectorsAdded[4] =
         // TradingAccountBranchTestnet.getCustomReferralCodeReferee.selector;
+
+        // tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranch.getAccountMarginBreakdown.selector;
+        // tradingAccountBranchTestnetSelectorsUpdated[1] = TradingAccountBranch.getAccountEquityUsd.selector;
+        // tradingAccountBranchTestnetSelectorsUpdated[2] = TradingAccountBranch.getAccountLeverage.selector;
 
         // tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranchTestnet.getUserReferralData.selector;
         // tradingAccountBranchTestnetSelectorsUpdated[1] =

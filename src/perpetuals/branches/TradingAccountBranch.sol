@@ -188,10 +188,12 @@ contract TradingAccountBranch {
     /// @notice Gets the given market's position state.
     /// @param tradingAccountId The trading account id.
     /// @param marketId The perps market id.
+    /// @param indexPrice The market's offchain index price.
     /// @return positionState The position's current state.
     function getPositionState(
         uint128 tradingAccountId,
-        uint128 marketId
+        uint128 marketId,
+        uint256 indexPrice
     )
         external
         view
@@ -200,7 +202,7 @@ contract TradingAccountBranch {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         Position.Data storage position = Position.load(tradingAccountId, marketId);
 
-        UD60x18 markPriceX18 = perpMarket.getMarkPrice(unary(sd59x18(position.size)), perpMarket.getIndexPrice());
+        UD60x18 markPriceX18 = perpMarket.getMarkPrice(unary(sd59x18(position.size)), ud60x18(indexPrice));
         SD59x18 fundingFeePerUnit =
             perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPriceX18);
 

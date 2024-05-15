@@ -9,7 +9,7 @@ library Constants {
     /// @notice Maximum minimum delegation time to markets.
     uint32 internal constant MAX_MIN_DELEGATE_TIME = 30 days;
     /// @notice Default period for the proportional funding rate calculations.
-    uint256 internal constant FUNDING_INTERVAL = 1 days;
+    uint256 internal constant PROPORTIONAL_FUNDING_PERIOD = 1 days;
 
     /// @notice Feature flags for all permissionless features.
     bytes32 internal constant CREATE_ACCOUNT_FEATURE_FLAG = "createAccount";
