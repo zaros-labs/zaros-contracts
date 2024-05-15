@@ -28,6 +28,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     /// @notice {LiquidationKeeper} UUPS initializer.
     function initialize(
         address owner,
+        IPerpsEngine perpsEngine,
         address marginCollateralRecipient,
         address liquidationFeeRecipient
     )
@@ -35,6 +36,10 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         initializer
     {
         __BaseKeeper_init(owner);
+
+        if (address(perpsEngine) == address(0)) {
+            revert Errors.ZeroInput("perpsEngine");
+        }
 
         if (marginCollateralRecipient == address(0)) {
             revert Errors.ZeroInput("marginCollateralRecipient");
@@ -45,6 +50,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         }
 
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
+        self.perpsEngine = perpsEngine;
         self.marginCollateralRecipient = marginCollateralRecipient;
         self.liquidationFeeRecipient = liquidationFeeRecipient;
     }

@@ -166,7 +166,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     function configureLiquidationKeepers() internal {
         changePrank({ msgSender: users.owner });
         liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
-            address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
+            users.owner, address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
         );
 
         address[] memory liquidators = new address[](1);

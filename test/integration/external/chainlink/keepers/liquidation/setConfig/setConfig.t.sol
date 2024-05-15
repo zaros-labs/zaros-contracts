@@ -33,7 +33,7 @@ contract LiquidationKeeperSetConfig_Integration_Test is Base_Integration_Shared_
         changePrank({ msgSender: users.naruto });
 
         address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
-            address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
+            users.owner, address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
         );
 
         // it should revert
@@ -52,7 +52,7 @@ contract LiquidationKeeperSetConfig_Integration_Test is Base_Integration_Shared_
         changePrank({ msgSender: users.owner });
 
         address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
-            users.owner, users.marginCollateralRecipient, users.settlementFeeRecipient
+            users.owner, address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
         );
 
         address newMarginCollateralRecipient = address(0x123);
@@ -79,7 +79,7 @@ contract LiquidationKeeperSetConfig_Integration_Test is Base_Integration_Shared_
         changePrank({ msgSender: users.owner });
 
         address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
-            users.owner, users.marginCollateralRecipient, users.settlementFeeRecipient
+            users.owner, address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
         );
 
         address newMarginCollateralRecipient = address(0);
@@ -99,7 +99,7 @@ contract LiquidationKeeperSetConfig_Integration_Test is Base_Integration_Shared_
         changePrank({ msgSender: users.owner });
 
         address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
-            users.owner, users.marginCollateralRecipient, users.settlementFeeRecipient
+            users.owner, address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
         );
 
         address newSettlementFeeRecipient = address(0);

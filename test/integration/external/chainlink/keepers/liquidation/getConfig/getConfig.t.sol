@@ -24,7 +24,7 @@ contract LiquidationKeeperGetConfig_Integration_Test is Base_Integration_Shared_
 
     function test_WhenCallGetConfigFunction() external givenInitializeContract {
         address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
-            address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
+            users.owner, address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
         );
 
         (address keeperOwner, address marginCollateralRecipient, address liquidationFeeRecipient) =
