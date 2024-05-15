@@ -43,7 +43,7 @@ contract UpgradeBranches is BaseScript {
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
-        // bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
+        bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
 
         // RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](4);
