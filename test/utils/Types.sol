@@ -13,6 +13,8 @@ struct Users {
     address payable orderFeeRecipient;
     // Address that receives settlement fee payments.
     address payable settlementFeeRecipient;
+    // Default forwarder for Chainlink Automation-powered keepers
+    address payable keepersForwarder;
     // Impartial user 1.
     address payable naruto;
     // Impartial user 2.

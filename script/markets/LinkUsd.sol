@@ -5,10 +5,6 @@ pragma solidity 0.8.25;
 import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
-// PRB Math dependencies
-import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
-import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } from "@prb-math/SD59x18.sol";
-
 abstract contract LinkUsd {
     /// @notice LINK/USD market configuration parameters.
     uint128 internal constant LINK_USD_MARKET_ID = 3;

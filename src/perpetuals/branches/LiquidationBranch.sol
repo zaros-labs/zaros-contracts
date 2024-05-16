@@ -64,6 +64,7 @@ contract LiquidationBranch {
         if (liquidatableAccountsIds.length == 0) return liquidatableAccountsIds;
 
         for (uint256 i = lowerBound; i < upperBound; i++) {
+            if (i >= globalConfiguration.accountsIdsWithActivePositions.length()) break;
             uint128 tradingAccountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
@@ -112,6 +113,7 @@ contract LiquidationBranch {
 
         for (uint256 i = 0; i < accountsIds.length; i++) {
             ctx.tradingAccountId = accountsIds[i];
+            if (ctx.tradingAccountId == 0) continue;
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
 
             (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =

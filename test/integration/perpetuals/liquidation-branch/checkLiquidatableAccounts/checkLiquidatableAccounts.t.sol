@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { LiquidationBranch_Integration_Test } from "../LiquidationBranchIntegration.t.sol";
+import { LiquidationBranch_Integration_Test } from "test/integration/shared/LiquidationBranchIntegration.t.sol";
 
 contract CheckLiquidatableAccounts_Integration_Test is LiquidationBranch_Integration_Test {
     function test_WhenTheBoundsAreZero() external {

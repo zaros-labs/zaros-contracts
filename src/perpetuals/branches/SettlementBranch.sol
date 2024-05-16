@@ -203,7 +203,6 @@ contract SettlementBranch {
         ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDelta, ctx.fillPrice);
         ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
-        // TODO: review at margin requirement task
         {
             (
                 UD60x18 requiredInitialMarginUsdX18,

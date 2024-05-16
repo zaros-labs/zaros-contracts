@@ -77,6 +77,7 @@ library AutomationHelpers {
     }
 
     function deployLiquidationKeeper(
+        address owner,
         address perpsEngine,
         address marginCollateralRecipient,
         address settlementFeeRecipient
@@ -91,6 +92,7 @@ library AutomationHelpers {
                 liquidationKeeperImplementation,
                 abi.encodeWithSelector(
                     LiquidationKeeper(liquidationKeeperImplementation).initialize.selector,
+                    owner,
                     perpsEngine,
                     marginCollateralRecipient,
                     settlementFeeRecipient

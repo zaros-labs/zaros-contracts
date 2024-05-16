@@ -1,0 +1,13 @@
+LiquidationKeeper_SetConfig_Integration_Test
+└── given initialize contract
+    └── given call setConfig function
+        ├── when I am not the owner
+        │   └── it should revert
+        └── when I am the owner
+            ├── when perpsEngine is zero
+            │   └── it should revert
+            ├── when margin collateral recipient is zero
+            │   └── it should revert
+            ├── when liquidation fee recipient is zero
+            │   └── it should revert
+            └── it should update config

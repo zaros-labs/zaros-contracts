@@ -7,7 +7,6 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";
 
-// TODO: store margin and liquidation fee recipients
 contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     bytes32 internal constant LIQUIDATION_KEEPER_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.LiquidationKeeper")) - 1)
@@ -28,6 +27,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     /// @notice {LiquidationKeeper} UUPS initializer.
     function initialize(
         address owner,
+        IPerpsEngine perpsEngine,
         address marginCollateralRecipient,
         address liquidationFeeRecipient
     )
@@ -36,9 +36,40 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     {
         __BaseKeeper_init(owner);
 
+        if (address(perpsEngine) == address(0)) {
+            revert Errors.ZeroInput("perpsEngine");
+        }
+
+        if (marginCollateralRecipient == address(0)) {
+            revert Errors.ZeroInput("marginCollateralRecipient");
+        }
+
+        if (liquidationFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("liquidationFeeRecipient");
+        }
+
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
+        self.perpsEngine = perpsEngine;
         self.marginCollateralRecipient = marginCollateralRecipient;
         self.liquidationFeeRecipient = liquidationFeeRecipient;
+    }
+
+    function getConfig()
+        public
+        view
+        returns (
+            address keeperOwner,
+            address perpsEngine,
+            address marginCollateralRecipient,
+            address liquidationFeeRecipient
+        )
+    {
+        LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
+
+        keeperOwner = owner();
+        perpsEngine = address(self.perpsEngine);
+        marginCollateralRecipient = self.marginCollateralRecipient;
+        liquidationFeeRecipient = self.liquidationFeeRecipient;
     }
 
     function checkUpkeep(bytes calldata checkData)
@@ -61,32 +92,46 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
             return (false, bytes(""));
         }
 
-        uint128[] memory accountsToBeLiquidated;
+        uint128[] memory accountsToBeLiquidated = new uint128[](performUpperBound - performLowerBound);
 
-        for (uint256 i = performLowerBound; i < performUpperBound; i++) {
-            if (i < liquidatableAccountsIds.length) {
-                accountsToBeLiquidated[i] = liquidatableAccountsIds[i];
+        for (uint256 i = 0; i < accountsToBeLiquidated.length; i++) {
+            uint256 accountIdIndexAtLiquidatableAccounts = performLowerBound + i - 1;
+            accountsToBeLiquidated[i] = liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts];
+            if (!upkeepNeeded && liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts] != 0) {
+                upkeepNeeded = true;
             }
         }
 
         bytes memory extraData = abi.encode(accountsToBeLiquidated, address(this));
 
-        return (true, extraData);
+        return (upkeepNeeded, extraData);
     }
 
     function setConfig(
         address perpsEngine,
-        address marginCollateralRecipeint,
-        address feeRecipient
+        address marginCollateralRecipient,
+        address liquidationFeeRecipient
     )
         external
         onlyOwner
     {
+        if (perpsEngine == address(0)) {
+            revert Errors.ZeroInput("perpsEngine");
+        }
+
+        if (marginCollateralRecipient == address(0)) {
+            revert Errors.ZeroInput("marginCollateralRecipient");
+        }
+
+        if (liquidationFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("liquidationFeeRecipient");
+        }
+
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
 
         self.perpsEngine = IPerpsEngine(perpsEngine);
-        self.marginCollateralRecipient = marginCollateralRecipeint;
-        self.liquidationFeeRecipient = feeRecipient;
+        self.marginCollateralRecipient = marginCollateralRecipient;
+        self.liquidationFeeRecipient = liquidationFeeRecipient;
     }
 
     function performUpkeep(bytes calldata peformData) external override onlyForwarder {

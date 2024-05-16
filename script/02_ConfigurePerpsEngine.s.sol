@@ -78,7 +78,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         // });
 
         address liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(address(perpsEngine), MSIG_ADDRESS, MSIG_ADDRESS);
+            AutomationHelpers.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS, MSIG_ADDRESS);
         console.log("Liquidation Keeper: ", liquidationKeeper);
 
         address[] memory liquidators = new address[](1);
