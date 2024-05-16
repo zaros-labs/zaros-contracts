@@ -13,7 +13,7 @@ contract GetName_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_GivenTheresAnMarketCreated(uint256 marketId) external {
+    function testFuzz_GivenTheresAMarketCreated(uint256 marketId) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // it should return the name of market
