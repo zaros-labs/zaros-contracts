@@ -78,8 +78,11 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Int
 
         // it should return upkeepNeeded == false
         assertFalse(upkeepNeeded, "upkeepNeeded");
-        // it should return an empty byte array
-        assertEq(performData.length, 0, "performData.length");
+        uint128[] memory liquidatableAccountsIds = abi.decode(performData, (uint128[]));
+
+        for (uint256 i = 0; i < liquidatableAccountsIds.length; i++) {
+            assertEq(liquidatableAccountsIds[i], 0, "liquidatableAccountsIds");
+        }
     }
 
     function testFuzz_GivenThereAreLiquidatableAccounts(

@@ -113,6 +113,7 @@ contract LiquidationBranch {
 
         for (uint256 i = 0; i < accountsIds.length; i++) {
             ctx.tradingAccountId = accountsIds[i];
+            if (ctx.tradingAccountId == 0) continue;
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
 
             (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =

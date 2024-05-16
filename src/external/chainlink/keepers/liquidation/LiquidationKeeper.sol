@@ -97,8 +97,9 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         uint128[] memory accountsToBeLiquidated = new uint128[](performUpperBound - performLowerBound);
 
         for (uint256 i = performLowerBound; i < performUpperBound; i++) {
-            if (i < liquidatableAccountsIds.length) {
+            if (i < liquidatableAccountsIds.length && liquidatableAccountsIds[i] != 0) {
                 accountsToBeLiquidated[i] = liquidatableAccountsIds[i];
+                if (!upkeepNeeded) upkeepNeeded = true;
             } else {
                 break;
             }
@@ -108,7 +109,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
 
         bytes memory extraData = abi.encode(accountsToBeLiquidated, address(this));
 
-        return (true, extraData);
+        return (upkeepNeeded, extraData);
     }
 
     function setConfig(
