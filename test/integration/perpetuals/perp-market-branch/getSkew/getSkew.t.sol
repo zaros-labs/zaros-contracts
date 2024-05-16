@@ -10,7 +10,7 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
-contract PerpMarketBranchGetSkew_Integration_Test is Base_Integration_Shared_Test {
+contract GetSkew_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -19,7 +19,7 @@ contract PerpMarketBranchGetSkew_Integration_Test is Base_Integration_Shared_Tes
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_WhenCallGetSkewFunctionPassingTheMarketId(
+    function testFuzz_GivenTheresAPositionCreated(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
