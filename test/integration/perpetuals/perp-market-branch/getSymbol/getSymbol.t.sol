@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
-contract PerpMarketBranchGetSymbol_Integration_Test is Base_Integration_Shared_Test {
+contract GetSymbol_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -13,7 +13,7 @@ contract PerpMarketBranchGetSymbol_Integration_Test is Base_Integration_Shared_T
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_WhenCallGetSymbolFunctionPassingTheMarketId(uint256 marketId) external {
+    function testFuzz_GivenTheresAMarketCreated(uint256 marketId) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // it should return the symbol of market
