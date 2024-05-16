@@ -89,7 +89,8 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint128[] memory accountsIds = new uint128[](amountOfTradingAccounts + 1);
+        // last account id == 0
+        uint128[] memory accountsIds = new uint128[](amountOfTradingAccounts + 2);
 
         uint256 accountMarginValueUsd = marginValueUsd / (amountOfTradingAccounts + 1);
 
@@ -103,12 +104,12 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
         _setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
 
         uint128 nonLiquidatableTradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
-        accountsIds[amountOfTradingAccounts] = nonLiquidatableTradingAccountId;
+        accountsIds[amountOfTradingAccounts - 1] = nonLiquidatableTradingAccountId;
 
         changePrank({ msgSender: liquidationKeeper });
 
         for (uint256 i = 0; i < accountsIds.length; i++) {
-            if (accountsIds[i] == nonLiquidatableTradingAccountId) {
+            if (accountsIds[i] == nonLiquidatableTradingAccountId || accountsIds[i] == 0) {
                 continue;
             }
 
