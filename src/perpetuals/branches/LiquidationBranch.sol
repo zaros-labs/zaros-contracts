@@ -64,6 +64,7 @@ contract LiquidationBranch {
         if (liquidatableAccountsIds.length == 0) return liquidatableAccountsIds;
 
         for (uint256 i = lowerBound; i < upperBound; i++) {
+            if (i >= globalConfiguration.accountsIdsWithActivePositions.length()) break;
             uint128 tradingAccountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
