@@ -1,3 +1,3 @@
-PerpMarketBranchGetName_Integration_Test
-└── when call getName function passing the market id
+GetName_Integration_Test
+└── given there's an market created
     └── it should return the name of market

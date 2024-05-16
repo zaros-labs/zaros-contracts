@@ -19,7 +19,7 @@ contract GetMaxOpenInterest_Integration_Test is Base_Integration_Shared_Test {
     function testFuzz_GivenTheresAnMarketCreated(uint256 marketId) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        // it should return the max open interest
+        // it should return the max open interest of market
         UD60x18 maxOpenInterest = perpsEngine.getMaxOpenInterest(fuzzMarketConfig.marketId);
 
         assertEq(fuzzMarketConfig.maxOi, maxOpenInterest.intoUint128(), "Invalid max open interest");

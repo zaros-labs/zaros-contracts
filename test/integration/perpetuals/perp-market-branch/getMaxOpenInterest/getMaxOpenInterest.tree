@@ -1,3 +1,3 @@
 GetMaxOpenInterest_Integration_Test
 └── given there's an market created
-    └── it should return the max open interest
+    └── it should return the max open interest of market
