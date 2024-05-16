@@ -17,8 +17,6 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
@@ -473,11 +471,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             sizeDelta
         );
 
-        console.log("test simulate trade vals: ");
-        console.log(marginBalanceUsdX18.intoUD60x18().intoUint256());
-        console.log(requiredInitialMarginUsdX18.intoUint256(), requiredMaintenanceMarginUsdX18.intoUint256());
-        console.log(orderFeeUsdX18.intoUD60x18().intoUint256());
-
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
 
@@ -727,9 +720,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should deduct the pnl and fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
-        console.log("returned margin bal: ");
-        console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
-        assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
 
         changePrank({ msgSender: users.naruto });
 
@@ -821,9 +811,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should deduct the pnl and fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
-        console.log("returned margin bal: ");
-        console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
-        assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
 
         // it should delete any active market order
         ctx.marketOrder = perpsEngine.getActiveMarketOrder(ctx.tradingAccountId);
@@ -959,7 +946,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         });
 
         // fill first order and open position
-        console.log("filling first order: ");
         perpsEngine.fillMarketOrder(
             ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.firstMockSignedReport
         );
@@ -989,8 +975,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should deduct fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
-        console.log("returned margin bal: ");
-        console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
 
         changePrank({ msgSender: users.naruto });
@@ -1046,7 +1030,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             fundingFeePerUnit: 0
         });
         // fill second order and close position
-        console.log("filling second order: ");
         perpsEngine.fillMarketOrder(
             ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.secondMockSignedReport
         );
@@ -1074,8 +1057,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         // it should add the pnl into the account's margin
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
-        console.log("returned margin bal: ");
-        console.log(ctx.marginBalanceUsdX18.intoUD60x18().intoUint256());
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
 
         // it should delete any active market order

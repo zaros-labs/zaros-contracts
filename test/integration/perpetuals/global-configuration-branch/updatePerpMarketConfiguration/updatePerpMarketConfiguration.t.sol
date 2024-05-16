@@ -9,8 +9,6 @@ import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguratio
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 
-import "forge-std/console.sol";
-
 contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();

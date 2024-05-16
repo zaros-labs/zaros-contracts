@@ -7,8 +7,6 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     bytes32 internal constant LIQUIDATION_KEEPER_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.LiquidationKeeper")) - 1)
@@ -103,8 +101,6 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
                 upkeepNeeded = true;
             }
         }
-
-        console.log(accountsToBeLiquidated.length);
 
         bytes memory extraData = abi.encode(accountsToBeLiquidated, address(this));
 

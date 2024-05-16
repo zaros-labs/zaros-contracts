@@ -13,8 +13,6 @@ import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountB
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-import "forge-std/console.sol";
-
 contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();

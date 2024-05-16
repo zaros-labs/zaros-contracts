@@ -6,8 +6,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { LiquidationBranch_Integration_Test } from "test/integration/shared/LiquidationBranchIntegration.t.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Integration_Test {
     function testFuzz_RevertWhen_TheCheckLowerBoundIsHigherThanTheCheckUpperBound(
         uint256 checkLowerBound,

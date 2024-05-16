@@ -20,8 +20,6 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract OrderBranch {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
@@ -99,10 +97,6 @@ contract OrderBranch {
         {
             Position.Data storage position = Position.load(tradingAccountId, marketId);
             SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sd59x18(sizeDelta));
-
-            console.log("new pos size from simulate trade: ");
-            console.log(newPositionSizeX18.lt(sd59x18(0)));
-            console.log(newPositionSizeX18.abs().intoUD60x18().intoUint256());
 
             if (
                 !newPositionSizeX18.isZero()

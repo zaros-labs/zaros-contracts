@@ -15,8 +15,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     using SafeCast for int256;
 
@@ -321,9 +319,6 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
 
-        console.log(feeRecipients.marginCollateralRecipient);
-        console.log(feeRecipients.orderFeeRecipient);
-        console.log(feeRecipients.settlementFeeRecipient);
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
 
         changePrank({ msgSender: users.naruto });
