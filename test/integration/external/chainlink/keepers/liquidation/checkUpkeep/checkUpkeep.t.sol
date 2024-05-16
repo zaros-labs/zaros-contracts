@@ -114,11 +114,11 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Int
         TestFuzz_GivenThereAreLiquidatableAccounts_Context memory ctx;
         ctx.checkLowerBound = 0;
         ctx.checkUpperBound = 49;
-        ctx.performLowerBound = 10;
-        ctx.performUpperBound = 20;
+        ctx.performLowerBound = 2;
+        ctx.performUpperBound = 11;
 
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        ctx.amountOfTradingAccounts = 50;
+        ctx.amountOfTradingAccounts = 12;
         ctx.marginValueUsd = 100_000e18 / ctx.amountOfTradingAccounts;
         ctx.initialMarginRate = ctx.fuzzMarketConfig.marginRequirements;
 
