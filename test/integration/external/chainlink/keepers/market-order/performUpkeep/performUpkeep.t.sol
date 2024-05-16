@@ -19,7 +19,7 @@ import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-orde
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
-contract MarketOrderKeeperPerformUpkeep_Integration_Test is Base_Integration_Shared_Test {
+contract MarketOrderKeeper_PerformUpkeep_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });

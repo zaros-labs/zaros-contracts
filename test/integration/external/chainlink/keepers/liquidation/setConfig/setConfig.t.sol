@@ -10,7 +10,7 @@ import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
-contract LiquidationKeeperSetConfig_Integration_Test is Base_Integration_Shared_Test {
+contract LiquidationKeeper_SetConfig_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });

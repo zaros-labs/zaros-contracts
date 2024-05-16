@@ -10,7 +10,7 @@ import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.
 import { LiquidationBranch_Integration_Test } from
     "test/integration/perpetuals/liquidation-branch/LiquidationBranchIntegration.t.sol";
 
-contract LiquidationKeeperPerformUpkeep_Integration_Test is LiquidationBranch_Integration_Test {
+contract LiquidationKeeper_PerformUpkeep_Integration_Test is LiquidationBranch_Integration_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });

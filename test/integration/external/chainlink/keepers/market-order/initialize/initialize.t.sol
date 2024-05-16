@@ -10,7 +10,7 @@ import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-orde
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract MarketOrderKeeperInitialize_Integration_Test is Base_Integration_Shared_Test {
+contract MarketOrderKeeper_Initialize_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
