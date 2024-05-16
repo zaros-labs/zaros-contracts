@@ -7,7 +7,7 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
-contract PerpMarketBranchGetMaxOpenInterest_Integration_Test is Base_Integration_Shared_Test {
+contract GetMaxOpenInterest_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -16,7 +16,7 @@ contract PerpMarketBranchGetMaxOpenInterest_Integration_Test is Base_Integration
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_WhenCallGetMaxOpenInterestFunctionPassingTheMarketId(uint256 marketId) external {
+    function testFuzz_GivenTheresAnMarketCreated(uint256 marketId) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // it should return the max open interest
