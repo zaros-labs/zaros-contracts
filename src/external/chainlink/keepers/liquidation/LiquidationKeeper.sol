@@ -96,12 +96,11 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
 
         uint128[] memory accountsToBeLiquidated = new uint128[](performUpperBound - performLowerBound);
 
-        for (uint256 i = performLowerBound; i < performUpperBound; i++) {
-            if (i < liquidatableAccountsIds.length && liquidatableAccountsIds[i] != 0) {
-                accountsToBeLiquidated[i] = liquidatableAccountsIds[i];
-                if (!upkeepNeeded) upkeepNeeded = true;
-            } else {
-                break;
+        for (uint256 i = 0; i < accountsToBeLiquidated.length; i++) {
+            uint256 accountIdIndexAtLiquidatableAccounts = performLowerBound + i - 1;
+            accountsToBeLiquidated[i] = liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts];
+            if (!upkeepNeeded && liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts] != 0) {
+                upkeepNeeded = true;
             }
         }
 
