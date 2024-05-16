@@ -73,7 +73,6 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         liquidationFeeRecipient = self.liquidationFeeRecipient;
     }
 
-    // TODO: Integration Test
     function checkUpkeep(bytes calldata checkData)
         external
         view

@@ -18,4 +18,48 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Int
 
         changePrank({ msgSender: users.naruto });
     }
+
+    function test_RevertWhen_TheCheckLowerBoundIsHigherThanTheCheckUpperBound() external {
+        // it should revert
+    }
+
+    modifier whenTheCheckLowerBoundIsLowerThanTheCheckUpperBound() {
+        _;
+    }
+
+    modifier whenThePerformLowerBoundIsHigherThanThePerformUpperBound() {
+        _;
+    }
+
+    function test_RevertWhen_ThePerformLowerBoundIsHigherThanThePerformUpperBound()
+        external
+        whenTheCheckLowerBoundIsLowerThanTheCheckUpperBound
+        whenThePerformLowerBoundIsHigherThanThePerformUpperBound
+    {
+        // it should revert
+    }
+
+    modifier whenThePerformLowerBoundIsLowerThanThePerformUpperBound() {
+        _;
+    }
+
+    function test_GivenThereAreNoLiquidatableAccountsIds()
+        external
+        whenTheCheckLowerBoundIsLowerThanTheCheckUpperBound
+        whenThePerformLowerBoundIsHigherThanThePerformUpperBound
+        whenThePerformLowerBoundIsLowerThanThePerformUpperBound
+    {
+        // it should return upkeepNeeded == false
+        // it should return an empty byte array
+    }
+
+    function test_GivenThereAreLiquidatableAccounts()
+        external
+        whenTheCheckLowerBoundIsLowerThanTheCheckUpperBound
+        whenThePerformLowerBoundIsHigherThanThePerformUpperBound
+        whenThePerformLowerBoundIsLowerThanThePerformUpperBound
+    {
+        // it should return upkeepNeeded == true
+        // it should return the abi encoded liquidatable accounts ids
+    }
 }

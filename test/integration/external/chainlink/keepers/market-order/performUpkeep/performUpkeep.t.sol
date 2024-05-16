@@ -83,7 +83,7 @@ contract MarketOrderKeeper_PerformUpkeep_Integration_Test is Base_Integration_Sh
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
         changePrank({ msgSender: users.owner });
-        MarketOrderKeeper(marketOrderKeeper).setForwarder(marketOrderKeeper);
+        MarketOrderKeeper(marketOrderKeeper).setForwarder(users.keepersForwarder);
 
         bytes memory performData = abi.encode(mockSignedReport, abi.encode(tradingAccountId));
 
@@ -114,7 +114,7 @@ contract MarketOrderKeeper_PerformUpkeep_Integration_Test is Base_Integration_Sh
             0
         );
 
-        changePrank({ msgSender: marketOrderKeeper });
+        changePrank({ msgSender: users.keepersForwarder });
         MarketOrderKeeper(marketOrderKeeper).performUpkeep(performData);
     }
 }

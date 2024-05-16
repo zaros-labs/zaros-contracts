@@ -57,9 +57,9 @@ contract LiquidationKeeper_PerformUpkeep_Integration_Test is LiquidationBranch_I
         accountsIds[amountOfTradingAccounts] = nonLiquidatableTradingAccountId;
 
         changePrank({ msgSender: users.owner });
-        LiquidationKeeper(liquidationKeeper).setForwarder(liquidationKeeper);
+        LiquidationKeeper(liquidationKeeper).setForwarder(users.keepersForwarder);
 
-        changePrank({ msgSender: liquidationKeeper });
+        changePrank({ msgSender: users.keepersForwarder });
         bytes memory performData = abi.encode(accountsIds);
 
         for (uint256 i = 0; i < accountsIds.length; i++) {

@@ -1,4 +1,4 @@
-LiquidationKeeperGetConfig_Integration_Test
+LiquidationKeeper_GetConfig_Integration_Test
 └── given initialize contract
     └── when call getConfig function
         ├── it should return owner

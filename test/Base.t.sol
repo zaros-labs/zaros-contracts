@@ -66,6 +66,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             marginCollateralRecipient: createUser({ name: "Margin Collateral Recipient" }),
             orderFeeRecipient: createUser({ name: "Order Fee Recipient" }),
             settlementFeeRecipient: createUser({ name: "Settlement Fee Recipient" }),
+            keepersForwarder: createUser({ name: "Keepers Forwarder" }),
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
             sakura: createUser({ name: "Sakura Haruno" }),

@@ -1,4 +1,4 @@
-LiquidationKeeperSetConfig_Integration_Test
+LiquidationKeeper_SetConfig_Integration_Test
 └── given initialize contract
     └── given call setConfig function
         ├── when I am not the owner
