@@ -7,8 +7,7 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
-import { LiquidationBranch_Integration_Test } from
-    "test/integration/perpetuals/liquidation-branch/LiquidationBranchIntegration.t.sol";
+import { LiquidationBranch_Integration_Test } from "test/integration/shared/LiquidationBranchIntegration.t.sol";
 
 contract LiquidationKeeper_PerformUpkeep_Integration_Test is LiquidationBranch_Integration_Test {
     function setUp() public override {

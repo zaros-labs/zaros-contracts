@@ -6,7 +6,7 @@ import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-import { LiquidationBranch_Integration_Test } from "../LiquidationBranchIntegration.t.sol";
+import { LiquidationBranch_Integration_Test } from "test/integration/shared/LiquidationBranchIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
 // PRB Math dependencies
