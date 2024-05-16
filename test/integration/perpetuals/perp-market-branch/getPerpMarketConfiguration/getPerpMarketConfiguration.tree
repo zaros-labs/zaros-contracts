@@ -1,5 +1,5 @@
-PerpMarketBranchGetPerpMarketConfiguration_Integration_Test
-└── when call getPerpMarketConfiguration function passing the market id
+GetPerpMarketConfiguration_Integration_Test
+└── given there's a market created
     ├── it should return name
     ├── it should return symbol
     ├── it should return initial margin rate

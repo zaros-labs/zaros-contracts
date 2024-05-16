@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
-contract PerpMarketBranchGetPerpMarketConfiguration_Integration_Test is Base_Integration_Shared_Test {
+contract GetPerpMarketConfiguration_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -14,7 +14,7 @@ contract PerpMarketBranchGetPerpMarketConfiguration_Integration_Test is Base_Int
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_WhenCallGetPerpMarketConfigurationFunctionPassingTheMarketId(uint256 marketId) external {
+    function testFuzz_GivenTheresAMarketCreated(uint256 marketId) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         (
