@@ -86,14 +86,14 @@ contract OrderBranch {
         (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
             tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
         marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
-        // {
-        //     (, UD60x18 previousRequiredMaintenanceMarginUsdX18,) =
-        //         tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
+        {
+            (, UD60x18 previousRequiredMaintenanceMarginUsdX18,) =
+                tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
 
-        //     if (TradingAccount.isLiquidatable(previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
-        //         revert Errors.AccountIsLiquidatable(tradingAccountId);
-        //     }
-        // }
+            if (TradingAccount.isLiquidatable(previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
+                revert Errors.AccountIsLiquidatable(tradingAccountId);
+            }
+        }
         {
             Position.Data storage position = Position.load(tradingAccountId, marketId);
             SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sd59x18(sizeDelta));
