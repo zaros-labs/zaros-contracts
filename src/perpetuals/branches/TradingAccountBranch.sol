@@ -277,22 +277,29 @@ contract TradingAccountBranch {
     /// @param tradingAccountId The trading account id.
     /// @param collateralType The margin collateral address.
     /// @param amount The UD60x18 amount of margin collateral to withdraw.
-    function withdrawMargin(uint128 tradingAccountId, address collateralType, UD60x18 amount) external {
+    function withdrawMargin(uint128 tradingAccountId, address collateralType, uint256 amount) external {
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
+
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
-        _requireAmountNotZero(amount);
-        _requireEnoughMarginCollateral(tradingAccount, collateralType, amount);
 
-        tradingAccount.withdraw(collateralType, amount);
-        (UD60x18 requiredInitialMarginUsdX18,, SD59x18 accountTotalUnrealizedPnlUsdX18) =
-            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
+        UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
+
+        _requireAmountNotZero(ud60x18Amount);
+        _requireEnoughMarginCollateral(tradingAccount, collateralType, ud60x18Amount);
+
+        tradingAccount.withdraw(collateralType, ud60x18Amount);
+        (
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 accountTotalUnrealizedPnlUsdX18
+        ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
         SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
         tradingAccount.validateMarginRequirement(requiredInitialMarginUsdX18, marginBalanceUsdX18, SD_ZERO);
 
-        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
-            MarginCollateralConfiguration.load(collateralType);
-        uint256 tokenAmount = marginCollateralConfiguration.convertUd60x18ToTokenAmount(amount);
+        uint256 tokenAmount = marginCollateralConfiguration.convertUd60x18ToTokenAmount(ud60x18Amount);
 
         IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
 
