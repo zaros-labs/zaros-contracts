@@ -6,10 +6,10 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 abstract contract EthUsd {
-    /// @notice ETH/USD market configuration parameters.
+    /// @notice ETHUSD market configuration parameters.
     uint128 internal constant ETH_USD_MARKET_ID = 2;
-    string internal constant ETH_USD_MARKET_NAME = "ETH/USD Perpetual Futures";
-    string internal constant ETH_USD_MARKET_SYMBOL = "ETH/USD-PERP";
+    string internal constant ETH_USD_MARKET_NAME = "ETHUSD Perpetual Futures";
+    string internal constant ETH_USD_MARKET_SYMBOL = "ETHUSD-PERP";
     uint128 internal constant ETH_USD_IMR = 0.005e18;
     uint128 internal constant ETH_USD_MMR = 0.005e18;
     uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR;

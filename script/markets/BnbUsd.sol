@@ -6,10 +6,10 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 abstract contract BnbUsd {
-    /// @notice BNB/USD market configuration parameters.
+    /// @notice BNBUSD market configuration parameters.
     uint128 internal constant BNB_USD_MARKET_ID = 5;
-    string internal constant BNB_USD_MARKET_NAME = "BNB/USD Perpetual";
-    string internal constant BNB_USD_MARKET_SYMBOL = "BNB/USD-PERP";
+    string internal constant BNB_USD_MARKET_NAME = "BNBUSD Perpetual";
+    string internal constant BNB_USD_MARKET_SYMBOL = "BNBUSD-PERP";
     uint128 internal constant BNB_USD_IMR = 0.1e18;
     uint128 internal constant BNB_USD_MMR = 0.05e18;
     uint128 internal constant BNB_USD_MARGIN_REQUIREMENTS = BNB_USD_IMR + BNB_USD_MMR;
