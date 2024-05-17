@@ -29,5 +29,5 @@ abstract contract SolUsd {
     // TODO: Update stream id value
     bytes32 internal constant SOL_USD_STREAM_ID = 0x0003d338ea2ac3be9e026033b1aa601673c37bab5e13851c59966f9f820754d6;
     string internal constant STRING_SOL_USD_STREAM_ID =
-        "0x00032057c7f224d02660x0003d338ea2ac3be9e026033b1aa601673c37bab5e13851c59966f9f820754d6b4311a81cdc3e38145e36442713350d3300fb12e85c99";
+        "0x0003d338ea2ac3be9e026033b1aa601673c37bab5e13851c59966f9f820754d6";
 }
