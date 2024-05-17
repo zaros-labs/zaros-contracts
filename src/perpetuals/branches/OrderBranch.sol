@@ -133,7 +133,7 @@ contract OrderBranch {
     }
 
     /// @param tradingAccountId The trading account id to get the active market
-    function getActiveMarketOrder(uint128 tradingAccountId) external pure returns (MarketOrder.Data memory) {
+    function getActiveMarketOrder(uint128 tradingAccountId) external view returns (MarketOrder.Data memory) {
         MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
 
         return marketOrder;
