@@ -69,7 +69,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: BTC_USD_PRICE_FEED,
             streamId: BTC_USD_STREAM_ID,
             streamIdString: STRING_BTC_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            orderFees: btcUsdOrderFees,
             mockUsdPrice: MOCK_BTC_USD_PRICE
         });
 
@@ -87,7 +87,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: ETH_USD_PRICE_FEED,
             streamId: ETH_USD_STREAM_ID,
             streamIdString: STRING_ETH_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            orderFees: ethUsdOrderFees,
             mockUsdPrice: MOCK_ETH_USD_PRICE
         });
 
@@ -105,7 +105,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: LINK_USD_PRICE_FEED,
             streamId: LINK_USD_STREAM_ID,
             streamIdString: STRING_LINK_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            orderFees: linkUsdOrderFees,
             mockUsdPrice: MOCK_LINK_USD_PRICE
         });
 
@@ -123,7 +123,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: ARB_USD_PRICE_FEED,
             streamId: ARB_USD_STREAM_ID,
             streamIdString: STRING_ARB_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            orderFees: arbUsdOrderFees,
             mockUsdPrice: MOCK_ARB_USD_PRICE
         });
 
@@ -141,7 +141,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: BNB_USD_PRICE_FEED,
             streamId: BNB_USD_STREAM_ID,
             streamIdString: STRING_BNB_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 }),
+            orderFees: bnbUsdOrderFees,
             mockUsdPrice: MOCK_BNB_USD_PRICE
         });
 
@@ -159,7 +159,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: DOGE_USD_PRICE_FEED,
             streamId: DOGE_USD_STREAM_ID,
             streamIdString: STRING_DOGE_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 }),
+            orderFees: dogeUsdOrderFees,
             mockUsdPrice: MOCK_DOGE_USD_PRICE
         });
 
@@ -177,7 +177,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: SOL_USD_PRICE_FEED,
             streamId: SOL_USD_STREAM_ID,
             streamIdString: STRING_SOL_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 }),
+            orderFees: solUsdOrderFees,
             mockUsdPrice: MOCK_SOL_USD_PRICE
         });
 
@@ -195,7 +195,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: MATIC_USD_PRICE_FEED,
             streamId: MATIC_USD_STREAM_ID,
             streamIdString: STRING_MATIC_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 }),
+            orderFees: maticUsdOrderFees,
             mockUsdPrice: MOCK_MATIC_USD_PRICE
         });
 
@@ -213,7 +213,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: LTC_USD_PRICE_FEED,
             streamId: LTC_USD_STREAM_ID,
             streamIdString: STRING_LTC_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 }),
+            orderFees: ltcUsdOrderFees,
             mockUsdPrice: MOCK_LTC_USD_PRICE
         });
 
@@ -231,7 +231,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             priceAdapter: FTM_USD_PRICE_FEED,
             streamId: FTM_USD_STREAM_ID,
             streamIdString: STRING_FTM_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 }),
+            orderFees: ftmUsdOrderFees,
             mockUsdPrice: MOCK_FTM_USD_PRICE
         });
     }
