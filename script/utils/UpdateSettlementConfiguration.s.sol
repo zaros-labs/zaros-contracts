@@ -20,33 +20,33 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                     VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    bytes32 internal ethUsdStreamId;
+    bytes32 internal solUsdStreamId;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IVerifierProxy internal chainlinkVerifier;
-    address internal ethUsdMarketOrderKeeper;
+    address internal solUsdMarketOrderKeeper;
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
-        ethUsdStreamId = vm.envBytes32("ETH_USD_STREAM_ID");
+        solUsdStreamId = vm.envBytes32("SOL_USD_STREAM_ID");
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
-        ethUsdMarketOrderKeeper = vm.envAddress("ETH_USD_MARKET_ORDER_KEEPER");
+        solUsdMarketOrderKeeper = vm.envAddress("SOL_USD_MARKET_ORDER_KEEPER");
 
-        SettlementConfiguration.DataStreamsStrategy memory ethUsdMarketOrderConfigurationData =
-        SettlementConfiguration.DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: ethUsdStreamId });
-        SettlementConfiguration.Data memory ethUsdMarketOrderConfiguration = SettlementConfiguration.Data({
+        SettlementConfiguration.DataStreamsStrategy memory solUsdMarketOrderConfigurationData =
+        SettlementConfiguration.DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: solUsdStreamId });
+        SettlementConfiguration.Data memory solUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
-            keeper: ethUsdMarketOrderKeeper,
-            data: abi.encode(ethUsdMarketOrderConfigurationData)
+            keeper: solUsdMarketOrderKeeper,
+            data: abi.encode(solUsdMarketOrderConfigurationData)
         });
 
         perpsEngine.updateSettlementConfiguration(
-            ETH_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, ethUsdMarketOrderConfiguration
+            SOL_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, solUsdMarketOrderConfiguration
         );
     }
 }
