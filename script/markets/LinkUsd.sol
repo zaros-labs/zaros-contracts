@@ -6,10 +6,10 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 abstract contract LinkUsd {
-    /// @notice LINK/USD market configuration parameters.
+    /// @notice LINKUSD market configuration parameters.
     uint128 internal constant LINK_USD_MARKET_ID = 3;
-    string internal constant LINK_USD_MARKET_NAME = "LINK/USD Perpetual";
-    string internal constant LINK_USD_MARKET_SYMBOL = "LINK/USD-PERP";
+    string internal constant LINK_USD_MARKET_NAME = "LINKUSD Perpetual";
+    string internal constant LINK_USD_MARKET_SYMBOL = "LINKUSD-PERP";
     uint128 internal constant LINK_USD_IMR = 0.05e18;
     uint128 internal constant LINK_USD_MMR = 0.025e18;
     uint128 internal constant LINK_USD_MARGIN_REQUIREMENTS = LINK_USD_IMR + LINK_USD_MMR;

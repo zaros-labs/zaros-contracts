@@ -6,10 +6,10 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 abstract contract ArbUsd {
-    /// @notice ARB/USD market configuration parameters.
+    /// @notice ARBUSD market configuration parameters.
     uint128 internal constant ARB_USD_MARKET_ID = 4;
-    string internal constant ARB_USD_MARKET_NAME = "ARB/USD Perpetual";
-    string internal constant ARB_USD_MARKET_SYMBOL = "ARB/USD-PERP";
+    string internal constant ARB_USD_MARKET_NAME = "ARBUSD Perpetual";
+    string internal constant ARB_USD_MARKET_SYMBOL = "ARBUSD-PERP";
     uint128 internal constant ARB_USD_IMR = 0.1e18;
     uint128 internal constant ARB_USD_MMR = 0.05e18;
     uint128 internal constant ARB_USD_MARGIN_REQUIREMENTS = ARB_USD_IMR + ARB_USD_MMR;

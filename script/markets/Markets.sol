@@ -14,12 +14,18 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Markets
-import { ArbUsd } from "./ArbUsd.sol";
 import { BtcUsd } from "./BtcUsd.sol";
 import { EthUsd } from "./EthUsd.sol";
 import { LinkUsd } from "./LinkUsd.sol";
+import { ArbUsd } from "./ArbUsd.sol";
+import { BnbUsd } from "./BnbUsd.sol";
+import { DogeUsd } from "./DogeUsd.sol";
+import { SolUsd } from "./SolUsd.sol";
+import { MaticUsd } from "./MaticUsd.sol";
+import { LtcUsd } from "./LtcUsd.sol";
+import { FtmUsd } from "./FtmUsd.sol";
 
-contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
+contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, MaticUsd, LtcUsd, FtmUsd {
     struct MarketConfig {
         uint128 marketId;
         string marketName;
@@ -49,7 +55,7 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
     function setupMarketsConfig() internal {
-        MarketConfig memory btcUsdConfig = MarketConfig({
+        marketsConfig[BTC_USD_MARKET_ID] = MarketConfig({
             marketId: BTC_USD_MARKET_ID,
             marketName: BTC_USD_MARKET_NAME,
             marketSymbol: BTC_USD_MARKET_SYMBOL,
@@ -63,12 +69,11 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             priceAdapter: BTC_USD_PRICE_FEED,
             streamId: BTC_USD_STREAM_ID,
             streamIdString: STRING_BTC_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            orderFees: btcUsdOrderFees,
             mockUsdPrice: MOCK_BTC_USD_PRICE
         });
-        marketsConfig[BTC_USD_MARKET_ID] = btcUsdConfig;
 
-        MarketConfig memory ethUsdConfig = MarketConfig({
+        marketsConfig[ETH_USD_MARKET_ID] = MarketConfig({
             marketId: ETH_USD_MARKET_ID,
             marketName: ETH_USD_MARKET_NAME,
             marketSymbol: ETH_USD_MARKET_SYMBOL,
@@ -82,12 +87,11 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             priceAdapter: ETH_USD_PRICE_FEED,
             streamId: ETH_USD_STREAM_ID,
             streamIdString: STRING_ETH_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            orderFees: ethUsdOrderFees,
             mockUsdPrice: MOCK_ETH_USD_PRICE
         });
-        marketsConfig[ETH_USD_MARKET_ID] = ethUsdConfig;
 
-        MarketConfig memory linkUsdConfig = MarketConfig({
+        marketsConfig[LINK_USD_MARKET_ID] = MarketConfig({
             marketId: LINK_USD_MARKET_ID,
             marketName: LINK_USD_MARKET_NAME,
             marketSymbol: LINK_USD_MARKET_SYMBOL,
@@ -101,12 +105,11 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             priceAdapter: LINK_USD_PRICE_FEED,
             streamId: LINK_USD_STREAM_ID,
             streamIdString: STRING_LINK_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            orderFees: linkUsdOrderFees,
             mockUsdPrice: MOCK_LINK_USD_PRICE
         });
-        marketsConfig[LINK_USD_MARKET_ID] = linkUsdConfig;
 
-        MarketConfig memory arbUsdConfig = MarketConfig({
+        marketsConfig[ARB_USD_MARKET_ID] = MarketConfig({
             marketId: ARB_USD_MARKET_ID,
             marketName: ARB_USD_MARKET_NAME,
             marketSymbol: ARB_USD_MARKET_SYMBOL,
@@ -120,10 +123,117 @@ contract Markets is ArbUsd, BtcUsd, EthUsd, LinkUsd {
             priceAdapter: ARB_USD_PRICE_FEED,
             streamId: ARB_USD_STREAM_ID,
             streamIdString: STRING_ARB_USD_STREAM_ID,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            orderFees: arbUsdOrderFees,
             mockUsdPrice: MOCK_ARB_USD_PRICE
         });
-        marketsConfig[ARB_USD_MARKET_ID] = arbUsdConfig;
+
+        marketsConfig[BNB_USD_MARKET_ID] = MarketConfig({
+            marketId: BNB_USD_MARKET_ID,
+            marketName: BNB_USD_MARKET_NAME,
+            marketSymbol: BNB_USD_MARKET_SYMBOL,
+            imr: BNB_USD_IMR,
+            mmr: BNB_USD_MMR,
+            marginRequirements: BNB_USD_MARGIN_REQUIREMENTS,
+            maxOi: BNB_USD_MAX_OI,
+            skewScale: BNB_USD_SKEW_SCALE,
+            minTradeSize: BNB_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: BNB_USD_MAX_FUNDING_VELOCITY,
+            priceAdapter: BNB_USD_PRICE_FEED,
+            streamId: BNB_USD_STREAM_ID,
+            streamIdString: STRING_BNB_USD_STREAM_ID,
+            orderFees: bnbUsdOrderFees,
+            mockUsdPrice: MOCK_BNB_USD_PRICE
+        });
+
+        marketsConfig[DOGE_USD_MARKET_ID] = MarketConfig({
+            marketId: DOGE_USD_MARKET_ID,
+            marketName: DOGE_USD_MARKET_NAME,
+            marketSymbol: DOGE_USD_MARKET_SYMBOL,
+            imr: DOGE_USD_IMR,
+            mmr: DOGE_USD_MMR,
+            marginRequirements: DOGE_USD_MARGIN_REQUIREMENTS,
+            maxOi: DOGE_USD_MAX_OI,
+            skewScale: DOGE_USD_SKEW_SCALE,
+            minTradeSize: DOGE_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: DOGE_USD_MAX_FUNDING_VELOCITY,
+            priceAdapter: DOGE_USD_PRICE_FEED,
+            streamId: DOGE_USD_STREAM_ID,
+            streamIdString: STRING_DOGE_USD_STREAM_ID,
+            orderFees: dogeUsdOrderFees,
+            mockUsdPrice: MOCK_DOGE_USD_PRICE
+        });
+
+        marketsConfig[SOL_USD_MARKET_ID] = MarketConfig({
+            marketId: SOL_USD_MARKET_ID,
+            marketName: SOL_USD_MARKET_NAME,
+            marketSymbol: SOL_USD_MARKET_SYMBOL,
+            imr: SOL_USD_IMR,
+            mmr: SOL_USD_MMR,
+            marginRequirements: SOL_USD_MARGIN_REQUIREMENTS,
+            maxOi: SOL_USD_MAX_OI,
+            skewScale: SOL_USD_SKEW_SCALE,
+            minTradeSize: SOL_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: SOL_USD_MAX_FUNDING_VELOCITY,
+            priceAdapter: SOL_USD_PRICE_FEED,
+            streamId: SOL_USD_STREAM_ID,
+            streamIdString: STRING_SOL_USD_STREAM_ID,
+            orderFees: solUsdOrderFees,
+            mockUsdPrice: MOCK_SOL_USD_PRICE
+        });
+
+        marketsConfig[MATIC_USD_MARKET_ID] = MarketConfig({
+            marketId: MATIC_USD_MARKET_ID,
+            marketName: MATIC_USD_MARKET_NAME,
+            marketSymbol: MATIC_USD_MARKET_SYMBOL,
+            imr: MATIC_USD_IMR,
+            mmr: MATIC_USD_MMR,
+            marginRequirements: MATIC_USD_MARGIN_REQUIREMENTS,
+            maxOi: MATIC_USD_MAX_OI,
+            skewScale: MATIC_USD_SKEW_SCALE,
+            minTradeSize: MATIC_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: MATIC_USD_MAX_FUNDING_VELOCITY,
+            priceAdapter: MATIC_USD_PRICE_FEED,
+            streamId: MATIC_USD_STREAM_ID,
+            streamIdString: STRING_MATIC_USD_STREAM_ID,
+            orderFees: maticUsdOrderFees,
+            mockUsdPrice: MOCK_MATIC_USD_PRICE
+        });
+
+        marketsConfig[LTC_USD_MARKET_ID] = MarketConfig({
+            marketId: LTC_USD_MARKET_ID,
+            marketName: LTC_USD_MARKET_NAME,
+            marketSymbol: LTC_USD_MARKET_SYMBOL,
+            imr: LTC_USD_IMR,
+            mmr: LTC_USD_MMR,
+            marginRequirements: LTC_USD_MARGIN_REQUIREMENTS,
+            maxOi: LTC_USD_MAX_OI,
+            skewScale: LTC_USD_SKEW_SCALE,
+            minTradeSize: LTC_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: LTC_USD_MAX_FUNDING_VELOCITY,
+            priceAdapter: LTC_USD_PRICE_FEED,
+            streamId: LTC_USD_STREAM_ID,
+            streamIdString: STRING_LTC_USD_STREAM_ID,
+            orderFees: ltcUsdOrderFees,
+            mockUsdPrice: MOCK_LTC_USD_PRICE
+        });
+
+        marketsConfig[FTM_USD_MARKET_ID] = MarketConfig({
+            marketId: FTM_USD_MARKET_ID,
+            marketName: FTM_USD_MARKET_NAME,
+            marketSymbol: FTM_USD_MARKET_SYMBOL,
+            imr: FTM_USD_IMR,
+            mmr: FTM_USD_MMR,
+            marginRequirements: FTM_USD_MARGIN_REQUIREMENTS,
+            maxOi: FTM_USD_MAX_OI,
+            skewScale: FTM_USD_SKEW_SCALE,
+            minTradeSize: FTM_USD_MIN_TRADE_SIZE,
+            maxFundingVelocity: FTM_USD_MAX_FUNDING_VELOCITY,
+            priceAdapter: FTM_USD_PRICE_FEED,
+            streamId: FTM_USD_STREAM_ID,
+            streamIdString: STRING_FTM_USD_STREAM_ID,
+            orderFees: ftmUsdOrderFees,
+            mockUsdPrice: MOCK_FTM_USD_PRICE
+        });
     }
 
     function getFilteredMarketsConfig(uint256[2] memory marketsIdsRange)

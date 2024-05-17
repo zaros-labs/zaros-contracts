@@ -65,7 +65,7 @@ abstract contract ProtocolConfiguration is Markets {
 
     /// @notice Test only mocks and constants.
     uint256 internal constant INITIAL_MARKET_ID = 1;
-    uint256 internal constant FINAL_MARKET_ID = 4;
+    uint256 internal constant FINAL_MARKET_ID = 10;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
     uint256 internal constant MOCK_WSTETH_USD_PRICE = 2000e18;
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;

@@ -6,10 +6,10 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 abstract contract BtcUsd {
-    /// @notice BTC/USD market configuration parameters.
+    /// @notice BTCUSD market configuration parameters.
     uint128 internal constant BTC_USD_MARKET_ID = 1;
-    string internal constant BTC_USD_MARKET_NAME = "BTC/USD Perpetual Futures";
-    string internal constant BTC_USD_MARKET_SYMBOL = "BTC/USD-PERP";
+    string internal constant BTC_USD_MARKET_NAME = "BTCUSD Perpetual Futures";
+    string internal constant BTC_USD_MARKET_SYMBOL = "BTCUSD-PERP";
     uint128 internal constant BTC_USD_IMR = 0.01e18;
     uint128 internal constant BTC_USD_MMR = 0.005e18;
     uint128 internal constant BTC_USD_MARGIN_REQUIREMENTS = BTC_USD_IMR + BTC_USD_MMR;

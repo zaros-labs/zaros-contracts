@@ -87,15 +87,26 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         IPerpsEngine perpsEngine = _getLiquidationKeeperStorage().perpsEngine;
         uint128[] memory liquidatableAccountsIds =
             perpsEngine.checkLiquidatableAccounts(checkLowerBound, checkUpperBound);
+        uint128[] memory accountsToBeLiquidated;
 
-        if (liquidatableAccountsIds.length == 0) {
-            return (false, bytes(""));
+        if (liquidatableAccountsIds.length == 0 || liquidatableAccountsIds.length <= performLowerBound) {
+            performData = abi.encode(accountsToBeLiquidated);
+
+            return (upkeepNeeded, performData);
         }
 
-        uint128[] memory accountsToBeLiquidated = new uint128[](performUpperBound - performLowerBound);
+        uint256 boundsDelta = performUpperBound - performLowerBound;
+        uint256 performLength =
+            boundsDelta > liquidatableAccountsIds.length ? liquidatableAccountsIds.length : boundsDelta;
 
-        for (uint256 i = 0; i < accountsToBeLiquidated.length; i++) {
-            uint256 accountIdIndexAtLiquidatableAccounts = performLowerBound + i - 1;
+        accountsToBeLiquidated = new uint128[](performLength);
+
+        for (uint256 i = 0; i < performLength; i++) {
+            uint256 accountIdIndexAtLiquidatableAccounts = performLowerBound + i;
+            if (accountIdIndexAtLiquidatableAccounts >= liquidatableAccountsIds.length) {
+                break;
+            }
+
             accountsToBeLiquidated[i] = liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts];
             if (!upkeepNeeded && liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts] != 0) {
                 upkeepNeeded = true;
