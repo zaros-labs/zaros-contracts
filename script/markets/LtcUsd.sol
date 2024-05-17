@@ -16,7 +16,7 @@ abstract contract LtcUsd {
     uint128 internal constant LTC_USD_MAX_OI = 1_000_000e18;
     uint128 internal constant LTC_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant LTC_USD_SKEW_SCALE = 273_242_074e18;
-    uint256 internal constant LTC_USD_MIN_TRADE_SIZE = 5e18;
+    uint256 internal constant LTC_USD_MIN_TRADE_SIZE = 2e18;
     OrderFees.Data internal ltcUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
 
     /// @notice Test only mocks
