@@ -9,8 +9,7 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+import { ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract CancelMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -68,11 +67,15 @@ contract CancelMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-        // it should cancel the active market order
+        // it should emit {LogCancelMarketOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit OrderBranch.LogCancelMarketOrder(users.naruto, tradingAccountId);
+
         perpsEngine.cancelMarketOrder(tradingAccountId);
 
         MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder(tradingAccountId);
 
+        // it should cancel the active market order
         assertEq(marketOrder.marketId, 0);
         assertEq(marketOrder.sizeDelta, 0);
         assertEq(marketOrder.timestamp, 0);

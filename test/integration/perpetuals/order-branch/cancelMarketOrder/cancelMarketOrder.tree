@@ -2,4 +2,5 @@ CancelMarketOrder_Integration_Test
 ├── given there's not a market order
 │   └── it should revert
 └── given there's a market order
-    └── it should cancel the active market order
+    ├── it should cancel the active market order
+    └── it should emit {LogCancelMarketOrder} event
