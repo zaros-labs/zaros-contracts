@@ -7,8 +7,6 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";
 
-import "forge-std/console.sol";
-
 contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     bytes32 internal constant LIQUIDATION_KEEPER_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.LiquidationKeeper")) - 1)
@@ -97,23 +95,19 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
             return (upkeepNeeded, performData);
         }
 
-        console.log("zzzz here: ");
-        console.log(liquidatableAccountsIds.length);
         uint256 boundsDelta = performUpperBound - performLowerBound;
         uint256 performLength =
             boundsDelta > liquidatableAccountsIds.length ? liquidatableAccountsIds.length : boundsDelta;
+
         accountsToBeLiquidated = new uint128[](performLength);
-        console.log("zzzz here2: ");
-        console.log(accountsToBeLiquidated.length);
+
         for (uint256 i = 0; i < performLength; i++) {
             uint256 accountIdIndexAtLiquidatableAccounts = performLowerBound + i;
             if (accountIdIndexAtLiquidatableAccounts >= liquidatableAccountsIds.length) {
                 break;
             }
 
-            console.log(accountIdIndexAtLiquidatableAccounts);
             accountsToBeLiquidated[i] = liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts];
-            console.log();
             if (!upkeepNeeded && liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts] != 0) {
                 upkeepNeeded = true;
             }
