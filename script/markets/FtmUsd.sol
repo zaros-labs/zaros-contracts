@@ -17,7 +17,7 @@ abstract contract FtmUsd {
     uint128 internal constant FTM_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant FTM_USD_SKEW_SCALE = 12_462_757_437e18;
     uint256 internal constant FTM_USD_MIN_TRADE_SIZE = 500e18;
-    OrderFees.Data internal ltcUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
+    OrderFees.Data internal ftmUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
 
     /// @notice Test only mocks
     string internal constant MOCK_FTM_USD_STREAM_ID = "MOCK_FTM_USD_STREAM_ID";
