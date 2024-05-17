@@ -1,0 +1,8 @@
+GetAccountEquityUsd_Integration_Test
+├── given there's not an account trading
+│   └── it should revert
+└── given there's an account trading
+    ├── given there's not a position created
+    │   └── it should return the account equity usd of margin collateral
+    └── given there's a position created
+        └── it should return the account equity usd of margin collateral added with the unrealized pnl
