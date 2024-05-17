@@ -6,6 +6,8 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { LiquidationBranch_Integration_Test } from "test/integration/shared/LiquidationBranchIntegration.t.sol";
 
+import { console } from "forge-std/console.sol";
+
 contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Integration_Test {
     function testFuzz_RevertWhen_TheCheckLowerBoundIsHigherThanTheCheckUpperBound(
         uint256 checkLowerBound,
@@ -75,9 +77,14 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Int
 
         (bool upkeepNeeded, bytes memory performData) = LiquidationKeeper(liquidationKeeper).checkUpkeep(checkData);
 
+        console.log("inside test");
+        console.log(upkeepNeeded);
+        console.log(performData.length);
+
         // it should return upkeepNeeded == false
         assertFalse(upkeepNeeded, "upkeepNeeded");
         uint128[] memory liquidatableAccountsIds = abi.decode(performData, (uint128[]));
+        console.log(liquidatableAccountsIds.length);
 
         for (uint256 i = 0; i < liquidatableAccountsIds.length; i++) {
             assertEq(liquidatableAccountsIds[i], 0, "liquidatableAccountsIds");
@@ -143,7 +150,7 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Int
         ctx.liquidatableAccountsIds = abi.decode(ctx.performData, (uint128[]));
 
         for (uint256 i = 0; i < ctx.liquidatableAccountsIds.length; i++) {
-            assertEq(ctx.liquidatableAccountsIds[i], ctx.performLowerBound + i, "liquidatableAccountsIds");
+            assertEq(ctx.liquidatableAccountsIds[i], ctx.performLowerBound + i + 1, "liquidatableAccountsIds");
         }
     }
 }

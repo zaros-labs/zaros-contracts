@@ -7,6 +7,8 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";
 
+import "forge-std/console.sol";
+
 contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     bytes32 internal constant LIQUIDATION_KEEPER_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.LiquidationKeeper")) - 1)
@@ -87,16 +89,31 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         IPerpsEngine perpsEngine = _getLiquidationKeeperStorage().perpsEngine;
         uint128[] memory liquidatableAccountsIds =
             perpsEngine.checkLiquidatableAccounts(checkLowerBound, checkUpperBound);
+        uint128[] memory accountsToBeLiquidated;
 
-        if (liquidatableAccountsIds.length == 0) {
-            return (false, bytes(""));
+        if (liquidatableAccountsIds.length == 0 || liquidatableAccountsIds.length <= performLowerBound) {
+            performData = abi.encode(accountsToBeLiquidated);
+
+            return (upkeepNeeded, performData);
         }
 
-        uint128[] memory accountsToBeLiquidated = new uint128[](performUpperBound - performLowerBound);
+        console.log("zzzz here: ");
+        console.log(liquidatableAccountsIds.length);
+        uint256 boundsDelta = performUpperBound - performLowerBound;
+        uint256 performLength =
+            boundsDelta > liquidatableAccountsIds.length ? liquidatableAccountsIds.length : boundsDelta;
+        accountsToBeLiquidated = new uint128[](performLength);
+        console.log("zzzz here2: ");
+        console.log(accountsToBeLiquidated.length);
+        for (uint256 i = 0; i < performLength; i++) {
+            uint256 accountIdIndexAtLiquidatableAccounts = performLowerBound + i;
+            if (accountIdIndexAtLiquidatableAccounts >= liquidatableAccountsIds.length) {
+                break;
+            }
 
-        for (uint256 i = 0; i < accountsToBeLiquidated.length; i++) {
-            uint256 accountIdIndexAtLiquidatableAccounts = performLowerBound + i - 1;
+            console.log(accountIdIndexAtLiquidatableAccounts);
             accountsToBeLiquidated[i] = liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts];
+            console.log();
             if (!upkeepNeeded && liquidatableAccountsIds[accountIdIndexAtLiquidatableAccounts] != 0) {
                 upkeepNeeded = true;
             }
