@@ -148,7 +148,6 @@ contract OrderBranch {
     struct CreateMarketOrderContext {
         SD59x18 marginBalanceUsdX18;
         UD60x18 requiredInitialMarginUsdX18;
-        UD60x18 requiredMaintenanceMarginUsdX18;
         SD59x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
     }
@@ -180,20 +179,15 @@ contract OrderBranch {
             tradingAccount.validatePositionsLimit();
         }
 
-        (
-            ctx.marginBalanceUsdX18,
-            ctx.requiredInitialMarginUsdX18,
-            ctx.requiredMaintenanceMarginUsdX18,
-            ctx.orderFeeUsdX18,
-            ctx.settlementFeeUsdX18,
-        ) = simulateTrade({
+        (ctx.marginBalanceUsdX18, ctx.requiredInitialMarginUsdX18,, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) =
+        simulateTrade({
             tradingAccountId: params.tradingAccountId,
             marketId: params.marketId,
             settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta: params.sizeDelta
         });
         tradingAccount.validateMarginRequirement(
-            ctx.requiredInitialMarginUsdX18.add(ctx.requiredMaintenanceMarginUsdX18),
+            ctx.requiredInitialMarginUsdX18,
             ctx.marginBalanceUsdX18,
             ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
         );
