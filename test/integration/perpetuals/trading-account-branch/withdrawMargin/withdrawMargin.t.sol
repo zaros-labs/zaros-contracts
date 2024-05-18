@@ -132,12 +132,12 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         //     amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
         //     marginRequirement = bound({
         //         x: marginRequirement,
-        //         min: fuzzMarketConfig.marginRequirements,
+        //         min: fuzzMarketConfig.imr,
         //         max: MAX_MARGIN_REQUIREMENTS
         //     });
         //     // TODO: discount order fees
         //     uint256 requiredMarginUsd = ud60x18(amountToDeposit).div(ud60x18(marginRequirement)).mul(
-        //         ud60x18(fuzzMarketConfig.marginRequirements)
+        //         ud60x18(fuzzMarketConfig.imr)
         //     ).intoUint256();
         //     amountToWithdraw = bound({ x: amountToWithdraw, min: requiredMarginUsd, max: amountToDeposit });
         //     deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });

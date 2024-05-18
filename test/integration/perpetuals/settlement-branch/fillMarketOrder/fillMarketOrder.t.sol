@@ -36,8 +36,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -121,8 +120,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheMarketOrderExists
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -183,8 +181,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSettlementStrategyIsEnabled
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -261,8 +258,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         givenTheSettlementStrategyIsEnabled
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -348,8 +344,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         MarketConfig memory wrongMarketConfig = getFilteredMarketsConfig(marketsIdsRange)[0];
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -415,7 +410,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // avoids very small rounding errors in super edge cases
-        UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18));
+        UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.001e18));
         UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.maxOi)).mul(
             ud60x18(fuzzMarketConfig.mockUsdPrice)
         );
@@ -449,7 +444,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-        UD60x18 newMarginRequirements = ud60x18(fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18));
+        UD60x18 newMarginRequirements = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.1e18));
 
         changePrank({ msgSender: users.owner });
         updatePerpMarketMarginRequirements(
@@ -461,7 +456,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         (
             SD59x18 marginBalanceUsdX18,
             UD60x18 requiredInitialMarginUsdX18,
-            UD60x18 requiredMaintenanceMarginUsdX18,
+            ,
             SD59x18 orderFeeUsdX18,
             UD60x18 settlementFeeUsdX18,
         ) = perpsEngine.simulateTrade(
@@ -483,7 +478,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 Errors.InsufficientMargin.selector,
                 tradingAccountId,
                 marginBalanceUsdX18.intoInt256(),
-                requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
+                requiredInitialMarginUsdX18,
                 orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
             )
         });
@@ -511,8 +506,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -613,8 +607,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     {
         TestFuzz_GivenThePnlIsNegative_Context memory ctx;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        ctx.adjustedMarginRequirements =
-            ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.1e18)).intoUint256();
+        ctx.adjustedMarginRequirements = ud60x18(ctx.fuzzMarketConfig.imr).mul(ud60x18(1.1e18)).intoUint256();
 
         priceShiftRatio = bound({ x: priceShiftRatio, min: 2, max: 100 });
         initialMarginRate =
@@ -868,8 +861,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     {
         TestFuzz_GivenThePnlIsPositive_Context memory ctx;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        ctx.adjustedMarginRequirements =
-            ud60x18(ctx.fuzzMarketConfig.marginRequirements).mul(ud60x18(1.001e18)).intoUint256();
+        ctx.adjustedMarginRequirements = ud60x18(ctx.fuzzMarketConfig.imr).mul(ud60x18(1.001e18)).intoUint256();
 
         priceShift = bound({ x: priceShift, min: 1.1e18, max: 10e18 });
         initialMarginRate =

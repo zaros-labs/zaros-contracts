@@ -70,7 +70,7 @@ contract LiquidationBranch_Integration_Test is Base_Integration_Shared_Test {
 
     function _setAccountsAsLiquidatable(MarketConfig memory fuzzMarketConfig, bool isLong) internal {
         // TODO: switch to maintenance margin rate only
-        uint256 priceShiftBps = fuzzMarketConfig.marginRequirements;
+        uint256 priceShiftBps = fuzzMarketConfig.imr;
         uint256 newIndexPrice = isLong
             ? ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).sub(ud60x18(priceShiftBps))).intoUint256()
             : ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).add(ud60x18(priceShiftBps))).intoUint256();
