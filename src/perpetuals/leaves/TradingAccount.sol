@@ -83,12 +83,11 @@ library TradingAccount {
         }
     }
 
-    /// @notice Validates if the given account will still meet margin requirements after a new settlement.
+    /// @notice Validates if the given account will still meet margin requirements after a given operation.
     /// @dev Reverts if the new account margin state is invalid (requiredMargin >= marginBalance).
-    /// @dev Must be called whenever a position is updated.
+    /// @dev Must be called whenever a position is updated or the margin balance is reduced.
     /// @param self The trading account storage pointer.
-    /// @param requiredMarginUsdX18 Either the sum of initial margin + maintenance margin, or only the maintenace
-    /// margin, depending on the context.
+    /// @param requiredMarginUsdX18 The minimum required margin balance for the account
     /// @param marginBalanceUsdX18 The account's margin balance.
     /// @param totalFeesUsdX18 The total fees to be charged to the account in the current context.
     function validateMarginRequirement(
@@ -284,7 +283,7 @@ library TradingAccount {
         pure
         returns (bool)
     {
-        return requiredMaintenanceMarginUsdX18.intoSD59x18().gte(marginBalanceUsdX18);
+        return requiredMaintenanceMarginUsdX18.intoSD59x18().gt(marginBalanceUsdX18);
     }
 
     function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {

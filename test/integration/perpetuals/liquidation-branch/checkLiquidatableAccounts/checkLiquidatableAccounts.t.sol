@@ -25,7 +25,7 @@ contract CheckLiquidatableAccounts_Integration_Test is LiquidationBranch_Integra
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
         uint256 marginValueUsd = 1_000_000e18 / amountOfTradingAccounts;
-        uint256 initialMarginRate = fuzzMarketConfig.marginRequirements;
+        uint256 initialMarginRate = fuzzMarketConfig.imr;
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
@@ -57,7 +57,7 @@ contract CheckLiquidatableAccounts_Integration_Test is LiquidationBranch_Integra
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
         uint256 marginValueUsd = 10_000e18 / amountOfTradingAccounts;
-        uint256 initialMarginRate = fuzzMarketConfig.marginRequirements;
+        uint256 initialMarginRate = fuzzMarketConfig.imr;
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 

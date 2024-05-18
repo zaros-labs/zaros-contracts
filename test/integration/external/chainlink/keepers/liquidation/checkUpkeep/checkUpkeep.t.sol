@@ -125,7 +125,7 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Int
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
         ctx.amountOfTradingAccounts = 12;
         ctx.marginValueUsd = 100_000e18 / ctx.amountOfTradingAccounts;
-        ctx.initialMarginRate = ctx.fuzzMarketConfig.marginRequirements;
+        ctx.initialMarginRate = ctx.fuzzMarketConfig.imr;
 
         ctx.checkData =
             abi.encode(ctx.checkLowerBound, ctx.checkUpperBound, ctx.performLowerBound, ctx.performUpperBound);

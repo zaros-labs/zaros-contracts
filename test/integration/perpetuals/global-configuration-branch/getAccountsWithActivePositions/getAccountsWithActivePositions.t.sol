@@ -43,8 +43,7 @@ contract GetAccountsWithActivePositions_Integration_Test is Base_Integration_Sha
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
 
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });

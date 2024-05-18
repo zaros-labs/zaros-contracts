@@ -47,7 +47,7 @@ contract MarketOrderKeeper_CheckLog_Integration_Test is Base_Integration_Shared_
         // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // initialMarginRate =
-        //     bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS
+        //     bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS
         // });
 
         // marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
