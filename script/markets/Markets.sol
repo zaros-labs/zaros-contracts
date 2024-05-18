@@ -34,9 +34,10 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
         uint128 mmr;
         uint128 marginRequirements;
         uint128 maxOi;
-        uint256 skewScale;
-        uint256 minTradeSize;
+        uint128 maxSkew;
         uint128 maxFundingVelocity;
+        uint128 minTradeSize;
+        uint256 skewScale;
         address priceAdapter;
         bytes32 streamId;
         string streamIdString;
@@ -307,9 +308,10 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                     initialMarginRateX18: marketsConfig[i].imr,
                     maintenanceMarginRateX18: marketsConfig[i].mmr,
                     maxOpenInterest: marketsConfig[i].maxOi,
+                    maxSkew: marketsConfig[i].maxSkew,
                     maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
-                    skewScale: marketsConfig[i].skewScale,
                     minTradeSizeX18: marketsConfig[i].minTradeSize,
+                    skewScale: marketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
                     customOrdersConfiguration: customOrdersConfiguration,
                     orderFees: marketsConfig[i].orderFees

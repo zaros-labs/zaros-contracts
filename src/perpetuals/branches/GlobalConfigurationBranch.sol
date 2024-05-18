@@ -272,9 +272,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param initialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
     /// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
     /// @param maxOpenInterest The perps market maximum open interest per side.
+    /// @param maxSkew The perp market maximum skew value.
     /// @param maxFundingVelocity The perps market maximum funding rate velocity.
-    /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
+    /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param marketOrderConfiguration The perps market settlement configuration.
     /// @param orderFees The perps market maker and taker fees.
     struct CreatePerpMarketParams {
@@ -285,9 +286,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
         uint128 maxOpenInterest;
+        uint128 maxSkew;
         uint128 maxFundingVelocity;
+        uint128 minTradeSizeX18;
         uint256 skewScale;
-        uint256 minTradeSizeX18;
         SettlementConfiguration.Data marketOrderConfiguration;
         SettlementConfiguration.Data[] customOrdersConfiguration;
         OrderFees.Data orderFees;
@@ -314,14 +316,20 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
         }
+        if (params.maxSkew == 0) {
+            revert Errors.ZeroInput("maxSkew");
+        }
         if (params.initialMarginRateX18 == 0) {
             revert Errors.ZeroInput("initialMarginRateX18");
         }
-        if (params.skewScale == 0) {
-            revert Errors.ZeroInput("skewScale");
+        if (params.maxFundingVelocity == 0) {
+            revert Errors.ZeroInput("maxFundingVelocity");
         }
         if (params.minTradeSizeX18 == 0) {
             revert Errors.ZeroInput("minTradeSizeX18");
+        }
+        if (params.skewScale == 0) {
+            revert Errors.ZeroInput("skewScale");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -335,9 +343,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
                 initialMarginRateX18: params.initialMarginRateX18,
                 maintenanceMarginRateX18: params.maintenanceMarginRateX18,
                 maxOpenInterest: params.maxOpenInterest,
+                maxSkew: params.maxSkew,
                 maxFundingVelocity: params.maxFundingVelocity,
-                skewScale: params.skewScale,
                 minTradeSizeX18: params.minTradeSizeX18,
+                skewScale: params.skewScale,
                 marketOrderConfiguration: params.marketOrderConfiguration,
                 customOrdersConfiguration: params.customOrdersConfiguration,
                 orderFees: params.orderFees
@@ -356,9 +365,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param initialMarginRateX18 The perp market min initial margin rate, which defines the max leverage.
     /// @param maintenanceMarginRateX18 The perp market maintenance margin rate.
     /// @param maxOpenInterest The perp market maximum open interest per side.
+    /// @param maxSkew The perp market maximum skew value.
     /// @param maxFundingVelocity The perp market maximum funding rate velocity.
-    /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
+    /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param orderFees The perp market maker and taker fees.
     struct UpdatePerpMarketConfigurationParams {
         uint128 marketId;
@@ -368,9 +378,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
         uint128 maxOpenInterest;
+        uint128 maxSkew;
+        uint128 minTradeSizeX18;
         uint128 maxFundingVelocity;
         uint256 skewScale;
-        uint256 minTradeSizeX18;
         OrderFees.Data orderFees;
     }
 
@@ -418,9 +429,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             params.initialMarginRateX18,
             params.maintenanceMarginRateX18,
             params.maxOpenInterest,
+            params.maxSkew,
             params.maxFundingVelocity,
-            params.skewScale,
             params.minTradeSizeX18,
+            params.skewScale,
             params.orderFees
         );
 

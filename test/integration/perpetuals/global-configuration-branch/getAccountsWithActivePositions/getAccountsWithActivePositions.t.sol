@@ -56,7 +56,7 @@ contract GetAccountsWithActivePositions_Integration_Test is Base_Integration_Sha
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,
