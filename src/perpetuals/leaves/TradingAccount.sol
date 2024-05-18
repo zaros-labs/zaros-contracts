@@ -283,7 +283,7 @@ library TradingAccount {
         pure
         returns (bool)
     {
-        return requiredMaintenanceMarginUsdX18.intoSD59x18().gte(marginBalanceUsdX18);
+        return requiredMaintenanceMarginUsdX18.intoSD59x18().gt(marginBalanceUsdX18);
     }
 
     function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {
