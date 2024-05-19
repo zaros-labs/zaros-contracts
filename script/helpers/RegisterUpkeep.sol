@@ -52,7 +52,14 @@ contract RegisterUpkeep is UUPSUpgradeable, OwnableUpgradeable {
     LinkTokenInterface public i_link;
     AutomationRegistrarInterface public i_registrar;
 
-    function initialize(address owner, LinkTokenInterface link, AutomationRegistrarInterface registrar) external initializer {
+    function initialize(
+        address owner,
+        LinkTokenInterface link,
+        AutomationRegistrarInterface registrar
+    )
+        external
+        initializer
+    {
         i_link = link;
         i_registrar = registrar;
 
