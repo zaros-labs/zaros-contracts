@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Open zeppelin upgradeable dependencies
+import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
+import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 interface LinkTokenInterface {
     function allowance(address owner, address spender) external view returns (uint256 remaining);
 
@@ -44,13 +48,15 @@ interface AutomationRegistrarInterface {
     function registerUpkeep(RegistrationParams calldata requestParams) external returns (uint256);
 }
 
-contract RegisterUpkeep {
-    LinkTokenInterface public immutable i_link;
-    AutomationRegistrarInterface public immutable i_registrar;
+contract RegisterUpkeep is UUPSUpgradeable, OwnableUpgradeable {
+    LinkTokenInterface public i_link;
+    AutomationRegistrarInterface public i_registrar;
 
-    constructor(LinkTokenInterface link, AutomationRegistrarInterface registrar) {
+    function initialize(address owner, LinkTokenInterface link, AutomationRegistrarInterface registrar) external initializer {
         i_link = link;
         i_registrar = registrar;
+
+        __Ownable_init(owner);
     }
 
     function registerAndPredictID(RegistrationParams memory params) public {
@@ -64,4 +70,6 @@ contract RegisterUpkeep {
             revert("auto-approve disabled");
         }
     }
+
+    function _authorizeUpgrade(address newImplementation) internal virtual override { }
 }

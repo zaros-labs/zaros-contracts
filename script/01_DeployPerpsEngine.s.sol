@@ -20,6 +20,9 @@ import {
 } from "./helpers/TreeProxyHelpers.sol";
 import { RegisterUpkeep, LinkTokenInterface, AutomationRegistrarInterface } from "script/helpers/RegisterUpkeep.sol";
 
+// Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
@@ -64,9 +67,22 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
         console.log("Perps Engine: ", address(perpsEngine));
 
-        RegisterUpkeep registerUpkeep =
-            new RegisterUpkeep(LinkTokenInterface(link), AutomationRegistrarInterface(automationRegistrar));
+        deployRegisterUpkeep();
+    }
 
-        console.log("Register Upkeep: ", address(registerUpkeep));
+    function deployRegisterUpkeep() internal {
+        address registerUpkeepImplementation = address(new RegisterUpkeep());
+
+        bytes memory registerUpkeepInitializeData = abi.encodeWithSelector(
+            RegisterUpkeep.initialize.selector,
+            deployer,
+            LinkTokenInterface(link),
+            AutomationRegistrarInterface(automationRegistrar)
+        );
+
+        address registerUpkeep = address(new ERC1967Proxy(registerUpkeepImplementation, registerUpkeepInitializeData));
+
+        console.log("Register Upkeep Implementation: ", registerUpkeepImplementation);
+        console.log("Register Upkeep Proxy: ", registerUpkeep);
     }
 }
