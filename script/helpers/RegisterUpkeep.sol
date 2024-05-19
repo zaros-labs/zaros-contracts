@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.25;
+
+interface LinkTokenInterface {
+    function allowance(address owner, address spender) external view returns (uint256 remaining);
+
+    function approve(address spender, uint256 value) external returns (bool success);
+
+    function balanceOf(address owner) external view returns (uint256 balance);
+
+    function decimals() external view returns (uint8 decimalPlaces);
+
+    function decreaseApproval(address spender, uint256 addedValue) external returns (bool success);
+
+    function increaseApproval(address spender, uint256 subtractedValue) external;
+
+    function name() external view returns (string memory tokenName);
+
+    function symbol() external view returns (string memory tokenSymbol);
+
+    function totalSupply() external view returns (uint256 totalTokensIssued);
+
+    function transfer(address to, uint256 value) external returns (bool success);
+
+    function transferAndCall(address to, uint256 value, bytes calldata data) external returns (bool success);
+
+    function transferFrom(address from, address to, uint256 value) external returns (bool success);
+}
+
+struct RegistrationParams {
+    string name;
+    bytes encryptedEmail;
+    address upkeepContract;
+    uint32 gasLimit;
+    address adminAddress;
+    uint8 triggerType;
+    bytes checkData;
+    bytes triggerConfig;
+    bytes offchainConfig;
+    uint96 amount;
+}
+
+interface AutomationRegistrarInterface {
+    function registerUpkeep(RegistrationParams calldata requestParams) external returns (uint256);
+}
+
+contract RegisterUpkeep {
+    LinkTokenInterface public immutable i_link;
+    AutomationRegistrarInterface public immutable i_registrar;
+
+    constructor(LinkTokenInterface link, AutomationRegistrarInterface registrar) {
+        i_link = link;
+        i_registrar = registrar;
+    }
+
+    function registerAndPredictID(RegistrationParams memory params) public {
+        // LINK must be approved for transfer - this can be done every time or once
+        // with an infinite approval
+        i_link.approve(address(i_registrar), params.amount);
+        uint256 upkeepID = i_registrar.registerUpkeep(params);
+        if (upkeepID != 0) {
+            // DEV - Use the upkeepID however you see fit
+        } else {
+            revert("auto-approve disabled");
+        }
+    }
+}

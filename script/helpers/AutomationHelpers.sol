@@ -3,29 +3,18 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
+import {
+    RegisterUpkeep,
+    LinkTokenInterface,
+    AutomationRegistrarInterface,
+    RegistrationParams
+} from "script/helpers/RegisterUpkeep.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 import "forge-std/console.sol";
-
-struct RegistrationParams {
-    string name;
-    bytes encryptedEmail;
-    address upkeepContract;
-    uint32 gasLimit;
-    address adminAddress;
-    uint8 triggerType;
-    bytes checkData;
-    bytes triggerConfig;
-    bytes offchainConfig;
-    uint96 amount;
-}
-
-interface IAutomationRegistrar {
-    function registerUpkeep(RegistrationParams calldata requestParams) external returns (uint256);
-}
 
 library AutomationHelpers {
     uint32 internal constant GAS_LIMIT = 5_000_000;
@@ -50,16 +39,13 @@ library AutomationHelpers {
     function registerLiquidationKeeper(
         string memory name,
         address liquidationKeeper,
-        address link,
-        address registrar,
+        address registerUpkeep,
         address adminAddress,
         uint256 linkAmount
     )
         internal
     {
         (bytes memory checkData, bytes memory triggerConfig) = getLiquidationKeeperConfig();
-        console.log(IERC20(link).balanceOf(adminAddress));
-        IERC20(link).approve(registrar, linkAmount);
 
         RegistrationParams memory params = RegistrationParams({
             name: name,
@@ -73,7 +59,33 @@ library AutomationHelpers {
             offchainConfig: bytes(""),
             amount: uint96(linkAmount)
         });
-        IAutomationRegistrar(registrar).registerUpkeep(params);
+
+        RegisterUpkeep(registerUpkeep).registerAndPredictID(params);
+    }
+
+    function registerMarketOrderKeeper(
+        string memory name,
+        address marketOrderKeeper,
+        address registerUpkeep,
+        address adminAddress,
+        uint256 linkAmount
+    )
+        internal
+    {
+        RegistrationParams memory params = RegistrationParams({
+            name: name,
+            encryptedEmail: bytes(""),
+            upkeepContract: marketOrderKeeper,
+            gasLimit: GAS_LIMIT,
+            adminAddress: adminAddress,
+            triggerType: LOG_TRIGGER_TYPE,
+            checkData: bytes(""),
+            triggerConfig: bytes(""),
+            offchainConfig: bytes(""),
+            amount: uint96(linkAmount)
+        });
+
+        RegisterUpkeep(registerUpkeep).registerAndPredictID(params);
     }
 
     function deployLiquidationKeeper(

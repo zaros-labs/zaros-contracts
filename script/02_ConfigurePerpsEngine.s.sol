@@ -27,8 +27,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     AccountNFT internal tradingAccountToken;
     address internal usdToken;
     address internal usdc;
-    address internal link;
-    address internal automationRegistrar;
+    address internal registerUpkeep;
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
@@ -36,12 +35,11 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         usdToken = vm.envAddress("USDZ");
         usdc = vm.envAddress("USDC");
-        link = vm.envAddress("LINK");
-        automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
         // TODO: Move to MarginCollateral configuration
         usdzUsdPriceFeed = vm.envAddress("USDZ_USD_PRICE_FEED");
         usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
         keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
+        registerUpkeep = vm.envAddress("REGISTER_UPKEEP");
 
         payable(address(perpsEngine)).transfer(0.03 ether);
 
@@ -68,18 +66,17 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdzUsdPriceFeed);
         perpsEngine.configureMarginCollateral(usdc, USDC_DEPOSIT_CAP, USDC_LOAN_TO_VALUE, usdcUsdPriceFeed);
 
-        // AutomationHelpers.registerLiquidationKeeper({
-        //     name: PERPS_LIQUIDATION_KEEPER_NAME,
-        //     liquidationKeeper: liquidationKeeper,
-        //     link: link,
-        //     registrar: automationRegistrar,
-        //     adminAddress: MSIG_ADDRESS,
-        //     linkAmount: keeperInitialLinkFunding
-        // });
-
         address liquidationKeeper =
             AutomationHelpers.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS, MSIG_ADDRESS);
         console.log("Liquidation Keeper: ", liquidationKeeper);
+
+        AutomationHelpers.registerLiquidationKeeper({
+            name: PERPS_LIQUIDATION_KEEPER_NAME,
+            liquidationKeeper: liquidationKeeper,
+            registerUpkeep: registerUpkeep,
+            adminAddress: MSIG_ADDRESS,
+            linkAmount: keeperInitialLinkFunding
+        });
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);

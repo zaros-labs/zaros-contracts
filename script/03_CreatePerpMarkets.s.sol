@@ -10,6 +10,7 @@ import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
+import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -22,16 +23,20 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
     IVerifierProxy internal chainlinkVerifier;
+    uint256 internal keeperInitialLinkFunding;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
     address internal settlementFeeRecipient;
+    address internal registerUpkeep;
 
     function run(uint256 initialMarketId, uint256 finalMarketId) public broadcaster {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
+        registerUpkeep = vm.envAddress("REGISTER_UPKEEP");
+        keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
         settlementFeeRecipient = MSIG_ADDRESS;
 
         uint256[2] memory marketsIdsRange;
@@ -63,6 +68,14 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                 " Keeper Address: ",
                 marketOrderKeeper
             );
+
+            AutomationHelpers.registerMarketOrderKeeper({
+                name: filteredMarketsConfig[i].marketName,
+                marketOrderKeeper: marketOrderKeeper,
+                registerUpkeep: registerUpkeep,
+                adminAddress: MSIG_ADDRESS,
+                linkAmount: keeperInitialLinkFunding
+            });
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,

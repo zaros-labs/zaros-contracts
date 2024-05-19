@@ -18,6 +18,7 @@ import {
     getInitializables,
     getInitializePayloads
 } from "./helpers/TreeProxyHelpers.sol";
+import { RegisterUpkeep, LinkTokenInterface, AutomationRegistrarInterface } from "script/helpers/RegisterUpkeep.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -34,11 +35,15 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     AccountNFT internal tradingAccountToken;
     IPerpsEngine internal perpsEngine;
     address internal usdToken;
+    address internal link;
+    address internal automationRegistrar;
 
     function run() public broadcaster {
         tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
         console.log("Trading Account NFT: ", address(tradingAccountToken));
         usdToken = vm.envAddress("USDZ");
+        link = vm.envAddress("LINK");
+        automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
 
         isTestnet = vm.envBool("IS_TESTNET");
 
@@ -58,5 +63,10 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
         console.log("Perps Engine: ", address(perpsEngine));
+
+        RegisterUpkeep registerUpkeep =
+            new RegisterUpkeep(LinkTokenInterface(link), AutomationRegistrarInterface(automationRegistrar));
+
+        console.log("Register Upkeep: ", address(registerUpkeep));
     }
 }
