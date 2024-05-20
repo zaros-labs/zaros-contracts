@@ -183,15 +183,15 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(
                 Errors.InsufficientMargin.selector,
                 tradingAccountId,
-                marginBalanceUsdX18.intoInt256(),
+                newMarginBalanceUsd,
                 requiredInitialMarginUsdX18,
-                orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
+                sd59x18(0)
             )
         });
-        // perpsEngine.withdrawMargin({
-        //     tradingAccountId: tradingAccountId,
-        //     collateralType: address(usdToken),
-        //     amount: amountToWithdraw
-        // });
+        perpsEngine.withdrawMargin({
+            tradingAccountId: tradingAccountId,
+            collateralType: address(usdToken),
+            amount: amountToWithdraw
+        });
     }
 }
