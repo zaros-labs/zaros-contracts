@@ -313,26 +313,26 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
-        if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
-            revert Errors.ZeroInput("initialMarginRateX18");
-        }
         if (params.maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
         }
         if (params.maxSkew == 0) {
             revert Errors.ZeroInput("maxSkew");
         }
+        if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
+            revert Errors.ZeroInput("initialMarginRateX18");
+        }
         if (params.initialMarginRateX18 == 0) {
             revert Errors.ZeroInput("initialMarginRateX18");
         }
-        if (params.maxFundingVelocity == 0) {
-            revert Errors.ZeroInput("maxFundingVelocity");
+        if (params.skewScale == 0) {
+            revert Errors.ZeroInput("skewScale");
         }
         if (params.minTradeSizeX18 == 0) {
             revert Errors.ZeroInput("minTradeSizeX18");
         }
-        if (params.skewScale == 0) {
-            revert Errors.ZeroInput("skewScale");
+        if (params.maxFundingVelocity == 0) {
+            revert Errors.ZeroInput("maxFundingVelocity");
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
