@@ -52,6 +52,8 @@ contract RegisterUpkeep is UUPSUpgradeable, OwnableUpgradeable {
     LinkTokenInterface public i_link;
     AutomationRegistrarInterface public i_registrar;
 
+    error AutoApproveDisabled();
+
     function initialize(
         address owner,
         LinkTokenInterface link,
@@ -66,15 +68,13 @@ contract RegisterUpkeep is UUPSUpgradeable, OwnableUpgradeable {
         __Ownable_init(owner);
     }
 
-    function registerAndPredictID(RegistrationParams memory params) public {
+    function registerAndPredictID(RegistrationParams memory params) public returns (uint256 upkeepId) {
         // LINK must be approved for transfer - this can be done every time or once
         // with an infinite approval
         i_link.approve(address(i_registrar), params.amount);
-        uint256 upkeepID = i_registrar.registerUpkeep(params);
-        if (upkeepID != 0) {
-            // DEV - Use the upkeepID however you see fit
-        } else {
-            revert("auto-approve disabled");
+        upkeepId = i_registrar.registerUpkeep(params);
+        if (upkeepId == 0) {
+            revert AutoApproveDisabled();
         }
     }
 

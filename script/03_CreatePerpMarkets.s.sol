@@ -69,13 +69,14 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                 marketOrderKeeper
             );
 
-            AutomationHelpers.registerMarketOrderKeeper({
+            uint256 upkeepId = AutomationHelpers.registerMarketOrderKeeper({
                 name: filteredMarketsConfig[i].marketName,
                 marketOrderKeeper: marketOrderKeeper,
                 registerUpkeep: registerUpkeep,
                 adminAddress: MSIG_ADDRESS,
                 linkAmount: keeperInitialLinkFunding
             });
+            console.log("Upkeep ID: ", upkeepId);
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,

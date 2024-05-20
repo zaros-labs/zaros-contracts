@@ -70,13 +70,14 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             AutomationHelpers.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS, MSIG_ADDRESS);
         console.log("Liquidation Keeper: ", liquidationKeeper);
 
-        AutomationHelpers.registerLiquidationKeeper({
+        uint256 upkeepId = AutomationHelpers.registerLiquidationKeeper({
             name: PERPS_LIQUIDATION_KEEPER_NAME,
             liquidationKeeper: liquidationKeeper,
             registerUpkeep: registerUpkeep,
             adminAddress: MSIG_ADDRESS,
             linkAmount: keeperInitialLinkFunding
         });
+        console.log("Upkeep ID: ", upkeepId);
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);

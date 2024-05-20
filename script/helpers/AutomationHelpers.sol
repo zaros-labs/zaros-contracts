@@ -44,6 +44,7 @@ library AutomationHelpers {
         uint256 linkAmount
     )
         internal
+        returns (uint256 upkeepId)
     {
         (bytes memory checkData, bytes memory triggerConfig) = getLiquidationKeeperConfig();
 
@@ -60,7 +61,7 @@ library AutomationHelpers {
             amount: uint96(linkAmount)
         });
 
-        RegisterUpkeep(registerUpkeep).registerAndPredictID(params);
+        upkeepId = RegisterUpkeep(registerUpkeep).registerAndPredictID(params);
     }
 
     function registerMarketOrderKeeper(
@@ -71,6 +72,7 @@ library AutomationHelpers {
         uint256 linkAmount
     )
         internal
+        returns (uint256 upkeepId)
     {
         RegistrationParams memory params = RegistrationParams({
             name: name,
@@ -85,7 +87,7 @@ library AutomationHelpers {
             amount: uint96(linkAmount)
         });
 
-        RegisterUpkeep(registerUpkeep).registerAndPredictID(params);
+        upkeepId = RegisterUpkeep(registerUpkeep).registerAndPredictID(params);
     }
 
     function deployLiquidationKeeper(
