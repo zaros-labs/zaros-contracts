@@ -14,9 +14,10 @@ abstract contract BnbUsd {
     uint128 internal constant BNB_USD_MMR = 0.05e18;
     uint128 internal constant BNB_USD_MARGIN_REQUIREMENTS = BNB_USD_IMR + BNB_USD_MMR;
     uint128 internal constant BNB_USD_MAX_OI = 100_000e18;
+    uint128 internal constant BNB_USD_MAX_SKEW = 100_000e18;
     uint128 internal constant BNB_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant BNB_USD_SKEW_SCALE = 650_593_588e18;
-    uint256 internal constant BNB_USD_MIN_TRADE_SIZE = 0.1e18;
+    uint128 internal constant BNB_USD_MIN_TRADE_SIZE = 0.1e18;
     OrderFees.Data internal bnbUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
 
     /// @notice Test only mocks

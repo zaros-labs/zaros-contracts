@@ -14,9 +14,10 @@ abstract contract EthUsd {
     uint128 internal constant ETH_USD_MMR = 0.005e18;
     uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR;
     uint128 internal constant ETH_USD_MAX_OI = 100_000e18;
+    uint128 internal constant ETH_USD_MAX_SKEW = 100_000e18;
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant ETH_USD_SKEW_SCALE = 1_000_000e18;
-    uint256 internal constant ETH_USD_MIN_TRADE_SIZE = 0.05e18;
+    uint128 internal constant ETH_USD_MIN_TRADE_SIZE = 0.05e18;
     OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice Test only mocks
