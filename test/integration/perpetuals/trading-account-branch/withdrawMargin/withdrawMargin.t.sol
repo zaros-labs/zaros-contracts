@@ -28,7 +28,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, tradingAccountId, users.naruto)
         });
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), UD_ZERO);
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), 0);
     }
 
     modifier givenTheAccountExists() {
@@ -57,7 +57,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, tradingAccountId, users.sasuke)
         });
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), ud60x18(amountToWithdraw));
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), amountToWithdraw);
     }
 
     modifier givenTheSenderIsAuthorized() {
@@ -76,7 +76,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), UD_ZERO);
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), 0);
     }
 
     modifier whenTheAmountIsNotZero() {
@@ -106,7 +106,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
                 Errors.InsufficientCollateralBalance.selector, amountToWithdraw, expectedMarginCollateralBalance
             )
         });
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), ud60x18(amountToWithdraw));
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), amountToWithdraw);
     }
 
     modifier givenThereIsEnoughMarginCollateral() {
@@ -133,9 +133,15 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
             ud60x18(fuzzMarketConfig.mockUsdPrice)
         );
 
+<<<<<<< HEAD
         marginValueUsd =
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
         amountToWithdraw = bound({ x: amountToWithdraw, min: USDZ_MIN_DEPOSIT_MARGIN, max: marginValueUsd });
+=======
+        // it should transfer the withdrawn amount to the sender
+        expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), amountToWithdraw);
+>>>>>>> develop
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
