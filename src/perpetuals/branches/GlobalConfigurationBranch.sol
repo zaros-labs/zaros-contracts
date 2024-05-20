@@ -313,6 +313,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
+        if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
+            revert Errors.ZeroInput("initialMarginRateX18");
+        }
         if (params.maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
         }
@@ -406,14 +409,17 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.priceAdapter == address(0)) {
             revert Errors.ZeroInput("priceAdapter");
         }
-        if (params.initialMarginRateX18 == 0) {
-            revert Errors.ZeroInput("initialMarginRateX18");
-        }
         if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
+        if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
+            revert Errors.ZeroInput("initialMarginRateX18");
+        }
         if (params.maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
+        }
+        if (params.maxSkew == 0) {
+            revert Errors.ZeroInput("maxSkew");
         }
         if (params.skewScale == 0) {
             revert Errors.ZeroInput("skewScale");
