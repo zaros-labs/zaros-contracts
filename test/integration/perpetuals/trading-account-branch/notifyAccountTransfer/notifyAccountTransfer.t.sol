@@ -33,7 +33,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Integration_Shared_Test 
 
         changePrank({ msgSender: address(tradingAccountToken) });
 
-        // it should transfer the tradding account token
+        // it should transfer the trading account token
         perpsEngine.notifyAccountTransfer(users.madara, tradingAccountId);
 
         vm.expectRevert({

@@ -21,7 +21,7 @@ contract GetAccountEquityUsd_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_RevertGiven_TheresNotAnAccountTradingCreated(uint128 randomTradingAccountId) external {
+    function testFuzz_RevertGiven_TheTradingAccountDoesNotExist(uint128 randomTradingAccountId) external {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, randomTradingAccountId, users.naruto)
         });
@@ -30,18 +30,18 @@ contract GetAccountEquityUsd_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.getAccountEquityUsd(randomTradingAccountId);
     }
 
-    modifier givenTheresAnAccountTrading() {
+    modifier givenTheTradingAccountExists() {
         _;
     }
 
-    function test_GivenTheresNotAPositionCreated(
+    function test_GivenTheresNoOpenPosition(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
         uint256 marketId
     )
         external
-        givenTheresAnAccountTrading
+        givenTheTradingAccountExists
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -68,14 +68,14 @@ contract GetAccountEquityUsd_Integration_Test is Base_Integration_Shared_Test {
         );
     }
 
-    function test_GivenTheresAPositionCreated(
+    function test_GivenTheresAnPositionCreated(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
         uint256 marketId
     )
         external
-        givenTheresAnAccountTrading
+        givenTheTradingAccountExists
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
