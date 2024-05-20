@@ -32,9 +32,10 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
             maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
-            skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
+            skewScale: fuzzMarketConfig.skewScale,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
@@ -63,6 +64,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
             maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -96,6 +98,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
             maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -130,6 +133,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
             maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -165,6 +169,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: 0,
             maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -201,6 +206,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
             maxOpenInterest: 0,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -218,7 +224,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         _;
     }
 
-    function testFuzz_RevertWhen_InitialMarginRateIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_MaxSkewIsZero(uint256 marketId)
         external
         givenMarketIsInitialized
         givenLengthOfNameIsNotZero
@@ -235,9 +241,49 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             name: fuzzMarketConfig.marketName,
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
+            initialMarginRateX18: fuzzMarketConfig.imr,
+            maintenanceMarginRateX18: fuzzMarketConfig.mmr,
+            maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: 0,
+            maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
+            skewScale: fuzzMarketConfig.skewScale,
+            minTradeSizeX18: fuzzMarketConfig.minTradeSize,
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+        });
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxSkew") });
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.updatePerpMarketConfiguration(params);
+    }
+
+    modifier givenMaxSkewIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_InitialMarginRateIsZero(uint256 marketId)
+        external
+        givenMarketIsInitialized
+        givenLengthOfNameIsNotZero
+        givenLengthOfSymbolIsNotZero
+        givenPriceAdapterIsNotZero
+        givenMaintenanceMarginRateIsNotZero
+        givenMaxOpenInterestIsNotZero
+        givenMaxSkewIsNotZero
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
+            marketId: fuzzMarketConfig.marketId,
+            name: fuzzMarketConfig.marketName,
+            symbol: fuzzMarketConfig.marketSymbol,
+            priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: 0,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
             maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -263,6 +309,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         givenPriceAdapterIsNotZero
         givenMaintenanceMarginRateIsNotZero
         givenMaxOpenInterestIsNotZero
+        givenMaxSkewIsNotZero
         givenInitialMarginRateIsNotZero
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -276,6 +323,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
             maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: 0,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -301,6 +349,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         givenPriceAdapterIsNotZero
         givenMaintenanceMarginRateIsNotZero
         givenMaxOpenInterestIsNotZero
+        givenMaxSkewIsNotZero
         givenInitialMarginRateIsNotZero
         givenSkewScaleIsNotZero
     {
@@ -315,6 +364,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
             maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: 0,
@@ -336,6 +386,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
         givenPriceAdapterIsNotZero
         givenMaintenanceMarginRateIsNotZero
         givenMaxOpenInterestIsNotZero
+        givenMaxSkewIsNotZero
         givenInitialMarginRateIsNotZero
         givenSkewScaleIsNotZero
     {
@@ -352,6 +403,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Integration_Shar
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
             maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,

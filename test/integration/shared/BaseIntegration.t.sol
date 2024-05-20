@@ -190,9 +190,10 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             initialMarginRateX18: newImr.intoUint128(),
             maintenanceMarginRateX18: newMmr.intoUint128(),
             maxOpenInterest: marketsConfig[marketId].maxOi,
+            maxSkew: marketsConfig[marketId].maxSkew,
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
-            skewScale: marketsConfig[marketId].skewScale,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
+            skewScale: marketsConfig[marketId].skewScale,
             orderFees: marketsConfig[marketId].orderFees
         });
 
@@ -209,6 +210,27 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
             initialMarginRateX18: marketsConfig[marketId].imr,
             maintenanceMarginRateX18: marketsConfig[marketId].mmr,
             maxOpenInterest: newMaxOi.intoUint128(),
+            maxSkew: marketsConfig[marketId].maxSkew,
+            maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
+            skewScale: marketsConfig[marketId].skewScale,
+            minTradeSizeX18: marketsConfig[marketId].minTradeSize,
+            orderFees: marketsConfig[marketId].orderFees
+        });
+
+        perpsEngine.updatePerpMarketConfiguration(params);
+    }
+
+    function updatePerpMarketMaxSkew(uint128 marketId, UD60x18 newMaxSkew) internal {
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
+            marketId: marketId,
+            name: marketsConfig[marketId].marketName,
+            symbol: marketsConfig[marketId].marketSymbol,
+            priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
+            initialMarginRateX18: marketsConfig[marketId].imr,
+            maintenanceMarginRateX18: marketsConfig[marketId].mmr,
+            maxOpenInterest: marketsConfig[marketId].maxOi,
+            maxSkew: newMaxSkew.intoUint128(),
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             skewScale: marketsConfig[marketId].skewScale,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
@@ -229,7 +251,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         uint128 settlementConfigurationId;
         UD60x18 initialMarginRate;
         UD60x18 marginValueUsd;
-        UD60x18 maxOpenInterest;
+        UD60x18 maxSkew;
         UD60x18 minTradeSize;
         UD60x18 price;
         bool isLong;
@@ -248,8 +270,8 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         FuzzOrderSizeDeltaContext memory ctx;
 
         ctx.fuzzedSizeDeltaAbs = params.marginValueUsd.div(params.initialMarginRate).div(params.price);
-        ctx.sizeDeltaAbs = Math.min(Math.max(ctx.fuzzedSizeDeltaAbs, params.minTradeSize), params.maxOpenInterest)
-            .intoSD59x18().intoInt256().toInt128();
+        ctx.sizeDeltaAbs = Math.min(Math.max(ctx.fuzzedSizeDeltaAbs, params.minTradeSize), params.maxSkew).intoSD59x18(
+        ).intoInt256().toInt128();
         ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
 
         (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine.simulateTrade(
@@ -260,7 +282,7 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         ctx.sizeDeltaWithPriceImpact = Math.min(
             (params.price.div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPrePriceImpact))).abs().intoUD60x18(
             ),
-            params.maxOpenInterest
+            params.maxSkew
         );
 
         // if testing revert  cases where we don't want to discount fees, we pass shouldDiscountFees as false

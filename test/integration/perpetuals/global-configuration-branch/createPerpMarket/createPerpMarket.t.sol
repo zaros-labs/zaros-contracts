@@ -17,7 +17,7 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         configureSystemParameters();
     }
 
-    function test_RevertGiven_MarketIdIsZero() external {
+    function test_RevertWhen_MarketIdIsZero() external {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
@@ -27,12 +27,13 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             name: "BTC/USD",
             symbol: "BTC",
             priceAdapter: address(0x20),
-            initialMarginRateX18: 1,
+            initialMarginRateX18: 2,
             maintenanceMarginRateX18: 1,
             maxOpenInterest: 1,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 1,
             minTradeSizeX18: 1,
+            skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
@@ -45,11 +46,11 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    modifier givenMarketIdIsNotZero() {
+    modifier whenMarketIdIsNotZero() {
         _;
     }
 
-    function test_RevertWhen_LengthOfNameIsZero() external givenMarketIdIsNotZero {
+    function test_RevertWhen_LengthOfNameIsZero() external whenMarketIdIsNotZero {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
@@ -59,12 +60,13 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             name: "",
             symbol: "BTC",
             priceAdapter: address(0x20),
-            initialMarginRateX18: 1,
+            initialMarginRateX18: 2,
             maintenanceMarginRateX18: 1,
             maxOpenInterest: 1,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 1,
             minTradeSizeX18: 1,
+            skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
@@ -77,11 +79,11 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    modifier givenLengthOfNameIsNotZero() {
+    modifier whenLengthOfNameIsNotZero() {
         _;
     }
 
-    function test_RevertWhen_LengthOfSymbolIsZero() external givenMarketIdIsNotZero givenLengthOfNameIsNotZero {
+    function test_RevertWhen_LengthOfSymbolIsZero() external whenMarketIdIsNotZero whenLengthOfNameIsNotZero {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
@@ -91,12 +93,13 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             name: "BTC/USD",
             symbol: "",
             priceAdapter: address(0x20),
-            initialMarginRateX18: 1,
+            initialMarginRateX18: 2,
             maintenanceMarginRateX18: 1,
             maxOpenInterest: 1,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 1,
             minTradeSizeX18: 1,
+            skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
@@ -109,15 +112,15 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    modifier givenLengthOfSymbolIsNotZero() {
+    modifier whenLengthOfSymbolIsNotZero() {
         _;
     }
 
     function test_RevertWhen_PriceAdapterIsZero()
         external
-        givenMarketIdIsNotZero
-        givenLengthOfNameIsNotZero
-        givenLengthOfSymbolIsNotZero
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
     {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
@@ -128,12 +131,13 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             name: "BTC/USD",
             symbol: "BTC",
             priceAdapter: address(0),
-            initialMarginRateX18: 1,
+            initialMarginRateX18: 2,
             maintenanceMarginRateX18: 1,
             maxOpenInterest: 1,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 1,
             minTradeSizeX18: 1,
+            skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
@@ -146,16 +150,16 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    modifier givenPriceAdapterIsNotZero() {
+    modifier whenPriceAdapterIsNotZero() {
         _;
     }
 
     function test_RevertWhen_MaintenanceMarginRateIsZero()
         external
-        givenMarketIdIsNotZero
-        givenLengthOfNameIsNotZero
-        givenLengthOfSymbolIsNotZero
-        givenPriceAdapterIsNotZero
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
     {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
@@ -166,12 +170,13 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             name: "BTC/USD",
             symbol: "BTC",
             priceAdapter: address(0x20),
-            initialMarginRateX18: 1,
+            initialMarginRateX18: 2,
             maintenanceMarginRateX18: 0,
             maxOpenInterest: 1,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 1,
             minTradeSizeX18: 1,
+            skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
@@ -184,17 +189,17 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    modifier givenMaintenanceMarginRateIsNotZero() {
+    modifier whenMaintenanceMarginRateIsNotZero() {
         _;
     }
 
     function test_RevertWhen_MaxOpenInterestIsZero()
         external
-        givenMarketIdIsNotZero
-        givenLengthOfNameIsNotZero
-        givenLengthOfSymbolIsNotZero
-        givenPriceAdapterIsNotZero
-        givenMaintenanceMarginRateIsNotZero
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
     {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
@@ -205,12 +210,13 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             name: "BTC/USD",
             symbol: "BTC",
             priceAdapter: address(0x20),
-            initialMarginRateX18: 1,
+            initialMarginRateX18: 2,
             maintenanceMarginRateX18: 1,
             maxOpenInterest: 0,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 1,
             minTradeSizeX18: 1,
+            skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
@@ -223,18 +229,60 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    modifier givenMaxOpenInterestIsNotZero() {
+    modifier whenMaxOpenInterestIsNotZero() {
+        _;
+    }
+
+    function test_RevertWhen_MaxSkewIsZero()
+        external
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
+        whenMaxOpenInterestIsNotZero
+    {
+        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory marketOrderConfiguration;
+
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
+            .CreatePerpMarketParams({
+            marketId: 1,
+            name: "BTC/USD",
+            symbol: "BTC",
+            priceAdapter: address(0x20),
+            initialMarginRateX18: 2,
+            maintenanceMarginRateX18: 1,
+            maxOpenInterest: 1,
+            maxSkew: 0,
+            maxFundingVelocity: 1,
+            minTradeSizeX18: 1,
+            skewScale: 1,
+            marketOrderConfiguration: marketOrderConfiguration,
+            customOrdersConfiguration: customOrdersConfigurations,
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+        });
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxSkew") });
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.createPerpMarket(params);
+    }
+
+    modifier whenMaxSkewIsNotZero() {
         _;
     }
 
     function test_RevertWhen_InitialMarginRateIsZero()
         external
-        givenMarketIdIsNotZero
-        givenLengthOfNameIsNotZero
-        givenLengthOfSymbolIsNotZero
-        givenPriceAdapterIsNotZero
-        givenMaintenanceMarginRateIsNotZero
-        givenMaxOpenInterestIsNotZero
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
+        whenMaxOpenInterestIsNotZero
+        whenMaxSkewIsNotZero
     {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
@@ -248,9 +296,10 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             initialMarginRateX18: 0,
             maintenanceMarginRateX18: 1,
             maxOpenInterest: 1,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 1,
             minTradeSizeX18: 1,
+            skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
@@ -263,19 +312,20 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    modifier givenInitialMarginRateIsNotZero() {
+    modifier whenInitialMarginRateIsNotZero() {
         _;
     }
 
-    function test_RevertWhen_SkewScaleIsZero()
+    function test_RevertWhen_InitialMarginRateIsLessOrEqualToMaintenanceMargin()
         external
-        givenMarketIdIsNotZero
-        givenLengthOfNameIsNotZero
-        givenLengthOfSymbolIsNotZero
-        givenPriceAdapterIsNotZero
-        givenMaintenanceMarginRateIsNotZero
-        givenMaxOpenInterestIsNotZero
-        givenInitialMarginRateIsNotZero
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
+        whenMaxOpenInterestIsNotZero
+        whenMaxSkewIsNotZero
+        whenInitialMarginRateIsNotZero
     {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
@@ -289,9 +339,54 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             initialMarginRateX18: 1,
             maintenanceMarginRateX18: 1,
             maxOpenInterest: 1,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 0,
             minTradeSizeX18: 1,
+            skewScale: 1,
+            marketOrderConfiguration: marketOrderConfiguration,
+            customOrdersConfiguration: customOrdersConfigurations,
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+        });
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "initialMarginRateX18") });
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.createPerpMarket(params);
+    }
+
+    modifier whenInitialMarginIsNotLessOrEqualToMaintenanceMargin() {
+        _;
+    }
+
+    function test_RevertWhen_SkewScaleIsZero()
+        external
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
+        whenMaxOpenInterestIsNotZero
+        whenMaxSkewIsNotZero
+        whenInitialMarginRateIsNotZero
+        whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
+    {
+        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory marketOrderConfiguration;
+
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
+            .CreatePerpMarketParams({
+            marketId: 1,
+            name: "BTC/USD",
+            symbol: "BTC",
+            priceAdapter: address(0x20),
+            initialMarginRateX18: 2,
+            maintenanceMarginRateX18: 1,
+            maxOpenInterest: 1,
+            maxSkew: 1,
+            maxFundingVelocity: 1,
+            minTradeSizeX18: 1,
+            skewScale: 0,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
@@ -304,20 +399,22 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    modifier givenSkewScaleIsNotZero() {
+    modifier whenSkewScaleIsNotZero() {
         _;
     }
 
     function test_RevertWhen_MinTradeSizeIsZero()
         external
-        givenMarketIdIsNotZero
-        givenLengthOfNameIsNotZero
-        givenLengthOfSymbolIsNotZero
-        givenPriceAdapterIsNotZero
-        givenMaintenanceMarginRateIsNotZero
-        givenMaxOpenInterestIsNotZero
-        givenInitialMarginRateIsNotZero
-        givenSkewScaleIsNotZero
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
+        whenMaxOpenInterestIsNotZero
+        whenMaxSkewIsNotZero
+        whenInitialMarginRateIsNotZero
+        whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
+        whenSkewScaleIsNotZero
     {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
@@ -328,12 +425,13 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             name: "BTC/USD",
             symbol: "BTC",
             priceAdapter: address(0x20),
-            initialMarginRateX18: 1,
+            initialMarginRateX18: 2,
             maintenanceMarginRateX18: 1,
             maxOpenInterest: 1,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 1,
             minTradeSizeX18: 0,
+            skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
@@ -346,16 +444,64 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    function test_GivenMinTradeSizeIsNotZero()
+    modifier whenMinTradeSizeIsNotZero() {
+        _;
+    }
+
+    function test_RevertWhen_MaxFundingVelocityIsZero()
         external
-        givenMarketIdIsNotZero
-        givenLengthOfNameIsNotZero
-        givenLengthOfSymbolIsNotZero
-        givenPriceAdapterIsNotZero
-        givenMaintenanceMarginRateIsNotZero
-        givenMaxOpenInterestIsNotZero
-        givenInitialMarginRateIsNotZero
-        givenSkewScaleIsNotZero
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
+        whenMaxOpenInterestIsNotZero
+        whenMaxSkewIsNotZero
+        whenInitialMarginRateIsNotZero
+        whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
+        whenSkewScaleIsNotZero
+        whenMinTradeSizeIsNotZero
+    {
+        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory marketOrderConfiguration;
+
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
+            .CreatePerpMarketParams({
+            marketId: 1,
+            name: "BTC/USD",
+            symbol: "BTC",
+            priceAdapter: address(0x20),
+            initialMarginRateX18: 2,
+            maintenanceMarginRateX18: 1,
+            maxOpenInterest: 1,
+            maxSkew: 1,
+            maxFundingVelocity: 0,
+            minTradeSizeX18: 1,
+            skewScale: 1,
+            marketOrderConfiguration: marketOrderConfiguration,
+            customOrdersConfiguration: customOrdersConfigurations,
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+        });
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxFundingVelocity") });
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.createPerpMarket(params);
+    }
+
+    function test_WhenMaxFundingVelocityIsNotZero()
+        external
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
+        whenMaxOpenInterestIsNotZero
+        whenMaxSkewIsNotZero
+        whenInitialMarginRateIsNotZero
+        whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
+        whenSkewScaleIsNotZero
     {
         changePrank({ msgSender: users.owner });
 
@@ -368,12 +514,13 @@ contract CreatePerpMarket_Integration_Test is Base_Integration_Shared_Test {
             name: "BTC/USD",
             symbol: "BTC",
             priceAdapter: address(0x20),
-            initialMarginRateX18: 1,
+            initialMarginRateX18: 2,
             maintenanceMarginRateX18: 1,
             maxOpenInterest: 1,
+            maxSkew: 1,
             maxFundingVelocity: 1,
-            skewScale: 1,
             minTradeSizeX18: 1,
+            skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })

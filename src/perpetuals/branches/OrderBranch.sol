@@ -100,7 +100,7 @@ contract OrderBranch {
 
             if (
                 !newPositionSizeX18.isZero()
-                    && newPositionSizeX18.abs().lt(sd59x18(int256(perpMarket.configuration.minTradeSizeX18)))
+                    && newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
             ) {
                 revert Errors.NewPositionSizeTooSmall();
             }

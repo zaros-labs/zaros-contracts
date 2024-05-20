@@ -34,9 +34,10 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
         uint128 mmr;
         uint128 marginRequirements;
         uint128 maxOi;
-        uint256 skewScale;
-        uint256 minTradeSize;
+        uint128 maxSkew;
         uint128 maxFundingVelocity;
+        uint128 minTradeSize;
+        uint256 skewScale;
         address priceAdapter;
         bytes32 streamId;
         string streamIdString;
@@ -63,6 +64,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: BTC_USD_MMR,
             marginRequirements: BTC_USD_MARGIN_REQUIREMENTS,
             maxOi: BTC_USD_MAX_OI,
+            maxSkew: BTC_USD_MAX_SKEW,
             skewScale: BTC_USD_SKEW_SCALE,
             minTradeSize: BTC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
@@ -81,6 +83,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: ETH_USD_MMR,
             marginRequirements: ETH_USD_MARGIN_REQUIREMENTS,
             maxOi: ETH_USD_MAX_OI,
+            maxSkew: ETH_USD_MAX_SKEW,
             skewScale: ETH_USD_SKEW_SCALE,
             minTradeSize: ETH_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
@@ -99,6 +102,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: LINK_USD_MMR,
             marginRequirements: LINK_USD_MARGIN_REQUIREMENTS,
             maxOi: LINK_USD_MAX_OI,
+            maxSkew: LINK_USD_MAX_SKEW,
             skewScale: LINK_USD_SKEW_SCALE,
             minTradeSize: LINK_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
@@ -117,6 +121,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: ARB_USD_MMR,
             marginRequirements: ARB_USD_MARGIN_REQUIREMENTS,
             maxOi: ARB_USD_MAX_OI,
+            maxSkew: ARB_USD_MAX_SKEW,
             skewScale: ARB_USD_SKEW_SCALE,
             minTradeSize: ARB_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: ARB_USD_MAX_FUNDING_VELOCITY,
@@ -135,6 +140,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: BNB_USD_MMR,
             marginRequirements: BNB_USD_MARGIN_REQUIREMENTS,
             maxOi: BNB_USD_MAX_OI,
+            maxSkew: BNB_USD_MAX_SKEW,
             skewScale: BNB_USD_SKEW_SCALE,
             minTradeSize: BNB_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: BNB_USD_MAX_FUNDING_VELOCITY,
@@ -153,6 +159,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: DOGE_USD_MMR,
             marginRequirements: DOGE_USD_MARGIN_REQUIREMENTS,
             maxOi: DOGE_USD_MAX_OI,
+            maxSkew: DOGE_USD_MAX_SKEW,
             skewScale: DOGE_USD_SKEW_SCALE,
             minTradeSize: DOGE_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: DOGE_USD_MAX_FUNDING_VELOCITY,
@@ -171,6 +178,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: SOL_USD_MMR,
             marginRequirements: SOL_USD_MARGIN_REQUIREMENTS,
             maxOi: SOL_USD_MAX_OI,
+            maxSkew: SOL_USD_MAX_SKEW,
             skewScale: SOL_USD_SKEW_SCALE,
             minTradeSize: SOL_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: SOL_USD_MAX_FUNDING_VELOCITY,
@@ -189,6 +197,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: MATIC_USD_MMR,
             marginRequirements: MATIC_USD_MARGIN_REQUIREMENTS,
             maxOi: MATIC_USD_MAX_OI,
+            maxSkew: MATIC_USD_MAX_SKEW,
             skewScale: MATIC_USD_SKEW_SCALE,
             minTradeSize: MATIC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: MATIC_USD_MAX_FUNDING_VELOCITY,
@@ -207,6 +216,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: LTC_USD_MMR,
             marginRequirements: LTC_USD_MARGIN_REQUIREMENTS,
             maxOi: LTC_USD_MAX_OI,
+            maxSkew: LTC_USD_MAX_SKEW,
             skewScale: LTC_USD_SKEW_SCALE,
             minTradeSize: LTC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: LTC_USD_MAX_FUNDING_VELOCITY,
@@ -225,6 +235,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             mmr: FTM_USD_MMR,
             marginRequirements: FTM_USD_MARGIN_REQUIREMENTS,
             maxOi: FTM_USD_MAX_OI,
+            maxSkew: FTM_USD_MAX_SKEW,
             skewScale: FTM_USD_SKEW_SCALE,
             minTradeSize: FTM_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: FTM_USD_MAX_FUNDING_VELOCITY,
@@ -307,9 +318,10 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                     initialMarginRateX18: marketsConfig[i].imr,
                     maintenanceMarginRateX18: marketsConfig[i].mmr,
                     maxOpenInterest: marketsConfig[i].maxOi,
+                    maxSkew: marketsConfig[i].maxSkew,
                     maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
-                    skewScale: marketsConfig[i].skewScale,
                     minTradeSizeX18: marketsConfig[i].minTradeSize,
+                    skewScale: marketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
                     customOrdersConfiguration: customOrdersConfiguration,
                     orderFees: marketsConfig[i].orderFees

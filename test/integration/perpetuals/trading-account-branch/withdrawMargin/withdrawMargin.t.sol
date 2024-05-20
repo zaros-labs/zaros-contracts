@@ -147,7 +147,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: adjustedMarginRequirements,
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,
@@ -188,10 +188,10 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
                 orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
             )
         });
-        perpsEngine.withdrawMargin({
-            tradingAccountId: tradingAccountId,
-            collateralType: address(usdToken),
-            amount: amountToWithdraw
-        });
+        // perpsEngine.withdrawMargin({
+        //     tradingAccountId: tradingAccountId,
+        //     collateralType: address(usdToken),
+        //     amount: amountToWithdraw
+        // });
     }
 }

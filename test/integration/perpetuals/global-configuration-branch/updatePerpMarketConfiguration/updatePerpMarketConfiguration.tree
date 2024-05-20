@@ -17,14 +17,17 @@ UpdatePerpMarketConfiguration_Integration_Test
                     ├── when max open interest is zero
                     │   └── it should revert
                     └── given max open interest is not zero
-                        ├── when initial margin rate is zero
+                        ├── when max skew is zero
                         │   └── it should revert
-                        └── given initial margin rate is not zero
-                            ├── when skew scale is zero
+                        └── when max skew is not zero
+                            ├── when initial margin rate is zero
                             │   └── it should revert
-                            └── given skew scale is not zero
-                                ├── when min trade size is zero
+                            └── given initial margin rate is not zero
+                                ├── when skew scale is zero
                                 │   └── it should revert
-                                └── given min trade size is not zero
-                                    ├── it should update perp market
-                                    └── it should emit {LogUpdatePerpMarketConfiguration} event
+                                └── given skew scale is not zero
+                                    ├── when min trade size is zero
+                                    │   └── it should revert
+                                    └── given min trade size is not zero
+                                        ├── it should update perp market
+                                        └── it should emit {LogUpdatePerpMarketConfiguration} event
