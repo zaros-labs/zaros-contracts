@@ -113,11 +113,9 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
-    // TODO: fix pnl issue on settle tests
     function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement(
-        uint256 amountToDeposit,
+        uint256 marginValueUsd,
         uint256 amountToWithdraw,
-        uint256 marginRequirement,
         bool isLong,
         uint256 marketId
     )
@@ -127,113 +125,73 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
-        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        // {
-        //     amountToDeposit = bound({ x: amountToDeposit, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-        //     marginRequirement = bound({
-        //         x: marginRequirement,
-        //         min: fuzzMarketConfig.imr,
-        //         max: MAX_MARGIN_REQUIREMENTS
-        //     });
-        //     // TODO: discount order fees
-        //     uint256 requiredMarginUsd = ud60x18(amountToDeposit).div(ud60x18(marginRequirement)).mul(
-        //         ud60x18(fuzzMarketConfig.imr)
-        //     ).intoUint256();
-        //     amountToWithdraw = bound({ x: amountToWithdraw, min: requiredMarginUsd, max: amountToDeposit });
-        //     deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
-        // }
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        // uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
-        // int128 sizeDelta = fuzzOrderSizeDelta(
-        //     FuzzOrderSizeDeltaParams({
-        //         tradingAccountId: tradingAccountId,
-        //         marketId: fuzzMarketConfig.marketId,
-        //         settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-        //         initialMarginRate: ud60x18(marginRequirement),
-        //         marginValueUsd: ud60x18(amountToDeposit),
-        //         maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
-        //         minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
-        //         price: ud60x18(fuzzMarketConfig.mockUsdPrice),
-        //         isLong: isLong,
-        //         shouldDiscountFees: true
-        //     })
-        // );
-        // (SD59x18 marginBalanceUsdX18, UD60x18 requiredInitialMarginUsdX18, UD60x18
-        // requiredMaintenanceMarginUsdX18,,,)
-        // = perpsEngine.simulateTrade(
-        //     tradingAccountId,
-        //     fuzzMarketConfig.marketId,
-        //     SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-        //     sizeDelta
-        // );
-
-        // perpsEngine.createMarketOrder(
-        //     OrderBranch.CreateMarketOrderParams({
-        //         tradingAccountId: tradingAccountId,
-        //         marketId: fuzzMarketConfig.marketId,
-        //         sizeDelta: sizeDelta
-        //     })
-        // );
-
-        // changePrank({ msgSender: marketOrderKeepers[fuzzMarketConfig.marketId] });
-        // bytes memory mockSignedReport =
-        //     getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
-        // address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
-
-        // perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, marketOrderKeeper,
-        // mockSignedReport);
-
-        // changePrank({ msgSender: users.naruto });
-
-        // console.log("from wmt: ");
-        // console.log(marginBalanceUsdX18.abs().intoUint256());
-        // console.log(amountToWithdraw);
-        // console.log(requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256());
-
-        // vm.expectRevert({
-        //     revertData: abi.encodeWithSelector(
-        //         Errors.InsufficientMargin.selector,
-        //         tradingAccountId,
-        //         marginBalanceUsdX18.intoInt256() - int256(amountToWithdraw),
-        //         requiredInitialMarginUsdX18.add(requiredMaintenanceMarginUsdX18).intoUint256(),
-        //         int256(0)
-        //         )
-        // });
-        // // it should revert
-        // perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), ud60x18(amountToWithdraw));
-    }
-
-    function testFuzz_GivenTheAccountMeetsTheMarginRequirement(
-        uint256 amountToDeposit,
-        uint256 amountToWithdraw
-    )
-        external
-        givenTheAccountExists
-        givenTheSenderIsAuthorized
-        whenTheAmountIsNotZero
-        givenThereIsEnoughMarginCollateral
-    {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
-        amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
-        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
-
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
-
-        // it should emit a {LogWithdrawMargin} event
-        vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogWithdrawMargin(
-            users.naruto, tradingAccountId, address(usdToken), amountToWithdraw
+        // avoids very small rounding errors in super edge cases
+        UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.001e18));
+        UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.maxSkew)).mul(
+            ud60x18(fuzzMarketConfig.mockUsdPrice)
         );
 
-        // it should transfer the withdrawn amount to the sender
-        expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), ud60x18(amountToWithdraw));
+        marginValueUsd =
+            bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
+        amountToWithdraw = bound({ x: amountToWithdraw, min: USDZ_MIN_DEPOSIT_MARGIN, max: marginValueUsd });
 
-        uint256 expectedMargin = amountToDeposit - amountToWithdraw;
-        uint256 newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(usdToken)).intoUint256();
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        // it should decrease the margin collateral balance
-        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: adjustedMarginRequirements,
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxOpenInterest: ud60x18(fuzzMarketConfig.maxOi),
+                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: sizeDelta
+            })
+        );
+
+        (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 requiredInitialMarginUsdX18,
+            ,
+            SD59x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18,
+        ) = perpsEngine.simulateTrade(
+            tradingAccountId,
+            fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            sizeDelta
+        );
+
+        int256 newMarginBalanceUsd = marginBalanceUsdX18.intoInt256() - int256(amountToWithdraw);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InsufficientMargin.selector,
+                tradingAccountId,
+                marginBalanceUsdX18.intoInt256(),
+                requiredInitialMarginUsdX18,
+                orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
+            )
+        });
+        perpsEngine.withdrawMargin({
+            tradingAccountId: tradingAccountId,
+            collateralType: address(usdToken),
+            amount: amountToWithdraw
+        });
     }
 }
