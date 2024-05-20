@@ -4,6 +4,7 @@ GetPerpMarketConfiguration_Integration_Test
     ├── it should return symbol
     ├── it should return initial margin rate
     ├── it should return max open interest
+    ├── it should return max skew
     ├── it should return skew scale
     ├── it should return min trade size
     └── it should return order fees

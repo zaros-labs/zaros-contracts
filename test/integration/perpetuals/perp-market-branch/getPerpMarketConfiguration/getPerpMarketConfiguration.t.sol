@@ -23,8 +23,9 @@ contract GetPerpMarketConfiguration_Integration_Test is Base_Integration_Shared_
             uint128 initialMarginRateX18,
             uint128 maintenanceMarginRateX18,
             uint128 maxOpenInterest,
+            uint128 maxSkew,
+            uint128 minTradeSizeX18,
             uint256 skewScale,
-            uint256 minTradeSizeX18,
             OrderFees.Data memory orderFees
         ) = perpsEngine.getPerpMarketConfiguration(fuzzMarketConfig.marketId);
 
@@ -42,6 +43,9 @@ contract GetPerpMarketConfiguration_Integration_Test is Base_Integration_Shared_
 
         // it should return max open interest
         assertEq(maxOpenInterest, fuzzMarketConfig.maxOi, "Invalid max open interest");
+
+        // it should return skew scale
+        assertEq(maxSkew, fuzzMarketConfig.maxSkew, "Invalid max skew");
 
         // it should return skew scale
         assertEq(skewScale, fuzzMarketConfig.skewScale, "Invalid skew scale");
