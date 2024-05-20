@@ -234,7 +234,11 @@ contract SettlementBranch {
         if (ctx.newPosition.size == 0) {
             oldPosition.clear();
         } else {
-            if (sd59x18(ctx.newPosition.size).abs().lt(sd59x18(int256(perpMarket.configuration.minTradeSizeX18)))) {
+            if (
+                sd59x18(ctx.newPosition.size).abs().lt(
+                    sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18)))
+                )
+            ) {
                 revert Errors.NewPositionSizeTooSmall();
             }
             oldPosition.update(ctx.newPosition);

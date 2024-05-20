@@ -14,9 +14,10 @@ abstract contract MaticUsd {
     uint128 internal constant MATIC_USD_MMR = 0.05e18;
     uint128 internal constant MATIC_USD_MARGIN_REQUIREMENTS = MATIC_USD_IMR + MATIC_USD_MMR;
     uint128 internal constant MATIC_USD_MAX_OI = 500_000_000e18;
+    uint128 internal constant MATIC_USD_MAX_SKEW = 500_000_000e18;
     uint128 internal constant MATIC_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant MATIC_USD_SKEW_SCALE = 64_381_888_511e18;
-    uint256 internal constant MATIC_USD_MIN_TRADE_SIZE = 300e18;
+    uint128 internal constant MATIC_USD_MIN_TRADE_SIZE = 300e18;
     OrderFees.Data internal maticUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
 
     /// @notice Test only mocks

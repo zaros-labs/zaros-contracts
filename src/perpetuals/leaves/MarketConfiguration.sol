@@ -12,9 +12,10 @@ library MarketConfiguration {
         uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
         uint128 maxOpenInterest;
+        uint128 maxSkew;
         uint128 maxFundingVelocity;
+        uint128 minTradeSizeX18;
         uint256 skewScale;
-        uint256 minTradeSizeX18;
         OrderFees.Data orderFees;
     }
 
@@ -26,9 +27,10 @@ library MarketConfiguration {
         uint128 initialMarginRateX18,
         uint128 maintenanceMarginRateX18,
         uint128 maxOpenInterest,
+        uint128 maxSkew,
         uint128 maxFundingVelocity,
+        uint128 minTradeSizeX18,
         uint256 skewScale,
-        uint256 minTradeSizeX18,
         OrderFees.Data memory orderFees
     )
         internal
@@ -39,9 +41,10 @@ library MarketConfiguration {
         self.initialMarginRateX18 = initialMarginRateX18;
         self.maintenanceMarginRateX18 = maintenanceMarginRateX18;
         self.maxOpenInterest = maxOpenInterest;
+        self.maxSkew = maxSkew;
         self.maxFundingVelocity = maxFundingVelocity;
-        self.skewScale = skewScale;
         self.minTradeSizeX18 = minTradeSizeX18;
+        self.skewScale = skewScale;
         self.orderFees = orderFees;
     }
 }

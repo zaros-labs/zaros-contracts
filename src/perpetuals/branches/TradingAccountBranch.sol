@@ -141,8 +141,7 @@ contract TradingAccountBranch {
             maintenanceMarginUsdX18 = maintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
         }
 
-        availableMarginUsdX18 =
-            marginBalanceUsdX18.sub((initialMarginUsdX18.add(maintenanceMarginUsdX18)).intoSD59x18());
+        availableMarginUsdX18 = marginBalanceUsdX18.sub((initialMarginUsdX18).intoSD59x18());
     }
 
     /// @notice Returns the total trading account's unrealized pnl across open positions.

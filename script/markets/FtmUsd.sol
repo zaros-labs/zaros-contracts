@@ -14,9 +14,10 @@ abstract contract FtmUsd {
     uint128 internal constant FTM_USD_MMR = 0.05e18;
     uint128 internal constant FTM_USD_MARGIN_REQUIREMENTS = FTM_USD_IMR + FTM_USD_MMR;
     uint128 internal constant FTM_USD_MAX_OI = 500_000_000e18;
+    uint128 internal constant FTM_USD_MAX_SKEW = 500_000_000e18;
     uint128 internal constant FTM_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant FTM_USD_SKEW_SCALE = 12_462_757_437e18;
-    uint256 internal constant FTM_USD_MIN_TRADE_SIZE = 250e18;
+    uint128 internal constant FTM_USD_MIN_TRADE_SIZE = 250e18;
     OrderFees.Data internal ftmUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
 
     /// @notice Test only mocks

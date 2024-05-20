@@ -226,9 +226,10 @@ library PerpMarket {
         uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
         uint128 maxOpenInterest;
+        uint128 maxSkew;
         uint128 maxFundingVelocity;
+        uint128 minTradeSizeX18;
         uint256 skewScale;
-        uint256 minTradeSizeX18;
         SettlementConfiguration.Data marketOrderConfiguration;
         SettlementConfiguration.Data[] customOrdersConfiguration;
         OrderFees.Data orderFees;
@@ -250,9 +251,10 @@ library PerpMarket {
             params.initialMarginRateX18,
             params.maintenanceMarginRateX18,
             params.maxOpenInterest,
+            params.maxSkew,
             params.maxFundingVelocity,
-            params.skewScale,
             params.minTradeSizeX18,
+            params.skewScale,
             params.orderFees
         );
         SettlementConfiguration.update(
