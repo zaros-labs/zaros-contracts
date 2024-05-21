@@ -115,6 +115,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
     struct TestFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement_Context {
         MarketConfig fuzzMarketConfig;
+        UD60x18 adjustedMarginRequirements;
         UD60x18 maxMarginValueUsd;
         uint256 amountToWithdraw;
         uint128 tradingAccountId;
@@ -139,10 +140,11 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     {
         TestFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement_Context memory ctx;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        ctx.adjustedMarginRequirements = ud60x18(ctx.fuzzMarketConfig.imr).mul(ud60x18(1.001e18));
 
         // avoids very small rounding errors in super edge cases
         // ctx.adjustedMarginRequirements = ud60x18(ctx.fuzzMarketConfig.imr).mul(ud60x18(1.001e18));
-        ctx.maxMarginValueUsd = ud60x18(ctx.fuzzMarketConfig.imr).mul(ud60x18(ctx.fuzzMarketConfig.maxSkew)).mul(
+        ctx.maxMarginValueUsd = ctx.adjustedMarginRequirements.mul(ud60x18(ctx.fuzzMarketConfig.maxSkew)).mul(
             ud60x18(ctx.fuzzMarketConfig.mockUsdPrice)
         );
 
@@ -158,7 +160,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
                 tradingAccountId: ctx.tradingAccountId,
                 marketId: ctx.fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(ctx.fuzzMarketConfig.imr),
+                initialMarginRate: ctx.adjustedMarginRequirements,
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxSkew: ud60x18(ctx.fuzzMarketConfig.maxSkew),
                 minTradeSize: ud60x18(ctx.fuzzMarketConfig.minTradeSize),
