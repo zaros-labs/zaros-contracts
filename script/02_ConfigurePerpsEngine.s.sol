@@ -17,38 +17,29 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    address internal usdzUsdPriceFeed;
-    address internal usdcUsdPriceFeed;
     uint256 internal keeperInitialLinkFunding;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     AccountNFT internal tradingAccountToken;
-    address internal usdToken;
-    address internal usdc;
     address internal link;
     address internal automationRegistrar;
     IPerpsEngine internal perpsEngine;
 
-    function run() public broadcaster {
+    function run(uint256 initialMarginCollateralId, uint256 finalMarginCollateralId) public broadcaster {
         tradingAccountToken = AccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
-        usdToken = vm.envAddress("USDZ");
-        usdc = vm.envAddress("USDC");
         link = vm.envAddress("LINK");
         automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
-        // TODO: Move to MarginCollateral configuration
-        usdzUsdPriceFeed = vm.envAddress("USDZ_USD_PRICE_FEED");
-        usdcUsdPriceFeed = vm.envAddress("USDC_USD_PRICE_FEED");
         keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
 
         payable(address(perpsEngine)).transfer(0.03 ether);
 
-        configureContracts();
+        configureContracts(initialMarginCollateralId, finalMarginCollateralId);
     }
 
-    function configureContracts() internal {
+    function configureContracts(uint256 initialMarginCollateralId, uint256 finalMarginCollateralId) internal {
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
@@ -59,14 +50,11 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD
         });
 
-        address[] memory collateralLiquidationPriority = new address[](2);
-        collateralLiquidationPriority[0] = usdToken;
-        collateralLiquidationPriority[1] = usdc;
+        uint256[2] memory marginCollateralIdsRange;
+        marginCollateralIdsRange[0] = initialMarginCollateralId;
+        marginCollateralIdsRange[1] = finalMarginCollateralId;
 
-        perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
-
-        perpsEngine.configureMarginCollateral(usdToken, USDZ_DEPOSIT_CAP, USDZ_LOAN_TO_VALUE, usdzUsdPriceFeed);
-        perpsEngine.configureMarginCollateral(usdc, USDC_DEPOSIT_CAP, USDC_LOAN_TO_VALUE, usdcUsdPriceFeed);
+        configureMarginCollaterals(marginCollateralIdsRange);
 
         // AutomationHelpers.registerLiquidationKeeper({
         //     name: PERPS_LIQUIDATION_KEEPER_NAME,
@@ -89,6 +77,29 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
-        LimitedMintingERC20(usdToken).transferOwnership(address(perpsEngine));
+        LimitedMintingERC20(USDZ_ADDRESS).transferOwnership(address(perpsEngine));
+    }
+
+    function configureMarginCollaterals(uint256[2] memory marginCollateralIdsRange) internal {
+        setupMarginCollaterals();
+
+        MarginCollateral[] memory filteredMarginCollateralsConfig =
+            getFilteredMarginCollateralsConfig(marginCollateralIdsRange);
+
+        address[] memory collateralLiquidationPriority = new address[](filteredMarginCollateralsConfig.length);
+
+        for (uint256 i = 0; i < filteredMarginCollateralsConfig.length; i++) {
+            uint256 indexLiquidationPriority = filteredMarginCollateralsConfig[i].liquidationPriority - 1;
+
+            collateralLiquidationPriority[indexLiquidationPriority] =
+                filteredMarginCollateralsConfig[i].marginCollateralAddress;
+
+            perpsEngine.configureMarginCollateral(
+                filteredMarginCollateralsConfig[i].marginCollateralAddress,
+                filteredMarginCollateralsConfig[i].depositCap,
+                filteredMarginCollateralsConfig[i].loanToValue,
+                filteredMarginCollateralsConfig[i].priceFeed
+            );
+        }
     }
 }
