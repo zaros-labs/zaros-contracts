@@ -290,11 +290,8 @@ contract TradingAccountBranch {
         _requireEnoughMarginCollateral(tradingAccount, collateralType, ud60x18Amount);
 
         tradingAccount.withdraw(collateralType, ud60x18Amount);
-        (
-            UD60x18 requiredInitialMarginUsdX18,
-            UD60x18 requiredMaintenanceMarginUsdX18,
-            SD59x18 accountTotalUnrealizedPnlUsdX18
-        ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
+        (UD60x18 requiredInitialMarginUsdX18,, SD59x18 accountTotalUnrealizedPnlUsdX18) =
+            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
         SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
         tradingAccount.validateMarginRequirement(requiredInitialMarginUsdX18, marginBalanceUsdX18, SD_ZERO);

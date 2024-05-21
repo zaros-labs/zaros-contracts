@@ -168,16 +168,17 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
-
-        (, ,, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) =
-        perpsEngine.simulateTrade(
+        (,,, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) = perpsEngine.simulateTrade(
             ctx.tradingAccountId,
             ctx.fuzzMarketConfig.marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta
         );
 
-        amountToWithdraw = amountToWithdraw - ctx.orderFeeUsdX18.intoUD60x18().intoUint256() - ctx.settlementFeeUsdX18.intoUint256();
+        amountToWithdraw = amountToWithdraw
+            >= ctx.orderFeeUsdX18.intoUD60x18().intoUint256() + ctx.orderFeeUsdX18.intoUD60x18().intoUint256()
+            ? amountToWithdraw - ctx.orderFeeUsdX18.intoUD60x18().intoUint256() - ctx.settlementFeeUsdX18.intoUint256()
+            : marginValueUsd - ctx.orderFeeUsdX18.intoUD60x18().intoUint256() - ctx.settlementFeeUsdX18.intoUint256();
 
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -208,7 +209,8 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(
                 Errors.InsufficientMargin.selector,
                 ctx.tradingAccountId,
-                0,
+                int256(marginValueUsd) - int256(amountToWithdraw) - ctx.orderFeeUsdX18.intoInt256()
+                    - ctx.settlementFeeUsdX18.intoSD59x18().intoInt256(),
                 ctx.requiredInitialMarginUsdX18,
                 0
             )
