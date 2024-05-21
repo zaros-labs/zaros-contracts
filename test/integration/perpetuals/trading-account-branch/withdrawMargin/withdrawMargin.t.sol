@@ -6,11 +6,12 @@ pragma solidity 0.8.25;
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
+import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -114,8 +115,8 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
     struct TestFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement_Context {
         MarketConfig fuzzMarketConfig;
-        UD60x18 adjustedMarginRequirements;
         UD60x18 maxMarginValueUsd;
+        uint256 amountToWithdraw;
         uint128 tradingAccountId;
         int128 sizeDelta;
         SD59x18 marginBalanceUsdX18;
@@ -127,7 +128,6 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
     function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement(
         uint256 marginValueUsd,
-        uint256 amountToWithdraw,
         bool isLong,
         uint256 marketId
     )
@@ -141,14 +141,14 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // avoids very small rounding errors in super edge cases
-        ctx.adjustedMarginRequirements = ud60x18(ctx.fuzzMarketConfig.imr).mul(ud60x18(1.001e18));
-        ctx.maxMarginValueUsd = ctx.adjustedMarginRequirements.mul(ud60x18(ctx.fuzzMarketConfig.maxSkew)).mul(
+        // ctx.adjustedMarginRequirements = ud60x18(ctx.fuzzMarketConfig.imr).mul(ud60x18(1.001e18));
+        ctx.maxMarginValueUsd = ud60x18(ctx.fuzzMarketConfig.imr).mul(ud60x18(ctx.fuzzMarketConfig.maxSkew)).mul(
             ud60x18(ctx.fuzzMarketConfig.mockUsdPrice)
         );
 
         marginValueUsd =
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: ctx.maxMarginValueUsd.intoUint256() });
-        amountToWithdraw = bound({ x: amountToWithdraw, min: USDZ_MIN_DEPOSIT_MARGIN, max: marginValueUsd });
+        ctx.amountToWithdraw = marginValueUsd;
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
@@ -158,7 +158,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
                 tradingAccountId: ctx.tradingAccountId,
                 marketId: ctx.fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ctx.adjustedMarginRequirements,
+                initialMarginRate: ud60x18(ctx.fuzzMarketConfig.imr),
                 marginValueUsd: ud60x18(marginValueUsd),
                 maxSkew: ud60x18(ctx.fuzzMarketConfig.maxSkew),
                 minTradeSize: ud60x18(ctx.fuzzMarketConfig.minTradeSize),
@@ -175,10 +175,8 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
             sizeDelta
         );
 
-        amountToWithdraw = amountToWithdraw
-            >= ctx.orderFeeUsdX18.intoUD60x18().intoUint256() + ctx.orderFeeUsdX18.intoUD60x18().intoUint256()
-            ? amountToWithdraw - ctx.orderFeeUsdX18.intoUD60x18().intoUint256() - ctx.settlementFeeUsdX18.intoUint256()
-            : marginValueUsd - ctx.orderFeeUsdX18.intoUD60x18().intoUint256() - ctx.settlementFeeUsdX18.intoUint256();
+        ctx.amountToWithdraw = ctx.amountToWithdraw - ctx.orderFeeUsdX18.intoUD60x18().intoUint256()
+            - ctx.settlementFeeUsdX18.intoUint256();
 
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -209,7 +207,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
             revertData: abi.encodeWithSelector(
                 Errors.InsufficientMargin.selector,
                 ctx.tradingAccountId,
-                int256(marginValueUsd) - int256(amountToWithdraw) - ctx.orderFeeUsdX18.intoInt256()
+                int256(marginValueUsd) - int256(ctx.amountToWithdraw) - ctx.orderFeeUsdX18.intoInt256()
                     - ctx.settlementFeeUsdX18.intoSD59x18().intoInt256(),
                 ctx.requiredInitialMarginUsdX18,
                 0
@@ -220,7 +218,41 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.withdrawMargin({
             tradingAccountId: ctx.tradingAccountId,
             collateralType: address(usdToken),
-            amount: amountToWithdraw
+            amount: ctx.amountToWithdraw
         });
+    }
+
+    function testFuzz_GivenTheAccountMeetsTheMarginRequirement(
+        uint256 amountToDeposit,
+        uint256 amountToWithdraw
+    )
+        external
+        givenTheAccountExists
+        givenTheSenderIsAuthorized
+        whenTheAmountIsNotZero
+        givenThereIsEnoughMarginCollateral
+    {
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
+        amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
+        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+
+        // it should emit a {LogWithdrawMargin} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit TradingAccountBranch.LogWithdrawMargin(
+            users.naruto, tradingAccountId, address(usdToken), amountToWithdraw
+        );
+
+        // it should transfer the withdrawn amount to the sender
+        expectCallToTransfer(usdToken, users.naruto, amountToWithdraw);
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), amountToWithdraw);
+
+        uint256 expectedMargin = amountToDeposit - amountToWithdraw;
+        uint256 newMarginCollateralBalance =
+            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(usdToken)).intoUint256();
+
+        // it should decrease the margin collateral balance
+        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
     }
 }
