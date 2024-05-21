@@ -411,7 +411,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         // avoids very small rounding errors in super edge cases
         UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.001e18));
-        UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.maxOi)).mul(
+        UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.maxSkew)).mul(
             ud60x18(fuzzMarketConfig.mockUsdPrice)
         );
 

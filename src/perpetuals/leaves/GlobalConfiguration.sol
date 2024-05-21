@@ -3,18 +3,11 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 
 // Open Zeppelin dependencies
-import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
-
-// PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The GlobalConfiguration namespace.
 library GlobalConfiguration {
