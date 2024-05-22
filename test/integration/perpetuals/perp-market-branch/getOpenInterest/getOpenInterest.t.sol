@@ -70,7 +70,7 @@ contract GetOpenInterest_Integration_Test is Base_Integration_Shared_Test {
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
         changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
 
         (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest) =
             perpsEngine.getOpenInterest(fuzzMarketConfig.marketId);
@@ -116,9 +116,7 @@ contract GetOpenInterest_Integration_Test is Base_Integration_Shared_Test {
         bytes memory secondMockSignedReport = getMockedSignedReport(fuzzMarketConfig.streamId, newIndexPrice);
 
         changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(
-            tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, secondMockSignedReport
-        );
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, secondMockSignedReport);
 
         (longsOpenInterest, shortsOpenInterest, totalOpenInterest) =
             perpsEngine.getOpenInterest(fuzzMarketConfig.marketId);

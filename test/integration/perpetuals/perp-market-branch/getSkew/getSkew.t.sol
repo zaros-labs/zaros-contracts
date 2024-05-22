@@ -70,7 +70,7 @@ contract GetSkew_Integration_Test is Base_Integration_Shared_Test {
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
         changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
 
         // it should return the skew
         SD59x18 skew = perpsEngine.getSkew(fuzzMarketConfig.marketId);
@@ -100,9 +100,7 @@ contract GetSkew_Integration_Test is Base_Integration_Shared_Test {
         bytes memory secondMockSignedReport = getMockedSignedReport(fuzzMarketConfig.streamId, newIndexPrice);
 
         changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(
-            tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, secondMockSignedReport
-        );
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, secondMockSignedReport);
 
         // it should return the skew
         skew = perpsEngine.getSkew(fuzzMarketConfig.marketId);
