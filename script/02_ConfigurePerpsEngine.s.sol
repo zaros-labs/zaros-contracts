@@ -44,11 +44,14 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
-        // perpsEngine.configureSystemParameters({
-        //     maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
-        //     marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
-        //     liquidationFeeUsdX18: LIQUIDATION_FEE_USD
-        // });
+        perpsEngine.configureSystemParameters({
+            maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
+            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
+            marginCollateralRecipient: MSIG_ADDRESS,
+            orderFeeRecipient: MSIG_ADDRESS,
+            settlementFeeRecipient: MSIG_ADDRESS
+        });
 
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = initialMarginCollateralId;
