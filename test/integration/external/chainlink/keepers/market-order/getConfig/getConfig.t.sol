@@ -24,18 +24,13 @@ contract MarketOrderKeeper_GetConfig_Integration_Test is Base_Integration_Shared
 
     function testFuzz_WhenCallGetConfigFunction(uint256 marketId) external givenInitializeContract {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        address settlementFeeRecipient = address(0x20);
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId,
-            users.owner,
-            perpsEngine,
-            settlementFeeRecipient,
-            marketOrderKeeperImplementation
+            fuzzMarketConfig.marketId, users.owner, perpsEngine, marketOrderKeeperImplementation
         );
 
-        (address keeperOwner,, address perpsEngine, address feeRecipient, uint256 marketIdConfig) =
+        (address keeperOwner,, address perpsEngine, uint256 marketIdConfig) =
             MarketOrderKeeper(marketOrderKeeper).getConfig();
 
         // it should return keeper owner
@@ -43,9 +38,6 @@ contract MarketOrderKeeper_GetConfig_Integration_Test is Base_Integration_Shared
 
         // it should return address of perps engine
         assertEq(address(perpsEngine), perpsEngine, "perps engine is not correct");
-
-        // it should return address of fee recipient
-        assertEq(settlementFeeRecipient, feeRecipient, "fee recipient is not correct");
 
         // it should return market id
         assertEq(fuzzMarketConfig.marketId, marketIdConfig, "market id is not correct");

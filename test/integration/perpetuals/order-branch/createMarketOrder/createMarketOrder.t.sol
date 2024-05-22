@@ -301,7 +301,10 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: 1,
             marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
-            liquidationFeeUsdX18: LIQUIDATION_FEE_USD
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
+            marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
+            orderFeeRecipient: feeRecipients.orderFeeRecipient,
+            settlementFeeRecipient: feeRecipients.settlementFeeRecipient
         });
 
         changePrank({ msgSender: users.naruto });
@@ -318,7 +321,7 @@ contract CreateMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
 
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
 
         changePrank({ msgSender: users.naruto });
 

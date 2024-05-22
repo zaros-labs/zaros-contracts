@@ -200,9 +200,7 @@ contract WithdrawMargin_Integration_Test is Base_Integration_Shared_Test {
 
         changePrank({ msgSender: marketOrderKeepers[ctx.fuzzMarketConfig.marketId] });
 
-        perpsEngine.fillMarketOrder(
-            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.mockSignedReport
-        );
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.mockSignedReport);
 
         // it should revert
         vm.expectRevert({

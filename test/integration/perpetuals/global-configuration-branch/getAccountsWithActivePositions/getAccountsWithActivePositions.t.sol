@@ -78,7 +78,7 @@ contract GetAccountsWithActivePositions_Integration_Test is Base_Integration_Sha
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
         changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
 
         uint128[] memory accountsIds = perpsEngine.getAccountsWithActivePositions(0, 0);
         assertEq(accountsIds[0], tradingAccountId, "getAccountsWithActivePositions: invalid account id");

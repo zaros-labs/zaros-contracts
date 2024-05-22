@@ -79,7 +79,6 @@ library AutomationHelpers {
     function deployLiquidationKeeper(
         address owner,
         address perpsEngine,
-        address marginCollateralRecipient,
         address settlementFeeRecipient
     )
         internal
@@ -94,7 +93,6 @@ library AutomationHelpers {
                     LiquidationKeeper(liquidationKeeperImplementation).initialize.selector,
                     owner,
                     perpsEngine,
-                    marginCollateralRecipient,
                     settlementFeeRecipient
                 )
             )

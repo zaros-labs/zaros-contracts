@@ -236,7 +236,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMaxLifetime,
-        uint128 liquidationFeeUsdX18
+        uint128 liquidationFeeUsdX18,
+        address marginCollateralRecipient,
+        address orderFeeRecipient,
+        address settlementFeeRecipient
     )
         external
         onlyOwner
@@ -253,11 +256,26 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             revert Errors.ZeroInput("liquidationFeeUsdX18");
         }
 
+        if (marginCollateralRecipient == address(0)) {
+            revert Errors.ZeroInput("marginCollateralRecipient");
+        }
+
+        if (orderFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("orderFeeRecipient");
+        }
+
+        if (settlementFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("settlementFeeRecipient");
+        }
+
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         globalConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
         globalConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
         globalConfiguration.liquidationFeeUsdX18 = liquidationFeeUsdX18;
+        globalConfiguration.marginCollateralRecipient = marginCollateralRecipient;
+        globalConfiguration.orderFeeRecipient = orderFeeRecipient;
+        globalConfiguration.settlementFeeRecipient = settlementFeeRecipient;
 
         emit LogConfigureSystemParameters(
             msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime, liquidationFeeUsdX18

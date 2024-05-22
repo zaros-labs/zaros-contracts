@@ -33,12 +33,10 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     //////////////////////////////////////////////////////////////////////////*/
     AccountNFT internal tradingAccountToken;
     IPerpsEngine internal perpsEngine;
-    address internal usdToken;
 
     function run() public broadcaster {
         tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
         console.log("Trading Account NFT: ", address(tradingAccountToken));
-        usdToken = vm.envAddress("USDZ");
 
         isTestnet = vm.envBool("IS_TESTNET");
 
@@ -48,7 +46,8 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches);
-        bytes[] memory initializePayloads = getInitializePayloads(deployer, address(tradingAccountToken), usdToken);
+        bytes[] memory initializePayloads =
+            getInitializePayloads(deployer, address(tradingAccountToken), USDZ_ADDRESS);
 
         RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,

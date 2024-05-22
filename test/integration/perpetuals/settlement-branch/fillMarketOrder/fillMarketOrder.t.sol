@@ -73,7 +73,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.OnlyKeeper.selector, users.naruto, marketOrderKeeper)
         });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
 
     modifier givenTheSenderIsTheKeeper() {
@@ -102,7 +102,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: marketOrderKeeper });
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, tradingAccountId) });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
 
     modifier givenTheMarketOrderExists() {
@@ -161,7 +161,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
         });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
 
     modifier givenThePerpMarketIsEnabled() {
@@ -238,7 +238,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: marketOrderKeeper });
         // it should revert
         vm.expectRevert({ revertData: Errors.SettlementDisabled.selector });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
 
     modifier givenTheSettlementStrategyIsEnabled() {
@@ -312,7 +312,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: marketOrderKeeper });
         // it should revert
         vm.expectRevert();
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
 
     modifier givenTheReportVerificationPasses() {
@@ -387,7 +387,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 Errors.InvalidDataStreamReport.selector, fuzzMarketConfig.streamId, premiumReport.feedId
             )
         });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
 
     modifier givenTheDataStreamsReportIsValid() {
@@ -479,7 +479,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
             )
         });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
 
     modifier givenTheAccountWillMeetTheMarginRequirement() {
@@ -548,7 +548,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 Errors.ExceedsOpenInterestLimit.selector, fuzzMarketConfig.marketId, newMaxOi, sizeDeltaAbs
             )
         });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
 
     modifier givenTheMarketsOILimitWontBeExceeded() {
@@ -681,9 +681,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         });
 
         // fill first order and open position
-        perpsEngine.fillMarketOrder(
-            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.firstMockSignedReport
-        );
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
         // TODO: assert after funding task is done
         // it should update the funding values
 
@@ -774,9 +772,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             fundingFeePerUnit: 0
         });
         // fill second order and close position
-        perpsEngine.fillMarketOrder(
-            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.secondMockSignedReport
-        );
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
 
         // TODO: assert after funding task is done
         // it should update the funding values
@@ -935,9 +931,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         });
 
         // fill first order and open position
-        perpsEngine.fillMarketOrder(
-            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.firstMockSignedReport
-        );
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
         // TODO: assert after funding task is done
         // it should update the funding values
 
@@ -1019,9 +1013,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             fundingFeePerUnit: 0
         });
         // fill second order and close position
-        perpsEngine.fillMarketOrder(
-            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, feeRecipients, ctx.secondMockSignedReport
-        );
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
 
         // TODO: assert after funding task is done
         // it should update the funding values

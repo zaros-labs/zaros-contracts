@@ -50,11 +50,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: filteredMarketsConfig[i].streamId });
 
             address marketOrderKeeper = deployMarketOrderKeeper(
-                filteredMarketsConfig[i].marketId,
-                deployer,
-                perpsEngine,
-                settlementFeeRecipient,
-                marketOrderKeeperImplementation
+                filteredMarketsConfig[i].marketId, deployer, perpsEngine, marketOrderKeeperImplementation
             );
 
             console.log(
@@ -108,12 +104,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
             new ERC1967Proxy(
                 marketOrderKeeperImplementation,
                 abi.encodeWithSelector(
-                    MarketOrderKeeper.initialize.selector,
-                    deployer,
-                    perpsEngine,
-                    settlementFeeRecipient,
-                    marketId,
-                    streamIdString
+                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, marketId, streamIdString
                 )
             )
         );

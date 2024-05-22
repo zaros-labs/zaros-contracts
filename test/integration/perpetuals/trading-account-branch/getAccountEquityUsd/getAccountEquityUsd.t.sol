@@ -37,7 +37,6 @@ contract GetAccountEquityUsd_Integration_Test is Base_Integration_Shared_Test {
     function test_GivenTheresNoOpenPosition(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
-        bool isLong,
         uint256 marketId
     )
         external
@@ -120,7 +119,7 @@ contract GetAccountEquityUsd_Integration_Test is Base_Integration_Shared_Test {
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
         changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
 
         SD59x18 accountTotalUnrealizedPnl = perpsEngine.getAccountTotalUnrealizedPnl(tradingAccountId);
 

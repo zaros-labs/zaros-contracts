@@ -35,34 +35,7 @@ contract LiquidationKeeper_Initialize_Integration_Test is Base_Integration_Share
         new ERC1967Proxy(
             liquidationKeeperImplementation,
             abi.encodeWithSelector(
-                LiquidationKeeper.initialize.selector,
-                users.owner,
-                perpsEngine,
-                users.marginCollateralRecipient,
-                users.settlementFeeRecipient
-            )
-        );
-    }
-
-    function test_RevertWhen_AddressOfMarginCollateralRecipientIsZero()
-        external
-        givenInitializeContractWithSomeWrongInformation
-    {
-        address liquidationKeeperImplementation = address(new LiquidationKeeper());
-
-        address marginCollateralRecipient = address(0);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marginCollateralRecipient") });
-
-        new ERC1967Proxy(
-            liquidationKeeperImplementation,
-            abi.encodeWithSelector(
-                LiquidationKeeper.initialize.selector,
-                users.owner,
-                address(perpsEngine),
-                marginCollateralRecipient,
-                users.settlementFeeRecipient
+                LiquidationKeeper.initialize.selector, users.owner, perpsEngine, users.settlementFeeRecipient
             )
         );
     }
@@ -81,11 +54,7 @@ contract LiquidationKeeper_Initialize_Integration_Test is Base_Integration_Share
         new ERC1967Proxy(
             liquidationKeeperImplementation,
             abi.encodeWithSelector(
-                LiquidationKeeper.initialize.selector,
-                users.owner,
-                address(perpsEngine),
-                users.marginCollateralRecipient,
-                liquidationFeeRecipient
+                LiquidationKeeper.initialize.selector, users.owner, address(perpsEngine), liquidationFeeRecipient
             )
         );
     }

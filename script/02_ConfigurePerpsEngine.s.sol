@@ -47,7 +47,10 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
-            liquidationFeeUsdX18: LIQUIDATION_FEE_USD
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
+            marginCollateralRecipient: MSIG_ADDRESS,
+            orderFeeRecipient: MSIG_ADDRESS,
+            settlementFeeRecipient: MSIG_ADDRESS
         });
 
         uint256[2] memory marginCollateralIdsRange;
@@ -66,7 +69,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         // });
 
         address liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS, MSIG_ADDRESS);
+            AutomationHelpers.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS);
         console.log("Liquidation Keeper: ", liquidationKeeper);
 
         address[] memory liquidators = new address[](1);

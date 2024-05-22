@@ -6,8 +6,6 @@ LiquidationKeeper_SetConfig_Integration_Test
         └── when I am the owner
             ├── when perpsEngine is zero
             │   └── it should revert
-            ├── when margin collateral recipient is zero
-            │   └── it should revert
             ├── when liquidation fee recipient is zero
             │   └── it should revert
             └── it should update config

@@ -35,33 +35,26 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Integration_Sha
         givenCallUpdateConfigFunction
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        address settlementFeeRecipient = address(0x20);
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId,
-            users.owner,
-            perpsEngine,
-            settlementFeeRecipient,
-            marketOrderKeeperImplementation
+            fuzzMarketConfig.marketId, users.owner, perpsEngine, marketOrderKeeperImplementation
         );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
-        address newFeeRecipient = address(0x456);
         uint128 newMarketId = uint128(FINAL_MARKET_ID + 1);
         string memory newStreamId = "0x";
 
         changePrank({ msgSender: users.owner });
 
         // it should update the config
-        MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
+        MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
 
-        (address keeperOwner,, address perpsEngine, address feeRecipient, uint256 marketIdConfig) =
+        (address keeperOwner,, address perpsEngine, uint256 marketIdConfig) =
             MarketOrderKeeper(marketOrderKeeper).getConfig();
 
         assertEq(users.owner, keeperOwner, "keeper owner is not correct");
         assertEq(address(newPersEngine), perpsEngine, "perps engine is not correct");
-        assertEq(newFeeRecipient, feeRecipient, "fee recipient is not correct");
         assertEq(newMarketId, marketIdConfig, "market id is not correct");
     }
 
@@ -71,19 +64,13 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Integration_Sha
         givenCallUpdateConfigFunction
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        address settlementFeeRecipient = address(0x20);
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId,
-            users.owner,
-            perpsEngine,
-            settlementFeeRecipient,
-            marketOrderKeeperImplementation
+            fuzzMarketConfig.marketId, users.owner, perpsEngine, marketOrderKeeperImplementation
         );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0));
-        address newFeeRecipient = address(0x456);
         uint128 newMarketId = uint128(FINAL_MARKET_ID + 1);
         string memory newStreamId = "0x";
 
@@ -91,36 +78,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Integration_Sha
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "perpsEngine") });
 
         changePrank({ msgSender: users.owner });
-        MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
-    }
-
-    function testFuzz_WhenAddressOfFeeRecipientIsZero(uint256 marketId)
-        external
-        givenInitializeContract
-        givenCallUpdateConfigFunction
-    {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        address settlementFeeRecipient = address(0x20);
-        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
-
-        address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId,
-            users.owner,
-            perpsEngine,
-            settlementFeeRecipient,
-            marketOrderKeeperImplementation
-        );
-
-        IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
-        address newFeeRecipient = address(0);
-        uint128 newMarketId = uint128(FINAL_MARKET_ID + 1);
-        string memory newStreamId = "0x";
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "feeRecipient") });
-
-        changePrank({ msgSender: users.owner });
-        MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
+        MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
     }
 
     function testFuzz_WhenMarketIdIsZero(uint256 marketId)
@@ -129,19 +87,13 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Integration_Sha
         givenCallUpdateConfigFunction
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        address settlementFeeRecipient = address(0x20);
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId,
-            users.owner,
-            perpsEngine,
-            settlementFeeRecipient,
-            marketOrderKeeperImplementation
+            fuzzMarketConfig.marketId, users.owner, perpsEngine, marketOrderKeeperImplementation
         );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
-        address newFeeRecipient = address(0x456);
         uint128 newMarketId = 0;
         string memory newStreamId = "0x";
 
@@ -149,7 +101,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Integration_Sha
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketId") });
 
         changePrank({ msgSender: users.owner });
-        MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
+        MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
     }
 
     function testFuzz_WhenStreamIdIsZero(uint256 marketId)
@@ -158,19 +110,13 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Integration_Sha
         givenCallUpdateConfigFunction
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        address settlementFeeRecipient = address(0x20);
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId,
-            users.owner,
-            perpsEngine,
-            settlementFeeRecipient,
-            marketOrderKeeperImplementation
+            fuzzMarketConfig.marketId, users.owner, perpsEngine, marketOrderKeeperImplementation
         );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
-        address newFeeRecipient = address(0x456);
         uint128 newMarketId = uint128(FINAL_MARKET_ID + 1);
         string memory newStreamId = "";
 
@@ -178,6 +124,6 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Integration_Sha
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "streamId") });
 
         changePrank({ msgSender: users.owner });
-        MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newFeeRecipient, newMarketId, newStreamId);
+        MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
     }
 }
