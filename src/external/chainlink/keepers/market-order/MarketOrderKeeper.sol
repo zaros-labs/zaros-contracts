@@ -9,7 +9,6 @@ import { IStreamsLookupCompatible } from "../../interfaces/IStreamsLookupCompati
 import { BaseKeeper } from "../BaseKeeper.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
