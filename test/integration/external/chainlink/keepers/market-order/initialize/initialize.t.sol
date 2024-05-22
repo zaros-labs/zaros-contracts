@@ -42,33 +42,6 @@ contract MarketOrderKeeper_Initialize_Integration_Test is Base_Integration_Share
                 MarketOrderKeeper.initialize.selector,
                 users.owner,
                 IPerpsEngine(address(0)),
-                users.settlementFeeRecipient,
-                fuzzMarketConfig.marketId,
-                fuzzMarketConfig.streamIdString
-            )
-        );
-    }
-
-    function testFuzz_RevertWhen_AddressOfFeeRecipientIsZero(uint256 marketId)
-        external
-        givenInitializeContractWithSomeWrongInformation
-    {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-
-        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
-
-        address settlementFeeRecipient = address(0);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "feeRecipient") });
-
-        new ERC1967Proxy(
-            marketOrderKeeperImplementation,
-            abi.encodeWithSelector(
-                MarketOrderKeeper.initialize.selector,
-                users.owner,
-                perpsEngine,
-                settlementFeeRecipient,
                 fuzzMarketConfig.marketId,
                 fuzzMarketConfig.streamIdString
             )
@@ -87,12 +60,7 @@ contract MarketOrderKeeper_Initialize_Integration_Test is Base_Integration_Share
         new ERC1967Proxy(
             marketOrderKeeperImplementation,
             abi.encodeWithSelector(
-                MarketOrderKeeper.initialize.selector,
-                users.owner,
-                perpsEngine,
-                users.settlementFeeRecipient,
-                marketId,
-                streamIdString
+                MarketOrderKeeper.initialize.selector, users.owner, perpsEngine, marketId, streamIdString
             )
         );
     }
@@ -115,7 +83,6 @@ contract MarketOrderKeeper_Initialize_Integration_Test is Base_Integration_Share
                 MarketOrderKeeper.initialize.selector,
                 users.owner,
                 perpsEngine,
-                users.settlementFeeRecipient,
                 fuzzMarketConfig.marketId,
                 streamIdString
             )

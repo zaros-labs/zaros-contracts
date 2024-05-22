@@ -44,11 +44,11 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
-        perpsEngine.configureSystemParameters({
-            maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
-            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
-            liquidationFeeUsdX18: LIQUIDATION_FEE_USD
-        });
+        // perpsEngine.configureSystemParameters({
+        //     maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
+        //     marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
+        //     liquidationFeeUsdX18: LIQUIDATION_FEE_USD
+        // });
 
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = initialMarginCollateralId;
@@ -66,7 +66,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         // });
 
         address liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS, MSIG_ADDRESS);
+            AutomationHelpers.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS);
         console.log("Liquidation Keeper: ", liquidationKeeper);
 
         address[] memory liquidators = new address[](1);

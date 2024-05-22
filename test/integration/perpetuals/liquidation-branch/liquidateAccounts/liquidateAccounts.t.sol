@@ -21,7 +21,6 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.LiquidatorNotRegistered.selector, users.naruto) });
         perpsEngine.liquidateAccounts({
             accountsIds: accountsIds,
-            marginCollateralRecipient: users.marginCollateralRecipient,
             liquidationFeeRecipient: users.settlementFeeRecipient
         });
     }
@@ -38,7 +37,6 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
         // it should return
         perpsEngine.liquidateAccounts({
             accountsIds: accountsIds,
-            marginCollateralRecipient: users.marginCollateralRecipient,
             liquidationFeeRecipient: users.settlementFeeRecipient
         });
     }
@@ -63,7 +61,6 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
         });
         perpsEngine.liquidateAccounts({
             accountsIds: accountsIds,
-            marginCollateralRecipient: users.marginCollateralRecipient,
             liquidationFeeRecipient: users.settlementFeeRecipient
         });
     }
@@ -133,7 +130,7 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
             });
         }
 
-        perpsEngine.liquidateAccounts(accountsIds, users.marginCollateralRecipient, users.settlementFeeRecipient);
+        perpsEngine.liquidateAccounts(accountsIds, users.settlementFeeRecipient);
 
         for (uint256 i = 0; i < accountsIds.length; i++) {
             if (accountsIds[i] == nonLiquidatableTradingAccountId) {

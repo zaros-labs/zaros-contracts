@@ -66,12 +66,10 @@ contract SettlementBranch {
 
     /// @param tradingAccountId The trading account id.
     /// @param marketId The perp market id.
-    /// @param feeRecipients The fee recipients. See {FeeRecipients.Data}
     /// @param priceData The price data of market order.
     function fillMarketOrder(
         uint128 tradingAccountId,
         uint128 marketId,
-        FeeRecipients.Data calldata feeRecipients,
         bytes calldata priceData
     )
         external
@@ -84,7 +82,6 @@ contract SettlementBranch {
             marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             marketOrder.sizeDelta,
-            feeRecipients,
             priceData
         );
 
@@ -161,14 +158,12 @@ contract SettlementBranch {
     /// @param marketId The perp market id.
     /// @param settlementConfigurationId The perp market settlement configuration id.
     /// @param sizeDelta The size delta of the order.
-    /// @param feeRecipients The fee recipients. See {FeeRecipients.Data}
     /// @param priceData The price data of the order.
     function _fillOrder(
         uint128 tradingAccountId,
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta,
-        FeeRecipients.Data memory feeRecipients,
         bytes memory priceData
     )
         internal
@@ -251,9 +246,9 @@ contract SettlementBranch {
 
             tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
-                    marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
-                    orderFeeRecipient: feeRecipients.orderFeeRecipient,
-                    settlementFeeRecipient: feeRecipients.settlementFeeRecipient
+                    marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,
+                    orderFeeRecipient: globalConfiguration.orderFeeRecipient,
+                    settlementFeeRecipient: globalConfiguration.settlementFeeRecipient
                 }),
                 pnlUsdX18: marginToDeductUsdX18,
                 orderFeeUsdX18: ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO,

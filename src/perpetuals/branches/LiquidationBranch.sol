@@ -94,11 +94,9 @@ contract LiquidationBranch {
     }
 
     /// @param accountsIds The list of accounts to liquidate
-    /// @param marginCollateralRecipient The address to receive the liquidated margin collateral
     /// @param liquidationFeeRecipient The address to receive the liquidation fee
     function liquidateAccounts(
         uint128[] calldata accountsIds,
-        address marginCollateralRecipient,
         address liquidationFeeRecipient
     )
         external
@@ -128,7 +126,7 @@ contract LiquidationBranch {
 
             UD60x18 liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
-                    marginCollateralRecipient: marginCollateralRecipient,
+                    marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,
                     orderFeeRecipient: address(0),
                     settlementFeeRecipient: liquidationFeeRecipient
                 }),

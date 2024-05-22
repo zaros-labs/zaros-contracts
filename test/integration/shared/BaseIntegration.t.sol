@@ -147,27 +147,23 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
-            liquidationFeeUsdX18: LIQUIDATION_FEE_USD
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
+            marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
+            orderFeeRecipient: feeRecipients.orderFeeRecipient,
+            settlementFeeRecipient: feeRecipients.settlementFeeRecipient
         });
     }
 
     function createPerpMarkets() internal {
         createPerpMarkets(
-            users.owner,
-            users.settlementFeeRecipient,
-            perpsEngine,
-            INITIAL_MARKET_ID,
-            FINAL_MARKET_ID,
-            IVerifierProxy(mockChainlinkVerifier),
-            true
+            users.owner, perpsEngine, INITIAL_MARKET_ID, FINAL_MARKET_ID, IVerifierProxy(mockChainlinkVerifier), true
         );
     }
 
     function configureLiquidationKeepers() internal {
         changePrank({ msgSender: users.owner });
-        liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
-            users.owner, address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
-        );
+        liquidationKeeper =
+            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);

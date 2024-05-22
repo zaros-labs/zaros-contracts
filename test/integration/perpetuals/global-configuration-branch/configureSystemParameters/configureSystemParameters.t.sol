@@ -28,7 +28,14 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxPositionsPerAccount") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.configureSystemParameters(0, marketOrderMaxLifetime, liquidationFeeUsdX18);
+        perpsEngine.configureSystemParameters(
+            0,
+            marketOrderMaxLifetime,
+            liquidationFeeUsdX18,
+            feeRecipients.marginCollateralRecipient,
+            feeRecipients.orderFeeRecipient,
+            feeRecipients.settlementFeeRecipient
+        );
     }
 
     modifier givenMaxPositionsPerAccountIsNotZero() {
@@ -48,7 +55,14 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketOrderMaxLifetime") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.configureSystemParameters(maxPositionsPerAccount, 0, liquidationFeeUsdX18);
+        perpsEngine.configureSystemParameters(
+            maxPositionsPerAccount,
+            0,
+            liquidationFeeUsdX18,
+            feeRecipients.marginCollateralRecipient,
+            feeRecipients.orderFeeRecipient,
+            feeRecipients.settlementFeeRecipient
+        );
     }
 
     modifier givenMarketOrderMaxLifetimeIsNotZero() {
@@ -70,7 +84,14 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeUsdX18") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.configureSystemParameters(maxPositionsPerAccount, marketOrderMaxLifetime, 0);
+        perpsEngine.configureSystemParameters(
+            maxPositionsPerAccount,
+            marketOrderMaxLifetime,
+            0,
+            feeRecipients.marginCollateralRecipient,
+            feeRecipients.orderFeeRecipient,
+            feeRecipients.settlementFeeRecipient
+        );
     }
 
     function testFuzz_GivenLiquidationFeeIsNotZero(
@@ -93,6 +114,13 @@ contract ConfigureSystemParameters_Integration_Test is Base_Integration_Shared_T
         );
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.configureSystemParameters(maxPositionsPerAccount, marketOrderMaxLifetime, liquidationFeeUsdX18);
+        perpsEngine.configureSystemParameters(
+            maxPositionsPerAccount,
+            marketOrderMaxLifetime,
+            liquidationFeeUsdX18,
+            feeRecipients.marginCollateralRecipient,
+            feeRecipients.orderFeeRecipient,
+            feeRecipients.settlementFeeRecipient
+        );
     }
 }

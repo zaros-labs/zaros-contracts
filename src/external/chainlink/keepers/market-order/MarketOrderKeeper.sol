@@ -30,12 +30,10 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
 
     /// @custom:storage-location erc7201:fi.zaros.external.chainlink.MarketOrderKeeper
     /// @param perpsEngine The address of the PerpsEngine contract.
-    /// @param feeRecipient The address that receives settlement fees.
     /// @param marketId The perps market id that the keeper should fill market orders for.
     /// @param streamId The Chainlink Data Streams stream id.
     struct MarketOrderKeeperStorage {
         IPerpsEngine perpsEngine;
-        address feeRecipient;
         uint128 marketId;
         string streamId;
     }
@@ -47,12 +45,10 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
     /// @notice {MarketOrderKeeper} UUPS initializer.
     /// @param owner The address of the owner of the keeper.
     /// @param perpsEngine The address of the PerpsEngine contract.
-    /// @param feeRecipient The address that receives settlement fees.
     /// @param marketId The perps market id that the keeper should fill market orders for.
     function initialize(
         address owner,
         IPerpsEngine perpsEngine,
-        address feeRecipient,
         uint128 marketId,
         string calldata streamId
     )
@@ -64,9 +60,6 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("perpsEngine");
         }
-        if (feeRecipient == address(0)) {
-            revert Errors.ZeroInput("feeRecipient");
-        }
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
         }
@@ -77,7 +70,6 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
 
         self.perpsEngine = perpsEngine;
-        self.feeRecipient = feeRecipient;
         self.marketId = marketId;
         self.streamId = streamId;
     }
@@ -85,7 +77,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
     function getConfig()
         public
         view
-        returns (address keeperOwner, address forwarder, address perpsEngine, address feeRecipient, uint128 marketId)
+        returns (address keeperOwner, address forwarder, address perpsEngine, uint128 marketId)
     {
         BaseKeeperStorage storage baseKeeperStorage = _getBaseKeeperStorage();
         MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
@@ -93,7 +85,6 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         keeperOwner = owner();
         forwarder = baseKeeperStorage.forwarder;
         perpsEngine = address(self.perpsEngine);
-        feeRecipient = self.feeRecipient;
         marketId = self.marketId;
     }
 
@@ -150,22 +141,10 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
 
     /// @notice Updates the market order keeper configuration.
     /// @param perpsEngine The address of the PerpsEngine contract.
-    /// @param feeRecipient The address that receives settlement fees.
     /// @param marketId The perps market id that the keeper should fill market orders for.
-    function updateConfig(
-        IPerpsEngine perpsEngine,
-        address feeRecipient,
-        uint128 marketId,
-        string calldata streamId
-    )
-        external
-        onlyOwner
-    {
+    function updateConfig(IPerpsEngine perpsEngine, uint128 marketId, string calldata streamId) external onlyOwner {
         if (address(perpsEngine) == address(0)) {
             revert Errors.ZeroInput("perpsEngine");
-        }
-        if (feeRecipient == address(0)) {
-            revert Errors.ZeroInput("feeRecipient");
         }
         if (marketId == 0) {
             revert Errors.ZeroInput("marketId");
@@ -176,7 +155,6 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
 
         MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
         self.perpsEngine = perpsEngine;
-        self.feeRecipient = feeRecipient;
         self.marketId = marketId;
         self.streamId = streamId;
     }
@@ -187,16 +165,9 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
         uint128 tradingAccountId = abi.decode(extraData, (uint128));
 
         MarketOrderKeeperStorage storage self = _getMarketOrderKeeperStorage();
-        (IPerpsEngine perpsEngine, address feeRecipient, uint128 marketId) =
-            (self.perpsEngine, self.feeRecipient, self.marketId);
+        (IPerpsEngine perpsEngine, uint128 marketId) = (self.perpsEngine, self.marketId);
 
-        FeeRecipients.Data memory feeRecipients = FeeRecipients.Data({
-            marginCollateralRecipient: feeRecipient,
-            orderFeeRecipient: feeRecipient,
-            settlementFeeRecipient: feeRecipient
-        });
-
-        perpsEngine.fillMarketOrder(tradingAccountId, marketId, feeRecipients, signedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, marketId, signedReport);
     }
 
     function _getMarketOrderKeeperStorage() internal pure returns (MarketOrderKeeperStorage storage self) {

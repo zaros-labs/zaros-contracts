@@ -23,27 +23,17 @@ contract LiquidationKeeper_GetConfig_Integration_Test is Base_Integration_Shared
     }
 
     function test_WhenCallGetConfigFunction() external givenInitializeContract {
-        address liquidationKeeper = AutomationHelpers.deployLiquidationKeeper(
-            users.owner, address(perpsEngine), users.marginCollateralRecipient, users.settlementFeeRecipient
-        );
+        address liquidationKeeper =
+            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
 
-        (
-            address keeperOwner,
-            address perpsEngineOfLiquidationKeeper,
-            address marginCollateralRecipient,
-            address liquidationFeeRecipient
-        ) = LiquidationKeeper(liquidationKeeper).getConfig();
+        (address keeperOwner, address perpsEngineOfLiquidationKeeper, address liquidationFeeRecipient) =
+            LiquidationKeeper(liquidationKeeper).getConfig();
 
         // it should return owner
         assertEq(keeperOwner, users.owner, "owner is not correct");
 
         // it should return perpsEngine
         assertEq(perpsEngineOfLiquidationKeeper, address(perpsEngine), "owner is not correct");
-
-        // it should return margin collateral fee recipient
-        assertEq(
-            marginCollateralRecipient, users.marginCollateralRecipient, "margin collateral recipient is not correct"
-        );
 
         // it should return liquidation fee recipient
         assertEq(liquidationFeeRecipient, users.settlementFeeRecipient, "liquidation fee recipient is not correct");

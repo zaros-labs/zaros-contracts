@@ -269,7 +269,6 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
 
     function createPerpMarkets(
         address deployer,
-        address settlementFeeRecipient,
         IPerpsEngine perpsEngine,
         uint256 initialMarketId,
         uint256 finalMarketId,
@@ -281,11 +280,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
         for (uint256 i = initialMarketId; i <= finalMarketId; i++) {
             address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
             address marketOrderKeeper = deployMarketOrderKeeper(
-                marketsConfig[i].marketId,
-                deployer,
-                perpsEngine,
-                settlementFeeRecipient,
-                marketOrderKeeperImplementation
+                marketsConfig[i].marketId, deployer, perpsEngine, marketOrderKeeperImplementation
             );
 
             SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
@@ -334,7 +329,6 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
         uint128 marketId,
         address deployer,
         IPerpsEngine perpsEngine,
-        address settlementFeeRecipient,
         address marketOrderKeeperImplementation
     )
         internal
@@ -347,7 +341,6 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                     MarketOrderKeeper.initialize.selector,
                     deployer,
                     perpsEngine,
-                    settlementFeeRecipient,
                     marketId,
                     marketsConfig[marketId].streamIdString
                 )

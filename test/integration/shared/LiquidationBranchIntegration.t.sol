@@ -63,7 +63,7 @@ contract LiquidationBranch_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: marketOrderKeeper });
 
         // fill first order and open position
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, feeRecipients, mockSignedReport);
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
 
         changePrank({ msgSender: users.naruto });
     }

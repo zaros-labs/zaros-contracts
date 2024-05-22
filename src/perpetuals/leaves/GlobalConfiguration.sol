@@ -23,6 +23,9 @@ library GlobalConfiguration {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMaxLifetime;
         uint128 liquidationFeeUsdX18;
+        address marginCollateralRecipient;
+        address orderFeeRecipient;
+        address settlementFeeRecipient;
         address usdToken;
         address tradingAccountToken;
         uint96 nextAccountId;

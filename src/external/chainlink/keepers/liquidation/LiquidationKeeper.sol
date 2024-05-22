@@ -16,7 +16,6 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     /// @param perpsEngine The address of the PerpsEngine contract.
     struct LiquidationKeeperStorage {
         IPerpsEngine perpsEngine;
-        address marginCollateralRecipient;
         address liquidationFeeRecipient;
     }
 
@@ -28,7 +27,6 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     function initialize(
         address owner,
         IPerpsEngine perpsEngine,
-        address marginCollateralRecipient,
         address liquidationFeeRecipient
     )
         external
@@ -40,35 +38,24 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
             revert Errors.ZeroInput("perpsEngine");
         }
 
-        if (marginCollateralRecipient == address(0)) {
-            revert Errors.ZeroInput("marginCollateralRecipient");
-        }
-
         if (liquidationFeeRecipient == address(0)) {
             revert Errors.ZeroInput("liquidationFeeRecipient");
         }
 
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
         self.perpsEngine = perpsEngine;
-        self.marginCollateralRecipient = marginCollateralRecipient;
         self.liquidationFeeRecipient = liquidationFeeRecipient;
     }
 
     function getConfig()
         public
         view
-        returns (
-            address keeperOwner,
-            address perpsEngine,
-            address marginCollateralRecipient,
-            address liquidationFeeRecipient
-        )
+        returns (address keeperOwner, address perpsEngine, address liquidationFeeRecipient)
     {
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
 
         keeperOwner = owner();
         perpsEngine = address(self.perpsEngine);
-        marginCollateralRecipient = self.marginCollateralRecipient;
         liquidationFeeRecipient = self.liquidationFeeRecipient;
     }
 
@@ -118,20 +105,9 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         return (upkeepNeeded, extraData);
     }
 
-    function setConfig(
-        address perpsEngine,
-        address marginCollateralRecipient,
-        address liquidationFeeRecipient
-    )
-        external
-        onlyOwner
-    {
+    function setConfig(address perpsEngine, address liquidationFeeRecipient) external onlyOwner {
         if (perpsEngine == address(0)) {
             revert Errors.ZeroInput("perpsEngine");
-        }
-
-        if (marginCollateralRecipient == address(0)) {
-            revert Errors.ZeroInput("marginCollateralRecipient");
         }
 
         if (liquidationFeeRecipient == address(0)) {
@@ -141,17 +117,15 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
 
         self.perpsEngine = IPerpsEngine(perpsEngine);
-        self.marginCollateralRecipient = marginCollateralRecipient;
         self.liquidationFeeRecipient = liquidationFeeRecipient;
     }
 
     function performUpkeep(bytes calldata peformData) external override onlyForwarder {
         uint128[] memory accountsToBeLiquidated = abi.decode(peformData, (uint128[]));
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
-        (IPerpsEngine perpsEngine, address marginCollateralRecipient, address liquidationFeeRecipient) =
-            (self.perpsEngine, self.marginCollateralRecipient, self.liquidationFeeRecipient);
+        (IPerpsEngine perpsEngine, address liquidationFeeRecipient) = (self.perpsEngine, self.liquidationFeeRecipient);
 
-        perpsEngine.liquidateAccounts(accountsToBeLiquidated, marginCollateralRecipient, liquidationFeeRecipient);
+        perpsEngine.liquidateAccounts(accountsToBeLiquidated, liquidationFeeRecipient);
     }
 
     function _getLiquidationKeeperStorage() internal pure returns (LiquidationKeeperStorage storage self) {
