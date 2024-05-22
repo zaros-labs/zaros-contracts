@@ -4,10 +4,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 
-// PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
-
 contract MarketOrderHarness {
     function exposed_load(uint128 tradingAccountId) external pure returns (MarketOrder.Data memory) {
         return MarketOrder.load(tradingAccountId);

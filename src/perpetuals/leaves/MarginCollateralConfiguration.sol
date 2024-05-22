@@ -57,6 +57,18 @@ library MarginCollateralConfiguration {
         return ud60x18Amount.intoUint256() / (10 ** (Constants.SYSTEM_DECIMALS - self.decimals));
     }
 
+    /// @notice Returns the price of the given margin collateral type.
+    /// @param self The margin collateral type storage pointer.
+    /// @return price The price of the given margin collateral type.
+    function getPrice(Data storage self) internal view returns (UD60x18 price) {
+        address priceFeed = self.priceFeed;
+        if (priceFeed == address(0)) {
+            revert Errors.CollateralPriceFeedNotDefined();
+        }
+
+        price = ChainlinkUtil.getPrice(IAggregatorV3(priceFeed));
+    }
+
     /// @notice Configures the settings of a given margin collateral type.
     /// @dev A margin collateral type is considered disabled if `depositCap` == 0.
     /// @param collateralType The address of the collateral type.
@@ -79,17 +91,5 @@ library MarginCollateralConfiguration {
         self.loanToValue = loanToValue;
         self.decimals = decimals;
         self.priceFeed = priceFeed;
-    }
-
-    /// @notice Returns the price of the given margin collateral type.
-    /// @param self The margin collateral type storage pointer.
-    /// @return price The price of the given margin collateral type.
-    function getPrice(Data storage self) internal view returns (UD60x18 price) {
-        address priceFeed = self.priceFeed;
-        if (priceFeed == address(0)) {
-            revert Errors.CollateralPriceFeedNotDefined();
-        }
-
-        price = ChainlinkUtil.getPrice(IAggregatorV3(priceFeed));
     }
 }
