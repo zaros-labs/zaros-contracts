@@ -14,7 +14,6 @@ import { MarketConfiguration } from "./MarketConfiguration.sol";
 import { SettlementConfiguration } from "./SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
-import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
