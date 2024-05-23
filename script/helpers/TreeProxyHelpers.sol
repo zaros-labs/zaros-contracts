@@ -59,9 +59,6 @@ function deployBranches(bool isTestnet) returns (address[] memory) {
     console.log("GlobalConfigurationBranch: ", globalConfigurationBranch);
     console.log("TradingAccountBranch: ", tradingAccountBranch);
 
-    address globalConfigurationHarness = address(new GlobalConfigurationHarness());
-    console.log("GlobalConfigurationHarness: ", globalConfigurationHarness);
-
     branches[0] = upgradeBranch;
     branches[1] = lookupBranch;
     branches[2] = globalConfigurationBranch;
