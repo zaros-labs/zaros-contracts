@@ -57,10 +57,10 @@ contract GetFundingVelocity_Integration_Test is Base_Integration_Shared_Test {
         SD59x18 proportionalSkew = skew.div(skewScale);
         SD59x18 proportionalSkewBounded = Math.min(Math.max(unary(SD_UNIT), proportionalSkew), SD_UNIT);
 
-        SD59x18 fundingVelocity = perpsEngine.getFundingVelocity(fuzzMarketConfig.marketId);
         int256 expectedFundingVelocity = proportionalSkewBounded.mul(maxFundingVelocity).intoInt256();
+        SD59x18 fundingVelocity = perpsEngine.getFundingVelocity(fuzzMarketConfig.marketId);
 
         // it should return the funding velocity
-        assertEq(fundingVelocity.intoInt256(), expectedFundingVelocity);
+        assertEq(fundingVelocity.intoInt256(), expectedFundingVelocity, "invalid funding velocity");
     }
 }
