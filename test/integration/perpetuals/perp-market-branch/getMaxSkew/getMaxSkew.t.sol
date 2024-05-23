@@ -7,7 +7,7 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
-contract GetMaxOpenInterest_Integration_Test is Base_Integration_Shared_Test {
+contract GetMaxSkew_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -19,9 +19,9 @@ contract GetMaxOpenInterest_Integration_Test is Base_Integration_Shared_Test {
     function testFuzz_GivenTheresAMarketCreated(uint256 marketId) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        // it should return the max open interest of the market
-        UD60x18 maxOpenInterest = perpsEngine.getMaxOpenInterest(fuzzMarketConfig.marketId);
+        // it should return the max open interest of market
+        UD60x18 maxSkew = perpsEngine.getMaxSkew(fuzzMarketConfig.marketId);
 
-        assertEq(fuzzMarketConfig.maxOi, maxOpenInterest.intoUint128(), "Invalid max open interest");
+        assertEq(fuzzMarketConfig.maxSkew, maxSkew.intoUint128(), "Invalid max skew");
     }
 }
