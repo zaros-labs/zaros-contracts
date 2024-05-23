@@ -32,7 +32,7 @@ contract GetFundingRate_Integration_Test is Base_Integration_Shared_Test {
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
         timeElapsed = bound({ x: timeElapsed, min: 1 seconds, max: 365 days });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd});
+        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
         uint256 initialMarginRate = fuzzMarketConfig.imr;
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
@@ -44,7 +44,9 @@ contract GetFundingRate_Integration_Test is Base_Integration_Shared_Test {
         // it should return the funding rate
         SD59x18 fundingRate = perpsEngine.getFundingRate(marketId);
         SD59x18 fundingVelocity = perpsEngine.getFundingVelocity(marketId);
-        int256 expectedFundingRate = fundingVelocity.mul(ud60x18Convert(timeElapsed).intoSD59x18()).div(ud60x18Convert(Constants.PROPORTIONAL_FUNDING_PERIOD).intoSD59x18()).intoInt256();
+        int256 expectedFundingRate = fundingVelocity.mul(ud60x18Convert(timeElapsed).intoSD59x18()).div(
+            ud60x18Convert(Constants.PROPORTIONAL_FUNDING_PERIOD).intoSD59x18()
+        ).intoInt256();
 
         assertEq(fundingRate.intoInt256(), expectedFundingRate);
     }
