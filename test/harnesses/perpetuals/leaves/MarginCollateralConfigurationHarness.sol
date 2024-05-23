@@ -8,7 +8,11 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 contract MarginCollateralConfigurationHarness {
-    function exposed_load(address collateralType) external pure returns (MarginCollateralConfiguration.Data memory) {
+    function exposed_MarginCollateral_load(address collateralType)
+        external
+        pure
+        returns (MarginCollateralConfiguration.Data memory)
+    {
         return MarginCollateralConfiguration.load(collateralType);
     }
 

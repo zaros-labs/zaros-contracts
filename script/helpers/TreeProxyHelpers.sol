@@ -13,6 +13,15 @@ import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountB
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
 import { TradingAccountBranchTestnet } from "@zaros/testnet/branches/TradingAccountBranchTestnet.sol";
+import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { MarginCollateralConfigurationHarness } from
+    "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";
+import { MarketConfigurationHarness } from "test/harnesses/perpetuals/leaves/MarketConfigurationHarness.sol";
+import { MarketOrderHarness } from "test/harnesses/perpetuals/leaves/MarketOrderHarness.sol";
+import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
+import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
+import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
+import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -49,6 +58,9 @@ function deployBranches(bool isTestnet) returns (address[] memory) {
     }
     console.log("GlobalConfigurationBranch: ", globalConfigurationBranch);
     console.log("TradingAccountBranch: ", tradingAccountBranch);
+
+    address globalConfigurationHarness = address(new GlobalConfigurationHarness());
+    console.log("GlobalConfigurationHarness: ", globalConfigurationHarness);
 
     branches[0] = upgradeBranch;
     branches[1] = lookupBranch;
@@ -217,4 +229,168 @@ function getInitializePayloads(
     initializePayloads[1] = perpsEngineInitializeData;
 
     return initializePayloads;
+}
+
+function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+    returns (RootProxy.BranchUpgrade[] memory)
+{
+    address[] memory harnesses = deployAddressHarnesses();
+
+    bytes4[][] memory harnessesSelectors = getHarnessesSelectors();
+
+    RootProxy.BranchUpgrade[] memory harnessesUpgrades =
+        getBranchUpgrades(harnesses, harnessesSelectors, RootProxy.BranchUpgradeAction.Add);
+
+    uint256 maxLength = branchUpgrades.length + harnessesUpgrades.length;
+
+    RootProxy.BranchUpgrade[] memory brancheAndHarnessesUpgrades = new RootProxy.BranchUpgrade[](maxLength);
+
+    for (uint256 i = 0; i < maxLength; i++) {
+        brancheAndHarnessesUpgrades[i] =
+            i < branchUpgrades.length ? branchUpgrades[i] : harnessesUpgrades[i - branchUpgrades.length];
+    }
+
+    return brancheAndHarnessesUpgrades;
+}
+
+function deployAddressHarnesses() returns (address[] memory) {
+    address[] memory addressHarnesses = new address[](8);
+
+    address globalConfigurationHarness = address(new GlobalConfigurationHarness());
+    console.log("GlobalConfigurationHarness: ", globalConfigurationHarness);
+
+    address marginCollateralConfigurationHarness = address(new MarginCollateralConfigurationHarness());
+    console.log("MarginCollateralConfigurationHarness: ", marginCollateralConfigurationHarness);
+
+    address marketConfigurationHarness = address(new MarketConfigurationHarness());
+    console.log("MarketConfigurationHarness: ", marketConfigurationHarness);
+
+    address marketOrderHarness = address(new MarketOrderHarness());
+    console.log("MarketOrderHarness: ", marketOrderHarness);
+
+    address perpMarketHarness = address(new PerpMarketHarness());
+    console.log("PerpMarketHarness: ", perpMarketHarness);
+
+    address positionHarness = address(new PositionHarness());
+    console.log("PositionHarness: ", positionHarness);
+
+    address settlementConfigurationHarness = address(new SettlementConfigurationHarness());
+    console.log("SettlementConfigurationHarness: ", settlementConfigurationHarness);
+
+    address tradingAccountHarness = address(new TradingAccountHarness());
+    console.log("TradingAccountHarness: ", tradingAccountHarness);
+
+    addressHarnesses[0] = globalConfigurationHarness;
+    addressHarnesses[1] = marginCollateralConfigurationHarness;
+    addressHarnesses[2] = marketConfigurationHarness;
+    addressHarnesses[3] = marketOrderHarness;
+    addressHarnesses[4] = perpMarketHarness;
+    addressHarnesses[5] = positionHarness;
+    addressHarnesses[6] = settlementConfigurationHarness;
+    addressHarnesses[7] = tradingAccountHarness;
+
+    return addressHarnesses;
+}
+
+function getHarnessesSelectors() pure returns (bytes4[][] memory) {
+    bytes4[][] memory selectors = new bytes4[][](8);
+
+    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](5);
+    globalConfigurationHarnessSelectors[0] = GlobalConfigurationHarness.exposed_checkMarketIsEnabled.selector;
+    globalConfigurationHarnessSelectors[1] = GlobalConfigurationHarness.exposed_addMarket.selector;
+    globalConfigurationHarnessSelectors[2] = GlobalConfigurationHarness.exposed_removeMarket.selector;
+    globalConfigurationHarnessSelectors[3] =
+        GlobalConfigurationHarness.exposed_configureCollateralLiquidationPriority.selector;
+    globalConfigurationHarnessSelectors[4] =
+        GlobalConfigurationHarness.exposed_removeCollateralFromLiquidationPriority.selector;
+
+    bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](5);
+    marginCollateralConfigurationHarnessSelectors[0] =
+        MarginCollateralConfigurationHarness.exposed_MarginCollateral_load.selector;
+    marginCollateralConfigurationHarnessSelectors[1] =
+        MarginCollateralConfigurationHarness.exposed_convertTokenAmountToUd60x18.selector;
+    marginCollateralConfigurationHarnessSelectors[2] =
+        MarginCollateralConfigurationHarness.exposed_convertUd60x18ToTokenAmount.selector;
+    marginCollateralConfigurationHarnessSelectors[3] = MarginCollateralConfigurationHarness.exposed_getPrice.selector;
+    marginCollateralConfigurationHarnessSelectors[4] = MarginCollateralConfigurationHarness.exposed_configure.selector;
+
+    bytes4[] memory marketConfigurationHarnessSelectors = new bytes4[](1);
+    marketConfigurationHarnessSelectors[0] = MarketConfigurationHarness.exposed_update.selector;
+
+    bytes4[] memory marketOrderHarnessSelectors = new bytes4[](5);
+    marketOrderHarnessSelectors[0] = MarketOrderHarness.exposed_MarketOrder_load.selector;
+    marketOrderHarnessSelectors[1] = MarketOrderHarness.exposed_MarketOrder_loadExisting.selector;
+    marketOrderHarnessSelectors[2] = MarketOrderHarness.exposed_update.selector;
+    marketOrderHarnessSelectors[3] = MarketOrderHarness.exposed_clear.selector;
+    marketOrderHarnessSelectors[4] = MarketOrderHarness.exposed_checkPendingOrder.selector;
+
+    bytes4[] memory perpMarketHarnessSelectors = new bytes4[](14);
+    perpMarketHarnessSelectors[0] = PerpMarketHarness.exposed_PerpMarket_load.selector;
+    perpMarketHarnessSelectors[1] = PerpMarketHarness.exposed_getIndexPrice.selector;
+    perpMarketHarnessSelectors[2] = PerpMarketHarness.exposed_getMarkPrice.selector;
+    perpMarketHarnessSelectors[3] = PerpMarketHarness.exposed_getCurrentFundingRate.selector;
+    perpMarketHarnessSelectors[4] = PerpMarketHarness.exposed_getCurrentFundingVelocity.selector;
+    perpMarketHarnessSelectors[5] = PerpMarketHarness.exposed_getOrderFeeUsd.selector;
+    perpMarketHarnessSelectors[6] = PerpMarketHarness.exposed_getNextFundingFeePerUnit.selector;
+    perpMarketHarnessSelectors[7] = PerpMarketHarness.exposed_getPendingFundingFee.selector;
+    perpMarketHarnessSelectors[8] = PerpMarketHarness.exposed_getProportionalElapsedSinceLastFunding.selector;
+    perpMarketHarnessSelectors[9] = PerpMarketHarness.exposed_checkOpenInterestLimits.selector;
+    perpMarketHarnessSelectors[10] = PerpMarketHarness.exposed_checkTradeSize.selector;
+    perpMarketHarnessSelectors[11] = PerpMarketHarness.exposed_updateFunding.selector;
+    perpMarketHarnessSelectors[12] = PerpMarketHarness.exposed_updateOpenInterest.selector;
+    perpMarketHarnessSelectors[13] = PerpMarketHarness.exposed_create.selector;
+
+    bytes4[] memory positionHarnessSelectors = new bytes4[](7);
+    positionHarnessSelectors[0] = PositionHarness.exposed_Position_load.selector;
+    positionHarnessSelectors[1] = PositionHarness.exposed_getState.selector;
+    positionHarnessSelectors[2] = PositionHarness.exposed_update.selector;
+    positionHarnessSelectors[3] = PositionHarness.exposed_clear.selector;
+    positionHarnessSelectors[4] = PositionHarness.exposed_getAccruedFunding.selector;
+    positionHarnessSelectors[5] = PositionHarness.exposed_getMarginRequirements.selector;
+    positionHarnessSelectors[6] = PositionHarness.exposed_getNotionalValue.selector;
+
+    bytes4[] memory settlementConfigurationHarnessSelectors = new bytes4[](7);
+    settlementConfigurationHarnessSelectors[0] =
+        SettlementConfigurationHarness.exposed_SettlementConfiguration_load.selector;
+    settlementConfigurationHarnessSelectors[1] =
+        SettlementConfigurationHarness.exposed_checkIsValidSettlementStrategy.selector;
+    settlementConfigurationHarnessSelectors[2] = SettlementConfigurationHarness.exposed_update.selector;
+    settlementConfigurationHarnessSelectors[3] =
+        SettlementConfigurationHarness.exposed_getDataStreamsReportPrice.selector;
+    settlementConfigurationHarnessSelectors[4] =
+        SettlementConfigurationHarness.exposed_requireDataStreamsReportIsVaid.selector;
+    settlementConfigurationHarnessSelectors[5] = SettlementConfigurationHarness.exposed_verifyOffchainPrice.selector;
+    settlementConfigurationHarnessSelectors[6] =
+        SettlementConfigurationHarness.exposed_verifyDataStreamsReport.selector;
+
+    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](17);
+    tradingAccountHarnessSelectors[0] = TradingAccountHarness.exposed_TradingAccount_loadExisting.selector;
+    tradingAccountHarnessSelectors[1] = TradingAccountHarness.exposed_loadExistingAccountAndVerifySender.selector;
+    tradingAccountHarnessSelectors[2] = TradingAccountHarness.exposed_validatePositionsLimit.selector;
+    tradingAccountHarnessSelectors[3] = TradingAccountHarness.exposed_validateMarginRequirements.selector;
+    tradingAccountHarnessSelectors[4] = TradingAccountHarness.exposed_getMarginCollateralBalance.selector;
+    tradingAccountHarnessSelectors[5] = TradingAccountHarness.exposed_getEquityUsd.selector;
+    tradingAccountHarnessSelectors[6] = TradingAccountHarness.exposed_getMarginBalanceUsd.selector;
+    tradingAccountHarnessSelectors[7] =
+        TradingAccountHarness.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd.selector;
+    tradingAccountHarnessSelectors[8] = TradingAccountHarness.exposed_getAccontUnrealizedPnlUsd.selector;
+    tradingAccountHarnessSelectors[9] = TradingAccountHarness.exposed_verifySender.selector;
+    tradingAccountHarnessSelectors[10] = TradingAccountHarness.exposed_isLiquidatable.selector;
+    tradingAccountHarnessSelectors[11] = TradingAccountHarness.exposed_create.selector;
+    tradingAccountHarnessSelectors[12] = TradingAccountHarness.exposed_deposit.selector;
+    tradingAccountHarnessSelectors[13] = TradingAccountHarness.exposed_withdraw.selector;
+    tradingAccountHarnessSelectors[14] = TradingAccountHarness.exposed_withdrawMarginUsd.selector;
+    tradingAccountHarnessSelectors[15] = TradingAccountHarness.exposed_deductAccountMargin.selector;
+    tradingAccountHarnessSelectors[16] = TradingAccountHarness.exposed_updateActiveMarkets.selector;
+
+    selectors[0] = globalConfigurationHarnessSelectors;
+    selectors[1] = marginCollateralConfigurationHarnessSelectors;
+    selectors[2] = marketConfigurationHarnessSelectors;
+    selectors[3] = marketOrderHarnessSelectors;
+    selectors[4] = perpMarketHarnessSelectors;
+    selectors[5] = positionHarnessSelectors;
+    selectors[6] = settlementConfigurationHarnessSelectors;
+    selectors[7] = tradingAccountHarnessSelectors;
+
+    return selectors;
 }
