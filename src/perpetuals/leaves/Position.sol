@@ -46,6 +46,33 @@ library Position {
         }
     }
 
+    /// @dev Returns the position's current state.
+    /// @param self The position storage pointer.
+    /// @param initialMarginRateX18 The market's current initial margin rate.
+    /// @param maintenanceMarginRateX18 The market's current maintenance margin rate.
+    /// @param price The market's current reference price.
+    /// @param fundingFeePerUnit The market's current funding fee per unit.
+    /// @return state The position's current state
+    function getState(
+        Data storage self,
+        UD60x18 initialMarginRateX18,
+        UD60x18 maintenanceMarginRateX18,
+        UD60x18 price,
+        SD59x18 fundingFeePerUnit
+    )
+        internal
+        view
+        returns (State memory state)
+    {
+        state.sizeX18 = sd59x18(self.size);
+        state.notionalValueX18 = getNotionalValue(self, price);
+        state.initialMarginUsdX18 = state.notionalValueX18.mul(initialMarginRateX18);
+        state.maintenanceMarginUsdX18 = state.notionalValueX18.mul(maintenanceMarginRateX18);
+        state.entryPriceX18 = ud60x18(self.lastInteractionPrice);
+        state.accruedFundingUsdX18 = getAccruedFunding(self, fundingFeePerUnit);
+        state.unrealizedPnlUsdX18 = getUnrealizedPnl(self, price);
+    }
+
     /// @dev Updates the current position with the new one.
     /// @param self The position storage pointer.
     /// @param newPosition The new position to be placed.
@@ -106,32 +133,5 @@ library Position {
     /// @param price The market's current reference price.
     function getNotionalValue(Data storage self, UD60x18 price) internal view returns (UD60x18) {
         return sd59x18(self.size).abs().intoUD60x18().mul(price);
-    }
-
-    /// @dev Returns the position's current state.
-    /// @param self The position storage pointer.
-    /// @param initialMarginRateX18 The market's current initial margin rate.
-    /// @param maintenanceMarginRateX18 The market's current maintenance margin rate.
-    /// @param price The market's current reference price.
-    /// @param fundingFeePerUnit The market's current funding fee per unit.
-    /// @return state The position's current state
-    function getState(
-        Data storage self,
-        UD60x18 initialMarginRateX18,
-        UD60x18 maintenanceMarginRateX18,
-        UD60x18 price,
-        SD59x18 fundingFeePerUnit
-    )
-        internal
-        view
-        returns (State memory state)
-    {
-        state.sizeX18 = sd59x18(self.size);
-        state.notionalValueX18 = getNotionalValue(self, price);
-        state.initialMarginUsdX18 = state.notionalValueX18.mul(initialMarginRateX18);
-        state.maintenanceMarginUsdX18 = state.notionalValueX18.mul(maintenanceMarginRateX18);
-        state.entryPriceX18 = ud60x18(self.lastInteractionPrice);
-        state.accruedFundingUsdX18 = getAccruedFunding(self, fundingFeePerUnit);
-        state.unrealizedPnlUsdX18 = getUnrealizedPnl(self, price);
     }
 }
