@@ -10,7 +10,7 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract TradingAccountHarness {
-    function exposed_loadExisting(uint128 tradingAccountId) external view {
+    function exposed_TradingAccount_loadExisting(uint128 tradingAccountId) external view {
         TradingAccount.loadExisting(tradingAccountId);
     }
 

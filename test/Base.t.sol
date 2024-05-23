@@ -6,7 +6,7 @@ pragma solidity 0.8.25;
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockPriceFeed } from "./mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "./mocks/MockUSDToken.sol";
@@ -18,8 +18,18 @@ import {
     getBranchesSelectors,
     getBranchUpgrades,
     getInitializables,
-    getInitializePayloads
+    getInitializePayloads,
+    deployHarnesses
 } from "script/helpers/TreeProxyHelpers.sol";
+import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { MarginCollateralConfigurationHarness } from
+    "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";
+import { MarketConfigurationHarness } from "test/harnesses/perpetuals/leaves/MarketConfigurationHarness.sol";
+import { MarketOrderHarness } from "test/harnesses/perpetuals/leaves/MarketOrderHarness.sol";
+import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
+import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
+import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
+import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -35,6 +45,18 @@ import { PRBTest } from "prb-test/PRBTest.sol";
 
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
+
+abstract contract IPerpsEngine is
+    IPerpsEngineBranches,
+    GlobalConfigurationHarness,
+    MarginCollateralConfigurationHarness,
+    MarketConfigurationHarness,
+    MarketOrderHarness,
+    PerpMarketHarness,
+    PositionHarness,
+    SettlementConfigurationHarness,
+    TradingAccountHarness
+{ }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     /*//////////////////////////////////////////////////////////////////////////
@@ -105,6 +127,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         address[] memory initializables = getInitializables(branches);
         bytes[] memory initializePayloads =
             getInitializePayloads(users.owner, address(tradingAccountToken), address(usdToken));
+
+        branchUpgrades = deployHarnesses(branchUpgrades);
 
         RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,

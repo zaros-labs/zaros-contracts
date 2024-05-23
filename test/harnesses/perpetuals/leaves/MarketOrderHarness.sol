@@ -5,11 +5,15 @@ pragma solidity 0.8.25;
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 
 contract MarketOrderHarness {
-    function exposed_load(uint128 tradingAccountId) external pure returns (MarketOrder.Data memory) {
+    function exposed_MarketOrder_load(uint128 tradingAccountId) external pure returns (MarketOrder.Data memory) {
         return MarketOrder.load(tradingAccountId);
     }
 
-    function exposed_loadExisting(uint128 tradingAccountId) external view returns (MarketOrder.Data memory) {
+    function exposed_MarketOrder_loadExisting(uint128 tradingAccountId)
+        external
+        view
+        returns (MarketOrder.Data memory)
+    {
         return MarketOrder.loadExisting(tradingAccountId);
     }
 

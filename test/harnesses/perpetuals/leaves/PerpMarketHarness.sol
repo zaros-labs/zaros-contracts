@@ -9,7 +9,7 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract PerpMarketHarness {
-    function exposed_load(uint128 marketId) external pure returns (PerpMarket.Data memory) {
+    function exposed_PerpMarket_load(uint128 marketId) external pure returns (PerpMarket.Data memory) {
         return PerpMarket.load(marketId);
     }
 
@@ -80,7 +80,7 @@ contract PerpMarketHarness {
         return PerpMarket.getPendingFundingFee(self, fundingRate, price);
     }
 
-    function exposed_getProportionalElapsedSinceLastFunding(uint128 marketId) internal view returns (UD60x18) {
+    function exposed_getProportionalElapsedSinceLastFunding(uint128 marketId) external view returns (UD60x18) {
         PerpMarket.Data storage self = PerpMarket.load(marketId);
         return PerpMarket.getProportionalElapsedSinceLastFunding(self);
     }

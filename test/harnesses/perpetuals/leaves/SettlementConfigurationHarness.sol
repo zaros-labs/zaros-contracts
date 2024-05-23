@@ -10,7 +10,7 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract SettlementConfigurationHarness {
-    function exposed_load(
+    function exposed_SettlementConfiguration_load(
         uint128 marketId,
         uint128 settlementConfigurationId
     )

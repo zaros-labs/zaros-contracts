@@ -9,7 +9,14 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract PositionHarness {
-    function exposed_load(uint128 tradingAccountId, uint128 marketId) external pure returns (Position.Data memory) {
+    function exposed_Position_load(
+        uint128 tradingAccountId,
+        uint128 marketId
+    )
+        external
+        pure
+        returns (Position.Data memory)
+    {
         return Position.load(tradingAccountId, marketId);
     }
 
