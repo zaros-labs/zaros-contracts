@@ -47,7 +47,8 @@ contract GetFundingVelocity_Integration_Test is Base_Integration_Shared_Test {
 
         skip(timeElapsed);
 
-        PerpMarket.Data memory perpMarket = PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(fuzzMarketConfig.marketId);
+        PerpMarket.Data memory perpMarket =
+            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(fuzzMarketConfig.marketId);
         SD59x18 maxFundingVelocity = sd59x18(uint256(perpMarket.configuration.maxFundingVelocity).toInt256());
         SD59x18 skewScale = sd59x18(uint256(perpMarket.configuration.skewScale).toInt256());
 
