@@ -9,8 +9,6 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { convert as ud60x18Convert } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract GetFundingRate_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
