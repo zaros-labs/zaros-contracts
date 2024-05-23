@@ -3,13 +3,21 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
+import { Math } from "@zaros/utils/Math.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
 
 // PRB Math dependencies
 import { convert as ud60x18Convert } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, UNIT as SD_UNIT, unary } from "@prb-math/SD59x18.sol";
+
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 contract GetFundingVelocity_Integration_Test is Base_Integration_Shared_Test {
+    using SafeCast for uint256;
+
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -39,10 +47,19 @@ contract GetFundingVelocity_Integration_Test is Base_Integration_Shared_Test {
 
         skip(timeElapsed);
 
-        // it should return the funding velocity
-        SD59x18 fundingVelocity = perpsEngine.getFundingVelocity(marketId);
-        int256 expectedFundingVelocity;
+        PerpMarket.Data memory perpMarket = PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(fuzzMarketConfig.marketId);
+        SD59x18 maxFundingVelocity = sd59x18(uint256(perpMarket.configuration.maxFundingVelocity).toInt256());
+        SD59x18 skewScale = sd59x18(uint256(perpMarket.configuration.skewScale).toInt256());
 
+        SD59x18 skew = sd59x18(perpMarket.skew);
+
+        SD59x18 proportionalSkew = skew.div(skewScale);
+        SD59x18 proportionalSkewBounded = Math.min(Math.max(unary(SD_UNIT), proportionalSkew), SD_UNIT);
+
+        SD59x18 fundingVelocity = perpsEngine.getFundingVelocity(fuzzMarketConfig.marketId);
+        int256 expectedFundingVelocity = proportionalSkewBounded.mul(maxFundingVelocity).intoInt256();
+
+        // it should return the funding velocity
         assertEq(fundingVelocity.intoInt256(), expectedFundingVelocity);
     }
 }

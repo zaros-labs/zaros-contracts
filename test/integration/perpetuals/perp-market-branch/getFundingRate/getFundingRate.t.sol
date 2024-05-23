@@ -40,8 +40,8 @@ contract GetFundingRate_Integration_Test is Base_Integration_Shared_Test {
         skip(timeElapsed);
 
         // it should return the funding rate
-        SD59x18 fundingRate = perpsEngine.getFundingRate(marketId);
-        SD59x18 fundingVelocity = perpsEngine.getFundingVelocity(marketId);
+        SD59x18 fundingRate = perpsEngine.getFundingRate(fuzzMarketConfig.marketId);
+        SD59x18 fundingVelocity = perpsEngine.getFundingVelocity(fuzzMarketConfig.marketId);
         int256 expectedFundingRate = fundingVelocity.mul(ud60x18Convert(timeElapsed).intoSD59x18()).div(
             ud60x18Convert(Constants.PROPORTIONAL_FUNDING_PERIOD).intoSD59x18()
         ).intoInt256();
