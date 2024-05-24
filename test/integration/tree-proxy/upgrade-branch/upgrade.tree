@@ -1,0 +1,7 @@
+Upgrade_Integration_Test
+├── given add a new branch
+│   └── it should return the new branch
+├── given replace a branch
+│   └── it should return the replaced branch
+└── given remove a branch
+    └── it should not return the removed branch
