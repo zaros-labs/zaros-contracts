@@ -14,6 +14,7 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -577,6 +578,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint128 expectedAccountIdWithActivePosition;
         uint128 accountIdWithActivePosition;
         Position.Data expectedPosition;
+        Position.Data position;
         int256 expectedMarginBalanceUsd;
         SD59x18 marginBalanceUsdX18;
         uint256 newIndexPrice;
@@ -706,13 +708,24 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.accountIdWithActivePosition =
             GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
 
-        // TODO: assert after harnesses are done
         // it should update the account's position
         ctx.expectedPosition = Position.Data({
             size: ctx.firstOrderSizeDelta,
             lastInteractionPrice: ctx.firstFillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: 0
         });
+        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
+        );
+        assertEq(ctx.expectedPosition.size, ctx.position.size, "first fill: position size");
+        assertEq(
+            ctx.expectedPosition.lastInteractionPrice, ctx.position.lastInteractionPrice, "first fill: position price"
+        );
+        assertEq(
+            ctx.expectedPosition.lastInteractionFundingFeePerUnit,
+            ctx.position.lastInteractionFundingFeePerUnit,
+            "first fill: position funding fee"
+        );
 
         // it should deduct the pnl and fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
@@ -806,10 +819,23 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             "second fill: active market id"
         );
 
-        // TODO: assert after harnesses are done
         // it should update the account's position
         ctx.expectedPosition =
             Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
+        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
+        );
+        assertEq(ctx.expectedPosition.size, ctx.position.size, "second fill: position size");
+        assertEq(
+            ctx.expectedPosition.lastInteractionPrice,
+            ctx.position.lastInteractionPrice,
+            "second fill: position price"
+        );
+        assertEq(
+            ctx.expectedPosition.lastInteractionFundingFeePerUnit,
+            ctx.position.lastInteractionFundingFeePerUnit,
+            "second fill: position funding fee"
+        );
 
         // it should deduct the pnl and fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
@@ -837,8 +863,12 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         UD60x18 openInterestX18;
         int256 expectedSkew;
         SD59x18 skewX18;
-        uint256 expectedActiveMarketId;
+        uint128 expectedActiveMarketId;
+        uint128 activeMarketId;
+        uint128 expectedAccountIdWithActivePosition;
+        uint128 accountIdWithActivePosition;
         Position.Data expectedPosition;
+        Position.Data position;
         int256 expectedMarginBalanceUsd;
         SD59x18 marginBalanceUsdX18;
         uint256 newIndexPrice;
@@ -960,17 +990,33 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
         assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "first fill: skew");
 
-        // TODO: assert after harnesses are done
         // it should update the account's active markets
         ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+        ctx.activeMarketId =
+            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketId(ctx.tradingAccountId, 0);
+        assertEq(ctx.expectedActiveMarketId, ctx.activeMarketId, "first fill: active market id");
+        ctx.expectedAccountIdWithActivePosition = ctx.tradingAccountId;
+        ctx.accountIdWithActivePosition =
+            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
 
-        // TODO: assert after harnesses are done
         // it should update the account's position
         ctx.expectedPosition = Position.Data({
             size: ctx.firstOrderSizeDelta,
             lastInteractionPrice: ctx.firstFillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: 0
         });
+        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
+        );
+        assertEq(ctx.expectedPosition.size, ctx.position.size, "first fill: position size");
+        assertEq(
+            ctx.expectedPosition.lastInteractionPrice, ctx.position.lastInteractionPrice, "first fill: position price"
+        );
+        assertEq(
+            ctx.expectedPosition.lastInteractionFundingFeePerUnit,
+            ctx.position.lastInteractionFundingFeePerUnit,
+            "first fill: position funding fee"
+        );
 
         // it should deduct fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
@@ -1040,22 +1086,44 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.expectedSkew = 0;
         (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
         ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
-        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
-        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "first fill: skew");
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "second fill: open interest");
+        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "second fill: skew");
 
-        // TODO: assert after harnesses are done
         // it should update the account's active markets
-        ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+        assertEq(
+            0,
+            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
+            "second fill: active market id"
+        );
+        assertEq(
+            0,
+            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+            "second fill: active market id"
+        );
 
         // TODO: assert after harnesses are done
         // it should update the account's position
         ctx.expectedPosition =
             Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
+        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
+        );
+        assertEq(ctx.expectedPosition.size, ctx.position.size, "second fill: position size");
+        assertEq(
+            ctx.expectedPosition.lastInteractionPrice,
+            ctx.position.lastInteractionPrice,
+            "second fill: position price"
+        );
+        assertEq(
+            ctx.expectedPosition.lastInteractionFundingFeePerUnit,
+            ctx.position.lastInteractionFundingFeePerUnit,
+            "second fill: position funding fee"
+        );
 
         // it should add the pnl into the account's margin
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
-        assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "first fill: margin balance");
+        assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "second fill: margin balance");
 
         // it should delete any active market order
         ctx.marketOrder = perpsEngine.getActiveMarketOrder(ctx.tradingAccountId);
