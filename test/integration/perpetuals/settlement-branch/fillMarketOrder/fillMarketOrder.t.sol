@@ -728,6 +728,9 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             "first fill: position funding fee"
         );
 
+        // asserts initial upnl is zero
+        assertTrue(perpsEngine.getPositionState(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice).unrealizedPnlUsdX18.isZero());
+
         // it should deduct the pnl and fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
