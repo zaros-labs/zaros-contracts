@@ -4,11 +4,19 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
-import { LiquidationBranch_Integration_Test } from "test/integration/shared/LiquidationBranchIntegration.t.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 import { console } from "forge-std/console.sol";
 
-contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Integration_Test {
+contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Integration_Shared_Test {
+    function setUp() public override {
+        Base_Integration_Shared_Test.setUp();
+        changePrank({ msgSender: users.owner });
+        configureSystemParameters();
+        createPerpMarkets();
+        changePrank({ msgSender: users.naruto });
+    }
+
     function testFuzz_RevertWhen_TheCheckLowerBoundIsHigherThanTheCheckUpperBound(
         uint256 checkLowerBound,
         uint256 checkUpperBound,
@@ -136,11 +144,11 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is LiquidationBranch_Int
             ctx.accountMarginValueUsd = ctx.marginValueUsd / ctx.amountOfTradingAccounts;
             ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
 
-            _openPosition(
+            openPosition(
                 ctx.fuzzMarketConfig, ctx.tradingAccountId, ctx.initialMarginRate, ctx.accountMarginValueUsd, isLong
             );
         }
-        _setAccountsAsLiquidatable(ctx.fuzzMarketConfig, isLong);
+        setAccountsAsLiquidatable(ctx.fuzzMarketConfig, isLong);
 
         (ctx.upkeepNeeded, ctx.performData) = LiquidationKeeper(liquidationKeeper).checkUpkeep(ctx.checkData);
 

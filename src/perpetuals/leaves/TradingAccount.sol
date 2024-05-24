@@ -68,6 +68,18 @@ library TradingAccount {
         }
     }
 
+    /// @notice Loads an existing trading account and checks if the `msg.sender` is authorized.
+    /// @param tradingAccountId The trading account id.
+    /// @return tradingAccount The loaded trading account storage pointer.
+    function loadExistingAccountAndVerifySender(uint128 tradingAccountId)
+        internal
+        view
+        returns (Data storage tradingAccount)
+    {
+        tradingAccount = loadExisting(tradingAccountId);
+        verifySender(tradingAccountId);
+    }
+
     /// @notice Validates if the trading account is under the configured positions limit.
     /// @dev This function must be called when the trading account is going to open a new position. If called in a
     /// context
@@ -107,18 +119,6 @@ library TradingAccount {
                 totalFeesUsdX18.intoInt256()
             );
         }
-    }
-
-    /// @notice Loads an existing trading account and checks if the `msg.sender` is authorized.
-    /// @param tradingAccountId The trading account id.
-    /// @return tradingAccount The loaded trading account storage pointer.
-    function loadExistingAccountAndVerifySender(uint128 tradingAccountId)
-        internal
-        view
-        returns (Data storage tradingAccount)
-    {
-        tradingAccount = loadExisting(tradingAccountId);
-        verifySender(tradingAccountId);
     }
 
     /// @notice Returns the amount of the given margin collateral type.
