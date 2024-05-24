@@ -6,7 +6,7 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
 // PRB Math dependencies
-import { convert as ud60x18Convert } from "@prb-math/UD60x18.sol";
+import { convert as ud60x18Convert, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract GetFundingRate_Integration_Test is Base_Integration_Shared_Test {
@@ -32,7 +32,7 @@ contract GetFundingRate_Integration_Test is Base_Integration_Shared_Test {
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
-        uint256 initialMarginRate = fuzzMarketConfig.imr;
+        uint256 initialMarginRate = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.001e18)).intoUint256();
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);

@@ -36,7 +36,11 @@ contract GetSettlementConfiguration_Integration_Test is Base_Integration_Shared_
             data: abi.encode(expectedMarketOrderConfigurationData)
         });
         // it should return the market's settlement configuration
-        assertEq(uint8(settlementConfiguration.strategy), uint8(expectedMarketOrderConfiguration.strategy), "invalid strategy");
+        assertEq(
+            uint8(settlementConfiguration.strategy),
+            uint8(expectedMarketOrderConfiguration.strategy),
+            "invalid strategy"
+        );
         assertEq(settlementConfiguration.isEnabled, expectedMarketOrderConfiguration.isEnabled, "invalid isEnabled");
         assertEq(settlementConfiguration.fee, expectedMarketOrderConfiguration.fee, "invalid fee");
         assertEq(settlementConfiguration.keeper, expectedMarketOrderConfiguration.keeper, "invalid keeper");

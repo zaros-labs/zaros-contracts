@@ -42,7 +42,13 @@ contract GetMarkPrice_Integration_Test is Base_Integration_Shared_Test {
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
-        openPosition(fuzzMarketConfig, tradingAccountId, fuzzMarketConfig.imr, marginValueUsd, isLong);
+        openPosition(
+            fuzzMarketConfig,
+            tradingAccountId,
+            ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.001e18)).intoUint256(),
+            marginValueUsd,
+            isLong
+        );
 
         skip(timeElapsed);
 
