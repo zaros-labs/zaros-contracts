@@ -44,7 +44,7 @@ contract Upgrade_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_IAmNotTheOwner() external {
+    function test_RevertGiven_TheSenderIsNotTheOwner() external {
         changePrank({ msgSender: users.naruto });
 
         // it should revert
@@ -55,11 +55,11 @@ contract Upgrade_Integration_Test is Base_Integration_Shared_Test {
         perpsEngine.upgrade(new RootProxy.BranchUpgrade[](0), new address[](0), new bytes[](0));
     }
 
-    modifier givenIAmTheOwner() {
+    modifier givenTheSenderIsTheOwner() {
         _;
     }
 
-    function test_GivenAddANewBranch() external givenIAmTheOwner {
+    function test_WhenAddingANewBranch() external givenTheSenderIsTheOwner {
         changePrank({ msgSender: users.owner });
 
         address[] memory branches = new address[](1);
@@ -80,7 +80,7 @@ contract Upgrade_Integration_Test is Base_Integration_Shared_Test {
         assertEq(PerpsEngineWithNewTestFunction(address(perpsEngine)).testFunction(), "Test");
     }
 
-    function test_GivenReplaceABranchFunction() external givenIAmTheOwner {
+    function test_WhenReplacingABranch() external givenTheSenderIsTheOwner {
         changePrank({ msgSender: users.owner });
 
         address[] memory branches = new address[](1);
@@ -103,7 +103,7 @@ contract Upgrade_Integration_Test is Base_Integration_Shared_Test {
         assertEq(PerpsEngineWithNewOrderBranch(address(perpsEngine)).getName(tradingAcount), "Test");
     }
 
-    function test_GivenRemoveABranchFunction() external givenIAmTheOwner {
+    function test_WhenRemovingABranch() external givenTheSenderIsTheOwner {
         changePrank({ msgSender: users.owner });
 
         // When we remove a function that already exists in the branch
