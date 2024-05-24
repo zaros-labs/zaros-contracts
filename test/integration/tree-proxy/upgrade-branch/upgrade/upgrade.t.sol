@@ -9,14 +9,10 @@ import { getBranchUpgrades } from "script/helpers/TreeProxyHelpers.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-
-import { console } from "forge-std/console.sol";
-import { console2 } from "forge-std/console2.sol";
+import { Branch } from "@zaros/tree-proxy/leaves/Branch.sol";
 
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
-
-import { Branch } from "@zaros/tree-proxy/leaves/Branch.sol";
 
 contract TestContract {
     function testFunction() public pure returns (string memory) {
