@@ -18,7 +18,7 @@ contract BranchAddress_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
 
-        // Deploy test contract with 2 branches and selectors
+        // Deploy test contract with two branches and selectors
 
         address lookupBranch = address(new LookupBranch());
         address perpMarketBranch = address(new PerpMarketBranch());
