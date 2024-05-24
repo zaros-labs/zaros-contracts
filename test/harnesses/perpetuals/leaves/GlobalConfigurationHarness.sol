@@ -4,7 +4,24 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+
 contract GlobalConfigurationHarness {
+    using EnumerableSet for EnumerableSet.UintSet;
+
+    function workaround_getAccountIdWithActivePosition(uint128 index) external view returns (uint128) {
+        GlobalConfiguration.Data storage self = GlobalConfiguration.load();
+
+        return uint128(self.accountsIdsWithActivePositions.at(index));
+    }
+
+    function workaround_getAccountsIdsWithActivePositionsLength() external view returns (uint256) {
+        GlobalConfiguration.Data storage self = GlobalConfiguration.load();
+
+        return self.accountsIdsWithActivePositions.length();
+    }
+
     function exposed_checkMarketIsEnabled(uint128 marketId) external view {
         GlobalConfiguration.Data storage self = GlobalConfiguration.load();
         GlobalConfiguration.checkMarketIsEnabled(self, marketId);

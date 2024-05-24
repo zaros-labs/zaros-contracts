@@ -12,6 +12,8 @@ import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.so
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
+import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -570,7 +572,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         UD60x18 openInterestX18;
         int256 expectedSkew;
         SD59x18 skewX18;
-        uint256 expectedActiveMarketId;
+        uint128 expectedActiveMarketId;
+        uint128 activeMarketId;
+        uint128 expectedAccountIdWithActivePosition;
+        uint128 accountIdWithActivePosition;
         Position.Data expectedPosition;
         int256 expectedMarginBalanceUsd;
         SD59x18 marginBalanceUsdX18;
@@ -584,7 +589,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         MarketOrder.Data marketOrder;
     }
 
-    // TODO: add funding assertions
     function testFuzz_GivenThePnlIsNegative(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -693,9 +697,14 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
         assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "first fill: skew");
 
-        // TODO: assert after harnesses are done
         // it should update the account's active markets
         ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+        ctx.activeMarketId =
+            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketId(ctx.tradingAccountId, 0);
+        assertEq(ctx.expectedActiveMarketId, ctx.activeMarketId, "first fill: active market id");
+        ctx.expectedAccountIdWithActivePosition = ctx.tradingAccountId;
+        ctx.accountIdWithActivePosition =
+            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePosition(0);
 
         // TODO: assert after harnesses are done
         // it should update the account's position
@@ -782,12 +791,22 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.expectedSkew = 0;
         (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
         ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
-        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "first fill: open interest");
-        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "first fill: skew");
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "second fill: open interest");
+        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "second fill: skew");
 
-        // TODO: assert after harnesses are done
         // it should update the account's active markets
-        ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
+        assertEq(
+            0,
+            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
+            "second fill: active market id"
+        );
+        assertEq(
+            0,
+            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePosition(
+                ctx.tradingAccountId
+            ),
+            "second fill: active market id"
+        );
 
         // TODO: assert after harnesses are done
         // it should update the account's position

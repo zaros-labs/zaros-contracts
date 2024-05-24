@@ -193,7 +193,6 @@ library TradingAccount {
             PerpMarket.Data storage perpMarket = PerpMarket.load(targetMarketId);
             Position.Data storage position = Position.load(self.id, targetMarketId);
 
-            // TODO: validate this at margin requirement task
             UD60x18 markPrice = perpMarket.getMarkPrice(sizeDeltaX18, perpMarket.getIndexPrice());
             SD59x18 fundingFeePerUnit =
                 perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
