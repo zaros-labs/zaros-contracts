@@ -122,18 +122,19 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     orderBranchSelectors[4] = OrderBranch.createMarketOrder.selector;
     orderBranchSelectors[5] = OrderBranch.cancelMarketOrder.selector;
 
-    bytes4[] memory perpMarketBranchSelectors = new bytes4[](10);
+    bytes4[] memory perpMarketBranchSelectors = new bytes4[](11);
 
     perpMarketBranchSelectors[0] = PerpMarketBranch.getName.selector;
     perpMarketBranchSelectors[1] = PerpMarketBranch.getSymbol.selector;
     perpMarketBranchSelectors[2] = PerpMarketBranch.getMaxOpenInterest.selector;
-    perpMarketBranchSelectors[3] = PerpMarketBranch.getSkew.selector;
-    perpMarketBranchSelectors[4] = PerpMarketBranch.getOpenInterest.selector;
-    perpMarketBranchSelectors[5] = PerpMarketBranch.getMarkPrice.selector;
-    perpMarketBranchSelectors[6] = PerpMarketBranch.getSettlementConfiguration.selector;
-    perpMarketBranchSelectors[7] = PerpMarketBranch.getFundingRate.selector;
-    perpMarketBranchSelectors[8] = PerpMarketBranch.getFundingVelocity.selector;
-    perpMarketBranchSelectors[9] = PerpMarketBranch.getPerpMarketConfiguration.selector;
+    perpMarketBranchSelectors[3] = PerpMarketBranch.getMaxSkew.selector;
+    perpMarketBranchSelectors[4] = PerpMarketBranch.getSkew.selector;
+    perpMarketBranchSelectors[5] = PerpMarketBranch.getOpenInterest.selector;
+    perpMarketBranchSelectors[6] = PerpMarketBranch.getMarkPrice.selector;
+    perpMarketBranchSelectors[7] = PerpMarketBranch.getSettlementConfiguration.selector;
+    perpMarketBranchSelectors[8] = PerpMarketBranch.getFundingRate.selector;
+    perpMarketBranchSelectors[9] = PerpMarketBranch.getFundingVelocity.selector;
+    perpMarketBranchSelectors[10] = PerpMarketBranch.getPerpMarketConfiguration.selector;
 
     bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 14 : 12);
 

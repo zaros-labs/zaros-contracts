@@ -2,9 +2,17 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { LiquidationBranch_Integration_Test } from "test/integration/shared/LiquidationBranchIntegration.t.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
-contract CheckLiquidatableAccounts_Integration_Test is LiquidationBranch_Integration_Test {
+contract CheckLiquidatableAccounts_Integration_Test is Base_Integration_Shared_Test {
+    function setUp() public override {
+        Base_Integration_Shared_Test.setUp();
+        changePrank({ msgSender: users.owner });
+        configureSystemParameters();
+        createPerpMarkets();
+        changePrank({ msgSender: users.naruto });
+    }
+
     function test_WhenTheBoundsAreZero() external {
         uint256 lowerBound = 0;
         uint256 upperBound = 0;
@@ -32,7 +40,7 @@ contract CheckLiquidatableAccounts_Integration_Test is LiquidationBranch_Integra
         for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
             uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
             uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
-            _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
+            openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
         }
 
         uint256 lowerBound = 0;
@@ -65,9 +73,9 @@ contract CheckLiquidatableAccounts_Integration_Test is LiquidationBranch_Integra
             uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
             uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
 
-            _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
+            openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
         }
-        _setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
+        setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
 
         uint256 lowerBound = 0;
         uint256 upperBound = amountOfTradingAccounts;

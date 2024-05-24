@@ -7,16 +7,14 @@ import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegr
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
-import { LiquidationBranch_Integration_Test } from "test/integration/shared/LiquidationBranchIntegration.t.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 
-contract LiquidationKeeper_PerformUpkeep_Integration_Test is LiquidationBranch_Integration_Test {
+contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
-
         createPerpMarkets();
-
         changePrank({ msgSender: users.naruto });
     }
 
@@ -46,11 +44,11 @@ contract LiquidationKeeper_PerformUpkeep_Integration_Test is LiquidationBranch_I
         for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
             uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
 
-            _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
+            openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
 
             accountsIds[i] = tradingAccountId;
         }
-        _setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
+        setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
 
         uint128 nonLiquidatableTradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
         accountsIds[amountOfTradingAccounts] = nonLiquidatableTradingAccountId;

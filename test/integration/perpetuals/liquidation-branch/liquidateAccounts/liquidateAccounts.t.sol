@@ -6,14 +6,22 @@ import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-import { LiquidationBranch_Integration_Test } from "test/integration/shared/LiquidationBranchIntegration.t.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Test {
+contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
+    function setUp() public override {
+        Base_Integration_Shared_Test.setUp();
+        changePrank({ msgSender: users.owner });
+        configureSystemParameters();
+        createPerpMarkets();
+        changePrank({ msgSender: users.naruto });
+    }
+
     function test_RevertGiven_TheSenderIsNotARegisteredLiquidator() external {
         uint128[] memory accountsIds = new uint128[](1);
 
@@ -94,11 +102,11 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
         for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
             uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
 
-            _openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
+            openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
 
             accountsIds[i] = tradingAccountId;
         }
-        _setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
+        setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
 
         uint128 nonLiquidatableTradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
         accountsIds[amountOfTradingAccounts - 1] = nonLiquidatableTradingAccountId;
@@ -151,6 +159,14 @@ contract LiquidateAccounts_Integration_Test is LiquidationBranch_Integration_Tes
 
             // TODO: setup storage for unit tests
             // it should remove the account's all active markets
+
+            // it should update open interest value
+            (,, UD60x18 openInterestX18) = perpsEngine.getOpenInterest(marketOrder.marketId);
+            assertEq(0, openInterestX18.intoUint256(), "open interest value should be zero");
+
+            // it should update skew value
+            SD59x18 skewX18 = perpsEngine.getSkew(marketOrder.marketId);
+            assertEq(0, skewX18.intoInt256(), "skew value should be zero");
         }
     }
 }
