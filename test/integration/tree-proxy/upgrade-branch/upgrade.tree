@@ -3,8 +3,8 @@ Upgrade_Integration_Test
 │   └── it should revert
 └── given I am the owner
     ├── given add a new branch
-    │   └── it should return the new branch
+    │   └── it should return the new branch functions
     ├── given replace a branch
-    │   └── it should return the replaced branch
+    │   └── it should return the replaced branch function
     └── given remove a branch
-        └── it should not return the removed branch
+        └── it should not return the removed branch functions
