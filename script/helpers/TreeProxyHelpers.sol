@@ -78,13 +78,12 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
 
-    bytes4[] memory lookupBranchSelectors = new bytes4[](5);
+    bytes4[] memory lookupBranchSelectors = new bytes4[](4);
 
     lookupBranchSelectors[0] = LookupBranch.branches.selector;
     lookupBranchSelectors[1] = LookupBranch.branchFunctionSelectors.selector;
-    lookupBranchSelectors[3] = LookupBranch.branchAddresses.selector;
-    lookupBranchSelectors[2] = LookupBranch.branchAddress.selector;
-    lookupBranchSelectors[4] = LookupBranch.branchSelectors.selector;
+    lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
+    lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
     bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 15 : 12);
 

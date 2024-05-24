@@ -7,7 +7,7 @@ Lookup_Integration_Test
     │   └── it should return the selectors
     ├── given called branchFunctionSelectors function
     │   └── it should return the selectors of branch
-    ├── given called branchAddresses
+    ├── given called branchAddresses function
     │   └── it should return all addresses of branches
     └── given branchAddress function
         └── it should return the branch address
