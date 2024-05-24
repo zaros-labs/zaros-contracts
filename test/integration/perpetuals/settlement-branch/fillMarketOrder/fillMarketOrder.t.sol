@@ -704,7 +704,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         assertEq(ctx.expectedActiveMarketId, ctx.activeMarketId, "first fill: active market id");
         ctx.expectedAccountIdWithActivePosition = ctx.tradingAccountId;
         ctx.accountIdWithActivePosition =
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePosition(0);
+            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
 
         // TODO: assert after harnesses are done
         // it should update the account's position
@@ -802,9 +802,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
         assertEq(
             0,
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePosition(
-                ctx.tradingAccountId
-            ),
+            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
             "second fill: active market id"
         );
 

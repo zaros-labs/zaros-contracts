@@ -10,7 +10,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 contract GlobalConfigurationHarness {
     using EnumerableSet for EnumerableSet.UintSet;
 
-    function workaround_getAccountIdWithActivePosition(uint128 index) external view returns (uint128) {
+    function workaround_getAccountIdWithActivePositions(uint128 index) external view returns (uint128) {
         GlobalConfiguration.Data storage self = GlobalConfiguration.load();
 
         return uint128(self.accountsIdsWithActivePositions.at(index));
