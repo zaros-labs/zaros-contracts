@@ -61,10 +61,4 @@ contract LookupBranch {
 
         return rootUpgrade.getBranchAddress(selector);
     }
-
-    function branchSelectors(address branch) external view returns (bytes4[] memory) {
-        RootUpgrade.Data storage rootUpgrade = RootUpgrade.load();
-
-        return rootUpgrade.getBranchSelectors(branch);
-    }
 }
