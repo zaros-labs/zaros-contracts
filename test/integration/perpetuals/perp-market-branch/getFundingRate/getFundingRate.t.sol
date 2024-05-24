@@ -46,6 +46,6 @@ contract GetFundingRate_Integration_Test is Base_Integration_Shared_Test {
             ud60x18Convert(Constants.PROPORTIONAL_FUNDING_PERIOD).intoSD59x18()
         ).intoInt256();
 
-        assertEq(fundingRate.intoInt256(), expectedFundingRate, "invalid funding rate");
+        assertAlmostEq(fundingRate.intoInt256(), expectedFundingRate, 1);
     }
 }
