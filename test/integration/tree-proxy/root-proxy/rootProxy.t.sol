@@ -26,7 +26,7 @@ contract TestContract is RootProxy {
 }
 
 contract RootProxy_Integration_Test is Base_Integration_Shared_Test {
-    function test_GivenInitialize() external {
+    function test_WhenInitializeContract() external {
         // Deploy test contract
         TestContract testContract;
         address[] memory branches = new address[](1);
