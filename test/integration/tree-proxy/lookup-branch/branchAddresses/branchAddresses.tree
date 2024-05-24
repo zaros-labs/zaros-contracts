@@ -1,0 +1,3 @@
+BranchAddresses_Integration_Test
+└── given called branchAddresses
+    └── it should return all addresses of branches
