@@ -10,6 +10,9 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 
+// Open Zeppelin dependencies
+import { Ownable } from "@openzeppelin/access/Ownable.sol";
+
 contract TestContract {
     function testFunction() public pure returns (string memory) {
         return "Test";
@@ -36,7 +39,22 @@ contract Upgrade_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_GivenAddANewBranch() external {
+    function test_RevertGiven_IAmNotTheOwner() external {
+        changePrank({ msgSender: users.naruto });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto)
+        });
+
+        perpsEngine.upgrade(new RootProxy.BranchUpgrade[](0), new address[](0), new bytes[](0));
+    }
+
+    modifier givenIAmTheOwner() {
+        _;
+    }
+
+    function test_GivenAddANewBranch() external givenIAmTheOwner {
         changePrank({ msgSender: users.owner });
 
         address[] memory branches = new address[](1);
@@ -57,7 +75,7 @@ contract Upgrade_Integration_Test is Base_Integration_Shared_Test {
         assertEq(PerpsEngineWithNewTestFunction(address(perpsEngine)).testFunction(), "Test");
     }
 
-    function test_GivenReplaceABranchFunction() external {
+    function test_GivenReplaceABranchFunction() external givenIAmTheOwner {
         changePrank({ msgSender: users.owner });
 
         address[] memory branches = new address[](1);
@@ -80,7 +98,7 @@ contract Upgrade_Integration_Test is Base_Integration_Shared_Test {
         assertEq(PerpsEngineWithNewOrderBranch(address(perpsEngine)).getName(tradingAcount), "Test");
     }
 
-    function test_GivenRemoveABranchFunction() external {
+    function test_GivenRemoveABranchFunction() external givenIAmTheOwner {
         changePrank({ msgSender: users.owner });
 
         address[] memory branches = new address[](1);

@@ -1,7 +1,10 @@
 Upgrade_Integration_Test
-├── given add a new branch
-│   └── it should return the new branch functions
-├── given replace a branch function
-│   └── it should return the replaced branch functions
-└── given remove a branch function
-    └── it should not return the removed branch functions
+├── given I am not the owner
+│   └── it should revert
+└── given I am the owner
+    ├── given add a new branch
+    │   └── it should return the new branch
+    ├── given replace a branch
+    │   └── it should return the replaced branch
+    └── given remove a branch
+        └── it should not return the removed branch
