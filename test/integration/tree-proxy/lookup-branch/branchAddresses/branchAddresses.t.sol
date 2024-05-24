@@ -55,7 +55,7 @@ contract BranchAddresses_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_GivenCalledBranchAddressesFunction() external {
+    function test_WhenBranchAddressesIsCalled() external {
         address[] memory branchAddresses = testPerpsEngine.branchAddresses();
 
         // it should return all addresses of branches

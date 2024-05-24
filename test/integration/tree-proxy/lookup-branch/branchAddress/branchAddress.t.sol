@@ -55,7 +55,7 @@ contract BranchAddress_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_GivenBranchAddressFunction() external {
+    function test_WhenBrachAddressIsCalled() external {
         uint256 branchIndex = 0;
         address branchAddress = testPerpsEngine.branchAddress(selectors[branchIndex][0]);
 

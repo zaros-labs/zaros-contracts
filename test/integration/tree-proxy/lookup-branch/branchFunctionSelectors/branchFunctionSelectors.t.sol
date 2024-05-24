@@ -55,7 +55,7 @@ contract BranchFunctionSelectos_Integration_Test is Base_Integration_Shared_Test
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_GivenCalledBranchFunctionSelectorsFunction() external {
+    function test_BranchFunctionSelectorsIsCalled() external {
         uint256 branchIndex = 0;
         bytes4[] memory branchSelectors = testPerpsEngine.branchFunctionSelectors(branches[branchIndex]);
 

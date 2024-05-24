@@ -1,4 +1,4 @@
 Branches_Integration_Test
-└── given called branches function
+└── when branches is called
     ├── it should return the branches
     └── it should return the selectors

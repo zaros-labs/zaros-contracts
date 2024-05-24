@@ -56,7 +56,7 @@ contract Branches_Integration_Test is Base_Integration_Shared_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_GivenCalledBranchesFunction() external {
+    function test_WhenBranchesIsCalled() external {
         Branch.Data[] memory testPerpsEngineBranches = testPerpsEngine.branches();
 
         // it should return the branches
