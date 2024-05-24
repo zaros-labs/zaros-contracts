@@ -707,6 +707,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.expectedAccountIdWithActivePosition = ctx.tradingAccountId;
         ctx.accountIdWithActivePosition =
             GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
+        assertEq(ctx.expectedAccountIdWithActivePosition, ctx.accountIdWithActivePosition, "first fill: accounts ids with active positions");
 
         // it should update the account's position
         ctx.expectedPosition = Position.Data({
@@ -816,7 +817,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         assertEq(
             0,
             GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
-            "second fill: active market id"
+            "second fill: accounts ids with active positions"
         );
 
         // it should update the account's position
@@ -999,6 +1000,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.accountIdWithActivePosition =
             GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
 
+        assertEq(ctx.expectedAccountIdWithActivePosition, ctx.accountIdWithActivePosition, "first fill: accounts ids with active positions");
+
         // it should update the account's position
         ctx.expectedPosition = Position.Data({
             size: ctx.firstOrderSizeDelta,
@@ -1098,10 +1101,9 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         assertEq(
             0,
             GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
-            "second fill: active market id"
+            "second fill: accounts ids with active positions"
         );
 
-        // TODO: assert after harnesses are done
         // it should update the account's position
         ctx.expectedPosition =
             Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });

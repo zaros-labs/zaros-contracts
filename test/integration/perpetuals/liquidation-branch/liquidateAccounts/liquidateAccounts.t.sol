@@ -2,12 +2,14 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
-import { Position } from "@zaros/perpetuals/leaves/Position.sol";
-import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
+import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -154,11 +156,34 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
             // TODO: funding task
             // it should update the market's funding values
 
-            // TODO: setup storage for unit tests
             // it should close all active positions
+            Position.Data memory expectedPosition =
+                Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
+            Position.Data memory position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+                accountsIds[i], fuzzMarketConfig.marketId
+            );
+            assertEq(expectedPosition.size, position.size, "position size");
+            assertEq(
+                expectedPosition.lastInteractionPrice, position.lastInteractionPrice, "position price"
+            );
+            assertEq(
+                expectedPosition.lastInteractionFundingFeePerUnit,
+                position.lastInteractionFundingFeePerUnit,
+                "position funding fee"
+            );
 
-            // TODO: setup storage for unit tests
             // it should remove the account's all active markets
+            assertEq(
+                0,
+                TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(accountsIds[i]),
+                "active market id"
+            );
+            // we only have one account still active
+            assertEq(
+                1,
+                GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+                "accounts ids with active positions"
+            );
 
             // it should update open interest value
             (,, UD60x18 openInterestX18) = perpsEngine.getOpenInterest(marketOrder.marketId);
