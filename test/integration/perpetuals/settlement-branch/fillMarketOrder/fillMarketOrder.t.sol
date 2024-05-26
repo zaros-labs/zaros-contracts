@@ -9,16 +9,20 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
 import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+
+import { console } from "forge-std/console.sol";
 
 contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -569,6 +573,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         UD60x18 firstFillPriceX18;
         int256 firstOrderExpectedPnl;
         bytes firstMockSignedReport;
+        int256 expectedLastFundingRate;
+        int256 expectedLastFundingFeePerUnit;
+        uint256 expectedLastFundingTime;
+        PerpMarket.Data perpMarketData;
         uint256 expectedOpenInterest;
         UD60x18 openInterestX18;
         int256 expectedSkew;
@@ -596,7 +604,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 marginValueUsd,
         bool isLong,
         uint256 marketId,
-        uint256 priceShiftRatio
+        uint256 priceShiftRatio,
+        uint256 timeDelta
     )
         external
         givenTheSenderIsTheKeeper
@@ -616,6 +625,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         initialMarginRate =
             bound({ x: initialMarginRate, min: ctx.adjustedMarginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        timeDelta = bound({ x: timeDelta, min: 1 seconds, max: 1 days });
 
         ctx.priceShiftBps = ctx.adjustedMarginRequirements / priceShiftRatio;
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
@@ -685,11 +695,15 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             pnl: ctx.firstOrderExpectedPnl,
             fundingFeePerUnit: 0
         });
-
         // fill first order and open position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
-        // TODO: assert after funding task is done
         // it should update the funding values
+        ctx.expectedLastFundingTime = block.timestamp;
+        ctx.perpMarketData =
+            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+        assertEq(0, ctx.perpMarketData.lastFundingRate, "first fill: last funding rate");
+        assertEq(0, ctx.perpMarketData.lastFundingFeePerUnit, "first fill: last funding fee per unit");
+        assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "first fill: last funding time");
 
         // it should update the open interest and skew
         ctx.expectedOpenInterest = sd59x18(ctx.firstOrderSizeDelta).abs().intoUD60x18().intoUint256();
@@ -707,7 +721,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.expectedAccountIdWithActivePosition = ctx.tradingAccountId;
         ctx.accountIdWithActivePosition =
             GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
-        assertEq(ctx.expectedAccountIdWithActivePosition, ctx.accountIdWithActivePosition, "first fill: accounts ids with active positions");
+        assertEq(
+            ctx.expectedAccountIdWithActivePosition,
+            ctx.accountIdWithActivePosition,
+            "first fill: accounts ids with active positions"
+        );
 
         // it should update the account's position
         ctx.expectedPosition = Position.Data({
@@ -729,7 +747,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         );
 
         // asserts initial upnl is zero
-        assertTrue(perpsEngine.getPositionState(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice).unrealizedPnlUsdX18.isZero());
+        assertTrue(
+            perpsEngine.getPositionState(
+                ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice
+            ).unrealizedPnlUsdX18.isZero()
+        );
 
         // it should deduct the pnl and fees
         ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl;
@@ -763,11 +785,21 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             })
         );
 
+        skip(timeDelta);
+        ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
+        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
+            .exposed_getPendingFundingFeePerUnit(
+            ctx.fuzzMarketConfig.marketId, sd59x18(ctx.expectedLastFundingRate), ctx.secondFillPriceX18
+        ).intoInt256();
+        ctx.expectedLastFundingTime = block.timestamp;
+
         ctx.secondMockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.newIndexPrice);
 
         ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
             ctx.firstFillPriceX18.intoSD59x18()
-        ).mul(sd59x18(ctx.firstOrderSizeDelta));
+        ).mul(sd59x18(ctx.firstOrderSizeDelta)).add(
+            sd59x18(ctx.expectedLastFundingFeePerUnit).mul(sd59x18(ctx.position.size))
+        );
         ctx.secondOrderExpectedPnl = unary(
             ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
         ).add(ctx.secondOrderExpectedPriceShiftPnlX18).intoInt256();
@@ -795,13 +827,24 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             orderFeeUsd: ctx.secondOrderFeeUsdX18.intoInt256(),
             settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
             pnl: ctx.secondOrderExpectedPnl,
-            fundingFeePerUnit: 0
+            fundingFeePerUnit: ctx.expectedLastFundingFeePerUnit
         });
+
+        console.log("after second fill");
+
         // fill second order and close position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
 
-        // TODO: assert after funding task is done
         // it should update the funding values
+        ctx.perpMarketData =
+            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+        assertEq(ctx.expectedLastFundingRate, ctx.perpMarketData.lastFundingRate, "second fill: last funding rate");
+        assertEq(
+            ctx.expectedLastFundingFeePerUnit,
+            ctx.perpMarketData.lastFundingFeePerUnit,
+            "second fill: last funding fee per unit"
+        );
+        assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "second fill: last funding time");
 
         // it should update the open interest and skew
         ctx.expectedOpenInterest = 0;
@@ -1003,7 +1046,11 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.accountIdWithActivePosition =
             GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
 
-        assertEq(ctx.expectedAccountIdWithActivePosition, ctx.accountIdWithActivePosition, "first fill: accounts ids with active positions");
+        assertEq(
+            ctx.expectedAccountIdWithActivePosition,
+            ctx.accountIdWithActivePosition,
+            "first fill: accounts ids with active positions"
+        );
 
         // it should update the account's position
         ctx.expectedPosition = Position.Data({

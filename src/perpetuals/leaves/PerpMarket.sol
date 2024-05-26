@@ -153,10 +153,10 @@ library PerpMarket {
         view
         returns (SD59x18)
     {
-        return sd59x18(self.lastFundingFeePerUnit).add(getPendingFundingFee(self, fundingRate, price));
+        return sd59x18(self.lastFundingFeePerUnit).add(getPendingFundingFeePerUnit(self, fundingRate, price));
     }
 
-    function getPendingFundingFee(
+    function getPendingFundingFeePerUnit(
         Data storage self,
         SD59x18 fundingRate,
         UD60x18 price

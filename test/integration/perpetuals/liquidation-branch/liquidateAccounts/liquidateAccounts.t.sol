@@ -159,13 +159,10 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
             // it should close all active positions
             Position.Data memory expectedPosition =
                 Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
-            Position.Data memory position = PositionHarness(address(perpsEngine)).exposed_Position_load(
-                accountsIds[i], fuzzMarketConfig.marketId
-            );
+            Position.Data memory position =
+                PositionHarness(address(perpsEngine)).exposed_Position_load(accountsIds[i], fuzzMarketConfig.marketId);
             assertEq(expectedPosition.size, position.size, "position size");
-            assertEq(
-                expectedPosition.lastInteractionPrice, position.lastInteractionPrice, "position price"
-            );
+            assertEq(expectedPosition.lastInteractionPrice, position.lastInteractionPrice, "position price");
             assertEq(
                 expectedPosition.lastInteractionFundingFeePerUnit,
                 position.lastInteractionFundingFeePerUnit,

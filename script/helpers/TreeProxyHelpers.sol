@@ -334,7 +334,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     perpMarketHarnessSelectors[4] = PerpMarketHarness.exposed_getCurrentFundingVelocity.selector;
     perpMarketHarnessSelectors[5] = PerpMarketHarness.exposed_getOrderFeeUsd.selector;
     perpMarketHarnessSelectors[6] = PerpMarketHarness.exposed_getNextFundingFeePerUnit.selector;
-    perpMarketHarnessSelectors[7] = PerpMarketHarness.exposed_getPendingFundingFee.selector;
+    perpMarketHarnessSelectors[7] = PerpMarketHarness.exposed_getPendingFundingFeePerUnit.selector;
     perpMarketHarnessSelectors[8] = PerpMarketHarness.exposed_getProportionalElapsedSinceLastFunding.selector;
     perpMarketHarnessSelectors[9] = PerpMarketHarness.exposed_checkOpenInterestLimits.selector;
     perpMarketHarnessSelectors[10] = PerpMarketHarness.exposed_checkTradeSize.selector;
