@@ -180,7 +180,8 @@ library PerpMarket {
         Data storage self,
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
-        SD59x18 newPositionSize
+        SD59x18 newPositionSize,
+        bool shouldCheckMaxSkew
     )
         internal
         view
@@ -196,6 +197,10 @@ library PerpMarket {
             revert Errors.ExceedsOpenInterestLimit(
                 self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
             );
+        }
+
+        if (shouldCheckMaxSkew && newSkew.abs().gt(ud60x18(self.configuration.maxSkew).intoSD59x18())) {
+            revert Errors.ExceedsSkewLimit(self.id, self.configuration.maxSkew, newSkew.intoInt256());
         }
     }
 

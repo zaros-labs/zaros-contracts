@@ -220,7 +220,7 @@ contract SettlementBranch {
         });
 
         (ctx.newOpenInterest, ctx.newSkew) = perpMarket.checkOpenInterestLimits(
-            ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size)
+            ctx.sizeDelta, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size), true
         );
         perpMarket.updateOpenInterest(ctx.newOpenInterest, ctx.newSkew);
 
