@@ -17,8 +17,6 @@ import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarnes
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
         Base_Integration_Shared_Test.setUp();
@@ -144,8 +142,6 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
         setAccountsAsLiquidatable(ctx.fuzzMarketConfig, isLong);
 
         ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
-        console.log("non liquidatable trading account id: ");
-        console.log(ctx.nonLiquidatableTradingAccountId);
         ctx.accountsIds[amountOfTradingAccounts] = ctx.nonLiquidatableTradingAccountId;
 
         changePrank({ msgSender: liquidationKeeper });
@@ -177,26 +173,16 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
 
         skip(timeDelta);
 
-        perpsEngine.liquidateAccounts(ctx.accountsIds, users.settlementFeeRecipient);
-
         ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
-        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
-            .exposed_getPendingFundingFeePerUnit(
-            ctx.fuzzMarketConfig.marketId,
-            sd59x18(ctx.expectedLastFundingRate),
-            ud60x18(ctx.fuzzMarketConfig.mockUsdPrice)
-        ).intoInt256();
         ctx.expectedLastFundingTime = block.timestamp;
 
+        perpsEngine.liquidateAccounts(ctx.accountsIds, users.settlementFeeRecipient);
+
         // it should update the market's funding values
-        // ctx.perpMarketData =
-        //     PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
-        // assertEq(ctx.expectedLastFundingRate, ctx.perpMarketData.lastFundingRate, "last funding rate");
-        // assertEq(
-        //     ctx.expectedLastFundingFeePerUnit, ctx.perpMarketData.lastFundingFeePerUnit, "last funding fee per
-        // unit"
-        // );
-        // assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "last funding time");
+        ctx.perpMarketData =
+            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+        assertEq(ctx.expectedLastFundingRate, ctx.perpMarketData.lastFundingRate, "last funding rate");
+        assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "last funding time");
 
         // it should update open interest value
         (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);

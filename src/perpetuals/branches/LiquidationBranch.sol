@@ -18,8 +18,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract LiquidationBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
@@ -166,9 +164,6 @@ contract LiquidationBranch {
                     ctx.liquidationSizeX18, ctx.oldPositionSizeX18, sd59x18(position.size)
                 );
 
-                console.log("from liquidation branch");
-                console.log(ctx.newSkewX18.lt(sd59x18(0)));
-                console.log(ctx.newOpenInterestX18.intoUint256(), ctx.newSkewX18.abs().intoUD60x18().intoUint256());
                 perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
             }
 
