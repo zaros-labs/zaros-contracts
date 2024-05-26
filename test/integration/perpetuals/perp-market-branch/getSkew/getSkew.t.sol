@@ -3,16 +3,16 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
-contract GetSkew_Integration_Test is Base_Integration_Shared_Test {
+contract GetSkew_Integration_Test is Base_Test {
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();

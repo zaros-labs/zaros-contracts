@@ -6,7 +6,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
@@ -17,9 +17,9 @@ import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarnes
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
+contract LiquidateAccounts_Integration_Test is Base_Test {
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();

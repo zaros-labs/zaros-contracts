@@ -3,12 +3,12 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 
-contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Integration_Shared_Test {
+contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Test {
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();

@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { MockERC20WithNoDecimals } from "test/mocks/MockERC20WithNoDecimals.sol";
@@ -12,9 +12,9 @@ import { MockERC20WithNoDecimals } from "test/mocks/MockERC20WithNoDecimals.sol"
 // OpenZeppelin Upgradeable dependencies
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
-contract ConfigureMarginCollateral_Integration_Test is Base_Integration_Shared_Test {
+contract ConfigureMarginCollateral_Integration_Test is Base_Test {
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();
