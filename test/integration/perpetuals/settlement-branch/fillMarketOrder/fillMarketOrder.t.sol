@@ -693,7 +693,7 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             orderFeeUsd: ctx.firstOrderFeeUsdX18.intoInt256(),
             settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
             pnl: ctx.firstOrderExpectedPnl,
-            fundingFeePerUnit: 0
+            fundingFeePerUnit: ctx.expectedLastFundingFeePerUnit
         });
         // fill first order and open position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
@@ -906,6 +906,10 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         UD60x18 firstFillPriceX18;
         int256 firstOrderExpectedPnl;
         bytes firstMockSignedReport;
+        int256 expectedLastFundingRate;
+        int256 expectedLastFundingFeePerUnit;
+        uint256 expectedLastFundingTime;
+        PerpMarket.Data perpMarketData;
         uint256 expectedOpenInterest;
         UD60x18 openInterestX18;
         int256 expectedSkew;
@@ -933,7 +937,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         uint256 marginValueUsd,
         bool isLong,
         uint256 marketId,
-        uint256 priceShift
+        uint256 priceShift,
+        uint256 timeDelta
     )
         external
         givenTheSenderIsTheKeeper
@@ -953,8 +958,8 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         priceShift = bound({ x: priceShift, min: 1.1e18, max: 10e18 });
         initialMarginRate =
             bound({ x: initialMarginRate, min: ctx.adjustedMarginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-        // fuzz with higher margin values to test higher price shifts
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        timeDelta = bound({ x: timeDelta, min: 1 seconds, max: 1 days });
 
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
 
@@ -1021,13 +1026,19 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             orderFeeUsd: ctx.firstOrderFeeUsdX18.intoInt256(),
             settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
             pnl: ctx.firstOrderExpectedPnl,
-            fundingFeePerUnit: 0
+            fundingFeePerUnit: ctx.expectedLastFundingFeePerUnit
         });
 
         // fill first order and open position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
-        // TODO: assert after funding task is done
+        console.log("after first fill");
         // it should update the funding values
+        ctx.expectedLastFundingTime = block.timestamp;
+        ctx.perpMarketData =
+            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+        assertEq(0, ctx.perpMarketData.lastFundingRate, "first fill: last funding rate");
+        assertEq(0, ctx.perpMarketData.lastFundingFeePerUnit, "first fill: last funding fee per unit");
+        assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "first fill: last funding time");
 
         // it should update the open interest and skew
         ctx.expectedOpenInterest = sd59x18(ctx.firstOrderSizeDelta).abs().intoUD60x18().intoUint256();
@@ -1095,6 +1106,15 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.secondFillPriceX18 =
             perpsEngine.getMarkPrice(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice, ctx.secondOrderSizeDelta);
 
+        skip(timeDelta);
+        ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
+        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
+            .exposed_getPendingFundingFeePerUnit(
+            ctx.fuzzMarketConfig.marketId, sd59x18(ctx.expectedLastFundingRate), ctx.secondFillPriceX18
+        ).intoInt256();
+        ctx.expectedLastFundingTime = block.timestamp;
+
+        console.log("before second market order: ");
         // second market order
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -1108,7 +1128,9 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
 
         ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
             ctx.firstFillPriceX18.intoSD59x18()
-        ).mul(sd59x18(ctx.firstOrderSizeDelta));
+        ).mul(sd59x18(ctx.firstOrderSizeDelta)).add(
+            sd59x18(ctx.expectedLastFundingFeePerUnit).mul(sd59x18(ctx.position.size))
+        );
         ctx.secondOrderExpectedPnl = unary(
             ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE).intoSD59x18())
         ).add(ctx.secondOrderExpectedPriceShiftPnlX18).intoInt256();
@@ -1126,13 +1148,22 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
             orderFeeUsd: ctx.secondOrderFeeUsdX18.intoInt256(),
             settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
             pnl: ctx.secondOrderExpectedPnl,
-            fundingFeePerUnit: 0
+            fundingFeePerUnit: ctx.expectedLastFundingFeePerUnit
         });
+        console.log("before second fill");
         // fill second order and close position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
+        console.log("after second fill");
 
-        // TODO: assert after funding task is done
         // it should update the funding values
+        ctx.perpMarketData =
+            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+        assertEq(ctx.expectedLastFundingRate, ctx.perpMarketData.lastFundingRate, "second fill: last funding rate");
+        assertEq(
+            ctx.expectedLastFundingFeePerUnit,
+            ctx.perpMarketData.lastFundingFeePerUnit,
+            "second fill: last funding fee per unit"
+        );
 
         // it should update the open interest and skew
         ctx.expectedOpenInterest = 0;
