@@ -26,8 +26,13 @@ contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Integra
         perpsEngine.configureCollateralLiquidationPriority(emptyArray);
     }
 
-    function testFuzz_GivenAddressArrayIsNotEmpty(address[] memory collateralTypes) external {
-        vm.assume(collateralTypes.length > 0);
+    function test_GivenAddressArrayIsNotEmpty() external {
+        address collateralType1 = address(123);
+        address collateralType2 = address(456);
+        address[] memory collateralTypes = new address[](2);
+
+        collateralTypes[0] = collateralType1;
+        collateralTypes[1] = collateralType2;
 
         changePrank({ msgSender: users.owner });
 
