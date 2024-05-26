@@ -81,6 +81,14 @@ library GlobalConfiguration {
     /// @param collateralTypes The array of collateral type addresses.
     function configureCollateralLiquidationPriority(Data storage self, address[] memory collateralTypes) internal {
         for (uint256 i = 0; i < collateralTypes.length; i++) {
+            if (collateralTypes[i] == address(0)) {
+                revert Errors.ZeroInput("collateralType");
+            }
+
+            if (self.collateralLiquidationPriority.contains(collateralTypes[i])) {
+                revert Errors.CollateralAlreadyInPriority(collateralTypes[i]);
+            }
+
             self.collateralLiquidationPriority.add(collateralTypes[i]);
         }
     }
