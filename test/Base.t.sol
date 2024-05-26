@@ -75,7 +75,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
 
-    /// @dev TODO: think about forking tests
     MockPriceAdapters internal mockPriceAdapters;
 
     /*//////////////////////////////////////////////////////////////////////////
