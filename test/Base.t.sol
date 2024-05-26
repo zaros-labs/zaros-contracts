@@ -30,6 +30,12 @@ import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHa
 import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
+import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
+import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
+import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
+import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -64,6 +70,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     //////////////////////////////////////////////////////////////////////////*/
 
     Users internal users;
+    address internal mockChainlinkFeeManager;
+    address internal mockChainlinkVerifier;
+    FeeRecipients.Data internal feeRecipients;
+    address internal liquidationKeeper;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -144,6 +154,20 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         approveContracts();
         changePrank({ msgSender: users.naruto });
+
+        mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
+        mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
+        feeRecipients = FeeRecipients.Data({
+            marginCollateralRecipient: users.marginCollateralRecipient,
+            orderFeeRecipient: users.orderFeeRecipient,
+            settlementFeeRecipient: users.settlementFeeRecipient
+        });
+
+        setupMarketsConfig();
+        configureLiquidationKeepers();
+
+        vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
+        vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -204,6 +228,39 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         collateralLiquidationPriority[1] = address(mockWstEth);
 
         perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
+    }
+
+    function configureLiquidationKeepers() internal {
+        changePrank({ msgSender: users.owner });
+        liquidationKeeper =
+            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
+
+        address[] memory liquidators = new address[](1);
+        bool[] memory liquidatorStatus = new bool[](1);
+
+        liquidators[0] = liquidationKeeper;
+        liquidatorStatus[0] = true;
+
+        perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
+
+        changePrank({ msgSender: users.naruto });
+    }
+
+    function configureSystemParameters() internal {
+        perpsEngine.configureSystemParameters({
+            maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
+            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
+            marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
+            orderFeeRecipient: feeRecipients.orderFeeRecipient,
+            settlementFeeRecipient: feeRecipients.settlementFeeRecipient
+        });
+    }
+
+    function createPerpMarkets() internal {
+        createPerpMarkets(
+            users.owner, perpsEngine, INITIAL_MARKET_ID, FINAL_MARKET_ID, IVerifierProxy(mockChainlinkVerifier), true
+        );
     }
 
     /*//////////////////////////////////////////////////////////////////////////

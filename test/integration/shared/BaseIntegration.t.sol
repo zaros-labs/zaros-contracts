@@ -2,20 +2,14 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
-import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
-import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
-import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
 
 // Open Zeppelin dependencies
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -30,32 +24,10 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     using SafeCast for int256;
 
     /*//////////////////////////////////////////////////////////////////////////
-                                     VARIABLES
-    //////////////////////////////////////////////////////////////////////////*/
-    address internal mockChainlinkFeeManager;
-    address internal mockChainlinkVerifier;
-    address internal liquidationKeeper;
-    FeeRecipients.Data internal feeRecipients;
-
-    /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
         Base_Test.setUp();
-
-        mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
-        mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
-        feeRecipients = FeeRecipients.Data({
-            marginCollateralRecipient: users.marginCollateralRecipient,
-            orderFeeRecipient: users.orderFeeRecipient,
-            settlementFeeRecipient: users.settlementFeeRecipient
-        });
-
-        setupMarketsConfig();
-        configureLiquidationKeepers();
-
-        vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
-        vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
     }
 
     function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {
@@ -142,39 +114,6 @@ abstract contract Base_Integration_Shared_Test is Base_Test {
     {
         tradingAccountId = perpsEngine.createTradingAccount();
         perpsEngine.depositMargin(tradingAccountId, collateralType, amount);
-    }
-
-    function configureSystemParameters() internal {
-        perpsEngine.configureSystemParameters({
-            maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
-            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
-            liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
-            marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
-            orderFeeRecipient: feeRecipients.orderFeeRecipient,
-            settlementFeeRecipient: feeRecipients.settlementFeeRecipient
-        });
-    }
-
-    function createPerpMarkets() internal {
-        createPerpMarkets(
-            users.owner, perpsEngine, INITIAL_MARKET_ID, FINAL_MARKET_ID, IVerifierProxy(mockChainlinkVerifier), true
-        );
-    }
-
-    function configureLiquidationKeepers() internal {
-        changePrank({ msgSender: users.owner });
-        liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
-
-        address[] memory liquidators = new address[](1);
-        bool[] memory liquidatorStatus = new bool[](1);
-
-        liquidators[0] = liquidationKeeper;
-        liquidatorStatus[0] = true;
-
-        perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
-
-        changePrank({ msgSender: users.naruto });
     }
 
     function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
