@@ -15,7 +15,7 @@ contract AddMarket_Unit_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_TheMarketIsAlreadyAdded(uint256 marketId) external {
-        marketId = bound({ x: marketId, min: INITIAL_MARKET_ID, max: INITIAL_MARKET_ID });
+        marketId = bound({ x: marketId, min: INITIAL_MARKET_ID, max: FINAL_MARKET_ID });
 
         // it should revert
         vm.expectRevert({

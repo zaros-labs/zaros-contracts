@@ -69,9 +69,9 @@ library GlobalConfiguration {
     /// @param self The global configuration storage pointer.
     /// @param marketId The id of the market to add.
     function removeMarket(Data storage self, uint128 marketId) internal {
-        bool added = self.enabledMarketsIds.remove(uint256(marketId));
+        bool removed = self.enabledMarketsIds.remove(uint256(marketId));
 
-        if (!added) {
+        if (!removed) {
             revert Errors.PerpMarketAlreadyDisabled(marketId);
         }
     }
