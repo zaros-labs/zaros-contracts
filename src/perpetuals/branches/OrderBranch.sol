@@ -171,7 +171,10 @@ contract OrderBranch {
 
         perpMarket.checkTradeSize(sd59x18(params.sizeDelta));
         perpMarket.checkOpenInterestLimits(
-            sd59x18(params.sizeDelta), sd59x18(position.size), sd59x18(position.size).add(sd59x18(params.sizeDelta))
+            sd59x18(params.sizeDelta),
+            sd59x18(position.size),
+            sd59x18(position.size).add(sd59x18(params.sizeDelta)),
+            true
         );
 
         bool isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(params.marketId);

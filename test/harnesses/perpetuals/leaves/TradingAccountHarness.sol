@@ -5,11 +5,28 @@ pragma solidity 0.8.25;
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract TradingAccountHarness {
+    using EnumerableSet for EnumerableSet.UintSet;
+
+    function workaround_getActiveMarketId(uint128 tradingAccountId, uint128 index) external view returns (uint128) {
+        TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
+
+        return uint128(self.activeMarketsIds.at(index));
+    }
+
+    function workaround_getActiveMarketsIdsLength(uint128 tradingAccountId) external view returns (uint256) {
+        TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
+
+        return self.activeMarketsIds.length();
+    }
+
     function exposed_TradingAccount_loadExisting(uint128 tradingAccountId) external view {
         TradingAccount.loadExisting(tradingAccountId);
     }

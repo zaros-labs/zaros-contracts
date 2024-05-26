@@ -2,16 +2,20 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
-import { Position } from "@zaros/perpetuals/leaves/Position.sol";
-import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
+import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
+import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
+import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
+import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 
 // PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
     function setUp() public override {
@@ -77,44 +81,73 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
         _;
     }
 
+    struct TestFuzz_GivenThereAreLiquidatableAccountsInTheArray_Context {
+        MarketConfig fuzzMarketConfig;
+        uint256 marginValueUsd;
+        uint256 initialMarginRate;
+        uint128[] accountsIds;
+        uint256 accountMarginValueUsd;
+        uint128 tradingAccountId;
+        PerpMarket.Data perpMarketData;
+        int256 expectedLastFundingRate;
+        int256 expectedLastFundingFeePerUnit;
+        uint256 expectedLastFundingTime;
+        uint128 nonLiquidatableTradingAccountId;
+        MarketOrder.Data marketOrder;
+        Position.Data expectedPosition;
+        Position.Data position;
+        UD60x18 openInterestX18;
+        uint256 expectedOpenInterest;
+        SD59x18 skewX18;
+        int256 expectedSkew;
+    }
+
     function testFuzz_GivenThereAreLiquidatableAccountsInTheArray(
         uint256 marketId,
         bool isLong,
-        uint256 amountOfTradingAccounts
+        uint256 amountOfTradingAccounts,
+        uint256 timeDelta
     )
         external
         givenTheSenderIsARegisteredLiquidator
         whenTheAccountsIdsArrayIsNotEmpty
         givenAllAccountsExist
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
-        uint256 marginValueUsd = 10_000e18 / amountOfTradingAccounts;
-        uint256 initialMarginRate = fuzzMarketConfig.imr;
+        TestFuzz_GivenThereAreLiquidatableAccountsInTheArray_Context memory ctx;
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
+        timeDelta = bound({ x: timeDelta, min: 1 seconds, max: 1 days });
+
+        ctx.marginValueUsd = 10_000e18 / amountOfTradingAccounts;
+        ctx.initialMarginRate = ctx.fuzzMarketConfig.imr;
+
+        deal({ token: address(usdToken), to: users.naruto, give: ctx.marginValueUsd });
 
         // last account id == 0
-        uint128[] memory accountsIds = new uint128[](amountOfTradingAccounts + 2);
+        ctx.accountsIds = new uint128[](amountOfTradingAccounts + 2);
 
-        uint256 accountMarginValueUsd = marginValueUsd / (amountOfTradingAccounts + 1);
+        ctx.accountMarginValueUsd = ctx.marginValueUsd / (amountOfTradingAccounts + 1);
 
         for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
-            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+            ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
 
-            openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
+            openPosition(
+                ctx.fuzzMarketConfig, ctx.tradingAccountId, ctx.initialMarginRate, ctx.accountMarginValueUsd, isLong
+            );
 
-            accountsIds[i] = tradingAccountId;
+            ctx.accountsIds[i] = ctx.tradingAccountId;
         }
-        setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
 
-        uint128 nonLiquidatableTradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
-        accountsIds[amountOfTradingAccounts - 1] = nonLiquidatableTradingAccountId;
+        setAccountsAsLiquidatable(ctx.fuzzMarketConfig, isLong);
+
+        ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
+        ctx.accountsIds[amountOfTradingAccounts] = ctx.nonLiquidatableTradingAccountId;
 
         changePrank({ msgSender: liquidationKeeper });
 
-        for (uint256 i = 0; i < accountsIds.length; i++) {
-            if (accountsIds[i] == nonLiquidatableTradingAccountId || accountsIds[i] == 0) {
+        for (uint256 i = 0; i < ctx.accountsIds.length; i++) {
+            if (ctx.accountsIds[i] == ctx.nonLiquidatableTradingAccountId || ctx.accountsIds[i] == 0) {
                 continue;
             }
 
@@ -129,7 +162,7 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
 
             emit LiquidationBranch.LogLiquidateAccount({
                 keeper: liquidationKeeper,
-                tradingAccountId: accountsIds[i],
+                tradingAccountId: ctx.accountsIds[i],
                 amountOfOpenPositions: 0,
                 requiredMaintenanceMarginUsd: 0,
                 marginBalanceUsd: 0,
@@ -138,35 +171,71 @@ contract LiquidateAccounts_Integration_Test is Base_Integration_Shared_Test {
             });
         }
 
-        perpsEngine.liquidateAccounts(accountsIds, users.settlementFeeRecipient);
+        skip(timeDelta);
 
-        for (uint256 i = 0; i < accountsIds.length; i++) {
-            if (accountsIds[i] == nonLiquidatableTradingAccountId) {
+        ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
+        ctx.expectedLastFundingTime = block.timestamp;
+
+        perpsEngine.liquidateAccounts(ctx.accountsIds, users.settlementFeeRecipient);
+
+        // it should update the market's funding values
+        ctx.perpMarketData =
+            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+        assertEq(ctx.expectedLastFundingRate, ctx.perpMarketData.lastFundingRate, "last funding rate");
+        assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "last funding time");
+
+        // it should update open interest value
+        (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
+        ctx.expectedOpenInterest = sd59x18(
+            PositionHarness(address(perpsEngine)).exposed_Position_load(
+                ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId
+            ).size
+        ).abs().intoUD60x18().intoUint256();
+        assertEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), "open interest");
+
+        // it should update skew value
+        ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
+        ctx.expectedSkew = PositionHarness(address(perpsEngine)).exposed_Position_load(
+            ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId
+        ).size;
+        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "skew");
+
+        for (uint256 i = 0; i < ctx.accountsIds.length; i++) {
+            if (ctx.accountsIds[i] == ctx.nonLiquidatableTradingAccountId) {
                 continue;
             }
 
             // it should delete any active market order
-            MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder(accountsIds[i]);
-            assertEq(marketOrder.marketId, 0);
-            assertEq(marketOrder.sizeDelta, 0);
-            assertEq(marketOrder.timestamp, 0);
+            ctx.marketOrder = perpsEngine.getActiveMarketOrder(ctx.accountsIds[i]);
+            assertEq(ctx.marketOrder.marketId, 0);
+            assertEq(ctx.marketOrder.sizeDelta, 0);
+            assertEq(ctx.marketOrder.timestamp, 0);
 
-            // TODO: funding task
-            // it should update the market's funding values
-
-            // TODO: setup storage for unit tests
             // it should close all active positions
+            ctx.expectedPosition =
+                Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
+            ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+                ctx.accountsIds[i], ctx.fuzzMarketConfig.marketId
+            );
+            assertEq(ctx.expectedPosition.size, ctx.position.size, "position size");
+            assertEq(ctx.expectedPosition.lastInteractionPrice, ctx.position.lastInteractionPrice, "position price");
+            assertEq(
+                ctx.expectedPosition.lastInteractionFundingFeePerUnit,
+                ctx.position.lastInteractionFundingFeePerUnit,
+                "position funding fee"
+            );
 
-            // TODO: setup storage for unit tests
             // it should remove the account's all active markets
-
-            // it should update open interest value
-            (,, UD60x18 openInterestX18) = perpsEngine.getOpenInterest(marketOrder.marketId);
-            assertEq(0, openInterestX18.intoUint256(), "open interest value should be zero");
-
-            // it should update skew value
-            SD59x18 skewX18 = perpsEngine.getSkew(marketOrder.marketId);
-            assertEq(0, skewX18.intoInt256(), "skew value should be zero");
+            assertEq(
+                0,
+                TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(ctx.accountsIds[i]),
+                "active market id"
+            );
+            assertEq(
+                0,
+                GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+                "accounts ids with active positions"
+            );
         }
     }
 }

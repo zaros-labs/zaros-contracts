@@ -67,7 +67,7 @@ contract PerpMarketHarness {
         return PerpMarket.getNextFundingFeePerUnit(self, fundingRate, price);
     }
 
-    function exposed_getPendingFundingFee(
+    function exposed_getPendingFundingFeePerUnit(
         uint128 marketId,
         SD59x18 fundingRate,
         UD60x18 price
@@ -77,7 +77,7 @@ contract PerpMarketHarness {
         returns (SD59x18)
     {
         PerpMarket.Data storage self = PerpMarket.load(marketId);
-        return PerpMarket.getPendingFundingFee(self, fundingRate, price);
+        return PerpMarket.getPendingFundingFeePerUnit(self, fundingRate, price);
     }
 
     function exposed_getProportionalElapsedSinceLastFunding(uint128 marketId) external view returns (UD60x18) {
@@ -89,14 +89,16 @@ contract PerpMarketHarness {
         uint128 marketId,
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
-        SD59x18 newPositionSize
+        SD59x18 newPositionSize,
+        bool shouldCheckMaxSkew
     )
         external
         view
         returns (UD60x18 newOpenInterest, SD59x18 newSkew)
     {
         PerpMarket.Data storage self = PerpMarket.load(marketId);
-        return PerpMarket.checkOpenInterestLimits(self, sizeDelta, oldPositionSize, newPositionSize);
+        return
+            PerpMarket.checkOpenInterestLimits(self, sizeDelta, oldPositionSize, newPositionSize, shouldCheckMaxSkew);
     }
 
     function exposed_checkTradeSize(uint128 marketId, SD59x18 sizeDeltaX18) external view {

@@ -292,7 +292,7 @@ function deployAddressHarnesses() returns (address[] memory) {
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](5);
+    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](7);
     globalConfigurationHarnessSelectors[0] = GlobalConfigurationHarness.exposed_checkMarketIsEnabled.selector;
     globalConfigurationHarnessSelectors[1] = GlobalConfigurationHarness.exposed_addMarket.selector;
     globalConfigurationHarnessSelectors[2] = GlobalConfigurationHarness.exposed_removeMarket.selector;
@@ -300,6 +300,10 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
         GlobalConfigurationHarness.exposed_configureCollateralLiquidationPriority.selector;
     globalConfigurationHarnessSelectors[4] =
         GlobalConfigurationHarness.exposed_removeCollateralFromLiquidationPriority.selector;
+    globalConfigurationHarnessSelectors[5] =
+        GlobalConfigurationHarness.workaround_getAccountIdWithActivePositions.selector;
+    globalConfigurationHarnessSelectors[6] =
+        GlobalConfigurationHarness.workaround_getAccountsIdsWithActivePositionsLength.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](5);
     marginCollateralConfigurationHarnessSelectors[0] =
@@ -329,7 +333,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     perpMarketHarnessSelectors[4] = PerpMarketHarness.exposed_getCurrentFundingVelocity.selector;
     perpMarketHarnessSelectors[5] = PerpMarketHarness.exposed_getOrderFeeUsd.selector;
     perpMarketHarnessSelectors[6] = PerpMarketHarness.exposed_getNextFundingFeePerUnit.selector;
-    perpMarketHarnessSelectors[7] = PerpMarketHarness.exposed_getPendingFundingFee.selector;
+    perpMarketHarnessSelectors[7] = PerpMarketHarness.exposed_getPendingFundingFeePerUnit.selector;
     perpMarketHarnessSelectors[8] = PerpMarketHarness.exposed_getProportionalElapsedSinceLastFunding.selector;
     perpMarketHarnessSelectors[9] = PerpMarketHarness.exposed_checkOpenInterestLimits.selector;
     perpMarketHarnessSelectors[10] = PerpMarketHarness.exposed_checkTradeSize.selector;
@@ -360,7 +364,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     settlementConfigurationHarnessSelectors[6] =
         SettlementConfigurationHarness.exposed_verifyDataStreamsReport.selector;
 
-    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](17);
+    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](19);
     tradingAccountHarnessSelectors[0] = TradingAccountHarness.exposed_TradingAccount_loadExisting.selector;
     tradingAccountHarnessSelectors[1] = TradingAccountHarness.exposed_loadExistingAccountAndVerifySender.selector;
     tradingAccountHarnessSelectors[2] = TradingAccountHarness.exposed_validatePositionsLimit.selector;
@@ -379,6 +383,8 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     tradingAccountHarnessSelectors[14] = TradingAccountHarness.exposed_withdrawMarginUsd.selector;
     tradingAccountHarnessSelectors[15] = TradingAccountHarness.exposed_deductAccountMargin.selector;
     tradingAccountHarnessSelectors[16] = TradingAccountHarness.exposed_updateActiveMarkets.selector;
+    tradingAccountHarnessSelectors[17] = TradingAccountHarness.workaround_getActiveMarketId.selector;
+    tradingAccountHarnessSelectors[18] = TradingAccountHarness.workaround_getActiveMarketsIdsLength.selector;
 
     selectors[0] = globalConfigurationHarnessSelectors;
     selectors[1] = marginCollateralConfigurationHarnessSelectors;
