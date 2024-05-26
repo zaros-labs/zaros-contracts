@@ -86,7 +86,7 @@ library Errors {
     error MarginCollateralTypeNotInPriority(address collateralType);
     /// @notice Thrown when the provided `collateralType` is already in the collateral priority list when trying to
     /// add
-    error CollateralAlreadyInPriority(address collateralType);
+    error MarginCollateralAlreadyInPriority(address collateralType);
     /// @notice Thrown when a given trade is below the protocol configured min trade size in usd.
     error TradeSizeTooSmall();
 

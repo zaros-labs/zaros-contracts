@@ -35,7 +35,7 @@ contract ConfigureCollateralLiquidationPriority_Unit_Test is Base_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.CollateralAlreadyInPriority.selector, collateralType)
+            revertData: abi.encodeWithSelector(Errors.MarginCollateralAlreadyInPriority.selector, collateralType)
         });
 
         perpsEngine.exposed_configureCollateralLiquidationPriority(collateralTypes);

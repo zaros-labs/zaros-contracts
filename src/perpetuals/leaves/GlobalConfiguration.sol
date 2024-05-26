@@ -86,7 +86,7 @@ library GlobalConfiguration {
             }
 
             if (self.collateralLiquidationPriority.contains(collateralTypes[i])) {
-                revert Errors.CollateralAlreadyInPriority(collateralTypes[i]);
+                revert Errors.MarginCollateralAlreadyInPriority(collateralTypes[i]);
             }
 
             self.collateralLiquidationPriority.add(collateralTypes[i]);
