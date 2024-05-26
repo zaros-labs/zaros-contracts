@@ -18,6 +18,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 contract LiquidationBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
@@ -89,8 +91,10 @@ contract LiquidationBranch {
         SD59x18 oldPositionSizeX18;
         SD59x18 liquidationSizeX18;
         UD60x18 markPriceX18;
-        SD59x18 fundingRateUsdX18;
-        SD59x18 fundingFeePerUnitUsdX18;
+        SD59x18 fundingRateX18;
+        SD59x18 fundingFeePerUnitX18;
+        UD60x18 newOpenInterestX18;
+        SD59x18 newSkewX18;
     }
 
     /// @param accountsIds The list of accounts to liquidate
@@ -151,18 +155,21 @@ contract LiquidationBranch {
 
                 ctx.markPriceX18 = perpMarket.getMarkPrice(ctx.liquidationSizeX18, perpMarket.getIndexPrice());
 
-                ctx.fundingRateUsdX18 = perpMarket.getCurrentFundingRate();
-                ctx.fundingFeePerUnitUsdX18 =
-                    perpMarket.getNextFundingFeePerUnit(ctx.fundingRateUsdX18, ctx.markPriceX18);
+                ctx.fundingRateX18 = perpMarket.getCurrentFundingRate();
+                ctx.fundingFeePerUnitX18 = perpMarket.getNextFundingFeePerUnit(ctx.fundingRateX18, ctx.markPriceX18);
 
-                perpMarket.updateFunding(ctx.fundingRateUsdX18, ctx.fundingFeePerUnitUsdX18);
+                perpMarket.updateFunding(ctx.fundingRateX18, ctx.fundingFeePerUnitX18);
                 position.clear();
                 tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
 
-                (UD60x18 newOpenInterest, SD59x18 newSkew) = perpMarket.checkOpenInterestLimits(
-                    -ctx.oldPositionSizeX18, ctx.oldPositionSizeX18, sd59x18(position.size)
+                (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
+                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, sd59x18(position.size)
                 );
-                perpMarket.updateOpenInterest(newOpenInterest, newSkew);
+
+                console.log("from liquidation branch");
+                console.log(ctx.newSkewX18.lt(sd59x18(0)));
+                console.log(ctx.newOpenInterestX18.intoUint256(), ctx.newSkewX18.abs().intoUD60x18().intoUint256());
+                perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
             }
 
             emit LogLiquidateAccount(

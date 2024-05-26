@@ -776,6 +776,14 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ctx.secondFillPriceX18 =
             perpsEngine.getMarkPrice(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice, ctx.secondOrderSizeDelta);
 
+        skip(timeDelta);
+        ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
+        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
+            .exposed_getPendingFundingFeePerUnit(
+            ctx.fuzzMarketConfig.marketId, sd59x18(ctx.expectedLastFundingRate), ctx.secondFillPriceX18
+        ).intoInt256();
+        ctx.expectedLastFundingTime = block.timestamp;
+
         // second market order
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -784,14 +792,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
                 sizeDelta: ctx.secondOrderSizeDelta
             })
         );
-
-        skip(timeDelta);
-        ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
-        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
-            .exposed_getPendingFundingFeePerUnit(
-            ctx.fuzzMarketConfig.marketId, sd59x18(ctx.expectedLastFundingRate), ctx.secondFillPriceX18
-        ).intoInt256();
-        ctx.expectedLastFundingTime = block.timestamp;
 
         ctx.secondMockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.newIndexPrice);
 
@@ -1114,7 +1114,6 @@ contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
         ).intoInt256();
         ctx.expectedLastFundingTime = block.timestamp;
 
-        console.log("before second market order: ");
         // second market order
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
