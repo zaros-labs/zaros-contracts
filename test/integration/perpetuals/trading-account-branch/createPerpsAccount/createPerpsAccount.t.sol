@@ -3,12 +3,12 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 
-contract CreateTradingAccount_Integration_Test is Base_Integration_Shared_Test {
+contract CreateTradingAccount_Integration_Test is Base_Test {
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
     }
 
     function test_RevertGiven_TheTradingAccountTokenIsNotSet() external {

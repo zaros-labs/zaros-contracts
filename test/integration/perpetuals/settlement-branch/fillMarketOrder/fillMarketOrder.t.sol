@@ -12,7 +12,7 @@ import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.so
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
 import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
@@ -24,9 +24,9 @@ import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 import { console } from "forge-std/console.sol";
 
-contract FillMarketOrder_Integration_Test is Base_Integration_Shared_Test {
+contract FillMarketOrder_Integration_Test is Base_Test {
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();

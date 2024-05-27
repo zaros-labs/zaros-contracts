@@ -3,12 +3,12 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 
-contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Integration_Shared_Test {
+contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Test {
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();
@@ -26,8 +26,13 @@ contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Integra
         perpsEngine.configureCollateralLiquidationPriority(emptyArray);
     }
 
-    function testFuzz_GivenAddressArrayIsNotEmpty(address[] memory collateralTypes) external {
-        vm.assume(collateralTypes.length > 0);
+    function test_GivenAddressArrayIsNotEmpty() external {
+        address collateralType1 = address(123);
+        address collateralType2 = address(456);
+        address[] memory collateralTypes = new address[](2);
+
+        collateralTypes[0] = collateralType1;
+        collateralTypes[1] = collateralType2;
 
         changePrank({ msgSender: users.owner });
 

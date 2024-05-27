@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
 
 // PRB Math dependencies
@@ -15,11 +15,11 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract GetMarkPrice_Integration_Test is Base_Integration_Shared_Test {
+contract GetMarkPrice_Integration_Test is Base_Test {
     using SafeCast for uint256;
 
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();

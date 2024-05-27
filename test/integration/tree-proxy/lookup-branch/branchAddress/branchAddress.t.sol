@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { getBranchUpgrades } from "script/helpers/TreeProxyHelpers.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
@@ -10,13 +10,13 @@ import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { LookupBranch } from "@zaros/tree-proxy/branches/LookupBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
 
-contract BranchAddress_Integration_Test is Base_Integration_Shared_Test {
+contract BranchAddress_Integration_Test is Base_Test {
     IPerpsEngine testPerpsEngine;
     address[] branches = new address[](2);
     bytes4[][] selectors = new bytes4[][](2);
 
     function setUp() public override {
-        Base_Integration_Shared_Test.setUp();
+        Base_Test.setUp();
 
         // Deploy test contract with two branches and selectors
 

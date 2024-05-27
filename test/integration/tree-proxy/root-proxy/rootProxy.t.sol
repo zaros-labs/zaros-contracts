@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Base_Integration_Shared_Test } from "test/integration/shared/BaseIntegration.t.sol";
+import { Base_Test } from "test/Base.t.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { getBranchUpgrades } from "script/helpers/TreeProxyHelpers.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
@@ -25,7 +25,7 @@ contract TestContract is RootProxy {
     receive() external payable { }
 }
 
-contract RootProxy_Integration_Test is Base_Integration_Shared_Test {
+contract RootProxy_Integration_Test is Base_Test {
     function test_WhenInitializeContract() external {
         // Deploy test contract
         TestContract testContract;

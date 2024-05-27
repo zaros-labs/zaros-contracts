@@ -69,9 +69,9 @@ library GlobalConfiguration {
     /// @param self The global configuration storage pointer.
     /// @param marketId The id of the market to add.
     function removeMarket(Data storage self, uint128 marketId) internal {
-        bool added = self.enabledMarketsIds.remove(uint256(marketId));
+        bool removed = self.enabledMarketsIds.remove(uint256(marketId));
 
-        if (!added) {
+        if (!removed) {
             revert Errors.PerpMarketAlreadyDisabled(marketId);
         }
     }
@@ -81,6 +81,14 @@ library GlobalConfiguration {
     /// @param collateralTypes The array of collateral type addresses.
     function configureCollateralLiquidationPriority(Data storage self, address[] memory collateralTypes) internal {
         for (uint256 i = 0; i < collateralTypes.length; i++) {
+            if (collateralTypes[i] == address(0)) {
+                revert Errors.ZeroInput("collateralType");
+            }
+
+            if (self.collateralLiquidationPriority.contains(collateralTypes[i])) {
+                revert Errors.MarginCollateralAlreadyInPriority(collateralTypes[i]);
+            }
+
             self.collateralLiquidationPriority.add(collateralTypes[i]);
         }
     }
