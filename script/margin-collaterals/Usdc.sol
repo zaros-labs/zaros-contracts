@@ -8,7 +8,7 @@ abstract contract Usdc {
     uint120 internal constant USDC_LOAN_TO_VALUE = 1e18;
     uint256 internal constant USDC_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
-    address internal constant USDC_ADDRESS = address(0xC2D2a5FB0Dfb3473239C4147BdB6519159FBCE78);
-    address internal constant USDC_PRICE_FEED = address(0xd9433D0E5b5Ae4593ba3880c25046BBC4dC4926C);
+    address internal constant USDC_ADDRESS = address(0x788B06A2faDe5B7b61f9719bd4cF14DFF1426eF0);
+    address internal constant USDC_PRICE_FEED = address(0x0153002d20B96532C639313c2d54c3dA09109309);
     uint256 internal constant USDC_LIQUIDATION_PRIORITY = 1;
 }

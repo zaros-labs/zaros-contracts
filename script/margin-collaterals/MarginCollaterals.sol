@@ -2,10 +2,10 @@
 pragma solidity 0.8.25;
 
 // Margin Collaterals
-import { Usdc } from "script/marginCollaterals/Usdc.sol";
-import { Usdz } from "script/marginCollaterals/Usdz.sol";
-import { WeEth } from "script/marginCollaterals/WeEth.sol";
-import { WstEth } from "script/marginCollaterals/WstEth.sol";
+import { Usdc } from "script/margin-collaterals/Usdc.sol";
+import { Usdz } from "script/margin-collaterals/Usdz.sol";
+import { WeEth } from "script/margin-collaterals/WeEth.sol";
+import { WstEth } from "script/margin-collaterals/WstEth.sol";
 
 contract MarginCollaterals is Usdc, Usdz, WeEth, WstEth {
     struct MarginCollateral {

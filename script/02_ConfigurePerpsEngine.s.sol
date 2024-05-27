@@ -104,5 +104,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
                 filteredMarginCollateralsConfig[i].priceFeed
             );
         }
+
+        perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
     }
 }

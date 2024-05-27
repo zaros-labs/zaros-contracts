@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { Markets } from "script/markets/Markets.sol";
-import { MarginCollaterals } from "script/marginCollaterals/MarginCollaterals.sol";
+import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
