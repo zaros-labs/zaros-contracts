@@ -26,7 +26,7 @@ contract MarketOrderKeeper_CheckCallback_Integration_Test is Base_Test {
         assertEq(upkeedNeeded, true, "upkeedNeeded should be true");
 
         // it should return performData
-        assertEq(signedReportReceived, signedReport, "signedReport");
-        assertEq(extraDataReceived, extraData, "extraData");
+        assertEq(signedReportReceived, signedReport, "signedReport is not correct");
+        assertEq(extraDataReceived, extraData, "extraData is not correct");
     }
 }
