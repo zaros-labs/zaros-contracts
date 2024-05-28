@@ -10,6 +10,9 @@ library Constants {
     uint32 internal constant MAX_MIN_DELEGATE_TIME = 30 days;
     /// @notice Default period for the proportional funding rate calculations.
     uint256 internal constant PROPORTIONAL_FUNDING_PERIOD = 1 days;
+    bytes32 internal constant CREATE_CUSTOM_ORDER_TYPEHASH = keccak256(
+        "CreateCustomOrder(uint128 tradingAccountId,uint128 marketId,uint128 settlementConfigurationId,int128 sizeDelta,uint256 targetPrice)"
+    );
 
     /// @notice Feature flags for all permissionless features.
     bytes32 internal constant CREATE_ACCOUNT_FEATURE_FLAG = "createAccount";

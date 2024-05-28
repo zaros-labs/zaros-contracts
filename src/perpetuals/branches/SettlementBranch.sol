@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { CustomOrder } from "../leaves/CustomOrder.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
 import { TradingAccount } from "../leaves/TradingAccount.sol";
 import { FeeRecipients } from "../leaves/FeeRecipients.sol";
@@ -14,15 +15,19 @@ import { Position } from "../leaves/Position.sol";
 import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
-import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+
+// Open Zeppelin Upgradeable dependencies
+import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
-contract SettlementBranch {
+contract SettlementBranch is EIP712Upgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarketOrder for MarketOrder.Data;
@@ -64,6 +69,10 @@ contract SettlementBranch {
         _;
     }
 
+    function initialize() external initializer {
+        __EIP712_init("Zaros Perpetuals DEX: Settlement", "1");
+    }
+
     /// @param tradingAccountId The trading account id.
     /// @param marketId The perp market id.
     /// @param priceData The price data of market order.
@@ -88,54 +97,62 @@ contract SettlementBranch {
         marketOrder.clear();
     }
 
-    struct SettlementPayload {
-        uint128 tradingAccountId;
-        int128 sizeDelta;
+    struct FillCustomOrders_Context {
+        CustomOrder.Data customOrder;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+        bytes32 structHash;
+        bytes32 hash;
+        address signer;
     }
 
     /// @param marketId The perp market id.
-    /// @param settlementConfigurationId The perp market settlement configuration id.
-    /// @param settlementFeeRecipient The settlement fee recipient.
-    /// @param payloads The list of settlement payloads.
+    /// @param settlementConfigurationId The perp market settlement configuration id being used.
+    /// @param customOrders The array of signed custom orders.
     /// @param priceData The price data of custom orders.
-    /// @param callback The callback address.
     function fillCustomOrders(
         uint128 marketId,
         uint128 settlementConfigurationId,
-        address settlementFeeRecipient,
-        SettlementPayload[] calldata payloads,
-        bytes calldata priceData,
-        address callback
+        CustomOrder.Data[] calldata customOrders,
+        bytes calldata priceData
     )
         external
         onlyCustomOrderKeeper(marketId, settlementConfigurationId)
     {
-        // // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
-        // // position's
-        // // validations and updates.
-        // for (uint256 i = 0; i < payloads.length; i++) {
-        //     SettlementPayload memory payload = payloads[i];
+        FillCustomOrders_Context memory ctx;
 
-        //     _fillOrder(marketId, settlementConfigurationId, payload, priceData);
-        // }
+        for (uint256 i = 0; i < customOrders.length; i++) {
+            ctx.customOrder = customOrders[i];
+            TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.customOrder.tradingAccountId);
 
-        // _paySettlementFees({
-        //     settlementFeeRecipient: settlementFeeRecipient,
-        //     marketId: marketId,
-        //     settlementConfigurationId: settlementConfigurationId,
-        //     amountOfSettledTrades: payloads.length
-        // });
+            (ctx.v, ctx.r, ctx.s) = abi.decode(ctx.customOrder.signature, (uint8, bytes32, bytes32));
+            ctx.structHash = keccak256(
+                abi.encode(
+                    Constants.CREATE_CUSTOM_ORDER_TYPEHASH,
+                    ctx.customOrder.tradingAccountId,
+                    marketId,
+                    settlementConfigurationId,
+                    ctx.customOrder.sizeDelta,
+                    ctx.customOrder.targetPrice
+                )
+            );
 
-        // if (callback != address(0)) {
-        //     ISettlementStrategy(callback).callback(payloads);
-        // }
+            ctx.hash = _hashTypedDataV4(ctx.structHash);
+            ctx.signer = ECDSA.recover(ctx.hash, ctx.v, ctx.r, ctx.s);
 
-        // address ocoOrderSettlementStrategy = SettlementConfiguration.load(
-        //     marketId, SettlementConfiguration.OCO_ORDER_CONFIGURATION_ID
-        // ).settlementStrategy;
-        // if (ocoOrderSettlementStrategy != address(0) && ocoOrderSettlementStrategy != msg.sender) {
-        //     ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
-        // }
+            if (ctx.signer != tradingAccount.owner) {
+                revert Errors.InvalidCustomOrderSignature(ctx.signer, tradingAccount.owner);
+            }
+
+            _fillOrder(
+                ctx.customOrder.tradingAccountId,
+                marketId,
+                settlementConfigurationId,
+                ctx.customOrder.sizeDelta,
+                priceData
+            );
+        }
     }
 
     struct FillOrderContext {

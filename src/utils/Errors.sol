@@ -94,6 +94,8 @@ library Errors {
 
     /// @notice Thrown when the caller is not the registered Keeper contract.
     error OnlyKeeper(address sender, address keeper);
+    /// @notice Thrown when the provided ECDSA signature of a custom order is invalid.
+    error InvalidCustomOrderSignature(address signer, address expectedSigner);
 
     /// @notice PerpsEngine.PerpMarketBranch errors.
 
