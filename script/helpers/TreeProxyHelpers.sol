@@ -23,6 +23,9 @@ import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarnes
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 
+// Open Zeppelin Upgradeable dependencies
+import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
@@ -157,10 +160,11 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.getUserReferralData.selector;
     }
 
-    bytes4[] memory settlementBranchSelectors = new bytes4[](2);
+    bytes4[] memory settlementBranchSelectors = new bytes4[](3);
 
-    settlementBranchSelectors[0] = SettlementBranch.fillMarketOrder.selector;
-    settlementBranchSelectors[1] = SettlementBranch.fillCustomOrders.selector;
+    settlementBranchSelectors[0] = EIP712Upgradeable.eip712Domain.selector;
+    settlementBranchSelectors[1] = SettlementBranch.fillMarketOrder.selector;
+    settlementBranchSelectors[2] = SettlementBranch.fillCustomOrders.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = lookupBranchSelectors;
@@ -195,7 +199,7 @@ function getBranchUpgrades(
 }
 
 function getInitializables(address[] memory branches) pure returns (address[] memory) {
-    address[] memory initializables = new address[](2);
+    address[] memory initializables = new address[](3);
 
     address upgradeBranch = branches[0];
     address globalConfigurationBranch = branches[2];
@@ -216,14 +220,12 @@ function getInitializePayloads(
     pure
     returns (bytes[] memory)
 {
-    bytes[] memory initializePayloads = new bytes[](3);
-
     bytes memory upgradeBranchInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
     bytes memory globalConfigurationBranchInitializeData =
         abi.encodeWithSelector(GlobalConfigurationBranch.initialize.selector, tradingAccountToken, usdToken);
     bytes memory settlementBranchInitializeData = abi.encodeWithSelector(SettlementBranch.initialize.selector);
 
-    initializePayloads = new bytes[](2);
+    bytes[] memory initializePayloads = new bytes[](3);
 
     initializePayloads[0] = upgradeBranchInitializeData;
     initializePayloads[1] = globalConfigurationBranchInitializeData;
