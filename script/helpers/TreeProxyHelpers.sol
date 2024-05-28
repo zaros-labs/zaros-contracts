@@ -199,9 +199,11 @@ function getInitializables(address[] memory branches) pure returns (address[] me
 
     address upgradeBranch = branches[0];
     address globalConfigurationBranch = branches[2];
+    address settlementBranch = branches[7];
 
     initializables[0] = upgradeBranch;
     initializables[1] = globalConfigurationBranch;
+    initializables[2] = settlementBranch;
 
     return initializables;
 }
@@ -214,16 +216,18 @@ function getInitializePayloads(
     pure
     returns (bytes[] memory)
 {
-    bytes[] memory initializePayloads = new bytes[](2);
+    bytes[] memory initializePayloads = new bytes[](3);
 
-    bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
-    bytes memory perpsEngineInitializeData =
+    bytes memory upgradeBranchInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
+    bytes memory globalConfigurationBranchInitializeData =
         abi.encodeWithSelector(GlobalConfigurationBranch.initialize.selector, tradingAccountToken, usdToken);
+    bytes memory settlementBranchInitializeData = abi.encodeWithSelector(SettlementBranch.initialize.selector);
 
     initializePayloads = new bytes[](2);
 
-    initializePayloads[0] = rootUpgradeInitializeData;
-    initializePayloads[1] = perpsEngineInitializeData;
+    initializePayloads[0] = upgradeBranchInitializeData;
+    initializePayloads[1] = globalConfigurationBranchInitializeData;
+    initializePayloads[2] = settlementBranchInitializeData;
 
     return initializePayloads;
 }
