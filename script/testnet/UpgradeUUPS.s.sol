@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
-import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
+import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "../Base.s.sol";
 
 // Open Zeppelin dependencies

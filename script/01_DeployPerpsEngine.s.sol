@@ -8,7 +8,7 @@ import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
-import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
+import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 import {

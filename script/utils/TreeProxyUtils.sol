@@ -11,8 +11,8 @@ import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
-import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
-import { TradingAccountBranchTestnet } from "@zaros/testnet/branches/TradingAccountBranchTestnet.sol";
+import { GlobalConfigurationBranchTestnet } from "testnet/branches/GlobalConfigurationBranchTestnet.sol";
+import { TradingAccountBranchTestnet } from "testnet/branches/TradingAccountBranchTestnet.sol";
 import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";

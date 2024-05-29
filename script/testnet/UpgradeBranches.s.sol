@@ -5,9 +5,9 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
-import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
-import { TradingAccountBranchTestnet } from "@zaros/testnet/branches/TradingAccountBranchTestnet.sol";
-import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
+import { GlobalConfigurationBranchTestnet } from "testnet/branches/GlobalConfigurationBranchTestnet.sol";
+import { TradingAccountBranchTestnet } from "testnet/branches/TradingAccountBranchTestnet.sol";
+import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";

@@ -3,7 +3,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
+import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
 import { TradingAccount } from "../leaves/TradingAccount.sol";
