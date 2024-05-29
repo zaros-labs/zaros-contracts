@@ -117,7 +117,8 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out the repo"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v3"
+        uses: actions/setup-python@v5
         with:
           submodules: "recursive"
 
@@ -138,7 +139,7 @@ jobs:
         run: "pnpm install"
 
       - name: "Install slither"
-        run: "pnpm add slither-analyzer"
+        run: "pip install slither-analyzer"
 
       - name: "Run the slither analyzer"
         run: "make slither"
