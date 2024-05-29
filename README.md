@@ -12,12 +12,14 @@
   - [Roles](#roles)
   - [Known Issues](#known-issues)
 
-
 # About
 
-Zaros is a Perpetuals DEX powered by Boosted (Re)Staking Vaults. Whether you're a seasoned trader or new to the world of cryptocurrencies, Zaros is here to maximize your trading potential and enhance your yields on Arbitrum (and soon on Monad).
+Zaros is a Perpetuals DEX powered by Boosted (Re)Staking Vaults. Whether you're a seasoned trader or new to the world of
+cryptocurrencies, Zaros is here to maximize your trading potential and enhance your yields on Arbitrum (and soon on Monad).
 
-Zaros connects Liquid Re(Staking) Tokens (LSTs & LRTs) with Perpetual Futures, offering opportunities to amplify your yield through our innovative ZLP Vaults. With the ability to trade with leverage of up to 100x, our platform empowers you to take control of your investments like never before.
+Zaros connects Liquid Re(Staking) Tokens (LSTs & LRTs) with Perpetual Futures, offering opportunities to amplify your yield
+through our innovative ZLP Vaults. With the ability to trade with leverage of up to 100x, our platform empowers you to take
+control of your investments like never before.
 
 Zaros Gitbook: https://docs.zaros.fi/overview
 
@@ -25,9 +27,13 @@ Zaros Gitbook: https://docs.zaros.fi/overview
 
 ## Zaros Protocol's novel Architecture - Tree Proxy Pattern
 
-Tree Proxy Pattern is our novel modular, and opinionated proxy pattern solution designed to address the complexity and often confusing terminology that programmers encounter in large smart contract system patterns, such as the EIP-2535 Diamond Standard. This pattern is still in a preliminary version.
+Tree Proxy Pattern is our novel modular, and opinionated proxy pattern solution designed to address the complexity and often
+confusing terminology that programmers encounter in large smart contract system patterns, such as the EIP-2535 Diamond
+Standard. This pattern is still in a preliminary version.
 
-We've observed that terms like “diamond” for a proxy contract and “facet” for an implementation can create barriers to understanding and efficiency. Our approach simplifies this by leveraging the familiar concept of a tree, widely recognized and understood within the development community from basic Data Structures to more advanced topics.
+We've observed that terms like “diamond” for a proxy contract and “facet” for an implementation can create barriers to
+understanding and efficiency. Our approach simplifies this by leveraging the familiar concept of a tree, widely recognized
+and understood within the development community from basic Data Structures to more advanced topics.
 
 Documentation: https://docs.zaros.fi/overview/getting-started/tree-proxy-pattern
 
@@ -38,8 +44,9 @@ Documentation: https://docs.zaros.fi/overview/getting-started/tree-proxy-pattern
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
   - You'll know you did it right if you can run `git --version` and you see a response like `git version x.x.x`
 - [foundry](https://getfoundry.sh/)
-  - You'll know you did it right if you can run `forge --version` and you see a response like `forge 0.2.0 (816e00b 2023-03-16T00:05:26.396218Z)`
-<!-- Additional requirements here -->
+  - You'll know you did it right if you can run `forge --version` and you see a response like
+  `forge 0.2.0 (816e00b 2023-03-16T00:05:26.396218Z)`
+  <!-- Additional requirements here -->
 
 ## Installation
 
@@ -67,9 +74,11 @@ forge test --report debug
 
 - Commit Hash: XXX
 - Files in scope:
+
 ```
 make scope
 ```
+
 - Solc Version: 0.8.25
 - Chain(s) to deploy to:
   - Arbitrum Sepolia
