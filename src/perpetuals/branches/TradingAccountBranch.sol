@@ -240,7 +240,7 @@ contract TradingAccountBranch {
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
-            bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(tradingAccountId), data[i][4:]);
+            bytes memory dataWithAccountId = bytes.concat(data[i][0:4], abi.encode(tradingAccountId), data[i][4:]);
             (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
 
             if (!success) {

@@ -44,7 +44,7 @@ contract PerpMarketBranch {
 
     /// @notice Returns the current market skew.
     /// @param marketId The perps market id.
-    function getSkew(uint128 marketId) public view returns (SD59x18) {
+    function getSkew(uint128 marketId) external view returns (SD59x18) {
         return sd59x18(PerpMarket.load(marketId).skew);
     }
 

@@ -74,7 +74,7 @@ contract MarketOrderKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeep
     }
 
     function getConfig()
-        public
+        external
         view
         returns (address keeperOwner, address forwarder, address perpsEngine, uint128 marketId)
     {
