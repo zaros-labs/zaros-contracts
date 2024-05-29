@@ -1,8 +1,7 @@
 # Zaros
 
-
-- [Name](#name)
 - [About](#about)
+- [Tree Proxy Pattern](#tree-proxy-pattern)
 - [Getting Started](#getting-started)
   - [Requirements](#requirements)
   - [Installation](#installation)
@@ -21,6 +20,16 @@ Zaros is a Perpetuals DEX powered by Boosted (Re)Staking Vaults. Whether you're 
 Zaros connects Liquid Re(Staking) Tokens (LSTs & LRTs) with Perpetual Futures, offering opportunities to amplify your yield through our innovative ZLP Vaults. With the ability to trade with leverage of up to 100x, our platform empowers you to take control of your investments like never before.
 
 Zaros Gitbook: https://docs.zaros.fi/overview
+
+# Tree Proxy Pattern
+
+## Zaros Protocol's novel Architecture - Tree Proxy Pattern
+
+Tree Proxy Pattern is our novel modular, and opinionated proxy pattern solution designed to address the complexity and often confusing terminology that programmers encounter in large smart contract system patterns, such as the EIP-2535 Diamond Standard. This pattern is still in a preliminary version.
+
+We've observed that terms like “diamond” for a proxy contract and “facet” for an implementation can create barriers to understanding and efficiency. Our approach simplifies this by leveraging the familiar concept of a tree, widely recognized and understood within the development community from basic Data Structures to more advanced topics.
+
+Documentation: https://docs.zaros.fi/overview/getting-started/tree-proxy-pattern
 
 # Getting Started
 
