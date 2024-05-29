@@ -168,6 +168,17 @@ jobs:
       - name: "Install the Node.js dependencies"
         run: "pnpm install"
 
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+
+      - name: "Install Aderyn"
+        run: "cargo install aderyn"
+
       - name: "Run the aderyn analyzer"
         run: "make aderyn"
 
