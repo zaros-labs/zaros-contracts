@@ -68,7 +68,6 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                 data: abi.encode(marketOrderConfigurationData)
             });
 
-            // TODO: configure custom orders and set the API's keeper
             SettlementConfiguration.Data[] memory customOrdersConfigurations;
 
             perpsEngine.createPerpMarket({
