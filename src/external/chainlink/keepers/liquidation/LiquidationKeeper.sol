@@ -48,7 +48,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     }
 
     function getConfig()
-        public
+        external
         view
         returns (address keeperOwner, address perpsEngine, address liquidationFeeRecipient)
     {

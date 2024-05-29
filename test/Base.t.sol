@@ -44,8 +44,8 @@ import {
     getInitializables,
     getInitializePayloads,
     deployHarnesses
-} from "script/helpers/TreeProxyHelpers.sol";
-import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
+} from "script/utils/TreeProxyUtils.sol";
+import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
 // Open Zeppelin dependencies
 import { ERC20, IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -247,8 +247,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function configureLiquidationKeepers() internal {
         changePrank({ msgSender: users.owner });
-        liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
+        liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
+            users.owner, address(perpsEngine), users.settlementFeeRecipient
+        );
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);
@@ -540,8 +541,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function setAccountsAsLiquidatable(MarketConfig memory fuzzMarketConfig, bool isLong) internal {
-        // TODO: switch to maintenance margin rate only
-        uint256 priceShiftBps = fuzzMarketConfig.imr;
+        uint256 priceShiftBps = ud60x18(fuzzMarketConfig.mmr).mul(ud60x18(1.2e18)).intoUint256();
         uint256 newIndexPrice = isLong
             ? ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).sub(ud60x18(priceShiftBps))).intoUint256()
             : ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).add(ud60x18(priceShiftBps))).intoUint256();

@@ -27,7 +27,7 @@ interface IAutomationRegistrar {
     function registerUpkeep(RegistrationParams calldata requestParams) external returns (uint256);
 }
 
-library AutomationHelpers {
+library ChainlinkAutomationUtils {
     uint32 internal constant GAS_LIMIT = 5_000_000;
     uint8 internal constant CONDITIONAL_TRIGGER_TYPE = 0;
     uint8 internal constant LOG_TRIGGER_TYPE = 1;

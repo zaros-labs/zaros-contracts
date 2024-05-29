@@ -11,8 +11,8 @@ import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
-import { GlobalConfigurationBranchTestnet } from "@zaros/testnet/branches/GlobalConfigurationBranchTestnet.sol";
-import { TradingAccountBranchTestnet } from "@zaros/testnet/branches/TradingAccountBranchTestnet.sol";
+import { GlobalConfigurationBranchTestnet } from "testnet/branches/GlobalConfigurationBranchTestnet.sol";
+import { TradingAccountBranchTestnet } from "testnet/branches/TradingAccountBranchTestnet.sol";
 import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";
@@ -157,10 +157,9 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.getUserReferralData.selector;
     }
 
-    bytes4[] memory settlementBranchSelectors = new bytes4[](2);
+    bytes4[] memory settlementBranchSelectors = new bytes4[](1);
 
     settlementBranchSelectors[0] = SettlementBranch.fillMarketOrder.selector;
-    settlementBranchSelectors[1] = SettlementBranch.fillCustomOrders.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = lookupBranchSelectors;
@@ -182,7 +181,7 @@ function getBranchUpgrades(
     pure
     returns (RootProxy.BranchUpgrade[] memory)
 {
-    require(branches.length == branchesSelectors.length, "TreeProxyHelpers: branchesSelectors length mismatch");
+    require(branches.length == branchesSelectors.length, "TreeProxyUtils: branchesSelectors length mismatch");
     RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](branches.length);
 
     for (uint256 i = 0; i < branches.length; i++) {

@@ -3,7 +3,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
+import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketOrder } from "../leaves/MarketOrder.sol";
 import { TradingAccount } from "../leaves/TradingAccount.sol";
@@ -91,51 +91,6 @@ contract SettlementBranch {
     struct SettlementPayload {
         uint128 tradingAccountId;
         int128 sizeDelta;
-    }
-
-    /// @param marketId The perp market id.
-    /// @param settlementConfigurationId The perp market settlement configuration id.
-    /// @param settlementFeeRecipient The settlement fee recipient.
-    /// @param payloads The list of settlement payloads.
-    /// @param priceData The price data of custom orders.
-    /// @param callback The callback address.
-    function fillCustomOrders(
-        uint128 marketId,
-        uint128 settlementConfigurationId,
-        address settlementFeeRecipient,
-        SettlementPayload[] calldata payloads,
-        bytes calldata priceData,
-        address callback
-    )
-        external
-        onlyCustomOrderKeeper(marketId, settlementConfigurationId)
-    {
-        // // TODO: optimize this. We should be able to use the same market id and reports, and just loop on the
-        // // position's
-        // // validations and updates.
-        // for (uint256 i = 0; i < payloads.length; i++) {
-        //     SettlementPayload memory payload = payloads[i];
-
-        //     _fillOrder(marketId, settlementConfigurationId, payload, priceData);
-        // }
-
-        // _paySettlementFees({
-        //     settlementFeeRecipient: settlementFeeRecipient,
-        //     marketId: marketId,
-        //     settlementConfigurationId: settlementConfigurationId,
-        //     amountOfSettledTrades: payloads.length
-        // });
-
-        // if (callback != address(0)) {
-        //     ISettlementStrategy(callback).callback(payloads);
-        // }
-
-        // address ocoOrderSettlementStrategy = SettlementConfiguration.load(
-        //     marketId, SettlementConfiguration.OCO_ORDER_CONFIGURATION_ID
-        // ).settlementStrategy;
-        // if (ocoOrderSettlementStrategy != address(0) && ocoOrderSettlementStrategy != msg.sender) {
-        //     ISettlementStrategy(ocoOrderSettlementStrategy).callback(payloads);
-        // }
     }
 
     struct FillOrderContext {
