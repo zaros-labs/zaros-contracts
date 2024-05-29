@@ -24,7 +24,7 @@ import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 import { console } from "forge-std/console.sol";
 
-contract FillMarketOrder_Integration_Test is Base_Test {
+contract FillCustomOrder_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner });
