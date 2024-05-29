@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
-import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
+import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
@@ -33,7 +33,7 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
 
         address liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
 
         // it should revert
         vm.expectRevert({
@@ -51,7 +51,7 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
 
         address liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
 
         address newSettlementFeeRecipient = address(0x456);
 
@@ -77,7 +77,7 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
 
         address liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
 
         address perpsEngine = address(0);
 
@@ -96,7 +96,7 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
 
         address liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
 
         address newSettlementFeeRecipient = address(0);
 

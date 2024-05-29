@@ -181,7 +181,7 @@ function getBranchUpgrades(
     pure
     returns (RootProxy.BranchUpgrade[] memory)
 {
-    require(branches.length == branchesSelectors.length, "TreeProxyHelpers: branchesSelectors length mismatch");
+    require(branches.length == branchesSelectors.length, "TreeProxyUtils: branchesSelectors length mismatch");
     RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](branches.length);
 
     for (uint256 i = 0; i < branches.length; i++) {

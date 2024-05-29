@@ -7,7 +7,7 @@ import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { LimitedMintingERC20 } from "@zaros/testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
-import { AutomationHelpers } from "./helpers/AutomationHelpers.sol";
+import { ChainlinkAutomationUtils } from "./utils/ChainlinkAutomationUtils.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 
 // Forge dependencies
@@ -59,7 +59,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         configureMarginCollaterals(marginCollateralIdsRange);
 
-        // AutomationHelpers.registerLiquidationKeeper({
+        // ChainlinkAutomationUtils.registerLiquidationKeeper({
         //     name: PERPS_LIQUIDATION_KEEPER_NAME,
         //     liquidationKeeper: liquidationKeeper,
         //     link: link,
@@ -69,7 +69,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         // });
 
         address liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS);
+            ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS);
         console.log("Liquidation Keeper: ", liquidationKeeper);
 
         address[] memory liquidators = new address[](1);

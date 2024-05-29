@@ -44,8 +44,8 @@ import {
     getInitializables,
     getInitializePayloads,
     deployHarnesses
-} from "script/helpers/TreeProxyHelpers.sol";
-import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
+} from "script/utils/TreeProxyUtils.sol";
+import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
 // Open Zeppelin dependencies
 import { ERC20, IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -248,7 +248,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function configureLiquidationKeepers() internal {
         changePrank({ msgSender: users.owner });
         liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);

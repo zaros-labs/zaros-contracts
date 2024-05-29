@@ -17,7 +17,7 @@ import {
     getBranchUpgrades,
     getInitializables,
     getInitializePayloads
-} from "./helpers/TreeProxyHelpers.sol";
+} from "./utils/TreeProxyUtils.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";

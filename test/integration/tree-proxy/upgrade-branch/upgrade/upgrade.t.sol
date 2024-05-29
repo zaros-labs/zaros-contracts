@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
-import { getBranchUpgrades } from "script/helpers/TreeProxyHelpers.sol";
+import { getBranchUpgrades } from "script/utils/TreeProxyUtils.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";

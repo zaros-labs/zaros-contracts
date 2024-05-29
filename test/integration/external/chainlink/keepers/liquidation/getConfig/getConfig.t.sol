@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
-import { AutomationHelpers } from "script/helpers/AutomationHelpers.sol";
+import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
 contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
     function setUp() public override {
@@ -24,7 +24,7 @@ contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
 
     function test_WhenCallGetConfigFunction() external givenInitializeContract {
         address liquidationKeeper =
-            AutomationHelpers.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine), users.settlementFeeRecipient);
 
         (address keeperOwner, address perpsEngineOfLiquidationKeeper, address liquidationFeeRecipient) =
             LiquidationKeeper(liquidationKeeper).getConfig();
