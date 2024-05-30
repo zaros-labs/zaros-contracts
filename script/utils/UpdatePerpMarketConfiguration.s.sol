@@ -5,17 +5,9 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { BaseScript } from "script/Base.s.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
-
-// Open Zeppelin dependencies
-import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
-import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
-
-// Forge dependencies
-import { console } from "forge-std/console.sol";
 
 contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
@@ -54,5 +46,3 @@ contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
         perpsEngine.updatePerpMarketConfiguration(params);
     }
 }
-
-
