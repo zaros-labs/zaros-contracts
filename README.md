@@ -82,9 +82,7 @@ make scope
 
 - Solc Version: 0.8.25
 - Chain(s) to deploy to:
-  - Arbitrum Sepolia
-- ERC20 Token Compatibilities:
-  - None
+  - Arbitrum
 
 ## Roles
 
