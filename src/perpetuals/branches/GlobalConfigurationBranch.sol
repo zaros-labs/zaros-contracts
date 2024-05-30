@@ -144,7 +144,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @notice Sets the address of the account token NFT contract.
     /// @param tradingAccountToken The account token address.
-    function setTradingAccountToken(address tradingAccountToken) external {
+    function setTradingAccountToken(address tradingAccountToken) external onlyOwner {
         if (tradingAccountToken == address(0)) {
             revert Errors.TradingAccountTokenNotDefined();
         }

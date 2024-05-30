@@ -7,7 +7,6 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IAggregatorV3 } from "./interfaces/IAggregatorV3.sol";
 import { IFeeManager, FeeAsset } from "./interfaces/IFeeManager.sol";
-import { BasicReport, PremiumReport } from "./interfaces/IStreamsLookupCompatible.sol";
 import { IVerifierProxy } from "./interfaces/IVerifierProxy.sol";
 
 // Open Zeppelin dependencies
@@ -39,41 +38,6 @@ library ChainlinkUtil {
     /// @notice Decodes the signedReport object and returns the report data only.
     function getReportData(bytes memory signedReport) internal pure returns (bytes memory reportData) {
         (, reportData) = abi.decode(signedReport, (bytes32[3], bytes));
-    }
-
-    /// @notice Converts the provided report price to UD60x18.
-    /// @dev Reports' prices at the current Data Streams version have 8 decimals.
-    /// @param reportData The raw report data byte array.
-    /// @param decimals The report price's decimals.
-    /// @return reportPrice The converted price to UD60x18.
-    function getReportPriceUd60x18(
-        bytes memory reportData,
-        uint8 decimals
-    )
-        internal
-        pure
-        returns (UD60x18 reportPrice)
-    {
-        PremiumReport memory report = abi.decode(reportData, (PremiumReport));
-        reportPrice = ChainlinkUtil.convertReportPriceToUd60x18(report.price, decimals);
-    }
-
-    /// @notice Converts the provided report price to UD60x18.
-    /// @dev Reports' prices at the current Data Streams version have 8 decimals.
-    /// @param price The price to convert.
-    /// @param decimals The report price's decimals.
-    /// @return priceUd60x18 The converted price to UD60x18.
-    function convertReportPriceToUd60x18(int192 price, uint8 decimals) internal pure returns (UD60x18) {
-        if (Constants.SYSTEM_DECIMALS == decimals) {
-            return ud60x18(reportPriceToUint256(price));
-        }
-        return ud60x18(reportPriceToUint256(price) * 10 ** (Constants.SYSTEM_DECIMALS - decimals));
-    }
-
-    /// @notice Convert the provided int192 report price to uint256.
-    /// @param price The price to convert.
-    function reportPriceToUint256(int192 price) internal pure returns (uint256) {
-        return int256(price).toUint256();
     }
 
     function getEthVericationFee(

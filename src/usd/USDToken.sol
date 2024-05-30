@@ -18,9 +18,9 @@ contract USDToken is ERC20Permit, Ownable {
         _mint(to, amount);
     }
 
-    function burn(address from, uint256 amount) external {
+    function burn(uint256 amount) external {
         _requireAmountNotZero(amount);
-        _burn(from, amount);
+        _burn(msg.sender, amount);
     }
 
     function _requireAmountNotZero(uint256 amount) private pure {

@@ -95,9 +95,9 @@ make scope
 
 ## Known Issues
 
-- Centralization vectors, we're aware that the multi-sig responsible by configuring protocol parameters has admin
+- Centralization vectors: we're aware that the multi-sig responsible by configuring protocol parameters has admin
   permissions. This will be improved as the Zaros DAO decentralizes and implements onchain voting.
-- Gas volatility risks. In rare scenarios of extreme gas spikes on the Arbitrum network, filling market orders and
-  liquidating accounts could temporarily turn unprofitable for keepers. This may be mitigated by emergency pausing the
-  markets if happens for a prolonged period, or through additional financing from the DAO.
+- Gas volatility risk: In rare scenarios of extreme gas spikes on the Arbitrum network, filling market orders and liquidating
+  accounts could temporarily turn unprofitable for keepers. This may be mitigated by emergency pausing the markets if happens
+  for a prolonged period, or through additional financing from the DAO.
 - Function selectors of all branches must be explicitly set in order to be callable at the `RootProxy`.
