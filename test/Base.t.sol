@@ -223,7 +223,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         // TODO: Temporary, switch to liquidity engine
-        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(perpsEngine));
+        usdToken.transferOwnership(address(perpsEngine));
 
         perpsEngine.configureMarginCollateral(
             address(usdToken),

@@ -29,17 +29,6 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals {
     /// @notice The default decimals value used in the protocol.
     uint8 internal constant SYSTEM_DECIMALS = Constants.SYSTEM_DECIMALS;
 
-    /// @notice Feature flags for all permissionless features.
-    bytes32 internal constant CREATE_ACCOUNT_FEATURE_FLAG = Constants.CREATE_ACCOUNT_FEATURE_FLAG;
-    bytes32 internal constant DEPOSIT_FEATURE_FLAG = Constants.DEPOSIT_FEATURE_FLAG;
-    bytes32 internal constant WITHDRAW_FEATURE_FLAG = Constants.WITHDRAW_FEATURE_FLAG;
-    bytes32 internal constant CLAIM_FEATURE_FLAG = Constants.CLAIM_FEATURE_FLAG;
-    bytes32 internal constant DELEGATE_FEATURE_FLAG = Constants.DELEGATE_FEATURE_FLAG;
-
-    /// @notice Zaros USD permissioned features.
-    bytes32 internal constant BURN_FEATURE_FLAG = Constants.BURN_FEATURE_FLAG;
-    bytes32 internal constant MINT_FEATURE_FLAG = Constants.MINT_FEATURE_FLAG;
-
     /// @notice Chainlink Automation keepers configuration parameters.
     string internal constant PERPS_LIQUIDATION_KEEPER_NAME = "Perps Liquidation Keeper";
 
