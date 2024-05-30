@@ -142,16 +142,16 @@ library TradingAccount {
         view
         returns (SD59x18 equityUsdX18)
     {
-        for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
-            (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
-            MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
-                MarginCollateralConfiguration.load(collateralType);
-            UD60x18 balanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18));
+        // for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
+        //     (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
+        //     MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+        //         MarginCollateralConfiguration.load(collateralType);
+        //     UD60x18 balanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18));
 
-            equityUsdX18 = equityUsdX18.add(balanceUsdX18.intoSD59x18());
-        }
+        //     equityUsdX18 = equityUsdX18.add(balanceUsdX18.intoSD59x18());
+        // }
 
-        equityUsdX18 = equityUsdX18.add(activePositionsUnrealizedPnlUsdX18);
+        // equityUsdX18 = equityUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
     /// @notice Returns the margin balance of the account in usd.

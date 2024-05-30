@@ -89,7 +89,9 @@ contract TradingAccountBranch {
     /// @return equityUsdX18 The USD denominated total margin collateral value.
     function getAccountEquityUsd(uint128 tradingAccountId) external view returns (SD59x18) {
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
-        SD59x18 activePositionsUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
+        // TradingAccount.Data storage tradingAccount = TradingAccount.load(tradingAccountId);
+        // SD59x18 activePositionsUnrealizedPnlUsdX18 = tradingAccount.getAccountUnrealizedPnlUsd();
+        SD59x18 activePositionsUnrealizedPnlUsdX18 = SD_ZERO;
 
         return tradingAccount.getEquityUsd(activePositionsUnrealizedPnlUsdX18);
     }
