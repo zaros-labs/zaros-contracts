@@ -204,7 +204,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         onlyOwner
     {
         try ERC20(collateralType).decimals() returns (uint8 decimals) {
-            if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0)) {
+            if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0) || decimals == 0) {
                 revert Errors.InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
             }
             MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceFeed);
