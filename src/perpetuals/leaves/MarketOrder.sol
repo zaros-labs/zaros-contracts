@@ -13,6 +13,9 @@ library MarketOrder {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.perpetuals.MarketOrder")) - 1)) & ~bytes32(uint256(0xff));
 
     /// @notice {MarketOrder} namespace storage structure.
+    /// @param marketId The market id of the active market order.
+    /// @param sizeDelta The size delta of the active market order.
+    /// @param timestamp The timestamp of the market order creation.
     struct Data {
         uint128 marketId;
         int128 sizeDelta;

@@ -96,6 +96,10 @@ library SettlementConfiguration {
         }
     }
 
+    /// @notice Updates the settlement configuration of a given market.
+    /// @param marketId The market id.
+    /// @param settlementConfigurationId The settlement configuration id.
+    /// @param settlementConfiguration The new settlement configuration.
     function update(
         uint128 marketId,
         uint128 settlementConfigurationId,
@@ -149,6 +153,7 @@ library SettlementConfiguration {
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param priceData The unverified price report data.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
+    /// @return price The offchain price.
     function verifyOffchainPrice(
         Data storage self,
         bytes memory priceData,
@@ -170,6 +175,10 @@ library SettlementConfiguration {
         }
     }
 
+    /// @notice Verifies a signed report from Chainlink Data Streams.
+    /// @param dataStreamsStrategy The data streams strategy.
+    /// @param signedReport The signed report.
+    /// @return verifiedReportData The verified report data.
     function verifyDataStreamsReport(
         DataStreamsStrategy memory dataStreamsStrategy,
         bytes memory signedReport

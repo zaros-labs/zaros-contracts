@@ -12,7 +12,7 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
     }
 
     function test_RevertGiven_TheTradingAccountTokenIsNotSet() external {
-        bytes32 slot = bytes32(uint256(GLOBAL_CONFIGURATION_SLOT) + uint256(6));
+        bytes32 slot = bytes32(uint256(GLOBAL_CONFIGURATION_LOCATION) + uint256(6));
         vm.store(address(perpsEngine), slot, bytes32(uint256(0)));
 
         // it should revert

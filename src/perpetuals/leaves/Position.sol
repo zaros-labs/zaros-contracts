@@ -38,6 +38,9 @@ library Position {
         SD59x18 unrealizedPnlUsdX18;
     }
 
+    /// @notice Loads a {Position}.
+    /// @param tradingAccountId The trading account id.
+    /// @param marketId The market id.
     function load(uint128 tradingAccountId, uint128 marketId) internal pure returns (Data storage position) {
         bytes32 slot = keccak256(abi.encode(POSITION_LOCATION, tradingAccountId, marketId));
 
@@ -46,7 +49,7 @@ library Position {
         }
     }
 
-    /// @dev Returns the position's current state.
+    /// @notice Returns the position's current state.
     /// @param self The position storage pointer.
     /// @param initialMarginRateX18 The market's current initial margin rate.
     /// @param maintenanceMarginRateX18 The market's current maintenance margin rate.
@@ -73,7 +76,7 @@ library Position {
         state.unrealizedPnlUsdX18 = getUnrealizedPnl(self, price);
     }
 
-    /// @dev Updates the current position with the new one.
+    /// @notice Updates the current position with the new one.
     /// @param self The position storage pointer.
     /// @param newPosition The new position to be placed.
     function update(Data storage self, Data memory newPosition) internal {
@@ -82,7 +85,7 @@ library Position {
         self.lastInteractionFundingFeePerUnit = newPosition.lastInteractionFundingFeePerUnit;
     }
 
-    /// @dev Clears the position data, used when a position is fully closed or liquidated.
+    /// @notice Clears the position data, used when a position is fully closed or liquidated.
     /// @param self The position storage pointer.
     function clear(Data storage self) internal {
         self.size = 0;
@@ -90,7 +93,7 @@ library Position {
         self.lastInteractionFundingFeePerUnit = 0;
     }
 
-    /// @dev Returns the accrued funding fee and the net funding fee per unit applied.
+    /// @notice Returns the accrued funding fee and the net funding fee per unit applied.
     /// @param self The position storage pointer.
     /// @param fundingFeePerUnit The market's current funding fee per unit.
     /// @return accruedFundingUsdX18 The accrued funding fee, positive or negative.
@@ -106,6 +109,12 @@ library Position {
         accruedFundingUsdX18 = sd59x18(self.size).mul(netFundingFeePerUnit);
     }
 
+    /// @notice Returns the initial and maintenance margin requirements of the position.
+    /// @param notionalValueX18 The notional value of the position.
+    /// @param initialMarginRateX18 The market's current initial margin rate.
+    /// @param maintenanceMarginRateX18 The market's current maintenance margin rate.
+    /// @return initialMarginUsdX18 The usd value of the initial margin allocated by the account.
+    /// @return maintenanceMarginUsdX18 The usd value of the maintenance margin allocated by the account.
     function getMarginRequirement(
         UD60x18 notionalValueX18,
         UD60x18 initialMarginRateX18,
@@ -119,7 +128,7 @@ library Position {
         maintenanceMarginUsdX18 = notionalValueX18.mul(maintenanceMarginRateX18);
     }
 
-    /// @dev Returns the current unrealized profit or loss of the position.
+    /// @notice Returns the current unrealized profit or loss of the position.
     /// @param self The position storage pointer.
     /// @param price The market's current reference price.
     /// @return unrealizedPnlUsdX18 The current unrealized profit or loss of the position.
@@ -128,7 +137,7 @@ library Position {
         unrealizedPnlUsdX18 = sd59x18(self.size).mul(priceShift);
     }
 
-    /// @dev Returns the notional value of the position.
+    /// @notice Returns the notional value of the position.
     /// @param self The position storage pointer.
     /// @param price The market's current reference price.
     function getNotionalValue(Data storage self, UD60x18 price) internal view returns (UD60x18) {

@@ -36,7 +36,15 @@ library PerpMarket {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.perpetuals.PerpMarket")) - 1)) & ~bytes32(uint256(0xff));
 
     /// @notice {PerpMarket} namespace storage structure.
-    /// @param priceAdapter The price adapter contract, which stores onchain and outputs the market's index price.
+    /// @param id The perp market id.
+    /// @param skew The perp market's current skew.
+    /// @param openInterest The perp market's current open interest.
+    /// @param nextStrategyId The perp market's next settlement strategy id.
+    /// @param initialized Whether the perp market is initialized or not.
+    /// @param lastFundingRate The perp market's last funding rate value.
+    /// @param lastFundingFeePerUnit The perp market's last funding fee per unit value.
+    /// @param lastFundingTime The perp market's last funding timestamp.
+    /// @param configuration The perp market's configuration data.
     struct Data {
         uint128 id;
         int128 skew;
@@ -49,6 +57,8 @@ library PerpMarket {
         MarketConfiguration.Data configuration;
     }
 
+    /// @notice Loads a {PerpMarket}.
+    /// @param marketId The perp market id.
     function load(uint128 marketId) internal pure returns (Data storage perpMarket) {
         bytes32 slot = keccak256(abi.encode(PERP_MARKET_LOCATION, marketId));
         assembly {
@@ -56,6 +66,8 @@ library PerpMarket {
         }
     }
 
+    /// @notice Returns the PerpMarket index price based on the price adapter.
+    /// @param self The PerpMarket storage pointer.
     function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
         address priceAdapter = self.configuration.priceAdapter;
         if (priceAdapter == address(0)) {
@@ -72,6 +84,9 @@ library PerpMarket {
     /// @dev Liquidity providers of the ZLP Vaults are automatically market making for prices ranging the bid/ask
     /// spread provided by
     /// the offchain oracle with the added spread based on the skew and the configured skew scale.
+    /// @param self The PerpMarket storage pointer.
+    /// @param skewDelta The skew delta to apply to the mark price calculation.
+    /// @param indexPriceX18 The index price of the market.
     function getMarkPrice(
         Data storage self,
         SD59x18 skewDelta,
@@ -98,12 +113,16 @@ library PerpMarket {
         return markPrice;
     }
 
+    /// @notice Returns the current funding rate of the given market.
+    /// @param self The PerpMarket storage pointer.
     function getCurrentFundingRate(Data storage self) internal view returns (SD59x18) {
         return sd59x18(self.lastFundingRate).add(
             getCurrentFundingVelocity(self).mul(getProportionalElapsedSinceLastFunding(self).intoSD59x18())
         );
     }
 
+    /// @notice Returns the current funding velocity of the given market.
+    /// @param self The PerpMarket storage pointer.
     function getCurrentFundingVelocity(Data storage self) internal view returns (SD59x18) {
         SD59x18 maxFundingVelocity = sd59x18(uint256(self.configuration.maxFundingVelocity).toInt256());
         SD59x18 skewScale = sd59x18(uint256(self.configuration.skewScale).toInt256());
@@ -120,7 +139,11 @@ library PerpMarket {
         return proportionalSkewBounded.mul(maxFundingVelocity);
     }
 
+    /// @notice Returns the maker or taker order fee in USD.
     /// @dev When the skew is zero, taker fee will be charged.
+    /// @param self The PerpMarket storage pointer.
+    /// @param sizeDelta The size delta of the order.
+    /// @param markPriceX18 The mark price of the market.
     function getOrderFeeUsd(
         Data storage self,
         SD59x18 sizeDelta,
@@ -145,22 +168,30 @@ library PerpMarket {
         return markPriceX18.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);
     }
 
+    /// @notice Returns the next funding fee per unit value.
+    /// @param self The PerpMarket storage pointer.
+    /// @param fundingRate The market's current funding rate.
+    /// @param markPriceX18 The market's current mark price.
     function getNextFundingFeePerUnit(
         Data storage self,
         SD59x18 fundingRate,
-        UD60x18 price
+        UD60x18 markPriceX18
     )
         internal
         view
         returns (SD59x18)
     {
-        return sd59x18(self.lastFundingFeePerUnit).add(getPendingFundingFeePerUnit(self, fundingRate, price));
+        return sd59x18(self.lastFundingFeePerUnit).add(getPendingFundingFeePerUnit(self, fundingRate, markPriceX18));
     }
 
+    /// @notice Returns the pending funding fee per unit value to accumulate.
+    /// @param self The PerpMarket storage pointer.
+    /// @param fundingRate The market's current funding rate.
+    /// @param markPriceX18 The market's current mark price.
     function getPendingFundingFeePerUnit(
         Data storage self,
         SD59x18 fundingRate,
-        UD60x18 price
+        UD60x18 markPriceX18
     )
         internal
         view
@@ -168,15 +199,28 @@ library PerpMarket {
     {
         SD59x18 avgFundingRate = unary(sd59x18(self.lastFundingRate).add(fundingRate)).div(sd59x18Convert(2));
 
-        return avgFundingRate.mul(getProportionalElapsedSinceLastFunding(self).intoSD59x18()).mul(price.intoSD59x18());
+        return avgFundingRate.mul(getProportionalElapsedSinceLastFunding(self).intoSD59x18()).mul(
+            markPriceX18.intoSD59x18()
+        );
     }
 
+    /// @notice Returns the proportional elapsed time since the last funding.
+    /// @param self The PerpMarket storage pointer.
     function getProportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(
             ud60x18Convert(Constants.PROPORTIONAL_FUNDING_PERIOD)
         );
     }
 
+    /// @notice Verifies the market's open interest and skew limits based on the next state.
+    /// @dev During liquidation we skip the max skew check, so the engine can always liquidate unhealthy accounts.
+    /// @dev If the case outlined above happens and the maxSkew is crossed, the market will only allow orders that
+    /// reduce the skew.
+    /// @param self The PerpMarket storage pointer.
+    /// @param sizeDelta The size delta of the order.
+    /// @param oldPositionSize The old position size.
+    /// @param newPositionSize The new position size.
+    /// @param shouldCheckMaxSkew Whether to check the max skew limit.
     function checkOpenInterestLimits(
         Data storage self,
         SD59x18 sizeDelta,
@@ -210,23 +254,48 @@ library PerpMarket {
         }
     }
 
+    /// @notice Verifies if the trade size is greater than the minimum trade size.
+    /// @param self The PerpMarket storage pointer.
+    /// @param sizeDeltaX18 The size delta of the order.
     function checkTradeSize(Data storage self, SD59x18 sizeDeltaX18) internal view {
         if (sizeDeltaX18.abs().intoUD60x18().lt(ud60x18(self.configuration.minTradeSizeX18))) {
             revert Errors.TradeSizeTooSmall();
         }
     }
 
+    /// @notice Updates the market's funding values.
+    /// @param self The PerpMarket storage pointer.
+    /// @param fundingRate The market's current funding rate.
+    /// @param fundingFeePerUnit The market's current funding fee per unit.
     function updateFunding(Data storage self, SD59x18 fundingRate, SD59x18 fundingFeePerUnit) internal {
         self.lastFundingRate = fundingRate.intoInt256();
         self.lastFundingFeePerUnit = fundingFeePerUnit.intoInt256();
         self.lastFundingTime = block.timestamp;
     }
 
+    /// @notice Updates the market's open interest and skew values.
+    /// @param self The PerpMarket storage pointer.
+    /// @param newOpenInterest The new open interest value.
+    /// @param newSkew The new skew value.
     function updateOpenInterest(Data storage self, UD60x18 newOpenInterest, SD59x18 newSkew) internal {
         self.skew = newSkew.intoInt256().toInt128();
         self.openInterest = newOpenInterest.intoUint128();
     }
 
+    /// @param marketId The perp market id.
+    /// @param name The perp market name.
+    /// @param symbol The perp market symbol.
+    /// @param priceAdapter The price oracle contract address.
+    /// @param initialMarginRateX18 The initial margin rate in 1e18.
+    /// @param maintenanceMarginRateX18 The maintenance margin rate in 1e18.
+    /// @param maxOpenInterest The maximum open interest allowed.
+    /// @param maxSkew The maximum skew allowed.
+    /// @param maxFundingVelocity The maximum funding velocity allowed.
+    /// @param minTradeSizeX18 The minimum trade size in 1e18.
+    /// @param skewScale The skew scale, a configurable parameter that determines price marking and funding.
+    /// @param marketOrderConfiguration The market order configuration.
+    /// @param customOrdersConfiguration The custom orders configuration.
+    /// @param orderFees The configured maker and taker order fee tiers.
     struct CreateParams {
         uint128 marketId;
         string name;
@@ -244,6 +313,8 @@ library PerpMarket {
         OrderFees.Data orderFees;
     }
 
+    /// @notice Creates a new PerpMarket.
+    /// @dev See {CreateParams}.
     function create(CreateParams memory params) internal {
         Data storage self = load(params.marketId);
         if (self.id != 0) {

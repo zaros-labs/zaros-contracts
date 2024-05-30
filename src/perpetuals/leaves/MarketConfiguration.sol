@@ -6,6 +6,17 @@ import { OrderFees } from "./OrderFees.sol";
 
 library MarketConfiguration {
     /// @notice {MarketConfiguration} namespace storage structure.
+    /// @param name The perp market name.
+    /// @param symbol The perp market symbol.
+    /// @param priceAdapter The price oracle contract address.
+    /// @param initialMarginRateX18 The initial margin rate in 1e18.
+    /// @param maintenanceMarginRateX18 The maintenance margin rate in 1e18.
+    /// @param maxOpenInterest The maximum open interest allowed.
+    /// @param maxSkew The maximum skew allowed.
+    /// @param maxFundingVelocity The maximum funding velocity allowed.
+    /// @param minTradeSizeX18 The minimum trade size in 1e18.
+    /// @param skewScale The skew scale, a configurable parameter that determines price marking and funding.
+    /// @param orderFees The configured maker and taker order fee tiers.
     struct Data {
         string name;
         string symbol;
@@ -20,6 +31,8 @@ library MarketConfiguration {
         OrderFees.Data orderFees;
     }
 
+    /// @notice Updates the given market configuration.
+    /// @dev See {MarketConfiguration.Data} for parameter details.
     function update(
         Data storage self,
         string memory name,

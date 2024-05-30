@@ -34,8 +34,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
         keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
 
-        payable(address(perpsEngine)).transfer(0.03 ether);
-
         configureContracts(initialMarginCollateralId, finalMarginCollateralId);
     }
 
@@ -58,15 +56,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         marginCollateralIdsRange[1] = finalMarginCollateralId;
 
         configureMarginCollaterals(marginCollateralIdsRange);
-
-        // ChainlinkAutomationUtils.registerLiquidationKeeper({
-        //     name: PERPS_LIQUIDATION_KEEPER_NAME,
-        //     liquidationKeeper: liquidationKeeper,
-        //     link: link,
-        //     registrar: automationRegistrar,
-        //     adminAddress: MSIG_ADDRESS,
-        //     linkAmount: keeperInitialLinkFunding
-        // });
 
         address liquidationKeeper =
             ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS);
