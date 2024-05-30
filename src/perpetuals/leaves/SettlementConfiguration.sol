@@ -19,8 +19,10 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 library SettlementConfiguration {
     using SafeCast for int256;
 
-    /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
-    string internal constant SETTLEMENT_CONFIGURATION_DOMAIN = "fi.zaros.markets.PerpMarket.SettlementConfiguration";
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant SETTLEMENT_CONFIGURATION_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.perpetuals.SettlementConfiguration")) - 1)
+    ) & ~bytes32(uint256(0xff));
     /// @notice The default strategy id for a given market's onchain market orders settlementConfiguration.
     uint128 internal constant MARKET_ORDER_CONFIGURATION_ID = 0;
     /// @notice The default strategy id for a given market's offchain orders settlementConfiguration.
@@ -36,7 +38,7 @@ library SettlementConfiguration {
         DATA_STREAMS_OFFCHAIN
     }
 
-    /// @notice The {SettlementConfiguration} namespace storage structure.
+    /// @notice {SettlementConfiguration} namespace storage structure.
     /// @param strategy The strategy id active.
     /// @param isEnabled Whether the strategy is enabled or not. May be used to pause trading in a market.
     /// @param fee The settlement cost in USD charged from the trader.
@@ -75,7 +77,7 @@ library SettlementConfiguration {
         pure
         returns (Data storage settlementConfiguration)
     {
-        bytes32 slot = keccak256(abi.encode(SETTLEMENT_CONFIGURATION_DOMAIN, marketId, settlementConfigurationId));
+        bytes32 slot = keccak256(abi.encode(SETTLEMENT_CONFIGURATION_LOCATION, marketId, settlementConfigurationId));
         assembly {
             settlementConfiguration.slot := slot
         }
@@ -94,6 +96,10 @@ library SettlementConfiguration {
         }
     }
 
+    /// @notice Updates the settlement configuration of a given market.
+    /// @param marketId The market id.
+    /// @param settlementConfigurationId The settlement configuration id.
+    /// @param settlementConfiguration The new settlement configuration.
     function update(
         uint128 marketId,
         uint128 settlementConfigurationId,
@@ -147,6 +153,7 @@ library SettlementConfiguration {
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param priceData The unverified price report data.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
+    /// @return price The offchain price.
     function verifyOffchainPrice(
         Data storage self,
         bytes memory priceData,
@@ -168,6 +175,10 @@ library SettlementConfiguration {
         }
     }
 
+    /// @notice Verifies a signed report from Chainlink Data Streams.
+    /// @param dataStreamsStrategy The data streams strategy.
+    /// @param signedReport The signed report.
+    /// @return verifiedReportData The verified report data.
     function verifyDataStreamsReport(
         DataStreamsStrategy memory dataStreamsStrategy,
         bytes memory signedReport

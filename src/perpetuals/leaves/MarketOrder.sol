@@ -8,9 +8,14 @@ import { GlobalConfiguration } from "./GlobalConfiguration.sol";
 library MarketOrder {
     using GlobalConfiguration for GlobalConfiguration.Data;
 
-    /// @notice Constant base domain used to access a given MarketOrder's storage slot.
-    string internal constant MARKET_ORDER_DOMAIN = "fi.zaros.markets.perps.storage.MarketOrder";
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant MARKET_ORDER_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.perpetuals.MarketOrder")) - 1)) & ~bytes32(uint256(0xff));
 
+    /// @notice {MarketOrder} namespace storage structure.
+    /// @param marketId The market id of the active market order.
+    /// @param sizeDelta The size delta of the active market order.
+    /// @param timestamp The timestamp of the market order creation.
     struct Data {
         uint128 marketId;
         int128 sizeDelta;
@@ -18,7 +23,7 @@ library MarketOrder {
     }
 
     function load(uint128 tradingAccountId) internal pure returns (Data storage self) {
-        bytes32 slot = keccak256(abi.encode(MARKET_ORDER_DOMAIN, tradingAccountId));
+        bytes32 slot = keccak256(abi.encode(MARKET_ORDER_LOCATION, tradingAccountId));
 
         assembly {
             self.slot := slot
@@ -49,9 +54,9 @@ library MarketOrder {
 
     function checkPendingOrder(Data storage self) internal view {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        uint128 marketOrderMaxLifetime = globalConfiguration.marketOrderMaxLifetime;
+        uint128 marketOrderMinLifetime = globalConfiguration.marketOrderMinLifetime;
 
-        if (self.timestamp != 0 && block.timestamp - self.timestamp <= marketOrderMaxLifetime) {
+        if (self.timestamp != 0 && block.timestamp - self.timestamp <= marketOrderMinLifetime) {
             revert Errors.MarketOrderStillPending(self.timestamp);
         }
     }

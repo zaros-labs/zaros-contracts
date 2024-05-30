@@ -29,12 +29,20 @@ contract OrderBranch {
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
 
+    /// @notice Emitted when a market order is created.
+    /// @param sender The account that created the market order.
+    /// @param tradingAccountId The trading account id.
+    /// @param marketId The perp market id.
+    /// @param marketOrder The market order data.
     event LogCreateMarketOrder(
         address indexed sender,
         uint128 indexed tradingAccountId,
         uint128 indexed marketId,
         MarketOrder.Data marketOrder
     );
+    /// @notice Emitted when a market order is cancelled.
+    /// @param sender The account that cancelled the market order.
+    /// @param tradingAccountId The trading account id.
     event LogCancelMarketOrder(address indexed sender, uint128 indexed tradingAccountId);
 
     /// @param marketId The perp market id.
@@ -139,6 +147,9 @@ contract OrderBranch {
         return marketOrder;
     }
 
+    /// @param tradingAccountId The trading account id creating the market order
+    /// @param marketId The perp market id
+    /// @param sizeDelta The size delta of the order
     struct CreateMarketOrderParams {
         uint128 tradingAccountId;
         uint128 marketId;
@@ -152,6 +163,7 @@ contract OrderBranch {
         UD60x18 settlementFeeUsdX18;
     }
 
+    /// @notice Creates a market order for the given trading account and market ids.
     /// @dev See {CreateMarketOrderParams}.
     function createMarketOrder(CreateMarketOrderParams calldata params) external {
         TradingAccount.Data storage tradingAccount =

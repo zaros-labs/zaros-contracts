@@ -10,15 +10,4 @@ library Constants {
     uint32 internal constant MAX_MIN_DELEGATE_TIME = 30 days;
     /// @notice Default period for the proportional funding rate calculations.
     uint256 internal constant PROPORTIONAL_FUNDING_PERIOD = 1 days;
-
-    /// @notice Feature flags for all permissionless features.
-    bytes32 internal constant CREATE_ACCOUNT_FEATURE_FLAG = "createAccount";
-    bytes32 internal constant DEPOSIT_FEATURE_FLAG = "deposit";
-    bytes32 internal constant WITHDRAW_FEATURE_FLAG = "withdraw";
-    bytes32 internal constant CLAIM_FEATURE_FLAG = "claimRewards";
-    bytes32 internal constant DELEGATE_FEATURE_FLAG = "delegateCollateral";
-
-    /// @notice Zaros USD permissioned features.
-    bytes32 internal constant BURN_FEATURE_FLAG = "burn";
-    bytes32 internal constant MINT_FEATURE_FLAG = "mint";
 }

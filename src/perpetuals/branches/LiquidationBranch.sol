@@ -37,16 +37,6 @@ contract LiquidationBranch {
         uint128 liquidationFeeUsd
     );
 
-    modifier onlyRegisteredLiquidator() {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-
-        if (!globalConfiguration.isLiquidatorEnabled[msg.sender]) {
-            revert Errors.LiquidatorNotRegistered(msg.sender);
-        }
-
-        _;
-    }
-
     /// @param lowerBound The lower bound of the accounts to check
     /// @param upperBound The upper bound of the accounts to check
     function checkLiquidatableAccounts(
@@ -97,18 +87,17 @@ contract LiquidationBranch {
 
     /// @param accountsIds The list of accounts to liquidate
     /// @param liquidationFeeRecipient The address to receive the liquidation fee
-    function liquidateAccounts(
-        uint128[] calldata accountsIds,
-        address liquidationFeeRecipient
-    )
-        external
-        onlyRegisteredLiquidator
-    {
+    function liquidateAccounts(uint128[] calldata accountsIds, address liquidationFeeRecipient) external {
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+
+        if (!globalConfiguration.isLiquidatorEnabled[msg.sender]) {
+            revert Errors.LiquidatorNotRegistered(msg.sender);
+        }
+
         if (accountsIds.length == 0) return;
 
         LiquidationContext memory ctx;
 
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         ctx.liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
 
         for (uint256 i = 0; i < accountsIds.length; i++) {

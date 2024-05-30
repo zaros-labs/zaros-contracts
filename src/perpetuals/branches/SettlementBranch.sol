@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.25;
 
 // Zaros dependencies
@@ -46,36 +45,16 @@ contract SettlementBranch {
         int256 fundingFeePerUnit
     );
 
-    modifier onlyCustomOrderKeeper(uint128 marketId, uint128 settlementConfigurationId) {
-        SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementConfigurationId);
-        address keeper = settlementConfiguration.keeper;
-
-        _requireIsKeeper(msg.sender, keeper);
-        _;
-    }
-
-    modifier onlyMarketOrderKeeper(uint128 marketId) {
-        SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
-        address keeper = settlementConfiguration.keeper;
-
-        _requireIsKeeper(msg.sender, keeper);
-        _;
-    }
-
     /// @param tradingAccountId The trading account id.
     /// @param marketId The perp market id.
     /// @param priceData The price data of market order.
-    function fillMarketOrder(
-        uint128 tradingAccountId,
-        uint128 marketId,
-        bytes calldata priceData
-    )
-        external
-        onlyMarketOrderKeeper(marketId)
-    {
+    function fillMarketOrder(uint128 tradingAccountId, uint128 marketId, bytes calldata priceData) external {
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
+        address keeper = settlementConfiguration.keeper;
+
+        _requireIsKeeper(msg.sender, keeper);
 
         _fillOrder(
             tradingAccountId,
@@ -86,11 +65,6 @@ contract SettlementBranch {
         );
 
         marketOrder.clear();
-    }
-
-    struct SettlementPayload {
-        uint128 tradingAccountId;
-        int128 sizeDelta;
     }
 
     struct FillOrderContext {

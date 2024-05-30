@@ -300,7 +300,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: 1,
-            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
+            marketOrderMinLifetime: MARKET_ORDER_MAX_LIFETIME,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,

@@ -25,6 +25,4 @@ abstract contract IPerpsEngine is
 
 contract PerpsEngine is RootProxy {
     constructor(InitParams memory initParams) RootProxy(initParams) { }
-
-    receive() external payable { }
 }

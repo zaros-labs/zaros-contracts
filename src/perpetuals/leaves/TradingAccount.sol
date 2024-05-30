@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.25;
 
 // Zaros dependencies
@@ -33,8 +32,9 @@ library TradingAccount {
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    /// @notice Constant base domain used to access a given TradingAccount's storage slot.
-    string internal constant TRADING_ACCOUNT_DOMAIN = "fi.zaros.markets.TradingAccount";
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant TRADING_ACCOUNT_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.perpetuals.TradingAccount")) - 1)) & ~bytes32(uint256(0xff));
 
     /// @notice {TradingAccount} namespace storage structure.
     /// @param id The trading account id.
@@ -48,11 +48,11 @@ library TradingAccount {
         EnumerableSet.UintSet activeMarketsIds;
     }
 
-    /// @notice Loads a {TradingAccount} object.
+    /// @notice Loads a {TradingAccount}.
     /// @param tradingAccountId The trading account id.
     /// @return tradingAccount The loaded trading account storage pointer.
     function load(uint128 tradingAccountId) internal pure returns (Data storage tradingAccount) {
-        bytes32 slot = keccak256(abi.encode(TRADING_ACCOUNT_DOMAIN, tradingAccountId));
+        bytes32 slot = keccak256(abi.encode(TRADING_ACCOUNT_LOCATION, tradingAccountId));
         assembly {
             tradingAccount.slot := slot
         }
@@ -131,7 +131,7 @@ library TradingAccount {
         return ud60x18(marginCollateralBalanceX18);
     }
 
-    /// @notice Returns the notional value of all margin collateral in the account.
+    /// @notice Returns the equity usd value of all margin collateral in the account.
     /// @param self The trading account storage pointer.
     /// @return equityUsdX18 The total margin collateral value.
     function getEquityUsd(
@@ -154,6 +154,10 @@ library TradingAccount {
         equityUsdX18 = equityUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
+    /// @notice Returns the margin balance of the account in usd.
+    /// @dev The margin balance takes uPnL and each collateral type's LTV into account.
+    /// @param self The trading account storage pointer.
+    /// @param activePositionsUnrealizedPnlUsdX18 The total unrealized PnL of the account's active positions.
     function getMarginBalanceUsd(
         Data storage self,
         SD59x18 activePositionsUnrealizedPnlUsdX18
@@ -176,6 +180,13 @@ library TradingAccount {
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
+    /// @notice Returns the account's margin requirements and total unrealized PnL in USD.
+    /// @param self The trading account storage pointer.
+    /// @param targetMarketId The market id to simulate the margin requirements.
+    /// @param sizeDeltaX18 The size delta to simulate the margin requirements.
+    /// @return requiredInitialMarginUsdX18 The total initial margin required by the account.
+    /// @return requiredMaintenanceMarginUsdX18 The total maintenance margin required by the account.
+    /// @return accountTotalUnrealizedPnlUsdX18 The total unrealized PnL of the account.
     function getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
         Data storage self,
         uint128 targetMarketId,
@@ -246,6 +257,9 @@ library TradingAccount {
         }
     }
 
+    /// @notice Returns the account's unrealized PnL in USD.
+    /// @param self The trading account storage pointer.
+    /// @return totalUnrealizedPnlUsdX18 The total unrealized PnL of the account.
     function getAccountUnrealizedPnlUsd(Data storage self) internal view returns (SD59x18 totalUnrealizedPnlUsdX18) {
         for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
@@ -274,6 +288,9 @@ library TradingAccount {
         }
     }
 
+    /// @notice Checks if the account is liquidatable.
+    /// @param requiredMaintenanceMarginUsdX18 The required maintenance margin in USD.
+    /// @param marginBalanceUsdX18 The account's margin balance in USD.
     function isLiquidatable(
         UD60x18 requiredMaintenanceMarginUsdX18,
         SD59x18 marginBalanceUsdX18
@@ -285,6 +302,9 @@ library TradingAccount {
         return requiredMaintenanceMarginUsdX18.intoSD59x18().gt(marginBalanceUsdX18);
     }
 
+    /// @notice Checks if the account has an active position in the given market.
+    /// @param self The trading account storage pointer.
+    /// @param marketId The market id.
     function isMarketWithActivePosition(Data storage self, uint128 marketId) internal view returns (bool) {
         return self.activeMarketsIds.contains(marketId);
     }
@@ -325,6 +345,14 @@ library TradingAccount {
         }
     }
 
+    /// @notice Withdraws the given amount of margin collateral in USD from the trading account.
+    /// @param self The trading account storage pointer.
+    /// @param collateralType The address of the collateral type.
+    /// @param marginCollateralPriceUsdX18 The price of the margin collateral in USD.
+    /// @param amountUsdX18 The amount of margin collateral to be withdrawn in USD.
+    /// @param recipient The address of the recipient.
+    /// @return withdrawnMarginUsdX18 The amount of margin collateral withdrawn in USD.
+    /// @return isMissingMargin Whether the account is missing margin to meet all requirements or not.
     function withdrawMarginUsd(
         Data storage self,
         address collateralType,
@@ -368,6 +396,13 @@ library TradingAccount {
         UD60x18 pnlDeductedUsdX18;
     }
 
+    /// @notice Deducts the account's margin to pay for the settlement fee, order fee, and realize the pnl.
+    /// @param self The trading account storage pointer.
+    /// @param feeRecipients The fee recipients.
+    /// @param pnlUsdX18 The total unrealized PnL of the account.
+    /// @param settlementFeeUsdX18 The total settlement fee to be deducted from the account.
+    /// @param orderFeeUsdX18 The total order fee to be deducted from the account.
+    /// @return marginDeductedUsdX18 The total margin deducted from the account.
     function deductAccountMargin(
         Data storage self,
         FeeRecipients.Data memory feeRecipients,

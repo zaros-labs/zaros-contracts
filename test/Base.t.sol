@@ -223,7 +223,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         // TODO: Temporary, switch to liquidity engine
-        usdToken.addToFeatureFlagAllowlist(MINT_FEATURE_FLAG, address(perpsEngine));
+        usdToken.transferOwnership(address(perpsEngine));
 
         perpsEngine.configureMarginCollateral(
             address(usdToken),
@@ -265,7 +265,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function configureSystemParameters() internal {
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
-            marketOrderMaxLifetime: MARKET_ORDER_MAX_LIFETIME,
+            marketOrderMinLifetime: MARKET_ORDER_MAX_LIFETIME,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
