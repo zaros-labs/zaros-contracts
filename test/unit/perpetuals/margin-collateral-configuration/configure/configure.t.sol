@@ -6,7 +6,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 
-contract MarginCollateralConfiguration_Configure_Test {
+contract MarginCollateralConfiguration_Configure_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -15,12 +15,14 @@ contract MarginCollateralConfiguration_Configure_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_WhenConfigureIsCalled() external {
-        uint256 newDepositCap = 1000;
-        uint256 newLoanToValue = 100;
-        uint256 newDecimals = 8;
-        address newPriceFeed = address(0x123);
-
+    function testFuzz_WhenConfigureIsCalled(
+        uint128 newDepositCap,
+        uint120 newLoanToValue,
+        uint8 newDecimals,
+        address newPriceFeed
+    )
+        external
+    {
         perpsEngine.exposed_configure(address(usdToken), newDepositCap, newLoanToValue, newDecimals, newPriceFeed);
 
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
