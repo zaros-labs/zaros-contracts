@@ -8,6 +8,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { MockERC20WithNoDecimals } from "test/mocks/MockERC20WithNoDecimals.sol";
+import { MockERC20WithZeroDecimals } from "test/mocks/MockERC20WithZeroDecimals.sol";
 
 // OpenZeppelin Upgradeable dependencies
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -30,17 +31,29 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: users.owner });
 
-        MockERC20WithNoDecimals collateral =
+        MockERC20WithNoDecimals collateralWithNoDecimals =
             new MockERC20WithNoDecimals({ name: "Collateral", symbol: "COL", deployerBalance: 100_000_000e18 });
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.InvalidMarginCollateralConfiguration.selector, address(collateral), 0, priceFeed
+                Errors.InvalidMarginCollateralConfiguration.selector, address(collateralWithNoDecimals), 0, priceFeed
             )
         });
 
-        perpsEngine.configureMarginCollateral(address(collateral), depositCap, loanToValue, priceFeed);
+        perpsEngine.configureMarginCollateral(address(collateralWithNoDecimals), depositCap, loanToValue, priceFeed);
+
+        MockERC20WithZeroDecimals collateralWithZeroDecimals =
+            new MockERC20WithZeroDecimals({ name: "Collateral", symbol: "COL", deployerBalance: 100_000_000e18 });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InvalidMarginCollateralConfiguration.selector, address(collateralWithZeroDecimals), 0, priceFeed
+            )
+        });
+
+        perpsEngine.configureMarginCollateral(address(collateralWithZeroDecimals), depositCap, loanToValue, priceFeed);
     }
 
     modifier givenCollateralThatHasDecimals() {
