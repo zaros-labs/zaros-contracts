@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.25;
 
 // Zaros dependencies
@@ -64,12 +63,12 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Emitted when the global system parameters are configured.
     /// @param sender The address that configured the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
-    /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
+    /// @param marketOrderMinLifetime The minimum lifetime of a market order to be considered active.
     /// @param liquidationFeeUsdX18 The liquidation fee in USD.
     event LogConfigureSystemParameters(
         address indexed sender,
         uint128 maxPositionsPerAccount,
-        uint128 marketOrderMaxLifetime,
+        uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
     );
 
@@ -231,11 +230,11 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @notice Configures the system parameters.
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
-    /// @param marketOrderMaxLifetime The maximum lifetime of a market order to be considered active.
+    /// @param marketOrderMinLifetime The minimum lifetime of a market order to be considered active.
     /// @param liquidationFeeUsdX18 The liquidation fee in USD.
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
-        uint128 marketOrderMaxLifetime,
+        uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18,
         address marginCollateralRecipient,
         address orderFeeRecipient,
@@ -248,8 +247,8 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             revert Errors.ZeroInput("maxPositionsPerAccount");
         }
 
-        if (marketOrderMaxLifetime == 0) {
-            revert Errors.ZeroInput("marketOrderMaxLifetime");
+        if (marketOrderMinLifetime == 0) {
+            revert Errors.ZeroInput("marketOrderMinLifetime");
         }
 
         if (liquidationFeeUsdX18 == 0) {
@@ -271,14 +270,14 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         globalConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
-        globalConfiguration.marketOrderMaxLifetime = marketOrderMaxLifetime;
+        globalConfiguration.marketOrderMinLifetime = marketOrderMinLifetime;
         globalConfiguration.liquidationFeeUsdX18 = liquidationFeeUsdX18;
         globalConfiguration.marginCollateralRecipient = marginCollateralRecipient;
         globalConfiguration.orderFeeRecipient = orderFeeRecipient;
         globalConfiguration.settlementFeeRecipient = settlementFeeRecipient;
 
         emit LogConfigureSystemParameters(
-            msg.sender, maxPositionsPerAccount, marketOrderMaxLifetime, liquidationFeeUsdX18
+            msg.sender, maxPositionsPerAccount, marketOrderMinLifetime, liquidationFeeUsdX18
         );
     }
 

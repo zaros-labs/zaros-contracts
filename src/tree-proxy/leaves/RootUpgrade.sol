@@ -15,7 +15,9 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 library RootUpgrade {
     using EnumerableSet for *;
 
-    bytes32 internal constant ROOT_UPGRADE_STORAGE_POSITION = keccak256("fi.zaros.tree-proxy.RootUpgrade");
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant ROOT_UPGRADE_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.perpetuals.RootUpgrade")) - 1)) & ~bytes32(uint256(0xff));
 
     struct Data {
         EnumerableSet.AddressSet branches;
@@ -24,7 +26,7 @@ library RootUpgrade {
     }
 
     function load() internal pure returns (Data storage rootUpgrade) {
-        bytes32 position = ROOT_UPGRADE_STORAGE_POSITION;
+        bytes32 position = ROOT_UPGRADE_LOCATION;
 
         assembly {
             rootUpgrade.slot := position

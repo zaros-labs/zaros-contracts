@@ -1,5 +1,4 @@
 //SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.25;
 
 // PRB Math dependencies
@@ -8,10 +7,11 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @title The Position namespace.
 library Position {
-    /// @notice Constant base domain used to access a given Position's storage slot.
-    string internal constant POSITION_DOMAIN = "fi.zaros.markets.perps.storage.Position";
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant POSITION_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.perpetuals.Position")) - 1)) & ~bytes32(uint256(0xff));
 
-    /// @notice The {Position} namespace storage structure.
+    /// @notice {Position} namespace storage structure.
     /// @param size The position size in asset units, i.e amount of purchased contracts.
     /// @param lastInteractionPrice The last settlement reference price of this position.
     /// @param lastInteractionFundingFeePerUnit The last funding fee per unit applied to this position.
@@ -39,7 +39,7 @@ library Position {
     }
 
     function load(uint128 tradingAccountId, uint128 marketId) internal pure returns (Data storage position) {
-        bytes32 slot = keccak256(abi.encode(POSITION_DOMAIN, tradingAccountId, marketId));
+        bytes32 slot = keccak256(abi.encode(POSITION_LOCATION, tradingAccountId, marketId));
 
         assembly {
             position.slot := slot

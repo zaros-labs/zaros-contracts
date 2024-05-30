@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { OrderFees } from "./OrderFees.sol";
 
 library MarketConfiguration {
+    /// @notice {MarketConfiguration} namespace storage structure.
     struct Data {
         string name;
         string symbol;

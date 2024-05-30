@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.25;
 
 // Zaros dependencies
@@ -32,9 +31,11 @@ library PerpMarket {
     using SafeCast for int256;
     using MarketConfiguration for MarketConfiguration.Data;
 
-    /// @dev Constant base domain used to access a given PerpMarket's storage slot.
-    string internal constant PERPS_MARKET_DOMAIN = "fi.zaros.markets.PerpMarket";
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant PERP_MARKET_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.perpetuals.PerpMarket")) - 1)) & ~bytes32(uint256(0xff));
 
+    /// @notice {PerpMarket} namespace storage structure.
     /// @param priceAdapter The price adapter contract, which stores onchain and outputs the market's index price.
     struct Data {
         uint128 id;
@@ -49,7 +50,7 @@ library PerpMarket {
     }
 
     function load(uint128 marketId) internal pure returns (Data storage perpMarket) {
-        bytes32 slot = keccak256(abi.encode(PERPS_MARKET_DOMAIN, marketId));
+        bytes32 slot = keccak256(abi.encode(PERP_MARKET_LOCATION, marketId));
         assembly {
             perpMarket.slot := slot
         }

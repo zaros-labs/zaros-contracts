@@ -19,8 +19,10 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 library SettlementConfiguration {
     using SafeCast for int256;
 
-    /// @notice Constant base domain used to access a given SettlementConfiguration's storage slot.
-    string internal constant SETTLEMENT_CONFIGURATION_DOMAIN = "fi.zaros.markets.PerpMarket.SettlementConfiguration";
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant SETTLEMENT_CONFIGURATION_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.perpetuals.SettlementConfiguration")) - 1)
+    ) & ~bytes32(uint256(0xff));
     /// @notice The default strategy id for a given market's onchain market orders settlementConfiguration.
     uint128 internal constant MARKET_ORDER_CONFIGURATION_ID = 0;
     /// @notice The default strategy id for a given market's offchain orders settlementConfiguration.
@@ -36,7 +38,7 @@ library SettlementConfiguration {
         DATA_STREAMS_OFFCHAIN
     }
 
-    /// @notice The {SettlementConfiguration} namespace storage structure.
+    /// @notice {SettlementConfiguration} namespace storage structure.
     /// @param strategy The strategy id active.
     /// @param isEnabled Whether the strategy is enabled or not. May be used to pause trading in a market.
     /// @param fee The settlement cost in USD charged from the trader.
@@ -75,7 +77,7 @@ library SettlementConfiguration {
         pure
         returns (Data storage settlementConfiguration)
     {
-        bytes32 slot = keccak256(abi.encode(SETTLEMENT_CONFIGURATION_DOMAIN, marketId, settlementConfigurationId));
+        bytes32 slot = keccak256(abi.encode(SETTLEMENT_CONFIGURATION_LOCATION, marketId, settlementConfigurationId));
         assembly {
             settlementConfiguration.slot := slot
         }

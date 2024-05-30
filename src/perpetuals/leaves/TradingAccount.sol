@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.25;
 
 // Zaros dependencies
@@ -33,8 +32,9 @@ library TradingAccount {
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
-    /// @notice Constant base domain used to access a given TradingAccount's storage slot.
-    string internal constant TRADING_ACCOUNT_DOMAIN = "fi.zaros.markets.TradingAccount";
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant TRADING_ACCOUNT_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.perpetuals.TradingAccount")) - 1)) & ~bytes32(uint256(0xff));
 
     /// @notice {TradingAccount} namespace storage structure.
     /// @param id The trading account id.
@@ -48,11 +48,11 @@ library TradingAccount {
         EnumerableSet.UintSet activeMarketsIds;
     }
 
-    /// @notice Loads a {TradingAccount} object.
+    /// @notice Loads a {TradingAccount}.
     /// @param tradingAccountId The trading account id.
     /// @return tradingAccount The loaded trading account storage pointer.
     function load(uint128 tradingAccountId) internal pure returns (Data storage tradingAccount) {
-        bytes32 slot = keccak256(abi.encode(TRADING_ACCOUNT_DOMAIN, tradingAccountId));
+        bytes32 slot = keccak256(abi.encode(TRADING_ACCOUNT_LOCATION, tradingAccountId));
         assembly {
             tradingAccount.slot := slot
         }

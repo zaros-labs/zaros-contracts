@@ -19,7 +19,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_MaxPositionsPerAccountIsZero(
-        uint128 marketOrderMaxLifetime,
+        uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
     )
         external
@@ -30,7 +30,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters(
             0,
-            marketOrderMaxLifetime,
+            marketOrderMinLifetime,
             liquidationFeeUsdX18,
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
@@ -52,7 +52,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         vm.assume(maxPositionsPerAccount > 0);
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketOrderMaxLifetime") });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketOrderMinLifetime") });
 
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters(
@@ -71,14 +71,14 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
 
     function testFuzz_RevertWhen_LiquidationFeeIsZero(
         uint128 maxPositionsPerAccount,
-        uint128 marketOrderMaxLifetime
+        uint128 marketOrderMinLifetime
     )
         external
         whenMaxPositionsPerAccountIsNotZero
         whenMarketOrderMaxLifetimeIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
-        vm.assume(marketOrderMaxLifetime > 0);
+        vm.assume(marketOrderMinLifetime > 0);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeUsdX18") });
@@ -86,7 +86,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
-            marketOrderMaxLifetime,
+            marketOrderMinLifetime,
             0,
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
@@ -100,7 +100,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
 
     function testFuzz_RevertWhen_MarginCollateralRecipientIsZero(
         uint128 maxPositionsPerAccount,
-        uint128 marketOrderMaxLifetime,
+        uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
     )
         external
@@ -109,7 +109,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         whenLiquidationFeeIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
-        vm.assume(marketOrderMaxLifetime > 0);
+        vm.assume(marketOrderMinLifetime > 0);
         vm.assume(liquidationFeeUsdX18 > 0);
 
         // it should revert
@@ -118,7 +118,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
-            marketOrderMaxLifetime,
+            marketOrderMinLifetime,
             liquidationFeeUsdX18,
             address(0),
             feeRecipients.orderFeeRecipient,
@@ -132,7 +132,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
 
     function testFuzz_RevertWhen_OrderFeeRecipientIsZero(
         uint128 maxPositionsPerAccount,
-        uint128 marketOrderMaxLifetime,
+        uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
     )
         external
@@ -142,7 +142,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         whenMarginCollateralRecipientIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
-        vm.assume(marketOrderMaxLifetime > 0);
+        vm.assume(marketOrderMinLifetime > 0);
         vm.assume(liquidationFeeUsdX18 > 0);
 
         // it should revert
@@ -151,7 +151,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
-            marketOrderMaxLifetime,
+            marketOrderMinLifetime,
             liquidationFeeUsdX18,
             feeRecipients.marginCollateralRecipient,
             address(0),
@@ -165,7 +165,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
 
     function test_RevertWhen_SettlementFeeRecipientIsZero(
         uint128 maxPositionsPerAccount,
-        uint128 marketOrderMaxLifetime,
+        uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
     )
         external
@@ -176,7 +176,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         whenOrderFeeRecipientIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
-        vm.assume(marketOrderMaxLifetime > 0);
+        vm.assume(marketOrderMinLifetime > 0);
         vm.assume(liquidationFeeUsdX18 > 0);
 
         // it should revert
@@ -185,7 +185,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
-            marketOrderMaxLifetime,
+            marketOrderMinLifetime,
             liquidationFeeUsdX18,
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
@@ -195,7 +195,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
 
     function test_WhenSettlementFeeRecipientIsNotZero(
         uint128 maxPositionsPerAccount,
-        uint128 marketOrderMaxLifetime,
+        uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
     )
         external
@@ -206,19 +206,19 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         whenOrderFeeRecipientIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
-        vm.assume(marketOrderMaxLifetime > 0);
+        vm.assume(marketOrderMinLifetime > 0);
         vm.assume(liquidationFeeUsdX18 > 0);
 
         // it should emit {LogConfigureSystemParameters} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogConfigureSystemParameters(
-            users.owner, maxPositionsPerAccount, marketOrderMaxLifetime, liquidationFeeUsdX18
+            users.owner, maxPositionsPerAccount, marketOrderMinLifetime, liquidationFeeUsdX18
         );
 
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
-            marketOrderMaxLifetime,
+            marketOrderMinLifetime,
             liquidationFeeUsdX18,
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,

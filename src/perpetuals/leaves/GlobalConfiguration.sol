@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.25;
 
 // Zaros dependencies
@@ -14,14 +13,28 @@ library GlobalConfiguration {
     using EnumerableSet for *;
     using SafeCast for int256;
 
-    /// @dev GlobalConfiguration namespace storage slot.
-    bytes32 internal constant GLOBAL_CONFIGURATION_SLOT =
-        keccak256(abi.encode("fi.zaros.markets.GlobalConfiguration"));
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant GLOBAL_CONFIGURATION_LOCATION = keccak256(
+        abi.encode(uint256(keccak256("fi.zaros.perpetuals.GlobalConfiguration")) - 1)
+    ) & ~bytes32(uint256(0xff));
 
     /// @notice {GlobalConfiguration} namespace storage structure.
+    /// @param maxPositionsPerAccount The maximum amount of active positions a trading account may have.
+    /// @param marketOrderMinLifetime The minimum amount of time an active market order needs to be canceled.
+    /// @param liquidationFeeUsdX18 The liquidation fee charged in USD.
+    /// @param marginCollateralRecipient The address that receives deducted margin collateral.
+    /// @param orderFeeRecipient The address that receives order fees.
+    /// @param settlementFeeRecipient The address that receives settlement fees.
+    /// @param usdToken The address of the USD token (USDz).
+    /// @param tradingAccountToken The address of the trading account NFT.
+    /// @param nextAccountId The next available trading account id.
+    /// @param isLiquidatorEnabled The mapping of liquidator addresses to their enabled status.
+    /// @param collateralLiquidationPriority The set of collateral types in order of liquidation priority.
+    /// @param enabledMarketsIds The set of enabled perp markets.
+    /// @param accountsIdsWithActivePositions The set of trading account ids with active positions
     struct Data {
         uint128 maxPositionsPerAccount;
-        uint128 marketOrderMaxLifetime;
+        uint128 marketOrderMinLifetime;
         uint128 liquidationFeeUsdX18;
         address marginCollateralRecipient;
         address orderFeeRecipient;
@@ -38,7 +51,7 @@ library GlobalConfiguration {
     /// @notice Loads the GlobalConfiguration entity.
     /// @return globalConfiguration The global configuration storage pointer.
     function load() internal pure returns (Data storage globalConfiguration) {
-        bytes32 slot = GLOBAL_CONFIGURATION_SLOT;
+        bytes32 slot = GLOBAL_CONFIGURATION_LOCATION;
 
         assembly {
             globalConfiguration.slot := slot
