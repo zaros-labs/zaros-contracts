@@ -6,3 +6,4 @@ SetTradingAccountToken_Integration_Test
     │   └── it should revert
     └── when the tradingAccountToken is not a zero
         └── it should emit a {LogSetTradingAccountToken} event
+        └── it should update on storage

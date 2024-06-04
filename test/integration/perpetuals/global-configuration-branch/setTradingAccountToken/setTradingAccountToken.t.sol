@@ -53,5 +53,10 @@ contract SetTradingAccountToken_Integration_Test is Base_Test {
         emit GlobalConfigurationBranch.LogSetTradingAccountToken(users.owner, tradingAccountToken);
 
         perpsEngine.setTradingAccountToken(tradingAccountToken);
+
+        address newTradingAccountToken = perpsEngine.workaround_getTradingAccountToken();
+
+        // it should update on storage
+        assertEq(newTradingAccountToken, tradingAccountToken, "trading account token should be updated on storage");
     }
 }
