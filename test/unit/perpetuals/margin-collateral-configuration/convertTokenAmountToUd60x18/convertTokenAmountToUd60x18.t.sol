@@ -19,7 +19,7 @@ contract MarginCollateralConfiguration_ConvertTokenAmountToUd60x18_Test is Base_
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_GivenMarginCollateralDecimalsIsEqualToSystemDecimals(uint256 amount) external {
+    function testFuzz_WhenMarginCollateralDecimalsIsEqualToSystemDecimals(uint256 amount) external {
         UD60x18 expectedValue = ud60x18(amount);
 
         UD60x18 value = perpsEngine.exposed_convertTokenAmountToUd60x18(address(usdToken), amount);
@@ -28,7 +28,7 @@ contract MarginCollateralConfiguration_ConvertTokenAmountToUd60x18_Test is Base_
         assertEq(value.intoUint256(), expectedValue.intoUint256(), "value is not correct");
     }
 
-    function testFuzz_GivenMarginCiollateralDecimalsIsNotEqualToSystemDecimals(
+    function testFuzz_WhenMarginCiollateralDecimalsIsNotEqualToSystemDecimals(
         uint128 newDepositCap,
         uint120 newLoanToValue,
         uint8 newDecimals,
