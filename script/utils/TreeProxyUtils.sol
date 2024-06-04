@@ -289,7 +289,7 @@ function deployAddressHarnesses() returns (address[] memory) {
 }
 
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](8);
+    bytes4[][] memory selectors = new bytes4[][](9);
 
     bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](8);
     globalConfigurationHarnessSelectors[0] = GlobalConfigurationHarness.exposed_checkMarketIsEnabled.selector;
@@ -304,6 +304,8 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     globalConfigurationHarnessSelectors[6] =
         GlobalConfigurationHarness.workaround_getAccountsIdsWithActivePositionsLength.selector;
     globalConfigurationHarnessSelectors[7] = GlobalConfigurationHarness.workaround_getTradingAccountToken.selector;
+    globalConfigurationHarnessSelectors[8] =
+        GlobalConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](5);
     marginCollateralConfigurationHarnessSelectors[0] =

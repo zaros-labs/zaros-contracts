@@ -49,7 +49,17 @@ contract ConfigureCollateralLiquidationPriority_Unit_Test is Base_Test {
         collateralTypes[0] = collateralType1;
         collateralTypes[1] = collateralType2;
 
+        uint256 oldLength = perpsEngine.workaround_getCollateralLiquidationPriority().length;
+
         // it should add the collateral in the liquidation priority
         perpsEngine.exposed_configureCollateralLiquidationPriority(collateralTypes);
+
+        address[] memory arrayOfCollaterals = perpsEngine.workaround_getCollateralLiquidationPriority();
+
+        uint256 newLength = arrayOfCollaterals.length;
+
+        assertEq(newLength - oldLength, 2, "the length should be increased by 2");
+        assertEq(arrayOfCollaterals[newLength - 2], collateralType1, "the first collateral should be added");
+        assertEq(arrayOfCollaterals[newLength - 1], collateralType2, "the second collateral should be added");
     }
 }
