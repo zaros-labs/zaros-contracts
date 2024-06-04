@@ -31,7 +31,7 @@ contract GetAccountsWithActivePositions_Integration_Test is Base_Test {
         perpsEngine.getAccountsWithActivePositions(0, 0);
     }
 
-    function testFuzz_GivenHaveAnAccountWithActivePositions(
+    function testFuzz_GivenHasAnAccountWithActivePositions(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
