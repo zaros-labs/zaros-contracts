@@ -160,5 +160,27 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         // it should increase the amount of margin collateral
         assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
+
+        // Test with usdToken that have 10 decimals
+
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: MOCK_USD_10_DECIMALS_DEPOSIT_CAP });
+        deal({ token: address(mockUsdWith10Decimals), to: users.naruto, give: amountToDeposit });
+
+        // it should emit {LogDepositMargin}
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit TradingAccountBranch.LogDepositMargin(
+            users.naruto, userTradingAccountId, address(mockUsdWith10Decimals), amountToDeposit
+        );
+
+        // it should transfer the amount from the sender to the trading account
+        expectCallToTransferFrom(mockUsdWith10Decimals, users.naruto, address(perpsEngine), amountToDeposit);
+        perpsEngine.depositMargin(userTradingAccountId, address(mockUsdWith10Decimals), amountToDeposit);
+
+        newMarginCollateralBalance = perpsEngine.getAccountMarginCollateralBalance(
+            userTradingAccountId, address(mockUsdWith10Decimals)
+        ).intoUint256();
+
+        // it should increase the amount of margin collateral
+        assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
     }
 }
