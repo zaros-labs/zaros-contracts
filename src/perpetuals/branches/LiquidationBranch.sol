@@ -132,8 +132,13 @@ contract LiquidationBranch {
 
             ctx.amountOfOpenPositions = tradingAccount.activeMarketsIds.length();
 
+            uint128[] memory marketIds = new uint128[](ctx.amountOfOpenPositions);
+            for (uint256 index = 0; index < ctx.amountOfOpenPositions; index++) {
+                marketIds[index] = tradingAccount.activeMarketsIds.at(index).toUint128();
+            }
+
             for (uint256 j = 0; j < ctx.amountOfOpenPositions; j++) {
-                ctx.marketId = tradingAccount.activeMarketsIds.at(j).toUint128();
+                ctx.marketId = marketIds[j];
                 PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
                 Position.Data storage position = Position.load(ctx.tradingAccountId, ctx.marketId);
 

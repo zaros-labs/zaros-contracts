@@ -83,6 +83,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
     struct TestFuzz_GivenThereAreLiquidatableAccountsInTheArray_Context {
         MarketConfig fuzzMarketConfig;
+        MarketConfig secondMarketConfig;
         uint256 marginValueUsd;
         uint256 initialMarginRate;
         uint128[] accountsIds;
@@ -104,6 +105,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
     function testFuzz_GivenThereAreLiquidatableAccountsInTheArray(
         uint256 marketId,
+        uint256 secondMarketId,
         bool isLong,
         uint256 amountOfTradingAccounts,
         uint256 timeDelta
@@ -116,6 +118,10 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         TestFuzz_GivenThereAreLiquidatableAccountsInTheArray_Context memory ctx;
 
         ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        ctx.secondMarketConfig = getFuzzMarketConfig(secondMarketId);
+
+        vm.assume(ctx.fuzzMarketConfig.marketId != ctx.secondMarketConfig.marketId);
+
         amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
         timeDelta = bound({ x: timeDelta, min: 1 seconds, max: 1 days });
 
@@ -133,13 +139,30 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
 
             openPosition(
-                ctx.fuzzMarketConfig, ctx.tradingAccountId, ctx.initialMarginRate, ctx.accountMarginValueUsd, isLong
+                ctx.fuzzMarketConfig,
+                ctx.tradingAccountId,
+                ctx.initialMarginRate,
+                ctx.accountMarginValueUsd / 2,
+                isLong
+            );
+
+            openPosition(
+                ctx.secondMarketConfig,
+                ctx.tradingAccountId,
+                ctx.secondMarketConfig.imr,
+                ctx.accountMarginValueUsd / 2,
+                isLong
             );
 
             ctx.accountsIds[i] = ctx.tradingAccountId;
+
+            // it's line is necessary because inside the 'openPosition' the deal function is called with the
+            // ctx.accountMarginValueUsd / 2
+            deal({ token: address(usdToken), to: users.naruto, give: ctx.marginValueUsd });
         }
 
         setAccountsAsLiquidatable(ctx.fuzzMarketConfig, isLong);
+        setAccountsAsLiquidatable(ctx.secondMarketConfig, isLong);
 
         ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
         ctx.accountsIds[amountOfTradingAccounts] = ctx.nonLiquidatableTradingAccountId;
