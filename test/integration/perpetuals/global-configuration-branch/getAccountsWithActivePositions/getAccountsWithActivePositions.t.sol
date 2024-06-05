@@ -24,14 +24,14 @@ contract GetAccountsWithActivePositions_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_DontHaveAnAccountWithActivePositions() external {
+    function test_RevertGiven_ThereAreNoAccountsWithActivePositions() external {
         // it should revert
         vm.expectRevert();
 
         perpsEngine.getAccountsWithActivePositions(0, 0);
     }
 
-    function testFuzz_GivenHasAnAccountWithActivePositions(
+    function testFuzz_GivenThereAreAccountsWithActivePositions(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
