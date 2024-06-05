@@ -39,42 +39,14 @@ contract Position_GetUnrealizedPnl_Unit_Test is Base_Test {
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        int128 sizeDelta = fuzzOrderSizeDelta(
-            FuzzOrderSizeDeltaParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(initialMarginRate),
-                marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
-                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
-                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
-                isLong: isLong,
-                shouldDiscountFees: true
-            })
-        );
 
-        perpsEngine.createMarketOrder(
-            OrderBranch.CreateMarketOrderParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta
-            })
-        );
-
-        bytes memory mockSignedReport =
-            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
-
-        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
-
-        changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
+        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
 
         Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
 
         UD60x18 newPrice = ud60x18(position.lastInteractionPrice).add(ud60x18(1e18));
         SD59x18 priceShift = newPrice.intoSD59x18().sub(ud60x18(position.lastInteractionPrice).intoSD59x18());
-        SD59x18 expectedUnrealizedPnl = sd59x18(sizeDelta).mul(priceShift);
+        SD59x18 expectedUnrealizedPnl = sd59x18(position.size).mul(priceShift);
 
         SD59x18 unrealizedPnl =
             perpsEngine.exposed_getUnrealizedPnl(tradingAccountId, fuzzMarketConfig.marketId, newPrice);
