@@ -115,7 +115,39 @@ library GlobalConfiguration {
     /// @param self The global configuration storage pointer.
     /// @param collateralType The address of the collateral type to remove.
     function removeCollateralFromLiquidationPriority(Data storage self, address collateralType) internal {
-        bool removed = self.collateralLiquidationPriority.remove(collateralType);
+        uint256 length = self.collateralLiquidationPriority.length();
+        uint256 newLength = length - 1;
+
+        address[] memory collateralLiquidationPriority = new address[](length);
+        address[] memory newCollateralLiquidationPriority = new address[](newLength);
+
+        uint256 indexCollateral = 0;
+
+        for (uint256 i = 0; i < length; i++) {
+            address collateral = self.collateralLiquidationPriority.at(i);
+            collateralLiquidationPriority[i] = collateral;
+
+            if (collateral == collateralType) {
+                continue;
+            }
+
+            newCollateralLiquidationPriority[indexCollateral] = collateral;
+            indexCollateral++;
+        }
+
+        bool removed = false;
+
+        for (uint256 i = 0; i < length; i++) {
+            self.collateralLiquidationPriority.remove(collateralLiquidationPriority[i]);
+
+            if (collateralLiquidationPriority[i] == collateralType) {
+                removed = true;
+            }
+        }
+
+        for (uint256 i = 0; i < newLength; i++) {
+            self.collateralLiquidationPriority.add(newCollateralLiquidationPriority[i]);
+        }
 
         if (!removed) {
             revert Errors.MarginCollateralTypeNotInPriority(collateralType);
