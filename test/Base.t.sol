@@ -89,6 +89,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal mockChainlinkVerifier;
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
+    uint128 internal constant MOCK_USD_10_DECIMALS_DEPOSIT_CAP = 50_000_000_000e10;
+    uint120 internal constant MOCK_USD_10_DECIMALS_LOAN_TO_VALUE = 1e10;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -96,6 +98,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     AccountNFT internal tradingAccountToken;
     MockERC20 internal mockWstEth;
+    MockERC20 internal mockUsdWith10Decimals;
     MockUSDToken internal usdToken;
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
@@ -127,6 +130,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             symbol: "wstETH",
             decimals_: 18,
             deployerBalance: 100_000_000e18
+        });
+        mockUsdWith10Decimals = new MockERC20({
+            name: "Mock With 10 Decimals",
+            symbol: "10D",
+            decimals_: 10,
+            deployerBalance: 100_000_000e10
         });
 
         MockPriceFeed mockBtcUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_BTC_USD_PRICE));
@@ -202,18 +211,22 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         changePrank({ msgSender: users.naruto });
         usdToken.approve({ spender: address(perpsEngine), value: type(uint256).max });
         mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockUsdWith10Decimals.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sasuke });
         usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
         mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockUsdWith10Decimals.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.sakura });
         usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
         mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockUsdWith10Decimals.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         changePrank({ msgSender: users.madara });
         usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
         mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        mockUsdWith10Decimals.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
 
         // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });
@@ -237,10 +250,17 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             WSTETH_LOAN_TO_VALUE,
             address(mockPriceAdapters.mockWstEthUsdPriceAdapter)
         );
+        perpsEngine.configureMarginCollateral(
+            address(mockUsdWith10Decimals),
+            MOCK_USD_10_DECIMALS_DEPOSIT_CAP,
+            MOCK_USD_10_DECIMALS_LOAN_TO_VALUE,
+            address(mockPriceAdapters.mockUsdcUsdPriceAdapter)
+        );
 
-        address[] memory collateralLiquidationPriority = new address[](2);
+        address[] memory collateralLiquidationPriority = new address[](3);
         collateralLiquidationPriority[0] = address(usdToken);
         collateralLiquidationPriority[1] = address(mockWstEth);
+        collateralLiquidationPriority[2] = address(mockUsdWith10Decimals);
 
         perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
     }

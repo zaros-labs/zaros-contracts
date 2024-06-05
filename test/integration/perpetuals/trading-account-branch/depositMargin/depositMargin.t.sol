@@ -6,6 +6,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
+import { MockERC20 } from "test/mocks/MockERC20.sol";
 
 contract DepositMargin_Integration_Test is Base_Test {
     function setUp() public override {
@@ -106,6 +107,8 @@ contract DepositMargin_Integration_Test is Base_Test {
         givenTheCollateralTypeHasSufficientDepositCap
         givenTheCollateralTypeIsInTheLiquidationPriority
     {
+        // Test with usdToken that have 18 decimals
+
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
 
@@ -123,6 +126,28 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdToken)).intoUint256();
+
+        // it should increase the amount of margin collateral
+        assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
+
+        // Test with usdToken that have 10 decimals
+
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: MOCK_USD_10_DECIMALS_DEPOSIT_CAP });
+        deal({ token: address(mockUsdWith10Decimals), to: users.naruto, give: amountToDeposit });
+
+        // it should emit {LogDepositMargin}
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit TradingAccountBranch.LogDepositMargin(
+            users.naruto, userTradingAccountId, address(mockUsdWith10Decimals), amountToDeposit
+        );
+
+        // it should transfer the amount from the sender to the trading account
+        expectCallToTransferFrom(mockUsdWith10Decimals, users.naruto, address(perpsEngine), amountToDeposit);
+        perpsEngine.depositMargin(userTradingAccountId, address(mockUsdWith10Decimals), amountToDeposit);
+
+        newMarginCollateralBalance = perpsEngine.getAccountMarginCollateralBalance(
+            userTradingAccountId, address(mockUsdWith10Decimals)
+        ).intoUint256();
 
         // it should increase the amount of margin collateral
         assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
