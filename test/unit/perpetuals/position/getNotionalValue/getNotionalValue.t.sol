@@ -39,40 +39,14 @@ contract Position_GetNotionalValue_Unit_Test is Base_Test {
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        int128 sizeDelta = fuzzOrderSizeDelta(
-            FuzzOrderSizeDeltaParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(initialMarginRate),
-                marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
-                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
-                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
-                isLong: isLong,
-                shouldDiscountFees: true
-            })
-        );
 
-        perpsEngine.createMarketOrder(
-            OrderBranch.CreateMarketOrderParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta
-            })
-        );
-
-        bytes memory mockSignedReport =
-            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
-
-        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
-
-        changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
+        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
 
         UD60x18 priceX18 = ud60x18(fuzzMarketConfig.mockUsdPrice);
 
-        UD60x18 expectedNotionalValue = sd59x18(sizeDelta).abs().intoUD60x18().mul(priceX18);
+        Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
+
+        UD60x18 expectedNotionalValue = sd59x18(position.size).abs().intoUD60x18().mul(priceX18);
 
         UD60x18 notionalValue =
             perpsEngine.exposed_getNotionalValue(tradingAccountId, fuzzMarketConfig.marketId, priceX18);
