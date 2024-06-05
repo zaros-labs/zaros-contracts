@@ -71,6 +71,19 @@ contract PositionHarness {
         return Position.getMarginRequirement(notionalValueX18, initialMarginRateX18, maintenanceMarginRateX18);
     }
 
+    function exposed_getUnrealizedPnl(
+        uint128 tradingAccountId,
+        uint128 marketId,
+        UD60x18 price
+    )
+        external
+        view
+        returns (SD59x18)
+    {
+        Position.Data storage self = Position.load(tradingAccountId, marketId);
+        return Position.getUnrealizedPnl(self, price);
+    }
+
     function exposed_getNotionalValue(
         uint128 tradingAccountId,
         uint128 marketId,
