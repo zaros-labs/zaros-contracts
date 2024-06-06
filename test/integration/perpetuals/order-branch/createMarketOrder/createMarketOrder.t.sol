@@ -519,6 +519,8 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         givenTheAccountHasNotReachedThePositionsLimit
         givenTheAccountWillMeetTheMarginRequirement
     {
+        // Test with usdc that has 6 decimals
+
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
@@ -563,6 +565,59 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         // it should create the market order
         MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder({ tradingAccountId: tradingAccountId });
+
+        assertEq(marketOrder.sizeDelta, sizeDelta, "createMarketOrder: sizeDelta");
+        assertEq(marketOrder.timestamp, block.timestamp, "createMarketOrder: timestamp");
+
+        // Test with wstEth that has 18 decimals
+
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: WSTETH_DEPOSIT_CAP
+        });
+
+        deal({ token: address(wstEth), to: users.naruto, give: marginValueUsd });
+
+        tradingAccountId = createAccountAndDeposit(marginValueUsd, address(wstEth));
+        sizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
+
+        expectedMarketOrder = MarketOrder.Data({
+            marketId: fuzzMarketConfig.marketId,
+            sizeDelta: sizeDelta,
+            timestamp: uint128(block.timestamp)
+        });
+
+        // it should emit a {LogCreateMarketOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit OrderBranch.LogCreateMarketOrder(
+            users.naruto, tradingAccountId, fuzzMarketConfig.marketId, expectedMarketOrder
+        );
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: sizeDelta
+            })
+        );
+
+        // it should create the market order
+        marketOrder = perpsEngine.getActiveMarketOrder({ tradingAccountId: tradingAccountId });
 
         assertEq(marketOrder.sizeDelta, sizeDelta, "createMarketOrder: sizeDelta");
         assertEq(marketOrder.timestamp, block.timestamp, "createMarketOrder: timestamp");

@@ -91,6 +91,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal liquidationKeeper;
     uint128 internal constant MOCK_USD_10_DECIMALS_DEPOSIT_CAP = 50_000_000_000e10;
     uint120 internal constant MOCK_USD_10_DECIMALS_LOAN_TO_VALUE = 1e10;
+    uint120 internal constant MOCK_USD_10_DECIMALS_MIN_DEPOSIT_MARGIN = 50e10;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS

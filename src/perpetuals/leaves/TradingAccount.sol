@@ -20,6 +20,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 /// @title The TradingAccount namespace.
 library TradingAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -111,6 +113,12 @@ library TradingAccount {
         internal
         view
     {
+        console.log("----validateMarginRequirement----");
+
+        console.log("requiredMarginUsdX18", requiredMarginUsdX18.intoUint256());
+        console.log("marginBalanceUsdX18", uint256(marginBalanceUsdX18.intoInt256()));
+        console.log("totalFeesUsdX18", uint256(totalFeesUsdX18.intoInt256()));
+
         if (requiredMarginUsdX18.intoSD59x18().add(totalFeesUsdX18).gt(marginBalanceUsdX18)) {
             revert Errors.InsufficientMargin(
                 self.id,
@@ -170,9 +178,13 @@ library TradingAccount {
             (address collateralType, uint256 balance) = self.marginCollateralBalanceX18.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
-            UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balance)).mul(
-                ud60x18(marginCollateralConfiguration.loanToValue)
-            );
+
+            UD60x18 balanceX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(balance);
+            UD60x18 loanToValueX18 =
+                marginCollateralConfiguration.convertTokenAmountToUd60x18(marginCollateralConfiguration.loanToValue);
+
+            UD60x18 adjustedBalanceUsdX18 =
+                marginCollateralConfiguration.getPrice().mul(balanceX18).mul(loanToValueX18);
 
             marginBalanceUsdX18 = marginBalanceUsdX18.add(adjustedBalanceUsdX18.intoSD59x18());
         }
