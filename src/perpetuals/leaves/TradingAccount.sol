@@ -126,15 +126,9 @@ library TradingAccount {
     /// @param collateralType The address of the collateral type.
     /// @return marginCollateralBalanceX18 The margin collateral balance for the given collateral type.
     function getMarginCollateralBalance(Data storage self, address collateralType) internal view returns (UD60x18) {
-        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
-            MarginCollateralConfiguration.load(collateralType);
-
         (, uint256 marginCollateralBalanceX18) = self.marginCollateralBalanceX18.tryGet(collateralType);
 
-        uint256 convertedTokenAmountDecimals =
-            marginCollateralConfiguration.convertUd60x18ToTokenAmount(ud60x18(marginCollateralBalanceX18));
-
-        return ud60x18(convertedTokenAmountDecimals);
+        return ud60x18(marginCollateralBalanceX18);
     }
 
     /// @notice Returns the equity usd value of all margin collateral in the account.
