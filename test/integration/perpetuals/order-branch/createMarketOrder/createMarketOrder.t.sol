@@ -121,7 +121,8 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -275,7 +276,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         initialMarginRate = bound({
             x: initialMarginRate,
-            min: fuzzMarketConfig.imr + secondFuzzMarketConfig.imr,
+            min: fuzzMarketConfig.marginRequirements + secondFuzzMarketConfig.imr,
             max: MAX_MARGIN_REQUIREMENTS * 2
         });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
@@ -374,7 +375,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(0.9e18));
+        UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(0.5e18));
         UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.maxOi)).mul(
             ud60x18(fuzzMarketConfig.mockUsdPrice)
         );
@@ -455,7 +456,8 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
@@ -515,7 +517,8 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
 
         deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
