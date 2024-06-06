@@ -110,6 +110,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         // Test with usdToken that have 18 decimals
 
         assertEq(MockERC20(address(usdToken)).decimals(), 18, "decimals should be 18");
+        assertEq(MockERC20(address(usdToken)).balanceOf(users.naruto), 0, "initial balance should be zero");
 
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
@@ -139,6 +140,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         // Test with usdToken that have 10 decimals
 
         assertEq(MockERC20(mockUsdWith10Decimals).decimals(), 10, "decimals should be 10");
+        assertEq(MockERC20(mockUsdWith10Decimals).balanceOf(users.naruto), 0, "initial balance should be zero");
 
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: MOCK_USD_10_DECIMALS_DEPOSIT_CAP });
         deal({ token: address(mockUsdWith10Decimals), to: users.naruto, give: amountToDeposit });
