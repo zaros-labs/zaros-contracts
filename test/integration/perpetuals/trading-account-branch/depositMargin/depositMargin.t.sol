@@ -128,6 +128,8 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), 0, "balanceOf should be zero");
 
+        assertEq(MockERC20(address(usdToken)).balanceOf(users.naruto), 0, "balanceOf should be zero");
+
         uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdc)).intoUint256();
 
