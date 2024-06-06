@@ -261,10 +261,9 @@ contract TradingAccountBranch {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
 
-        UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
+        UD60x18 ud60x18Amount = ud60x18(amount);
 
-        UD60x18 depositCapX18 =
-            marginCollateralConfiguration.convertTokenAmountToUd60x18(marginCollateralConfiguration.depositCap);
+        UD60x18 depositCapX18 = ud60x18(marginCollateralConfiguration.depositCap);
 
         _requireAmountNotZero(ud60x18Amount);
         _requireEnoughDepositCap(collateralType, ud60x18Amount, depositCapX18);
