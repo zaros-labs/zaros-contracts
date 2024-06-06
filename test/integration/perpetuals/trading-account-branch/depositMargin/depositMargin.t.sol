@@ -109,8 +109,12 @@ contract DepositMargin_Integration_Test is Base_Test {
     {
         // Test with usdToken that have 18 decimals
 
+        assertEq(MockERC20(address(usdToken)).decimals(), 18, "decimals should be 18");
+
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
         deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+
+        assertEq(MockERC20(address(usdToken)).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct");
 
         uint128 userTradingAccountId = perpsEngine.createTradingAccount();
 
@@ -124,6 +128,8 @@ contract DepositMargin_Integration_Test is Base_Test {
         expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
         perpsEngine.depositMargin(userTradingAccountId, address(usdToken), amountToDeposit);
 
+        assertEq(MockERC20(address(usdToken)).balanceOf(users.naruto), 0, "balanceOf should be zero");
+
         uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdToken)).intoUint256();
 
@@ -132,8 +138,14 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         // Test with usdToken that have 10 decimals
 
+        assertEq(MockERC20(mockUsdWith10Decimals).decimals(), 10, "decimals should be 10");
+
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: MOCK_USD_10_DECIMALS_DEPOSIT_CAP });
         deal({ token: address(mockUsdWith10Decimals), to: users.naruto, give: amountToDeposit });
+
+        assertEq(
+            MockERC20(mockUsdWith10Decimals).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct"
+        );
 
         // it should emit {LogDepositMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -144,6 +156,8 @@ contract DepositMargin_Integration_Test is Base_Test {
         // it should transfer the amount from the sender to the trading account
         expectCallToTransferFrom(mockUsdWith10Decimals, users.naruto, address(perpsEngine), amountToDeposit);
         perpsEngine.depositMargin(userTradingAccountId, address(mockUsdWith10Decimals), amountToDeposit);
+
+        assertEq(MockERC20(mockUsdWith10Decimals).balanceOf(users.naruto), 0, "balanceOf should be zero");
 
         newMarginCollateralBalance = perpsEngine.getAccountMarginCollateralBalance(
             userTradingAccountId, address(mockUsdWith10Decimals)
