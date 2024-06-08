@@ -40,7 +40,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         );
         changePrank({ msgSender: users.naruto });
 
-        uint128 userTradingAccountId = perpsEngine.createTradingAccount();
+        userTradingAccountId = perpsEngine.createTradingAccount();
 
         // it should revert
         vm.expectRevert({
@@ -153,17 +153,10 @@ contract DepositMargin_Integration_Test is Base_Test {
         expectCallToTransferFrom(wstEth, users.naruto, address(perpsEngine), amountToDeposit);
         perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDeposit);
 
-<<<<<<< HEAD
         assertEq(MockERC20(wstEth).balanceOf(users.naruto), 0, "balanceOf should be zero");
 
         newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(wstEth)).intoUint256();
-=======
-        assertEq(MockERC20(address(usdToken)).balanceOf(users.naruto), 0, "balanceOf should be zero");
-
-        uint256 newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdToken)).intoUint256();
->>>>>>> 3d181e8 (test: add assertEq to balanceOf on testFuzz_GivenTheTradingAccountExists #319)
 
         // it should increase the amount of margin collateral
         assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");

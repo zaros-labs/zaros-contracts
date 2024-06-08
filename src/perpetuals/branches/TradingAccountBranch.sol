@@ -260,16 +260,18 @@ contract TradingAccountBranch {
     function depositMargin(uint128 tradingAccountId, address collateralType, uint256 amount) public virtual {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
         UD60x18 ud60x18Amount = ud60x18(amount);
 
         UD60x18 depositCapX18 = ud60x18(marginCollateralConfiguration.depositCap);
 
+        UD60x18 marginCollateralBalanceX18 = tradingAccount.getMarginCollateralBalance(collateralType);
+
         _requireAmountNotZero(ud60x18Amount);
-        _requireEnoughDepositCap(collateralType, ud60x18Amount, depositCapX18);
+        _requireEnoughDepositCap(collateralType, ud60x18Amount, depositCapX18, marginCollateralBalanceX18);
         _requireCollateralLiquidationPriorityDefined(collateralType);
 
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         tradingAccount.deposit(collateralType, ud60x18Amount);
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 
@@ -321,8 +323,16 @@ contract TradingAccountBranch {
     }
 
     /// @dev Reverts if the collateral type is not supported.
-    function _requireEnoughDepositCap(address collateralType, UD60x18 amount, UD60x18 depositCap) internal pure {
-        if (amount.gt(depositCap)) {
+    function _requireEnoughDepositCap(
+        address collateralType,
+        UD60x18 amount,
+        UD60x18 depositCap,
+        UD60x18 marginCollateralBalance
+    )
+        internal
+        pure
+    {
+        if (amount.add(marginCollateralBalance).gt(depositCap)) {
             revert Errors.DepositCap(collateralType, amount.intoUint256(), depositCap.intoUint256());
         }
     }
