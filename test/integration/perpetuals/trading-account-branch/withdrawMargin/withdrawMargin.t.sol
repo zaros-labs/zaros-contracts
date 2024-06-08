@@ -246,7 +246,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         emit TradingAccountBranch.LogWithdrawMargin(users.naruto, tradingAccountId, address(wstEth), amountToWithdraw);
 
         assertEq(
-            MockERC20(address(usdToken)).balanceOf(users.naruto),
+            MockERC20(address(wstEth)).balanceOf(users.naruto),
             0,
             "balance before the withdraw margin should be zero"
         );
@@ -256,7 +256,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
 
         assertEq(
-            MockERC20(address(usdToken)).balanceOf(users.naruto),
+            MockERC20(address(wstEth)).balanceOf(users.naruto),
             amountToWithdraw,
             "balance after the withdraw margin should be equal to the withdrawn amount"
         );
@@ -322,8 +322,9 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         );
 
         expectedMargin = amountToDeposit - amountToWithdraw;
-        newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(mockUsdWith10Decimals)).intoUint256();
+        newMarginCollateralBalance = perpsEngine.getAccountMarginCollateralBalance(
+            tradingAccountId, address(mockUsdWith10Decimals)
+        ).intoUint256();
 
         // it should decrease the margin collateral balance
         assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin with token that have 10 decimals");
