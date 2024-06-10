@@ -103,10 +103,12 @@ library PerpMarket {
         SD59x18 newSkew = skew.add(skewDelta);
         SD59x18 priceImpactAfterDelta = newSkew.div(skewScale);
 
+        SD59x18 cachedIndexPriceX18 = indexPriceX18.intoSD59x18();
+
         UD60x18 priceBeforeDelta =
-            indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactBeforeDelta)).intoUD60x18();
+            cachedIndexPriceX18.add(cachedIndexPriceX18.mul(priceImpactBeforeDelta)).intoUD60x18();
         UD60x18 priceAfterDelta =
-            indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactAfterDelta)).intoUD60x18();
+            cachedIndexPriceX18.add(cachedIndexPriceX18.mul(priceImpactAfterDelta)).intoUD60x18();
 
         UD60x18 markPrice = priceBeforeDelta.add(priceAfterDelta).div(ud60x18Convert(2));
 
