@@ -98,11 +98,9 @@ library GlobalConfiguration {
                 revert Errors.ZeroInput("collateralType");
             }
 
-            if (self.collateralLiquidationPriority.contains(collateralTypes[i])) {
+            if (!self.collateralLiquidationPriority.add(collateralTypes[i])) {
                 revert Errors.MarginCollateralAlreadyInPriority(collateralTypes[i]);
             }
-
-            self.collateralLiquidationPriority.add(collateralTypes[i]);
         }
     }
 
