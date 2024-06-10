@@ -85,14 +85,16 @@ contract OrderBranch {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
 
-        fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
+        SD59x18 sideDeltaX18 = sd59x18(sizeDelta);
 
-        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), fillPriceX18);
+        fillPriceX18 = perpMarket.getMarkPrice(sideDeltaX18, perpMarket.getIndexPrice());
+
+        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sideDeltaX18, fillPriceX18);
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
         SD59x18 accountTotalUnrealizedPnlUsdX18;
         (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
-            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
+            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sideDeltaX18);
         marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
         {
             (, UD60x18 previousRequiredMaintenanceMarginUsdX18,) =
@@ -104,7 +106,7 @@ contract OrderBranch {
         }
         {
             Position.Data storage position = Position.load(tradingAccountId, marketId);
-            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sd59x18(sizeDelta));
+            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sideDeltaX18);
 
             if (
                 !newPositionSizeX18.isZero()
