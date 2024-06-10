@@ -474,6 +474,12 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         external
         onlyOwner
     {
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+        if (!perpMarket.initialized) {
+            revert Errors.PerpMarketNotInitialized(marketId);
+        }
+
         SettlementConfiguration.update(marketId, settlementConfigurationId, newSettlementConfiguration);
 
         emit LogUpdateSettlementConfiguration(msg.sender, marketId, settlementConfigurationId);
