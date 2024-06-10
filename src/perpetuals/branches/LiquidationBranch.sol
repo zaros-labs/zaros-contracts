@@ -47,11 +47,11 @@ contract LiquidationBranch {
         view
         returns (uint128[] memory liquidatableAccountsIds)
     {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-
         liquidatableAccountsIds = new uint128[](upperBound - lowerBound);
 
         if (liquidatableAccountsIds.length == 0) return liquidatableAccountsIds;
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         for (uint256 i = lowerBound; i < upperBound; i++) {
             if (i >= globalConfiguration.accountsIdsWithActivePositions.length()) break;
