@@ -88,13 +88,13 @@ contract LiquidationBranch {
     /// @param accountsIds The list of accounts to liquidate
     /// @param liquidationFeeRecipient The address to receive the liquidation fee
     function liquidateAccounts(uint128[] calldata accountsIds, address liquidationFeeRecipient) external {
+        if (accountsIds.length == 0) return;
+
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         if (!globalConfiguration.isLiquidatorEnabled[msg.sender]) {
             revert Errors.LiquidatorNotRegistered(msg.sender);
         }
-
-        if (accountsIds.length == 0) return;
 
         LiquidationContext memory ctx;
 
