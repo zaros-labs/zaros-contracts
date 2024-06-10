@@ -121,9 +121,7 @@ contract LiquidationBranch {
                     orderFeeRecipient: address(0),
                     settlementFeeRecipient: liquidationFeeRecipient
                 }),
-                pnlUsdX18: ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
-                    ? ctx.marginBalanceUsdX18.intoUD60x18()
-                    : requiredMaintenanceMarginUsdX18,
+                pnlUsdX18: requiredMaintenanceMarginUsdX18,
                 orderFeeUsdX18: UD_ZERO,
                 settlementFeeUsdX18: ctx.liquidationFeeUsdX18
             });
