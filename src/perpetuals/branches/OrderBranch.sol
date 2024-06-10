@@ -166,21 +166,23 @@ contract OrderBranch {
     /// @notice Creates a market order for the given trading account and market ids.
     /// @dev See {CreateMarketOrderParams}.
     function createMarketOrder(CreateMarketOrderParams calldata params) external {
-        TradingAccount.Data storage tradingAccount =
-            TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
-        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
-        MarketOrder.Data storage marketOrder = MarketOrder.load(params.tradingAccountId);
-        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-
-        CreateMarketOrderContext memory ctx;
-
         if (params.sizeDelta == 0) {
             revert Errors.ZeroInput("sizeDelta");
         }
 
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.checkMarketIsEnabled(params.marketId);
 
+        TradingAccount.Data storage tradingAccount =
+            TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
+        bool isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(params.marketId);
+        if (!isMarketWithActivePosition) {
+            tradingAccount.validatePositionsLimit();
+        }
+
+        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
+
+        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
         perpMarket.checkTradeSize(sd59x18(params.sizeDelta));
         perpMarket.checkOpenInterestLimits(
             sd59x18(params.sizeDelta),
@@ -189,10 +191,9 @@ contract OrderBranch {
             true
         );
 
-        bool isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(params.marketId);
-        if (!isMarketWithActivePosition) {
-            tradingAccount.validatePositionsLimit();
-        }
+        MarketOrder.Data storage marketOrder = MarketOrder.load(params.tradingAccountId);
+
+        CreateMarketOrderContext memory ctx;
 
         (ctx.marginBalanceUsdX18, ctx.requiredInitialMarginUsdX18,, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) =
         simulateTrade({

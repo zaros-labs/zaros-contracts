@@ -35,6 +35,8 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     )
         external
     {
+        vm.assume(sizeDelta > 0);
+
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // it should revert
@@ -61,6 +63,10 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         external
         givenTheAccountIdExists
     {
+        vm.assume(sizeDelta > 0);
+
+        changePrank({ msgSender: users.naruto });
+
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount();
