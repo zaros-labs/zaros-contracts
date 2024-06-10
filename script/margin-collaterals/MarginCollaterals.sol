@@ -109,7 +109,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         MarginCollateral[] memory filteredMarginCollateralsConfig = new MarginCollateral[](filteredMarketsLength);
 
         uint256 nextMarginCollateralId = initialMarginCollateralId;
-        for (uint256 i = 0; i < filteredMarketsLength; i++) {
+        for (uint256 i; i < filteredMarketsLength; i++) {
             filteredMarginCollateralsConfig[i] = marginCollaterals[nextMarginCollateralId];
             nextMarginCollateralId++;
         }

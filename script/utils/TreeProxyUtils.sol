@@ -184,7 +184,7 @@ function getBranchUpgrades(
     require(branches.length == branchesSelectors.length, "TreeProxyUtils: branchesSelectors length mismatch");
     RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](branches.length);
 
-    for (uint256 i = 0; i < branches.length; i++) {
+    for (uint256 i; i < branches.length; i++) {
         bytes4[] memory selectors = branchesSelectors[i];
 
         branchUpgrades[i] = RootProxy.BranchUpgrade({ branch: branches[i], action: action, selectors: selectors });
@@ -241,7 +241,7 @@ function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
 
     RootProxy.BranchUpgrade[] memory brancheAndHarnessesUpgrades = new RootProxy.BranchUpgrade[](maxLength);
 
-    for (uint256 i = 0; i < maxLength; i++) {
+    for (uint256 i; i < maxLength; i++) {
         brancheAndHarnessesUpgrades[i] =
             i < branchUpgrades.length ? branchUpgrades[i] : harnessesUpgrades[i - branchUpgrades.length];
     }

@@ -61,7 +61,7 @@ contract BranchFunctionSelectos_Integration_Test is Base_Test {
 
         // it should return the selectors of branch
         assertEq(branchSelectors.length, selectors[branchIndex].length, "Invalid selectors length");
-        for (uint256 i = 0; i < branchSelectors.length; i++) {
+        for (uint256 i; i < branchSelectors.length; i++) {
             assertEq(branchSelectors[i], selectors[branchIndex][i], "Invalid selector");
         }
     }

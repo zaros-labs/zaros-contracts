@@ -182,7 +182,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        for (uint256 i = 0; i < liquidators.length; i++) {
+        for (uint256 i; i < liquidators.length; i++) {
             globalConfiguration.isLiquidatorEnabled[liquidators[i]] = enable[i];
         }
 

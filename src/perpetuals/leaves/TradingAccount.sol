@@ -142,7 +142,7 @@ library TradingAccount {
         view
         returns (SD59x18 equityUsdX18)
     {
-        for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
+        for (uint256 i; i < self.marginCollateralBalanceX18.length(); i++) {
             (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
@@ -166,7 +166,7 @@ library TradingAccount {
         view
         returns (SD59x18 marginBalanceUsdX18)
     {
-        for (uint256 i = 0; i < self.marginCollateralBalanceX18.length(); i++) {
+        for (uint256 i; i < self.marginCollateralBalanceX18.length(); i++) {
             (address collateralType, uint256 balance) = self.marginCollateralBalanceX18.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
@@ -226,7 +226,7 @@ library TradingAccount {
             accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
         }
 
-        for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
+        for (uint256 i; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
 
             if (marketId == targetMarketId) {
@@ -261,7 +261,7 @@ library TradingAccount {
     /// @param self The trading account storage pointer.
     /// @return totalUnrealizedPnlUsdX18 The total unrealized PnL of the account.
     function getAccountUnrealizedPnlUsd(Data storage self) internal view returns (SD59x18 totalUnrealizedPnlUsdX18) {
-        for (uint256 i = 0; i < self.activeMarketsIds.length(); i++) {
+        for (uint256 i; i < self.activeMarketsIds.length(); i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(self.id, marketId);
@@ -417,7 +417,7 @@ library TradingAccount {
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        for (uint256 i = 0; i < globalConfiguration.collateralLiquidationPriority.length(); i++) {
+        for (uint256 i; i < globalConfiguration.collateralLiquidationPriority.length(); i++) {
             address collateralType = globalConfiguration.collateralLiquidationPriority.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);

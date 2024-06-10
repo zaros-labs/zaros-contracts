@@ -80,7 +80,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         address[] memory collateralLiquidationPriority = new address[](filteredMarginCollateralsConfig.length);
 
-        for (uint256 i = 0; i < filteredMarginCollateralsConfig.length; i++) {
+        for (uint256 i; i < filteredMarginCollateralsConfig.length; i++) {
             uint256 indexLiquidationPriority = filteredMarginCollateralsConfig[i].liquidationPriority - 1;
 
             collateralLiquidationPriority[indexLiquidationPriority] =

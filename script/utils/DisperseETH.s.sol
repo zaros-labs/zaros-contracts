@@ -26,7 +26,7 @@ contract DisperseETH is BaseScript {
         uint256 disperseAmount = 0.777e18;
         uint256 totalAmount = disperseAmount * receivers.length;
 
-        for (uint256 i = 0; i < receivers.length; i++) {
+        for (uint256 i; i < receivers.length; i++) {
             payable(receivers[i]).transfer(disperseAmount);
         }
 

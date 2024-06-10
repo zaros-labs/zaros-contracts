@@ -100,7 +100,7 @@ contract LiquidationBranch {
 
         ctx.liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
 
-        for (uint256 i = 0; i < accountsIds.length; i++) {
+        for (uint256 i; i < accountsIds.length; i++) {
             ctx.tradingAccountId = accountsIds[i];
             if (ctx.tradingAccountId == 0) continue;
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
@@ -132,7 +132,7 @@ contract LiquidationBranch {
 
             ctx.amountOfOpenPositions = tradingAccount.activeMarketsIds.length();
 
-            for (uint256 j = 0; j < ctx.amountOfOpenPositions; j++) {
+            for (uint256 j; j < ctx.amountOfOpenPositions; j++) {
                 ctx.marketId = tradingAccount.activeMarketsIds.at(j).toUint128();
                 PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
                 Position.Data storage position = Position.load(ctx.tradingAccountId, ctx.marketId);
