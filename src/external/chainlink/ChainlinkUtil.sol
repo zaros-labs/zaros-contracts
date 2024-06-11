@@ -15,8 +15,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 library ChainlinkUtil {
     using SafeCast for int256;
 
@@ -39,10 +37,6 @@ library ChainlinkUtil {
         }
 
         try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
-            console.log("block.timestamp: ", block.timestamp);
-            console.log("updateAt: ", updatedAt);
-            console.log("priceFeedHeartbeatSeconds: ", priceFeedHeartbeatSeconds);
-
             if (block.timestamp - updatedAt > priceFeedHeartbeatSeconds) {
                 revert Errors.OraclePriceFeedHeartbeat();
             }
