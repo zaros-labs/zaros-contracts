@@ -22,7 +22,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_RevertGiven_CollateralThatDoesNotHaveDecimals(
+    function testFuzz_RevertWhen_CollateralThatDoesNotHaveDecimals(
         uint128 depositCap,
         uint120 loanToValue,
         address priceFeed
@@ -41,7 +41,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
             )
         });
 
-        perpsEngine.configureMarginCollateral(address(collateralWithNoDecimals), depositCap, loanToValue, priceFeed);
+        perpsEngine.configureMarginCollateral(address(collateralWithNoDecimals), depositCap, loanToValue, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS);
 
         MockERC20WithZeroDecimals collateralWithZeroDecimals =
             new MockERC20WithZeroDecimals({ name: "Collateral", symbol: "COL", deployerBalance: 100_000_000e18 });
@@ -53,10 +53,10 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
             )
         });
 
-        perpsEngine.configureMarginCollateral(address(collateralWithZeroDecimals), depositCap, loanToValue, priceFeed);
+        perpsEngine.configureMarginCollateral(address(collateralWithZeroDecimals), depositCap, loanToValue, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS);
     }
 
-    modifier givenCollateralThatHasDecimals() {
+    modifier whenCollateralThatHasDecimals() {
         _;
     }
 
@@ -65,7 +65,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         uint120 loanToValue
     )
         external
-        givenCollateralThatHasDecimals
+        whenCollateralThatHasDecimals
     {
         changePrank({ msgSender: users.owner });
 
@@ -82,10 +82,12 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
             )
         });
 
-        perpsEngine.configureMarginCollateral(address(collateral), depositCap, loanToValue, priceFeed);
+        perpsEngine.configureMarginCollateral(
+            address(collateral), depositCap, loanToValue, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
     }
 
-    modifier givenCollateralDecimalsIsNotGreatherThanSystemDecimals() {
+    modifier whenCollateralDecimalsIsNotGreatherThanSystemDecimals() {
         _;
     }
 
@@ -94,8 +96,8 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         uint120 loanToValue
     )
         external
-        givenCollateralThatHasDecimals
-        givenCollateralDecimalsIsNotGreatherThanSystemDecimals
+        whenCollateralThatHasDecimals
+        whenCollateralDecimalsIsNotGreatherThanSystemDecimals
     {
         changePrank({ msgSender: users.owner });
 
@@ -118,16 +120,56 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
             )
         });
 
-        perpsEngine.configureMarginCollateral(address(collateral), depositCap, loanToValue, priceFeed);
+        perpsEngine.configureMarginCollateral(
+            address(collateral), depositCap, loanToValue, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
     }
 
-    function testFuzz_GivenPriceFeedIsNotZero(
+    modifier whenPriceFeedIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_PriceFeedHeartbeatSecondsIsZero(
         uint128 depositCap,
         uint120 loanToValue
     )
         external
-        givenCollateralThatHasDecimals
-        givenCollateralDecimalsIsNotGreatherThanSystemDecimals
+        whenCollateralThatHasDecimals
+        whenCollateralDecimalsIsNotGreatherThanSystemDecimals
+        whenPriceFeedIsNotZero
+    {
+        changePrank({ msgSender: users.owner });
+
+        address priceFeed = address(0);
+
+        MockERC20 collateral = new MockERC20({
+            name: "Collateral",
+            symbol: "COL",
+            decimals_: Constants.SYSTEM_DECIMALS,
+            deployerBalance: 100_000_000e18
+        });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InvalidMarginCollateralConfiguration.selector,
+                address(collateral),
+                Constants.SYSTEM_DECIMALS,
+                priceFeed
+            )
+        });
+
+        perpsEngine.configureMarginCollateral(address(collateral), depositCap, loanToValue, priceFeed, 0);
+    }
+
+    function testFuzz_WhenPriceFeedHeartbeatSecondsIsNotZero(
+        uint128 depositCap,
+        uint120 loanToValue
+    )
+        external
+        whenCollateralThatHasDecimals
+        whenCollateralDecimalsIsNotGreatherThanSystemDecimals
+        whenPriceFeedIsNotZero
     {
         changePrank({ msgSender: users.owner });
 
@@ -143,10 +185,12 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         // it should emit {LogConfigureMarginCollateral} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogConfigureMarginCollateral(
-            users.owner, address(collateral), depositCap, loanToValue, Constants.SYSTEM_DECIMALS, priceFeed
+            users.owner, address(collateral), depositCap, loanToValue, Constants.SYSTEM_DECIMALS, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
         );
 
         // it should configure
-        perpsEngine.configureMarginCollateral(address(collateral), depositCap, loanToValue, priceFeed);
+        perpsEngine.configureMarginCollateral(
+            address(collateral), depositCap, loanToValue, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
     }
 }

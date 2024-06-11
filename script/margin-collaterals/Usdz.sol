@@ -12,4 +12,5 @@ abstract contract Usdz {
     address internal constant USDZ_PRICE_FEED = address(0x0153002d20B96532C639313c2d54c3dA09109309);
     uint256 internal constant USDZ_LIQUIDATION_PRIORITY = 1;
     uint8 internal constant USDZ_DECIMALS = 18;
+    uint32 internal constant USDZ_PRICE_FEED_HEARBEAT_SECONDS = 86_400;
 }

@@ -12,4 +12,5 @@ abstract contract WstEth {
     address internal constant WSTETH_PRICE_FEED = address(0xd9433D0E5b5Ae4593ba3880c25046BBC4dC4926C);
     uint256 internal constant WSTETH_LIQUIDATION_PRIORITY = 5;
     uint8 internal constant WSTETH_DECIMALS = 18;
+    uint32 internal constant WSTETH_PRICE_FEED_HEARBEAT_SECONDS = 86_400;
 }

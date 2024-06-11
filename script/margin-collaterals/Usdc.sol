@@ -12,4 +12,5 @@ abstract contract Usdc {
     address internal constant USDC_PRICE_FEED = address(0x0153002d20B96532C639313c2d54c3dA09109309);
     uint256 internal constant USDC_LIQUIDATION_PRIORITY = 2;
     uint8 internal constant USDC_DECIMALS = 6;
+    uint32 internal constant USDC_PRICE_FEED_HEARBEAT_SECONDS = 86_400;
 }

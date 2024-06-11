@@ -15,20 +15,38 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 library ChainlinkUtil {
     using SafeCast for int256;
 
     /// @notice Queries the provided Chainlink Price Feed for the margin collateral oracle price.
     /// @param priceFeed The Chainlink Price Feed address.
+    /// @param priceFeedHeartbeatSeconds The number of seconds between price feed updates.
     /// @return price The price of the given margin collateral type.
-    function getPrice(IAggregatorV3 priceFeed) internal view returns (UD60x18 price) {
+    function getPrice(
+        IAggregatorV3 priceFeed,
+        uint32 priceFeedHeartbeatSeconds
+    )
+        internal
+        view
+        returns (UD60x18 price)
+    {
         uint8 priceDecimals = priceFeed.decimals();
         // should revert if priceDecimals > 18
         if (priceDecimals > Constants.SYSTEM_DECIMALS) {
             revert Errors.InvalidOracleReturn();
         }
 
-        try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256, uint80) {
+        try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
+            console.log("block.timestamp: ", block.timestamp);
+            console.log("updateAt: ", updatedAt);
+            console.log("priceFeedHeartbeatSeconds: ", priceFeedHeartbeatSeconds);
+
+            if (block.timestamp - updatedAt > priceFeedHeartbeatSeconds) {
+                revert Errors.OraclePriceFeedHeartbeat();
+            }
+
             price = ud60x18(answer.toUint256() * 10 ** (Constants.SYSTEM_DECIMALS - priceDecimals));
         } catch {
             revert Errors.InvalidOracleReturn();

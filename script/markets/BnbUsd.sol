@@ -26,6 +26,7 @@ abstract contract BnbUsd {
 
     // TODO: Update address value
     address internal constant BNB_USD_PRICE_FEED = address(0x53ab995fBb01C617aa1256698aD55b417168bfF9);
+    uint32 internal constant BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
 
     // TODO: Update stream id value
     bytes32 internal constant BNB_USD_STREAM_ID = 0x000387d7c042a9d5c97c15354b531bd01bf6d3a351e190f2394403cf2f79bde9;

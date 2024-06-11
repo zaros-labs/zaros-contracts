@@ -29,36 +29,22 @@ library MarketConfiguration {
         uint128 minTradeSizeX18;
         uint256 skewScale;
         OrderFees.Data orderFees;
+        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Updates the given market configuration.
     /// @dev See {MarketConfiguration.Data} for parameter details.
-    function update(
-        Data storage self,
-        string memory name,
-        string memory symbol,
-        address priceAdapter,
-        uint128 initialMarginRateX18,
-        uint128 maintenanceMarginRateX18,
-        uint128 maxOpenInterest,
-        uint128 maxSkew,
-        uint128 maxFundingVelocity,
-        uint128 minTradeSizeX18,
-        uint256 skewScale,
-        OrderFees.Data memory orderFees
-    )
-        internal
-    {
-        self.name = name;
-        self.symbol = symbol;
-        self.priceAdapter = priceAdapter;
-        self.initialMarginRateX18 = initialMarginRateX18;
-        self.maintenanceMarginRateX18 = maintenanceMarginRateX18;
-        self.maxOpenInterest = maxOpenInterest;
-        self.maxSkew = maxSkew;
-        self.maxFundingVelocity = maxFundingVelocity;
-        self.minTradeSizeX18 = minTradeSizeX18;
-        self.skewScale = skewScale;
-        self.orderFees = orderFees;
+    function update(Data storage self, Data memory params) internal {
+        self.name = params.name;
+        self.symbol = params.symbol;
+        self.priceAdapter = params.priceAdapter;
+        self.initialMarginRateX18 = params.initialMarginRateX18;
+        self.maintenanceMarginRateX18 = params.maintenanceMarginRateX18;
+        self.maxOpenInterest = params.maxOpenInterest;
+        self.maxSkew = params.maxSkew;
+        self.maxFundingVelocity = params.maxFundingVelocity;
+        self.minTradeSizeX18 = params.minTradeSizeX18;
+        self.skewScale = params.skewScale;
+        self.orderFees = params.orderFees;
     }
 }

@@ -20,7 +20,7 @@ contract MockPriceFeed {
         view
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
-        return (0, _price, 0, 0, 0);
+        return (0, _price, 0, block.timestamp, 0);
     }
 
     function updateMockPrice(uint256 newPrice) external {

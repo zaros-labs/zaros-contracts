@@ -55,13 +55,15 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The amount of decimals of the collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
+    /// @param priceFeedHeartbeatSeconds The time in seconds between price feed updates.
     event LogConfigureMarginCollateral(
         address indexed sender,
         address indexed collateralType,
         uint128 depositCap,
         uint120 loanToValue,
         uint8 decimals,
-        address priceFeed
+        address priceFeed,
+        uint32 priceFeedHeartbeatSeconds
     );
 
     /// @notice Emitted when a collateral type is removed from the collateral priority.
@@ -228,11 +230,13 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param depositCap The maximum amount of collateral that can be deposited.
     /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param priceFeed The price oracle address.
+    /// @param priceFeedHeartbeatSeconds The time in seconds between price feed updates.
     function configureMarginCollateral(
         address collateralType,
         uint128 depositCap,
         uint120 loanToValue,
-        address priceFeed
+        address priceFeed,
+        uint32 priceFeedHeartbeatSeconds
     )
         external
         onlyOwner
@@ -241,10 +245,12 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0) || decimals == 0) {
                 revert Errors.InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
             }
-            MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceFeed);
+            MarginCollateralConfiguration.configure(
+                collateralType, depositCap, loanToValue, decimals, priceFeed, priceFeedHeartbeatSeconds
+            );
 
             emit LogConfigureMarginCollateral(
-                msg.sender, collateralType, depositCap, loanToValue, decimals, priceFeed
+                msg.sender, collateralType, depositCap, loanToValue, decimals, priceFeed, priceFeedHeartbeatSeconds
             );
         } catch {
             revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
@@ -342,6 +348,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         SettlementConfiguration.Data marketOrderConfiguration;
         SettlementConfiguration.Data[] customOrdersConfiguration;
         OrderFees.Data orderFees;
+        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Creates a new market with the requested market id.
@@ -383,6 +390,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maxFundingVelocity == 0) {
             revert Errors.ZeroInput("maxFundingVelocity");
         }
+        if (params.priceFeedHeartbeatSeconds == 0) {
+            revert Errors.ZeroInput("priceFeedHeartbeatSeconds");
+        }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
@@ -401,7 +411,8 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
                 skewScale: params.skewScale,
                 marketOrderConfiguration: params.marketOrderConfiguration,
                 customOrdersConfiguration: params.customOrdersConfiguration,
-                orderFees: params.orderFees
+                orderFees: params.orderFees,
+                priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
             })
         );
         globalConfiguration.addMarket(params.marketId);
@@ -421,6 +432,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param orderFees The perp market maker and taker fees.
+    /// @param priceFeedHeartbeatSeconds The number of seconds between price feed updates.
     struct UpdatePerpMarketConfigurationParams {
         string name;
         string symbol;
@@ -433,6 +445,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 maxFundingVelocity;
         uint256 skewScale;
         OrderFees.Data orderFees;
+        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Updates the configuration variables of the given perp market id.
@@ -483,19 +496,25 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maxFundingVelocity == 0) {
             revert Errors.ZeroInput("maxFundingVelocity");
         }
+        if (params.priceFeedHeartbeatSeconds == 0) {
+            revert Errors.ZeroInput("priceFeedHeartbeatSeconds");
+        }
 
         perpMarketConfiguration.update(
-            params.name,
-            params.symbol,
-            params.priceAdapter,
-            params.initialMarginRateX18,
-            params.maintenanceMarginRateX18,
-            params.maxOpenInterest,
-            params.maxSkew,
-            params.maxFundingVelocity,
-            params.minTradeSizeX18,
-            params.skewScale,
-            params.orderFees
+            MarketConfiguration.Data({
+                name: params.name,
+                symbol: params.symbol,
+                priceAdapter: params.priceAdapter,
+                initialMarginRateX18: params.initialMarginRateX18,
+                maintenanceMarginRateX18: params.maintenanceMarginRateX18,
+                maxOpenInterest: params.maxOpenInterest,
+                maxSkew: params.maxSkew,
+                maxFundingVelocity: params.maxFundingVelocity,
+                minTradeSizeX18: params.minTradeSizeX18,
+                skewScale: params.skewScale,
+                orderFees: params.orderFees,
+                priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
+            })
         );
 
         emit LogUpdatePerpMarketConfiguration(msg.sender, marketId);
