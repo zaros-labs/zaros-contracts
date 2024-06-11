@@ -63,10 +63,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         address indexed sender,
         address indexed collateralType,
         uint128 depositCap,
-<<<<<<< HEAD
         uint120 loanToValue,
-=======
->>>>>>> 7552e49 (feat: ChainLinkUtil.getPrice doesn't check for stale price #366)
         uint8 decimals,
         address priceFeed,
         uint32 priceFeedHeartbeatSeconds
@@ -129,10 +126,11 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {GlobalConfigurationBranch} UUPS initializer.
-    function initialize(address tradingAccountToken, address usdToken) external initializer {
+    function initialize(address tradingAccountToken, address usdToken, address sequencer) external initializer {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.tradingAccountToken = tradingAccountToken;
         globalConfiguration.usdToken = usdToken;
+        globalConfiguration.sequencer = sequencer;
     }
 
     /// @param lowerBound The lower bound of the accounts to retrieve.
@@ -195,6 +193,19 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         globalConfiguration.usdToken = usdToken;
 
         emit LogSetUsdToken(msg.sender, usdToken);
+    }
+
+    /// @notice Sets the address of the Chainlink Sequencer
+    /// @param sequencer The address of sequencer
+    function setSequencer(address sequencer) external onlyOwner {
+        if (sequencer == address(0)) {
+            revert Errors.SequencerNotDefined();
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.sequencer = sequencer;
+
+        emit LogSetSequencer(msg.sender, sequencer);
     }
 
     /// @notice Configures the collateral priority.

@@ -50,4 +50,7 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Sequencer
     uint256 internal constant FINAL_MARGIN_COLLATERAL_ID = 6;
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
+
+    /// @notice Chainlink Sequencer uptime feeds.
+    address internal constant SEQUENCER_UPTIME_FEEDS = 0xFdB631F5EE196F0ed6FAa767959853A9F217697D;
 }
