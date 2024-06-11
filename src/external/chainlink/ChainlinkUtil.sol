@@ -15,6 +15,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 library ChainlinkUtil {
     using SafeCast for int256;
 
