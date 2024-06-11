@@ -35,7 +35,9 @@ library Errors {
     /// @notice Thrown when an oracle returns an unexpected, invalid value.
     error InvalidOracleReturn();
     /// @notice Thrown when an oracle price feed is outdated.
-    error OraclePriceFeedHeartbeat();
+    error OracleSequencerDown(address priceFeed);
+    /// @notice Thrown when an oracle price feed is outdated.
+    error OraclePriceFeedHeartbeat(address priceFeed);
     /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
     error OnlyForwarder(address sender, address forwarder);
     /// @notice Thrown when the keeper provided checkData bounds are invalid.

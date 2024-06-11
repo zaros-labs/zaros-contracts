@@ -39,8 +39,13 @@ library ChainlinkUtil {
         }
 
         try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
+            bool isSequencerUp = answer == 0;
+            if (!isSequencerUp) {
+                revert Errors.OracleSequencerDown(address(priceFeed));
+            }
+
             if (block.timestamp - updatedAt > priceFeedHeartbeatSeconds) {
-                revert Errors.OraclePriceFeedHeartbeat();
+                revert Errors.OraclePriceFeedHeartbeat(address(priceFeed));
             }
 
             price = ud60x18(answer.toUint256() * 10 ** (Constants.SYSTEM_DECIMALS - priceDecimals));
