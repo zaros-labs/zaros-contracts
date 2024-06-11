@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
-import { ISequencer } from "@zaros/external/chainlink/interfaces/ISequencer.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
