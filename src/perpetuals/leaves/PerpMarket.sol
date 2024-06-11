@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
-import { ISequencer } from "@zaros/external/chainlink/interfaces/ISequencer.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
@@ -75,14 +74,15 @@ library PerpMarket {
         uint32 priceFeedHeartbeatSeconds = self.configuration.priceFeedHeartbeatSeconds;
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        address sequencer = globalConfiguration.sequencer;
+        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeed;
 
         if (priceAdapter == address(0)) {
             revert Errors.PriceAdapterNotDefined(self.id);
         }
 
-        indexPrice =
-            ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds, ISequencer(sequencer));
+        indexPrice = ChainlinkUtil.getPrice(
+            IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
+        );
     }
 
     /// @notice Returns the given market's mark price.

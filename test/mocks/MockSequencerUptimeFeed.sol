@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.25;
 
-contract MockSequencer {
+contract MockSequencerUptimeFeed {
     int256 private _anwser;
 
     constructor(int256 anwser) {

@@ -6,7 +6,6 @@ pragma solidity 0.8.25;
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
-import { ISequencer } from "@zaros/external/chainlink/interfaces/ISequencer.sol";
 import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 
@@ -28,7 +27,7 @@ library ChainlinkUtil {
     function getPrice(
         IAggregatorV3 priceFeed,
         uint32 priceFeedHeartbeatSeconds,
-        ISequencer sequencer
+        IAggregatorV3 sequencerUptimeFeed
     )
         internal
         view
@@ -40,13 +39,13 @@ library ChainlinkUtil {
             revert Errors.InvalidOracleReturn();
         }
 
-        try sequencer.latestRoundData() returns (uint80, int256 answer, uint256, uint256, uint80) {
+        try sequencerUptimeFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256, uint80) {
             bool isSequencerUp = answer == 0;
             if (!isSequencerUp) {
-                revert Errors.OracleSequencerIsDown(address(sequencer));
+                revert Errors.OracleSequencerUptimeFeedIsDown(address(sequencerUptimeFeed));
             }
         } catch {
-            revert Errors.InvalidSequencerReturn();
+            revert Errors.InvalidSequencerUptimeFeedReturn();
         }
 
         try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {

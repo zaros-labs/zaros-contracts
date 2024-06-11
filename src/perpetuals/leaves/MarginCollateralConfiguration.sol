@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
-import { ISequencer } from "@zaros/external/chainlink/interfaces/ISequencer.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
@@ -71,13 +70,15 @@ library MarginCollateralConfiguration {
         uint32 priceFeedHearbeatSeconds = self.priceFeedHearbeatSeconds;
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        address sequencer = globalConfiguration.sequencer;
+        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeed;
 
         if (priceFeed == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-        price = ChainlinkUtil.getPrice(IAggregatorV3(priceFeed), priceFeedHearbeatSeconds, ISequencer(sequencer));
+        price = ChainlinkUtil.getPrice(
+            IAggregatorV3(priceFeed), priceFeedHearbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
+        );
     }
 
     /// @notice Configures the settings of a given margin collateral type.

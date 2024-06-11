@@ -32,10 +32,10 @@ library Errors {
 
     /// @notice Chainlink Keepers errors.
 
-    /// @notice Thrown when an oracle sequencer returns an unexpected, invalid value.
-    error InvalidSequencerReturn();
-    /// @notice Thrown when an oracle sequencer returns an unexpected, invalid value.
-    error OracleSequencerIsDown(address sequencer);
+    /// @notice Thrown when an oracle sequencer uptime feed returns an unexpected, invalid value.
+    error InvalidSequencerUptimeFeedReturn();
+    /// @notice Thrown when an oracle sequencer uptime feed returns an unexpected, invalid value.
+    error OracleSequencerUptimeFeedIsDown(address sequencerUptimeFeed);
     /// @notice Thrown when an oracle returns an unexpected, invalid value.
     error InvalidOracleReturn();
     /// @notice Thrown when an oracle price feed is outdated.
@@ -81,8 +81,8 @@ library Errors {
 
     /// @notice PerpsEngine.GlobalConfigurationBranch
 
-    /// @notice Thrown when the provided `sequencer` is the zero address.
-    error SequencerNotDefined();
+    /// @notice Thrown when the provided `sequencerUptimeFeed` is the zero address.
+    error SequencerUptimeFeedNotDefined();
     /// @notice Thrown when the provided `accountToken` is the zero address.
     error TradingAccountTokenNotDefined();
     /// @notice Thrown when the provided `liquidationReward` is less than 1e18.

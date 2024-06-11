@@ -37,8 +37,8 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Emitted when the usd token address is set.
     event LogSetUsdToken(address indexed sender, address indexed usdToken);
 
-    /// @notice Emitted when the sequencer address is set.
-    event LogSetSequencer(address indexed sender, address indexed tradingAccountToken);
+    /// @notice Emitted when the sequencerUptimeFeed address is set.
+    event LogSetSequencerUptimeFeed(address indexed sender, address indexed tradingAccountToken);
 
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
@@ -126,11 +126,18 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {GlobalConfigurationBranch} UUPS initializer.
-    function initialize(address tradingAccountToken, address usdToken, address sequencer) external initializer {
+    function initialize(
+        address tradingAccountToken,
+        address usdToken,
+        address sequencerUptimeFeed
+    )
+        external
+        initializer
+    {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.tradingAccountToken = tradingAccountToken;
         globalConfiguration.usdToken = usdToken;
-        globalConfiguration.sequencer = sequencer;
+        globalConfiguration.sequencerUptimeFeed = sequencerUptimeFeed;
     }
 
     /// @param lowerBound The lower bound of the accounts to retrieve.
@@ -195,17 +202,17 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         emit LogSetUsdToken(msg.sender, usdToken);
     }
 
-    /// @notice Sets the address of the Chainlink Sequencer
-    /// @param sequencer The address of sequencer
-    function setSequencer(address sequencer) external onlyOwner {
-        if (sequencer == address(0)) {
-            revert Errors.SequencerNotDefined();
+    /// @notice Sets the address of the Sequencer Uptime Feed
+    /// @param sequencerUptimeFeed The address of sequencer uptime feed
+    function setSequencer(address sequencerUptimeFeed) external onlyOwner {
+        if (sequencerUptimeFeed == address(0)) {
+            revert Errors.SequencerUptimeFeedNotDefined();
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.sequencer = sequencer;
+        globalConfiguration.sequencerUptimeFeed = sequencerUptimeFeed;
 
-        emit LogSetSequencer(msg.sender, sequencer);
+        emit LogSetSequencerUptimeFeed(msg.sender, sequencerUptimeFeed);
     }
 
     /// @notice Configures the collateral priority.
