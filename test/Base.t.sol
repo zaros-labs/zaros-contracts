@@ -20,6 +20,7 @@ import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.so
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
+import { MockSequencer } from "test/mocks/MockSequencer.sol";
 import { Storage } from "test/utils/Storage.sol";
 import { Users, MockPriceAdapters } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
@@ -106,7 +107,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
-
+    MockSequencer internal mockSequencer;
     MockPriceAdapters internal mockPriceAdapters;
 
     /*//////////////////////////////////////////////////////////////////////////

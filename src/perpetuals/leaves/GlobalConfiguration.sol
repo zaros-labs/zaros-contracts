@@ -27,6 +27,7 @@ library GlobalConfiguration {
     /// @param settlementFeeRecipient The address that receives settlement fees.
     /// @param usdToken The address of the USD token (USDz).
     /// @param tradingAccountToken The address of the trading account NFT.
+    /// @param sequencer The address of the Chainlink Sequencer.
     /// @param nextAccountId The next available trading account id.
     /// @param isLiquidatorEnabled The mapping of liquidator addresses to their enabled status.
     /// @param collateralLiquidationPriority The set of collateral types in order of liquidation priority.
@@ -41,6 +42,7 @@ library GlobalConfiguration {
         address settlementFeeRecipient;
         address usdToken;
         address tradingAccountToken;
+        address sequencer;
         uint96 nextAccountId;
         mapping(address => bool) isLiquidatorEnabled;
         EnumerableSet.AddressSet collateralLiquidationPriority;

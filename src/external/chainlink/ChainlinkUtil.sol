@@ -5,9 +5,10 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IAggregatorV3 } from "./interfaces/IAggregatorV3.sol";
-import { IFeeManager, FeeAsset } from "./interfaces/IFeeManager.sol";
-import { IVerifierProxy } from "./interfaces/IVerifierProxy.sol";
+import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
+import { ISequencer } from "@zaros/external/chainlink/interfaces/ISequencer.sol";
+import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -26,7 +27,8 @@ library ChainlinkUtil {
     /// @return price The price of the given margin collateral type.
     function getPrice(
         IAggregatorV3 priceFeed,
-        uint32 priceFeedHeartbeatSeconds
+        uint32 priceFeedHeartbeatSeconds,
+        ISequencer sequencer
     )
         internal
         view
@@ -38,12 +40,16 @@ library ChainlinkUtil {
             revert Errors.InvalidOracleReturn();
         }
 
-        try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
+        try sequencer.latestRoundData() returns (uint80, int256 answer, uint256, uint256, uint80) {
             bool isSequencerUp = answer == 0;
             if (!isSequencerUp) {
-                revert Errors.OracleSequencerDown(address(priceFeed));
+                revert Errors.OracleSequencerIsDown(address(sequencer));
             }
+        } catch {
+            revert Errors.InvalidSequencerReturn();
+        }
 
+        try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
             if (block.timestamp - updatedAt > priceFeedHeartbeatSeconds) {
                 revert Errors.OraclePriceFeedHeartbeat(address(priceFeed));
             }

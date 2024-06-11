@@ -41,6 +41,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
+        perpsEngine.setSequencer(SEQUENCER_UPTIME_FEEDS);
 
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
