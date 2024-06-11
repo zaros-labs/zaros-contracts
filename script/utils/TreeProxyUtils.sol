@@ -211,7 +211,7 @@ function getInitializePayloads(
     address deployer,
     address tradingAccountToken,
     address usdToken,
-    address sequencer
+    address sequencerUptimeFeed
 )
     pure
     returns (bytes[] memory)
@@ -220,7 +220,7 @@ function getInitializePayloads(
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
     bytes memory perpsEngineInitializeData = abi.encodeWithSelector(
-        GlobalConfigurationBranch.initialize.selector, tradingAccountToken, usdToken, sequencer
+        GlobalConfigurationBranch.initialize.selector, tradingAccountToken, usdToken, sequencerUptimeFeed
     );
 
     initializePayloads = new bytes[](2);

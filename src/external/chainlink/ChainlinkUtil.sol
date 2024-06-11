@@ -53,10 +53,10 @@ library ChainlinkUtil {
         try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
             bool isSequencerUp = answer == 0;
             if (!isSequencerUp) {
-                revert Errors.OracleSequencerIsDown(address(sequencer));
+                revert Errors.OracleSequencerUptimeFeedIsDown(address(sequencerUptimeFeed));
             }
         } catch {
-            revert Errors.InvalidSequencerReturn();
+            revert Errors.InvalidSequencerUptimeFeedReturn();
         }
 
         try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
