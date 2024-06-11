@@ -73,7 +73,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             tokenDecimals: WETH_DECIMALS,
             priceFeedHearbeatSeconds: WETH_PRICE_FEED_HEARBEAT_SECONDS
         });
-            marginCollaterals[WETH_MARGIN_COLLATERAL_ID] = wEth;
+        marginCollaterals[WETH_MARGIN_COLLATERAL_ID] = wEth;
 
         MarginCollateral memory wBtc = MarginCollateral({
             marginCollateralId: WBTC_MARGIN_COLLATERAL_ID,

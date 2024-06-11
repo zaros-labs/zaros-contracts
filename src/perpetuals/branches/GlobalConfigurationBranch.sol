@@ -63,7 +63,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         address indexed sender,
         address indexed collateralType,
         uint128 depositCap,
+<<<<<<< HEAD
         uint120 loanToValue,
+=======
+>>>>>>> 7552e49 (feat: ChainLinkUtil.getPrice doesn't check for stale price #366)
         uint8 decimals,
         address priceFeed,
         uint32 priceFeedHeartbeatSeconds
