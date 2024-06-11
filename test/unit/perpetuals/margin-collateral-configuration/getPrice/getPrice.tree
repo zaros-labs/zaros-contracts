@@ -1,0 +1,5 @@
+MarginCollateralConfiguration_GetPrice_Test
+├── when price feed is zero
+│   └── it should revert
+└── when price feed is not zero
+    └── it should return the price
