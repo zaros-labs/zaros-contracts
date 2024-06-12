@@ -343,7 +343,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     perpMarketHarnessSelectors[12] = PerpMarketHarness.exposed_updateOpenInterest.selector;
     perpMarketHarnessSelectors[13] = PerpMarketHarness.exposed_create.selector;
 
-    bytes4[] memory positionHarnessSelectors = new bytes4[](7);
+    bytes4[] memory positionHarnessSelectors = new bytes4[](8);
     positionHarnessSelectors[0] = PositionHarness.exposed_Position_load.selector;
     positionHarnessSelectors[1] = PositionHarness.exposed_getState.selector;
     positionHarnessSelectors[2] = PositionHarness.exposed_update.selector;
@@ -351,6 +351,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     positionHarnessSelectors[4] = PositionHarness.exposed_getAccruedFunding.selector;
     positionHarnessSelectors[5] = PositionHarness.exposed_getMarginRequirements.selector;
     positionHarnessSelectors[6] = PositionHarness.exposed_getNotionalValue.selector;
+    positionHarnessSelectors[7] = PositionHarness.exposed_getUnrealizedPnl.selector;
 
     bytes4[] memory settlementConfigurationHarnessSelectors = new bytes4[](7);
     settlementConfigurationHarnessSelectors[0] =
