@@ -9,6 +9,8 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockPriceFeedWithInvalidReturn } from "test/mocks/MockPriceFeedWithInvalidReturn.sol";
 import { MockPriceFeedOldUpdatedAt } from "test/mocks/MockPriceFeedOldUpdatedAt.sol";
+import { MockSequencerUptimeFeedWithInvalidReturn } from "test/mocks/MockSequencerUptimeFeedWithInvalidReturn.sol";
+import { MockSequencerUptimeFeedDown } from "test/mocks/MockSequencerUptimeFeedDown.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -69,10 +71,64 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
+    function test_RevertWhen_SequencerUptimeFeedReturnAInvalidValue()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+    {
+        address collateral = address(usdc);
+
+        changePrank({ msgSender: users.owner });
+        MockSequencerUptimeFeedWithInvalidReturn mockSequencerUptimeFeedWithInvalidReturn =
+            new MockSequencerUptimeFeedWithInvalidReturn();
+        perpsEngine.setSequencerUptimeFeed(address(mockSequencerUptimeFeedWithInvalidReturn));
+
+        changePrank({ msgSender: users.naruto });
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidSequencerUptimeFeedReturn.selector) });
+
+        perpsEngine.exposed_getPrice(collateral);
+    }
+
+    modifier whenSequencerUptimeFeedReturnAValidValue() {
+        _;
+    }
+
+    function test_RevertWhen_SequncerUptimeFeedIsDown()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedReturnAValidValue
+    {
+        address collateral = address(usdc);
+
+        changePrank({ msgSender: users.owner });
+        MockSequencerUptimeFeedDown mockSequencerUptimeFeedDown = new MockSequencerUptimeFeedDown();
+        perpsEngine.setSequencerUptimeFeed(address(mockSequencerUptimeFeedDown));
+
+        changePrank({ msgSender: users.naruto });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OracleSequencerUptimeFeedIsDown.selector, address(mockSequencerUptimeFeedDown)
+            )
+        });
+
+        perpsEngine.exposed_getPrice(collateral);
+    }
+
+    modifier whenSequencerUptimeFeedIsUp() {
+        _;
+    }
+
     function test_RevertWhen_PriceFeedReturnsAInvalidValueFromLatestRoundData()
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedReturnAValidValue
+        whenSequencerUptimeFeedIsUp
     {
         address collateral = address(wstEth);
 
@@ -101,6 +157,8 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedReturnAValidValue
+        whenSequencerUptimeFeedIsUp
         whenPriceFeedReturnsAValidValueFromLatestRoundData
     {
         address collateral = address(wstEth);
@@ -117,7 +175,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         );
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.OraclePriceFeedHeartbeat.selector) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OraclePriceFeedHeartbeat.selector, address(mockPriceFeedOldUpdatedAt)
+            )
+        });
 
         perpsEngine.exposed_getPrice(collateral);
     }
@@ -126,6 +188,8 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedReturnAValidValue
+        whenSequencerUptimeFeedIsUp
         whenPriceFeedReturnsAValidValueFromLatestRoundData
     {
         UD60x18 price = perpsEngine.exposed_getPrice(address(wstEth));

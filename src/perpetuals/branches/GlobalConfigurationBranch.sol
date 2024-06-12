@@ -204,7 +204,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @notice Sets the address of the Sequencer Uptime Feed
     /// @param sequencerUptimeFeed The address of sequencer uptime feed
-    function setSequencer(address sequencerUptimeFeed) external onlyOwner {
+    function setSequencerUptimeFeed(address sequencerUptimeFeed) external onlyOwner {
         if (sequencerUptimeFeed == address(0)) {
             revert Errors.SequencerUptimeFeedNotDefined();
         }
