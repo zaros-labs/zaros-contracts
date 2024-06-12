@@ -21,10 +21,10 @@ contract Position_GetUnrealizedPnl_Unit_Test is Base_Test {
     }
 
     function testFuzz_WhenGetUnrealizedPnlIsCalled(
-        uint256 initialMarginRate,
-        uint256 marginValueUsd,
+        uint256 marketId,
+        uint256 sizeAbs,
         bool isLong,
-        uint256 marketId
+        int128 lastInteractionFundingFeePerUnit
     )
         external
     {
@@ -32,21 +32,23 @@ contract Position_GetUnrealizedPnl_Unit_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        sizeAbs =
+            bound({ x: sizeAbs, min: uint256(fuzzMarketConfig.minTradeSize), max: uint256(fuzzMarketConfig.maxSkew) });
+        int256 size = isLong ? int256(sizeAbs) : -int256(sizeAbs);
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        Position.Data memory mockPosition = Position.Data({
+            size: size,
+            lastInteractionPrice: uint128(fuzzMarketConfig.mockUsdPrice),
+            lastInteractionFundingFeePerUnit: lastInteractionFundingFeePerUnit
+        });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
-        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
+        perpsEngine.exposed_update(tradingAccountId, fuzzMarketConfig.marketId, mockPosition);
 
-        Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
-
-        UD60x18 newPrice = ud60x18(position.lastInteractionPrice).add(ud60x18(1e18));
-        SD59x18 priceShift = newPrice.intoSD59x18().sub(ud60x18(position.lastInteractionPrice).intoSD59x18());
-        SD59x18 expectedUnrealizedPnl = sd59x18(position.size).mul(priceShift);
+        UD60x18 newPrice = ud60x18(mockPosition.lastInteractionPrice).add(ud60x18(1e18));
+        SD59x18 priceShift = newPrice.intoSD59x18().sub(ud60x18(mockPosition.lastInteractionPrice).intoSD59x18());
+        SD59x18 expectedUnrealizedPnl = sd59x18(mockPosition.size).mul(priceShift);
 
         SD59x18 unrealizedPnl =
             perpsEngine.exposed_getUnrealizedPnl(tradingAccountId, fuzzMarketConfig.marketId, newPrice);

@@ -25,8 +25,9 @@ contract Position_Update_Unit_Test is Base_Test {
 
     function testFuzz_WhenUpdateIsCalled(
         uint256 marketId,
-        int128 lastInteractionFundingFeePerUnit,
-        bool isLong
+        uint256 sizeAbs,
+        bool isLong,
+        int128 lastInteractionFundingFeePerUnit
     )
         external
     {
@@ -34,8 +35,9 @@ contract Position_Update_Unit_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.minTradeSize).intoSD59x18();
-        int128 size = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
+        sizeAbs =
+            bound({ x: sizeAbs, min: uint256(fuzzMarketConfig.minTradeSize), max: uint256(fuzzMarketConfig.maxSkew) });
+        int256 size = isLong ? int256(sizeAbs) : -int256(sizeAbs);
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount();
 

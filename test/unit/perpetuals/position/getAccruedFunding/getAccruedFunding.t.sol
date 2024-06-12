@@ -7,8 +7,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -27,6 +26,7 @@ contract Position_GetAccruedFunding_Unit_Test is Base_Test {
         uint256 marketId,
         int128 fundingFeePerUnit,
         int128 lastInteractionFundingFeePerUnit,
+        uint256 sizeAbs,
         bool isLong
     )
         external
@@ -35,8 +35,9 @@ contract Position_GetAccruedFunding_Unit_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.minTradeSize).intoSD59x18();
-        int128 size = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
+        sizeAbs =
+            bound({ x: sizeAbs, min: uint256(fuzzMarketConfig.minTradeSize), max: uint256(fuzzMarketConfig.maxSkew) });
+        int256 size = isLong ? int256(sizeAbs) : -int256(sizeAbs);
 
         Position.Data memory mockPosition = Position.Data({
             size: size,

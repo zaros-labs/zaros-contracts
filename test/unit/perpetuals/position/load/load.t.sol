@@ -19,47 +19,12 @@ contract Position_Load_Unit_Test is Base_Test {
         createPerpMarkets();
     }
 
-    function testFuzz_GivenDontHaveAFilledMarketOrder(
-        uint256 initialMarginRate,
-        uint256 marginValueUsd,
-        bool isLong,
-        uint256 marketId
-    )
-        external
-    {
+    function testFuzz_GivenDontHaveAFilledMarketOrder(uint256 marketId) external {
         changePrank({ msgSender: users.naruto });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        int128 sizeDelta = fuzzOrderSizeDelta(
-            FuzzOrderSizeDeltaParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(initialMarginRate),
-                marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
-                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
-                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
-                isLong: isLong,
-                shouldDiscountFees: true
-            })
-        );
-
-        perpsEngine.createMarketOrder(
-            OrderBranch.CreateMarketOrderParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta
-            })
-        );
+        uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
         Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
 
@@ -74,10 +39,10 @@ contract Position_Load_Unit_Test is Base_Test {
     }
 
     function testFuzz_GivenHaveAFilledMarketOrder(
-        uint256 initialMarginRate,
-        uint256 marginValueUsd,
+        uint256 marketId,
+        uint256 sizeAbs,
         bool isLong,
-        uint256 marketId
+        int128 lastInteractionFundingFeePerUnit
     )
         external
     {
@@ -85,66 +50,37 @@ contract Position_Load_Unit_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        sizeAbs =
+            bound({ x: sizeAbs, min: uint256(fuzzMarketConfig.minTradeSize), max: uint256(fuzzMarketConfig.maxSkew) });
+        int256 size = isLong ? int256(sizeAbs) : -int256(sizeAbs);
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        int128 sizeDelta = fuzzOrderSizeDelta(
-            FuzzOrderSizeDeltaParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(initialMarginRate),
-                marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
-                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
-                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
-                isLong: isLong,
-                shouldDiscountFees: true
-            })
-        );
+        Position.Data memory mockPosition = Position.Data({
+            size: size,
+            lastInteractionPrice: uint128(fuzzMarketConfig.mockUsdPrice),
+            lastInteractionFundingFeePerUnit: lastInteractionFundingFeePerUnit
+        });
 
-        UD60x18 firstFillPriceX18 =
-            perpsEngine.getMarkPrice(fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta);
-
-        perpsEngine.createMarketOrder(
-            OrderBranch.CreateMarketOrderParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta
-            })
-        );
-
-        bytes memory mockSignedReport =
-            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
-
-        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
-
-        changePrank({ msgSender: marketOrderKeeper });
-        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
+        perpsEngine.exposed_update(tradingAccountId, fuzzMarketConfig.marketId, mockPosition);
 
         Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
 
-        Position.Data memory expectedPosition = Position.Data({
-            size: sizeDelta,
-            lastInteractionPrice: firstFillPriceX18.intoUint128(),
-            lastInteractionFundingFeePerUnit: 0
-        });
-
         // it should return the size
-        assertEq(expectedPosition.size, position.size, "size is not correct");
+        assertEq(size, position.size, "size is not correct");
 
         // it should return the lastInteractionPrice
         assertEq(
-            expectedPosition.lastInteractionPrice,
+            uint128(fuzzMarketConfig.mockUsdPrice),
             position.lastInteractionPrice,
             "lastInteractionPrice is not correct"
         );
 
         // it should return the lastInteractionFundingFeePerUnit
-        assertEq(0, position.lastInteractionFundingFeePerUnit, "lastInteractionFundingFeePerUnit is not correct");
+        assertEq(
+            lastInteractionFundingFeePerUnit,
+            position.lastInteractionFundingFeePerUnit,
+            "lastInteractionFundingFeePerUnit is not correct"
+        );
     }
 }
