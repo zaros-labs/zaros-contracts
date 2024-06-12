@@ -8,9 +8,14 @@ import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 contract Position_GetNotionalValue_Unit_Test is Base_Test {
+    using SafeCast for int256;
+
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -19,10 +24,9 @@ contract Position_GetNotionalValue_Unit_Test is Base_Test {
     }
 
     function testFuzz_WhenGetNotionalValueIsCalled(
-        uint256 initialMarginRate,
-        uint256 marginValueUsd,
-        bool isLong,
-        uint256 marketId
+        uint256 marketId,
+        int128 lastInteractionFundingFeePerUnit,
+        bool isLong
     )
         external
     {
@@ -30,21 +34,22 @@ contract Position_GetNotionalValue_Unit_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.minTradeSize).intoSD59x18();
+        int128 size = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        Position.Data memory mockPosition = Position.Data({
+            size: size,
+            lastInteractionPrice: uint128(fuzzMarketConfig.mockUsdPrice),
+            lastInteractionFundingFeePerUnit: lastInteractionFundingFeePerUnit
+        });
 
-        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
+        perpsEngine.exposed_update(tradingAccountId, fuzzMarketConfig.marketId, mockPosition);
 
         UD60x18 priceX18 = ud60x18(fuzzMarketConfig.mockUsdPrice);
 
-        Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
-
-        UD60x18 expectedNotionalValue = sd59x18(position.size).abs().intoUD60x18().mul(priceX18);
+        UD60x18 expectedNotionalValue = sd59x18(mockPosition.size).abs().intoUD60x18().mul(priceX18);
 
         UD60x18 notionalValue =
             perpsEngine.exposed_getNotionalValue(tradingAccountId, fuzzMarketConfig.marketId, priceX18);
