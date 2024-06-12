@@ -8,8 +8,14 @@ import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 contract Position_Update_Unit_Test is Base_Test {
+    using SafeCast for int256;
+
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -18,12 +24,9 @@ contract Position_Update_Unit_Test is Base_Test {
     }
 
     function testFuzz_WhenUpdateIsCalled(
-        uint256 initialMarginRate,
-        uint256 marginValueUsd,
         uint256 marketId,
-        int256 newSize,
-        uint128 newLastInteractionPrice,
-        int128 newLastInteractionFundingFeePerUnit
+        int128 lastInteractionFundingFeePerUnit,
+        bool isLong
     )
         external
     {
@@ -31,34 +34,35 @@ contract Position_Update_Unit_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.minTradeSize).intoSD59x18();
+        int128 size = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-
-        Position.Data memory newPosition = Position.Data({
-            size: newSize,
-            lastInteractionPrice: newLastInteractionPrice,
-            lastInteractionFundingFeePerUnit: newLastInteractionFundingFeePerUnit
+        Position.Data memory mockPosition = Position.Data({
+            size: size,
+            lastInteractionPrice: uint128(fuzzMarketConfig.mockUsdPrice),
+            lastInteractionFundingFeePerUnit: lastInteractionFundingFeePerUnit
         });
 
-        perpsEngine.exposed_update(tradingAccountId, fuzzMarketConfig.marketId, newPosition);
+        perpsEngine.exposed_update(tradingAccountId, fuzzMarketConfig.marketId, mockPosition);
 
         Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
 
         // it should update the size
-        assertEq(position.size, newSize, "Position size not updated");
+        assertEq(position.size, mockPosition.size, "Position size not updated");
 
         // it should update the lastInteractionPrice
-        assertEq(position.lastInteractionPrice, newLastInteractionPrice, "Position lastInteractionPrice not updated");
+        assertEq(
+            position.lastInteractionPrice,
+            mockPosition.lastInteractionPrice,
+            "Position lastInteractionPrice not updated"
+        );
 
         // it should update the lastInteractionFundingFeePerUnit
         assertEq(
             position.lastInteractionFundingFeePerUnit,
-            newLastInteractionFundingFeePerUnit,
+            mockPosition.lastInteractionFundingFeePerUnit,
             "Position lastInteractionFundingFeePerUnit not updated"
         );
     }
