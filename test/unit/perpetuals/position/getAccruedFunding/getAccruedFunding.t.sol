@@ -8,9 +8,14 @@ import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+
+// Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 contract Position_GetAccruedFunding_Unit_Test is Base_Test {
+    using SafeCast for int256;
+
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -20,17 +25,18 @@ contract Position_GetAccruedFunding_Unit_Test is Base_Test {
 
     function testFuzz_WhenGetAccruedFundingIsCalled(
         uint256 marketId,
-        int256 size,
         int128 fundingFeePerUnit,
-        int128 lastInteractionFundingFeePerUnit
+        int128 lastInteractionFundingFeePerUnit,
+        bool isLong
     )
         external
     {
         changePrank({ msgSender: users.naruto });
 
-        size = int256(bound({ x: size, min: -1e32, max: 1e32 }));
-
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.minTradeSize).intoSD59x18();
+        int128 size = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
 
         Position.Data memory mockPosition = Position.Data({
             size: size,
