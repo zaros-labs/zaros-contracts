@@ -19,32 +19,33 @@ contract Position_GetAccruedFunding_Unit_Test is Base_Test {
     }
 
     function testFuzz_WhenGetAccruedFundingIsCalled(
-        uint256 initialMarginRate,
-        uint256 marginValueUsd,
         uint256 marketId,
-        bool isLong
+        int256 size,
+        int128 fundingFeePerUnit,
+        int128 lastInteractionFundingFeePerUnit
     )
         external
     {
         changePrank({ msgSender: users.naruto });
 
+        size = int256(bound({ x: size, min: -1e32, max: 1e32 }));
+
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        Position.Data memory mockPosition = Position.Data({
+            size: size,
+            lastInteractionPrice: uint128(fuzzMarketConfig.mockUsdPrice),
+            lastInteractionFundingFeePerUnit: lastInteractionFundingFeePerUnit
+        });
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        perpsEngine.exposed_update(tradingAccountId, fuzzMarketConfig.marketId, mockPosition);
 
-        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
-
-        Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
-
-        SD59x18 fundingFeePerUnitX18 = sd59x18(1e18);
-        SD59x18 netFundingFeePerUnit = fundingFeePerUnitX18.sub(sd59x18(position.lastInteractionFundingFeePerUnit));
-        SD59x18 expectedAccruedFundingUsdX18 = sd59x18(position.size).mul(netFundingFeePerUnit);
+        SD59x18 fundingFeePerUnitX18 = sd59x18(fundingFeePerUnit);
+        SD59x18 netFundingFeePerUnit =
+            fundingFeePerUnitX18.sub(sd59x18(mockPosition.lastInteractionFundingFeePerUnit));
+        SD59x18 expectedAccruedFundingUsdX18 = sd59x18(mockPosition.size).mul(netFundingFeePerUnit);
 
         SD59x18 accruedFundingUsdX18 =
             perpsEngine.exposed_getAccruedFunding(tradingAccountId, fuzzMarketConfig.marketId, fundingFeePerUnitX18);
