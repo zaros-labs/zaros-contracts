@@ -41,7 +41,9 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
             )
         });
 
-        perpsEngine.configureMarginCollateral(address(collateralWithNoDecimals), depositCap, loanToValue, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS);
+        perpsEngine.configureMarginCollateral(
+            address(collateralWithNoDecimals), depositCap, loanToValue, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
 
         MockERC20WithZeroDecimals collateralWithZeroDecimals =
             new MockERC20WithZeroDecimals({ name: "Collateral", symbol: "COL", deployerBalance: 100_000_000e18 });
@@ -53,7 +55,9 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
             )
         });
 
-        perpsEngine.configureMarginCollateral(address(collateralWithZeroDecimals), depositCap, loanToValue, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS);
+        perpsEngine.configureMarginCollateral(
+            address(collateralWithZeroDecimals), depositCap, loanToValue, priceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
     }
 
     modifier whenCollateralThatHasDecimals() {
