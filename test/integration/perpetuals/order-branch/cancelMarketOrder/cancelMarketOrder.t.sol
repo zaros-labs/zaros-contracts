@@ -20,7 +20,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_RevertGiven_TheSenderIsNotTheOwnerOfTradingAccount(
+    function test_RevertGiven_TheSenderIsNotTheTradingAccountOwner(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
@@ -49,17 +49,17 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         perpsEngine.cancelMarketOrder(tradingAccountId);
     }
 
-    modifier givenTheSenderIsTheOwnerOfTradingAccount() {
+    modifier givenTheSenderIsTheTradingAccountOwner() {
         _;
     }
 
-    function testFuzz_RevertGiven_TheresNotAMarketOrder(
+    function test_RevertGiven_TheresNoMarketOrder(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
     )
         external
-        givenTheSenderIsTheOwnerOfTradingAccount
+        givenTheSenderIsTheTradingAccountOwner
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -84,7 +84,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         uint256 marketId
     )
         external
-        givenTheSenderIsTheOwnerOfTradingAccount
+        givenTheSenderIsTheTradingAccountOwner
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 

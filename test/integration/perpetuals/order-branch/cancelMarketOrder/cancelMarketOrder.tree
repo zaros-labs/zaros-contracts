@@ -1,8 +1,8 @@
 CancelMarketOrder_Integration_Test
-├── given the sender is not the owner of trading account
+├── given the sender is not the trading account owner
 │   └── it should revert
-└── given the sender is the owner of trading account
-    ├── given there's not a market order
+└── given the sender is the trading account owner
+    ├── given there's no market order
     │   └── it should revert
     └── given there's a market order
         ├── it should cancel the active market order

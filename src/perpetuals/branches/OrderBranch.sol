@@ -214,7 +214,7 @@ contract OrderBranch {
     }
 
     /// @notice Cancels an active market order.
-    /// @dev Reverts if the sender is not the owner of trading account or if there is no active market order for the
+    /// @dev Reverts if the sender is not the trading account or if there is no active market order for the
     /// given account and market.
     /// @param tradingAccountId The trading account id.
     function cancelMarketOrder(uint128 tradingAccountId) external {
