@@ -262,17 +262,16 @@ contract TradingAccountBranch {
             MarginCollateralConfiguration.load(collateralType);
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
-        UD60x18 ud60x18Amount = ud60x18(amount);
+        UD60x18 amountX18 = ud60x18(amount);
 
         UD60x18 depositCapX18 = ud60x18(marginCollateralConfiguration.depositCap);
+        UD60x18 totalCollateralDepositedX18 = ud60x18(marginCollateralConfiguration.totalDeposited);
 
-        UD60x18 marginCollateralBalanceX18 = tradingAccount.getMarginCollateralBalance(collateralType);
-
-        _requireAmountNotZero(ud60x18Amount);
-        _requireEnoughDepositCap(collateralType, ud60x18Amount, depositCapX18, marginCollateralBalanceX18);
+        _requireAmountNotZero(amountX18);
+        _requireEnoughDepositCap(collateralType, amountX18, depositCapX18, totalCollateralDepositedX18);
         _requireCollateralLiquidationPriorityDefined(collateralType);
 
-        tradingAccount.deposit(collateralType, ud60x18Amount);
+        tradingAccount.deposit(collateralType, amountX18);
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 
         emit LogDepositMargin(msg.sender, tradingAccountId, collateralType, amount);
@@ -315,28 +314,29 @@ contract TradingAccountBranch {
         tradingAccount.owner = to;
     }
 
-    /// @dev Reverts if the amount is zero.
+    /// @notice Reverts if the amount is zero.
     function _requireAmountNotZero(UD60x18 amount) internal pure {
         if (amount.isZero()) {
             revert Errors.ZeroInput("amount");
         }
     }
 
-    /// @dev Reverts if the collateral type is not supported.
+    /// @notice Reverts if the deposit cap is exceeded.
     function _requireEnoughDepositCap(
         address collateralType,
         UD60x18 amount,
         UD60x18 depositCap,
-        UD60x18 marginCollateralBalance
+        UD60x18 totalCollateralDeposited
     )
         internal
         pure
     {
-        if (amount.add(marginCollateralBalance).gt(depositCap)) {
+        if (amount.add(totalCollateralDeposited).gt(depositCap)) {
             revert Errors.DepositCap(collateralType, amount.intoUint256(), depositCap.intoUint256());
         }
     }
 
+    /// @notice Reverts if the given collateral type is not in the liquidation priority list.
     function _requireCollateralLiquidationPriorityDefined(address collateralType) internal view {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         bool isInCollateralLiquidationPriority =

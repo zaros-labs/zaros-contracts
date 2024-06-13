@@ -49,7 +49,7 @@ library Errors {
 
     /// @notice PerpsEngine.TradingAccountBranch
 
-    /// @notice Thrown When the provided collateral is not supported.
+    /// @notice Thrown When the provided amount of collateral exceeds the deposit cap.
     error DepositCap(address collateralType, uint256 amount, uint256 depositCap);
     /// @notice Thrown when there's not enough margin collateral to be withdrawn.
     error InsufficientCollateralBalance(uint256 amount, uint256 balance);
