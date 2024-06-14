@@ -23,8 +23,8 @@ contract GetMarginCollateralConfiguration_Integration_Test is Base_Test {
     function test_GivenAValidCollateralAddress() external {
         // it should return the margin collateral configuration
         MarginCollateralConfiguration.Data memory collateralConfiguration =
-            perpsEngine.getMarginCollateralConfiguration(address(wstEthMarginCollateral));
+            perpsEngine.getMarginCollateralConfiguration(address(wstEth));
 
-        assertEq(collateralConfiguration.decimals, ERC20(wstEthMarginCollateral).decimals());
+        assertEq(collateralConfiguration.decimals, ERC20(wstEth).decimals());
     }
 }

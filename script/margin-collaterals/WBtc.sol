@@ -11,5 +11,5 @@ abstract contract WBtc {
     address internal constant WBTC_ADDRESS = address(0xd9433D0E5b5Ae4593ba3880c25046BBC4dC4926C);
     address internal constant WBTC_PRICE_FEED = address(0xd9433D0E5b5Ae4593ba3880c25046BBC4dC4926C);
     uint256 internal constant WBTC_LIQUIDATION_PRIORITY = 4;
-    uint8 internal constant WBTC_DECIMALS = 16;
+    uint8 internal constant WBTC_DECIMALS = 8;
 }

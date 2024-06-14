@@ -30,20 +30,20 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         address newPriceFeed = address(0);
 
         perpsEngine.exposed_configure(
-            address(usdcMarginCollateral), newDepositCap, newLoanToValue, newDecimals, newPriceFeed
+            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed
         );
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralPriceFeedNotDefined.selector) });
 
-        perpsEngine.exposed_getPrice(address(usdcMarginCollateral));
+        perpsEngine.exposed_getPrice(address(usdc));
     }
 
     function test_WhenPriceFeedIsNotZero() external {
-        UD60x18 price = perpsEngine.exposed_getPrice(address(usdcMarginCollateral));
+        UD60x18 price = perpsEngine.exposed_getPrice(address(usdc));
 
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
-            perpsEngine.exposed_MarginCollateral_load(address(usdcMarginCollateral));
+            perpsEngine.exposed_MarginCollateral_load(address(usdc));
 
         uint8 priceFeedDecimals = MockPriceFeed(marginCollateralConfiguration.priceFeed).decimals();
 

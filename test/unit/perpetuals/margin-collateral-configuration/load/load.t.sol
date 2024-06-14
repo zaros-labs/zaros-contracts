@@ -17,7 +17,7 @@ contract MarginCollateralConfiguration_Load_Unit_Test is Base_Test {
 
     function test_WhenLoadIsCalled() external {
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
-            perpsEngine.exposed_MarginCollateral_load(address(usdcMarginCollateral));
+            perpsEngine.exposed_MarginCollateral_load(address(usdc));
 
         // it should return the maximum deposit cap
         assertEq(marginCollateralConfiguration.depositCap, USDC_DEPOSIT_CAP, "invalid deposit cap");

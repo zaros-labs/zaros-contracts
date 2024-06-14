@@ -27,9 +27,9 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
 
         marginValueUsd = bound({ x: marginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
-        deal({ token: address(wstEthMarginCollateral), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(wstEth), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(wstEthMarginCollateral));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(wstEth));
 
         changePrank({ msgSender: address(tradingAccountToken) });
 
@@ -42,10 +42,10 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
 
         // old user cannot withdraw
         changePrank({ msgSender: users.naruto });
-        perpsEngine.withdrawMargin(tradingAccountId, address(wstEthMarginCollateral), marginValueUsd);
+        perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), marginValueUsd);
 
         // new user can withdraw
         changePrank({ msgSender: users.madara });
-        perpsEngine.withdrawMargin(tradingAccountId, address(wstEthMarginCollateral), marginValueUsd);
+        perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), marginValueUsd);
     }
 }

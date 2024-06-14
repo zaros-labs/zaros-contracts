@@ -12,13 +12,13 @@ contract GetAccountMarginCollateralBalance_Integration_Test is Base_Test {
 
     function testFuzz_GetAccountMarginCollateralBalance(uint256 amountToDeposit) external {
         amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
-        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdcMarginCollateral));
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 
         uint256 marginCollateralAmount = perpsEngine.getAccountMarginCollateralBalance({
             tradingAccountId: tradingAccountId,
-            collateralType: address(usdcMarginCollateral)
+            collateralType: address(usdc)
         }).intoUint256();
         assertEq(marginCollateralAmount, amountToDeposit, "getAccountMarginCollateralBalance");
     }

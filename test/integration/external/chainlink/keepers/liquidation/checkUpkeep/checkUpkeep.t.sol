@@ -131,11 +131,11 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
         ctx.checkData =
             abi.encode(ctx.checkLowerBound, ctx.checkUpperBound, ctx.performLowerBound, ctx.performUpperBound);
 
-        deal({ token: address(usdzMarginCollateral), to: users.naruto, give: ctx.marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
 
         for (uint256 i = 0; i < ctx.amountOfTradingAccounts; i++) {
             ctx.accountMarginValueUsd = ctx.marginValueUsd / ctx.amountOfTradingAccounts;
-            ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdzMarginCollateral));
+            ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
 
             openPosition(
                 ctx.fuzzMarketConfig, ctx.tradingAccountId, ctx.initialMarginRate, ctx.accountMarginValueUsd, isLong

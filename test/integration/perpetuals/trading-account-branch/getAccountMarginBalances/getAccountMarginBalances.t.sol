@@ -17,7 +17,7 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
 
     function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit) external {
         amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
-        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
         uint256 expectedMarginBalance = getPrice(
             MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
@@ -25,7 +25,7 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdcMarginCollateral));
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 
         (
             SD59x18 marginBalanceUsdX18,
@@ -54,8 +54,8 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
         amountToDepositWstEth =
             bound({ x: amountToDepositWstEth, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
 
-        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: amountToDepositUsdc });
-        deal({ token: address(wstEthMarginCollateral), to: users.naruto, give: amountToDepositWstEth });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDepositUsdc });
+        deal({ token: address(wstEth), to: users.naruto, give: amountToDepositWstEth });
 
         uint256 expectedMarginBalance = getPrice(
             MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
@@ -68,8 +68,8 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDepositUsdc, address(usdcMarginCollateral));
-        perpsEngine.depositMargin(tradingAccountId, address(wstEthMarginCollateral), amountToDepositWstEth);
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDepositUsdc, address(usdc));
+        perpsEngine.depositMargin(tradingAccountId, address(wstEth), amountToDepositWstEth);
 
         (
             SD59x18 marginBalanceUsdX18,

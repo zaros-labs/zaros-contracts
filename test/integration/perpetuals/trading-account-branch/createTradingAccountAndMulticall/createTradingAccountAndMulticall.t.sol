@@ -15,7 +15,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
     function test_RevertWhen_TheDataArrayProvidesARevertingCall() external {
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSelector(
-            TradingAccountBranch.depositMargin.selector, address(usdcMarginCollateral), uint256(0)
+            TradingAccountBranch.depositMargin.selector, address(usdc), uint256(0)
         );
 
         // it should revert
@@ -62,20 +62,20 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         whenTheDataArrayDoesNotProvideARevertingCall
     {
         amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDC_DEPOSIT_CAP });
-        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSelector(
-            TradingAccountBranch.depositMargin.selector, address(usdcMarginCollateral), amountToDeposit
+            TradingAccountBranch.depositMargin.selector, address(usdc), amountToDeposit
         );
         uint128 expectedAccountId = 1;
 
         // it should transfer the amount from the sender to the trading account
-        expectCallToTransferFrom(usdcMarginCollateral, users.naruto, address(perpsEngine), amountToDeposit);
+        expectCallToTransferFrom(usdc, users.naruto, address(perpsEngine), amountToDeposit);
         bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
 
         uint256 newMarginCollateralBalance = perpsEngine.getAccountMarginCollateralBalance(
-            expectedAccountId, address(usdcMarginCollateral)
+            expectedAccountId, address(usdc)
         ).intoUint256();
 
         // it should increase the amount of margin collateral

@@ -35,11 +35,11 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
         uint256 marginValueUsd = 1_000_000e18 / amountOfTradingAccounts;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
-        deal({ token: address(usdzMarginCollateral), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
 
         for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
             uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
-            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdzMarginCollateral));
+            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdz));
             openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
         }
 
@@ -67,11 +67,11 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
         uint256 marginValueUsd = 10_000e18 / amountOfTradingAccounts;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
-        deal({ token: address(usdzMarginCollateral), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
 
         for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
             uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
-            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdzMarginCollateral));
+            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdz));
 
             openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
         }

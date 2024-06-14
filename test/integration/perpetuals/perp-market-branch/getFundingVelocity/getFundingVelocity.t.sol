@@ -38,10 +38,10 @@ contract GetFundingVelocity_Integration_Test is Base_Test {
         marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
         timeElapsed = bound({ x: timeElapsed, min: 1 seconds, max: 365 days });
 
-        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
         uint256 initialMarginRate = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.001e18)).intoUint256();
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdcMarginCollateral));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
         openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
 

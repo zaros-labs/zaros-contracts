@@ -24,11 +24,11 @@ contract MarginCollateralConfiguration_Configure_Test is Base_Test {
         external
     {
         perpsEngine.exposed_configure(
-            address(usdcMarginCollateral), newDepositCap, newLoanToValue, newDecimals, newPriceFeed
+            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed
         );
 
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
-            perpsEngine.exposed_MarginCollateral_load(address(usdcMarginCollateral));
+            perpsEngine.exposed_MarginCollateral_load(address(usdc));
 
         // it should update the maximum deposit cap
         assertEq(marginCollateralConfiguration.depositCap, newDepositCap, "invalid deposit cap");

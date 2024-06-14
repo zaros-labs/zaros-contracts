@@ -28,7 +28,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, tradingAccountId, users.naruto)
         });
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdcMarginCollateral), 0);
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdc), 0);
     }
 
     modifier givenTheAccountExists() {
@@ -48,16 +48,16 @@ contract WithdrawMargin_Integration_Test is Base_Test {
     {
         amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
         amountToWithdraw = bound({ x: amountToWithdraw, min: USDC_MIN_DEPOSIT_MARGIN, max: amountToDeposit });
-        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdcMarginCollateral));
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
         changePrank({ msgSender: users.sasuke });
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, tradingAccountId, users.sasuke)
         });
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdcMarginCollateral), amountToWithdraw);
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdc), amountToWithdraw);
     }
 
     modifier givenTheSenderIsAuthorized() {
@@ -70,13 +70,13 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         givenTheSenderIsAuthorized
     {
         amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
-        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdcMarginCollateral));
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdcMarginCollateral), 0);
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdc), 0);
     }
 
     modifier whenTheAmountIsNotZero() {
@@ -95,10 +95,10 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
         vm.assume(amountToWithdraw > amountToDeposit);
         uint256 expectedMarginCollateralBalance =
-            convertTokenAmountToUd60x18(address(wstEthMarginCollateral), amountToDeposit).intoUint256();
-        deal({ token: address(wstEthMarginCollateral), to: users.naruto, give: amountToDeposit });
+            convertTokenAmountToUd60x18(address(wstEth), amountToDeposit).intoUint256();
+        deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
 
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEthMarginCollateral));
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
 
         // it should revert
         vm.expectRevert({
@@ -106,7 +106,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
                 Errors.InsufficientCollateralBalance.selector, amountToWithdraw, expectedMarginCollateralBalance
             )
         });
-        perpsEngine.withdrawMargin(tradingAccountId, address(wstEthMarginCollateral), amountToWithdraw);
+        perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
     }
 
     modifier givenThereIsEnoughMarginCollateral() {
@@ -152,9 +152,9 @@ contract WithdrawMargin_Integration_Test is Base_Test {
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: ctx.maxMarginValueUsd.intoUint256() });
         ctx.amountToWithdraw = marginValueUsd;
 
-        deal({ token: address(usdzMarginCollateral), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
 
-        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdzMarginCollateral));
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: ctx.tradingAccountId,
@@ -217,7 +217,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
         perpsEngine.withdrawMargin({
             tradingAccountId: ctx.tradingAccountId,
-            collateralType: address(usdzMarginCollateral),
+            collateralType: address(usdz),
             amount: ctx.amountToWithdraw
         });
     }
@@ -234,23 +234,23 @@ contract WithdrawMargin_Integration_Test is Base_Test {
     {
         amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
-        deal({ token: address(wstEthMarginCollateral), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
 
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEthMarginCollateral));
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
 
         // it should emit a {LogWithdrawMargin} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit TradingAccountBranch.LogWithdrawMargin(
-            users.naruto, tradingAccountId, address(wstEthMarginCollateral), amountToWithdraw
+            users.naruto, tradingAccountId, address(wstEth), amountToWithdraw
         );
 
         // it should transfer the withdrawn amount to the sender
-        expectCallToTransfer(wstEthMarginCollateral, users.naruto, amountToWithdraw);
-        perpsEngine.withdrawMargin(tradingAccountId, address(wstEthMarginCollateral), amountToWithdraw);
+        expectCallToTransfer(wstEth, users.naruto, amountToWithdraw);
+        perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
 
         uint256 expectedMargin = amountToDeposit - amountToWithdraw;
         uint256 newMarginCollateralBalance = perpsEngine.getAccountMarginCollateralBalance(
-            tradingAccountId, address(wstEthMarginCollateral)
+            tradingAccountId, address(wstEth)
         ).intoUint256();
 
         // it should decrease the margin collateral balance

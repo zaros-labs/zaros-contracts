@@ -96,10 +96,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     AccountNFT internal tradingAccountToken;
 
-    MockUSDToken internal usdcMarginCollateral;
-    MockUSDToken internal usdzMarginCollateral;
-    MockERC20 internal wstEthMarginCollateral;
-    MockERC20 internal weEthMarginCollateral;
+    MockUSDToken internal usdc;
+    MockUSDToken internal usdz;
+    MockERC20 internal wstEth;
+    MockERC20 internal weEth;
+    MockERC20 internal wEth;
+    MockERC20 internal wBtc;
 
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
@@ -150,17 +152,19 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, true, users.owner);
 
-        usdcMarginCollateral = MockUSDToken(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
-        usdzMarginCollateral = MockUSDToken(marginCollaterals[USDZ_MARGIN_COLLATERAL_ID].marginCollateralAddress);
-        weEthMarginCollateral = MockERC20(marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
-        wstEthMarginCollateral = MockERC20(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        usdc = MockUSDToken(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        usdz = MockUSDToken(marginCollaterals[USDZ_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        weEth = MockERC20(marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        wstEth = MockERC20(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        wEth = MockERC20(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        wBtc = MockERC20(marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
 
-        perpsEngine.setUsdToken(address(usdzMarginCollateral));
+        perpsEngine.setUsdToken(address(usdz));
 
         configureContracts();
 
         vm.label({ account: address(tradingAccountToken), newLabel: "Trading Account NFT" });
-        vm.label({ account: address(usdzMarginCollateral), newLabel: "Zaros USD" });
+        vm.label({ account: address(usdz), newLabel: "Zaros USD" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
         approveContracts();
@@ -228,7 +232,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         // TODO: Temporary, switch to liquidity engine
-        usdzMarginCollateral.transferOwnership(address(perpsEngine));
+        usdz.transferOwnership(address(perpsEngine));
     }
 
     function configureLiquidationKeepers() internal {
@@ -489,7 +493,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     {
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        deal({ token: address(usdzMarginCollateral), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
 
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
