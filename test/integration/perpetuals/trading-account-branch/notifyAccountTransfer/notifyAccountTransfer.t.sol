@@ -26,10 +26,10 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
     function testFuzz_GivenTheSenderIsTheAccountNftContract(uint256 marginValueUsd) external {
         changePrank({ msgSender: users.naruto });
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        marginValueUsd = bound({ x: marginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        deal({ token: address(wstEthMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(wstEthMarginCollateral));
 
         changePrank({ msgSender: address(tradingAccountToken) });
 
@@ -42,10 +42,10 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
 
         // old user cannot withdraw
         changePrank({ msgSender: users.naruto });
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), marginValueUsd);
+        perpsEngine.withdrawMargin(tradingAccountId, address(wstEthMarginCollateral), marginValueUsd);
 
         // new user can withdraw
         changePrank({ msgSender: users.madara });
-        perpsEngine.withdrawMargin(tradingAccountId, address(usdToken), marginValueUsd);
+        perpsEngine.withdrawMargin(tradingAccountId, address(wstEthMarginCollateral), marginValueUsd);
     }
 }

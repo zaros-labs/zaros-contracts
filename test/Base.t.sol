@@ -89,17 +89,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal mockChainlinkVerifier;
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
-    uint128 internal constant MOCK_USD_10_DECIMALS_DEPOSIT_CAP = 50_000_000_000e10;
-    uint120 internal constant MOCK_USD_10_DECIMALS_LOAN_TO_VALUE = 1e10;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
     AccountNFT internal tradingAccountToken;
-    MockERC20 internal mockWstEth;
-    MockERC20 internal mockUsdWith10Decimals;
-    MockUSDToken internal usdToken;
+
+    MockUSDToken internal usdcMarginCollateral;
+    MockUSDToken internal usdzMarginCollateral;
+    MockERC20 internal wstEthMarginCollateral;
+    MockERC20 internal weEthMarginCollateral;
+
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
 
@@ -124,33 +125,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.startPrank({ msgSender: users.owner });
 
         tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
-        usdToken = new MockUSDToken({ owner: users.owner, deployerBalance: 100_000_000e18 });
-        mockWstEth = new MockERC20({
-            name: "Wrapped Staked Ether",
-            symbol: "wstETH",
-            decimals_: 18,
-            deployerBalance: 100_000_000e18
-        });
-        mockUsdWith10Decimals = new MockERC20({
-            name: "Mock With 10 Decimals",
-            symbol: "10D",
-            decimals_: 10,
-            deployerBalance: 100_000_000e10
-        });
-
-        MockPriceFeed mockBtcUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_BTC_USD_PRICE));
-        MockPriceFeed mockEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_ETH_USD_PRICE));
-        MockPriceFeed mockLinkUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_LINK_USD_PRICE));
-        MockPriceFeed mockUsdcUsdPriceAdapter = new MockPriceFeed(6, int256(MOCK_USDC_USD_PRICE));
-        MockPriceFeed mockWstEthUsdPriceAdapter = new MockPriceFeed(18, int256(MOCK_WSTETH_USD_PRICE));
-
-        mockPriceAdapters = MockPriceAdapters({
-            mockBtcUsdPriceAdapter: mockBtcUsdPriceAdapter,
-            mockEthUsdPriceAdapter: mockEthUsdPriceAdapter,
-            mockLinkUsdPriceAdapter: mockLinkUsdPriceAdapter,
-            mockUsdcUsdPriceAdapter: mockUsdcUsdPriceAdapter,
-            mockWstEthUsdPriceAdapter: mockWstEthUsdPriceAdapter
-        });
 
         bool isTestnet = false;
         address[] memory branches = deployBranches(isTestnet);
@@ -159,7 +133,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches);
         bytes[] memory initializePayloads =
-            getInitializePayloads(users.owner, address(tradingAccountToken), address(usdToken));
+            getInitializePayloads(users.owner, address(tradingAccountToken), address(0));
 
         branchUpgrades = deployHarnesses(branchUpgrades);
 
@@ -170,10 +144,23 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
 
+        uint256[2] memory marginCollateralIdsRange;
+        marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;
+        marginCollateralIdsRange[1] = FINAL_MARGIN_COLLATERAL_ID;
+
+        configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, true, users.owner);
+
+        usdcMarginCollateral = MockUSDToken(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        usdzMarginCollateral = MockUSDToken(marginCollaterals[USDZ_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        weEthMarginCollateral = MockERC20(marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        wstEthMarginCollateral = MockERC20(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+
+        perpsEngine.setUsdToken(address(usdzMarginCollateral));
+
         configureContracts();
 
         vm.label({ account: address(tradingAccountToken), newLabel: "Trading Account NFT" });
-        vm.label({ account: address(usdToken), newLabel: "Zaros USD" });
+        vm.label({ account: address(usdzMarginCollateral), newLabel: "Zaros USD" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
         approveContracts();
@@ -208,27 +195,32 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
-        changePrank({ msgSender: users.naruto });
-        usdToken.approve({ spender: address(perpsEngine), value: type(uint256).max });
-        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
-        mockUsdWith10Decimals.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+        for (uint256 i = INITIAL_MARGIN_COLLATERAL_ID; i <= FINAL_MARGIN_COLLATERAL_ID; i++) {
+            changePrank({ msgSender: users.naruto });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(perpsEngine),
+                value: uMAX_UD60x18
+            });
 
-        changePrank({ msgSender: users.sasuke });
-        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
-        mockUsdWith10Decimals.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+            changePrank({ msgSender: users.sasuke });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(perpsEngine),
+                value: uMAX_UD60x18
+            });
 
-        changePrank({ msgSender: users.sakura });
-        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
-        mockUsdWith10Decimals.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+            changePrank({ msgSender: users.sakura });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(perpsEngine),
+                value: uMAX_UD60x18
+            });
 
-        changePrank({ msgSender: users.madara });
-        usdToken.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
-        mockWstEth.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
-        mockUsdWith10Decimals.approve({ spender: address(perpsEngine), value: uMAX_UD60x18 });
+            changePrank({ msgSender: users.madara });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(perpsEngine),
+                value: uMAX_UD60x18
+            });
+        }
 
-        // Finally, change the active prank back to the Admin.
         changePrank({ msgSender: users.owner });
     }
 
@@ -236,33 +228,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         // TODO: Temporary, switch to liquidity engine
-        usdToken.transferOwnership(address(perpsEngine));
-
-        perpsEngine.configureMarginCollateral(
-            address(usdToken),
-            USDZ_DEPOSIT_CAP,
-            USDZ_LOAN_TO_VALUE,
-            address(mockPriceAdapters.mockUsdcUsdPriceAdapter)
-        );
-        perpsEngine.configureMarginCollateral(
-            address(mockWstEth),
-            WSTETH_DEPOSIT_CAP,
-            WSTETH_LOAN_TO_VALUE,
-            address(mockPriceAdapters.mockWstEthUsdPriceAdapter)
-        );
-        perpsEngine.configureMarginCollateral(
-            address(mockUsdWith10Decimals),
-            MOCK_USD_10_DECIMALS_DEPOSIT_CAP,
-            MOCK_USD_10_DECIMALS_LOAN_TO_VALUE,
-            address(mockPriceAdapters.mockUsdcUsdPriceAdapter)
-        );
-
-        address[] memory collateralLiquidationPriority = new address[](3);
-        collateralLiquidationPriority[0] = address(usdToken);
-        collateralLiquidationPriority[1] = address(mockWstEth);
-        collateralLiquidationPriority[2] = address(mockUsdWith10Decimals);
-
-        perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
+        usdzMarginCollateral.transferOwnership(address(perpsEngine));
     }
 
     function configureLiquidationKeepers() internal {
@@ -523,7 +489,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     {
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdzMarginCollateral), to: users.naruto, give: marginValueUsd });
 
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({

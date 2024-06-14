@@ -35,7 +35,7 @@ contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Test {
     function test_RevertWhen_CollateralHasAlreadyBeenRemoved() external givenCollateralAddressIsNotZero {
         changePrank({ msgSender: users.owner });
 
-        address collateral = address(usdToken);
+        address collateral = address(usdcMarginCollateral);
 
         perpsEngine.removeCollateralFromLiquidationPriority(collateral);
 
@@ -50,7 +50,7 @@ contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Test {
     function test_WhenCollateralHasNotYetRemoved() external givenCollateralAddressIsNotZero {
         changePrank({ msgSender: users.owner });
 
-        address collateral = address(usdToken);
+        address collateral = address(usdcMarginCollateral);
 
         // it should emit {LogRemoveCollateralFromLiquidationPriority} event
         vm.expectEmit({ emitter: address(perpsEngine) });

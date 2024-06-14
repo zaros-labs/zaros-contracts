@@ -9,6 +9,13 @@ import { WBtc } from "script/margin-collaterals/WBtc.sol";
 import { WstEth } from "script/margin-collaterals/WstEth.sol";
 import { WeEth } from "script/margin-collaterals/WeEth.sol";
 
+// Zaros dependencies
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { MockERC20 } from "test/mocks/MockERC20.sol";
+import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
+import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+
 contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     struct MarginCollateral {
         uint256 marginCollateralId;
@@ -19,6 +26,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         address marginCollateralAddress;
         address priceFeed;
         uint256 liquidationPriority;
+        uint8 tokenDecimals;
     }
 
     mapping(uint256 marginCollateralId => MarginCollateral marginCollateral) internal marginCollaterals;
@@ -32,7 +40,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_USDC_USD_PRICE,
             marginCollateralAddress: USDC_ADDRESS,
             priceFeed: USDC_PRICE_FEED,
-            liquidationPriority: USDC_LIQUIDATION_PRIORITY
+            liquidationPriority: USDC_LIQUIDATION_PRIORITY,
+            tokenDecimals: USDC_DECIMALS
         });
         marginCollaterals[USDC_MARGIN_COLLATERAL_ID] = usdcConfig;
 
@@ -44,7 +53,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_USDZ_USD_PRICE,
             marginCollateralAddress: USDZ_ADDRESS,
             priceFeed: USDZ_PRICE_FEED,
-            liquidationPriority: USDZ_LIQUIDATION_PRIORITY
+            liquidationPriority: USDZ_LIQUIDATION_PRIORITY,
+            tokenDecimals: USDZ_DECIMALS
         });
         marginCollaterals[USDZ_MARGIN_COLLATERAL_ID] = usdzConfig;
 
@@ -56,7 +66,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_WETH_USD_PRICE,
             marginCollateralAddress: WETH_ADDRESS,
             priceFeed: WETH_PRICE_FEED,
-            liquidationPriority: WETH_LIQUIDATION_PRIORITY
+            liquidationPriority: WETH_LIQUIDATION_PRIORITY,
+            tokenDecimals: WETH_DECIMALS
         });
         marginCollaterals[WETH_MARGIN_COLLATERAL_ID] = wEth;
 
@@ -68,7 +79,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_WBTC_USD_PRICE,
             marginCollateralAddress: WBTC_ADDRESS,
             priceFeed: WBTC_PRICE_FEED,
-            liquidationPriority: WBTC_LIQUIDATION_PRIORITY
+            liquidationPriority: WBTC_LIQUIDATION_PRIORITY,
+            tokenDecimals: WBTC_DECIMALS
         });
         marginCollaterals[WBTC_MARGIN_COLLATERAL_ID] = wBtc;
 
@@ -80,7 +92,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_WSTETH_USD_PRICE,
             marginCollateralAddress: WSTETH_ADDRESS,
             priceFeed: WSTETH_PRICE_FEED,
-            liquidationPriority: WSTETH_LIQUIDATION_PRIORITY
+            liquidationPriority: WSTETH_LIQUIDATION_PRIORITY,
+            tokenDecimals: WSTETH_DECIMALS
         });
         marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID] = wstEth;
 
@@ -92,7 +105,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_WEETH_USD_PRICE,
             marginCollateralAddress: WEETH_ADDRESS,
             priceFeed: WEETH_PRICE_FEED,
-            liquidationPriority: WEETH_LIQUIDATION_PRIORITY
+            liquidationPriority: WEETH_LIQUIDATION_PRIORITY,
+            tokenDecimals: WEETH_DECIMALS
         });
         marginCollaterals[WEETH_MARGIN_COLLATERAL_ID] = weEth;
     }
@@ -115,5 +129,72 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         }
 
         return filteredMarginCollateralsConfig;
+    }
+
+    function configureMarginCollaterals(
+        IPerpsEngine perpsEngine,
+        uint256[2] memory marginCollateralIdsRange,
+        bool isTestnet,
+        address owner
+    )
+        internal
+    {
+        setupMarginCollaterals();
+
+        MarginCollateral[] memory filteredMarginCollateralsConfig =
+            getFilteredMarginCollateralsConfig(marginCollateralIdsRange);
+
+        address[] memory collateralLiquidationPriority = new address[](filteredMarginCollateralsConfig.length);
+
+        for (uint256 i = 0; i < filteredMarginCollateralsConfig.length; i++) {
+            uint256 indexLiquidationPriority = filteredMarginCollateralsConfig[i].liquidationPriority - 1;
+
+            address marginCollateralAddress;
+            address priceFeed;
+            address mockERC20;
+
+            if (isTestnet) {
+                if (filteredMarginCollateralsConfig[i].marginCollateralId == USDZ_MARGIN_COLLATERAL_ID) {
+                    mockERC20 = address(new MockUSDToken({ owner: owner, deployerBalance: 100_000_000e18 }));
+                } else {
+                    mockERC20 = address(
+                        new MockERC20({
+                            name: "Collateral",
+                            symbol: "COL",
+                            decimals_: filteredMarginCollateralsConfig[i].tokenDecimals,
+                            deployerBalance: filteredMarginCollateralsConfig[i].minDepositMargin
+                        })
+                    );
+                }
+
+                marginCollateralAddress = address(mockERC20);
+
+                MockPriceFeed mockPriceFeed = new MockPriceFeed(
+                    filteredMarginCollateralsConfig[i].tokenDecimals,
+                    int256(filteredMarginCollateralsConfig[i].mockUsdPrice)
+                );
+
+                priceFeed = address(mockPriceFeed);
+
+                marginCollaterals[filteredMarginCollateralsConfig[i].marginCollateralId].marginCollateralAddress =
+                    marginCollateralAddress;
+                filteredMarginCollateralsConfig[i].marginCollateralAddress = marginCollateralAddress;
+
+                marginCollaterals[filteredMarginCollateralsConfig[i].marginCollateralId].priceFeed = priceFeed;
+                filteredMarginCollateralsConfig[i].priceFeed = priceFeed;
+            }
+
+            collateralLiquidationPriority[indexLiquidationPriority] =
+                filteredMarginCollateralsConfig[i].marginCollateralAddress;
+
+            perpsEngine.configureMarginCollateral(
+                filteredMarginCollateralsConfig[i].marginCollateralAddress,
+                filteredMarginCollateralsConfig[i].depositCap,
+                filteredMarginCollateralsConfig[i].loanToValue,
+                filteredMarginCollateralsConfig[i].priceFeed
+            );
+        }
+
+        perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
     }
 }

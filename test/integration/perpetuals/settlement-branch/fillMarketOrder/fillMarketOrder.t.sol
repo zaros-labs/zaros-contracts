@@ -44,11 +44,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdcMarginCollateral));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -96,11 +96,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         givenTheMarketOrderExists
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdcMarginCollateral));
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
@@ -128,11 +128,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdcMarginCollateral));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -189,11 +189,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdcMarginCollateral));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -266,11 +266,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdcMarginCollateral));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -352,11 +352,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory wrongMarketConfig = getFilteredMarketsConfig(marketsIdsRange)[0];
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdcMarginCollateral));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -425,9 +425,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         marginValueUsd =
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdzMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdzMarginCollateral));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -511,11 +511,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdcMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdcMarginCollateral));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -630,9 +630,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.priceShiftBps = ctx.adjustedMarginRequirements / priceShiftRatio;
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdzMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdzMarginCollateral));
 
         ctx.firstOrderSizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -680,9 +680,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
-        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdzMarginCollateral, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(
-            usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUD60x18().intoUint256()
+            usdzMarginCollateral, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUD60x18().intoUint256()
         );
         emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
@@ -809,12 +809,14 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
-        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdzMarginCollateral, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(
-            usdToken, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUD60x18().intoUint256()
+            usdzMarginCollateral,
+            feeRecipients.orderFeeRecipient,
+            ctx.secondOrderFeeUsdX18.intoUD60x18().intoUint256()
         );
         expectCallToTransfer(
-            usdToken,
+            usdzMarginCollateral,
             feeRecipients.marginCollateralRecipient,
             ctx.secondOrderExpectedPriceShiftPnlX18.abs().intoUD60x18().intoUint256()
         );
@@ -963,9 +965,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdzMarginCollateral), to: users.naruto, give: marginValueUsd });
 
-        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdzMarginCollateral));
 
         ctx.firstOrderSizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -1013,9 +1015,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
-        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdzMarginCollateral, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(
-            usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUD60x18().intoUint256()
+            usdzMarginCollateral, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUD60x18().intoUint256()
         );
         emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
