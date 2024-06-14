@@ -96,7 +96,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     AccountNFT internal tradingAccountToken;
 
-    MockUSDToken internal usdc;
+    MockERC20 internal usdc;
     MockUSDToken internal usdz;
     MockERC20 internal wstEth;
     MockERC20 internal weEth;
@@ -152,7 +152,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, true, users.owner);
 
-        usdc = MockUSDToken(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        usdc = MockERC20(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         usdz = MockUSDToken(marginCollaterals[USDZ_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         weEth = MockERC20(marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         wstEth = MockERC20(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);

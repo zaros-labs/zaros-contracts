@@ -29,9 +29,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     {
         address newPriceFeed = address(0);
 
-        perpsEngine.exposed_configure(
-            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed
-        );
+        perpsEngine.exposed_configure(address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralPriceFeedNotDefined.selector) });

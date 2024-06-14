@@ -20,8 +20,7 @@ contract MarginCollateralConfiguration_ConvertUd60x18ToTokenAmount_Test is Base_
     }
 
     function testFuzz_WhenMarginCollateralDecimalsIsEqualToSystemDecimals(uint256 expectedValue) external {
-        uint256 value =
-            perpsEngine.exposed_convertUd60x18ToTokenAmount(address(wstEth), ud60x18(expectedValue));
+        uint256 value = perpsEngine.exposed_convertUd60x18ToTokenAmount(address(wstEth), ud60x18(expectedValue));
 
         // it should return the amount to uint256
         assertEq(value, expectedValue, "value is not correct");
@@ -39,14 +38,11 @@ contract MarginCollateralConfiguration_ConvertUd60x18ToTokenAmount_Test is Base_
 
         vm.assume(newDecimals < Constants.SYSTEM_DECIMALS && newDecimals > 0);
 
-        perpsEngine.exposed_configure(
-            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed
-        );
+        perpsEngine.exposed_configure(address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed);
 
         uint256 expectedValue = ((amount) / 10 ** (Constants.SYSTEM_DECIMALS - newDecimals));
 
-        uint256 value =
-            perpsEngine.exposed_convertUd60x18ToTokenAmount(address(usdc), ud60x18(amount));
+        uint256 value = perpsEngine.exposed_convertUd60x18ToTokenAmount(address(usdc), ud60x18(amount));
 
         // it should return the amount raised to the decimals of the system minus the decimals of the margin
         // collateral to uint256

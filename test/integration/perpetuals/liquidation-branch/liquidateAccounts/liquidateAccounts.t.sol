@@ -141,8 +141,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
         setAccountsAsLiquidatable(ctx.fuzzMarketConfig, isLong);
 
-        ctx.nonLiquidatableTradingAccountId =
-            createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
+        ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
         ctx.accountsIds[amountOfTradingAccounts] = ctx.nonLiquidatableTradingAccountId;
 
         changePrank({ msgSender: liquidationKeeper });

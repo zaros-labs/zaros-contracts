@@ -50,8 +50,7 @@ contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Test {
         }
         setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
 
-        uint128 nonLiquidatableTradingAccountId =
-            createAccountAndDeposit(accountMarginValueUsd, address(usdz));
+        uint128 nonLiquidatableTradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdz));
         accountsIds[amountOfTradingAccounts] = nonLiquidatableTradingAccountId;
 
         changePrank({ msgSender: users.owner });

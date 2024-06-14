@@ -240,18 +240,15 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         // it should emit a {LogWithdrawMargin} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogWithdrawMargin(
-            users.naruto, tradingAccountId, address(wstEth), amountToWithdraw
-        );
+        emit TradingAccountBranch.LogWithdrawMargin(users.naruto, tradingAccountId, address(wstEth), amountToWithdraw);
 
         // it should transfer the withdrawn amount to the sender
         expectCallToTransfer(wstEth, users.naruto, amountToWithdraw);
         perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
 
         uint256 expectedMargin = amountToDeposit - amountToWithdraw;
-        uint256 newMarginCollateralBalance = perpsEngine.getAccountMarginCollateralBalance(
-            tradingAccountId, address(wstEth)
-        ).intoUint256();
+        uint256 newMarginCollateralBalance =
+            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth)).intoUint256();
 
         // it should decrease the margin collateral balance
         assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");

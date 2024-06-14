@@ -811,9 +811,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(
-            usdz,
-            feeRecipients.orderFeeRecipient,
-            ctx.secondOrderFeeUsdX18.intoUD60x18().intoUint256()
+            usdz, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUD60x18().intoUint256()
         );
         expectCallToTransfer(
             usdz,
