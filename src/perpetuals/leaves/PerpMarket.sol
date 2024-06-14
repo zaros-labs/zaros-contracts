@@ -236,13 +236,14 @@ library PerpMarket {
         newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
             newPositionSize.abs().intoUD60x18()
         );
-        newSkew = sd59x18(self.skew).add(sizeDelta);
 
         if (newOpenInterest.gt(maxOpenInterest)) {
             revert Errors.ExceedsOpenInterestLimit(
                 self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
             );
         }
+
+        newSkew = sd59x18(self.skew).add(sizeDelta);
 
         if (shouldCheckMaxSkew && newSkew.abs().gt(ud60x18(self.configuration.maxSkew).intoSD59x18())) {
             bool isReducingSkew = sd59x18(self.skew).abs().gt(newSkew.abs());

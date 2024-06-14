@@ -34,6 +34,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Emitted when the account token address is set.
     event LogSetTradingAccountToken(address indexed sender, address indexed tradingAccountToken);
 
+    /// @notice Emitted when the usd token address is set.
+    event LogSetUsdToken(address indexed sender, address indexed usdToken);
+
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
     /// @param collateralTypes The array of collateral type addresses, ordered by priority.
@@ -153,6 +156,19 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         globalConfiguration.tradingAccountToken = tradingAccountToken;
 
         emit LogSetTradingAccountToken(msg.sender, tradingAccountToken);
+    }
+
+    /// @notice Sets the address of the usd token.
+    /// @param usdToken The token address.
+    function setUsdToken(address usdToken) external onlyOwner {
+        if (usdToken == address(0)) {
+            revert Errors.ZeroInput("usdToken");
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.usdToken = usdToken;
+
+        emit LogSetUsdToken(msg.sender, usdToken);
     }
 
     /// @notice Configures the collateral priority.

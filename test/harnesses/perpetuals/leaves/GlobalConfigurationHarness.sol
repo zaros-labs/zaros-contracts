@@ -29,6 +29,12 @@ contract GlobalConfigurationHarness {
         return self.tradingAccountToken;
     }
 
+    function workaround_getUsdToken() external view returns (address) {
+        GlobalConfiguration.Data storage self = GlobalConfiguration.load();
+
+        return self.usdToken;
+    }
+
     function workaround_getAccountIdWithActivePositions(uint128 index) external view returns (uint128) {
         GlobalConfiguration.Data storage self = GlobalConfiguration.load();
 
