@@ -14,7 +14,9 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
 
     function test_RevertWhen_TheDataArrayProvidesARevertingCall() external {
         bytes[] memory data = new bytes[](1);
-        data[0] = abi.encodeWithSelector(TradingAccountBranch.depositMargin.selector, address(usdToken), uint256(0));
+        data[0] = abi.encodeWithSelector(
+            TradingAccountBranch.depositMargin.selector, address(usdc), uint256(0)
+        );
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
@@ -59,20 +61,22 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         external
         whenTheDataArrayDoesNotProvideARevertingCall
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDC_DEPOSIT_CAP });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
         bytes[] memory data = new bytes[](1);
-        data[0] =
-            abi.encodeWithSelector(TradingAccountBranch.depositMargin.selector, address(usdToken), amountToDeposit);
+        data[0] = abi.encodeWithSelector(
+            TradingAccountBranch.depositMargin.selector, address(usdc), amountToDeposit
+        );
         uint128 expectedAccountId = 1;
 
         // it should transfer the amount from the sender to the trading account
-        expectCallToTransferFrom(usdToken, users.naruto, address(perpsEngine), amountToDeposit);
+        expectCallToTransferFrom(usdc, users.naruto, address(perpsEngine), amountToDeposit);
         bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
 
-        uint256 newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdToken)).intoUint256();
+        uint256 newMarginCollateralBalance = perpsEngine.getAccountMarginCollateralBalance(
+            expectedAccountId, address(usdc)
+        ).intoUint256();
 
         // it should increase the amount of margin collateral
         assertEq(results.length, 1, "createTradingAccountAndMulticall: results");

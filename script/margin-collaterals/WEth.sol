@@ -11,4 +11,5 @@ abstract contract WEth {
     address internal constant WETH_ADDRESS = address(0xd9433D0E5b5Ae4593ba3880c25046BBC4dC4926C);
     address internal constant WETH_PRICE_FEED = address(0xd9433D0E5b5Ae4593ba3880c25046BBC4dC4926C);
     uint256 internal constant WETH_LIQUIDATION_PRIORITY = 3;
+    uint8 internal constant WETH_DECIMALS = 18;
 }
