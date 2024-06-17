@@ -138,7 +138,7 @@ contract LiquidationBranch {
                 Position.Data storage position = Position.load(ctx.tradingAccountId, ctx.marketId);
 
                 ctx.oldPositionSizeX18 = sd59x18(position.size);
-                ctx.liquidationSizeX18 = unary(ctx.oldPositionSizeX18);
+                ctx.liquidationSizeX18 = -ctx.oldPositionSizeX18;
 
                 ctx.markPriceX18 = perpMarket.getMarkPrice(ctx.liquidationSizeX18, perpMarket.getIndexPrice());
 
