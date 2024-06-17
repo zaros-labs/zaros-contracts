@@ -85,7 +85,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 15 : 12);
+    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 16 : 13);
 
     globalConfigurationBranchSelectors[0] = GlobalConfigurationBranch.getAccountsWithActivePositions.selector;
     globalConfigurationBranchSelectors[1] = GlobalConfigurationBranch.getMarginCollateralConfiguration.selector;
@@ -99,12 +99,13 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationBranchSelectors[9] = GlobalConfigurationBranch.updatePerpMarketConfiguration.selector;
     globalConfigurationBranchSelectors[10] = GlobalConfigurationBranch.updatePerpMarketStatus.selector;
     globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
+    globalConfigurationBranchSelectors[12] = GlobalConfigurationBranch.setUsdToken.selector;
 
     if (isTestnet) {
-        globalConfigurationBranchSelectors[12] =
+        globalConfigurationBranchSelectors[13] =
             GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
-        globalConfigurationBranchSelectors[13] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
-        globalConfigurationBranchSelectors[14] = GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
+        globalConfigurationBranchSelectors[14] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
+        globalConfigurationBranchSelectors[15] = GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
     }
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
@@ -291,7 +292,7 @@ function deployAddressHarnesses() returns (address[] memory) {
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](9);
+    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](10);
     globalConfigurationHarnessSelectors[0] = GlobalConfigurationHarness.exposed_checkMarketIsEnabled.selector;
     globalConfigurationHarnessSelectors[1] = GlobalConfigurationHarness.exposed_addMarket.selector;
     globalConfigurationHarnessSelectors[2] = GlobalConfigurationHarness.exposed_removeMarket.selector;
@@ -304,7 +305,8 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     globalConfigurationHarnessSelectors[6] =
         GlobalConfigurationHarness.workaround_getAccountsIdsWithActivePositionsLength.selector;
     globalConfigurationHarnessSelectors[7] = GlobalConfigurationHarness.workaround_getTradingAccountToken.selector;
-    globalConfigurationHarnessSelectors[8] =
+    globalConfigurationHarnessSelectors[8] = GlobalConfigurationHarness.workaround_getUsdToken.selector;
+    globalConfigurationHarnessSelectors[9] =
         GlobalConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](5);
@@ -343,7 +345,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     perpMarketHarnessSelectors[12] = PerpMarketHarness.exposed_updateOpenInterest.selector;
     perpMarketHarnessSelectors[13] = PerpMarketHarness.exposed_create.selector;
 
-    bytes4[] memory positionHarnessSelectors = new bytes4[](7);
+    bytes4[] memory positionHarnessSelectors = new bytes4[](8);
     positionHarnessSelectors[0] = PositionHarness.exposed_Position_load.selector;
     positionHarnessSelectors[1] = PositionHarness.exposed_getState.selector;
     positionHarnessSelectors[2] = PositionHarness.exposed_update.selector;
@@ -351,6 +353,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     positionHarnessSelectors[4] = PositionHarness.exposed_getAccruedFunding.selector;
     positionHarnessSelectors[5] = PositionHarness.exposed_getMarginRequirements.selector;
     positionHarnessSelectors[6] = PositionHarness.exposed_getNotionalValue.selector;
+    positionHarnessSelectors[7] = PositionHarness.exposed_getUnrealizedPnl.selector;
 
     bytes4[] memory settlementConfigurationHarnessSelectors = new bytes4[](7);
     settlementConfigurationHarnessSelectors[0] =

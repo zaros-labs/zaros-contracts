@@ -93,7 +93,7 @@ library Position {
         self.lastInteractionFundingFeePerUnit = 0;
     }
 
-    /// @notice Returns the accrued funding fee and the net funding fee per unit applied.
+    /// @notice Returns the accrued funding fee.
     /// @param self The position storage pointer.
     /// @param fundingFeePerUnit The market's current funding fee per unit.
     /// @return accruedFundingUsdX18 The accrued funding fee, positive or negative.

@@ -47,11 +47,11 @@ contract LiquidationBranch {
         view
         returns (uint128[] memory liquidatableAccountsIds)
     {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-
         liquidatableAccountsIds = new uint128[](upperBound - lowerBound);
 
         if (liquidatableAccountsIds.length == 0) return liquidatableAccountsIds;
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         for (uint256 i = lowerBound; i < upperBound; i++) {
             if (i >= globalConfiguration.accountsIdsWithActivePositions.length()) break;
@@ -88,13 +88,13 @@ contract LiquidationBranch {
     /// @param accountsIds The list of accounts to liquidate
     /// @param liquidationFeeRecipient The address to receive the liquidation fee
     function liquidateAccounts(uint128[] calldata accountsIds, address liquidationFeeRecipient) external {
+        if (accountsIds.length == 0) return;
+
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         if (!globalConfiguration.isLiquidatorEnabled[msg.sender]) {
             revert Errors.LiquidatorNotRegistered(msg.sender);
         }
-
-        if (accountsIds.length == 0) return;
 
         LiquidationContext memory ctx;
 
@@ -121,9 +121,7 @@ contract LiquidationBranch {
                     orderFeeRecipient: address(0),
                     settlementFeeRecipient: liquidationFeeRecipient
                 }),
-                pnlUsdX18: ctx.marginBalanceUsdX18.gt(requiredMaintenanceMarginUsdX18.intoSD59x18())
-                    ? ctx.marginBalanceUsdX18.intoUD60x18()
-                    : requiredMaintenanceMarginUsdX18,
+                pnlUsdX18: requiredMaintenanceMarginUsdX18,
                 orderFeeUsdX18: UD60x18_ZERO,
                 settlementFeeUsdX18: ctx.liquidationFeeUsdX18
             });
@@ -138,7 +136,7 @@ contract LiquidationBranch {
                 Position.Data storage position = Position.load(ctx.tradingAccountId, ctx.marketId);
 
                 ctx.oldPositionSizeX18 = sd59x18(position.size);
-                ctx.liquidationSizeX18 = unary(ctx.oldPositionSizeX18);
+                ctx.liquidationSizeX18 = -ctx.oldPositionSizeX18;
 
                 ctx.markPriceX18 = perpMarket.getMarkPrice(ctx.liquidationSizeX18, perpMarket.getIndexPrice());
 

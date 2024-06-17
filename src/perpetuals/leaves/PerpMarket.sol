@@ -96,17 +96,19 @@ library PerpMarket {
         view
         returns (UD60x18)
     {
-        SD59x18 skewScale = sd59x18(uint256(self.configuration.skewScale).toInt256());
+        SD59x18 skewScale = sd59x18(self.configuration.skewScale.toInt256());
         SD59x18 skew = sd59x18(self.skew);
 
         SD59x18 priceImpactBeforeDelta = skew.div(skewScale);
         SD59x18 newSkew = skew.add(skewDelta);
         SD59x18 priceImpactAfterDelta = newSkew.div(skewScale);
 
+        SD59x18 cachedIndexPriceX18 = indexPriceX18.intoSD59x18();
+
         UD60x18 priceBeforeDelta =
-            indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactBeforeDelta)).intoUD60x18();
+            cachedIndexPriceX18.add(cachedIndexPriceX18.mul(priceImpactBeforeDelta)).intoUD60x18();
         UD60x18 priceAfterDelta =
-            indexPriceX18.intoSD59x18().add(indexPriceX18.intoSD59x18().mul(priceImpactAfterDelta)).intoUD60x18();
+            cachedIndexPriceX18.add(cachedIndexPriceX18.mul(priceImpactAfterDelta)).intoUD60x18();
 
         UD60x18 markPrice = priceBeforeDelta.add(priceAfterDelta).div(ud60x18Convert(2));
 
@@ -236,7 +238,6 @@ library PerpMarket {
         newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
             newPositionSize.abs().intoUD60x18()
         );
-        newSkew = sd59x18(self.skew).add(sizeDelta);
 
         if (newOpenInterest.gt(maxOpenInterest)) {
             revert Errors.ExceedsOpenInterestLimit(
@@ -244,13 +245,14 @@ library PerpMarket {
             );
         }
 
-        bool isReducingSkew = sd59x18(self.skew).abs().gt(newSkew.abs());
+        newSkew = sd59x18(self.skew).add(sizeDelta);
 
-        if (
-            shouldCheckMaxSkew && newSkew.abs().gt(ud60x18(self.configuration.maxSkew).intoSD59x18())
-                && !isReducingSkew
-        ) {
-            revert Errors.ExceedsSkewLimit(self.id, self.configuration.maxSkew, newSkew.intoInt256());
+        if (shouldCheckMaxSkew && newSkew.abs().gt(ud60x18(self.configuration.maxSkew).intoSD59x18())) {
+            bool isReducingSkew = sd59x18(self.skew).abs().gt(newSkew.abs());
+
+            if (!isReducingSkew) {
+                revert Errors.ExceedsSkewLimit(self.id, self.configuration.maxSkew, newSkew.intoInt256());
+            }
         }
     }
 

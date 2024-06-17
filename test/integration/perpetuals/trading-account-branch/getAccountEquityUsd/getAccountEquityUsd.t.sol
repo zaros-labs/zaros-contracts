@@ -7,6 +7,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
+import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 // PRB Math dependencies
 import { ud60x18, UD60x18 } from "@prb-math/UD60x18.sol";
@@ -36,7 +37,8 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
 
     function test_GivenTheresNoOpenPosition(
         uint256 initialMarginRate,
-        uint256 marginValueUsd,
+        uint256 usdcMarginValueUsd,
+        uint256 wstEthMarginValueUsd,
         uint256 marketId
     )
         external
@@ -47,18 +49,23 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        usdcMarginValueUsd = bound({ x: usdcMarginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        deal({ token: address(usdc), to: users.naruto, give: usdcMarginValueUsd });
 
-        // marginValueUsd = bound({ x: marginValueUsd, min: 1, max: WSTETH_DEPOSIT_CAP });
-        deal({ token: address(mockWstEth), to: users.naruto, give: marginValueUsd });
+        wstEthMarginValueUsd =
+            bound({ x: wstEthMarginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        deal({ token: address(wstEth), to: users.naruto, give: wstEthMarginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        perpsEngine.depositMargin(tradingAccountId, address(mockWstEth), marginValueUsd);
+        uint128 tradingAccountId = createAccountAndDeposit(usdcMarginValueUsd, address(usdc));
+        perpsEngine.depositMargin(tradingAccountId, address(wstEth), wstEthMarginValueUsd);
 
-        UD60x18 marginCollateralValue = getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(
-            ud60x18(marginValueUsd)
-        ).add(getPrice(mockPriceAdapters.mockWstEthUsdPriceAdapter).mul(ud60x18(marginValueUsd)));
+        UD60x18 marginCollateralValue = getPrice(
+            MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
+        ).mul(ud60x18(usdcMarginValueUsd)).add(
+            getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)).mul(
+                ud60x18(wstEthMarginValueUsd)
+            )
+        );
 
         // it should return the account equity usd
         SD59x18 equityUsd = perpsEngine.getAccountEquityUsd(tradingAccountId);
@@ -69,7 +76,8 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
 
     function test_GivenTheresAnPositionCreated(
         uint256 initialMarginRate,
-        uint256 marginValueUsd,
+        uint256 wstEthmarginValueUsd,
+        uint256 weEthmarginValueUsd,
         bool isLong,
         uint256 marketId
     )
@@ -81,14 +89,15 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        wstEthmarginValueUsd =
+            bound({ x: wstEthmarginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        deal({ token: address(wstEth), to: users.naruto, give: wstEthmarginValueUsd });
 
-        // marginValueUsd = bound({ x: marginValueUsd, min: 1, max: WSTETH_DEPOSIT_CAP });
-        deal({ token: address(mockWstEth), to: users.naruto, give: marginValueUsd });
+        weEthmarginValueUsd = bound({ x: weEthmarginValueUsd, min: 1, max: WEETH_DEPOSIT_CAP });
+        deal({ token: address(weEth), to: users.naruto, give: weEthmarginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
-        perpsEngine.depositMargin(tradingAccountId, address(mockWstEth), marginValueUsd);
+        uint128 tradingAccountId = createAccountAndDeposit(wstEthmarginValueUsd, address(wstEth));
+        perpsEngine.depositMargin(tradingAccountId, address(weEth), weEthmarginValueUsd);
 
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -96,7 +105,7 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
                 marketId: fuzzMarketConfig.marketId,
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
-                marginValueUsd: ud60x18(marginValueUsd),
+                marginValueUsd: ud60x18(wstEthmarginValueUsd).add(ud60x18(weEthmarginValueUsd)),
                 maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
@@ -123,9 +132,13 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
 
         SD59x18 accountTotalUnrealizedPnl = perpsEngine.getAccountTotalUnrealizedPnl(tradingAccountId);
 
-        UD60x18 marginCollateralValue = getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(
-            ud60x18(marginValueUsd)
-        ).add(getPrice(mockPriceAdapters.mockWstEthUsdPriceAdapter).mul(ud60x18(marginValueUsd)));
+        UD60x18 marginCollateralValue = getPrice(
+            MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)
+        ).mul(ud60x18(wstEthmarginValueUsd)).add(
+            getPrice(MockPriceFeed(marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceFeed)).mul(
+                ud60x18(weEthmarginValueUsd)
+            )
+        );
 
         // it should return the account equity usd
         SD59x18 equityUsd = perpsEngine.getAccountEquityUsd(tradingAccountId);
