@@ -185,6 +185,7 @@ contract SettlementBranch {
             });
         } else if (ctx.pnl.gt(SD_ZERO)) {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
+
             tradingAccount.deposit(ctx.usdToken, amountToIncrease);
 
             // NOTE: testnet only - will be updated once Liquidity Engine is finalized

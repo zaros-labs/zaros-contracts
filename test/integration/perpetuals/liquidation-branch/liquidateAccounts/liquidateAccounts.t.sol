@@ -122,7 +122,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         ctx.marginValueUsd = 10_000e18 / amountOfTradingAccounts;
         ctx.initialMarginRate = ctx.fuzzMarketConfig.imr;
 
-        deal({ token: address(usdToken), to: users.naruto, give: ctx.marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
 
         // last account id == 0
         ctx.accountsIds = new uint128[](amountOfTradingAccounts + 2);
@@ -130,7 +130,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         ctx.accountMarginValueUsd = ctx.marginValueUsd / (amountOfTradingAccounts + 1);
 
         for (uint256 i; i < amountOfTradingAccounts; i++) {
-            ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
+            ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
 
             openPosition(
                 ctx.fuzzMarketConfig, ctx.tradingAccountId, ctx.initialMarginRate, ctx.accountMarginValueUsd, isLong
@@ -141,7 +141,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
         setAccountsAsLiquidatable(ctx.fuzzMarketConfig, isLong);
 
-        ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
+        ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
         ctx.accountsIds[amountOfTradingAccounts] = ctx.nonLiquidatableTradingAccountId;
 
         changePrank({ msgSender: liquidationKeeper });

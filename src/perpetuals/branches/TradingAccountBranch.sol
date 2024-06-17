@@ -260,14 +260,18 @@ contract TradingAccountBranch {
     function depositMargin(uint128 tradingAccountId, address collateralType, uint256 amount) public virtual {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
-        UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
+
+        UD60x18 ud60x18Amount = ud60x18(amount);
+
+        UD60x18 depositCapX18 = ud60x18(marginCollateralConfiguration.depositCap);
+
         _requireAmountNotZero(ud60x18Amount);
-        _requireEnoughDepositCap(collateralType, ud60x18Amount, ud60x18(marginCollateralConfiguration.depositCap));
+        _requireEnoughDepositCap(collateralType, ud60x18Amount, depositCapX18);
         _requireCollateralLiquidationPriorityDefined(collateralType);
 
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         tradingAccount.deposit(collateralType, ud60x18Amount);
-        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), ud60x18Amount.intoUint256());
+        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 
         emit LogDepositMargin(msg.sender, tradingAccountId, collateralType, amount);
     }

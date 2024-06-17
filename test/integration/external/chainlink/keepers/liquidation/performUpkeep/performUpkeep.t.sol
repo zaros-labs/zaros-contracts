@@ -35,14 +35,14 @@ contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Test {
         uint256 marginValueUsd = 10_000e18 / amountOfTradingAccounts;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
 
         uint128[] memory accountsIds = new uint128[](amountOfTradingAccounts + 1);
 
         uint256 accountMarginValueUsd = marginValueUsd / (amountOfTradingAccounts + 1);
 
         for (uint256 i; i < amountOfTradingAccounts; i++) {
-            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdz));
 
             openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
 
@@ -50,7 +50,7 @@ contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Test {
         }
         setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
 
-        uint128 nonLiquidatableTradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+        uint128 nonLiquidatableTradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdz));
         accountsIds[amountOfTradingAccounts] = nonLiquidatableTradingAccountId;
 
         changePrank({ msgSender: users.owner });

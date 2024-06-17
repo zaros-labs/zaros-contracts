@@ -34,6 +34,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Emitted when the account token address is set.
     event LogSetTradingAccountToken(address indexed sender, address indexed tradingAccountToken);
 
+    /// @notice Emitted when the usd token address is set.
+    event LogSetUsdToken(address indexed sender, address indexed usdToken);
+
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
     /// @param collateralTypes The array of collateral type addresses, ordered by priority.
@@ -49,10 +52,16 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param sender The address that enabled or disabled the collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
+    /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The amount of decimals of the collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
     event LogConfigureMarginCollateral(
-        address indexed sender, address indexed collateralType, uint128 depositCap, uint8 decimals, address priceFeed
+        address indexed sender,
+        address indexed collateralType,
+        uint128 depositCap,
+        uint120 loanToValue,
+        uint8 decimals,
+        address priceFeed
     );
 
     /// @notice Emitted when a collateral type is removed from the collateral priority.
@@ -155,6 +164,19 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         emit LogSetTradingAccountToken(msg.sender, tradingAccountToken);
     }
 
+    /// @notice Sets the address of the usd token.
+    /// @param usdToken The token address.
+    function setUsdToken(address usdToken) external onlyOwner {
+        if (usdToken == address(0)) {
+            revert Errors.ZeroInput("usdToken");
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.usdToken = usdToken;
+
+        emit LogSetUsdToken(msg.sender, usdToken);
+    }
+
     /// @notice Configures the collateral priority.
     /// @param collateralTypes The array of collateral type addresses.
     function configureCollateralLiquidationPriority(address[] calldata collateralTypes) external onlyOwner {
@@ -209,7 +231,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             }
             MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceFeed);
 
-            emit LogConfigureMarginCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
+            emit LogConfigureMarginCollateral(
+                msg.sender, collateralType, depositCap, loanToValue, decimals, priceFeed
+            );
         } catch {
             revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }
