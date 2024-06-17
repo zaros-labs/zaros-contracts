@@ -15,8 +15,8 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, unary, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 contract LiquidationBranch {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -122,7 +122,7 @@ contract LiquidationBranch {
                     settlementFeeRecipient: liquidationFeeRecipient
                 }),
                 pnlUsdX18: requiredMaintenanceMarginUsdX18,
-                orderFeeUsdX18: UD_ZERO,
+                orderFeeUsdX18: UD60x18_ZERO,
                 settlementFeeUsdX18: ctx.liquidationFeeUsdX18
             });
             ctx.liquidatedCollateralUsdX18 = liquidatedCollateralUsdX18;
@@ -145,11 +145,11 @@ contract LiquidationBranch {
 
                 perpMarket.updateFunding(ctx.fundingRateX18, ctx.fundingFeePerUnitX18);
                 position.clear();
-                tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD_ZERO);
+                tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD59x18_ZERO);
 
                 // we don't check skew during liquidations to protect from DoS
                 (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
-                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, sd59x18(position.size), false
+                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false
                 );
 
                 perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
