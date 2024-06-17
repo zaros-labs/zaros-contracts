@@ -108,7 +108,7 @@ contract Upgrade_Integration_Test is Base_Test {
 
         address orderBranchAddress;
 
-        for (uint256 i = 0; i < perpsEngineBranches.length; i++) {
+        for (uint256 i; i < perpsEngineBranches.length; i++) {
             if (i == 4) {
                 orderBranchAddress = perpsEngineBranches[i].branch;
             }

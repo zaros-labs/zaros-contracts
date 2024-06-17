@@ -41,7 +41,7 @@ contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Test {
 
         uint256 accountMarginValueUsd = marginValueUsd / (amountOfTradingAccounts + 1);
 
-        for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
+        for (uint256 i; i < amountOfTradingAccounts; i++) {
             uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdz));
 
             openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
@@ -59,7 +59,7 @@ contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Test {
         changePrank({ msgSender: users.keepersForwarder });
         bytes memory performData = abi.encode(accountsIds);
 
-        for (uint256 i = 0; i < accountsIds.length; i++) {
+        for (uint256 i; i < accountsIds.length; i++) {
             if (accountsIds[i] == nonLiquidatableTradingAccountId) {
                 continue;
             }

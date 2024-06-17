@@ -119,7 +119,7 @@ contract TradingAccountBranch {
 
         marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
 
-        for (uint256 i = 0; i < tradingAccount.activeMarketsIds.length(); i++) {
+        for (uint256 i; i < tradingAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
 
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
@@ -165,7 +165,7 @@ contract TradingAccountBranch {
         SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(tradingAccount.getAccountUnrealizedPnlUsd());
         UD60x18 totalPositionsNotionalValue;
 
-        for (uint256 i = 0; i < tradingAccount.activeMarketsIds.length(); i++) {
+        for (uint256 i; i < tradingAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
 
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
@@ -238,7 +238,7 @@ contract TradingAccountBranch {
         uint128 tradingAccountId = createTradingAccount();
 
         results = new bytes[](data.length);
-        for (uint256 i = 0; i < data.length; i++) {
+        for (uint256 i; i < data.length; i++) {
             bytes memory dataWithAccountId = bytes.concat(data[i][0:4], abi.encode(tradingAccountId), data[i][4:]);
             (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
 

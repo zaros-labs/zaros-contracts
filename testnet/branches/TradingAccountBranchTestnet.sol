@@ -103,7 +103,7 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
         uint128 tradingAccountId = createTradingAccount(referralCode, isCustomReferralCode);
 
         results = new bytes[](data.length);
-        for (uint256 i = 0; i < data.length; i++) {
+        for (uint256 i; i < data.length; i++) {
             bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(tradingAccountId), data[i][4:]);
             (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
 

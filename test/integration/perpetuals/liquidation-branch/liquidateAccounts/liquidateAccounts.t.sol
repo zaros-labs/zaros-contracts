@@ -129,7 +129,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
         ctx.accountMarginValueUsd = ctx.marginValueUsd / (amountOfTradingAccounts + 1);
 
-        for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
+        for (uint256 i; i < amountOfTradingAccounts; i++) {
             ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
 
             openPosition(
@@ -146,7 +146,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
         changePrank({ msgSender: liquidationKeeper });
 
-        for (uint256 i = 0; i < ctx.accountsIds.length; i++) {
+        for (uint256 i; i < ctx.accountsIds.length; i++) {
             if (ctx.accountsIds[i] == ctx.nonLiquidatableTradingAccountId || ctx.accountsIds[i] == 0) {
                 continue;
             }
@@ -200,7 +200,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         ).size;
         assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "skew");
 
-        for (uint256 i = 0; i < ctx.accountsIds.length; i++) {
+        for (uint256 i; i < ctx.accountsIds.length; i++) {
             if (ctx.accountsIds[i] == ctx.nonLiquidatableTradingAccountId) {
                 continue;
             }

@@ -56,7 +56,12 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param decimals The amount of decimals of the collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
     event LogConfigureMarginCollateral(
-        address indexed sender, address indexed collateralType, uint128 depositCap, uint120 loanToValue, uint8 decimals, address priceFeed
+        address indexed sender,
+        address indexed collateralType,
+        uint128 depositCap,
+        uint120 loanToValue,
+        uint8 decimals,
+        address priceFeed
     );
 
     /// @notice Emitted when a collateral type is removed from the collateral priority.
@@ -199,7 +204,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        for (uint256 i = 0; i < liquidators.length; i++) {
+        for (uint256 i; i < liquidators.length; i++) {
             globalConfiguration.isLiquidatorEnabled[liquidators[i]] = enable[i];
         }
 
@@ -226,7 +231,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             }
             MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceFeed);
 
-            emit LogConfigureMarginCollateral(msg.sender, collateralType, depositCap, loanToValue, decimals, priceFeed);
+            emit LogConfigureMarginCollateral(
+                msg.sender, collateralType, depositCap, loanToValue, decimals, priceFeed
+            );
         } catch {
             revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }

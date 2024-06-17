@@ -344,7 +344,7 @@ library PerpMarket {
         );
 
         if (params.customOrdersConfiguration.length > 0) {
-            for (uint256 i = 0; i < params.customOrdersConfiguration.length; i++) {
+            for (uint256 i; i < params.customOrdersConfiguration.length; i++) {
                 uint128 nextStrategyId = ++self.nextStrategyId;
                 SettlementConfiguration.update(params.marketId, nextStrategyId, params.customOrdersConfiguration[i]);
             }
