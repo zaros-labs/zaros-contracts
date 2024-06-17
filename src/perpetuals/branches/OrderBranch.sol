@@ -51,6 +51,13 @@ contract OrderBranch {
         return PerpMarket.load(marketId).configuration.orderFees;
     }
 
+    struct SimulateTradeContext {
+        SD59x18 sizeDeltaX18;
+        SD59x18 accountTotalUnrealizedPnlUsdX18;
+        UD60x18 previousRequiredMaintenanceMarginUsdX18;
+        SD59x18 newPositionSizeX18;
+    }
+
     /// @notice Simulates the settlement costs and validity of a given order.
     /// @dev Reverts if there's not enough margin to cover the trade.
     /// @param tradingAccountId The trading account id.
@@ -85,31 +92,32 @@ contract OrderBranch {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
 
-        SD59x18 sideDeltaX18 = sd59x18(sizeDelta);
+        SimulateTradeContext memory ctx;
 
-        fillPriceX18 = perpMarket.getMarkPrice(sideDeltaX18, perpMarket.getIndexPrice());
+        ctx.sizeDeltaX18 = sd59x18(sizeDelta);
 
-        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sideDeltaX18, fillPriceX18);
+        fillPriceX18 = perpMarket.getMarkPrice(ctx.sizeDeltaX18, perpMarket.getIndexPrice());
+
+        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDeltaX18, fillPriceX18);
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
-        SD59x18 accountTotalUnrealizedPnlUsdX18;
-        (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
-            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sideDeltaX18);
-        marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+        (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, ctx.accountTotalUnrealizedPnlUsdX18) =
+            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDeltaX18);
+        marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(ctx.accountTotalUnrealizedPnlUsdX18);
         {
-            (, UD60x18 previousRequiredMaintenanceMarginUsdX18,) =
+            (, ctx.previousRequiredMaintenanceMarginUsdX18,) =
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
 
-            if (TradingAccount.isLiquidatable(previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
+            if (TradingAccount.isLiquidatable(ctx.previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
                 revert Errors.AccountIsLiquidatable(tradingAccountId);
             }
         }
         {
             Position.Data storage position = Position.load(tradingAccountId, marketId);
-            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sideDeltaX18);
+            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(ctx.sizeDeltaX18);
 
             if (
-                !newPositionSizeX18.isZero()
+                !ctx.newPositionSizeX18.isZero()
                     && newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
             ) {
                 revert Errors.NewPositionSizeTooSmall();
