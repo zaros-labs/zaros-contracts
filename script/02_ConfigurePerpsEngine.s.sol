@@ -55,7 +55,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         marginCollateralIdsRange[0] = initialMarginCollateralId;
         marginCollateralIdsRange[1] = finalMarginCollateralId;
 
-        configureMarginCollaterals(marginCollateralIdsRange);
+        configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, false, address(0));
 
         address liquidationKeeper =
             ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS);
@@ -70,30 +70,5 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
         LimitedMintingERC20(USDZ_ADDRESS).transferOwnership(address(perpsEngine));
-    }
-
-    function configureMarginCollaterals(uint256[2] memory marginCollateralIdsRange) internal {
-        setupMarginCollaterals();
-
-        MarginCollateral[] memory filteredMarginCollateralsConfig =
-            getFilteredMarginCollateralsConfig(marginCollateralIdsRange);
-
-        address[] memory collateralLiquidationPriority = new address[](filteredMarginCollateralsConfig.length);
-
-        for (uint256 i = 0; i < filteredMarginCollateralsConfig.length; i++) {
-            uint256 indexLiquidationPriority = filteredMarginCollateralsConfig[i].liquidationPriority - 1;
-
-            collateralLiquidationPriority[indexLiquidationPriority] =
-                filteredMarginCollateralsConfig[i].marginCollateralAddress;
-
-            perpsEngine.configureMarginCollateral(
-                filteredMarginCollateralsConfig[i].marginCollateralAddress,
-                filteredMarginCollateralsConfig[i].depositCap,
-                filteredMarginCollateralsConfig[i].loanToValue,
-                filteredMarginCollateralsConfig[i].priceFeed
-            );
-        }
-
-        perpsEngine.configureCollateralLiquidationPriority(collateralLiquidationPriority);
     }
 }

@@ -4,6 +4,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
+import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -15,15 +16,16 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
     }
 
     function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDZ_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
+        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
-        uint256 expectedMarginBalance =
-            getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(ud60x18(amountToDeposit)).intoUint256();
+        uint256 expectedMarginBalance = getPrice(
+            MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
+        ).mul(ud60x18(amountToDeposit)).intoUint256();
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 
         (
             SD59x18 marginBalanceUsdX18,
@@ -42,23 +44,32 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
         );
     }
 
-    function testFuzz_GetAccountMarginMultipleCollateral(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: WSTETH_DEPOSIT_CAP });
-        deal({ token: address(usdToken), to: users.naruto, give: amountToDeposit });
-        deal({ token: address(mockWstEth), to: users.naruto, give: amountToDeposit });
+    function testFuzz_GetAccountMarginMultipleCollateral(
+        uint256 amountToDepositUsdc,
+        uint256 amountToDepositWstEth
+    )
+        external
+    {
+        amountToDepositUsdc = bound({ x: amountToDepositUsdc, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        amountToDepositWstEth =
+            bound({ x: amountToDepositWstEth, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
 
-        uint256 expectedMarginBalance = getPrice(mockPriceAdapters.mockUsdcUsdPriceAdapter).mul(
-            ud60x18(amountToDeposit)
-        ).add(
-            getPrice(mockPriceAdapters.mockWstEthUsdPriceAdapter).mul(ud60x18(amountToDeposit)).mul(
-                ud60x18(WSTETH_LOAN_TO_VALUE)
-            )
+        deal({ token: address(usdc), to: users.naruto, give: amountToDepositUsdc });
+        deal({ token: address(wstEth), to: users.naruto, give: amountToDepositWstEth });
+
+        uint256 expectedMarginBalance = getPrice(
+            MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
+        ).mul(ud60x18(amountToDepositUsdc)).add(
+            getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)).mul(
+                ud60x18(amountToDepositWstEth)
+            ).mul(ud60x18(WSTETH_LOAN_TO_VALUE))
         ).intoUint256();
+
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
-        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdToken));
-        perpsEngine.depositMargin(tradingAccountId, address(mockWstEth), amountToDeposit);
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDepositUsdc, address(usdc));
+        perpsEngine.depositMargin(tradingAccountId, address(wstEth), amountToDepositWstEth);
 
         (
             SD59x18 marginBalanceUsdX18,

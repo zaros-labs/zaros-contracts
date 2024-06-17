@@ -20,10 +20,60 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_RevertGiven_TheresNotAMarketOrder(uint128 tradingAccountId) external {
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, tradingAccountId) });
+    function test_RevertGiven_TheSenderIsNotTheTradingAccountOwner(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        uint256 marketId
+    )
+        external
+    {
+        changePrank({ msgSender: users.naruto });
+
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+
+        changePrank({ msgSender: users.owner });
 
         // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, tradingAccountId, users.owner)
+        });
+
+        perpsEngine.cancelMarketOrder(tradingAccountId);
+    }
+
+    modifier givenTheSenderIsTheTradingAccountOwner() {
+        _;
+    }
+
+    function test_RevertGiven_TheresNoMarketOrder(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        uint256 marketId
+    )
+        external
+        givenTheSenderIsTheTradingAccountOwner
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, tradingAccountId) });
+
         perpsEngine.cancelMarketOrder(tradingAccountId);
     }
 
@@ -34,16 +84,17 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         uint256 marketId
     )
         external
+        givenTheSenderIsTheTradingAccountOwner
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,

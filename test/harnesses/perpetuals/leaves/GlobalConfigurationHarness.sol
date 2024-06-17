@@ -9,6 +9,31 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 contract GlobalConfigurationHarness {
     using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for EnumerableSet.AddressSet;
+
+    function workaround_getCollateralLiquidationPriority() external view returns (address[] memory) {
+        GlobalConfiguration.Data storage self = GlobalConfiguration.load();
+        uint256 length = self.collateralLiquidationPriority.length();
+        address[] memory collateralTypes = new address[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            collateralTypes[i] = self.collateralLiquidationPriority.at(i);
+        }
+
+        return collateralTypes;
+    }
+
+    function workaround_getTradingAccountToken() external view returns (address) {
+        GlobalConfiguration.Data storage self = GlobalConfiguration.load();
+
+        return self.tradingAccountToken;
+    }
+
+    function workaround_getUsdToken() external view returns (address) {
+        GlobalConfiguration.Data storage self = GlobalConfiguration.load();
+
+        return self.usdToken;
+    }
 
     function workaround_getAccountIdWithActivePositions(uint128 index) external view returns (uint128) {
         GlobalConfiguration.Data storage self = GlobalConfiguration.load();

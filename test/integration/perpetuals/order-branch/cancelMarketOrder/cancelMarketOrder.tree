@@ -1,6 +1,9 @@
 CancelMarketOrder_Integration_Test
-├── given there's not a market order
+├── given the sender is not the trading account owner
 │   └── it should revert
-└── given there's a market order
-    ├── it should cancel the active market order
-    └── it should emit {LogCancelMarketOrder} event
+└── given the sender is the trading account owner
+    ├── given there's no market order
+    │   └── it should revert
+    └── given there's a market order
+        ├── it should cancel the active market order
+        └── it should emit {LogCancelMarketOrder} event
