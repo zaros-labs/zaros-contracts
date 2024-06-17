@@ -96,7 +96,7 @@ library PerpMarket {
         view
         returns (UD60x18)
     {
-        SD59x18 skewScale = sd59x18(uint256(self.configuration.skewScale).toInt256());
+        SD59x18 skewScale = sd59x18(self.configuration.skewScale.toInt256());
         SD59x18 skew = sd59x18(self.skew);
 
         SD59x18 priceImpactBeforeDelta = skew.div(skewScale);
