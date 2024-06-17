@@ -184,11 +184,12 @@ library RootUpgrade {
             delete self.selectorToBranch[selector];
             // slither-disable-next-line unused-return
             self.branchSelectors[branch].remove(selector);
-            // if no more selectors in branch, remove branch address
-            if (self.branchSelectors[branch].length() == 0) {
-                // slither-disable-next-line unused-return
-                self.branches.remove(branch);
-            }
+        }
+
+        // if no more selectors in branch, remove branch address
+        if (self.branchSelectors[branch].length() == 0) {
+            // slither-disable-next-line unused-return
+            self.branches.remove(branch);
         }
     }
 
