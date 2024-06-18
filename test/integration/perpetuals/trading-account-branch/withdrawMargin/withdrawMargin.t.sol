@@ -232,7 +232,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
-        // Test with wstEth that haves 18 decimals
+        // Test with wstEth that has 18 decimals
 
         amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
@@ -255,7 +255,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         // it should decrease the margin collateral balance
         assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
 
-        // Test with usdc that haves 6 decimals
+        // Test with usdc that has 6 decimals
 
         amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
