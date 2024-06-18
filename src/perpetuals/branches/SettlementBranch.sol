@@ -99,17 +99,17 @@ contract SettlementBranch {
         virtual
     {
         FillOrderContext memory ctx;
-        ctx.marketId = marketId;
-        ctx.tradingAccountId = tradingAccountId;
-        ctx.sizeDelta = sd59x18(sizeDelta);
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         ctx.usdToken = globalConfiguration.usdToken;
+        ctx.marketId = marketId;
         globalConfiguration.checkMarketIsEnabled(ctx.marketId);
 
+        ctx.tradingAccountId = tradingAccountId;
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
+        ctx.sizeDelta = sd59x18(sizeDelta);
         perpMarket.checkTradeSize(ctx.sizeDelta);
 
         Position.Data storage oldPosition = Position.load(ctx.tradingAccountId, ctx.marketId);
