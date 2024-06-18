@@ -12,7 +12,9 @@ clean  :; forge clean
 # Remove modules
 remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib && touch .gitmodules && git add . && git commit -m "modules"
 
-install :; forge install foundry-rs/forge-std --no-commit && forge install openzeppelin/openzeppelin-contracts --no-commit
+install :; rm -rf lib && forge install foundry-rs/forge-std --no-commit && forge install openzeppelin/openzeppelin-contracts --no-commit \
+&& forge install OpenZeppelin/openzeppelin-contracts-upgradeable --no-commit && forge install PaulRBerg/prb-math --no-commit \
+&& forge install PaulRBerg/prb-test --no-commit
 
 # Update Dependencies
 update:; forge update

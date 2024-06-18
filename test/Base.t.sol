@@ -59,7 +59,7 @@ import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18, uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
 // PRB Test dependencies
-import { PRBTest } from "prb-test/PRBTest.sol";
+import { PRBTest } from "@prb-test/PRBTest.sol";
 
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
