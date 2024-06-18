@@ -8,7 +8,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { MockERC20 } from "test/mocks/MockERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
