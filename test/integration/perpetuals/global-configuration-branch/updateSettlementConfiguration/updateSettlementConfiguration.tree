@@ -1,11 +1,14 @@
 UpdateSettlementConfiguration_Integration_Test
-├── given market order configuration on chain with different strategy
+├── when perp market is not initialized
 │   └── it should revert
-├── given off chain configuration with different strategy
-│   └── it should revert
-├── given market order configuration on chain with your strategy
-│   ├── it should update
-│   └── it should emit {LogUpdateSettlementConfiguration} event
-└── given off chain configuration with your strategy
-    ├── it should update
-    └── it should emit {LogUpdateSettlementConfiguration} event
+└── when perp market is initialized
+    ├── when market order configuration on chain has wrong strategy
+    │   └── it should revert
+    ├── when off chain configuration has wrong strategy
+    │   └── it should revert
+    ├── when market order configuration on chain has correct strategy
+    │   ├── it should update
+    │   └── it should emit {LogUpdateSettlementConfiguration} event
+    └── when off chain configuration has correct strategy
+        ├── it should update
+        └── it should emit {LogUpdateSettlementConfiguration} event

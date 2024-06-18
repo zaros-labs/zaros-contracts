@@ -358,7 +358,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: marketId,
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -372,13 +371,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             orderFees: marketsConfig[marketId].orderFees
         });
 
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
     function updatePerpMarketMaxOi(uint128 marketId, UD60x18 newMaxOi) internal {
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: marketId,
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -392,13 +390,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             orderFees: marketsConfig[marketId].orderFees
         });
 
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
     function updatePerpMarketMaxSkew(uint128 marketId, UD60x18 newMaxSkew) internal {
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: marketId,
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -412,7 +409,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             orderFees: marketsConfig[marketId].orderFees
         });
 
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
     function updateMockPriceFeed(uint128 marketId, uint256 newPrice) internal {

@@ -107,6 +107,18 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param marketId The perps market id.
     event LogDisablePerpMarket(address indexed sender, uint128 marketId);
 
+    /// @notice Ensures that perp market is initialized.
+    /// @param marketId The perps market id.
+    modifier onlyWhenPerpMarketIsInitialized (uint128 marketId) {
+        PerpMarket.Data memory perpMarket = PerpMarket.load(marketId);
+
+        if (!perpMarket.initialized) {
+            revert Errors.PerpMarketNotInitialized(marketId);
+        }
+
+        _;
+    }
+
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {GlobalConfigurationBranch} UUPS initializer.
     function initialize(address tradingAccountToken, address usdToken) external initializer {
@@ -402,7 +414,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     }
 
     /// @notice `updatePerpMarketConfiguration` params.
-    /// @param marketId The perp market id.
     /// @param name The perp market name.
     /// @param symbol The perp market symbol.
     /// @param priceAdapter The price adapter contract, which handles the market's index price.
@@ -415,7 +426,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param orderFees The perp market maker and taker fees.
     struct UpdatePerpMarketConfigurationParams {
-        uint128 marketId;
         string name;
         string symbol;
         address priceAdapter;
@@ -433,13 +443,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
     /// impact open positions.
     /// @dev See {UpdatePerpMarketConfigurationParams}.
-    function updatePerpMarketConfiguration(UpdatePerpMarketConfigurationParams calldata params) external onlyOwner {
-        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
+    function updatePerpMarketConfiguration(uint128 marketId, UpdatePerpMarketConfigurationParams calldata params) external onlyOwner onlyWhenPerpMarketIsInitialized(marketId) {
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         MarketConfiguration.Data storage perpMarketConfiguration = perpMarket.configuration;
-
-        if (!perpMarket.initialized) {
-            revert Errors.PerpMarketNotInitialized(params.marketId);
-        }
 
         if (abi.encodePacked(params.name).length == 0) {
             revert Errors.ZeroInput("name");
@@ -483,7 +489,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             params.orderFees
         );
 
-        emit LogUpdatePerpMarketConfiguration(msg.sender, params.marketId);
+        emit LogUpdatePerpMarketConfiguration(msg.sender, marketId);
     }
 
     /// @notice Updates the settlement configuration of a given market.
@@ -497,6 +503,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     )
         external
         onlyOwner
+        onlyWhenPerpMarketIsInitialized(marketId)
     {
         SettlementConfiguration.update(marketId, settlementConfigurationId, newSettlementConfiguration);
 
@@ -506,13 +513,8 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Enables or disabled the perp market of the given market id.
     /// @param marketId The perps market id.
     /// @param enable Whether the market should be enabled or disabled.
-    function updatePerpMarketStatus(uint128 marketId, bool enable) external onlyOwner {
+    function updatePerpMarketStatus(uint128 marketId, bool enable) external onlyOwner onlyWhenPerpMarketIsInitialized(marketId){
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-
-        if (!perpMarket.initialized) {
-            revert Errors.PerpMarketNotInitialized(marketId);
-        }
 
         if (enable) {
             globalConfiguration.addMarket(marketId);
