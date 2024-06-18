@@ -232,6 +232,8 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
+        // Test with wstEth that has 18 decimals
+
         amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
@@ -249,6 +251,29 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         uint256 expectedMargin = amountToDeposit - amountToWithdraw;
         uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth)).intoUint256();
+
+        // it should decrease the margin collateral balance
+        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
+
+        // Test with usdc that has 6 decimals
+
+        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+
+        tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
+
+        // it should emit a {LogWithdrawMargin} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit TradingAccountBranch.LogWithdrawMargin(users.naruto, tradingAccountId, address(usdc), amountToWithdraw);
+
+        // it should transfer the withdrawn amount to the sender
+        expectCallToTransfer(usdc, users.naruto, amountToWithdraw);
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdc), amountToWithdraw);
+
+        expectedMargin = amountToDeposit - amountToWithdraw;
+        newMarginCollateralBalance =
+            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(usdc)).intoUint256();
 
         // it should decrease the margin collateral balance
         assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
