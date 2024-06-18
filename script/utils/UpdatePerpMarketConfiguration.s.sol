@@ -29,7 +29,6 @@ contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: marketId,
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: marketsConfig[marketId].priceAdapter,
@@ -43,6 +42,6 @@ contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
             orderFees: marketsConfig[marketId].orderFees
         });
 
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 }

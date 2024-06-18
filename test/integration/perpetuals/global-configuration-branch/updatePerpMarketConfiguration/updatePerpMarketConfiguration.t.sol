@@ -25,7 +25,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: marketIdNotInitialized,
             name: fuzzMarketConfig.marketName,
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -45,7 +44,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(marketIdNotInitialized, params);
     }
 
     modifier givenMarketIsInitialized() {
@@ -57,7 +56,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: "",
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -75,7 +73,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "name") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     modifier givenLengthOfNameIsNotZero() {
@@ -91,7 +89,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
             symbol: "",
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -109,7 +106,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "symbol") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     modifier givenLengthOfSymbolIsNotZero() {
@@ -126,7 +123,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: address(0),
@@ -144,7 +140,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceAdapter") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     modifier givenPriceAdapterIsNotZero() {
@@ -162,7 +158,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -180,7 +175,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maintenanceMarginRateX18") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     modifier givenMaintenanceMarginRateIsNotZero() {
@@ -199,7 +194,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -217,7 +211,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxOpenInterest") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     modifier givenMaxOpenInterestIsNotZero() {
@@ -237,7 +231,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -255,7 +248,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxSkew") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     modifier givenMaxSkewIsNotZero() {
@@ -276,7 +269,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -294,7 +286,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "initialMarginRateX18") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     modifier givenInitialMarginRateIsNotZero() {
@@ -316,7 +308,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -334,7 +325,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "skewScale") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     modifier givenSkewScaleIsNotZero() {
@@ -357,7 +348,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: fuzzMarketConfig.marketName,
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -375,7 +365,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "minTradeSizeX18") });
 
         changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     function testFuzz_GivenMinTradeSizeIsNotZero(uint256 marketId)
@@ -396,7 +386,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: fuzzMarketConfig.marketId,
             name: "New market name",
             symbol: fuzzMarketConfig.marketSymbol,
             priceAdapter: fuzzMarketConfig.priceAdapter,
@@ -415,6 +404,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         emit GlobalConfigurationBranch.LogUpdatePerpMarketConfiguration(users.owner, fuzzMarketConfig.marketId);
 
         // it should update perp market
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 }
