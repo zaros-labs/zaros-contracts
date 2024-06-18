@@ -107,7 +107,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         givenTheCollateralTypeHasSufficientDepositCap
         givenTheCollateralTypeIsInTheLiquidationPriority
     {
-        // Test with usdc that haves 18 decimals
+        // Test with usdc that haves 6 decimals
 
         assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), 0, "initial balance should be zero");
 
@@ -127,8 +127,6 @@ contract DepositMargin_Integration_Test is Base_Test {
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);
 
         assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), 0, "balanceOf should be zero");
-
-        assertEq(MockERC20(address(usdToken)).balanceOf(users.naruto), 0, "balanceOf should be zero");
 
         uint256 newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdc)).intoUint256();

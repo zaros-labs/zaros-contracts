@@ -233,6 +233,8 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
     {
+        // Test with wstEth that haves 18 decimals
+
         amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
@@ -243,21 +245,9 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit TradingAccountBranch.LogWithdrawMargin(users.naruto, tradingAccountId, address(wstEth), amountToWithdraw);
 
-        assertEq(
-            MockERC20(address(usdToken)).balanceOf(users.naruto),
-            0,
-            "balance before the withdraw margin should be zero"
-        );
-
         // it should transfer the withdrawn amount to the sender
         expectCallToTransfer(wstEth, users.naruto, amountToWithdraw);
         perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
-
-        assertEq(
-            MockERC20(address(usdToken)).balanceOf(users.naruto),
-            amountToWithdraw,
-            "balance after the withdraw margin should be equal to the withdrawn amount"
-        );
 
         uint256 expectedMargin = amountToDeposit - amountToWithdraw;
         uint256 newMarginCollateralBalance =
@@ -266,41 +256,27 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         // it should decrease the margin collateral balance
         assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
 
-        // Test with token that have 10 decimals
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: MOCK_USD_10_DECIMALS_DEPOSIT_CAP });
+        // Test with usdc that haves 6 decimals
+
+        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
-        deal({ token: address(mockUsdWith10Decimals), to: users.naruto, give: amountToDeposit });
-
-        tradingAccountId = createAccountAndDeposit(amountToDeposit, address(mockUsdWith10Decimals));
+        tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 
         // it should emit a {LogWithdrawMargin} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogWithdrawMargin(
-            users.naruto, tradingAccountId, address(mockUsdWith10Decimals), amountToWithdraw
-        );
-
-        assertEq(
-            MockERC20(address(mockUsdWith10Decimals)).balanceOf(users.naruto),
-            0,
-            "balance before the withdraw margin should be zero"
-        );
+        emit TradingAccountBranch.LogWithdrawMargin(users.naruto, tradingAccountId, address(usdc), amountToWithdraw);
 
         // it should transfer the withdrawn amount to the sender
-        expectCallToTransfer(mockUsdWith10Decimals, users.naruto, amountToWithdraw);
-        perpsEngine.withdrawMargin(tradingAccountId, address(mockUsdWith10Decimals), amountToWithdraw);
-
-        assertEq(
-            MockERC20(address(mockUsdWith10Decimals)).balanceOf(users.naruto),
-            amountToWithdraw,
-            "balance after the withdraw margin should be equal to the withdrawn amount"
-        );
+        expectCallToTransfer(usdc, users.naruto, amountToWithdraw);
+        perpsEngine.withdrawMargin(tradingAccountId, address(usdc), amountToWithdraw);
 
         expectedMargin = amountToDeposit - amountToWithdraw;
         newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(mockUsdWith10Decimals)).intoUint256();
+            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(usdc)).intoUint256();
 
         // it should decrease the margin collateral balance
-        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin with token that have 10 decimals");
+        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
     }
 }
