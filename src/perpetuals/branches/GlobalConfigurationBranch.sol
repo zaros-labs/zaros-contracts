@@ -98,6 +98,8 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param marketId The perps market id.
     event LogDisablePerpMarket(address indexed sender, uint128 marketId);
 
+    /// @notice Ensures that perp market is initialized.
+    /// @param marketId The perps market id.
     modifier onlyWhenPerpMarketIsInitialized (uint128 marketId) {
         PerpMarket.Data memory perpMarket = PerpMarket.load(marketId);
 
