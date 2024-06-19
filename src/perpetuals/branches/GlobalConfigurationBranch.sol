@@ -109,7 +109,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @notice Ensures that perp market is initialized.
     /// @param marketId The perps market id.
-    modifier onlyWhenPerpMarketIsInitialized (uint128 marketId) {
+    modifier onlyWhenPerpMarketIsInitialized(uint128 marketId) {
         PerpMarket.Data memory perpMarket = PerpMarket.load(marketId);
 
         if (!perpMarket.initialized) {
@@ -443,7 +443,14 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
     /// impact open positions.
     /// @dev See {UpdatePerpMarketConfigurationParams}.
-    function updatePerpMarketConfiguration(uint128 marketId, UpdatePerpMarketConfigurationParams calldata params) external onlyOwner onlyWhenPerpMarketIsInitialized(marketId) {
+    function updatePerpMarketConfiguration(
+        uint128 marketId,
+        UpdatePerpMarketConfigurationParams calldata params
+    )
+        external
+        onlyOwner
+        onlyWhenPerpMarketIsInitialized(marketId)
+    {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         MarketConfiguration.Data storage perpMarketConfiguration = perpMarket.configuration;
 
@@ -459,20 +466,26 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
-        if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
-            revert Errors.ZeroInput("initialMarginRateX18");
-        }
         if (params.maxOpenInterest == 0) {
             revert Errors.ZeroInput("maxOpenInterest");
         }
         if (params.maxSkew == 0) {
             revert Errors.ZeroInput("maxSkew");
         }
+        if (params.initialMarginRateX18 == 0) {
+            revert Errors.ZeroInput("initialMarginRateX18");
+        }
+        if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
+            revert Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate();
+        }
         if (params.skewScale == 0) {
             revert Errors.ZeroInput("skewScale");
         }
         if (params.minTradeSizeX18 == 0) {
             revert Errors.ZeroInput("minTradeSizeX18");
+        }
+        if (params.maxFundingVelocity == 0) {
+            revert Errors.ZeroInput("maxFundingVelocity");
         }
 
         perpMarketConfiguration.update(
@@ -513,7 +526,14 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Enables or disabled the perp market of the given market id.
     /// @param marketId The perps market id.
     /// @param enable Whether the market should be enabled or disabled.
-    function updatePerpMarketStatus(uint128 marketId, bool enable) external onlyOwner onlyWhenPerpMarketIsInitialized(marketId){
+    function updatePerpMarketStatus(
+        uint128 marketId,
+        bool enable
+    )
+        external
+        onlyOwner
+        onlyWhenPerpMarketIsInitialized(marketId)
+    {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         if (enable) {
