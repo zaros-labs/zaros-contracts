@@ -1,0 +1,36 @@
+SimulateTrade_Integration_Test
+├── given the account id does not exist
+│   └── it should revert
+└── given the account id exists
+    ├── given the perp market id does not exist // does not revert
+    │   └── it should revert 
+    └── given the perp market id exists
+        ├── when the size delta is zero // does not revert
+        │   └── it should revert // probably just return 0 value
+        └── when the size delta is not zero
+             ├── when there is insufficient liquidity
+             │    └── it should revert
+             └── when there is sufficient liquidity
+                  ├── when the trading account is liquidatable (required maintenance margin is bigger than the margin balance)
+                  │     └── it should revert
+                  └── when the trading account is not liquidatable (required maintenance margin is not bigger than the margin balance)
+                        ├──  when the position size is too small
+                        │      └── it should revert
+                        └──  when the position size is not too small
+                              └── when there is sufficient liquidity
+                                   └── it should simulate the trade correctly
+
+
+
+Cases to consider:
+These are same as the perp market id does/not exist
+given the price adapter is not defined  
+  it should revert // PriceAdapterNotDefined
+given the price adapter is defined 
+
+Some cases to explore: 
+when the size delta is less than the min trade size?
+given the account won't meet the margin requirements
+given there is no pending market order
+
+* some cases may be not in the function logic, but still could make sense to be there
