@@ -23,7 +23,9 @@ contract MarginCollateralConfiguration_Configure_Test is Base_Test {
     )
         external
     {
-        perpsEngine.exposed_configure(address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS);
+        perpsEngine.exposed_configure(
+            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
 
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
             perpsEngine.exposed_MarginCollateral_load(address(usdc));

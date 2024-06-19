@@ -53,7 +53,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     {
         address newPriceFeed = address(0);
 
-        perpsEngine.exposed_configure(address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS);
+        perpsEngine.exposed_configure(
+            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralPriceFeedNotDefined.selector) });
@@ -151,11 +153,14 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         UD60x18 price = perpsEngine.exposed_getPrice(address(wstEth));
 
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
-            perpsEngine.exposed_MarginCollateral_load(address(usdc));
+            perpsEngine.exposed_MarginCollateral_load(address(wstEth));
 
-        uint8 priceFeedDecimals = MockPriceFeed(marginCollateralConfiguration.priceFeed).decimals();
+        uint8 priceFeedDecimals = MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed).decimals();
 
-        UD60x18 expectedPrice = ud60x18(MOCK_USDC_USD_PRICE * 10 ** (Constants.SYSTEM_DECIMALS - priceFeedDecimals));
+        UD60x18 expectedPrice = ud60x18(
+            marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].mockUsdPrice
+                * 10 ** (Constants.SYSTEM_DECIMALS - priceFeedDecimals)
+        );
 
         // it should return the price
         assertEq(expectedPrice.intoUint256(), price.intoUint256(), "price is not correct");
