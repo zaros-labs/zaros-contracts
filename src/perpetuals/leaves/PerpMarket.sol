@@ -162,9 +162,9 @@ library PerpMarket {
         bool isBuyOrder = sizeDelta.gt(SD_ZERO);
 
         if (isSkewGtZero != isBuyOrder) {
-            feeBps = sd59x18((self.configuration.orderFees.makerFee));
+            feeBps = sd59x18(int128(self.configuration.orderFees.makerFee));
         } else {
-            feeBps = sd59x18((self.configuration.orderFees.takerFee));
+            feeBps = sd59x18(int128(self.configuration.orderFees.takerFee));
         }
 
         return markPriceX18.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);

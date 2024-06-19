@@ -8,7 +8,7 @@ library OrderFees {
     /// @param makerFee The order maker fee value applied.
     /// @param takerFee The order taker fee value applied.
     struct Data {
-        int128 makerFee;
-        int128 takerFee;
+        uint128 makerFee;
+        uint128 takerFee;
     }
 }
