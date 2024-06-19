@@ -171,12 +171,9 @@ library TradingAccount {
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
 
-            UD60x18 balanceX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(balance);
-            UD60x18 loanToValueX18 =
-                marginCollateralConfiguration.convertTokenAmountToUd60x18(marginCollateralConfiguration.loanToValue);
-
-            UD60x18 adjustedBalanceUsdX18 =
-                marginCollateralConfiguration.getPrice().mul(balanceX18).mul(loanToValueX18);
+            UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balance)).mul(
+                ud60x18(marginCollateralConfiguration.loanToValue)
+            );
 
             marginBalanceUsdX18 = marginBalanceUsdX18.add(adjustedBalanceUsdX18.intoSD59x18());
         }

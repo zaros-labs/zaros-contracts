@@ -107,7 +107,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         givenTheCollateralTypeHasSufficientDepositCap
         givenTheCollateralTypeIsInTheLiquidationPriority
     {
-       // Test with usdc that has 6 decimals
+        // Test with usdc that has 6 decimals
 
         assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), 0, "initial balance should be zero");
 

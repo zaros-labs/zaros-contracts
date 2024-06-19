@@ -573,11 +573,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({
-            x: marginValueUsd,
-            min: WSTETH_MIN_DEPOSIT_MARGIN,
-            max: WSTETH_DEPOSIT_CAP
-        });
+        marginValueUsd = bound({ x: marginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
 
         deal({ token: address(wstEth), to: users.naruto, give: marginValueUsd });
 
