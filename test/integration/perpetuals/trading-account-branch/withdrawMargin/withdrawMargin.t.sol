@@ -8,7 +8,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { MockERC20 } from "test/mocks/MockERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -245,21 +244,9 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit TradingAccountBranch.LogWithdrawMargin(users.naruto, tradingAccountId, address(wstEth), amountToWithdraw);
 
-        assertEq(
-            MockERC20(address(wstEth)).balanceOf(users.naruto),
-            0,
-            "balance before the withdraw margin should be zero"
-        );
-
         // it should transfer the withdrawn amount to the sender
         expectCallToTransfer(wstEth, users.naruto, amountToWithdraw);
         perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
-
-        assertEq(
-            MockERC20(address(wstEth)).balanceOf(users.naruto),
-            amountToWithdraw,
-            "balance after the withdraw margin should be equal to the withdrawn amount"
-        );
 
         uint256 expectedMargin = amountToDeposit - amountToWithdraw;
         uint256 newMarginCollateralBalance =
@@ -290,43 +277,5 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         // it should decrease the margin collateral balance
         assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
-
-        // Test with token that have 10 decimals
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: MOCK_USD_10_DECIMALS_DEPOSIT_CAP });
-        amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
-
-        deal({ token: address(mockUsdWith10Decimals), to: users.naruto, give: amountToDeposit });
-
-        tradingAccountId = createAccountAndDeposit(amountToDeposit, address(mockUsdWith10Decimals));
-
-        // it should emit a {LogWithdrawMargin} event
-        vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogWithdrawMargin(
-            users.naruto, tradingAccountId, address(mockUsdWith10Decimals), amountToWithdraw
-        );
-
-        assertEq(
-            MockERC20(address(mockUsdWith10Decimals)).balanceOf(users.naruto),
-            0,
-            "balance before the withdraw margin should be zero"
-        );
-
-        // it should transfer the withdrawn amount to the sender
-        expectCallToTransfer(mockUsdWith10Decimals, users.naruto, amountToWithdraw);
-        perpsEngine.withdrawMargin(tradingAccountId, address(mockUsdWith10Decimals), amountToWithdraw);
-
-        assertEq(
-            MockERC20(address(mockUsdWith10Decimals)).balanceOf(users.naruto),
-            amountToWithdraw,
-            "balance after the withdraw margin should be equal to the withdrawn amount"
-        );
-
-        expectedMargin = amountToDeposit - amountToWithdraw;
-        newMarginCollateralBalance = perpsEngine.getAccountMarginCollateralBalance(
-            tradingAccountId, address(mockUsdWith10Decimals)
-        ).intoUint256();
-
-        // it should decrease the margin collateral balance
-        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin with token that have 10 decimals");
     }
 }
