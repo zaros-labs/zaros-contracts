@@ -165,6 +165,7 @@ contract SimulateTrade_Integration_Test is Base_Test {
         whenThereIsSufficientLiquidity
     {
         // mock UD60x18 requiredMaintenanceMarginUsdX18 > SD59x18 marginBalanceUsdX18
+        // function to read is in requiredMaintenanceMarginUsdX18 TradingAccount.sol - what setter should we use?
     }
 
     modifier whenAccountIsNotLiquidatable() {
@@ -229,13 +230,15 @@ contract SimulateTrade_Integration_Test is Base_Test {
             })
         );
 
-        (
-            SD59x18 marginBalanceUsdX18,
-            UD60x18 requiredInitialMarginUsdX18,
-            ,
-            SD59x18 orderFeeUsdX18,
-            UD60x18 settlementFeeUsdX18,
-        ) = perpsEngine.simulateTrade(
+        // (
+        //     SD59x18 marginBalanceUsdX18,
+        //     UD60x18 requiredInitialMarginUsdX18,
+        //     ,
+        //     SD59x18 orderFeeUsdX18,
+        //     UD60x18 settlementFeeUsdX18,
+        // ) =
+
+        perpsEngine.simulateTrade(
             tradingAccountId,
             fuzzMarketConfig.marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,

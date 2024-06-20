@@ -23,13 +23,16 @@ SimulateTrade_Integration_Test
 
 Cases to consider:
 These are same as the perp market id does/not exist
-given the price adapter is not defined  
+- given the price adapter is not defined  
   it should revert // PriceAdapterNotDefined
 given the price adapter is defined 
+
 
 Some cases to explore: 
 when the size delta is less than the min trade size?
 given the account won't meet the margin requirements
 given there is no pending market order
+
+- when the user tries to open a trade an he already has pending trades?
 
 * some cases may be not in the function logic, but still could make sense to be there
