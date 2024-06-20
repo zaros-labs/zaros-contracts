@@ -1,7 +1,11 @@
 LiquidationKeeper_CheckUpkeep_Integration_Test
+├── when the check lower bound is equal then the check upper bound
+│   └── it should revert
 ├── when the check lower bound is higher than the check upper bound
 │   └── it should revert
 └── when the check lower bound is lower than the check upper bound
+    ├── when the perform lower bound is equal than the perform upper bound
+    │   └── it should revert
     ├── when the perform lower bound is higher than the perform upper bound
     │   └── it should revert
     └── when the perform lower bound is lower than the perform upper bound
