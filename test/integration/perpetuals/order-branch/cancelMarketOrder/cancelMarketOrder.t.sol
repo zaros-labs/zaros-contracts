@@ -118,6 +118,17 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             })
         );
 
+        changePrank({ msgSender: users.owner });
+        perpsEngine.configureSystemParameters({
+            maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
+            marketOrderMinLifetime: 0,
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
+            marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
+            orderFeeRecipient: feeRecipients.orderFeeRecipient,
+            settlementFeeRecipient: feeRecipients.settlementFeeRecipient
+        });
+        changePrank({ msgSender: users.naruto });
+
         // it should emit {LogCancelMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit OrderBranch.LogCancelMarketOrder(users.naruto, tradingAccountId);
