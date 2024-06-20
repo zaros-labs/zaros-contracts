@@ -1,4 +1,0 @@
-SimulateTrade_Integration_Test
-├── given there's not enough margin to cover the trade.
-│    └── it should revert
-└── given the account id exists   
