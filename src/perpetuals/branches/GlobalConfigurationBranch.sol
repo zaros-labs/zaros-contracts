@@ -109,7 +109,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @notice Ensures that perp market is initialized.
     /// @param marketId The perps market id.
-    modifier onlyWhenPerpMarketIsInitialized (uint128 marketId) {
+    modifier onlyWhenPerpMarketIsInitialized(uint128 marketId) {
         PerpMarket.Data memory perpMarket = PerpMarket.load(marketId);
 
         if (!perpMarket.initialized) {
@@ -443,7 +443,14 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
     /// impact open positions.
     /// @dev See {UpdatePerpMarketConfigurationParams}.
-    function updatePerpMarketConfiguration(uint128 marketId, UpdatePerpMarketConfigurationParams calldata params) external onlyOwner onlyWhenPerpMarketIsInitialized(marketId) {
+    function updatePerpMarketConfiguration(
+        uint128 marketId,
+        UpdatePerpMarketConfigurationParams calldata params
+    )
+        external
+        onlyOwner
+        onlyWhenPerpMarketIsInitialized(marketId)
+    {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         MarketConfiguration.Data storage perpMarketConfiguration = perpMarket.configuration;
 
@@ -513,7 +520,14 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Enables or disabled the perp market of the given market id.
     /// @param marketId The perps market id.
     /// @param enable Whether the market should be enabled or disabled.
-    function updatePerpMarketStatus(uint128 marketId, bool enable) external onlyOwner onlyWhenPerpMarketIsInitialized(marketId){
+    function updatePerpMarketStatus(
+        uint128 marketId,
+        bool enable
+    )
+        external
+        onlyOwner
+        onlyWhenPerpMarketIsInitialized(marketId)
+    {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         if (enable) {

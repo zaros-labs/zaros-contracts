@@ -75,7 +75,9 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         });
 
         perpsEngine.updateSettlementConfiguration(
-            fuzzMarketConfig.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, newSettlementConfiguration
+            fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            newSettlementConfiguration
         );
     }
 
@@ -104,7 +106,9 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         });
 
         perpsEngine.updateSettlementConfiguration(
-            fuzzMarketConfig.marketId, SettlementConfiguration.OFFCHAIN_ORDER_CONFIGURATION_ID, newSettlementConfiguration
+            fuzzMarketConfig.marketId,
+            SettlementConfiguration.OFFCHAIN_ORDER_CONFIGURATION_ID,
+            newSettlementConfiguration
         );
     }
 
