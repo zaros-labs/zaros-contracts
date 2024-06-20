@@ -8,7 +8,7 @@ SimulateTrade_Integration_Test
         ├── when the size delta is zero // does not revert
         │   └── it should revert // probably just return 0 value
         └── when the size delta is not zero
-             ├── when there is insufficient liquidity
+             ├── when there is insufficient liquidity // should this be hit before the others in the tree?
              │    └── it should revert
              └── when there is sufficient liquidity
                   ├── when the trading account is liquidatable (required maintenance margin is bigger than the margin balance)
@@ -17,8 +17,7 @@ SimulateTrade_Integration_Test
                         ├──  when the position size is too small
                         │      └── it should revert
                         └──  when the position size is not too small
-                              └── when there is sufficient liquidity
-                                   └── it should simulate the trade correctly
+                              └── it should simulate the trade correctly
 
 
 

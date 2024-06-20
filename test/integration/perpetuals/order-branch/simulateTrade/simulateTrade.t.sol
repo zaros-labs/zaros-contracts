@@ -3,8 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-// import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
-// import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
 
@@ -51,43 +49,6 @@ contract SimulateTrade_Integration_Test is Base_Test {
         _;
     }
 
-    //  function testRevertGiven_MarketIdDoesNotExist(
-    //     int128 sizeDelta,
-    //     uint128 settlementConfigurationId
-    //  ) public {
-    //     uint128 marketId = 9999999999999999999;
-
-    //     // Ensure account exists
-    //     changePrank({ msgSender: users.owner });
-    //     uint128 tradingAccountId = perpsEngine.createTradingAccount();
-    //     changePrank({ msgSender: users.naruto });
-
-    //     // Expect revert
-    //     // vm.expectRevert(abi.encodeWithSelector(Errors.MarketNotFound.selector, nonExistentMarketId));
-    //      // it should revert
-    //     vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketId") });
-
-    //     perpsEngine.simulateTrade(tradingAccountId, marketId, settlementConfigurationId, sizeDelta);
-    // }
-
-    //     function testFuzz_RevertGiven_MarketIdDoesNotExist(
-    //     int128 sizeDelta,
-    //     uint128 settlementConfigurationId
-    // ) public {
-    //     uint128 marketId = 9999999999999999999;
-
-    //     // Ensure account exists
-    //     changePrank({ msgSender: users.owner });
-    //     uint128 tradingAccountId = perpsEngine.createTradingAccount();
-    //     changePrank({ msgSender: users.naruto });
-
-    //     // Expect revert with the correct error
-    //     // vm.expectRevert(abi.encodeWithSelector(Errors.MarketNotFound.selector, marketId));
-    //         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketId") });
-
-    //     perpsEngine.simulateTrade(tradingAccountId, marketId, settlementConfigurationId, sizeDelta);
-    // }
-
     function testFuzz_RevertGiven_ThePerpIdDoesNotExist(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -99,13 +60,9 @@ contract SimulateTrade_Integration_Test is Base_Test {
     {
         // random value
         // TODO: Use vm random values
-        uint256 marketId = 1_249_871_248_971_981;
+        uint256 marketId = 999_999_999_999;
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-
-        console.log("here");
-
-        console.log(fuzzMarketConfig.marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
@@ -141,12 +98,17 @@ contract SimulateTrade_Integration_Test is Base_Test {
         perpsEngine.simulateTrade(tradingAccountId, fuzzMarketConfig.marketId, settlementConfigurationId, sizeDelta);
     }
 
+    modifier givenThePerpMarketIdExists() {
+        _;
+    }
+
     function test_RevertWhen_TheSizeDeltaIsZero(
         uint256 marketId,
         uint128 settlementConfigurationId
     )
         external
         givenTheAccountIdExists
+        givenThePerpMarketIdExists
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -155,14 +117,53 @@ contract SimulateTrade_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "sizeDelta") });
 
-        perpsEngine.simulateTrade(tradingAccountId, fuzzMarketConfig.marketId, settlementConfigurationId, 0);
+        // TODO: Cleanup unused vars after fixing test
+        (
+            SD59x18 marginBalanceUsdX18,
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18,
+            UD60x18 fillPriceX18
+        ) = perpsEngine.simulateTrade(tradingAccountId, fuzzMarketConfig.marketId, settlementConfigurationId, 0);
+
+        // console.log(marginBalanceUsdX18);
+
+        // console.logInt(requiredInitialMarginUsdX18);
+
+        // console.logInt(requiredMaintenanceMarginUsdX18);
+
+        // console.logInt(orderFeeUsdX18);
+
+        // console.logInt(settlementFeeUsdX18);
+
+        // console.logInt(fillPriceX18);
     }
 
     modifier givenTheSizeDeltaIsNotZero() {
         _;
     }
 
-    function testFuzz_RevertWhen_AccountIsLiquidatable() external givenTheAccountIdExists {
+    function testFuzz_RevertWhen_ThereIsInsufficientLiquidity()
+        external
+        givenTheAccountIdExists
+        givenThePerpMarketIdExists
+        givenTheSizeDeltaIsNotZero
+    {
+        // mock unsifficient luqidity
+    }
+
+    modifier whenThereIsSufficientLiquidity() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_AccountIsLiquidatable()
+        external
+        givenTheAccountIdExists
+        givenThePerpMarketIdExists
+        givenTheSizeDeltaIsNotZero
+        whenThereIsSufficientLiquidity
+    {
         // mock UD60x18 requiredMaintenanceMarginUsdX18 > SD59x18 marginBalanceUsdX18
     }
 
@@ -170,8 +171,22 @@ contract SimulateTrade_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_PositionIsTooSmall() external givenTheAccountIdExists {
-        // mock UD60x18 requiredMaintenanceMarginUsdX18 > SD59x18 marginBalanceUsdX18
+    function testFuzz_RevertWhen_PositionIsTooSmall()
+        external
+        givenTheAccountIdExists
+        givenThePerpMarketIdExists
+        givenTheSizeDeltaIsNotZero
+        whenAccountIsNotLiquidatable
+        whenThereIsSufficientLiquidity
+    {
+        // mock newPositionSizeX18 == 0
+        // mock additional logic check -
+        // newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
+        // better to split the test in two pieces
+    }
+
+    modifier whenwPositionIsNotTooSmall() {
+        _;
     }
 
     /// working test case
@@ -182,14 +197,12 @@ contract SimulateTrade_Integration_Test is Base_Test {
         uint256 marketId
     )
         external
-    // givenTheAccountIdExists
-    // givenTheSenderIsAuthorized
-    // whenTheSizeDeltaIsNotZero
-    // givenThePerpMarketIsEnabled
-    // whenTheSizeDeltaIsGreaterThanTheMinTradeSize
-    // givenThePerpMarketWontReachTheOILimit
-    // givenTheAccountHasNotReachedThePositionsLimit
-    // givenTheAccountWillMeetTheMarginRequirement
+        givenTheAccountIdExists
+        givenThePerpMarketIdExists
+        givenTheSizeDeltaIsNotZero
+        whenAccountIsNotLiquidatable
+        whenThereIsSufficientLiquidity
+        whenwPositionIsNotTooSmall
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
