@@ -35,6 +35,8 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     )
         external
     {
+        vm.assume(sizeDelta > 0);
+
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // it should revert
@@ -61,6 +63,10 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         external
         givenTheAccountIdExists
     {
+        vm.assume(sizeDelta > 0);
+
+        changePrank({ msgSender: users.naruto });
+
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount();
@@ -122,11 +128,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -177,13 +183,13 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
         SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.minTradeSize).intoSD59x18().sub(sd59x18(1));
 
         int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradeSizeTooSmall.selector) });
@@ -214,13 +220,13 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
         SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.maxOi).intoSD59x18().add(sd59x18(1));
 
         int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
         // it should revert
         vm.expectRevert({
@@ -278,10 +284,10 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             min: fuzzMarketConfig.imr + secondFuzzMarketConfig.imr,
             max: MAX_MARGIN_REQUIREMENTS * 2
         });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 firstOrderSizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -300,7 +306,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: 1,
-            marketOrderMinLifetime: MARKET_ORDER_MAX_LIFETIME,
+            marketOrderMinLifetime: MARKET_ORDER_MIN_LIFETIME,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
@@ -383,9 +389,9 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
         initialMarginRate = bound({ x: initialMarginRate, min: 1, max: adjustedMarginRequirements.intoUint256() });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -456,11 +462,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -516,11 +522,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,

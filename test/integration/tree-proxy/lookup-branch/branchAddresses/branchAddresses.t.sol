@@ -60,7 +60,7 @@ contract BranchAddresses_Integration_Test is Base_Test {
 
         // it should return all addresses of branches
         assertEq(branchAddresses.length, branches.length, "Invalid branches length");
-        for (uint256 i = 0; i < branchAddresses.length; i++) {
+        for (uint256 i; i < branchAddresses.length; i++) {
             assertEq(branchAddresses[i], branches[i], "Invalid branch address");
         }
     }

@@ -6,8 +6,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { Base_Test } from "test/Base.t.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
@@ -85,16 +83,11 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
 
         (bool upkeepNeeded, bytes memory performData) = LiquidationKeeper(liquidationKeeper).checkUpkeep(checkData);
 
-        console.log("inside test");
-        console.log(upkeepNeeded);
-        console.log(performData.length);
-
         // it should return upkeepNeeded == false
         assertFalse(upkeepNeeded, "upkeepNeeded");
         uint128[] memory liquidatableAccountsIds = abi.decode(performData, (uint128[]));
-        console.log(liquidatableAccountsIds.length);
 
-        for (uint256 i = 0; i < liquidatableAccountsIds.length; i++) {
+        for (uint256 i; i < liquidatableAccountsIds.length; i++) {
             assertEq(liquidatableAccountsIds[i], 0, "liquidatableAccountsIds");
         }
     }
@@ -138,11 +131,11 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
         ctx.checkData =
             abi.encode(ctx.checkLowerBound, ctx.checkUpperBound, ctx.performLowerBound, ctx.performUpperBound);
 
-        deal({ token: address(usdToken), to: users.naruto, give: ctx.marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
 
-        for (uint256 i = 0; i < ctx.amountOfTradingAccounts; i++) {
+        for (uint256 i; i < ctx.amountOfTradingAccounts; i++) {
             ctx.accountMarginValueUsd = ctx.marginValueUsd / ctx.amountOfTradingAccounts;
-            ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
+            ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
 
             openPosition(
                 ctx.fuzzMarketConfig, ctx.tradingAccountId, ctx.initialMarginRate, ctx.accountMarginValueUsd, isLong
@@ -157,7 +150,7 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
         // it should return the abi encoded liquidatable accounts ids
         ctx.liquidatableAccountsIds = abi.decode(ctx.performData, (uint128[]));
 
-        for (uint256 i = 0; i < ctx.liquidatableAccountsIds.length; i++) {
+        for (uint256 i; i < ctx.liquidatableAccountsIds.length; i++) {
             assertEq(ctx.liquidatableAccountsIds[i], ctx.performLowerBound + i + 1, "liquidatableAccountsIds");
         }
     }

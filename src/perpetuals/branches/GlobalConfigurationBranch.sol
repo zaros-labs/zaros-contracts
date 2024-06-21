@@ -34,6 +34,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Emitted when the account token address is set.
     event LogSetTradingAccountToken(address indexed sender, address indexed tradingAccountToken);
 
+    /// @notice Emitted when the usd token address is set.
+    event LogSetUsdToken(address indexed sender, address indexed usdToken);
+
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
     /// @param collateralTypes The array of collateral type addresses, ordered by priority.
@@ -49,10 +52,16 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param sender The address that enabled or disabled the collateral type.
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
+    /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The amount of decimals of the collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
     event LogConfigureMarginCollateral(
-        address indexed sender, address indexed collateralType, uint128 depositCap, uint8 decimals, address priceFeed
+        address indexed sender,
+        address indexed collateralType,
+        uint128 depositCap,
+        uint120 loanToValue,
+        uint8 decimals,
+        address priceFeed
     );
 
     /// @notice Emitted when a collateral type is removed from the collateral priority.
@@ -97,6 +106,18 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Emitted when a perp market is disabled by the owner.
     /// @param marketId The perps market id.
     event LogDisablePerpMarket(address indexed sender, uint128 marketId);
+
+    /// @notice Ensures that perp market is initialized.
+    /// @param marketId The perps market id.
+    modifier onlyWhenPerpMarketIsInitialized(uint128 marketId) {
+        PerpMarket.Data memory perpMarket = PerpMarket.load(marketId);
+
+        if (!perpMarket.initialized) {
+            revert Errors.PerpMarketNotInitialized(marketId);
+        }
+
+        _;
+    }
 
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {GlobalConfigurationBranch} UUPS initializer.
@@ -155,6 +176,19 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         emit LogSetTradingAccountToken(msg.sender, tradingAccountToken);
     }
 
+    /// @notice Sets the address of the usd token.
+    /// @param usdToken The token address.
+    function setUsdToken(address usdToken) external onlyOwner {
+        if (usdToken == address(0)) {
+            revert Errors.ZeroInput("usdToken");
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        globalConfiguration.usdToken = usdToken;
+
+        emit LogSetUsdToken(msg.sender, usdToken);
+    }
+
     /// @notice Configures the collateral priority.
     /// @param collateralTypes The array of collateral type addresses.
     function configureCollateralLiquidationPriority(address[] calldata collateralTypes) external onlyOwner {
@@ -182,7 +216,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        for (uint256 i = 0; i < liquidators.length; i++) {
+        for (uint256 i; i < liquidators.length; i++) {
             globalConfiguration.isLiquidatorEnabled[liquidators[i]] = enable[i];
         }
 
@@ -209,7 +243,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             }
             MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceFeed);
 
-            emit LogConfigureMarginCollateral(msg.sender, collateralType, depositCap, decimals, priceFeed);
+            emit LogConfigureMarginCollateral(
+                msg.sender, collateralType, depositCap, loanToValue, decimals, priceFeed
+            );
         } catch {
             revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
         }
@@ -378,7 +414,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     }
 
     /// @notice `updatePerpMarketConfiguration` params.
-    /// @param marketId The perp market id.
     /// @param name The perp market name.
     /// @param symbol The perp market symbol.
     /// @param priceAdapter The price adapter contract, which handles the market's index price.
@@ -391,7 +426,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param orderFees The perp market maker and taker fees.
     struct UpdatePerpMarketConfigurationParams {
-        uint128 marketId;
         string name;
         string symbol;
         address priceAdapter;
@@ -409,13 +443,16 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @dev A market's configuration must be updated with caution, as the update of some variables may directly
     /// impact open positions.
     /// @dev See {UpdatePerpMarketConfigurationParams}.
-    function updatePerpMarketConfiguration(UpdatePerpMarketConfigurationParams calldata params) external onlyOwner {
-        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
+    function updatePerpMarketConfiguration(
+        uint128 marketId,
+        UpdatePerpMarketConfigurationParams calldata params
+    )
+        external
+        onlyOwner
+        onlyWhenPerpMarketIsInitialized(marketId)
+    {
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         MarketConfiguration.Data storage perpMarketConfiguration = perpMarket.configuration;
-
-        if (!perpMarket.initialized) {
-            revert Errors.PerpMarketNotInitialized(params.marketId);
-        }
 
         if (abi.encodePacked(params.name).length == 0) {
             revert Errors.ZeroInput("name");
@@ -459,7 +496,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             params.orderFees
         );
 
-        emit LogUpdatePerpMarketConfiguration(msg.sender, params.marketId);
+        emit LogUpdatePerpMarketConfiguration(msg.sender, marketId);
     }
 
     /// @notice Updates the settlement configuration of a given market.
@@ -473,6 +510,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     )
         external
         onlyOwner
+        onlyWhenPerpMarketIsInitialized(marketId)
     {
         SettlementConfiguration.update(marketId, settlementConfigurationId, newSettlementConfiguration);
 
@@ -482,13 +520,15 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Enables or disabled the perp market of the given market id.
     /// @param marketId The perps market id.
     /// @param enable Whether the market should be enabled or disabled.
-    function updatePerpMarketStatus(uint128 marketId, bool enable) external onlyOwner {
+    function updatePerpMarketStatus(
+        uint128 marketId,
+        bool enable
+    )
+        external
+        onlyOwner
+        onlyWhenPerpMarketIsInitialized(marketId)
+    {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-
-        if (!perpMarket.initialized) {
-            revert Errors.PerpMarketNotInitialized(marketId);
-        }
 
         if (enable) {
             globalConfiguration.addMarket(marketId);

@@ -17,21 +17,21 @@ contract MarginCollateralConfiguration_Load_Unit_Test is Base_Test {
 
     function test_WhenLoadIsCalled() external {
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
-            perpsEngine.exposed_MarginCollateral_load(address(usdToken));
+            perpsEngine.exposed_MarginCollateral_load(address(usdc));
 
         // it should return the maximum deposit cap
-        assertEq(marginCollateralConfiguration.depositCap, USDZ_DEPOSIT_CAP, "invalid deposit cap");
+        assertEq(marginCollateralConfiguration.depositCap, USDC_DEPOSIT_CAP, "invalid deposit cap");
 
         // it should return the loan to value
-        assertEq(marginCollateralConfiguration.loanToValue, USDZ_LOAN_TO_VALUE, "invalid loan to value");
+        assertEq(marginCollateralConfiguration.loanToValue, USDC_LOAN_TO_VALUE, "invalid loan to value");
 
         // it should return the decimals
-        assertEq(marginCollateralConfiguration.decimals, 18, "invalid decimals");
+        assertEq(marginCollateralConfiguration.decimals, USDC_DECIMALS, "invalid decimals");
 
         // it should return the price feed
         assertEq(
             marginCollateralConfiguration.priceFeed,
-            address(mockPriceAdapters.mockUsdcUsdPriceAdapter),
+            address(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed),
             "invalid price feed"
         );
     }

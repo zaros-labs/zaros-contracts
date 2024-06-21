@@ -14,7 +14,7 @@ contract SetForwarders is BaseScript {
         // solhint-disable-next-line custom-errors
         require(keepers.length == forwarders.length, "invalid input length");
 
-        for (uint256 i = 0; i < keepers.length; i++) {
+        for (uint256 i; i < keepers.length; i++) {
             address target = keepers[i];
             address forwarder = forwarders[i];
 

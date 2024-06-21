@@ -128,15 +128,15 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         ctx.marginValueUsd = 10_000e18 / amountOfTradingAccounts;
         ctx.initialMarginRate = ctx.fuzzMarketConfig.imr;
 
-        deal({ token: address(usdToken), to: users.naruto, give: ctx.marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
 
         // last account id == 0
         ctx.accountsIds = new uint128[](amountOfTradingAccounts + 2);
 
         ctx.accountMarginValueUsd = ctx.marginValueUsd / (amountOfTradingAccounts + 1);
 
-        for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
-            ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
+        for (uint256 i; i < amountOfTradingAccounts; i++) {
+            ctx.tradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
 
             openPosition(
                 ctx.fuzzMarketConfig,
@@ -156,18 +156,18 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
             ctx.accountsIds[i] = ctx.tradingAccountId;
 
-            deal({ token: address(usdToken), to: users.naruto, give: ctx.marginValueUsd });
+            deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
         }
 
         setAccountsAsLiquidatable(ctx.fuzzMarketConfig, isLong);
         setAccountsAsLiquidatable(ctx.secondMarketConfig, isLong);
 
-        ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdToken));
+        ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
         ctx.accountsIds[amountOfTradingAccounts] = ctx.nonLiquidatableTradingAccountId;
 
         changePrank({ msgSender: liquidationKeeper });
 
-        for (uint256 i = 0; i < ctx.accountsIds.length; i++) {
+        for (uint256 i; i < ctx.accountsIds.length; i++) {
             if (ctx.accountsIds[i] == ctx.nonLiquidatableTradingAccountId || ctx.accountsIds[i] == 0) {
                 continue;
             }
@@ -221,7 +221,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         ).size;
         assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "skew");
 
-        for (uint256 i = 0; i < ctx.accountsIds.length; i++) {
+        for (uint256 i; i < ctx.accountsIds.length; i++) {
             if (ctx.accountsIds[i] == ctx.nonLiquidatableTradingAccountId) {
                 continue;
             }

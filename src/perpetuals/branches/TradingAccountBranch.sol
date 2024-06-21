@@ -119,7 +119,7 @@ contract TradingAccountBranch {
 
         marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(activePositionsUnrealizedPnlUsdX18);
 
-        for (uint256 i = 0; i < tradingAccount.activeMarketsIds.length(); i++) {
+        for (uint256 i; i < tradingAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
 
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
@@ -165,7 +165,7 @@ contract TradingAccountBranch {
         SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(tradingAccount.getAccountUnrealizedPnlUsd());
         UD60x18 totalPositionsNotionalValue;
 
-        for (uint256 i = 0; i < tradingAccount.activeMarketsIds.length(); i++) {
+        for (uint256 i; i < tradingAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
 
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
@@ -238,7 +238,7 @@ contract TradingAccountBranch {
         uint128 tradingAccountId = createTradingAccount();
 
         results = new bytes[](data.length);
-        for (uint256 i = 0; i < data.length; i++) {
+        for (uint256 i; i < data.length; i++) {
             bytes memory dataWithAccountId = bytes.concat(data[i][0:4], abi.encode(tradingAccountId), data[i][4:]);
             (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
 
@@ -260,14 +260,18 @@ contract TradingAccountBranch {
     function depositMargin(uint128 tradingAccountId, address collateralType, uint256 amount) public virtual {
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
-        UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
+
+        UD60x18 ud60x18Amount = ud60x18(amount);
+
+        UD60x18 depositCapX18 = ud60x18(marginCollateralConfiguration.depositCap);
+
         _requireAmountNotZero(ud60x18Amount);
-        _requireEnoughDepositCap(collateralType, ud60x18Amount, ud60x18(marginCollateralConfiguration.depositCap));
+        _requireEnoughDepositCap(collateralType, ud60x18Amount, depositCapX18);
         _requireCollateralLiquidationPriorityDefined(collateralType);
 
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         tradingAccount.deposit(collateralType, ud60x18Amount);
-        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), ud60x18Amount.intoUint256());
+        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 
         emit LogDepositMargin(msg.sender, tradingAccountId, collateralType, amount);
     }
@@ -277,13 +281,10 @@ contract TradingAccountBranch {
     /// @param collateralType The margin collateral address.
     /// @param amount The UD60x18 amount of margin collateral to withdraw.
     function withdrawMargin(uint128 tradingAccountId, address collateralType, uint256 amount) external {
-        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
-            MarginCollateralConfiguration.load(collateralType);
-
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
 
-        UD60x18 ud60x18Amount = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
+        UD60x18 ud60x18Amount = ud60x18(amount);
 
         _requireAmountNotZero(ud60x18Amount);
         _requireEnoughMarginCollateral(tradingAccount, collateralType, ud60x18Amount);
@@ -295,11 +296,9 @@ contract TradingAccountBranch {
 
         tradingAccount.validateMarginRequirement(requiredInitialMarginUsdX18, marginBalanceUsdX18, SD_ZERO);
 
-        uint256 tokenAmount = marginCollateralConfiguration.convertUd60x18ToTokenAmount(ud60x18Amount);
+        IERC20(collateralType).safeTransfer(msg.sender, amount);
 
-        IERC20(collateralType).safeTransfer(msg.sender, tokenAmount);
-
-        emit LogWithdrawMargin(msg.sender, tradingAccountId, collateralType, tokenAmount);
+        emit LogWithdrawMargin(msg.sender, tradingAccountId, collateralType, amount);
     }
 
     /// @notice Used by the Account NFT contract to notify an account transfer.

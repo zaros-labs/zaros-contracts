@@ -35,11 +35,11 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
         uint256 marginValueUsd = 1_000_000e18 / amountOfTradingAccounts;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
 
-        for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
+        for (uint256 i; i < amountOfTradingAccounts; i++) {
             uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
-            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdz));
             openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
         }
 
@@ -50,7 +50,7 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
         uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
 
         // it should return an empty array
-        for (uint256 i = 0; i < liquidatableAccountIds.length; i++) {
+        for (uint256 i; i < liquidatableAccountIds.length; i++) {
             assertEq(liquidatableAccountIds[i], 0);
         }
     }
@@ -67,11 +67,11 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
         uint256 marginValueUsd = 10_000e18 / amountOfTradingAccounts;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
-        deal({ token: address(usdToken), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
 
-        for (uint256 i = 0; i < amountOfTradingAccounts; i++) {
+        for (uint256 i; i < amountOfTradingAccounts; i++) {
             uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
-            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+            uint128 tradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdz));
 
             openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, accountMarginValueUsd, isLong);
         }
@@ -83,7 +83,7 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
         uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
 
         assertEq(liquidatableAccountIds.length, amountOfTradingAccounts);
-        for (uint256 i = 0; i < liquidatableAccountIds.length; i++) {
+        for (uint256 i; i < liquidatableAccountIds.length; i++) {
             // it should return an array with the liquidatable accounts ids
             assertEq(liquidatableAccountIds[i], i + 1);
         }
