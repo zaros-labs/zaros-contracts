@@ -156,8 +156,6 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
             ctx.accountsIds[i] = ctx.tradingAccountId;
 
-            // it's line is necessary because inside the 'openPosition' the deal function is called with the
-            // ctx.accountMarginValueUsd / 2
             deal({ token: address(usdToken), to: users.naruto, give: ctx.marginValueUsd });
         }
 
