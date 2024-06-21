@@ -13,6 +13,7 @@ import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.so
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
+import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
@@ -34,17 +35,19 @@ contract UpgradeBranches is BaseScript {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
+        // TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
+        LiquidationBranch liquidationBranch = new LiquidationBranch();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
         // GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
         // SettlementBranch settlementBranch = new SettlementBranch();
         // OrderBranch orderBranch = new OrderBranch();
 
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
-        bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](3);
+        // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](3);
         // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
+        bytes4[] memory liquidationBranchSelectorsUpdated = new bytes4[](2);
 
         // RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](4);
 
@@ -63,9 +66,9 @@ contract UpgradeBranches is BaseScript {
         // tradingAccountBranchTestnetSelectorsAdded[4] =
         // TradingAccountBranchTestnet.getCustomReferralCodeReferee.selector;
 
-        tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranch.getAccountMarginBreakdown.selector;
-        tradingAccountBranchTestnetSelectorsUpdated[1] = TradingAccountBranch.getAccountEquityUsd.selector;
-        tradingAccountBranchTestnetSelectorsUpdated[2] = TradingAccountBranch.getAccountLeverage.selector;
+        // tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranch.getAccountMarginBreakdown.selector;
+        // tradingAccountBranchTestnetSelectorsUpdated[1] = TradingAccountBranch.getAccountEquityUsd.selector;
+        // tradingAccountBranchTestnetSelectorsUpdated[2] = TradingAccountBranch.getAccountLeverage.selector;
 
         // tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranchTestnet.getUserReferralData.selector;
         // tradingAccountBranchTestnetSelectorsUpdated[1] =
@@ -87,11 +90,15 @@ contract UpgradeBranches is BaseScript {
 
         // orderBranchTestnetSelectorsUpdated[0] = OrderBranch.createMarketOrder.selector;
 
+        liquidationBranchSelectorsUpdated[0] = LiquidationBranch.checkLiquidatableAccounts.selector;
+        liquidationBranchSelectorsUpdated[1] = LiquidationBranch.liquidateAccounts.selector;
+
+
         branchUpgrades[0] = (
             RootProxy.BranchUpgrade({
-                branch: address(tradingAccountBranchTestnet),
+                branch: address(liquidationBranch),
                 action: RootProxy.BranchUpgradeAction.Replace,
-                selectors: tradingAccountBranchTestnetSelectorsUpdated
+                selectors: liquidationBranchSelectorsUpdated
             })
         );
 
