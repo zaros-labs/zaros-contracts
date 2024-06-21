@@ -74,7 +74,7 @@ contract LiquidationBranch {
         UD60x18 requiredMaintenanceMarginUsdX18;
         SD59x18 marginBalanceUsdX18;
         UD60x18 liquidatedCollateralUsdX18;
-        uint256 amountOfOpenPositions;
+        uint256[] activeMarketsIds;
         uint128 marketId;
         SD59x18 oldPositionSizeX18;
         SD59x18 liquidationSizeX18;
@@ -128,10 +128,10 @@ contract LiquidationBranch {
             ctx.liquidatedCollateralUsdX18 = liquidatedCollateralUsdX18;
             MarketOrder.load(ctx.tradingAccountId).clear();
 
-            ctx.amountOfOpenPositions = tradingAccount.activeMarketsIds.length();
+            ctx.activeMarketsIds = tradingAccount.activeMarketsIds.values();
 
-            for (uint256 j; j < ctx.amountOfOpenPositions; j++) {
-                ctx.marketId = tradingAccount.activeMarketsIds.at(j).toUint128();
+            for (uint256 j; j < ctx.activeMarketsIds.length; j++) {
+                ctx.marketId = ctx.activeMarketsIds[j].toUint128();
                 PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
                 Position.Data storage position = Position.load(ctx.tradingAccountId, ctx.marketId);
 
@@ -158,7 +158,7 @@ contract LiquidationBranch {
             emit LogLiquidateAccount(
                 msg.sender,
                 ctx.tradingAccountId,
-                ctx.amountOfOpenPositions,
+                ctx.activeMarketsIds.length,
                 ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
                 ctx.marginBalanceUsdX18.intoInt256(),
                 ctx.liquidatedCollateralUsdX18.intoUint256(),
