@@ -89,6 +89,8 @@ library Errors {
     error MarginCollateralAlreadyInPriority(address collateralType);
     /// @notice Thrown when a given trade is below the protocol configured min trade size in usd.
     error TradeSizeTooSmall();
+    /// @notice Thrown when the provided `initialMarginRate` is less or equal than the `maintenanceMarginRate`.
+    error InitialMarginRateLessOrEqualThanMaintenanceMarginRate();
 
     /// @notice PerpsEngine.SettlementBranch errors.
 
