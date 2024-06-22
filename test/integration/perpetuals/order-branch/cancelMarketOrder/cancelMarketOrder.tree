@@ -5,5 +5,8 @@ CancelMarketOrder_Integration_Test
     ├── given there's no market order
     │   └── it should revert
     └── given there's a market order
-        ├── it should cancel the active market order
-        └── it should emit {LogCancelMarketOrder} event
+        ├── given the minimum lifetime has not yet passed
+        │   └── it should revert
+        └── given the minimum lifetime has passed
+            ├── it should cancel the active market order
+            └── it should emit {LogCancelMarketOrder} event

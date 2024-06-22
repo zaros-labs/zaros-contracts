@@ -233,6 +233,8 @@ contract OrderBranch {
 
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
 
+        marketOrder.checkPendingOrder();
+
         marketOrder.clear();
 
         emit LogCancelMarketOrder(msg.sender, tradingAccountId);

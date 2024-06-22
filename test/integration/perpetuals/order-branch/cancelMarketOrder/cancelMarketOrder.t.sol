@@ -20,7 +20,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertGiven_TheSenderIsNotTheTradingAccountOwner(
+    function testFuzz_RevertGiven_TheSenderIsNotTheTradingAccountOwner(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
@@ -53,7 +53,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertGiven_TheresNoMarketOrder(
+    function testFuzz_RevertGiven_TheresNoMarketOrder(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
@@ -77,7 +77,11 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         perpsEngine.cancelMarketOrder(tradingAccountId);
     }
 
-    function test_GivenTheresAMarketOrder(
+    modifier givenTheresAMarketOrder() {
+        _;
+    }
+
+    function testFuzz_RevertGiven_TheMinimumLifetimeHasNotYetPassed(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -85,6 +89,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
     )
         external
         givenTheSenderIsTheTradingAccountOwner
+        givenTheresAMarketOrder
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -117,6 +122,67 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
                 sizeDelta: sizeDelta
             })
         );
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.MarketOrderStillPending.selector, block.timestamp)
+        });
+
+        perpsEngine.cancelMarketOrder(tradingAccountId);
+    }
+
+    function testFuzz_GivenTheMinimumLifetimeHasPassed(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketId
+    )
+        external
+        givenTheSenderIsTheTradingAccountOwner
+        givenTheresAMarketOrder
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: sizeDelta
+            })
+        );
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.configureSystemParameters({
+            maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
+            marketOrderMinLifetime: 0,
+            liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
+            marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
+            orderFeeRecipient: feeRecipients.orderFeeRecipient,
+            settlementFeeRecipient: feeRecipients.settlementFeeRecipient
+        });
+        changePrank({ msgSender: users.naruto });
 
         // it should emit {LogCancelMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });

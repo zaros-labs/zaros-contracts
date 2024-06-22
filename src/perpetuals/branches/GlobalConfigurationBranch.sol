@@ -283,10 +283,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             revert Errors.ZeroInput("maxPositionsPerAccount");
         }
 
-        if (marketOrderMinLifetime == 0) {
-            revert Errors.ZeroInput("marketOrderMinLifetime");
-        }
-
         if (liquidationFeeUsdX18 == 0) {
             revert Errors.ZeroInput("liquidationFeeUsdX18");
         }

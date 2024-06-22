@@ -56,7 +56,10 @@ library MarketOrder {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         uint128 marketOrderMinLifetime = globalConfiguration.marketOrderMinLifetime;
 
-        if (self.timestamp != 0 && block.timestamp - self.timestamp <= marketOrderMinLifetime) {
+        if (
+            self.timestamp != 0 && marketOrderMinLifetime != 0
+                && block.timestamp - self.timestamp <= marketOrderMinLifetime
+        ) {
             revert Errors.MarketOrderStillPending(self.timestamp);
         }
     }
