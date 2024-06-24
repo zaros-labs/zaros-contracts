@@ -80,18 +80,11 @@ contract OrderBranch {
             UD60x18 fillPriceX18
         )
     {
-        // TODO: clear natspec before merging, it's to foster my understanding and draft a tree
-        // loads existing account - check for existing account
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
-        // maybe returns preditermined value if the marketId is not existing?
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
-
-        // get index price - check and revert if perp market is undefined
         fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
-
-        /// @notice return make or take order fees
         orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), fillPriceX18);
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
@@ -102,8 +95,6 @@ contract OrderBranch {
         {
             (, UD60x18 previousRequiredMaintenanceMarginUsdX18,) =
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
-
-            // reverts if trading acc is is Liquidatable
             if (TradingAccount.isLiquidatable(previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
                 revert Errors.AccountIsLiquidatable(tradingAccountId);
             }
@@ -111,7 +102,6 @@ contract OrderBranch {
         {
             Position.Data storage position = Position.load(tradingAccountId, marketId);
             SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sd59x18(sizeDelta));
-            // reverts if position is too small
             if (
                 !newPositionSizeX18.isZero()
                     && newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
