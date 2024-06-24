@@ -119,17 +119,16 @@ library GlobalConfiguration {
 
         if (!isInCollateralLiquidationPriority) revert Errors.MarginCollateralTypeNotInPriority(collateralType);
 
-        uint256 length = self.collateralLiquidationPriority.length();
-        uint256 newLength = length - 1;
-
-        address[] memory collateralLiquidationPriority = new address[](length);
-        address[] memory newCollateralLiquidationPriority = new address[](newLength);
+        address[] memory copyCollateralLiquidationPriority = self.collateralLiquidationPriority.values();
+        address[] memory newCollateralLiquidationPriority =
+            new address[](copyCollateralLiquidationPriority.length - 1);
 
         uint256 indexCollateral = 0;
 
-        for (uint256 i = 0; i < length; i++) {
-            address collateral = self.collateralLiquidationPriority.at(i);
-            collateralLiquidationPriority[i] = collateral;
+        for (uint256 i = 0; i < copyCollateralLiquidationPriority.length; i++) {
+            address collateral = copyCollateralLiquidationPriority[i];
+
+            self.collateralLiquidationPriority.remove(collateral);
 
             if (collateral == collateralType) {
                 continue;
@@ -139,11 +138,7 @@ library GlobalConfiguration {
             indexCollateral++;
         }
 
-        for (uint256 i = 0; i < length; i++) {
-            self.collateralLiquidationPriority.remove(collateralLiquidationPriority[i]);
-        }
-
-        for (uint256 i = 0; i < newLength; i++) {
+        for (uint256 i = 0; i < copyCollateralLiquidationPriority.length - 1; i++) {
             self.collateralLiquidationPriority.add(newCollateralLiquidationPriority[i]);
         }
     }
