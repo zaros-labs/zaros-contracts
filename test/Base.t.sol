@@ -128,6 +128,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
 
+        mockSequencerUptimeFeed = new MockSequencerUptimeFeed(0);
+
         bool isTestnet = false;
         address[] memory branches = deployBranches(isTestnet);
         bytes4[][] memory branchesSelectors = getBranchesSelectors(isTestnet);
@@ -135,7 +137,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches);
         bytes[] memory initializePayloads =
-            getInitializePayloads(users.owner, address(tradingAccountToken), address(0));
+            getInitializePayloads(users.owner, address(tradingAccountToken), address(0), address(mockSequencerUptimeFeed));
 
         branchUpgrades = deployHarnesses(branchUpgrades);
 
