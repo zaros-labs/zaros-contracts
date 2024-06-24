@@ -76,7 +76,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
     {
-        address collateral = address(usdc);
+        address collateral = address(wstEth);
 
         changePrank({ msgSender: users.owner });
         MockSequencerUptimeFeedWithInvalidReturn mockSequencerUptimeFeedWithInvalidReturn =
@@ -101,7 +101,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
         whenSequencerUptimeFeedReturnAValidValue
     {
-        address collateral = address(usdc);
+        address collateral = address(wstEth);
 
         changePrank({ msgSender: users.owner });
         MockSequencerUptimeFeedDown mockSequencerUptimeFeedDown = new MockSequencerUptimeFeedDown();
