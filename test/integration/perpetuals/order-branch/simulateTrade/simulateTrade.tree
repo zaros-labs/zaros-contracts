@@ -2,14 +2,14 @@ SimulateTrade_Integration_Test
 ├── given the account id does not exist
 │   └── it should revert
 └── given the account id exists
-    ├── given the perp market id does not exist // does not revert
+    ├── given the perp market id does not exist 
     │   └── it should revert 
     └── given the perp market id exists
-        ├── when the size delta is zero // does not revert
-        │   └── it should revert // probably just return 0 value
+        ├── when the size delta is zero // update after new logic
+        │   └── it should revert 
         └── when the size delta is not zero
-             ├── when there is insufficient liquidity // should this be hit before the others in the tree?
-             │    └── it should revert
+             ├── when there is insufficient liquidity // update after new logic
+             │    └── it should revert  // should this be hit before the others in the tree?
              └── when there is sufficient liquidity
                   ├── when the trading account is liquidatable (required maintenance margin is bigger than the margin balance)
                   │     └── it should revert
@@ -21,17 +21,13 @@ SimulateTrade_Integration_Test
 
 
 
-Cases to consider:
-These are same as the perp market id does/not exist
-- given the price adapter is not defined  
-  it should revert // PriceAdapterNotDefined
-given the price adapter is defined 
+
 
 
 Some cases to explore: 
-when the size delta is less than the min trade size?
-given the account won't meet the margin requirements
-given there is no pending market order
+- when the size delta is less than the min trade size?
+- given the account won't meet the margin requirements
+- given there is no pending market order
 
 - when the user tries to open a trade an he already has pending trades?
 

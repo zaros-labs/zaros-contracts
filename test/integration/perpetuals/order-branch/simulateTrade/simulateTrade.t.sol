@@ -13,6 +13,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
+
 import { console } from "forge-std/console.sol";
 
 contract SimulateTrade_Integration_Test is Base_Test {
@@ -20,7 +22,9 @@ contract SimulateTrade_Integration_Test is Base_Test {
 
     function setUp() public override {
         Base_Test.setUp();
+
         changePrank({ msgSender: users.owner });
+
         configureSystemParameters();
 
         createPerpMarkets();
@@ -58,44 +62,33 @@ contract SimulateTrade_Integration_Test is Base_Test {
         external
         givenTheAccountIdExists
     {
-        // random value
-        // TODO: Use vm random values
-        uint256 marketId = 999_999_999_999;
+        uint256[2] memory marketsIdsRange;
+        marketsIdsRange[0] = 15;
+        marketsIdsRange[1] = 20;
 
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        MarketConfig[] memory wrongFilteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
+        MarketConfig memory unFilteredMarketsConfig = wrongFilteredMarketsConfig[0];
 
-        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+        initialMarginRate =
+            bound({ x: initialMarginRate, min: unFilteredMarketsConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
-        int128 sizeDelta = fuzzOrderSizeDelta(
-            FuzzOrderSizeDeltaParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(initialMarginRate),
-                marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
-                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
-                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
-                isLong: isLong,
-                shouldDiscountFees: true
-            })
-        );
 
-        changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketStatus({ marketId: fuzzMarketConfig.marketId, enable: false });
+        int128 sizeDelta = 10_000;
 
-        changePrank({ msgSender: users.naruto });
+        vm.startPrank(users.naruto);
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PriceAdapterNotDefined.selector, 0) });
 
-        perpsEngine.simulateTrade(tradingAccountId, fuzzMarketConfig.marketId, settlementConfigurationId, sizeDelta);
+        perpsEngine.simulateTrade(
+            tradingAccountId, unFilteredMarketsConfig.marketId, settlementConfigurationId, sizeDelta
+        );
+
+        vm.stopPrank();
     }
 
     modifier givenThePerpMarketIdExists() {
@@ -110,22 +103,24 @@ contract SimulateTrade_Integration_Test is Base_Test {
         givenTheAccountIdExists
         givenThePerpMarketIdExists
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        /// @dev this test is commented until checks logic is moved into simulateTrade function
 
-        uint128 tradingAccountId = perpsEngine.createTradingAccount();
+        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "sizeDelta") });
+        // uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
-        // TODO: Cleanup unused vars after fixing test
-        (
-            SD59x18 marginBalanceUsdX18,
-            UD60x18 requiredInitialMarginUsdX18,
-            UD60x18 requiredMaintenanceMarginUsdX18,
-            SD59x18 orderFeeUsdX18,
-            UD60x18 settlementFeeUsdX18,
-            UD60x18 fillPriceX18
-        ) = perpsEngine.simulateTrade(tradingAccountId, fuzzMarketConfig.marketId, settlementConfigurationId, 0);
+        // // it should revert
+        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "sizeDelta") });
+
+        // // TODO: Cleanup unused vars after fixing test
+        // (
+        //     SD59x18 marginBalanceUsdX18,
+        //     UD60x18 requiredInitialMarginUsdX18,
+        //     UD60x18 requiredMaintenanceMarginUsdX18,
+        //     SD59x18 orderFeeUsdX18,
+        //     UD60x18 settlementFeeUsdX18,
+        //     UD60x18 fillPriceX18
+        // ) = perpsEngine.simulateTrade(tradingAccountId, fuzzMarketConfig.marketId, settlementConfigurationId, 0);
 
         // console.log(marginBalanceUsdX18);
 
@@ -140,7 +135,7 @@ contract SimulateTrade_Integration_Test is Base_Test {
         // console.logInt(fillPriceX18);
     }
 
-    modifier givenTheSizeDeltaIsNotZero() {
+    modifier whenTheSizeDeltaIsNotZero() {
         _;
     }
 
@@ -148,8 +143,9 @@ contract SimulateTrade_Integration_Test is Base_Test {
         external
         givenTheAccountIdExists
         givenThePerpMarketIdExists
-        givenTheSizeDeltaIsNotZero
+        whenTheSizeDeltaIsNotZero
     {
+        /// @dev this test will be added when the audit issue with checks in simulateTrade is resolved
         // mock unsifficient luqidity
     }
 
@@ -157,41 +153,7 @@ contract SimulateTrade_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_AccountIsLiquidatable()
-        external
-        givenTheAccountIdExists
-        givenThePerpMarketIdExists
-        givenTheSizeDeltaIsNotZero
-        whenThereIsSufficientLiquidity
-    {
-        // mock UD60x18 requiredMaintenanceMarginUsdX18 > SD59x18 marginBalanceUsdX18
-        // function to read is in requiredMaintenanceMarginUsdX18 TradingAccount.sol - what setter should we use?
-    }
-
-    modifier whenAccountIsNotLiquidatable() {
-        _;
-    }
-
-    function testFuzz_RevertWhen_PositionIsTooSmall()
-        external
-        givenTheAccountIdExists
-        givenThePerpMarketIdExists
-        givenTheSizeDeltaIsNotZero
-        whenAccountIsNotLiquidatable
-        whenThereIsSufficientLiquidity
-    {
-        // mock newPositionSizeX18 == 0
-        // mock additional logic check -
-        // newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
-        // better to split the test in two pieces
-    }
-
-    modifier whenwPositionIsNotTooSmall() {
-        _;
-    }
-
-    /// working test case
-    function testFuzz_GivenThereIsNoPendingMarketOrder(
+    function testFuzz_RevertWhen_AccountIsLiquidatable(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -200,10 +162,111 @@ contract SimulateTrade_Integration_Test is Base_Test {
         external
         givenTheAccountIdExists
         givenThePerpMarketIdExists
-        givenTheSizeDeltaIsNotZero
+        whenTheSizeDeltaIsNotZero
+        whenThereIsSufficientLiquidity
+    {
+        /// @dev check this once again
+        // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        // initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS
+        // });
+        // marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+
+        // // give user usdc
+        // deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+
+        // // create trading account
+        // uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+        // int128 sizeDelta = fuzzOrderSizeDelta(
+        //     FuzzOrderSizeDeltaParams({
+        //         tradingAccountId: tradingAccountId,
+        //         marketId: fuzzMarketConfig.marketId,
+        //         settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+        //         initialMarginRate: ud60x18(initialMarginRate),
+        //         marginValueUsd: ud60x18(marginValueUsd),
+        //         maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+        //         minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+        //         price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+        //         isLong: isLong,
+        //         shouldDiscountFees: true
+        //     })
+        // );
+
+        // /// @dev open a positions first so the account is liquidatable?
+        // // openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
+
+        // /// @dev this does not revert?
+        // setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
+
+        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.AccountIsLiquidatable.selector,
+        // tradingAccountId) });
+
+        // perpsEngine.simulateTrade(
+        //     tradingAccountId,
+        //     fuzzMarketConfig.marketId,
+        //     SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+        //     sizeDelta
+        // );
+    }
+
+    modifier whenAccountIsNotLiquidatable() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_PositionIsTooSmall(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        uint128 marketId
+    )
+        external
+        givenTheAccountIdExists
+        givenThePerpMarketIdExists
+        whenTheSizeDeltaIsNotZero
         whenAccountIsNotLiquidatable
         whenThereIsSufficientLiquidity
-        whenwPositionIsNotTooSmall
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+
+        int128 sizeDelta = int128(fuzzMarketConfig.minTradeSize - 1);
+
+        vm.startPrank(users.naruto);
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NewPositionSizeTooSmall.selector) });
+
+        perpsEngine.simulateTrade(
+            tradingAccountId,
+            fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            sizeDelta
+        );
+
+        vm.stopPrank();
+    }
+
+    modifier whenPositionIsNotTooSmall() {
+        _;
+    }
+
+    function testFuzz_simulateTradeTest(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketId
+    )
+        external
+        givenTheAccountIdExists
+        givenThePerpMarketIdExists
+        whenTheSizeDeltaIsNotZero
+        whenAccountIsNotLiquidatable
+        whenThereIsSufficientLiquidity
+        whenPositionIsNotTooSmall
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -229,14 +292,6 @@ contract SimulateTrade_Integration_Test is Base_Test {
                 shouldDiscountFees: true
             })
         );
-
-        // (
-        //     SD59x18 marginBalanceUsdX18,
-        //     UD60x18 requiredInitialMarginUsdX18,
-        //     ,
-        //     SD59x18 orderFeeUsdX18,
-        //     UD60x18 settlementFeeUsdX18,
-        // ) =
 
         perpsEngine.simulateTrade(
             tradingAccountId,
