@@ -170,6 +170,7 @@ library TradingAccount {
             (address collateralType, uint256 balance) = self.marginCollateralBalanceX18.at(i);
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
+
             UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balance)).mul(
                 ud60x18(marginCollateralConfiguration.loanToValue)
             );
