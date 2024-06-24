@@ -35,6 +35,8 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     )
         external
     {
+        vm.assume(sizeDelta > 0);
+
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // it should revert
@@ -61,6 +63,10 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         external
         givenTheAccountIdExists
     {
+        vm.assume(sizeDelta > 0);
+
+        changePrank({ msgSender: users.naruto });
+
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount();
@@ -300,7 +306,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: 1,
-            marketOrderMinLifetime: MARKET_ORDER_MAX_LIFETIME,
+            marketOrderMinLifetime: MARKET_ORDER_MIN_LIFETIME,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,

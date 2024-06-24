@@ -99,21 +99,23 @@ contract SettlementBranch {
         virtual
     {
         FillOrderContext memory ctx;
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        ctx.usdToken = globalConfiguration.usdToken;
         ctx.marketId = marketId;
+        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
+
         ctx.tradingAccountId = tradingAccountId;
-        ctx.sizeDelta = sd59x18(sizeDelta);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
-        SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementConfigurationId);
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        ctx.sizeDelta = sd59x18(sizeDelta);
+        perpMarket.checkTradeSize(ctx.sizeDelta);
+
         Position.Data storage oldPosition = Position.load(ctx.tradingAccountId, ctx.marketId);
 
-        ctx.usdToken = globalConfiguration.usdToken;
-
-        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
-        perpMarket.checkTradeSize(ctx.sizeDelta);
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, settlementConfigurationId);
 
         ctx.fillPrice = perpMarket.getMarkPrice(
             ctx.sizeDelta, settlementConfiguration.verifyOffchainPrice(priceData, ctx.sizeDelta.gt(SD_ZERO))

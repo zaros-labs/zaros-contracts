@@ -67,7 +67,7 @@ library RootUpgrade {
         EnumerableSet.Bytes32Set storage branchSelectors_ = self.branchSelectors[branch];
         uint256 selectorCount = branchSelectors_.length();
         selectors = new bytes4[](selectorCount);
-        for (uint256 i = 0; i < selectorCount; i++) {
+        for (uint256 i; i < selectorCount; i++) {
             selectors[i] = bytes4(branchSelectors_.at(i));
         }
     }
@@ -78,7 +78,7 @@ library RootUpgrade {
         branches = new Branch.Data[](branchCount);
 
         // Build up branch struct.
-        for (uint256 i = 0; i < branchCount; i++) {
+        for (uint256 i; i < branchCount; i++) {
             address branch = branchAddresses[i];
             bytes4[] memory selectors = getBranchSelectors(self, branch);
 
@@ -94,7 +94,7 @@ library RootUpgrade {
     )
         internal
     {
-        for (uint256 i = 0; i < branchUpgrades.length; i++) {
+        for (uint256 i; i < branchUpgrades.length; i++) {
             RootProxy.BranchUpgrade memory branchUpgrade = branchUpgrades[i];
 
             validateBranchUpgrade(branchUpgrade);
@@ -114,7 +114,7 @@ library RootUpgrade {
     function addBranch(Data storage self, address branch, bytes4[] memory selectors) internal {
         // slither-disable-next-line unused-return
         self.branches.add(branch);
-        for (uint256 i = 0; i < selectors.length; i++) {
+        for (uint256 i; i < selectors.length; i++) {
             bytes4 selector = selectors[i];
 
             if (selector == bytes4(0)) {
@@ -133,7 +133,7 @@ library RootUpgrade {
     function replaceBranch(Data storage self, address branch, bytes4[] memory selectors) internal {
         // slither-disable-next-line unused-return
         self.branches.add(branch);
-        for (uint256 i = 0; i < selectors.length; i++) {
+        for (uint256 i; i < selectors.length; i++) {
             bytes4 selector = selectors[i];
             address oldBranch = self.selectorToBranch[selector];
 
@@ -168,7 +168,7 @@ library RootUpgrade {
     }
 
     function removeBranch(Data storage self, address branch, bytes4[] memory selectors) internal {
-        for (uint256 i = 0; i < selectors.length; i++) {
+        for (uint256 i; i < selectors.length; i++) {
             bytes4 selector = selectors[i];
             // also reverts if left side returns zero address
             if (selector == bytes4(0)) {
@@ -184,11 +184,12 @@ library RootUpgrade {
             delete self.selectorToBranch[selector];
             // slither-disable-next-line unused-return
             self.branchSelectors[branch].remove(selector);
-            // if no more selectors in branch, remove branch address
-            if (self.branchSelectors[branch].length() == 0) {
-                // slither-disable-next-line unused-return
-                self.branches.remove(branch);
-            }
+        }
+
+        // if no more selectors in branch, remove branch address
+        if (self.branchSelectors[branch].length() == 0) {
+            // slither-disable-next-line unused-return
+            self.branches.remove(branch);
         }
     }
 
@@ -199,7 +200,7 @@ library RootUpgrade {
     )
         internal
     {
-        for (uint256 i = 0; i < initializables.length; i++) {
+        for (uint256 i; i < initializables.length; i++) {
             address initializable = initializables[i];
             bytes memory data = initializePayloads[i];
 

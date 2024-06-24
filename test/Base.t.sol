@@ -59,7 +59,7 @@ import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18, uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 
 // PRB Test dependencies
-import { PRBTest } from "prb-test/PRBTest.sol";
+import { PRBTest } from "@prb-test/PRBTest.sol";
 
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
@@ -255,7 +255,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function configureSystemParameters() internal {
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
-            marketOrderMinLifetime: MARKET_ORDER_MAX_LIFETIME,
+            marketOrderMinLifetime: MARKET_ORDER_MIN_LIFETIME,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
@@ -358,7 +358,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: marketId,
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -372,13 +371,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             orderFees: marketsConfig[marketId].orderFees
         });
 
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
     function updatePerpMarketMaxOi(uint128 marketId, UD60x18 newMaxOi) internal {
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: marketId,
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -392,13 +390,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             orderFees: marketsConfig[marketId].orderFees
         });
 
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
     function updatePerpMarketMaxSkew(uint128 marketId, UD60x18 newMaxSkew) internal {
         GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
-            marketId: marketId,
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -412,7 +409,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             orderFees: marketsConfig[marketId].orderFees
         });
 
-        perpsEngine.updatePerpMarketConfiguration(params);
+        perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
     function updateMockPriceFeed(uint128 marketId, uint256 newPrice) internal {

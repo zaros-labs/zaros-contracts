@@ -42,40 +42,12 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MarketOrderMaxLifetimeIsZero(
-        uint128 maxPositionsPerAccount,
-        uint128 liquidationFeeUsdX18
-    )
-        external
-        whenMaxPositionsPerAccountIsNotZero
-    {
-        vm.assume(maxPositionsPerAccount > 0);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketOrderMinLifetime") });
-
-        changePrank({ msgSender: users.owner });
-        perpsEngine.configureSystemParameters(
-            maxPositionsPerAccount,
-            0,
-            liquidationFeeUsdX18,
-            feeRecipients.marginCollateralRecipient,
-            feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient
-        );
-    }
-
-    modifier whenMarketOrderMaxLifetimeIsNotZero() {
-        _;
-    }
-
     function testFuzz_RevertWhen_LiquidationFeeIsZero(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime
     )
         external
         whenMaxPositionsPerAccountIsNotZero
-        whenMarketOrderMaxLifetimeIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
         vm.assume(marketOrderMinLifetime > 0);
@@ -105,7 +77,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
     )
         external
         whenMaxPositionsPerAccountIsNotZero
-        whenMarketOrderMaxLifetimeIsNotZero
         whenLiquidationFeeIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
@@ -137,7 +108,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
     )
         external
         whenMaxPositionsPerAccountIsNotZero
-        whenMarketOrderMaxLifetimeIsNotZero
         whenLiquidationFeeIsNotZero
         whenMarginCollateralRecipientIsNotZero
     {
@@ -170,7 +140,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
     )
         external
         whenMaxPositionsPerAccountIsNotZero
-        whenMarketOrderMaxLifetimeIsNotZero
         whenLiquidationFeeIsNotZero
         whenMarginCollateralRecipientIsNotZero
         whenOrderFeeRecipientIsNotZero
@@ -200,7 +169,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
     )
         external
         whenMaxPositionsPerAccountIsNotZero
-        whenMarketOrderMaxLifetimeIsNotZero
         whenLiquidationFeeIsNotZero
         whenMarginCollateralRecipientIsNotZero
         whenOrderFeeRecipientIsNotZero

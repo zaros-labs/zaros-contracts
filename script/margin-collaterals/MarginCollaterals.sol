@@ -123,7 +123,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         MarginCollateral[] memory filteredMarginCollateralsConfig = new MarginCollateral[](filteredMarketsLength);
 
         uint256 nextMarginCollateralId = initialMarginCollateralId;
-        for (uint256 i = 0; i < filteredMarketsLength; i++) {
+        for (uint256 i; i < filteredMarketsLength; i++) {
             filteredMarginCollateralsConfig[i] = marginCollaterals[nextMarginCollateralId];
             nextMarginCollateralId++;
         }
@@ -146,7 +146,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
         address[] memory collateralLiquidationPriority = new address[](filteredMarginCollateralsConfig.length);
 
-        for (uint256 i = 0; i < filteredMarginCollateralsConfig.length; i++) {
+        for (uint256 i; i < filteredMarginCollateralsConfig.length; i++) {
             uint256 indexLiquidationPriority = filteredMarginCollateralsConfig[i].liquidationPriority - 1;
 
             address marginCollateralAddress;

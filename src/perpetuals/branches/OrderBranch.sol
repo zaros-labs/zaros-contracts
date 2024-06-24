@@ -51,6 +51,13 @@ contract OrderBranch {
         return PerpMarket.load(marketId).configuration.orderFees;
     }
 
+    struct SimulateTradeContext {
+        SD59x18 sizeDeltaX18;
+        SD59x18 accountTotalUnrealizedPnlUsdX18;
+        UD60x18 previousRequiredMaintenanceMarginUsdX18;
+        SD59x18 newPositionSizeX18;
+    }
+
     /// @notice Simulates the settlement costs and validity of a given order.
     /// @dev Reverts if there's not enough margin to cover the trade.
     /// @param tradingAccountId The trading account id.
@@ -84,26 +91,36 @@ contract OrderBranch {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
-        fillPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), perpMarket.getIndexPrice());
-        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), fillPriceX18);
+
+        SimulateTradeContext memory ctx;
+
+        ctx.sizeDeltaX18 = sd59x18(sizeDelta);
+
+        fillPriceX18 = perpMarket.getMarkPrice(ctx.sizeDeltaX18, perpMarket.getIndexPrice());
+
+        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDeltaX18, fillPriceX18);
+
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
-        SD59x18 accountTotalUnrealizedPnlUsdX18;
-        (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, accountTotalUnrealizedPnlUsdX18) =
-            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sd59x18(sizeDelta));
-        marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+        (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, ctx.accountTotalUnrealizedPnlUsdX18) =
+            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDeltaX18);
+        marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(ctx.accountTotalUnrealizedPnlUsdX18);
         {
-            (, UD60x18 previousRequiredMaintenanceMarginUsdX18,) =
+            (, ctx.previousRequiredMaintenanceMarginUsdX18,) =
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
-            if (TradingAccount.isLiquidatable(previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
+
+            if (TradingAccount.isLiquidatable(ctx.previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
+
                 revert Errors.AccountIsLiquidatable(tradingAccountId);
             }
         }
         {
             Position.Data storage position = Position.load(tradingAccountId, marketId);
-            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(sd59x18(sizeDelta));
+
+            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(ctx.sizeDeltaX18);
+
             if (
-                !newPositionSizeX18.isZero()
+                !ctx.newPositionSizeX18.isZero()
                     && newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
             ) {
                 revert Errors.NewPositionSizeTooSmall();
@@ -162,21 +179,23 @@ contract OrderBranch {
     /// @notice Creates a market order for the given trading account and market ids.
     /// @dev See {CreateMarketOrderParams}.
     function createMarketOrder(CreateMarketOrderParams calldata params) external {
-        TradingAccount.Data storage tradingAccount =
-            TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
-        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
-        MarketOrder.Data storage marketOrder = MarketOrder.load(params.tradingAccountId);
-        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-
-        CreateMarketOrderContext memory ctx;
-
         if (params.sizeDelta == 0) {
             revert Errors.ZeroInput("sizeDelta");
         }
 
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.checkMarketIsEnabled(params.marketId);
 
+        TradingAccount.Data storage tradingAccount =
+            TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
+        bool isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(params.marketId);
+        if (!isMarketWithActivePosition) {
+            tradingAccount.validatePositionsLimit();
+        }
+
+        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
+
+        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
         perpMarket.checkTradeSize(sd59x18(params.sizeDelta));
         perpMarket.checkOpenInterestLimits(
             sd59x18(params.sizeDelta),
@@ -185,10 +204,9 @@ contract OrderBranch {
             true
         );
 
-        bool isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(params.marketId);
-        if (!isMarketWithActivePosition) {
-            tradingAccount.validatePositionsLimit();
-        }
+        MarketOrder.Data storage marketOrder = MarketOrder.load(params.tradingAccountId);
+
+        CreateMarketOrderContext memory ctx;
 
         (ctx.marginBalanceUsdX18, ctx.requiredInitialMarginUsdX18,, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) =
         simulateTrade({
@@ -217,6 +235,8 @@ contract OrderBranch {
         TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
 
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
+
+        marketOrder.checkPendingOrder();
 
         marketOrder.clear();
 

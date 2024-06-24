@@ -62,7 +62,7 @@ contract Branches_Integration_Test is Base_Test {
         // it should return the branches
         assertEq(testPerpsEngineBranches.length, branches.length, "Invalid branches length");
 
-        for (uint256 i = 0; i < testPerpsEngineBranches.length; i++) {
+        for (uint256 i; i < testPerpsEngineBranches.length; i++) {
             assertEq(testPerpsEngineBranches[i].branch, branches[i], "Invalid branch address");
 
             // it should return the selectors

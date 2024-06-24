@@ -16,7 +16,7 @@ contract GlobalConfigurationHarness {
         uint256 length = self.collateralLiquidationPriority.length();
         address[] memory collateralTypes = new address[](length);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             collateralTypes[i] = self.collateralLiquidationPriority.at(i);
         }
 

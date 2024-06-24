@@ -143,7 +143,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         // it should emit {LogConfigureMarginCollateral} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogConfigureMarginCollateral(
-            users.owner, address(collateral), depositCap, Constants.SYSTEM_DECIMALS, priceFeed
+            users.owner, address(collateral), depositCap, loanToValue, Constants.SYSTEM_DECIMALS, priceFeed
         );
 
         // it should configure
