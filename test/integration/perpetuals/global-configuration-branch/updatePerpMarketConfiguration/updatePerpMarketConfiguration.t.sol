@@ -469,7 +469,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_PriceFeedHeartbeatSecondsIsZero()
+    function testFuzz_RevertWhen_PriceFeedHeartbeatSecondsIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -503,7 +503,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxFundingVelocity") });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceFeedHeartbeatSeconds") });
 
         changePrank({ msgSender: users.owner });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
