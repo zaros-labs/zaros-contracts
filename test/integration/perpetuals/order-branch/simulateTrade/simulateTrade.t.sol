@@ -17,7 +17,7 @@ import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 import { console } from "forge-std/console.sol";
 
-contract SimulateTrade_Integration_Test is Base_Test {
+contract SimulateTradeIntegrationTest is Base_Test {
     using SafeCast for int256;
 
     function setUp() public override {
@@ -32,7 +32,7 @@ contract SimulateTrade_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_RevertGiven_TheAccountIdDoesNotExist(
+    function test_RevertGiven_TheAccountIdDoesNotExist(
         uint128 tradingAccountId,
         int128 sizeDelta,
         uint128 marketId,
@@ -53,7 +53,7 @@ contract SimulateTrade_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertGiven_ThePerpIdDoesNotExist(
+    function test_RevertGiven_ThePerpMarketIdDoesNotExist(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -139,7 +139,7 @@ contract SimulateTrade_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_ThereIsInsufficientLiquidity()
+    function test_RevertWhen_ThereIsInsufficientLiquidity()
         external
         givenTheAccountIdExists
         givenThePerpMarketIdExists
@@ -147,13 +147,14 @@ contract SimulateTrade_Integration_Test is Base_Test {
     {
         /// @dev this test will be added when the audit issue with checks in simulateTrade is resolved
         // mock unsifficient luqidity
+        // it should revert
     }
 
     modifier whenThereIsSufficientLiquidity() {
         _;
     }
 
-    function testFuzz_RevertWhen_AccountIsLiquidatable(
+    function test_RevertWhen_TheTradingAccountIsLiquidatable(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -165,6 +166,7 @@ contract SimulateTrade_Integration_Test is Base_Test {
         whenTheSizeDeltaIsNotZero
         whenThereIsSufficientLiquidity
     {
+        // it should revert
         /// @dev check this once again
         // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -209,11 +211,11 @@ contract SimulateTrade_Integration_Test is Base_Test {
         // );
     }
 
-    modifier whenAccountIsNotLiquidatable() {
+    modifier whenTheTradingAccountIsNotLiquidatable() {
         _;
     }
 
-    function testFuzz_RevertWhen_PositionIsTooSmall(
+    function test_RevertWhen_ThePositionSizeIsTooSmall(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint128 marketId
@@ -222,9 +224,10 @@ contract SimulateTrade_Integration_Test is Base_Test {
         givenTheAccountIdExists
         givenThePerpMarketIdExists
         whenTheSizeDeltaIsNotZero
-        whenAccountIsNotLiquidatable
         whenThereIsSufficientLiquidity
+        whenTheTradingAccountIsNotLiquidatable
     {
+        // it should revert
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
@@ -250,11 +253,7 @@ contract SimulateTrade_Integration_Test is Base_Test {
         vm.stopPrank();
     }
 
-    modifier whenPositionIsNotTooSmall() {
-        _;
-    }
-
-    function testFuzz_simulateTradeTest(
+    function test_WhenThePositionSizeIsNotTooSmall(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -264,10 +263,10 @@ contract SimulateTrade_Integration_Test is Base_Test {
         givenTheAccountIdExists
         givenThePerpMarketIdExists
         whenTheSizeDeltaIsNotZero
-        whenAccountIsNotLiquidatable
         whenThereIsSufficientLiquidity
-        whenPositionIsNotTooSmall
+        whenTheTradingAccountIsNotLiquidatable
     {
+        // it should simulate the trade correctly
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
