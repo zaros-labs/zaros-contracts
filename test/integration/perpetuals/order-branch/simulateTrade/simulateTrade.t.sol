@@ -79,16 +79,12 @@ contract SimulateTradeIntegrationTest is Base_Test {
 
         int128 sizeDelta = 10_000;
 
-        vm.startPrank(users.naruto);
-
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PriceAdapterNotDefined.selector, 0) });
+        vm.expectRevert(abi.encodeWithSelector(Errors.PriceAdapterNotDefined.selector, 0));
 
         perpsEngine.simulateTrade(
             tradingAccountId, unFilteredMarketsConfig.marketId, settlementConfigurationId, sizeDelta
         );
-
-        vm.stopPrank();
     }
 
     modifier givenThePerpMarketIdExists() {
@@ -241,7 +237,7 @@ contract SimulateTradeIntegrationTest is Base_Test {
         vm.startPrank(users.naruto);
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NewPositionSizeTooSmall.selector) });
+        vm.expectRevert(abi.encodeWithSelector(Errors.NewPositionSizeTooSmall.selector));
 
         perpsEngine.simulateTrade(
             tradingAccountId,
