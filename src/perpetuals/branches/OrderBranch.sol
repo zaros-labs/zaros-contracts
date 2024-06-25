@@ -110,18 +110,17 @@ contract OrderBranch {
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, sd59x18(0));
 
             if (TradingAccount.isLiquidatable(ctx.previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
-
                 revert Errors.AccountIsLiquidatable(tradingAccountId);
             }
         }
         {
             Position.Data storage position = Position.load(tradingAccountId, marketId);
 
-            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(ctx.sizeDeltaX18);
+            ctx.newPositionSizeX18 = sd59x18(position.size).add(ctx.sizeDeltaX18);
 
             if (
                 !ctx.newPositionSizeX18.isZero()
-                    && newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
+                    && ctx.newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
             ) {
                 revert Errors.NewPositionSizeTooSmall();
             }

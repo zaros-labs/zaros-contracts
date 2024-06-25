@@ -232,7 +232,7 @@ contract SimulateTradeIntegrationTest is Base_Test {
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
-        int128 sizeDelta = int128(fuzzMarketConfig.minTradeSize - 1);
+        int128 sizeDelta = int128(fuzzMarketConfig.minTradeSize - 9_999_999_999_999);
 
         vm.startPrank(users.naruto);
 
