@@ -192,10 +192,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
             users.owner,
             address(collateral),
             depositCap,
-<<<<<<< HEAD
             loanToValue,
-=======
->>>>>>> 7552e49 (feat: ChainLinkUtil.getPrice doesn't check for stale price #366)
             Constants.SYSTEM_DECIMALS,
             priceFeed,
             MOCK_PRICE_FEED_HEARTBEAT_SECONDS

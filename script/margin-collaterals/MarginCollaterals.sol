@@ -84,6 +84,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: WEETH_ADDRESS,
             priceFeed: WEETH_PRICE_FEED,
             liquidationPriority: WEETH_LIQUIDATION_PRIORITY,
+            tokenDecimals: WEETH_DECIMALS,
             priceFeedHearbeatSeconds: WEETH_PRICE_FEED_HEARBEAT_SECONDS
         });
         marginCollaterals[WEETH_MARGIN_COLLATERAL_ID] = weEth;
