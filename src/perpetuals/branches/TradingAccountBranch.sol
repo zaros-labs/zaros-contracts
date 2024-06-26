@@ -165,6 +165,8 @@ contract TradingAccountBranch {
         SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(tradingAccount.getAccountUnrealizedPnlUsd());
         UD60x18 totalPositionsNotionalValue;
 
+        if (marginBalanceUsdX18.isZero()) return marginBalanceUsdX18.intoUD60x18();
+
         for (uint256 i; i < tradingAccount.activeMarketsIds.length(); i++) {
             uint128 marketId = tradingAccount.activeMarketsIds.at(i).toUint128();
 
@@ -178,9 +180,7 @@ contract TradingAccountBranch {
             totalPositionsNotionalValue = totalPositionsNotionalValue.add(positionNotionalValueX18);
         }
 
-        return marginBalanceUsdX18.isZero()
-            ? marginBalanceUsdX18.intoUD60x18()
-            : totalPositionsNotionalValue.intoSD59x18().div(marginBalanceUsdX18).intoUD60x18();
+        return totalPositionsNotionalValue.intoSD59x18().div(marginBalanceUsdX18).intoUD60x18();
     }
 
     /// @notice Gets the given market's position state.
