@@ -99,6 +99,7 @@ contract OrderBranch {
         fillPriceX18 = perpMarket.getMarkPrice(ctx.sizeDeltaX18, perpMarket.getIndexPrice());
 
         orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDeltaX18, fillPriceX18);
+
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
         (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, ctx.accountTotalUnrealizedPnlUsdX18) =
@@ -114,11 +115,12 @@ contract OrderBranch {
         }
         {
             Position.Data storage position = Position.load(tradingAccountId, marketId);
-            SD59x18 newPositionSizeX18 = sd59x18(position.size).add(ctx.sizeDeltaX18);
+
+            ctx.newPositionSizeX18 = sd59x18(position.size).add(ctx.sizeDeltaX18);
 
             if (
                 !ctx.newPositionSizeX18.isZero()
-                    && newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
+                    && ctx.newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
             ) {
                 revert Errors.NewPositionSizeTooSmall();
             }
