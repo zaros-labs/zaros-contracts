@@ -374,7 +374,7 @@ library TradingAccount {
         if (marginCollateralBalanceX18.gte(requiredMarginInCollateralX18)) {
             withdraw(self, collateralType, requiredMarginInCollateralX18);
 
-            withdrawnMarginUsdX18 = withdrawnMarginUsdX18.add(amountUsdX18);
+            withdrawnMarginUsdX18 = amountUsdX18;
 
             IERC20(collateralType).safeTransfer(recipient, requiredMarginInCollateralX18.intoUint256());
 
@@ -383,7 +383,7 @@ library TradingAccount {
         } else {
             UD60x18 marginToWithdrawUsdX18 = marginCollateralPriceUsdX18.mul(marginCollateralBalanceX18);
             withdraw(self, collateralType, marginCollateralBalanceX18);
-            withdrawnMarginUsdX18 = withdrawnMarginUsdX18.add(marginToWithdrawUsdX18);
+            withdrawnMarginUsdX18 = marginToWithdrawUsdX18;
 
             IERC20(collateralType).safeTransfer(recipient, marginCollateralBalanceX18.intoUint256());
 
