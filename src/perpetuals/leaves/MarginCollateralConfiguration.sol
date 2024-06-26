@@ -21,11 +21,13 @@ library MarginCollateralConfiguration {
     /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The decimals of the given margin collateral type's ERC20 token.
     /// @param priceFeed The chainlink price feed address of the given margin collateral type.
+    /// @param totalDeposited The total amount of margin collateral deposited normalized to 18 decimals.
     struct Data {
         uint128 depositCap;
         uint120 loanToValue;
         uint8 decimals;
         address priceFeed;
+        uint256 totalDeposited;
     }
 
     /// @notice Loads a {MarginCollateralConfiguration} object.

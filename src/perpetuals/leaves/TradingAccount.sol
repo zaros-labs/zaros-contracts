@@ -326,9 +326,14 @@ library TradingAccount {
     /// @param amountX18 The amount of margin collateral to be added.
     function deposit(Data storage self, address collateralType, UD60x18 amountX18) internal {
         EnumerableMap.AddressToUintMap storage marginCollateralBalanceX18 = self.marginCollateralBalanceX18;
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
+
         UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).add(amountX18);
 
         marginCollateralBalanceX18.set(collateralType, newMarginCollateralBalance.intoUint256());
+        marginCollateralConfiguration.totalDeposited =
+            ud60x18(marginCollateralConfiguration.totalDeposited).add(amountX18).intoUint256();
     }
 
     /// @notice Withdraws the given collateral type from the trading account.

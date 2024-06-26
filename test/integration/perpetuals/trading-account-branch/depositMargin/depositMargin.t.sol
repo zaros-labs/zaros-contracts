@@ -31,23 +31,46 @@ contract DepositMargin_Integration_Test is Base_Test {
         external
         whenTheAmountIsNotZero
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+        // scenario: when user deposit more than the deposit cap by adding up all deposits
 
-        changePrank({ msgSender: users.owner });
-        perpsEngine.configureMarginCollateral(
-            address(usdc), 0, USDC_LOAN_TO_VALUE, marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed
-        );
-        changePrank({ msgSender: users.naruto });
+        uint256 amountToDepositMargin = WSTETH_DEPOSIT_CAP;
+        deal({ token: address(wstEth), to: users.naruto, give: amountToDepositMargin * 2 });
 
         uint128 userTradingAccountId = perpsEngine.createTradingAccount();
 
+        perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDepositMargin);
+
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.DepositCap.selector, address(usdc), amountToDeposit, 0)
+            revertData: abi.encodeWithSelector(
+                Errors.DepositCap.selector, address(wstEth), amountToDepositMargin, WSTETH_DEPOSIT_CAP
+            )
         });
 
-        perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);
+        perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDepositMargin);
+
+        // scenario: the collateral type has insufficient deposit cap
+
+        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.configureMarginCollateral(
+            address(wstEth),
+            0,
+            WSTETH_LOAN_TO_VALUE,
+            address(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)
+        );
+        changePrank({ msgSender: users.naruto });
+
+        userTradingAccountId = perpsEngine.createTradingAccount();
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.DepositCap.selector, address(wstEth), amountToDeposit, 0)
+        });
+
+        perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDeposit);
     }
 
     modifier givenTheCollateralTypeHasSufficientDepositCap() {
