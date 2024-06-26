@@ -183,7 +183,11 @@ contract OrderBranch {
         }
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.checkMarketIsEnabled(params.marketId);
+
+        // check if the market order is closing a position
+        if (params.sizeDelta > 0) {
+            globalConfiguration.checkMarketIsEnabled(params.marketId);
+        }
 
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
