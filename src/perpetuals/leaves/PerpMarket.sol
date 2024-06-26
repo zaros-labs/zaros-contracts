@@ -245,10 +245,12 @@ library PerpMarket {
             );
         }
 
-        newSkew = sd59x18(self.skew).add(sizeDelta);
+        SD59x18 currentSkew = sd59x18(self.skew);
+
+        newSkew = currentSkew.add(sizeDelta);
 
         if (shouldCheckMaxSkew && newSkew.abs().gt(ud60x18(self.configuration.maxSkew).intoSD59x18())) {
-            bool isReducingSkew = sd59x18(self.skew).abs().gt(newSkew.abs());
+            bool isReducingSkew = currentSkew.abs().gt(newSkew.abs());
 
             if (!isReducingSkew) {
                 revert Errors.ExceedsSkewLimit(self.id, self.configuration.maxSkew, newSkew.intoInt256());
