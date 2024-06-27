@@ -103,7 +103,17 @@ contract SettlementBranch {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         ctx.usdToken = globalConfiguration.usdToken;
         ctx.marketId = marketId;
-        globalConfiguration.checkMarketIsEnabled(ctx.marketId);
+
+        {
+            Position.Data storage position = Position.load(tradingAccountId, marketId);
+
+            bool isIncreasingPosition =
+                position.size == 0 || (position.size > 0 && sizeDelta > 0) || (position.size < 0 && sizeDelta < 0);
+
+            if (isIncreasingPosition) {
+                globalConfiguration.checkMarketIsEnabled(ctx.marketId);
+            }
+        }
 
         ctx.tradingAccountId = tradingAccountId;
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);

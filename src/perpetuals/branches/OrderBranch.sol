@@ -181,13 +181,47 @@ contract OrderBranch {
         if (params.sizeDelta == 0) {
             revert Errors.ZeroInput("sizeDelta");
         }
-
+        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        // check if the market order is closing a position
-        if (params.sizeDelta > 0) {
+        // If position is being opened (size is 0) or if position is being increased (sizeDelta direction is same as
+        // position size)
+        // For a positive position, sizeDelta should be positive to increase, and for a negative position, sizeDelta
+        // should be negative to increase.
+        // This also implicitly covers the case where if it's a new position (size is 0), it's considered an increase.
+        bool isIncreasingPosition = position.size == 0 || (position.size > 0 && params.sizeDelta > 0)
+            || (position.size < 0 && params.sizeDelta < 0);
+
+        // Check if market is enabled only if the position is being opened or increased
+        if (isIncreasingPosition) {
             globalConfiguration.checkMarketIsEnabled(params.marketId);
         }
+
+        // check if positionSize is > or < than 0, != 0
+
+        // check if position size is != 0 (it's already been opened)
+        // if (position.size != 0) {
+        //     // check that size delta is inverse of the position size
+        //     if ((position.size > 0 && params.sizeDelta < 0) || (position.size < 0 && params.sizeDelta > 0)) { }
+        // }
+
+        // if position size is 0 -> it's trying to open it - > so check if market is enabled
+        // if it's not 0 -> users modifiying it
+        // then check that size delta is inverse of the position size
+        // if it's a short  pos size delta must be bigger, long must be smaller than 0
+
+        // if size delta is the inverse -> user is trying to close it -> no need to check if market is enabled
+        // if size delta is not inverse of position -> check it
+
+        // check that size delta is the inverse of the position size
+        // if it's a positivie position => size delta must be negative etc.
+        // if it's a short position it must be positive
+
+        // check if the market order is closing a position
+        // if (params.sizeDelta > 0) {
+        //     // check if market is enabled only if the position is not closing (is increasing size)
+        //     globalConfiguration.checkMarketIsEnabled(params.marketId);
+        // }
 
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
@@ -195,8 +229,6 @@ contract OrderBranch {
         if (!isMarketWithActivePosition) {
             tradingAccount.validatePositionsLimit();
         }
-
-        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
         perpMarket.checkTradeSize(sd59x18(params.sizeDelta));
