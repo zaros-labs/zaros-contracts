@@ -10,7 +10,7 @@ import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHa
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, convert as ud60x18Convert } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO  } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -60,7 +60,7 @@ contract GetMarkPrice_Integration_Test is Base_Test {
         SD59x18 skewScale = sd59x18(uint256(perpMarket.configuration.skewScale).toInt256());
 
         SD59x18 priceImpactBeforeDelta = sd59x18(perpMarket.skew).div(skewScale);
-        SD59x18 newSkew = sd59x18(perpMarket.skew).add(sd59x18(0));
+        SD59x18 newSkew = sd59x18(perpMarket.skew).add(SD59x18_ZERO);
         SD59x18 priceImpactAfterDelta = newSkew.div(skewScale);
 
         UD60x18 priceBeforeDelta =
