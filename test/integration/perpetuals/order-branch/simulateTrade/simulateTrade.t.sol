@@ -56,7 +56,6 @@ contract SimulateTradeIntegrationTest is Base_Test {
     function test_RevertGiven_ThePerpMarketIdDoesNotExist(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
-        bool isLong,
         uint128 settlementConfigurationId
     )
         external
