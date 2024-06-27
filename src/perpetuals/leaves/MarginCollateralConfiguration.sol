@@ -70,7 +70,7 @@ library MarginCollateralConfiguration {
         uint32 priceFeedHearbeatSeconds = self.priceFeedHearbeatSeconds;
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeed;
+        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeedByChainId[block.chainid];
 
         if (priceFeed == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();

@@ -74,7 +74,7 @@ library PerpMarket {
         uint32 priceFeedHeartbeatSeconds = self.configuration.priceFeedHeartbeatSeconds;
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeed;
+        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeedByChainId[block.chainid];
 
         if (priceAdapter == address(0)) {
             revert Errors.PriceAdapterNotDefined(self.id);

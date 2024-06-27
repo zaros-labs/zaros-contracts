@@ -39,13 +39,15 @@ library ChainlinkUtil {
             revert Errors.InvalidOracleReturn();
         }
 
-        try sequencerUptimeFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256, uint80) {
-            bool isSequencerUp = answer == 0;
-            if (!isSequencerUp) {
-                revert Errors.OracleSequencerUptimeFeedIsDown(address(sequencerUptimeFeed));
+        if (address(sequencerUptimeFeed) != address(0)) {
+            try sequencerUptimeFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256, uint80) {
+                bool isSequencerUp = answer == 0;
+                if (!isSequencerUp) {
+                    revert Errors.OracleSequencerUptimeFeedIsDown(address(sequencerUptimeFeed));
+                }
+            } catch {
+                revert Errors.InvalidSequencerUptimeFeedReturn();
             }
-        } catch {
-            revert Errors.InvalidSequencerUptimeFeedReturn();
         }
 
         try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {

@@ -100,7 +100,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationBranchSelectors[10] = GlobalConfigurationBranch.updatePerpMarketStatus.selector;
     globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
     globalConfigurationBranchSelectors[12] = GlobalConfigurationBranch.setUsdToken.selector;
-    globalConfigurationBranchSelectors[13] = GlobalConfigurationBranch.setSequencerUptimeFeed.selector;
+    globalConfigurationBranchSelectors[13] = GlobalConfigurationBranch.configureSequencerUptimeFeedByChainId.selector;
 
     if (isTestnet) {
         globalConfigurationBranchSelectors[14] =
@@ -210,8 +210,7 @@ function getInitializables(address[] memory branches) pure returns (address[] me
 function getInitializePayloads(
     address deployer,
     address tradingAccountToken,
-    address usdToken,
-    address sequencerUptimeFeed
+    address usdToken
 )
     pure
     returns (bytes[] memory)
@@ -219,9 +218,8 @@ function getInitializePayloads(
     bytes[] memory initializePayloads = new bytes[](2);
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
-    bytes memory perpsEngineInitializeData = abi.encodeWithSelector(
-        GlobalConfigurationBranch.initialize.selector, tradingAccountToken, usdToken, sequencerUptimeFeed
-    );
+    bytes memory perpsEngineInitializeData =
+        abi.encodeWithSelector(GlobalConfigurationBranch.initialize.selector, tradingAccountToken, usdToken);
 
     initializePayloads = new bytes[](2);
 
@@ -295,7 +293,7 @@ function deployAddressHarnesses() returns (address[] memory) {
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](10);
+    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](11);
     globalConfigurationHarnessSelectors[0] = GlobalConfigurationHarness.exposed_checkMarketIsEnabled.selector;
     globalConfigurationHarnessSelectors[1] = GlobalConfigurationHarness.exposed_addMarket.selector;
     globalConfigurationHarnessSelectors[2] = GlobalConfigurationHarness.exposed_removeMarket.selector;
@@ -311,6 +309,8 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     globalConfigurationHarnessSelectors[8] = GlobalConfigurationHarness.workaround_getUsdToken.selector;
     globalConfigurationHarnessSelectors[9] =
         GlobalConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
+    globalConfigurationHarnessSelectors[10] =
+        GlobalConfigurationHarness.workaround_getSequencerUptimeFeedByChainId.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](5);
     marginCollateralConfigurationHarnessSelectors[0] =

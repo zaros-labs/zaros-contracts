@@ -138,9 +138,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches);
-        bytes[] memory initializePayloads = getInitializePayloads(
-            users.owner, address(tradingAccountToken), address(0), address(mockSequencerUptimeFeed)
-        );
+        bytes[] memory initializePayloads =
+            getInitializePayloads(users.owner, address(tradingAccountToken), address(0));
 
         branchUpgrades = deployHarnesses(branchUpgrades);
 
@@ -150,6 +149,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             initializePayloads: initializePayloads
         });
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
+
+        configureSequencerUptimeFeeds(perpsEngine);
 
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;

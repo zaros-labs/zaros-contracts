@@ -71,17 +71,29 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
+    modifier whenSequencerUptimeFeedIsNotZero() {
+        _;
+    }
+
     function test_RevertWhen_SequencerUptimeFeedReturnsAInvalidValue()
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedIsNotZero
     {
         address collateral = address(wstEth);
 
         changePrank({ msgSender: users.owner });
         MockSequencerUptimeFeedWithInvalidReturn mockSequencerUptimeFeedWithInvalidReturn =
             new MockSequencerUptimeFeedWithInvalidReturn();
-        perpsEngine.setSequencerUptimeFeed(address(mockSequencerUptimeFeedWithInvalidReturn));
+
+        uint256[] memory chainIds = new uint256[](1);
+        chainIds[0] = block.chainid;
+
+        address[] memory sequencerUptimeFeeds = new address[](1);
+        sequencerUptimeFeeds[0] = address(mockSequencerUptimeFeedWithInvalidReturn);
+
+        perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
 
         changePrank({ msgSender: users.naruto });
 
@@ -99,13 +111,20 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedIsNotZero
         whenSequencerUptimeFeedReturnsAValidValue
     {
         address collateral = address(wstEth);
 
         changePrank({ msgSender: users.owner });
         MockSequencerUptimeFeedDown mockSequencerUptimeFeedDown = new MockSequencerUptimeFeedDown();
-        perpsEngine.setSequencerUptimeFeed(address(mockSequencerUptimeFeedDown));
+        uint256[] memory chainIds = new uint256[](1);
+        chainIds[0] = block.chainid;
+
+        address[] memory sequencerUptimeFeeds = new address[](1);
+        sequencerUptimeFeeds[0] = address(mockSequencerUptimeFeedDown);
+
+        perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
 
         changePrank({ msgSender: users.naruto });
 
@@ -119,16 +138,10 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(collateral);
     }
 
-    modifier whenSequencerUptimeFeedIsUp() {
-        _;
-    }
-
     function test_RevertWhen_PriceFeedReturnsAInvalidValueFromLatestRoundData()
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
-        whenSequencerUptimeFeedReturnsAValidValue
-        whenSequencerUptimeFeedIsUp
     {
         address collateral = address(wstEth);
 
@@ -157,8 +170,6 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
-        whenSequencerUptimeFeedReturnsAValidValue
-        whenSequencerUptimeFeedIsUp
         whenPriceFeedReturnsAValidValueFromLatestRoundData
     {
         address collateral = address(wstEth);
@@ -188,8 +199,6 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
-        whenSequencerUptimeFeedReturnsAValidValue
-        whenSequencerUptimeFeedIsUp
         whenPriceFeedReturnsAValidValueFromLatestRoundData
     {
         UD60x18 price = perpsEngine.exposed_getPrice(address(wstEth));
