@@ -349,7 +349,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 minTradeSizeX18;
         uint256 skewScale;
         SettlementConfiguration.Data marketOrderConfiguration;
-        SettlementConfiguration.Data[] customOrdersConfiguration;
+        SettlementConfiguration.Data[] signedOrdersConfiguration;
         OrderFees.Data orderFees;
         uint32 priceFeedHeartbeatSeconds;
     }
@@ -413,7 +413,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
                 minTradeSizeX18: params.minTradeSizeX18,
                 skewScale: params.skewScale,
                 marketOrderConfiguration: params.marketOrderConfiguration,
-                customOrdersConfiguration: params.customOrdersConfiguration,
+                signedOrdersConfiguration: params.signedOrdersConfiguration,
                 orderFees: params.orderFees,
                 priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
             })

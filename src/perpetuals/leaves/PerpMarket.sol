@@ -307,7 +307,7 @@ library PerpMarket {
     /// @param minTradeSizeX18 The minimum trade size in 1e18.
     /// @param skewScale The skew scale, a configurable parameter that determines price marking and funding.
     /// @param marketOrderConfiguration The market order configuration.
-    /// @param customOrdersConfiguration The custom orders configuration.
+    /// @param signedOrdersConfiguration The custom orders configuration.
     /// @param orderFees The configured maker and taker order fee tiers.
     /// @param priceFeedHeartbeatSeconds The price feed heartbeats in seconds.
     struct CreateParams {
@@ -323,7 +323,7 @@ library PerpMarket {
         uint128 minTradeSizeX18;
         uint256 skewScale;
         SettlementConfiguration.Data marketOrderConfiguration;
-        SettlementConfiguration.Data[] customOrdersConfiguration;
+        SettlementConfiguration.Data[] signedOrdersConfiguration;
         OrderFees.Data orderFees;
         uint32 priceFeedHeartbeatSeconds;
     }
@@ -359,11 +359,10 @@ library PerpMarket {
             params.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, params.marketOrderConfiguration
         );
 
-        uint256 cachedCustomOrdersConfigurationLength = params.customOrdersConfiguration.length;
-
-        for (uint256 i; i < cachedCustomOrdersConfigurationLength; i++) {
-            uint128 nextStrategyId = ++self.nextStrategyId;
-            SettlementConfiguration.update(params.marketId, nextStrategyId, params.customOrdersConfiguration[i]);
-        }
+        SettlementConfiguration.update(
+            params.marketId,
+            SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
+            params.offchainOrdersConfiguration
+        );
     }
 }

@@ -68,7 +68,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                 data: abi.encode(marketOrderConfigurationData)
             });
 
-            SettlementConfiguration.Data[] memory customOrdersConfigurations;
+            SettlementConfiguration.Data[] memory signedOrdersConfigurations;
 
             perpsEngine.createPerpMarket({
                 params: GlobalConfigurationBranch.CreatePerpMarketParams({
@@ -84,7 +84,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                     minTradeSizeX18: filteredMarketsConfig[i].minTradeSize,
                     skewScale: filteredMarketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
-                    customOrdersConfiguration: customOrdersConfigurations,
+                    signedOrdersConfiguration: signedOrdersConfigurations,
                     orderFees: filteredMarketsConfig[i].orderFees,
                     priceFeedHeartbeatSeconds: filteredMarketsConfig[i].priceFeedHeartbeatSeconds
                 })

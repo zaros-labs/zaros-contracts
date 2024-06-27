@@ -18,7 +18,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_MarketIdIsZero() external {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -35,7 +35,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -52,7 +52,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_LengthOfNameIsZero() external whenMarketIdIsNotZero {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -69,7 +69,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -86,7 +86,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_LengthOfSymbolIsZero() external whenMarketIdIsNotZero whenLengthOfNameIsNotZero {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -103,7 +103,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -125,7 +125,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenLengthOfNameIsNotZero
         whenLengthOfSymbolIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -142,7 +142,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -165,7 +165,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenLengthOfSymbolIsNotZero
         whenPriceAdapterIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -182,7 +182,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -206,7 +206,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenPriceAdapterIsNotZero
         whenMaintenanceMarginRateIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -223,7 +223,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -248,7 +248,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -265,7 +265,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -291,7 +291,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -308,7 +308,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -335,7 +335,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaxSkewIsNotZero
         whenInitialMarginRateIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -352,7 +352,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -380,7 +380,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -397,7 +397,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 0,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -426,7 +426,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -443,7 +443,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 0,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -473,7 +473,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenSkewScaleIsNotZero
         whenMinTradeSizeIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -490,7 +490,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -521,7 +521,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMinTradeSizeIsNotZero
         whenMaxFundingVelocityIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -538,7 +538,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 0
         });
@@ -567,7 +567,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: users.owner });
 
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data[] memory signedOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -584,7 +584,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            signedOrdersConfiguration: signedOrdersConfigurations,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
