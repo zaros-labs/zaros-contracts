@@ -6,6 +6,7 @@ import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -68,11 +69,16 @@ library MarginCollateralConfiguration {
         address priceFeed = self.priceFeed;
         uint32 priceFeedHearbeatSeconds = self.priceFeedHearbeatSeconds;
 
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeedByChainId[block.chainid];
+
         if (priceFeed == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-        price = ChainlinkUtil.getPrice(IAggregatorV3(priceFeed), priceFeedHearbeatSeconds);
+        price = ChainlinkUtil.getPrice(
+            IAggregatorV3(priceFeed), priceFeedHearbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
+        );
     }
 
     /// @notice Configures the settings of a given margin collateral type.

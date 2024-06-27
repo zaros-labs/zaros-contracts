@@ -9,6 +9,8 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockPriceFeedWithInvalidReturn } from "test/mocks/MockPriceFeedWithInvalidReturn.sol";
 import { MockPriceFeedOldUpdatedAt } from "test/mocks/MockPriceFeedOldUpdatedAt.sol";
+import { MockSequencerUptimeFeedWithInvalidReturn } from "test/mocks/MockSequencerUptimeFeedWithInvalidReturn.sol";
+import { MockSequencerUptimeFeedDown } from "test/mocks/MockSequencerUptimeFeedDown.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -69,6 +71,73 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
+    modifier whenSequencerUptimeFeedIsNotZero() {
+        _;
+    }
+
+    function test_RevertWhen_SequencerUptimeFeedReturnsAInvalidValue()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedIsNotZero
+    {
+        address collateral = address(wstEth);
+
+        changePrank({ msgSender: users.owner });
+        MockSequencerUptimeFeedWithInvalidReturn mockSequencerUptimeFeedWithInvalidReturn =
+            new MockSequencerUptimeFeedWithInvalidReturn();
+
+        uint256[] memory chainIds = new uint256[](1);
+        chainIds[0] = block.chainid;
+
+        address[] memory sequencerUptimeFeeds = new address[](1);
+        sequencerUptimeFeeds[0] = address(mockSequencerUptimeFeedWithInvalidReturn);
+
+        perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
+
+        changePrank({ msgSender: users.naruto });
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidSequencerUptimeFeedReturn.selector) });
+
+        perpsEngine.exposed_getPrice(collateral);
+    }
+
+    modifier whenSequencerUptimeFeedReturnsAValidValue() {
+        _;
+    }
+
+    function test_RevertWhen_SequncerUptimeFeedIsDown()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedIsNotZero
+        whenSequencerUptimeFeedReturnsAValidValue
+    {
+        address collateral = address(wstEth);
+
+        changePrank({ msgSender: users.owner });
+        MockSequencerUptimeFeedDown mockSequencerUptimeFeedDown = new MockSequencerUptimeFeedDown();
+        uint256[] memory chainIds = new uint256[](1);
+        chainIds[0] = block.chainid;
+
+        address[] memory sequencerUptimeFeeds = new address[](1);
+        sequencerUptimeFeeds[0] = address(mockSequencerUptimeFeedDown);
+
+        perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
+
+        changePrank({ msgSender: users.naruto });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OracleSequencerUptimeFeedIsDown.selector, address(mockSequencerUptimeFeedDown)
+            )
+        });
+
+        perpsEngine.exposed_getPrice(collateral);
+    }
+
     function test_RevertWhen_PriceFeedReturnsAInvalidValueFromLatestRoundData()
         external
         whenPriceFeedIsNotZero
@@ -117,7 +186,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         );
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.OraclePriceFeedHeartbeat.selector) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OraclePriceFeedHeartbeat.selector, address(mockPriceFeedOldUpdatedAt)
+            )
+        });
 
         perpsEngine.exposed_getPrice(collateral);
     }

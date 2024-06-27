@@ -11,6 +11,12 @@ contract GlobalConfigurationHarness {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    function workaround_getSequencerUptimeFeedByChainId(uint256 chainId) external view returns (address) {
+        GlobalConfiguration.Data storage self = GlobalConfiguration.load();
+
+        return self.sequencerUptimeFeedByChainId[chainId];
+    }
+
     function workaround_getCollateralLiquidationPriority() external view returns (address[] memory) {
         GlobalConfiguration.Data storage self = GlobalConfiguration.load();
         uint256 length = self.collateralLiquidationPriority.length();

@@ -42,6 +42,8 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
+        configureSequencerUptimeFeeds(perpsEngine);
+
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMinLifetime: MARKET_ORDER_MIN_LIFETIME,

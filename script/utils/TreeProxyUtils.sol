@@ -85,7 +85,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 16 : 13);
+    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 17 : 14);
 
     globalConfigurationBranchSelectors[0] = GlobalConfigurationBranch.getAccountsWithActivePositions.selector;
     globalConfigurationBranchSelectors[1] = GlobalConfigurationBranch.getMarginCollateralConfiguration.selector;
@@ -100,12 +100,13 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationBranchSelectors[10] = GlobalConfigurationBranch.updatePerpMarketStatus.selector;
     globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
     globalConfigurationBranchSelectors[12] = GlobalConfigurationBranch.setUsdToken.selector;
+    globalConfigurationBranchSelectors[13] = GlobalConfigurationBranch.configureSequencerUptimeFeedByChainId.selector;
 
     if (isTestnet) {
-        globalConfigurationBranchSelectors[13] =
+        globalConfigurationBranchSelectors[14] =
             GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
-        globalConfigurationBranchSelectors[14] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
-        globalConfigurationBranchSelectors[15] = GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
+        globalConfigurationBranchSelectors[15] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
+        globalConfigurationBranchSelectors[16] = GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
     }
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
@@ -292,7 +293,7 @@ function deployAddressHarnesses() returns (address[] memory) {
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](10);
+    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](11);
     globalConfigurationHarnessSelectors[0] = GlobalConfigurationHarness.exposed_checkMarketIsEnabled.selector;
     globalConfigurationHarnessSelectors[1] = GlobalConfigurationHarness.exposed_addMarket.selector;
     globalConfigurationHarnessSelectors[2] = GlobalConfigurationHarness.exposed_removeMarket.selector;
@@ -308,6 +309,8 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     globalConfigurationHarnessSelectors[8] = GlobalConfigurationHarness.workaround_getUsdToken.selector;
     globalConfigurationHarnessSelectors[9] =
         GlobalConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
+    globalConfigurationHarnessSelectors[10] =
+        GlobalConfigurationHarness.workaround_getSequencerUptimeFeedByChainId.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](5);
     marginCollateralConfigurationHarnessSelectors[0] =

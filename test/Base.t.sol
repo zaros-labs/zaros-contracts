@@ -20,6 +20,7 @@ import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.so
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
+import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 import { Storage } from "test/utils/Storage.sol";
 import { Users, MockPriceAdapters } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
@@ -107,8 +108,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
 
-    MockPriceAdapters internal mockPriceAdapters;
-
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
@@ -146,6 +145,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             initializePayloads: initializePayloads
         });
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
+
+        configureSequencerUptimeFeeds(perpsEngine);
 
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;

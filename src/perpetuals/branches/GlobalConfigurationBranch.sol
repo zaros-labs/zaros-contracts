@@ -37,6 +37,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Emitted when the usd token address is set.
     event LogSetUsdToken(address indexed sender, address indexed usdToken);
 
+    /// @notice Emitted when the sequencerUptimeFeed address is set.
+    event LogSetSequencerUptimeFeed(address indexed sender, uint256 chainId, address indexed sequencerUptimeFeed);
+
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
     /// @param collateralTypes The array of collateral type addresses, ordered by priority.
@@ -559,6 +562,34 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             globalConfiguration.removeMarket(marketId);
 
             emit LogDisablePerpMarket(msg.sender, marketId);
+        }
+    }
+
+    function configureSequencerUptimeFeedByChainId(
+        uint256[] memory chainIds,
+        address[] memory sequencerUptimeFeedAddresses
+    )
+        external
+        onlyOwner
+    {
+        if (chainIds.length == 0) {
+            revert Errors.ZeroInput("chainIds");
+        }
+
+        if (sequencerUptimeFeedAddresses.length == 0) {
+            revert Errors.ZeroInput("sequencerUptimeFeedAddresses");
+        }
+
+        if (chainIds.length != sequencerUptimeFeedAddresses.length) {
+            revert Errors.ArrayLengthMismatch(chainIds.length, sequencerUptimeFeedAddresses.length);
+        }
+
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+
+        for (uint256 i; i < chainIds.length; i++) {
+            globalConfiguration.sequencerUptimeFeedByChainId[chainIds[i]] = sequencerUptimeFeedAddresses[i];
+
+            emit LogSetSequencerUptimeFeed(msg.sender, chainIds[i], sequencerUptimeFeedAddresses[i]);
         }
     }
 }

@@ -7,9 +7,10 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
-import { OrderFees } from "./OrderFees.sol";
-import { MarketConfiguration } from "./MarketConfiguration.sol";
-import { SettlementConfiguration } from "./SettlementConfiguration.sol";
+import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
+import { MarketConfiguration } from "@zaros/perpetuals/leaves/MarketConfiguration.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -72,11 +73,16 @@ library PerpMarket {
         address priceAdapter = self.configuration.priceAdapter;
         uint32 priceFeedHeartbeatSeconds = self.configuration.priceFeedHeartbeatSeconds;
 
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeedByChainId[block.chainid];
+
         if (priceAdapter == address(0)) {
             revert Errors.PriceAdapterNotDefined(self.id);
         }
 
-        indexPrice = ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds);
+        indexPrice = ChainlinkUtil.getPrice(
+            IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
+        );
     }
 
     /// @notice Returns the given market's mark price.

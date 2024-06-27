@@ -5,15 +5,17 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IAggregatorV3 } from "./interfaces/IAggregatorV3.sol";
-import { IFeeManager, FeeAsset } from "./interfaces/IFeeManager.sol";
-import { IVerifierProxy } from "./interfaces/IVerifierProxy.sol";
+import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
+import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+
+import { console } from "forge-std/console.sol";
 
 library ChainlinkUtil {
     using SafeCast for int256;
@@ -24,7 +26,8 @@ library ChainlinkUtil {
     /// @return price The price of the given margin collateral type.
     function getPrice(
         IAggregatorV3 priceFeed,
-        uint32 priceFeedHeartbeatSeconds
+        uint32 priceFeedHeartbeatSeconds,
+        IAggregatorV3 sequencerUptimeFeed
     )
         internal
         view
@@ -36,9 +39,20 @@ library ChainlinkUtil {
             revert Errors.InvalidOracleReturn();
         }
 
+        if (address(sequencerUptimeFeed) != address(0)) {
+            try sequencerUptimeFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256, uint80) {
+                bool isSequencerUp = answer == 0;
+                if (!isSequencerUp) {
+                    revert Errors.OracleSequencerUptimeFeedIsDown(address(sequencerUptimeFeed));
+                }
+            } catch {
+                revert Errors.InvalidSequencerUptimeFeedReturn();
+            }
+        }
+
         try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
             if (block.timestamp - updatedAt > priceFeedHeartbeatSeconds) {
-                revert Errors.OraclePriceFeedHeartbeat();
+                revert Errors.OraclePriceFeedHeartbeat(address(priceFeed));
             }
 
             price = ud60x18(answer.toUint256() * 10 ** (Constants.SYSTEM_DECIMALS - priceDecimals));
