@@ -197,32 +197,6 @@ contract OrderBranch {
             globalConfiguration.checkMarketIsEnabled(params.marketId);
         }
 
-        // check if positionSize is > or < than 0, != 0
-
-        // check if position size is != 0 (it's already been opened)
-        // if (position.size != 0) {
-        //     // check that size delta is inverse of the position size
-        //     if ((position.size > 0 && params.sizeDelta < 0) || (position.size < 0 && params.sizeDelta > 0)) { }
-        // }
-
-        // if position size is 0 -> it's trying to open it - > so check if market is enabled
-        // if it's not 0 -> users modifiying it
-        // then check that size delta is inverse of the position size
-        // if it's a short  pos size delta must be bigger, long must be smaller than 0
-
-        // if size delta is the inverse -> user is trying to close it -> no need to check if market is enabled
-        // if size delta is not inverse of position -> check it
-
-        // check that size delta is the inverse of the position size
-        // if it's a positivie position => size delta must be negative etc.
-        // if it's a short position it must be positive
-
-        // check if the market order is closing a position
-        // if (params.sizeDelta > 0) {
-        //     // check if market is enabled only if the position is not closing (is increasing size)
-        //     globalConfiguration.checkMarketIsEnabled(params.marketId);
-        // }
-
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
         bool isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(params.marketId);
