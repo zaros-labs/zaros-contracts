@@ -106,17 +106,17 @@ library TradingAccount {
         Data storage self,
         UD60x18 requiredMarginUsdX18,
         SD59x18 marginBalanceUsdX18,
-        SD59x18 totalFeesUsdX18
+        UD60x18 totalFeesUsdX18
     )
         internal
         view
     {
-        if (requiredMarginUsdX18.intoSD59x18().add(totalFeesUsdX18).gt(marginBalanceUsdX18)) {
+        if (requiredMarginUsdX18.add(totalFeesUsdX18).intoSD59x18().gt(marginBalanceUsdX18)) {
             revert Errors.InsufficientMargin(
                 self.id,
                 marginBalanceUsdX18.intoInt256(),
                 requiredMarginUsdX18.intoUint256(),
-                totalFeesUsdX18.intoInt256()
+                totalFeesUsdX18.intoUint256()
             );
         }
     }

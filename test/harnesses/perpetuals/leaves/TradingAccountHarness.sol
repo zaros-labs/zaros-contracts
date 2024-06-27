@@ -44,7 +44,7 @@ contract TradingAccountHarness {
         uint128 tradingAccountId,
         UD60x18 requiredMarginUsdX18,
         SD59x18 marginBalanceUsdX18,
-        SD59x18 totalFeesUsdX18
+        UD60x18 totalFeesUsdX18
     )
         external
         view

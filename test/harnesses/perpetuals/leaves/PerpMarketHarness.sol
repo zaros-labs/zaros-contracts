@@ -48,7 +48,7 @@ contract PerpMarketHarness {
     )
         external
         view
-        returns (SD59x18)
+        returns (UD60x18)
     {
         PerpMarket.Data storage self = PerpMarket.load(marketId);
         return PerpMarket.getOrderFeeUsd(self, sizeDelta, markPriceX18);

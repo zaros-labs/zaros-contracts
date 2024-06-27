@@ -446,11 +446,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         ).intoInt256().toInt128();
         ctx.sizeDeltaPrePriceImpact = params.isLong ? ctx.sizeDeltaAbs : -ctx.sizeDeltaAbs;
 
-        (,,, SD59x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine.simulateTrade(
+        (,,, UD60x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18, UD60x18 fillPriceX18) = perpsEngine.simulateTrade(
             params.tradingAccountId, params.marketId, params.settlementConfigurationId, ctx.sizeDeltaPrePriceImpact
         );
 
-        ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.intoUD60x18().add(settlementFeeUsdX18), fillPriceX18);
+        ctx.totalOrderFeeInSize = Math.divUp(orderFeeUsdX18.add(settlementFeeUsdX18), fillPriceX18);
         ctx.sizeDeltaWithPriceImpact = Math.min(
             (params.price.div(fillPriceX18).intoSD59x18().mul(sd59x18(ctx.sizeDeltaPrePriceImpact))).abs().intoUD60x18(
             ),

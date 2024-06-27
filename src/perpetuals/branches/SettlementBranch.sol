@@ -18,7 +18,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 contract SettlementBranch {
@@ -39,7 +39,7 @@ contract SettlementBranch {
         uint128 indexed marketId,
         int256 sizeDelta,
         uint256 fillPrice,
-        int256 orderFeeUsd,
+        uint256 orderFeeUsd,
         uint256 settlementFeeUsd,
         int256 pnl,
         int256 fundingFeePerUnit
@@ -71,7 +71,7 @@ contract SettlementBranch {
         address usdToken;
         uint128 marketId;
         uint128 tradingAccountId;
-        SD59x18 orderFeeUsdX18;
+        UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         SD59x18 sizeDelta;
         UD60x18 fillPrice;
@@ -136,13 +136,13 @@ contract SettlementBranch {
             tradingAccount.validateMarginRequirement(
                 requiredInitialMarginUsdX18,
                 tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
-                ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
+                ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
             );
         }
 
         ctx.pnl = oldPosition.getUnrealizedPnl(ctx.fillPrice).add(
             oldPosition.getAccruedFunding(ctx.fundingFeePerUnit)
-        ).add(unary(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())));
+        ).add(unary(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).intoSD59x18()));
 
         ctx.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(ctx.sizeDelta).intoInt256(),
@@ -171,8 +171,8 @@ contract SettlementBranch {
         }
 
         if (ctx.pnl.lt(SD_ZERO)) {
-            UD60x18 marginToDeductUsdX18 = ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18()).gt(SD_ZERO)
-                ? ctx.pnl.abs().intoUD60x18().sub(ctx.orderFeeUsdX18.intoUD60x18().add(ctx.settlementFeeUsdX18))
+            UD60x18 marginToDeductUsdX18 = ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).gt(UD60x18_ZERO)
+                ? ctx.pnl.abs().intoUD60x18().sub(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18))
                 : ctx.pnl.abs().intoUD60x18();
 
             tradingAccount.deductAccountMargin({
@@ -182,7 +182,7 @@ contract SettlementBranch {
                     settlementFeeRecipient: globalConfiguration.settlementFeeRecipient
                 }),
                 pnlUsdX18: marginToDeductUsdX18,
-                orderFeeUsdX18: ctx.orderFeeUsdX18.gt(SD_ZERO) ? ctx.orderFeeUsdX18.intoUD60x18() : UD_ZERO,
+                orderFeeUsdX18: ctx.orderFeeUsdX18.gt(UD60x18_ZERO) ? ctx.orderFeeUsdX18 : UD60x18_ZERO,
                 settlementFeeUsdX18: ctx.settlementFeeUsdX18
             });
         } else if (ctx.pnl.gt(SD_ZERO)) {
@@ -200,7 +200,7 @@ contract SettlementBranch {
             ctx.marketId,
             ctx.sizeDelta.intoInt256(),
             ctx.fillPrice.intoUint256(),
-            ctx.orderFeeUsdX18.intoInt256(),
+            ctx.orderFeeUsdX18.intoUint256(),
             ctx.settlementFeeUsdX18.intoUint256(),
             ctx.pnl.intoInt256(),
             ctx.fundingFeePerUnit.intoInt256()

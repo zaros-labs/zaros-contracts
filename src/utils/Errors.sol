@@ -66,7 +66,7 @@ library Errors {
     );
     /// @notice Thrown when trying to settle an order and the account has insufficient margin for the new position.
     error InsufficientMargin(
-        uint128 tradingAccountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, int256 totalFeesUsdX18
+        uint128 tradingAccountId, int256 marginBalanceUsdX18, uint256 requiredMarginUsdX18, uint256 totalFeesUsdX18
     );
     /// @notice Thrown when trying to deposit a collteral type that isn't in the liquidation priority configuration.
     error CollateralLiquidationPriorityNotDefined(address collateralType);

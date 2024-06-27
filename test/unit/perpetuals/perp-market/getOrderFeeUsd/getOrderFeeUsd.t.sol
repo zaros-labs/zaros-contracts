@@ -14,7 +14,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
     using SafeCast for int256;
 
-    UD60x18 MOCK_OPEN_INTEREST = ud60x18(1e6);
+    UD60x18 internal mockOpenInterest = ud60x18(1e6);
 
     function setUp() public virtual override {
         Base_Test.setUp();
@@ -38,20 +38,19 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.maxSkew });
         int128 skew = int128(int256(skewAbs));
 
-        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, MOCK_OPEN_INTEREST, sd59x18(skew));
+        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, mockOpenInterest, sd59x18(skew));
 
         SD59x18 sizeDeltaX18 = sd59x18(int256(sizeDeltaAbs));
 
         UD60x18 markPriceX18 = ud60x18(fuzzMarketConfig.mockUsdPrice);
 
-        SD59x18 feeUsd = perpsEngine.exposed_getOrderFeeUsd(fuzzMarketConfig.marketId, sizeDeltaX18, markPriceX18);
+        UD60x18 feeUsd = perpsEngine.exposed_getOrderFeeUsd(fuzzMarketConfig.marketId, sizeDeltaX18, markPriceX18);
 
-        SD59x18 expectedFeeUsd = markPriceX18.intoSD59x18().mul(sizeDeltaX18).abs().mul(
-            sd59x18(int128(fuzzMarketConfig.orderFees.takerFee))
-        );
+        UD60x18 expectedFeeUsd =
+            markPriceX18.mul(sizeDeltaX18.abs().intoUD60x18()).mul(ud60x18(fuzzMarketConfig.orderFees.takerFee));
 
         // it should return the taker order fee
-        assertEq(expectedFeeUsd.intoInt256(), feeUsd.intoInt256(), "should return the taker order fee");
+        assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the taker order fee");
     }
 
     function test_WhenSkewAndSizeDeltaAreLessThanZero(
@@ -68,20 +67,19 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.maxSkew });
         int128 skew = int128(int256(skewAbs));
 
-        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, MOCK_OPEN_INTEREST, unary(sd59x18(skew)));
+        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, mockOpenInterest, unary(sd59x18(skew)));
 
         SD59x18 sizeDeltaX18 = unary(sd59x18(int256(sizeDeltaAbs)));
 
         UD60x18 markPriceX18 = ud60x18(fuzzMarketConfig.mockUsdPrice);
 
-        SD59x18 feeUsd = perpsEngine.exposed_getOrderFeeUsd(fuzzMarketConfig.marketId, sizeDeltaX18, markPriceX18);
+        UD60x18 feeUsd = perpsEngine.exposed_getOrderFeeUsd(fuzzMarketConfig.marketId, sizeDeltaX18, markPriceX18);
 
-        SD59x18 expectedFeeUsd = markPriceX18.intoSD59x18().mul(sizeDeltaX18).abs().mul(
-            sd59x18(int128(fuzzMarketConfig.orderFees.takerFee))
-        );
+        UD60x18 expectedFeeUsd =
+            markPriceX18.mul(sizeDeltaX18.abs().intoUD60x18()).mul(ud60x18(fuzzMarketConfig.orderFees.takerFee));
 
         // it should return the taker order fee
-        assertEq(expectedFeeUsd.intoInt256(), feeUsd.intoInt256(), "should return the taker order fee");
+        assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the taker order fee");
     }
 
     function test_WhenSkewIsGreatherThanZeroAndSizeDeltaIsLessThanZero(
@@ -98,20 +96,19 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.maxSkew });
         int128 skew = int128(int256(skewAbs));
 
-        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, MOCK_OPEN_INTEREST, sd59x18(skew));
+        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, mockOpenInterest, sd59x18(skew));
 
         SD59x18 sizeDeltaX18 = unary(sd59x18(int256(sizeDeltaAbs)));
 
         UD60x18 markPriceX18 = ud60x18(fuzzMarketConfig.mockUsdPrice);
 
-        SD59x18 feeUsd = perpsEngine.exposed_getOrderFeeUsd(fuzzMarketConfig.marketId, sizeDeltaX18, markPriceX18);
+        UD60x18 feeUsd = perpsEngine.exposed_getOrderFeeUsd(fuzzMarketConfig.marketId, sizeDeltaX18, markPriceX18);
 
-        SD59x18 expectedFeeUsd = markPriceX18.intoSD59x18().mul(sizeDeltaX18).abs().mul(
-            sd59x18(int128(fuzzMarketConfig.orderFees.makerFee))
-        );
+        UD60x18 expectedFeeUsd =
+            markPriceX18.mul(sizeDeltaX18.abs().intoUD60x18()).mul(ud60x18(fuzzMarketConfig.orderFees.makerFee));
 
         // it should return the maker order fee
-        assertEq(expectedFeeUsd.intoInt256(), feeUsd.intoInt256(), "should return the maker order fee");
+        assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the maker order fee");
     }
 
     function test_WhenSkewIsLessThanZeroAndSizeDeltaIsGreatherThanZero(
@@ -128,19 +125,18 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.maxSkew });
         int128 skew = int128(int256(skewAbs));
 
-        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, MOCK_OPEN_INTEREST, unary(sd59x18(skew)));
+        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, mockOpenInterest, unary(sd59x18(skew)));
 
         SD59x18 sizeDeltaX18 = sd59x18(int256(sizeDeltaAbs));
 
         UD60x18 markPriceX18 = ud60x18(fuzzMarketConfig.mockUsdPrice);
 
-        SD59x18 feeUsd = perpsEngine.exposed_getOrderFeeUsd(fuzzMarketConfig.marketId, sizeDeltaX18, markPriceX18);
+        UD60x18 feeUsd = perpsEngine.exposed_getOrderFeeUsd(fuzzMarketConfig.marketId, sizeDeltaX18, markPriceX18);
 
-        SD59x18 expectedFeeUsd = markPriceX18.intoSD59x18().mul(sizeDeltaX18).abs().mul(
-            sd59x18(int128(fuzzMarketConfig.orderFees.makerFee))
-        );
+        UD60x18 expectedFeeUsd =
+            markPriceX18.mul(sizeDeltaX18.abs().intoUD60x18()).mul(ud60x18(fuzzMarketConfig.orderFees.makerFee));
 
         // it should return the maker order fee
-        assertEq(expectedFeeUsd.intoInt256(), feeUsd.intoInt256(), "should return the maker order fee");
+        assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the maker order fee");
     }
 }

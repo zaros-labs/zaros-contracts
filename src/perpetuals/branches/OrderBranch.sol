@@ -82,7 +82,7 @@ contract OrderBranch {
             SD59x18 marginBalanceUsdX18,
             UD60x18 requiredInitialMarginUsdX18,
             UD60x18 requiredMaintenanceMarginUsdX18,
-            SD59x18 orderFeeUsdX18,
+            UD60x18 orderFeeUsdX18,
             UD60x18 settlementFeeUsdX18,
             UD60x18 fillPriceX18
         )
@@ -171,7 +171,7 @@ contract OrderBranch {
     struct CreateMarketOrderContext {
         SD59x18 marginBalanceUsdX18;
         UD60x18 requiredInitialMarginUsdX18;
-        SD59x18 orderFeeUsdX18;
+        UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
     }
 
@@ -215,9 +215,7 @@ contract OrderBranch {
             sizeDelta: params.sizeDelta
         });
         tradingAccount.validateMarginRequirement(
-            ctx.requiredInitialMarginUsdX18,
-            ctx.marginBalanceUsdX18,
-            ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18.intoSD59x18())
+            ctx.requiredInitialMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
         );
 
         marketOrder.checkPendingOrder();

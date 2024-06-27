@@ -122,7 +122,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         int128 sizeDelta;
         SD59x18 marginBalanceUsdX18;
         UD60x18 requiredInitialMarginUsdX18;
-        SD59x18 orderFeeUsdX18;
+        UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         bytes mockSignedReport;
     }
@@ -177,8 +177,8 @@ contract WithdrawMargin_Integration_Test is Base_Test {
             sizeDelta
         );
 
-        ctx.amountToWithdraw = ctx.amountToWithdraw - ctx.orderFeeUsdX18.intoUD60x18().intoUint256()
-            - ctx.settlementFeeUsdX18.intoUint256();
+        ctx.amountToWithdraw =
+            ctx.amountToWithdraw - ctx.orderFeeUsdX18.intoUint256() - ctx.settlementFeeUsdX18.intoUint256();
 
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -207,7 +207,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
             revertData: abi.encodeWithSelector(
                 Errors.InsufficientMargin.selector,
                 ctx.tradingAccountId,
-                int256(marginValueUsd) - int256(ctx.amountToWithdraw) - ctx.orderFeeUsdX18.intoInt256()
+                int256(marginValueUsd) - int256(ctx.amountToWithdraw) - ctx.orderFeeUsdX18.intoSD59x18().intoInt256()
                     - ctx.settlementFeeUsdX18.intoSD59x18().intoInt256(),
                 ctx.requiredInitialMarginUsdX18,
                 0
