@@ -15,6 +15,26 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
+    function testFuzz_RevertWhen_TheCheckLowerBoundIsEqualThenTheCheckUpperBound(
+        uint256 checkLowerBound,
+        uint256 checkUpperBound,
+        uint256 performLowerBound,
+        uint256 performUpperBound
+    )
+        external
+    {
+        checkLowerBound = bound({ x: checkLowerBound, min: 1, max: 1000 });
+        checkUpperBound = checkLowerBound;
+        performLowerBound = bound({ x: performLowerBound, min: 0, max: 1000 });
+        performUpperBound = bound({ x: performUpperBound, min: performLowerBound + 1, max: performLowerBound + 16 });
+
+        bytes memory checkData = abi.encode(checkLowerBound, checkUpperBound, performLowerBound, performUpperBound);
+
+        // it should revert
+        vm.expectRevert({ revertData: Errors.InvalidBounds.selector });
+        LiquidationKeeper(liquidationKeeper).checkUpkeep(checkData);
+    }
+
     function testFuzz_RevertWhen_TheCheckLowerBoundIsHigherThanTheCheckUpperBound(
         uint256 checkLowerBound,
         uint256 checkUpperBound,
@@ -37,6 +57,27 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
 
     modifier whenTheCheckLowerBoundIsLowerThanTheCheckUpperBound() {
         _;
+    }
+
+    function testFuzz_RevertWhen_ThePerformLowerBoundIsEqualToThePerformUpperBound(
+        uint256 checkLowerBound,
+        uint256 checkUpperBound,
+        uint256 performLowerBound,
+        uint256 performUpperBound
+    )
+        external
+        whenTheCheckLowerBoundIsLowerThanTheCheckUpperBound
+    {
+        checkLowerBound = bound({ x: checkLowerBound, min: 0, max: 1000 });
+        checkUpperBound = bound({ x: checkUpperBound, min: checkLowerBound + 1, max: checkLowerBound + 101 });
+        performLowerBound = bound({ x: performLowerBound, min: 1, max: 1000 });
+        performUpperBound = performLowerBound;
+
+        bytes memory checkData = abi.encode(checkLowerBound, checkUpperBound, performLowerBound, performUpperBound);
+
+        // it should revert
+        vm.expectRevert({ revertData: Errors.InvalidBounds.selector });
+        LiquidationKeeper(liquidationKeeper).checkUpkeep(checkData);
     }
 
     function testFuzz_RevertWhen_ThePerformLowerBoundIsHigherThanThePerformUpperBound(

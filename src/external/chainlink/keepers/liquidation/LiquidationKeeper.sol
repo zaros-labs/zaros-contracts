@@ -67,7 +67,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         (uint256 checkLowerBound, uint256 checkUpperBound, uint256 performLowerBound, uint256 performUpperBound) =
             abi.decode(checkData, (uint256, uint256, uint256, uint256));
 
-        if (checkLowerBound > checkUpperBound || performLowerBound > performUpperBound) {
+        if (checkLowerBound >= checkUpperBound || performLowerBound >= performUpperBound) {
             revert Errors.InvalidBounds();
         }
 
