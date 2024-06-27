@@ -7,33 +7,11 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { MockPriceFeedWithInvalidReturn } from "test/mocks/MockPriceFeedWithInvalidReturn.sol";
+import { MockPriceFeedOldUpdatedAt } from "test/mocks/MockPriceFeedOldUpdatedAt.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-
-contract MockPriceFeedWithInvalidReturn {
-    function decimals() public pure returns (uint8) {
-        return Constants.SYSTEM_DECIMALS;
-    }
-
-    function latestRoundData() external pure {
-        revert();
-    }
-}
-
-contract MockPriceFeedOldUpdatedAt {
-    function decimals() public pure returns (uint8) {
-        return Constants.SYSTEM_DECIMALS;
-    }
-
-    function latestRoundData()
-        external
-        pure
-        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
-    {
-        return (0, 0, 0, 1, 0);
-    }
-}
 
 contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     function setUp() public virtual override {
@@ -67,7 +45,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_PriceFeedDecimalsIsGreatherThanTheSystemDecimals() external whenPriceFeedIsNotZero {
+    function test_RevertWhen_PriceFeedDecimalsIsGreaterThanTheSystemDecimals() external whenPriceFeedIsNotZero {
         address collateral = address(wstEth);
 
         MockPriceFeed mockPriceFeed = new MockPriceFeed(Constants.SYSTEM_DECIMALS + 1, int256(MOCK_USDC_USD_PRICE));
@@ -87,14 +65,14 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(collateral);
     }
 
-    modifier whenPriceFeedDecimalsIsLessOrEqualThanTheSystemDecimals() {
+    modifier whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals() {
         _;
     }
 
-    function test_RevertWhen_PriceFeedReturnAInvalidValueFromLatestRoundData()
+    function test_RevertWhen_PriceFeedReturnsAInvalidValueFromLatestRoundData()
         external
         whenPriceFeedIsNotZero
-        whenPriceFeedDecimalsIsLessOrEqualThanTheSystemDecimals
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
     {
         address collateral = address(wstEth);
 
@@ -115,15 +93,15 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(collateral);
     }
 
-    modifier whenPriceFeedReturnAValidValueFromLatestRoundData() {
+    modifier whenPriceFeedReturnsAValidValueFromLatestRoundData() {
         _;
     }
 
-    function test_RevertWhen_TheDifferenceOfBlockTimestampLessUpdateAtIsGreatherThanThePriceFeedHearbetSeconds()
+    function test_RevertWhen_TheDifferenceOfBlockTimestampMinusUpdateAtIsGreaterThanThePriceFeedHearbetSeconds()
         external
         whenPriceFeedIsNotZero
-        whenPriceFeedDecimalsIsLessOrEqualThanTheSystemDecimals
-        whenPriceFeedReturnAValidValueFromLatestRoundData
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenPriceFeedReturnsAValidValueFromLatestRoundData
     {
         address collateral = address(wstEth);
 
@@ -144,16 +122,13 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(collateral);
     }
 
-    function test_WhenTheDifferenceOfBlockTimestampLessUpdateAtIsLessOrEqualThanThePriceFeedHearbetSeconds()
+    function test_WhenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds()
         external
         whenPriceFeedIsNotZero
-        whenPriceFeedDecimalsIsLessOrEqualThanTheSystemDecimals
-        whenPriceFeedReturnAValidValueFromLatestRoundData
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenPriceFeedReturnsAValidValueFromLatestRoundData
     {
         UD60x18 price = perpsEngine.exposed_getPrice(address(wstEth));
-
-        MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
-            perpsEngine.exposed_MarginCollateral_load(address(wstEth));
 
         uint8 priceFeedDecimals = MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed).decimals();
 
