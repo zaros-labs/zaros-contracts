@@ -43,6 +43,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
         string streamIdString;
         OrderFees.Data orderFees;
         uint256 mockUsdPrice;
+        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Market configurations mapped by market id.
@@ -72,7 +73,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: BTC_USD_STREAM_ID,
             streamIdString: STRING_BTC_USD_STREAM_ID,
             orderFees: btcUsdOrderFees,
-            mockUsdPrice: MOCK_BTC_USD_PRICE
+            mockUsdPrice: MOCK_BTC_USD_PRICE,
+            priceFeedHeartbeatSeconds: BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
 
         marketsConfig[ETH_USD_MARKET_ID] = MarketConfig({
@@ -91,7 +93,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: ETH_USD_STREAM_ID,
             streamIdString: STRING_ETH_USD_STREAM_ID,
             orderFees: ethUsdOrderFees,
-            mockUsdPrice: MOCK_ETH_USD_PRICE
+            mockUsdPrice: MOCK_ETH_USD_PRICE,
+            priceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
 
         marketsConfig[LINK_USD_MARKET_ID] = MarketConfig({
@@ -110,7 +113,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: LINK_USD_STREAM_ID,
             streamIdString: STRING_LINK_USD_STREAM_ID,
             orderFees: linkUsdOrderFees,
-            mockUsdPrice: MOCK_LINK_USD_PRICE
+            mockUsdPrice: MOCK_LINK_USD_PRICE,
+            priceFeedHeartbeatSeconds: LINK_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
 
         marketsConfig[ARB_USD_MARKET_ID] = MarketConfig({
@@ -129,7 +133,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: ARB_USD_STREAM_ID,
             streamIdString: STRING_ARB_USD_STREAM_ID,
             orderFees: arbUsdOrderFees,
-            mockUsdPrice: MOCK_ARB_USD_PRICE
+            mockUsdPrice: MOCK_ARB_USD_PRICE,
+            priceFeedHeartbeatSeconds: ARB_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
 
         marketsConfig[BNB_USD_MARKET_ID] = MarketConfig({
@@ -148,7 +153,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: BNB_USD_STREAM_ID,
             streamIdString: STRING_BNB_USD_STREAM_ID,
             orderFees: bnbUsdOrderFees,
-            mockUsdPrice: MOCK_BNB_USD_PRICE
+            mockUsdPrice: MOCK_BNB_USD_PRICE,
+            priceFeedHeartbeatSeconds: BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
 
         marketsConfig[DOGE_USD_MARKET_ID] = MarketConfig({
@@ -167,7 +173,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: DOGE_USD_STREAM_ID,
             streamIdString: STRING_DOGE_USD_STREAM_ID,
             orderFees: dogeUsdOrderFees,
-            mockUsdPrice: MOCK_DOGE_USD_PRICE
+            mockUsdPrice: MOCK_DOGE_USD_PRICE,
+            priceFeedHeartbeatSeconds: DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
 
         marketsConfig[SOL_USD_MARKET_ID] = MarketConfig({
@@ -186,7 +193,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: SOL_USD_STREAM_ID,
             streamIdString: STRING_SOL_USD_STREAM_ID,
             orderFees: solUsdOrderFees,
-            mockUsdPrice: MOCK_SOL_USD_PRICE
+            mockUsdPrice: MOCK_SOL_USD_PRICE,
+            priceFeedHeartbeatSeconds: SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
 
         marketsConfig[MATIC_USD_MARKET_ID] = MarketConfig({
@@ -205,7 +213,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: MATIC_USD_STREAM_ID,
             streamIdString: STRING_MATIC_USD_STREAM_ID,
             orderFees: maticUsdOrderFees,
-            mockUsdPrice: MOCK_MATIC_USD_PRICE
+            mockUsdPrice: MOCK_MATIC_USD_PRICE,
+            priceFeedHeartbeatSeconds: MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
 
         marketsConfig[LTC_USD_MARKET_ID] = MarketConfig({
@@ -224,7 +233,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: LTC_USD_STREAM_ID,
             streamIdString: STRING_LTC_USD_STREAM_ID,
             orderFees: ltcUsdOrderFees,
-            mockUsdPrice: MOCK_LTC_USD_PRICE
+            mockUsdPrice: MOCK_LTC_USD_PRICE,
+            priceFeedHeartbeatSeconds: LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
 
         marketsConfig[FTM_USD_MARKET_ID] = MarketConfig({
@@ -243,7 +253,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             streamId: FTM_USD_STREAM_ID,
             streamIdString: STRING_FTM_USD_STREAM_ID,
             orderFees: ftmUsdOrderFees,
-            mockUsdPrice: MOCK_FTM_USD_PRICE
+            mockUsdPrice: MOCK_FTM_USD_PRICE,
+            priceFeedHeartbeatSeconds: FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS
         });
     }
 
@@ -319,7 +330,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                     skewScale: marketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
                     customOrdersConfiguration: customOrdersConfiguration,
-                    orderFees: marketsConfig[i].orderFees
+                    orderFees: marketsConfig[i].orderFees,
+                    priceFeedHeartbeatSeconds: marketsConfig[i].priceFeedHeartbeatSeconds
                 })
             );
         }

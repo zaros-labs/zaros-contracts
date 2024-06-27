@@ -36,7 +36,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -69,7 +70,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -102,7 +104,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -140,7 +143,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -179,7 +183,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -219,7 +224,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -260,7 +266,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -302,7 +309,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -345,7 +353,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -389,7 +398,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 0,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -434,7 +444,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -480,7 +491,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should revert
@@ -490,7 +502,11 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    function test_WhenMaxFundingVelocityIsNotZero()
+    modifier whenMaxFundingVelocityIsNotZero() {
+        _;
+    }
+
+    function test_RevertWhen_PriceFeedHeartbeatSecondsIsZero()
         external
         whenMarketIdIsNotZero
         whenLengthOfNameIsNotZero
@@ -502,6 +518,52 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
+        whenMinTradeSizeIsNotZero
+        whenMaxFundingVelocityIsNotZero
+    {
+        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory marketOrderConfiguration;
+
+        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
+            .CreatePerpMarketParams({
+            marketId: 1,
+            name: "BTC/USD",
+            symbol: "BTC",
+            priceAdapter: address(0x20),
+            initialMarginRateX18: 2,
+            maintenanceMarginRateX18: 1,
+            maxOpenInterest: 1,
+            maxSkew: 1,
+            maxFundingVelocity: 1,
+            minTradeSizeX18: 1,
+            skewScale: 1,
+            marketOrderConfiguration: marketOrderConfiguration,
+            customOrdersConfiguration: customOrdersConfigurations,
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 0
+        });
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceFeedHeartbeatSeconds") });
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.createPerpMarket(params);
+    }
+
+    function test_WhenPriceFeedHearbeatSecondsIsNotZero()
+        external
+        whenMarketIdIsNotZero
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
+        whenMaxOpenInterestIsNotZero
+        whenMaxSkewIsNotZero
+        whenInitialMarginRateIsNotZero
+        whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
+        whenSkewScaleIsNotZero
+        whenMinTradeSizeIsNotZero
+        whenMaxFundingVelocityIsNotZero
     {
         changePrank({ msgSender: users.owner });
 
@@ -523,7 +585,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
             customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: 1
         });
 
         // it should emit {LogCreatePerpMarket} event

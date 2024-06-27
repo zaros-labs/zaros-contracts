@@ -27,6 +27,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         address priceFeed;
         uint256 liquidationPriority;
         uint8 tokenDecimals;
+        uint32 priceFeedHearbeatSeconds;
     }
 
     mapping(uint256 marginCollateralId => MarginCollateral marginCollateral) internal marginCollaterals;
@@ -41,7 +42,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: USDC_ADDRESS,
             priceFeed: USDC_PRICE_FEED,
             liquidationPriority: USDC_LIQUIDATION_PRIORITY,
-            tokenDecimals: USDC_DECIMALS
+            tokenDecimals: USDC_DECIMALS,
+            priceFeedHearbeatSeconds: USDC_PRICE_FEED_HEARBEAT_SECONDS
         });
         marginCollaterals[USDC_MARGIN_COLLATERAL_ID] = usdcConfig;
 
@@ -54,7 +56,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: USDZ_ADDRESS,
             priceFeed: USDZ_PRICE_FEED,
             liquidationPriority: USDZ_LIQUIDATION_PRIORITY,
-            tokenDecimals: USDZ_DECIMALS
+            tokenDecimals: USDZ_DECIMALS,
+            priceFeedHearbeatSeconds: USDZ_PRICE_FEED_HEARBEAT_SECONDS
         });
         marginCollaterals[USDZ_MARGIN_COLLATERAL_ID] = usdzConfig;
 
@@ -67,7 +70,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: WETH_ADDRESS,
             priceFeed: WETH_PRICE_FEED,
             liquidationPriority: WETH_LIQUIDATION_PRIORITY,
-            tokenDecimals: WETH_DECIMALS
+            tokenDecimals: WETH_DECIMALS,
+            priceFeedHearbeatSeconds: WETH_PRICE_FEED_HEARBEAT_SECONDS
         });
         marginCollaterals[WETH_MARGIN_COLLATERAL_ID] = wEth;
 
@@ -80,7 +84,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: WBTC_ADDRESS,
             priceFeed: WBTC_PRICE_FEED,
             liquidationPriority: WBTC_LIQUIDATION_PRIORITY,
-            tokenDecimals: WBTC_DECIMALS
+            tokenDecimals: WBTC_DECIMALS,
+            priceFeedHearbeatSeconds: WBTC_PRICE_FEED_HEARBEAT_SECONDS
         });
         marginCollaterals[WBTC_MARGIN_COLLATERAL_ID] = wBtc;
 
@@ -93,7 +98,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: WSTETH_ADDRESS,
             priceFeed: WSTETH_PRICE_FEED,
             liquidationPriority: WSTETH_LIQUIDATION_PRIORITY,
-            tokenDecimals: WSTETH_DECIMALS
+            tokenDecimals: WSTETH_DECIMALS,
+            priceFeedHearbeatSeconds: WSTETH_PRICE_FEED_HEARBEAT_SECONDS
         });
         marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID] = wstEth;
 
@@ -106,7 +112,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: WEETH_ADDRESS,
             priceFeed: WEETH_PRICE_FEED,
             liquidationPriority: WEETH_LIQUIDATION_PRIORITY,
-            tokenDecimals: WEETH_DECIMALS
+            tokenDecimals: WEETH_DECIMALS,
+            priceFeedHearbeatSeconds: WEETH_PRICE_FEED_HEARBEAT_SECONDS
         });
         marginCollaterals[WEETH_MARGIN_COLLATERAL_ID] = weEth;
     }
@@ -191,7 +198,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                 filteredMarginCollateralsConfig[i].marginCollateralAddress,
                 filteredMarginCollateralsConfig[i].depositCap,
                 filteredMarginCollateralsConfig[i].loanToValue,
-                filteredMarginCollateralsConfig[i].priceFeed
+                filteredMarginCollateralsConfig[i].priceFeed,
+                filteredMarginCollateralsConfig[i].priceFeedHearbeatSeconds
             );
         }
 

@@ -2,4 +2,13 @@ MarginCollateralConfiguration_GetPrice_Test
 ├── when price feed is zero
 │   └── it should revert
 └── when price feed is not zero
-    └── it should return the price
+    ├── when price feed decimals is greater than the system decimals
+    │   └── it should revert
+    └── when price feed decimals is less than or equal to the system decimals
+        ├── when price feed returns a invalid value from latestRoundData
+        │   └── it should revert
+        └── when price feed returns a valid value from latestRoundData
+            ├── when the difference of block timestamp minus updateAt is greater than the price feed heartbet seconds
+            │   └── it should revert
+            └── when the difference of block timestamp minus updateAt is less than or equal than the price feed heartbet seconds
+                └── it should return the price

@@ -89,6 +89,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal mockChainlinkVerifier;
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
+    uint32 internal MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -368,7 +369,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
             skewScale: marketsConfig[marketId].skewScale,
-            orderFees: marketsConfig[marketId].orderFees
+            orderFees: marketsConfig[marketId].orderFees,
+            priceFeedHeartbeatSeconds: marketsConfig[marketId].priceFeedHeartbeatSeconds
         });
 
         perpsEngine.updatePerpMarketConfiguration(marketId, params);
@@ -387,7 +389,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             skewScale: marketsConfig[marketId].skewScale,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
-            orderFees: marketsConfig[marketId].orderFees
+            orderFees: marketsConfig[marketId].orderFees,
+            priceFeedHeartbeatSeconds: marketsConfig[marketId].priceFeedHeartbeatSeconds
         });
 
         perpsEngine.updatePerpMarketConfiguration(marketId, params);
@@ -406,7 +409,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             skewScale: marketsConfig[marketId].skewScale,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
-            orderFees: marketsConfig[marketId].orderFees
+            orderFees: marketsConfig[marketId].orderFees,
+            priceFeedHeartbeatSeconds: marketsConfig[marketId].priceFeedHeartbeatSeconds
         });
 
         perpsEngine.updatePerpMarketConfiguration(marketId, params);

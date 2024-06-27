@@ -39,7 +39,8 @@ contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
             skewScale: marketsConfig[marketId].skewScale,
-            orderFees: marketsConfig[marketId].orderFees
+            orderFees: marketsConfig[marketId].orderFees,
+            priceFeedHeartbeatSeconds: marketsConfig[marketId].priceFeedHeartbeatSeconds
         });
 
         perpsEngine.updatePerpMarketConfiguration(marketId, params);

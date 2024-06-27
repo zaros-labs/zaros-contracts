@@ -7,6 +7,8 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { MockPriceFeedWithInvalidReturn } from "test/mocks/MockPriceFeedWithInvalidReturn.sol";
+import { MockPriceFeedOldUpdatedAt } from "test/mocks/MockPriceFeedOldUpdatedAt.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -29,7 +31,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     {
         address newPriceFeed = address(0);
 
-        perpsEngine.exposed_configure(address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed);
+        perpsEngine.exposed_configure(
+            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralPriceFeedNotDefined.selector) });
@@ -37,15 +41,101 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(address(usdc));
     }
 
-    function test_WhenPriceFeedIsNotZero() external {
-        UD60x18 price = perpsEngine.exposed_getPrice(address(usdc));
+    modifier whenPriceFeedIsNotZero() {
+        _;
+    }
 
-        MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
-            perpsEngine.exposed_MarginCollateral_load(address(usdc));
+    function test_RevertWhen_PriceFeedDecimalsIsGreaterThanTheSystemDecimals() external whenPriceFeedIsNotZero {
+        address collateral = address(wstEth);
 
-        uint8 priceFeedDecimals = MockPriceFeed(marginCollateralConfiguration.priceFeed).decimals();
+        MockPriceFeed mockPriceFeed = new MockPriceFeed(Constants.SYSTEM_DECIMALS + 1, int256(MOCK_USDC_USD_PRICE));
 
-        UD60x18 expectedPrice = ud60x18(MOCK_USDC_USD_PRICE * 10 ** (Constants.SYSTEM_DECIMALS - priceFeedDecimals));
+        perpsEngine.exposed_configure(
+            collateral,
+            WSTETH_DEPOSIT_CAP,
+            WSTETH_LOAN_TO_VALUE,
+            Constants.SYSTEM_DECIMALS,
+            address(mockPriceFeed),
+            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidOracleReturn.selector) });
+
+        perpsEngine.exposed_getPrice(collateral);
+    }
+
+    modifier whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals() {
+        _;
+    }
+
+    function test_RevertWhen_PriceFeedReturnsAInvalidValueFromLatestRoundData()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+    {
+        address collateral = address(wstEth);
+
+        MockPriceFeedWithInvalidReturn mockPriceFeedWithInvalidReturn = new MockPriceFeedWithInvalidReturn();
+
+        perpsEngine.exposed_configure(
+            collateral,
+            WSTETH_DEPOSIT_CAP,
+            WSTETH_LOAN_TO_VALUE,
+            Constants.SYSTEM_DECIMALS,
+            address(mockPriceFeedWithInvalidReturn),
+            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidOracleReturn.selector) });
+
+        perpsEngine.exposed_getPrice(collateral);
+    }
+
+    modifier whenPriceFeedReturnsAValidValueFromLatestRoundData() {
+        _;
+    }
+
+    function test_RevertWhen_TheDifferenceOfBlockTimestampMinusUpdateAtIsGreaterThanThePriceFeedHearbetSeconds()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenPriceFeedReturnsAValidValueFromLatestRoundData
+    {
+        address collateral = address(wstEth);
+
+        MockPriceFeedOldUpdatedAt mockPriceFeedOldUpdatedAt = new MockPriceFeedOldUpdatedAt();
+
+        perpsEngine.exposed_configure(
+            collateral,
+            WSTETH_DEPOSIT_CAP,
+            WSTETH_LOAN_TO_VALUE,
+            Constants.SYSTEM_DECIMALS,
+            address(mockPriceFeedOldUpdatedAt),
+            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.OraclePriceFeedHeartbeat.selector) });
+
+        perpsEngine.exposed_getPrice(collateral);
+    }
+
+    function test_WhenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenPriceFeedReturnsAValidValueFromLatestRoundData
+    {
+        UD60x18 price = perpsEngine.exposed_getPrice(address(wstEth));
+
+        uint8 priceFeedDecimals = MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed).decimals();
+
+        UD60x18 expectedPrice = ud60x18(
+            marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].mockUsdPrice
+                * 10 ** (Constants.SYSTEM_DECIMALS - priceFeedDecimals)
+        );
 
         // it should return the price
         assertEq(expectedPrice.intoUint256(), price.intoUint256(), "price is not correct");

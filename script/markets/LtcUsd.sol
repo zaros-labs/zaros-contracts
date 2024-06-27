@@ -26,6 +26,7 @@ abstract contract LtcUsd {
 
     // TODO: Update address value
     address internal constant LTC_USD_PRICE_FEED = address(0x474c723Cd790F02BaAffA10A50fb506F8B29856b);
+    uint32 internal constant LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
 
     // TODO: Update stream id value
     bytes32 internal constant LTC_USD_STREAM_ID = 0x0003c915006ba88731510bb995c190e80b5c9cfe8cd8a19aaf00e0ed61d0b3bc;

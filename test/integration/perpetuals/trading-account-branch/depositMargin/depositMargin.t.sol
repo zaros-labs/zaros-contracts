@@ -59,7 +59,8 @@ contract DepositMargin_Integration_Test is Base_Test {
             address(wstEth),
             0,
             WSTETH_LOAN_TO_VALUE,
-            address(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)
+            marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed,
+            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
         );
         changePrank({ msgSender: users.naruto });
 

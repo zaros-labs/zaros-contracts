@@ -28,6 +28,7 @@ library MarginCollateralConfiguration {
         uint8 decimals;
         address priceFeed;
         uint256 totalDeposited;
+        uint32 priceFeedHearbeatSeconds;
     }
 
     /// @notice Loads a {MarginCollateralConfiguration} object.
@@ -65,11 +66,13 @@ library MarginCollateralConfiguration {
     /// @return price The price of the given margin collateral type.
     function getPrice(Data storage self) internal view returns (UD60x18 price) {
         address priceFeed = self.priceFeed;
+        uint32 priceFeedHearbeatSeconds = self.priceFeedHearbeatSeconds;
+
         if (priceFeed == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-        price = ChainlinkUtil.getPrice(IAggregatorV3(priceFeed));
+        price = ChainlinkUtil.getPrice(IAggregatorV3(priceFeed), priceFeedHearbeatSeconds);
     }
 
     /// @notice Configures the settings of a given margin collateral type.
@@ -79,12 +82,14 @@ library MarginCollateralConfiguration {
     /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The amount of decimals of the given margin collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
+    /// @param priceFeedHearbeatSeconds The time in seconds between price feed updates.
     function configure(
         address collateralType,
         uint128 depositCap,
         uint120 loanToValue,
         uint8 decimals,
-        address priceFeed
+        address priceFeed,
+        uint32 priceFeedHearbeatSeconds
     )
         internal
     {
@@ -94,5 +99,6 @@ library MarginCollateralConfiguration {
         self.loanToValue = loanToValue;
         self.decimals = decimals;
         self.priceFeed = priceFeed;
+        self.priceFeedHearbeatSeconds = priceFeedHearbeatSeconds;
     }
 }

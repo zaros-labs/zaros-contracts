@@ -27,6 +27,7 @@ abstract contract BtcUsd {
 
     // TODO: Update address value
     address internal constant BTC_USD_PRICE_FEED = address(0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69);
+    uint32 internal constant BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS = 3600;
 
     // TODO: Update stream id value
     bytes32 internal constant BTC_USD_STREAM_ID = 0x00037da06d56d083fe599397a4769a042d63aa73dc4ef57709d31e9971a5b439;

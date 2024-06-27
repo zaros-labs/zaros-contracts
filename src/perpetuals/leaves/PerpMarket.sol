@@ -70,11 +70,13 @@ library PerpMarket {
     /// @param self The PerpMarket storage pointer.
     function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
         address priceAdapter = self.configuration.priceAdapter;
+        uint32 priceFeedHeartbeatSeconds = self.configuration.priceFeedHeartbeatSeconds;
+
         if (priceAdapter == address(0)) {
             revert Errors.PriceAdapterNotDefined(self.id);
         }
 
-        indexPrice = ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter));
+        indexPrice = ChainlinkUtil.getPrice(IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds);
     }
 
     /// @notice Returns the given market's mark price.
@@ -298,6 +300,7 @@ library PerpMarket {
     /// @param marketOrderConfiguration The market order configuration.
     /// @param customOrdersConfiguration The custom orders configuration.
     /// @param orderFees The configured maker and taker order fee tiers.
+    /// @param priceFeedHeartbeatSeconds The price feed heartbeats in seconds.
     struct CreateParams {
         uint128 marketId;
         string name;
@@ -313,6 +316,7 @@ library PerpMarket {
         SettlementConfiguration.Data marketOrderConfiguration;
         SettlementConfiguration.Data[] customOrdersConfiguration;
         OrderFees.Data orderFees;
+        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Creates a new PerpMarket.
@@ -327,17 +331,20 @@ library PerpMarket {
         self.initialized = true;
 
         self.configuration.update(
-            params.name,
-            params.symbol,
-            params.priceAdapter,
-            params.initialMarginRateX18,
-            params.maintenanceMarginRateX18,
-            params.maxOpenInterest,
-            params.maxSkew,
-            params.maxFundingVelocity,
-            params.minTradeSizeX18,
-            params.skewScale,
-            params.orderFees
+            MarketConfiguration.Data({
+                name: params.name,
+                symbol: params.symbol,
+                priceAdapter: params.priceAdapter,
+                initialMarginRateX18: params.initialMarginRateX18,
+                maintenanceMarginRateX18: params.maintenanceMarginRateX18,
+                maxOpenInterest: params.maxOpenInterest,
+                maxSkew: params.maxSkew,
+                maxFundingVelocity: params.maxFundingVelocity,
+                minTradeSizeX18: params.minTradeSizeX18,
+                skewScale: params.skewScale,
+                orderFees: params.orderFees,
+                priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
+            })
         );
         SettlementConfiguration.update(
             params.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, params.marketOrderConfiguration

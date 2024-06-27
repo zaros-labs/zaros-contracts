@@ -50,10 +50,13 @@ contract MarginCollateralConfigurationHarness {
         uint128 depositCap,
         uint120 loanToValue,
         uint8 decimals,
-        address priceFeed
+        address priceFeed,
+        uint32 priceFeedHearbeatSeconds
     )
         external
     {
-        MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceFeed);
+        MarginCollateralConfiguration.configure(
+            collateralType, depositCap, loanToValue, decimals, priceFeed, priceFeedHearbeatSeconds
+        );
     }
 }

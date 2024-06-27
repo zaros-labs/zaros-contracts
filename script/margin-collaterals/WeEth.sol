@@ -12,4 +12,5 @@ abstract contract WeEth {
     address internal constant WEETH_PRICE_FEED = address(0xd9433D0E5b5Ae4593ba3880c25046BBC4dC4926C);
     uint256 internal constant WEETH_LIQUIDATION_PRIORITY = 6;
     uint8 internal constant WEETH_DECIMALS = 18;
+    uint32 internal constant WEETH_PRICE_FEED_HEARBEAT_SECONDS = 86_400;
 }

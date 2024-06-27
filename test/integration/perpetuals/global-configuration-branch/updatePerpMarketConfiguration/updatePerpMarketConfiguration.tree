@@ -35,5 +35,8 @@ UpdatePerpMarketConfiguration_Integration_Test
                                             ├── when max funding velocity is zero
                                             │   └── it should revert
                                             └── when max funding velocity is not zero
-                                                ├── it should update perp market
-                                                └── it should emit {LogUpdatePerpMarketConfiguration} event
+                                                ├── when priceFeedHeartbeatSeconds is zero
+                                                │   └── it should revert
+                                                └── when priceFeedHearbeatSeconds is not zero
+                                                    ├── it should update perp market
+                                                    └── it should emit {LogUpdatePerpMarketConfiguration} event

@@ -26,6 +26,7 @@ abstract contract DogeUsd {
 
     // TODO: Update address value
     address internal constant DOGE_USD_PRICE_FEED = address(0x46C81F11b0e49F909eD80760b342B24C46a273D3);
+    uint32 internal constant DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
 
     // TODO: Update stream id value
     bytes32 internal constant DOGE_USD_STREAM_ID = 0x00032057c7f224d0266b4311a81cdc3e38145e36442713350d3300fb12e85c99;
