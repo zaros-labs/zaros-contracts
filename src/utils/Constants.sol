@@ -10,4 +10,8 @@ library Constants {
     uint256 internal constant PROPORTIONAL_FUNDING_PERIOD = 1 days;
     /// @notice Default grace period for the sequencer uptime feed.
     uint256 internal constant SEQUENCER_GRACE_PERIOD_TIME = 3600;
+    /// @notice EIP712 domain separator typehash.
+    bytes32 internal constant CREATE_CUSTOM_ORDER_TYPEHASH = keccak256(
+        "CreateCustomOrder(uint128 tradingAccountId,uint128 marketId,uint128 settlementConfigurationId,int128 sizeDelta,uint256 targetPrice)"
+    );
 }

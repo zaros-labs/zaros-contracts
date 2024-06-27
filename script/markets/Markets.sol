@@ -306,7 +306,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
             });
 
             // TODO: update to API orderbook config
-            SettlementConfiguration.Data[] memory customOrdersConfiguration;
+            SettlementConfiguration.Data[] memory signedOrdersConfiguration;
 
             // update stored price adapter at tests
             address priceAdapter = isTest
@@ -329,7 +329,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                     minTradeSizeX18: marketsConfig[i].minTradeSize,
                     skewScale: marketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
-                    customOrdersConfiguration: customOrdersConfiguration,
+                    signedOrdersConfiguration: signedOrdersConfiguration,
                     orderFees: marketsConfig[i].orderFees,
                     priceFeedHeartbeatSeconds: marketsConfig[i].priceFeedHeartbeatSeconds
                 })
