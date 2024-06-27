@@ -107,8 +107,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
-    MockSequencerUptimeFeed internal mockSequencerUptimeFeed;
-    MockPriceAdapters internal mockPriceAdapters;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -129,8 +127,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.startPrank({ msgSender: users.owner });
 
         tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
-
-        mockSequencerUptimeFeed = new MockSequencerUptimeFeed(0);
 
         bool isTestnet = false;
         address[] memory branches = deployBranches(isTestnet);
