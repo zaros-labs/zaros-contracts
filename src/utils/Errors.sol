@@ -32,6 +32,8 @@ library Errors {
 
     /// @notice Chainlink Keepers errors.
 
+    /// @notice Thrown when an oracle aggregator returns an answer out of range of min and max.
+    error OraclePriceFeedOutOfRange(address priceFeed);
     /// @notice Thrown when an oracle sequencer uptime feed returns an unexpected, invalid value.
     error InvalidSequencerUptimeFeedReturn();
     /// @notice Thrown when an oracle sequencer uptime feed returns an unexpected, invalid value.

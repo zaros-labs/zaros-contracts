@@ -8,14 +8,13 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { IFeeManager, FeeAsset } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+import { IOffchainAggregator } from "@zaros/external/chainlink/interfaces/IOffchainAggregator.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-
-import { console } from "forge-std/console.sol";
 
 library ChainlinkUtil {
     using SafeCast for int256;
@@ -53,6 +52,14 @@ library ChainlinkUtil {
         try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
             if (block.timestamp - updatedAt > priceFeedHeartbeatSeconds) {
                 revert Errors.OraclePriceFeedHeartbeat(address(priceFeed));
+            }
+
+            IOffchainAggregator aggregator = IOffchainAggregator(priceFeed.aggregator());
+            int192 minAnswer = aggregator.minAnswer();
+            int192 maxAnswer = aggregator.maxAnswer();
+
+            if (answer < minAnswer || answer > maxAnswer) {
+                revert Errors.OraclePriceFeedOutOfRange(address(priceFeed));
             }
 
             price = ud60x18(answer.toUint256() * 10 ** (Constants.SYSTEM_DECIMALS - priceDecimals));

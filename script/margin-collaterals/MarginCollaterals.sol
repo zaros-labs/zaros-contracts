@@ -75,6 +75,20 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         });
         marginCollaterals[WETH_MARGIN_COLLATERAL_ID] = wEth;
 
+        MarginCollateral memory weEth = MarginCollateral({
+            marginCollateralId: WEETH_MARGIN_COLLATERAL_ID,
+            depositCap: WEETH_DEPOSIT_CAP,
+            loanToValue: WEETH_LOAN_TO_VALUE,
+            minDepositMargin: WEETH_MIN_DEPOSIT_MARGIN,
+            mockUsdPrice: MOCK_WEETH_USD_PRICE,
+            marginCollateralAddress: WEETH_ADDRESS,
+            priceFeed: WEETH_PRICE_FEED,
+            liquidationPriority: WEETH_LIQUIDATION_PRIORITY,
+            tokenDecimals: WEETH_DECIMALS,
+            priceFeedHearbeatSeconds: WEETH_PRICE_FEED_HEARBEAT_SECONDS
+        });
+        marginCollaterals[WEETH_MARGIN_COLLATERAL_ID] = weEth;
+
         MarginCollateral memory wBtc = MarginCollateral({
             marginCollateralId: WBTC_MARGIN_COLLATERAL_ID,
             depositCap: WBTC_DEPOSIT_CAP,
@@ -102,20 +116,6 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             priceFeedHearbeatSeconds: WSTETH_PRICE_FEED_HEARBEAT_SECONDS
         });
         marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID] = wstEth;
-
-        MarginCollateral memory weEth = MarginCollateral({
-            marginCollateralId: WEETH_MARGIN_COLLATERAL_ID,
-            depositCap: WEETH_DEPOSIT_CAP,
-            loanToValue: WEETH_LOAN_TO_VALUE,
-            minDepositMargin: WEETH_MIN_DEPOSIT_MARGIN,
-            mockUsdPrice: MOCK_WEETH_USD_PRICE,
-            marginCollateralAddress: WEETH_ADDRESS,
-            priceFeed: WEETH_PRICE_FEED,
-            liquidationPriority: WEETH_LIQUIDATION_PRIORITY,
-            tokenDecimals: WEETH_DECIMALS,
-            priceFeedHearbeatSeconds: WEETH_PRICE_FEED_HEARBEAT_SECONDS
-        });
-        marginCollaterals[WEETH_MARGIN_COLLATERAL_ID] = weEth;
     }
 
     function getFilteredMarginCollateralsConfig(uint256[2] memory marginCollateralIdsRange)

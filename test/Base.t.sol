@@ -144,6 +144,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             initializables: initializables,
             initializePayloads: initializePayloads
         });
+
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
 
         configureSequencerUptimeFeeds(perpsEngine);

@@ -195,11 +195,68 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(collateral);
     }
 
-    function test_WhenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds()
+    modifier whenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds() {
+        _;
+    }
+
+    function test_RevertWhen_TheAnswerIsLessThanTheMinAnswer()
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
         whenPriceFeedReturnsAValidValueFromLatestRoundData
+        whenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds
+    {
+        MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
+            perpsEngine.exposed_MarginCollateral_load(address(usdc));
+
+        (, int256 price,,,) = MockPriceFeed(marginCollateralConfiguration.priceFeed).latestRoundData();
+
+        int256 minAnswer = price + 1;
+        int256 maxAnswer = price + 2;
+        MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
+            )
+        });
+
+        perpsEngine.exposed_getPrice(address(usdc));
+    }
+
+    function test_RevertWhen_TheAnswerIsGreaterThanTheMaxAnswer()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenPriceFeedReturnsAValidValueFromLatestRoundData
+        whenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds
+    {
+        MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
+            perpsEngine.exposed_MarginCollateral_load(address(usdc));
+
+        (, int256 price,,,) = MockPriceFeed(marginCollateralConfiguration.priceFeed).latestRoundData();
+
+        int256 minAnswer = price - 2;
+        int256 maxAnswer = price - 1;
+        MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
+            )
+        });
+
+        perpsEngine.exposed_getPrice(address(usdc));
+    }
+
+    function test_WhenTheAnswerIsGreaterThanThanTheMinAnswerAndLessThanTheMaxAnswer()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenPriceFeedReturnsAValidValueFromLatestRoundData
+        whenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds
     {
         UD60x18 price = perpsEngine.exposed_getPrice(address(wstEth));
 
