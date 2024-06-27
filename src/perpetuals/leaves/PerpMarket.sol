@@ -155,21 +155,20 @@ library PerpMarket {
     )
         internal
         view
-        returns (SD59x18)
+        returns (UD60x18 feeBps)
     {
         SD59x18 skew = sd59x18(self.skew);
-        SD59x18 feeBps;
 
         bool isSkewGtZero = skew.gt(SD_ZERO);
         bool isBuyOrder = sizeDelta.gt(SD_ZERO);
 
         if (isSkewGtZero != isBuyOrder) {
-            feeBps = sd59x18((self.configuration.orderFees.makerFee));
+            feeBps = ud60x18(self.configuration.orderFees.makerFee);
         } else {
-            feeBps = sd59x18((self.configuration.orderFees.takerFee));
+            feeBps = ud60x18(self.configuration.orderFees.takerFee);
         }
 
-        return markPriceX18.intoSD59x18().mul(sizeDelta).abs().mul(feeBps);
+        return markPriceX18.mul(sizeDelta.abs().intoUD60x18()).mul(feeBps);
     }
 
     /// @notice Returns the next funding fee per unit value.

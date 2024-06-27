@@ -411,7 +411,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             SD59x18 marginBalanceUsdX18,
             UD60x18 requiredInitialMarginUsdX18,
             ,
-            SD59x18 orderFeeUsdX18,
+            UD60x18 orderFeeUsdX18,
             UD60x18 settlementFeeUsdX18,
         ) = perpsEngine.simulateTrade(
             tradingAccountId,
@@ -427,7 +427,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 tradingAccountId,
                 marginBalanceUsdX18.intoInt256(),
                 requiredInitialMarginUsdX18,
-                orderFeeUsdX18.add(settlementFeeUsdX18.intoSD59x18()).intoInt256()
+                orderFeeUsdX18.add(settlementFeeUsdX18).intoUint256()
             )
         });
         perpsEngine.createMarketOrder(

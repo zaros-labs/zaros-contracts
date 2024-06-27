@@ -56,7 +56,6 @@ contract SimulateTradeIntegrationTest is Base_Test {
     function test_RevertGiven_ThePerpMarketIdDoesNotExist(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
-        bool isLong,
         uint128 settlementConfigurationId
     )
         external
@@ -113,7 +112,7 @@ contract SimulateTradeIntegrationTest is Base_Test {
         //     SD59x18 marginBalanceUsdX18,
         //     UD60x18 requiredInitialMarginUsdX18,
         //     UD60x18 requiredMaintenanceMarginUsdX18,
-        //     SD59x18 orderFeeUsdX18,
+        //     UD60x18 orderFeeUsdX18,
         //     UD60x18 settlementFeeUsdX18,
         //     UD60x18 fillPriceX18
         // ) = perpsEngine.simulateTrade(tradingAccountId, fuzzMarketConfig.marketId, settlementConfigurationId, 0);
