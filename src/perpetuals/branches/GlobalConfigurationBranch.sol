@@ -126,18 +126,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {GlobalConfigurationBranch} UUPS initializer.
-    function initialize(
-        address tradingAccountToken,
-        address usdToken,
-        address sequencerUptimeFeed
-    )
-        external
-        initializer
-    {
+    function initialize(address tradingAccountToken, address usdToken) external initializer {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         globalConfiguration.tradingAccountToken = tradingAccountToken;
         globalConfiguration.usdToken = usdToken;
-        globalConfiguration.sequencerUptimeFeed = sequencerUptimeFeed;
     }
 
     /// @param lowerBound The lower bound of the accounts to retrieve.
@@ -200,19 +192,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         globalConfiguration.usdToken = usdToken;
 
         emit LogSetUsdToken(msg.sender, usdToken);
-    }
-
-    /// @notice Sets the address of the Sequencer Uptime Feed
-    /// @param sequencerUptimeFeed The address of sequencer uptime feed
-    function setSequencerUptimeFeed(address sequencerUptimeFeed) external onlyOwner {
-        if (sequencerUptimeFeed == address(0)) {
-            revert Errors.SequencerUptimeFeedNotDefined();
-        }
-
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.sequencerUptimeFeed = sequencerUptimeFeed;
-
-        emit LogSetSequencerUptimeFeed(msg.sender, sequencerUptimeFeed);
     }
 
     /// @notice Configures the collateral priority.

@@ -41,7 +41,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
-        perpsEngine.setSequencerUptimeFeed(SEQUENCER_UPTIME_FEED);
 
         configureSequencerUptimeFeeds(perpsEngine);
 
