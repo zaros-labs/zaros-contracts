@@ -138,8 +138,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches);
-        bytes[] memory initializePayloads =
-            getInitializePayloads(users.owner, address(tradingAccountToken), address(0), address(mockSequencerUptimeFeed));
+        bytes[] memory initializePayloads = getInitializePayloads(
+            users.owner, address(tradingAccountToken), address(0), address(mockSequencerUptimeFeed)
+        );
 
         branchUpgrades = deployHarnesses(branchUpgrades);
 

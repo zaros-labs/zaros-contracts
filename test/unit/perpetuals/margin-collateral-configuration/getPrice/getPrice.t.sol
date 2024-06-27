@@ -71,7 +71,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_SequencerUptimeFeedReturnAInvalidValue()
+    function test_RevertWhen_SequencerUptimeFeedReturnsAInvalidValue()
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
@@ -91,7 +91,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(collateral);
     }
 
-    modifier whenSequencerUptimeFeedReturnAValidValue() {
+    modifier whenSequencerUptimeFeedReturnsAValidValue() {
         _;
     }
 
@@ -99,7 +99,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
-        whenSequencerUptimeFeedReturnAValidValue
+        whenSequencerUptimeFeedReturnsAValidValue
     {
         address collateral = address(wstEth);
 
@@ -127,7 +127,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
-        whenSequencerUptimeFeedReturnAValidValue
+        whenSequencerUptimeFeedReturnsAValidValue
         whenSequencerUptimeFeedIsUp
     {
         address collateral = address(wstEth);
@@ -157,7 +157,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
-        whenSequencerUptimeFeedReturnAValidValue
+        whenSequencerUptimeFeedReturnsAValidValue
         whenSequencerUptimeFeedIsUp
         whenPriceFeedReturnsAValidValueFromLatestRoundData
     {
@@ -188,7 +188,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
-        whenSequencerUptimeFeedReturnAValidValue
+        whenSequencerUptimeFeedReturnsAValidValue
         whenSequencerUptimeFeedIsUp
         whenPriceFeedReturnsAValidValueFromLatestRoundData
     {
