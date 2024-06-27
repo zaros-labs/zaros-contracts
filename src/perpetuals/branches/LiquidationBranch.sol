@@ -115,7 +115,7 @@ contract LiquidationBranch {
                 continue;
             }
 
-            UD60x18 liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
+            ctx.liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
                     marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,
                     orderFeeRecipient: address(0),
@@ -125,7 +125,7 @@ contract LiquidationBranch {
                 orderFeeUsdX18: UD60x18_ZERO,
                 settlementFeeUsdX18: ctx.liquidationFeeUsdX18
             });
-            ctx.liquidatedCollateralUsdX18 = liquidatedCollateralUsdX18;
+
             MarketOrder.load(ctx.tradingAccountId).clear();
 
             ctx.activeMarketsIds = tradingAccount.activeMarketsIds.values();
