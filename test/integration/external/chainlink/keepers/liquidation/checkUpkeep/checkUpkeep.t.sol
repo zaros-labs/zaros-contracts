@@ -59,7 +59,7 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_ThePerformLowerBoundIsEqualThanThePerformUpperBound(
+    function testFuzz_RevertWhen_ThePerformLowerBoundIsEqualToThePerformUpperBound(
         uint256 checkLowerBound,
         uint256 checkUpperBound,
         uint256 performLowerBound,
