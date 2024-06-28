@@ -181,21 +181,17 @@ contract OrderBranch {
         if (params.sizeDelta == 0) {
             revert Errors.ZeroInput("sizeDelta");
         }
-        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        // If position is being opened (size is 0) or if position is being increased (sizeDelta direction is same as
-        // position size)
-        // For a positive position, sizeDelta should be positive to increase, and for a negative position, sizeDelta
-        // should be negative to increase.
-        // This also implicitly covers the case where if it's a new position (size is 0), it's considered an increase.
-        bool isIncreasingPosition = position.size == 0 || (position.size > 0 && params.sizeDelta > 0)
-            || (position.size < 0 && params.sizeDelta < 0);
+        bool isIncreasingPosition =
+            Position.isIncreasingPosition(params.tradingAccountId, params.marketId, params.sizeDelta);
 
         // Check if market is enabled only if the position is being opened or increased
         if (isIncreasingPosition) {
             globalConfiguration.checkMarketIsEnabled(params.marketId);
         }
+
+        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
 
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);

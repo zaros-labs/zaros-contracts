@@ -174,30 +174,6 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         );
     }
 
-    function openManualPosition(
-        uint128 marketId,
-        bytes32 streamId,
-        uint256 mockUsdPrice,
-        uint128 tradingAccountId,
-        int128 sizeDelta
-    )
-        internal
-    {
-        perpsEngine.createMarketOrder(
-            OrderBranch.CreateMarketOrderParams({
-                tradingAccountId: tradingAccountId,
-                marketId: marketId,
-                sizeDelta: sizeDelta
-            })
-        );
-
-        bytes memory mockSignedReport = getMockedSignedReport(streamId, mockUsdPrice);
-        changePrank({ msgSender: marketOrderKeepers[marketId] });
-        // fill first order and open position
-        perpsEngine.fillMarketOrder(tradingAccountId, marketId, mockSignedReport);
-        changePrank({ msgSender: users.naruto });
-    }
-
     function test_WhenThePositionIsBeingDecreasedOrClosed()
         external
         givenTheAccountIdExists

@@ -105,10 +105,7 @@ contract SettlementBranch {
         ctx.marketId = marketId;
 
         {
-            Position.Data storage position = Position.load(tradingAccountId, marketId);
-
-            bool isIncreasingPosition =
-                position.size == 0 || (position.size > 0 && sizeDelta > 0) || (position.size < 0 && sizeDelta < 0);
+            bool isIncreasingPosition = Position.isIncreasingPosition(tradingAccountId, marketId, sizeDelta);
 
             if (isIncreasingPosition) {
                 globalConfiguration.checkMarketIsEnabled(ctx.marketId);
