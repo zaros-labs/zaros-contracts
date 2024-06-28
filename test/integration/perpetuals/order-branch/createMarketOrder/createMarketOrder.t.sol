@@ -161,7 +161,6 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.naruto });
 
-        // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
         });
