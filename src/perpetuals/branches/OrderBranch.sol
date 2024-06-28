@@ -181,9 +181,17 @@ contract OrderBranch {
         if (params.sizeDelta == 0) {
             revert Errors.ZeroInput("sizeDelta");
         }
-
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        globalConfiguration.checkMarketIsEnabled(params.marketId);
+
+        bool isIncreasingPosition =
+            Position.isIncreasingPosition(params.tradingAccountId, params.marketId, params.sizeDelta);
+
+        // Check if market is enabled only if the position is being opened or increased
+        if (isIncreasingPosition) {
+            globalConfiguration.checkMarketIsEnabled(params.marketId);
+        }
+
+        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
 
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
@@ -191,8 +199,6 @@ contract OrderBranch {
         if (!isMarketWithActivePosition) {
             tradingAccount.validatePositionsLimit();
         }
-
-        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
 
         PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
         perpMarket.checkTradeSize(sd59x18(params.sizeDelta));

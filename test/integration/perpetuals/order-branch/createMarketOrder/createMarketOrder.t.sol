@@ -15,6 +15,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
+
 contract CreateMarketOrder_Integration_Test is Base_Test {
     using SafeCast for int256;
 
@@ -114,7 +116,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertGiven_ThePerpMarketIsDisabled(
+    modifier givenThePerpMarketIsDisabled() {
+        _;
+    }
+
+    function test_RevertWhen_ThePositionIsBeingIncreasedOrOpened(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -124,6 +130,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         givenTheAccountIdExists
         givenTheSenderIsAuthorized
         whenTheSizeDeltaIsNotZero
+        givenThePerpMarketIsDisabled
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -133,6 +140,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+        // size delta should be the reverse of the position if position is openeds
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -153,7 +161,6 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.naruto });
 
-        // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
         });
@@ -163,6 +170,48 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta
             })
+        );
+    }
+
+    function test_WhenThePositionIsBeingDecreasedOrClosed()
+        external
+        givenTheAccountIdExists
+        givenTheSenderIsAuthorized
+        whenTheSizeDeltaIsNotZero
+        givenThePerpMarketIsDisabled
+    {
+        // give naruto some tokens
+        uint256 USER_STARTING_BALANCE = 100_000e18;
+        int128 USER_POS_SIZE_DELTA = 10e18;
+        deal({ token: address(usdc), to: users.naruto, give: USER_STARTING_BALANCE });
+        // naruto creates a trading account and deposits their tokens as collateral
+        changePrank({ msgSender: users.naruto });
+        uint128 tradingAccountId = createAccountAndDeposit(USER_STARTING_BALANCE, address(usdc));
+        // naruto opens first position in BTC market
+        openManualPosition(
+            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, USER_POS_SIZE_DELTA
+        );
+        // protocol operator disables settlement for the BTC market
+        changePrank({ msgSender: users.owner });
+        SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+            .DataStreamsStrategy({ chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier), streamId: BTC_USD_STREAM_ID });
+
+        SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            isEnabled: false,
+            fee: DEFAULT_SETTLEMENT_FEE,
+            keeper: marketOrderKeepers[BTC_USD_MARKET_ID],
+            data: abi.encode(marketOrderConfigurationData)
+        });
+        perpsEngine.updateSettlementConfiguration(
+            BTC_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, marketOrderConfiguration
+        );
+        // naruto attempts to close their position
+        changePrank({ msgSender: users.naruto });
+
+        // naruto closes their opened leverage BTC position
+        openManualPosition(
+            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, -USER_POS_SIZE_DELTA
         );
     }
 
@@ -439,11 +488,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         );
     }
 
-    modifier givenTheAccountWillMeetTheMarginRequirement() {
+    modifier givenTheAccountWillMeetTheMarginRequirements() {
         _;
     }
 
-    function testFuzz_RevertGiven_ThereIsAPendingMarketOrder(
+    function test_RevertGiven_ThereIsAPendingMarketOrder(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -457,7 +506,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
-        givenTheAccountWillMeetTheMarginRequirement
+        givenTheAccountWillMeetTheMarginRequirements
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -517,7 +566,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         whenTheSizeDeltaIsGreaterThanTheMinTradeSize
         givenThePerpMarketWontReachTheOILimit
         givenTheAccountHasNotReachedThePositionsLimit
-        givenTheAccountWillMeetTheMarginRequirement
+        givenTheAccountWillMeetTheMarginRequirements
     {
         // Test with usdc that has 6 decimals
 

@@ -62,13 +62,6 @@ library SettlementConfiguration {
         bytes32 streamId;
     }
 
-    modifier onlyEnabledSettlement(Data storage self) {
-        if (!self.isEnabled) {
-            revert Errors.SettlementDisabled();
-        }
-        _;
-    }
-
     function load(
         uint128 marketId,
         uint128 settlementConfigurationId
@@ -160,7 +153,6 @@ library SettlementConfiguration {
         bool isBuyOrder
     )
         internal
-        onlyEnabledSettlement(self)
         returns (UD60x18 price)
     {
         if (self.strategy == Strategy.DATA_STREAMS_ONCHAIN || self.strategy == Strategy.DATA_STREAMS_OFFCHAIN) {
