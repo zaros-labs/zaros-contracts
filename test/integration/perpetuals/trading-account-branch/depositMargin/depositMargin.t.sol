@@ -51,7 +51,11 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         // scenario: the collateral type has insufficient deposit cap
 
-        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP_X18 });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
 
         changePrank({ msgSender: users.owner });
@@ -174,7 +178,11 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         assertEq(MockERC20(wstEth).balanceOf(users.naruto), 0, "initial balance should be zero");
 
-        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP_X18 });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
 
         assertEq(MockERC20(wstEth).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct");

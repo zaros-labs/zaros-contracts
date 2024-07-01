@@ -45,8 +45,11 @@ contract getAccountEquityUsd_Integration_Test is Base_Test {
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        amountToDepositWstEth =
-            bound({ x: amountToDepositWstEth, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP_X18 });
+        amountToDepositWstEth = bound({
+            x: amountToDepositWstEth,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: amountToDepositUsdc });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDepositWstEth });

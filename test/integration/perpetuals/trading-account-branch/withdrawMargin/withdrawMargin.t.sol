@@ -100,7 +100,11 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         givenTheSenderIsAuthorized
         whenTheAmountIsNotZero
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP_X18 });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
         vm.assume(amountToWithdraw > amountToDeposit);
         uint256 expectedMarginCollateralBalance =
             convertTokenAmountToUd60x18(address(wstEth), amountToDeposit).intoUint256();
@@ -242,7 +246,11 @@ contract WithdrawMargin_Integration_Test is Base_Test {
     {
         // Test with wstEth that has 18 decimals
 
-        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP_X18 });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
 

@@ -652,7 +652,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         priceShiftRatio = bound({ x: priceShiftRatio, min: 2, max: 100 });
         initialMarginRate =
             bound({ x: initialMarginRate, min: ctx.adjustedMarginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP_X18 });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDZ_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdz), USDZ_DEPOSIT_CAP_X18)
+        });
         timeDelta = bound({ x: timeDelta, min: 1 seconds, max: 1 days });
 
         ctx.priceShiftBps = ctx.adjustedMarginRequirements / priceShiftRatio;
@@ -982,7 +986,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         priceShift = bound({ x: priceShift, min: 1.1e18, max: 10e18 });
         initialMarginRate =
             bound({ x: initialMarginRate, min: ctx.adjustedMarginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: USDZ_DEPOSIT_CAP_X18 });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDZ_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdz), USDZ_DEPOSIT_CAP_X18)
+        });
         timeDelta = bound({ x: timeDelta, min: 1 seconds, max: 1 days });
 
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];

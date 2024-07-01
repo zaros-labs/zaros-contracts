@@ -56,8 +56,11 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         });
         deal({ token: address(usdc), to: users.naruto, give: usdcMarginValueUsd });
 
-        wstEthMarginValueUsd =
-            bound({ x: wstEthMarginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP_X18 });
+        wstEthMarginValueUsd = bound({
+            x: wstEthMarginValueUsd,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(wstEth), to: users.naruto, give: wstEthMarginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(usdcMarginValueUsd, address(usdc));
@@ -93,8 +96,11 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
 
-        wstEthmarginValueUsd =
-            bound({ x: wstEthmarginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP_X18 });
+        wstEthmarginValueUsd = bound({
+            x: wstEthmarginValueUsd,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(wstEth), to: users.naruto, give: wstEthmarginValueUsd });
 
         weEthmarginValueUsd = bound({ x: weEthmarginValueUsd, min: 1, max: WEETH_DEPOSIT_CAP_X18 });
