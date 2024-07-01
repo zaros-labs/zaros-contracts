@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+
 abstract contract WEth {
     /// @notice Margin collateral configuration parameters.
     uint256 internal constant WETH_MARGIN_COLLATERAL_ID = 3;
-    uint128 internal constant WETH_DEPOSIT_CAP = 1_000_000e18;
+    UD60x18 internal WETH_DEPOSIT_CAP_X18 = 1_000_000e18;
     uint120 internal constant WETH_LOAN_TO_VALUE = 0.85e18;
     uint256 internal constant WETH_MIN_DEPOSIT_MARGIN = 0.025e18;
     uint256 internal constant MOCK_WETH_USD_PRICE = 2000e18;

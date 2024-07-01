@@ -46,7 +46,11 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         external
         givenTheAccountExists
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
         amountToWithdraw = bound({ x: amountToWithdraw, min: USDC_MIN_DEPOSIT_MARGIN, max: amountToDeposit });
         deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
@@ -69,7 +73,11 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         givenTheAccountExists
         givenTheSenderIsAuthorized
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
@@ -92,7 +100,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         givenTheSenderIsAuthorized
         whenTheAmountIsNotZero
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP_X18 });
         vm.assume(amountToWithdraw > amountToDeposit);
         uint256 expectedMarginCollateralBalance =
             convertTokenAmountToUd60x18(address(wstEth), amountToDeposit).intoUint256();
@@ -234,7 +242,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
     {
         // Test with wstEth that has 18 decimals
 
-        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP_X18 });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
 
@@ -257,7 +265,11 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         // Test with usdc that has 6 decimals
 
-        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
         amountToWithdraw = bound({ x: amountToWithdraw, min: 1, max: amountToDeposit });
         deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 

@@ -35,7 +35,11 @@ contract GetFundingVelocity_Integration_Test is Base_Test {
         external
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
         timeElapsed = bound({ x: timeElapsed, min: 1 seconds, max: 365 days });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });

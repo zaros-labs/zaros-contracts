@@ -59,7 +59,11 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         external
         whenTheDataArrayDoesNotProvideARevertingCall
     {
-        amountToDeposit = bound({ x: amountToDeposit, min: 1, max: USDC_DEPOSIT_CAP });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: 1,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
         bytes[] memory data = new bytes[](1);

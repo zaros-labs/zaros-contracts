@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+
 abstract contract Usdc {
     /// @notice Margin collateral configuration parameters.
     uint256 internal constant USDC_MARGIN_COLLATERAL_ID = 2;
-    uint128 internal constant USDC_DEPOSIT_CAP = 5_000_000_000e18;
+    UD60x18 internal USDC_DEPOSIT_CAP_X18 = 5_000_000_000e18;
     uint120 internal constant USDC_LOAN_TO_VALUE = 1e18;
     uint256 internal constant USDC_MIN_DEPOSIT_MARGIN = 50e6;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;

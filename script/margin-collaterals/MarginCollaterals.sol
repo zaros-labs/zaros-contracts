@@ -35,7 +35,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     function setupMarginCollaterals() internal {
         MarginCollateral memory usdcConfig = MarginCollateral({
             marginCollateralId: USDC_MARGIN_COLLATERAL_ID,
-            depositCap: USDC_DEPOSIT_CAP,
+            depositCap: USDC_DEPOSIT_CAP_X18,
             loanToValue: USDC_LOAN_TO_VALUE,
             minDepositMargin: USDC_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_USDC_USD_PRICE,
@@ -49,7 +49,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
         MarginCollateral memory usdzConfig = MarginCollateral({
             marginCollateralId: USDZ_MARGIN_COLLATERAL_ID,
-            depositCap: USDZ_DEPOSIT_CAP,
+            depositCap: USDZ_DEPOSIT_CAP_X18,
             loanToValue: USDZ_LOAN_TO_VALUE,
             minDepositMargin: USDZ_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_USDZ_USD_PRICE,
@@ -63,7 +63,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
         MarginCollateral memory wEth = MarginCollateral({
             marginCollateralId: WETH_MARGIN_COLLATERAL_ID,
-            depositCap: WETH_DEPOSIT_CAP,
+            depositCap: WETH_DEPOSIT_CAP_X18,
             loanToValue: WETH_LOAN_TO_VALUE,
             minDepositMargin: WETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WETH_USD_PRICE,
@@ -77,7 +77,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
         MarginCollateral memory weEth = MarginCollateral({
             marginCollateralId: WEETH_MARGIN_COLLATERAL_ID,
-            depositCap: WEETH_DEPOSIT_CAP,
+            depositCap: WEETH_DEPOSIT_CAP_X18,
             loanToValue: WEETH_LOAN_TO_VALUE,
             minDepositMargin: WEETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WEETH_USD_PRICE,
@@ -91,7 +91,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
         MarginCollateral memory wBtc = MarginCollateral({
             marginCollateralId: WBTC_MARGIN_COLLATERAL_ID,
-            depositCap: WBTC_DEPOSIT_CAP,
+            depositCap: WBTC_DEPOSIT_CAP_X18,
             loanToValue: WBTC_LOAN_TO_VALUE,
             minDepositMargin: WBTC_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WBTC_USD_PRICE,
@@ -105,7 +105,7 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
         MarginCollateral memory wstEth = MarginCollateral({
             marginCollateralId: WSTETH_MARGIN_COLLATERAL_ID,
-            depositCap: WSTETH_DEPOSIT_CAP,
+            depositCap: WSTETH_DEPOSIT_CAP_X18,
             loanToValue: WSTETH_LOAN_TO_VALUE,
             minDepositMargin: WSTETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WSTETH_USD_PRICE,

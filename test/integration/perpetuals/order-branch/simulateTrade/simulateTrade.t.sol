@@ -70,7 +70,11 @@ contract SimulateTradeIntegrationTest is Base_Test {
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: unFilteredMarketsConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -167,7 +171,8 @@ contract SimulateTradeIntegrationTest is Base_Test {
 
         // initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS
         // });
-        // marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        // marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max:
+        // convertUd60x18ToTokenAmount(USDC_DEPOSIT_CAP_X18) });
 
         // // give user usdc
         // deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
@@ -225,7 +230,11 @@ contract SimulateTradeIntegrationTest is Base_Test {
         // it should revert
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -265,7 +274,11 @@ contract SimulateTradeIntegrationTest is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
         // give user usdc
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
