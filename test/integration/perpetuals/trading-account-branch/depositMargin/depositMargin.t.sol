@@ -33,7 +33,7 @@ contract DepositMargin_Integration_Test is Base_Test {
     {
         // scenario: when user deposit more than the deposit cap by adding up all deposits
 
-        uint256 amountToDepositMargin = WSTETH_DEPOSIT_CAP_X18;
+        uint256 amountToDepositMargin = WSTETH_DEPOSIT_CAP_X18.intoUint256();
         deal({ token: address(wstEth), to: users.naruto, give: amountToDepositMargin * 2 });
 
         uint128 userTradingAccountId = perpsEngine.createTradingAccount();
@@ -43,7 +43,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.DepositCap.selector, address(wstEth), amountToDepositMargin, WSTETH_DEPOSIT_CAP_X18
+                Errors.DepositCap.selector, address(wstEth), amountToDepositMargin, WSTETH_DEPOSIT_CAP_X18.intoUint128()
             )
         });
 

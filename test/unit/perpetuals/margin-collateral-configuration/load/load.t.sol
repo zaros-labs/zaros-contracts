@@ -20,7 +20,7 @@ contract MarginCollateralConfiguration_Load_Unit_Test is Base_Test {
             perpsEngine.exposed_MarginCollateral_load(address(usdc));
 
         // it should return the maximum deposit cap
-        assertEq(marginCollateralConfiguration.depositCap, USDC_DEPOSIT_CAP_X18, "invalid deposit cap");
+        assertEq(marginCollateralConfiguration.depositCap, USDC_DEPOSIT_CAP_X18.intoUint128(), "invalid deposit cap");
 
         // it should return the loan to value
         assertEq(marginCollateralConfiguration.loanToValue, USDC_LOAN_TO_VALUE, "invalid loan to value");

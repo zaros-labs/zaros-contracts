@@ -103,7 +103,11 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         });
         deal({ token: address(wstEth), to: users.naruto, give: wstEthmarginValueUsd });
 
-        weEthmarginValueUsd = bound({ x: weEthmarginValueUsd, min: 1, max: WEETH_DEPOSIT_CAP_X18 });
+        weEthmarginValueUsd = bound({
+            x: weEthmarginValueUsd,
+            min: 1,
+            max: convertUd60x18ToTokenAmount(address(weEth), WEETH_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(weEth), to: users.naruto, give: weEthmarginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(wstEthmarginValueUsd, address(wstEth));
