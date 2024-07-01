@@ -2,12 +2,12 @@
 pragma solidity 0.8.25;
 
 // PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 abstract contract Usdz {
     /// @notice Margin collateral configuration parameters.
     uint256 internal constant USDZ_MARGIN_COLLATERAL_ID = 1;
-    UD60x18 internal USDZ_DEPOSIT_CAP_X18 = 50_000_000_000e18;
+    UD60x18 internal USDZ_DEPOSIT_CAP_X18 = ud60x18(50_000_000_000e18);
     uint120 internal constant USDZ_LOAN_TO_VALUE = 1e18;
     uint256 internal constant USDZ_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant MOCK_USDZ_USD_PRICE = 1e18;

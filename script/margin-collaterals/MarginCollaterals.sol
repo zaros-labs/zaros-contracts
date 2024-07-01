@@ -14,7 +14,6 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
-import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     struct MarginCollateral {

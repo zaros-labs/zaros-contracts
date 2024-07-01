@@ -2,12 +2,12 @@
 pragma solidity 0.8.25;
 
 // PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 abstract contract WeEth {
     /// @notice Margin collateral configuration parameters.
     uint256 internal constant WEETH_MARGIN_COLLATERAL_ID = 6;
-    UD60x18 internal constant WEETH_DEPOSIT_CAP_X18 = 1_000_000e18;
+    UD60x18 internal constant WEETH_DEPOSIT_CAP_X18 = ud60x18(1_000_000e18);
     uint120 internal constant WEETH_LOAN_TO_VALUE = 0.7e18;
     uint256 internal constant WEETH_MIN_DEPOSIT_MARGIN = 0.025e18;
     uint256 internal constant MOCK_WEETH_USD_PRICE = 2000e18;
