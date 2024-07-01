@@ -90,15 +90,17 @@ contract PerpMarketHarness {
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
         SD59x18 newPositionSize,
-        bool shouldCheckMaxSkew
+        bool shouldCheckMaxSkew,
+        bool shouldCheckMaxOpenInterest
     )
         external
         view
         returns (UD60x18 newOpenInterest, SD59x18 newSkew)
     {
         PerpMarket.Data storage self = PerpMarket.load(marketId);
-        return
-            PerpMarket.checkOpenInterestLimits(self, sizeDelta, oldPositionSize, newPositionSize, shouldCheckMaxSkew);
+        return PerpMarket.checkOpenInterestLimits(
+            self, sizeDelta, oldPositionSize, newPositionSize, shouldCheckMaxSkew, shouldCheckMaxOpenInterest
+        );
     }
 
     function exposed_checkTradeSize(uint128 marketId, SD59x18 sizeDeltaX18) external view {

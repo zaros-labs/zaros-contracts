@@ -18,7 +18,7 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD59x18_ZERO  } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 contract OrderBranch {
     using SafeCast for uint256;
@@ -206,6 +206,7 @@ contract OrderBranch {
             sd59x18(params.sizeDelta),
             sd59x18(position.size),
             sd59x18(position.size).add(sd59x18(params.sizeDelta)),
+            true,
             true
         );
 

@@ -149,7 +149,7 @@ contract LiquidationBranch {
 
                 // we don't check skew during liquidations to protect from DoS
                 (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
-                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false
+                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false, false
                 );
 
                 perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);

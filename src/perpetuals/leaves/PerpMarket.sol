@@ -26,6 +26,8 @@ import {
     convert as sd59x18Convert
 } from "@prb-math/SD59x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 /// @title The PerpMarket namespace.
 library PerpMarket {
     using SafeCast for uint256;
@@ -235,32 +237,41 @@ library PerpMarket {
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
         SD59x18 newPositionSize,
-        bool shouldCheckMaxSkew
+        bool shouldCheckMaxSkew,
+        bool shouldCheckMaxOpenInterest
     )
         internal
         view
         returns (UD60x18 newOpenInterest, SD59x18 newSkew)
     {
         UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
-        newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
-            newPositionSize.abs().intoUD60x18()
-        );
+        UD60x18 currentOpenInterest = ud60x18(self.openInterest);
 
-        if (newOpenInterest.gt(maxOpenInterest)) {
-            revert Errors.ExceedsOpenInterestLimit(
-                self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
-            );
+        newOpenInterest =
+            currentOpenInterest.sub(oldPositionSize.abs().intoUD60x18()).add(newPositionSize.abs().intoUD60x18());
+
+        // console.log(currentOpenInterest.intoUint256());
+
+        if (shouldCheckMaxOpenInterest && newOpenInterest.gt(maxOpenInterest)) {
+            bool isReducingOpenInterest = currentOpenInterest.gt(newOpenInterest);
+
+            if (!isReducingOpenInterest) {
+                revert Errors.ExceedsOpenInterestLimit(
+                    self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
+                );
+            }
         }
 
+        SD59x18 maxSkew = ud60x18(self.configuration.maxSkew).intoSD59x18();
         SD59x18 currentSkew = sd59x18(self.skew);
 
         newSkew = currentSkew.add(sizeDelta);
 
-        if (shouldCheckMaxSkew && newSkew.abs().gt(ud60x18(self.configuration.maxSkew).intoSD59x18())) {
+        if (shouldCheckMaxSkew && newSkew.abs().gt(maxSkew)) {
             bool isReducingSkew = currentSkew.abs().gt(newSkew.abs());
 
             if (!isReducingSkew) {
-                revert Errors.ExceedsSkewLimit(self.id, self.configuration.maxSkew, newSkew.intoInt256());
+                revert Errors.ExceedsSkewLimit(self.id, maxSkew.intoUint256(), newSkew.intoInt256());
             }
         }
     }
