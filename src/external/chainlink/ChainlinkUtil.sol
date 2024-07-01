@@ -58,7 +58,7 @@ library ChainlinkUtil {
             int192 minAnswer = aggregator.minAnswer();
             int192 maxAnswer = aggregator.maxAnswer();
 
-            if (answer < minAnswer || answer > maxAnswer) {
+            if (answer <= minAnswer || answer >= maxAnswer) {
                 revert Errors.OraclePriceFeedOutOfRange(address(priceFeed));
             }
 
