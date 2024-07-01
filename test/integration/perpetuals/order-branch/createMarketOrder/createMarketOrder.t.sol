@@ -695,4 +695,60 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         assertEq(marketOrder.sizeDelta, sizeDelta, "createMarketOrder: sizeDelta");
         assertEq(marketOrder.timestamp, block.timestamp, "createMarketOrder: timestamp");
     }
+
+    function openManualPositionTest(
+        uint128 marketId,
+        bytes32 streamId,
+        uint256 mockUsdPrice,
+        uint128 tradingAccountId,
+        int128 sizeDelta
+    )
+        internal
+    {
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: tradingAccountId,
+                marketId: marketId,
+                sizeDelta: sizeDelta
+            })
+        );
+        bytes memory mockSignedReport = getMockedSignedReport(streamId, mockUsdPrice);
+        changePrank({ msgSender: marketOrderKeepers[marketId] });
+        // fill first order and open position
+        perpsEngine.fillMarketOrder(tradingAccountId, marketId, mockSignedReport);
+        changePrank({ msgSender: users.naruto });
+    }
+
+    function test_TraderCantReducePositionSizeWhenCollateralUnderIntitialRequired() external {
+        // give naruto some tokens
+        uint256 USER_STARTING_BALANCE = 100_000e18;
+        int128 USER_POS_SIZE_DELTA = 10e18;
+        deal({ token: address(usdz), to: users.naruto, give: USER_STARTING_BALANCE });
+        // naruto creates a trading account and deposits their tokens as collateral
+        changePrank({ msgSender: users.naruto });
+        uint128 tradingAccountId = createAccountAndDeposit(USER_STARTING_BALANCE, address(usdz));
+        // naruto opens position in BTC market
+        openManualPositionTest(
+            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, USER_POS_SIZE_DELTA
+        );
+        // market moves against Naruto's position
+        // giving Naruto a negative PNL but not to the point of liquidation
+        // if changed this to "/10" instead of "/11" naruto would be liquidatable,
+        // so this is just on the verge of being liquidated
+        uint256 updatedPrice = MOCK_BTC_USD_PRICE - MOCK_BTC_USD_PRICE / 11;
+        updateMockPriceFeed(BTC_USD_MARKET_ID, updatedPrice);
+        // naruto's position now is below the initial margin requirement
+        // but above the maintenance requirement. Naruto attempts to
+        // reduce their position size to limit exposure but this reverts
+        // with `InsufficientMargin` since `OrderBranch::createMarketOrder`
+        // and `SettlementBranch::_fillOrder` always check against initial
+        // margin requirements even when reducing already opened positions
+        openManualPositionTest(
+            BTC_USD_MARKET_ID,
+            BTC_USD_STREAM_ID,
+            updatedPrice,
+            tradingAccountId,
+            USER_POS_SIZE_DELTA - USER_POS_SIZE_DELTA / 2
+        );
+    }
 }

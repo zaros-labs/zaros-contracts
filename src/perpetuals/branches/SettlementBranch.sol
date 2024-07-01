@@ -137,11 +137,15 @@ contract SettlementBranch {
         ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
         {
-            (UD60x18 requiredInitialMarginUsdX18,, SD59x18 accountTotalUnrealizedPnlUsdX18) =
+            (UD60x18 requiredInitialMarginUsdX18, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDelta);
 
+            bool hasPreviouslyOpenedPosition = oldPosition.size != 0;
+
+            UD60x18 requiredMarginUsdX18 = hasPreviouslyOpenedPosition ? requiredMaintenanceMarginUsdX18 : requiredInitialMarginUsdX18;
+
             tradingAccount.validateMarginRequirement(
-                requiredInitialMarginUsdX18,
+                requiredMarginUsdX18,
                 tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
                 ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
             );
