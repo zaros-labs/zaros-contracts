@@ -26,8 +26,6 @@ import {
     convert as sd59x18Convert
 } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 /// @title The PerpMarket namespace.
 library PerpMarket {
     using SafeCast for uint256;
