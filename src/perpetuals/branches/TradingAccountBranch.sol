@@ -43,7 +43,7 @@ contract TradingAccountBranch {
     /// @param sender The `msg.sender`.
     /// @param tradingAccountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
+    /// @param amount The token amount of margin collateral deposited (token::decimals()).
     event LogDepositMargin(
         address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
     );
@@ -52,7 +52,7 @@ contract TradingAccountBranch {
     /// @param sender The `msg.sender`.
     /// @param tradingAccountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
+    /// @param amount The token amount of margin collateral withdrawn (token::decimals()).
     event LogWithdrawMargin(
         address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
     );
@@ -262,7 +262,7 @@ contract TradingAccountBranch {
             MarginCollateralConfiguration.load(collateralType);
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
-        UD60x18 amountX18 = ud60x18(amount);
+        UD60x18 amountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
 
         UD60x18 depositCapX18 = ud60x18(marginCollateralConfiguration.depositCap);
         UD60x18 totalCollateralDepositedX18 = ud60x18(marginCollateralConfiguration.totalDeposited);
