@@ -1316,6 +1316,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         uint256 updatedPrice = MOCK_BTC_USD_PRICE - MOCK_BTC_USD_PRICE / 10;
         updateMockPriceFeed(BTC_USD_MARKET_ID, updatedPrice);
 
+        // reduce the position with negative size delta
         ctx.secondOrderSizeDelta = -(ctx.firstOrderSizeDelta - ctx.firstOrderSizeDelta / 2);
         ctx.fuzzMarketConfig.mockUsdPrice = updatedPrice;
 
@@ -1384,6 +1385,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         uint256 updatedPrice = MOCK_BTC_USD_PRICE - MOCK_BTC_USD_PRICE / 11;
         updateMockPriceFeed(BTC_USD_MARKET_ID, updatedPrice);
 
+        // reduce the position with negative size delta
         ctx.secondOrderSizeDelta = -(ctx.firstOrderSizeDelta - ctx.firstOrderSizeDelta / 2);
         ctx.fuzzMarketConfig.mockUsdPrice = updatedPrice;
 
