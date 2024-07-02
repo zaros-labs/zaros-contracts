@@ -1243,4 +1243,169 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         assertEq(ctx.marketOrder.sizeDelta, 0);
         assertEq(ctx.marketOrder.timestamp, 0);
     }
+
+    modifier givenTheUserHasAnOpenPosition() {
+        _;
+    }
+
+    modifier givenTheUserWillReduceThePosition() {
+        _;
+    }
+
+    modifier givenTheMarginBalancerUsdIsUnderTheInitialMarginUsdRequired() {
+        _;
+    }
+
+    struct Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context {
+        MarketConfig fuzzMarketConfig;
+        address marketOrderKeeper;
+        uint128 tradingAccountId;
+        int128 firstOrderSizeDelta;
+        bytes firstMockSignedReport;
+        int128 secondOrderSizeDelta;
+        bytes secondMockSignedReport;
+        MarketOrder.Data marketOrder;
+    }
+
+    function test_RevertGiven_TheMarginBalanceUsdIsUnderTheMaintenanceMarginUsdRequired()
+        external
+        givenTheSenderIsTheKeeper
+        givenTheMarketOrderExists
+        givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
+        givenTheReportVerificationPasses
+        givenTheDataStreamsReportIsValid
+        givenTheAccountWillMeetTheMarginRequirement
+        givenTheMarketsOILimitWontBeExceeded
+        givenTheUserHasAnOpenPosition
+        givenTheUserWillReduceThePosition
+        givenTheMarginBalancerUsdIsUnderTheInitialMarginUsdRequired
+    {
+        Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context memory ctx;
+
+        uint256 marketId = BTC_USD_MARKET_ID;
+        uint256 marginValueUsd = 100_000e18;
+
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+
+        // Config first fill order
+
+        ctx.firstOrderSizeDelta = 10e18;
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        ctx.firstMockSignedReport =
+            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.firstOrderSizeDelta
+            })
+        );
+
+        changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
+
+        // Config second fill order
+
+        changePrank({ msgSender: users.naruto });
+
+        uint256 updatedPrice = MOCK_BTC_USD_PRICE - MOCK_BTC_USD_PRICE / 10;
+        updateMockPriceFeed(BTC_USD_MARKET_ID, updatedPrice);
+
+        ctx.secondOrderSizeDelta = -(ctx.firstOrderSizeDelta - ctx.firstOrderSizeDelta / 2);
+        ctx.fuzzMarketConfig.mockUsdPrice = updatedPrice;
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.AccountIsLiquidatable.selector, ctx.tradingAccountId)
+        });
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.secondOrderSizeDelta
+            })
+        );
+    }
+
+    function test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired()
+        external
+        givenTheSenderIsTheKeeper
+        givenTheMarketOrderExists
+        givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
+        givenTheReportVerificationPasses
+        givenTheDataStreamsReportIsValid
+        givenTheAccountWillMeetTheMarginRequirement
+        givenTheMarketsOILimitWontBeExceeded
+        givenTheUserHasAnOpenPosition
+        givenTheUserWillReduceThePosition
+        givenTheMarginBalancerUsdIsUnderTheInitialMarginUsdRequired
+    {
+        Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context memory ctx;
+
+        uint256 marketId = BTC_USD_MARKET_ID;
+        uint256 marginValueUsd = 100_000e18;
+
+        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+
+        // Config first fill order
+
+        ctx.firstOrderSizeDelta = 10e18;
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        ctx.firstMockSignedReport =
+            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.firstOrderSizeDelta
+            })
+        );
+
+        changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
+
+        // Config second fill order
+
+        changePrank({ msgSender: users.naruto });
+
+        // if changed this to "/10" instead of "/11" naruto would be liquidatable,
+        // so this is just on the verge of being liquidated
+        uint256 updatedPrice = MOCK_BTC_USD_PRICE - MOCK_BTC_USD_PRICE / 11;
+        updateMockPriceFeed(BTC_USD_MARKET_ID, updatedPrice);
+
+        ctx.secondOrderSizeDelta = -(ctx.firstOrderSizeDelta - ctx.firstOrderSizeDelta / 2);
+        ctx.fuzzMarketConfig.mockUsdPrice = updatedPrice;
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.secondOrderSizeDelta
+            })
+        );
+
+        ctx.secondMockSignedReport =
+            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
+
+        // it should delete the market order
+        ctx.marketOrder = perpsEngine.getActiveMarketOrder(ctx.tradingAccountId);
+        assertEq(ctx.marketOrder.marketId, 0);
+        assertEq(ctx.marketOrder.sizeDelta, 0);
+        assertEq(ctx.marketOrder.timestamp, 0);
+    }
 }

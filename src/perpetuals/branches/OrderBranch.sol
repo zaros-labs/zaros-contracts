@@ -175,6 +175,8 @@ contract OrderBranch {
         UD60x18 requiredMaintenanceMarginUsdX18;
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
+        bool shouldUseMaintenanceMargin;
+        UD60x18 requiredMarginUsdX18;
     }
 
     /// @notice Creates a market order for the given trading account and market ids.
@@ -215,20 +217,27 @@ contract OrderBranch {
 
         CreateMarketOrderContext memory ctx;
 
-        (ctx.marginBalanceUsdX18, ctx.requiredInitialMarginUsdX18, ctx.requiredMaintenanceMarginUsdX18, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) =
-        simulateTrade({
+        (
+            ctx.marginBalanceUsdX18,
+            ctx.requiredInitialMarginUsdX18,
+            ctx.requiredMaintenanceMarginUsdX18,
+            ctx.orderFeeUsdX18,
+            ctx.settlementFeeUsdX18,
+        ) = simulateTrade({
             tradingAccountId: params.tradingAccountId,
             marketId: params.marketId,
             settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta: params.sizeDelta
         });
 
-        bool hasPreviouslyOpenedPosition = position.size != 0;
+        ctx.shouldUseMaintenanceMargin = !Position.isIncreasingPosition(params.tradingAccountId, params.marketId, params.sizeDelta)
+            && position.size != 0;
 
-        UD60x18 requiredMarginUsdX18 = hasPreviouslyOpenedPosition ? ctx.requiredMaintenanceMarginUsdX18 : ctx.requiredInitialMarginUsdX18;
+        ctx.requiredMarginUsdX18 =
+            ctx.shouldUseMaintenanceMargin ? ctx.requiredMaintenanceMarginUsdX18 : ctx.requiredInitialMarginUsdX18;
 
         tradingAccount.validateMarginRequirement(
-            requiredMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
+            ctx.requiredMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
         );
 
         marketOrder.checkPendingOrder();
