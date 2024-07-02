@@ -185,15 +185,15 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         givenThePerpMarketIsDisabled
     {
         // give naruto some tokens
-        uint256 USER_STARTING_BALANCE = 100_000e18;
-        int128 USER_POS_SIZE_DELTA = 10e18;
-        deal({ token: address(usdc), to: users.naruto, give: USER_STARTING_BALANCE });
+        uint256 marginValueUsdc = 100_000e6;
+        int128 userPositionSizeDelta = 10e18;
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsdc });
         // naruto creates a trading account and deposits their tokens as collateral
         changePrank({ msgSender: users.naruto });
-        uint128 tradingAccountId = createAccountAndDeposit(USER_STARTING_BALANCE, address(usdc));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsdc, address(usdc));
         // naruto opens first position in BTC market
         openManualPosition(
-            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, USER_POS_SIZE_DELTA
+            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, userPositionSizeDelta
         );
         // protocol operator disables settlement for the BTC market
         changePrank({ msgSender: users.owner });
@@ -215,7 +215,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         // naruto closes their opened leverage BTC position
         openManualPosition(
-            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, -USER_POS_SIZE_DELTA
+            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, -userPositionSizeDelta
         );
     }
 
