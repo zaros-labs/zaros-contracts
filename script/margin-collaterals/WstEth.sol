@@ -6,6 +6,8 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 abstract contract WstEth {
     /// @notice Margin collateral configuration parameters.
+    string internal constant WSTETH_NAME = "Wrapped liquid staked Ether 2.0";
+    string internal constant WSTETH_SYMBOL = "wstETH";
     uint256 internal constant WSTETH_MARGIN_COLLATERAL_ID = 5;
     UD60x18 internal WSTETH_DEPOSIT_CAP_X18 = ud60x18(1_000_000e18);
     uint120 internal constant WSTETH_LOAN_TO_VALUE = 0.7e18;
