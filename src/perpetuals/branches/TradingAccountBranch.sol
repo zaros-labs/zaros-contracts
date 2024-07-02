@@ -66,7 +66,7 @@ contract TradingAccountBranch {
     /// @notice Returns the account's margin amount of the given collateral type.
     /// @param tradingAccountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @return marginCollateralBalanceX18 The margin amount of the given collateral type.
+    /// @return marginCollateralBalanceX18 The margin collateral amount of the given collateral type.
     function getAccountMarginCollateralBalance(
         uint128 tradingAccountId,
         address collateralType
