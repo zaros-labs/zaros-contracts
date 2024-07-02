@@ -175,8 +175,8 @@ contract OrderBranch {
         UD60x18 requiredMaintenanceMarginUsdX18;
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
-        bool shouldUseMaintenanceMargin;
         UD60x18 requiredMarginUsdX18;
+        bool shouldUseMaintenanceMargin;
     }
 
     /// @notice Creates a market order for the given trading account and market ids.

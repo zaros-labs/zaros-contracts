@@ -81,8 +81,8 @@ contract SettlementBranch {
         Position.Data newPosition;
         UD60x18 newOpenInterest;
         SD59x18 newSkew;
-        bool shouldUseMaintenanceMargin;
         UD60x18 requiredMarginUsdX18;
+        bool shouldUseMaintenanceMargin;
     }
 
     /// @param tradingAccountId The trading account id.
