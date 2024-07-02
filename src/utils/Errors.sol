@@ -106,6 +106,8 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementBranch errors.
 
+    error MarketOrderMarketIdMismatch(uint128 marketId, uint128 orderMarketId);
+
     /// @notice Thrown when the caller is not the registered Keeper contract.
     error OnlyKeeper(address sender, address keeper);
 
