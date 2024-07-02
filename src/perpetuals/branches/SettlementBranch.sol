@@ -101,6 +101,8 @@ contract SettlementBranch {
         FillOrderContext memory ctx;
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, settlementConfigurationId);
         ctx.usdToken = globalConfiguration.usdToken;
         ctx.marketId = marketId;
 
@@ -109,6 +111,7 @@ contract SettlementBranch {
 
             if (isIncreasingPosition) {
                 globalConfiguration.checkMarketIsEnabled(ctx.marketId);
+                settlementConfiguration.checkSettlementIsEnabled();
             }
         }
 
@@ -120,9 +123,6 @@ contract SettlementBranch {
         perpMarket.checkTradeSize(ctx.sizeDelta);
 
         Position.Data storage oldPosition = Position.load(ctx.tradingAccountId, ctx.marketId);
-
-        SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementConfigurationId);
 
         ctx.fillPrice = perpMarket.getMarkPrice(
             ctx.sizeDelta, settlementConfiguration.verifyOffchainPrice(priceData, ctx.sizeDelta.gt(SD_ZERO))
