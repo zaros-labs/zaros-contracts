@@ -111,7 +111,7 @@ contract SettlementBranch {
 
             if (isIncreasingPosition) {
                 globalConfiguration.checkMarketIsEnabled(ctx.marketId);
-                settlementConfiguration.checkSettlementIsEnabled();
+                settlementConfiguration.checkIsSettlementEnabled();
             }
         }
 

@@ -192,7 +192,7 @@ contract OrderBranch {
         // Check if market is enabled only if the position is being opened or increased
         if (isIncreasingPosition) {
             globalConfiguration.checkMarketIsEnabled(params.marketId);
-            settlementConfiguration.checkSettlementIsEnabled();
+            settlementConfiguration.checkIsSettlementEnabled();
         }
 
         Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);

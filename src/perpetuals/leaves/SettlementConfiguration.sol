@@ -91,7 +91,7 @@ library SettlementConfiguration {
 
     /// @notice Checks if the configured settlement strategy is enabled to proceed with execution.
     /// @param self The {SettlementConfiguration} storage pointer.
-    function checkSettlementIsEnabled(Data storage self) internal view {
+    function checkIsSettlementEnabled(Data storage self) internal view {
         if (!self.isEnabled) {
             revert Errors.SettlementDisabled();
         }

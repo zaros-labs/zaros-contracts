@@ -358,18 +358,20 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     positionHarnessSelectors[6] = PositionHarness.exposed_getNotionalValue.selector;
     positionHarnessSelectors[7] = PositionHarness.exposed_getUnrealizedPnl.selector;
 
-    bytes4[] memory settlementConfigurationHarnessSelectors = new bytes4[](7);
+    bytes4[] memory settlementConfigurationHarnessSelectors = new bytes4[](8);
     settlementConfigurationHarnessSelectors[0] =
         SettlementConfigurationHarness.exposed_SettlementConfiguration_load.selector;
     settlementConfigurationHarnessSelectors[1] =
         SettlementConfigurationHarness.exposed_checkIsValidSettlementStrategy.selector;
-    settlementConfigurationHarnessSelectors[2] = SettlementConfigurationHarness.exposed_update.selector;
+    settlementConfigurationHarnessSelectors[2] =
+        SettlementConfigurationHarness.exposed_checkIsSettlementEnabled.selector;
     settlementConfigurationHarnessSelectors[3] =
         SettlementConfigurationHarness.exposed_getDataStreamsReportPrice.selector;
     settlementConfigurationHarnessSelectors[4] =
         SettlementConfigurationHarness.exposed_requireDataStreamsReportIsVaid.selector;
-    settlementConfigurationHarnessSelectors[5] = SettlementConfigurationHarness.exposed_verifyOffchainPrice.selector;
-    settlementConfigurationHarnessSelectors[6] =
+    settlementConfigurationHarnessSelectors[5] = SettlementConfigurationHarness.exposed_update.selector;
+    settlementConfigurationHarnessSelectors[6] = SettlementConfigurationHarness.exposed_verifyOffchainPrice.selector;
+    settlementConfigurationHarnessSelectors[7] =
         SettlementConfigurationHarness.exposed_verifyDataStreamsReport.selector;
 
     bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](19);
