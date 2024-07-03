@@ -229,14 +229,11 @@ library PerpMarket {
     /// @param sizeDelta The size delta of the order.
     /// @param oldPositionSize The old position size.
     /// @param newPositionSize The new position size.
-    /// @param shouldCheckMaxSkew Whether to check the max skew limit.
     function checkOpenInterestLimits(
         Data storage self,
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
-        SD59x18 newPositionSize,
-        bool shouldCheckMaxSkew,
-        bool shouldCheckMaxOpenInterest
+        SD59x18 newPositionSize
     )
         internal
         view
@@ -248,9 +245,7 @@ library PerpMarket {
         newOpenInterest =
             currentOpenInterest.sub(oldPositionSize.abs().intoUD60x18()).add(newPositionSize.abs().intoUD60x18());
 
-        // console.log(currentOpenInterest.intoUint256());
-
-        if (shouldCheckMaxOpenInterest && newOpenInterest.gt(maxOpenInterest)) {
+        if (newOpenInterest.gt(maxOpenInterest)) {
             bool isReducingOpenInterest = currentOpenInterest.gt(newOpenInterest);
 
             if (!isReducingOpenInterest) {
@@ -265,7 +260,7 @@ library PerpMarket {
 
         newSkew = currentSkew.add(sizeDelta);
 
-        if (shouldCheckMaxSkew && newSkew.abs().gt(maxSkew)) {
+        if (newSkew.abs().gt(maxSkew)) {
             bool isReducingSkew = currentSkew.abs().gt(newSkew.abs());
 
             if (!isReducingSkew) {

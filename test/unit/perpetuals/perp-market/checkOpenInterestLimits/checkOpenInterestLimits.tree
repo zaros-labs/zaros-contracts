@@ -15,5 +15,5 @@ PerpMarket_CheckOpenInterestLimits_Unit_Test
 │       └── when is reducing skew
 │           └── it should return the new skew
 └── when the shouldCheckMaxSkew is false
-    └── when the new skew is greather than the max
+    └── when the new skew is greather than the max skew
         └── it should return the new skew
