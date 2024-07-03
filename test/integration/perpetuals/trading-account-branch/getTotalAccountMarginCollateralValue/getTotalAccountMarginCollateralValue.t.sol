@@ -7,7 +7,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 // PRB Math dependencies
-import { ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract getAccountEquityUsd_Integration_Test is Base_Test {
     function setUp() public override {
@@ -24,7 +24,7 @@ contract getAccountEquityUsd_Integration_Test is Base_Test {
 
         uint256 expectedMarginCollateralValue = getPrice(
             MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
-        ).mul(ud60x18(amountToDeposit)).intoUint256();
+        ).mul(convertTokenAmountToUd60x18(address(usdc), amountToDeposit)).intoUint256();
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 
@@ -54,13 +54,14 @@ contract getAccountEquityUsd_Integration_Test is Base_Test {
         deal({ token: address(usdc), to: users.naruto, give: amountToDepositUsdc });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDepositWstEth });
 
-        uint256 expectedMarginCollateralValue = getPrice(
-            MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
-        ).mul(ud60x18(amountToDepositUsdc)).add(
-            getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)).mul(
-                ud60x18(amountToDepositWstEth)
-            )
-        ).intoUint256();
+        UD60x18 usdcEquityUsd = getPrice(MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)).mul(
+            convertTokenAmountToUd60x18(address(usdc), amountToDepositUsdc)
+        );
+
+        UD60x18 wstEthEquityUsd = getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed))
+            .mul(convertTokenAmountToUd60x18(address(wstEth), amountToDepositWstEth));
+
+        uint256 expectedMarginCollateralValue = usdcEquityUsd.add(wstEthEquityUsd).intoUint256();
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDepositUsdc, address(usdc));
 

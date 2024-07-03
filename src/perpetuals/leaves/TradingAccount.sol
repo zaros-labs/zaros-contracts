@@ -144,6 +144,7 @@ library TradingAccount {
     {
         for (uint256 i; i < self.marginCollateralBalanceX18.length(); i++) {
             (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
+
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
             UD60x18 balanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18));

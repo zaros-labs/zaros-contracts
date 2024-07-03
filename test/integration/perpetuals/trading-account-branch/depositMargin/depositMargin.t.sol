@@ -8,8 +8,6 @@ import { Base_Test } from "test/Base.t.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract DepositMargin_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
@@ -170,15 +168,12 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), 0, "balanceOf should be zero");
 
-        uint256 newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdc)).intoUint256();
-
-        console.log("naruto1");
+        uint256 newMarginCollateralBalance = convertUd60x18ToTokenAmount(
+            address(usdc), perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdc))
+        );
 
         // it should increase the amount of margin collateral
         assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
-
-        console.log("naruto2");
 
         // Test with wstEth that has 18 decimals
 
@@ -190,8 +185,6 @@ contract DepositMargin_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
         });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
-
-        console.log("naruto3");
 
         assertEq(MockERC20(wstEth).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct");
 
@@ -205,18 +198,12 @@ contract DepositMargin_Integration_Test is Base_Test {
         expectCallToTransferFrom(wstEth, users.naruto, address(perpsEngine), amountToDeposit);
         perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDeposit);
 
-        console.log("naruto4");
-
         assertEq(MockERC20(wstEth).balanceOf(users.naruto), 0, "balanceOf should be zero");
-
-        console.log("naruto5");
 
         newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(wstEth)).intoUint256();
 
-        console.log(newMarginCollateralBalance, amountToDeposit);
-
         // it should increase the amount of margin collateral
-        // assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
+        assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
     }
 }

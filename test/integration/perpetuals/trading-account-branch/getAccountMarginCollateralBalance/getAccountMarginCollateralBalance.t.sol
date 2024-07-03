@@ -20,10 +20,13 @@ contract GetAccountMarginCollateralBalance_Integration_Test is Base_Test {
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 
-        uint256 marginCollateralAmount = perpsEngine.getAccountMarginCollateralBalance({
-            tradingAccountId: tradingAccountId,
-            collateralType: address(usdc)
-        }).intoUint256();
+        uint256 marginCollateralAmount = convertUd60x18ToTokenAmount(
+            address(usdc),
+            perpsEngine.getAccountMarginCollateralBalance({
+                tradingAccountId: tradingAccountId,
+                collateralType: address(usdc)
+            })
+        );
         assertEq(marginCollateralAmount, amountToDeposit, "getAccountMarginCollateralBalance");
     }
 }
