@@ -8,8 +8,6 @@ import { Base_Test } from "test/Base.t.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract DepositMargin_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
