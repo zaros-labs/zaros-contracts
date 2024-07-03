@@ -94,7 +94,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
             tradingAccountId, address(usdc), marginCollateralPriceUsdX18, amountToWithdrawUsdX18, users.naruto
         );
 
-        // // it should withdraw required margin collateral
+        // it should withdraw required margin collateral
         expectedBalance = amountToWithdrawUsdX18.div(marginCollateralPriceUsdX18);
         assertEq(
             MockERC20((usdc)).balanceOf(users.naruto),
@@ -201,7 +201,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
             "balanceOf is not correct after withdrawMarginUsd"
         );
 
-        // // it should return the margin collateral balance usd
+        // it should return the margin collateral balance usd
         expectedWithdrawMarginUsdX18 =
             convertTokenAmountToUd60x18(address(usdc), amountToDeposit).mul(marginCollateralPriceUsdX18);
         assertEq(
@@ -210,7 +210,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
             "withdrawnMarginUsdX18 is not correct"
         );
 
-        // // it should return isMissingMargin as true
+        // it should return isMissingMargin as true
         assertEq(true, isMissingMargin, "isMissingMargin should be true");
     }
 }
