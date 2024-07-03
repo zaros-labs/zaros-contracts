@@ -104,8 +104,6 @@ contract DepositMargin_Integration_Test is Base_Test {
         );
         changePrank({ msgSender: users.naruto });
 
-        userTradingAccountId = perpsEngine.createTradingAccount();
-
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.DepositCap.selector, address(usdc), amountToDeposit, 0)
