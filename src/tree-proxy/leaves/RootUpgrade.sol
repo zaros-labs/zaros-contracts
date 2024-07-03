@@ -168,14 +168,15 @@ library RootUpgrade {
     }
 
     function removeBranch(Data storage self, address branch, bytes4[] memory selectors) internal {
+        if (branch == address(this)) {
+            revert Errors.ImmutableBranch();
+        }
+
         for (uint256 i; i < selectors.length; i++) {
             bytes4 selector = selectors[i];
             // also reverts if left side returns zero address
             if (selector == bytes4(0)) {
                 revert Errors.SelectorIsZero();
-            }
-            if (branch == address(this)) {
-                revert Errors.ImmutableBranch();
             }
             if (self.selectorToBranch[selector] != branch) {
                 revert Errors.CannotRemoveFromOtherBranch(branch, selector);
