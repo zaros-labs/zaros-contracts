@@ -58,16 +58,13 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         );
     }
 
-    function test_WhenIsReducingOpenInterest(
-        uint256 marketId,
-        int256 sizeDelta
-    )
+    function test_WhenIsReducingOpenInterest(uint256 marketId)
         external
         whenTheNewOpenInterestIsGreaterThanTheMaxOpenInterest
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        SD59x18 sizeDeltaX18 = sd59x18(sizeDelta);
+        SD59x18 sizeDeltaX18 = sd59x18(int128(fuzzMarketConfig.maxSkew));
         SD59x18 oldPositionSizeX18 = sd59x18(int128(fuzzMarketConfig.maxOi));
         SD59x18 newPositionSizeX18 = oldPositionSizeX18.sub(sd59x18(1));
 
@@ -101,7 +98,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         SD59x18 currentSkew = sd59x18(int128(fuzzMarketConfig.maxSkew));
 
         SD59x18 sizeDeltaX18 = currentSkew.add(sd59x18(1));
-        SD59x18 oldPositionSizeX18 = sd59x18(int128(fuzzMarketConfig.maxOi));
+        SD59x18 oldPositionSizeX18 = sd59x18(int128(fuzzMarketConfig.maxOi / 2));
         SD59x18 newPositionSizeX18 = oldPositionSizeX18.add(sd59x18(1));
 
         UD60x18 currentOpenInterest = ud60x18(oldPositionSizeX18.intoUint256());
@@ -131,7 +128,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         SD59x18 currentSkew = sd59x18(int128(fuzzMarketConfig.maxSkew)).div(sd59x18(2e18));
 
         SD59x18 sizeDeltaX18 = currentSkew;
-        SD59x18 oldPositionSizeX18 = sd59x18(int128(fuzzMarketConfig.maxOi));
+        SD59x18 oldPositionSizeX18 = sd59x18(int128(fuzzMarketConfig.maxOi / 2));
         SD59x18 newPositionSizeX18 = oldPositionSizeX18.add(sd59x18(1));
 
         UD60x18 currentOpenInterest = ud60x18(oldPositionSizeX18.intoUint256());
