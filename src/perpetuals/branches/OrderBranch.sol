@@ -207,10 +207,7 @@ contract OrderBranch {
         PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
         perpMarket.checkTradeSize(sd59x18(params.sizeDelta));
         perpMarket.checkOpenInterestLimits(
-            sd59x18(params.sizeDelta),
-            sd59x18(position.size),
-            sd59x18(position.size).add(sd59x18(params.sizeDelta)),
-            true
+            sd59x18(params.sizeDelta), sd59x18(position.size), sd59x18(position.size).add(sd59x18(params.sizeDelta))
         );
 
         MarketOrder.Data storage marketOrder = MarketOrder.load(params.tradingAccountId);

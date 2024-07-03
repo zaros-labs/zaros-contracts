@@ -6,6 +6,8 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 abstract contract WBtc {
     /// @notice Margin collateral configuration parameters.
+    string internal constant WBTC_NAME = "Wrapped BTC";
+    string internal constant WBTC_SYMBOL = "WBTC";
     uint256 internal constant WBTC_MARGIN_COLLATERAL_ID = 4;
     UD60x18 internal WBTC_DEPOSIT_CAP_X18 = ud60x18(1_000_000e18);
     uint120 internal constant WBTC_LOAN_TO_VALUE = 0.85e18;

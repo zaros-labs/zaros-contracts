@@ -6,6 +6,8 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 abstract contract Usdc {
     /// @notice Margin collateral configuration parameters.
+    string internal constant USDC_NAME = "USD Coin";
+    string internal constant USDC_SYMBOL = "USDC";
     uint256 internal constant USDC_MARGIN_COLLATERAL_ID = 2;
     UD60x18 internal USDC_DEPOSIT_CAP_X18 = ud60x18(5_000_000_000e18);
     uint120 internal constant USDC_LOAN_TO_VALUE = 1e18;

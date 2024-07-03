@@ -74,8 +74,9 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         expectCallToTransferFrom(usdc, users.naruto, address(perpsEngine), amountToDeposit);
         bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
 
-        uint256 newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdc)).intoUint256();
+        uint256 newMarginCollateralBalance = convertUd60x18ToTokenAmount(
+            address(usdc), perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdc))
+        );
 
         // it should increase the amount of margin collateral
         assertEq(results.length, 1, "createTradingAccountAndMulticall: results");

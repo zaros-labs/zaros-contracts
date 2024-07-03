@@ -17,9 +17,9 @@ MarginCollateralConfiguration_GetPrice_Test
             ├── when the difference of block timestamp minus updateAt is greater than the price feed heartbet seconds
             │   └── it should revert
             └── when the difference of block timestamp minus updateAt is less than or equal than the price feed heartbet seconds
-                ├── when the answer is less than the minAnswer
+                ├── when the answer is equal or less than the minAnswer
                 │   └── it should revert
-                ├── when the answer is greater than the maxAnswer
+                ├── when the answer is equal or greater than the maxAnswer
                 │   └── it should revert
                 └── when the answer is greater than than the minAnswer and less than the maxAnswer
                     └── it should return the price

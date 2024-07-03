@@ -264,9 +264,11 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         expectCallToTransfer(wstEth, users.naruto, amountToWithdraw);
         perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
 
-        uint256 expectedMargin = amountToDeposit - amountToWithdraw;
-        uint256 newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth)).intoUint256();
+        uint256 expectedMargin =
+            convertTokenAmountToUd60x18(address(wstEth), amountToDeposit - amountToWithdraw).intoUint256();
+        uint256 newMarginCollateralBalance = convertUd60x18ToTokenAmount(
+            address(wstEth), perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth))
+        );
 
         // it should decrease the margin collateral balance
         assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
@@ -291,7 +293,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         expectCallToTransfer(usdc, users.naruto, amountToWithdraw);
         perpsEngine.withdrawMargin(tradingAccountId, address(usdc), amountToWithdraw);
 
-        expectedMargin = amountToDeposit - amountToWithdraw;
+        expectedMargin = convertTokenAmountToUd60x18(address(usdc), amountToDeposit - amountToWithdraw).intoUint256();
         newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(usdc)).intoUint256();
 

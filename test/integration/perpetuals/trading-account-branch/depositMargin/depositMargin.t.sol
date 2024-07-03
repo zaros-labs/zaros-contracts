@@ -170,8 +170,9 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), 0, "balanceOf should be zero");
 
-        uint256 newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdc)).intoUint256();
+        uint256 newMarginCollateralBalance = convertUd60x18ToTokenAmount(
+            address(usdc), perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdc))
+        );
 
         console.log("naruto1");
 
@@ -209,10 +210,9 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         assertEq(MockERC20(wstEth).balanceOf(users.naruto), 0, "balanceOf should be zero");
 
-        console.log("naruto5");
-
-        newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(wstEth)).intoUint256();
+        newMarginCollateralBalance = convertUd60x18ToTokenAmount(
+            address(wstEth), perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(wstEth))
+        );
 
         console.log(newMarginCollateralBalance, amountToDeposit);
 

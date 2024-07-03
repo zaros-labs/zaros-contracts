@@ -229,38 +229,42 @@ library PerpMarket {
     /// @param sizeDelta The size delta of the order.
     /// @param oldPositionSize The old position size.
     /// @param newPositionSize The new position size.
-    /// @param shouldCheckMaxSkew Whether to check the max skew limit.
     function checkOpenInterestLimits(
         Data storage self,
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
-        SD59x18 newPositionSize,
-        bool shouldCheckMaxSkew
+        SD59x18 newPositionSize
     )
         internal
         view
         returns (UD60x18 newOpenInterest, SD59x18 newSkew)
     {
         UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
-        newOpenInterest = ud60x18(self.openInterest).sub(oldPositionSize.abs().intoUD60x18()).add(
-            newPositionSize.abs().intoUD60x18()
-        );
+        UD60x18 currentOpenInterest = ud60x18(self.openInterest);
+
+        newOpenInterest =
+            currentOpenInterest.sub(oldPositionSize.abs().intoUD60x18()).add(newPositionSize.abs().intoUD60x18());
 
         if (newOpenInterest.gt(maxOpenInterest)) {
-            revert Errors.ExceedsOpenInterestLimit(
-                self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
-            );
+            bool isReducingOpenInterest = currentOpenInterest.gt(newOpenInterest);
+
+            if (!isReducingOpenInterest) {
+                revert Errors.ExceedsOpenInterestLimit(
+                    self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
+                );
+            }
         }
 
+        SD59x18 maxSkew = ud60x18(self.configuration.maxSkew).intoSD59x18();
         SD59x18 currentSkew = sd59x18(self.skew);
 
         newSkew = currentSkew.add(sizeDelta);
 
-        if (shouldCheckMaxSkew && newSkew.abs().gt(ud60x18(self.configuration.maxSkew).intoSD59x18())) {
+        if (newSkew.abs().gt(maxSkew)) {
             bool isReducingSkew = currentSkew.abs().gt(newSkew.abs());
 
             if (!isReducingSkew) {
-                revert Errors.ExceedsSkewLimit(self.id, self.configuration.maxSkew, newSkew.intoInt256());
+                revert Errors.ExceedsSkewLimit(self.id, maxSkew.intoUint256(), newSkew.intoInt256());
             }
         }
     }

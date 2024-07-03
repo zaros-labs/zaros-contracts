@@ -199,7 +199,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheAnswerIsLessThanTheMinAnswer()
+    function test_RevertWhen_TheAnswerIsEqualOrLessThanTheMinAnswer()
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
@@ -211,8 +211,23 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
         (, int256 price,,,) = MockPriceFeed(marginCollateralConfiguration.priceFeed).latestRoundData();
 
-        int256 minAnswer = price + 1;
+        // when the price is equal to the minAnswer
+        int256 minAnswer = price;
         int256 maxAnswer = price + 2;
+        MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
+            )
+        });
+
+        perpsEngine.exposed_getPrice(address(usdc));
+
+        // when the price is less than the minAnswer
+        minAnswer = price + 1;
+
         MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
 
         // it should revert
@@ -225,7 +240,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(address(usdc));
     }
 
-    function test_RevertWhen_TheAnswerIsGreaterThanTheMaxAnswer()
+    function test_RevertWhen_TheAnswerIsEqualOrGreaterThanTheMaxAnswer()
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
@@ -237,8 +252,23 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
         (, int256 price,,,) = MockPriceFeed(marginCollateralConfiguration.priceFeed).latestRoundData();
 
+        // when the price is equal to the maxAnswer
         int256 minAnswer = price - 2;
-        int256 maxAnswer = price - 1;
+        int256 maxAnswer = price;
+        MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
+            )
+        });
+
+        perpsEngine.exposed_getPrice(address(usdc));
+
+        // when the price is greater than the maxAnswer
+        maxAnswer = price - 1;
+
         MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
 
         // it should revert
