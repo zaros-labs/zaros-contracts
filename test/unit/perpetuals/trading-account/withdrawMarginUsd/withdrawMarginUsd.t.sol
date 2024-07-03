@@ -40,7 +40,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         vm.assume(amountToDeposit >= amountToWithdrawUsd / marginCollateralPriceUsd);
 
         UD60x18 marginCollateralPriceUsdX18 = ud60x18Convert(marginCollateralPriceUsd);
-        UD60x18 amountToWithdrawUsdX18 = ud60x18(amountToWithdrawUsd);
+        UD60x18 amountToWithdrawUsdX18 = convertTokenAmountToUd60x18(address(wstEth), amountToWithdrawUsd);
 
         assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), 0, "initial balance should be zero");
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
@@ -134,7 +134,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         vm.assume(amountToWithdrawUsd / marginCollateralPriceUsd > amountToDeposit);
 
         UD60x18 marginCollateralPriceUsdX18 = ud60x18Convert(marginCollateralPriceUsd);
-        UD60x18 amountToWithdrawUsdX18 = ud60x18(amountToWithdrawUsd);
+        UD60x18 amountToWithdrawUsdX18 = convertTokenAmountToUd60x18(address(wstEth), amountToWithdrawUsd);
 
         assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), 0, "initial balance should be zero");
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });

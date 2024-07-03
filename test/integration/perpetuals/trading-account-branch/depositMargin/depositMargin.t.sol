@@ -200,8 +200,9 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         assertEq(MockERC20(wstEth).balanceOf(users.naruto), 0, "balanceOf should be zero");
 
-        newMarginCollateralBalance =
-            perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(wstEth)).intoUint256();
+        newMarginCollateralBalance = convertUd60x18ToTokenAmount(
+            address(wstEth), perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(wstEth))
+        );
 
         // it should increase the amount of margin collateral
         assertEq(newMarginCollateralBalance, amountToDeposit, "depositMargin");
