@@ -89,26 +89,12 @@ library SettlementConfiguration {
         }
     }
 
-    /// @notice Updates the settlement configuration of a given market.
-    /// @param marketId The market id.
-    /// @param settlementConfigurationId The settlement configuration id.
-    /// @param settlementConfiguration The new settlement configuration.
-    function update(
-        uint128 marketId,
-        uint128 settlementConfigurationId,
-        Data memory settlementConfiguration
-    )
-        internal
-    {
-        Data storage self = load(marketId, settlementConfigurationId);
-
-        checkIsValidSettlementStrategy(settlementConfigurationId, settlementConfiguration.strategy);
-
-        self.strategy = settlementConfiguration.strategy;
-        self.isEnabled = settlementConfiguration.isEnabled;
-        self.fee = settlementConfiguration.fee;
-        self.keeper = settlementConfiguration.keeper;
-        self.data = settlementConfiguration.data;
+    /// @notice Checks if the configured settlement strategy is enabled to proceed with execution.
+    /// @param self The {SettlementConfiguration} storage pointer.
+    function checkIsSettlementEnabled(Data storage self) internal view {
+        if (!self.isEnabled) {
+            revert Errors.SettlementDisabled();
+        }
     }
 
     /// @notice Returns the UD60x18 price from a verified report based on its type and whether the top-level order is
@@ -139,6 +125,28 @@ library SettlementConfiguration {
         if (streamId != premiumReport.feedId) {
             revert Errors.InvalidDataStreamReport(streamId, premiumReport.feedId);
         }
+    }
+
+    /// @notice Updates the settlement configuration of a given market.
+    /// @param marketId The market id.
+    /// @param settlementConfigurationId The settlement configuration id.
+    /// @param settlementConfiguration The new settlement configuration.
+    function update(
+        uint128 marketId,
+        uint128 settlementConfigurationId,
+        Data memory settlementConfiguration
+    )
+        internal
+    {
+        Data storage self = load(marketId, settlementConfigurationId);
+
+        checkIsValidSettlementStrategy(settlementConfigurationId, settlementConfiguration.strategy);
+
+        self.strategy = settlementConfiguration.strategy;
+        self.isEnabled = settlementConfiguration.isEnabled;
+        self.fee = settlementConfiguration.fee;
+        self.keeper = settlementConfiguration.keeper;
+        self.data = settlementConfiguration.data;
     }
 
     /// @notice Returns the offchain price for a given order based on the configured strategy and its direction (bid

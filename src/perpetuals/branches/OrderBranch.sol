@@ -28,6 +28,7 @@ contract OrderBranch {
     using GlobalConfiguration for GlobalConfiguration.Data;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
+    using SettlementConfiguration for SettlementConfiguration.Data;
 
     /// @notice Emitted when a market order is created.
     /// @param sender The account that created the market order.
@@ -182,6 +183,8 @@ contract OrderBranch {
             revert Errors.ZeroInput("sizeDelta");
         }
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(params.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
 
         bool isIncreasingPosition =
             Position.isIncreasingPosition(params.tradingAccountId, params.marketId, params.sizeDelta);
@@ -189,6 +192,7 @@ contract OrderBranch {
         // Check if market is enabled only if the position is being opened or increased
         if (isIncreasingPosition) {
             globalConfiguration.checkMarketIsEnabled(params.marketId);
+            settlementConfiguration.checkIsSettlementEnabled();
         }
 
         Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);

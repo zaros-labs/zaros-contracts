@@ -43,7 +43,7 @@ contract TradingAccountBranch {
     /// @param sender The `msg.sender`.
     /// @param tradingAccountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @param amount The token amount of margin collateral deposited (token::decimals()).
+    /// @param amount The token amount of margin collateral deposited, notated in the `ERC20::decimals` value.
     event LogDepositMargin(
         address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
     );
