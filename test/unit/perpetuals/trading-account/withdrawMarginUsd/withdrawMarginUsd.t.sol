@@ -28,7 +28,11 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
     {
         // Test with wstEth that has 18 decimals
 
-        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
 
         // to prevent overflow when convert to ud60x18
         marginCollateralPriceUsd = bound({ x: amountToWithdrawUsd, min: 1, max: 100_000_000 });
@@ -36,7 +40,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         vm.assume(amountToDeposit >= amountToWithdrawUsd / marginCollateralPriceUsd);
 
         UD60x18 marginCollateralPriceUsdX18 = ud60x18Convert(marginCollateralPriceUsd);
-        UD60x18 amountToWithdrawUsdX18 = ud60x18(amountToWithdrawUsd);
+        UD60x18 amountToWithdrawUsdX18 = convertTokenAmountToUd60x18(address(wstEth), amountToWithdrawUsd);
 
         assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), 0, "initial balance should be zero");
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
@@ -69,9 +73,13 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
 
         // Test with usdc that has 6 decimals
 
-        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
-        amountToWithdrawUsdX18 = ud60x18(amountToWithdrawUsd);
+        amountToWithdrawUsdX18 = convertTokenAmountToUd60x18(address(usdc), amountToWithdrawUsd);
 
         vm.assume(amountToDeposit >= amountToWithdrawUsd / marginCollateralPriceUsd);
 
@@ -90,13 +98,13 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         expectedBalance = amountToWithdrawUsdX18.div(marginCollateralPriceUsdX18);
         assertEq(
             MockERC20((usdc)).balanceOf(users.naruto),
-            expectedBalance.intoUint256(),
+            convertUd60x18ToTokenAmount(address(usdc), expectedBalance),
             "balanceOf is not correct after withdrawMarginUsd"
         );
 
         // it should return the required margin collateral
         assertEq(
-            amountToWithdrawUsd,
+            amountToWithdrawUsdX18.intoUint256(),
             withdrawnMarginUsdX18.intoUint256(),
             "withdrawnMarginUsdX18 should be equal to amountToWithdraw"
         );
@@ -114,7 +122,11 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
     {
         // Test with wstEth that has 18 decimals
 
-        amountToDeposit = bound({ x: amountToDeposit, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
 
         // to prevent overflow when convert to ud60x18
         marginCollateralPriceUsd = bound({ x: amountToWithdrawUsd, min: 1, max: 100_000_000 });
@@ -122,7 +134,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         vm.assume(amountToWithdrawUsd / marginCollateralPriceUsd > amountToDeposit);
 
         UD60x18 marginCollateralPriceUsdX18 = ud60x18Convert(marginCollateralPriceUsd);
-        UD60x18 amountToWithdrawUsdX18 = ud60x18(amountToWithdrawUsd);
+        UD60x18 amountToWithdrawUsdX18 = convertTokenAmountToUd60x18(address(wstEth), amountToWithdrawUsd);
 
         assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), 0, "initial balance should be zero");
         deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
@@ -155,15 +167,21 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
 
         // Test with usdc that has 6 decimals
 
-        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
-        // to prevent overflow when convert to ud60x18
-        marginCollateralPriceUsd = bound({ x: amountToWithdrawUsd, min: 1, max: 100_000_000 });
-
+        amountToWithdrawUsd = bound({
+            x: amountToWithdrawUsd,
+            min: (marginCollateralPriceUsd * amountToDeposit) + 1,
+            max: (marginCollateralPriceUsd * amountToDeposit) * 10e18
+        });
         vm.assume(amountToWithdrawUsd / marginCollateralPriceUsd > amountToDeposit);
 
         marginCollateralPriceUsdX18 = ud60x18Convert(marginCollateralPriceUsd);
-        amountToWithdrawUsdX18 = ud60x18(amountToWithdrawUsd);
+        amountToWithdrawUsdX18 = convertTokenAmountToUd60x18(address(usdc), amountToWithdrawUsd);
 
         assertEq(MockERC20(usdc).balanceOf(users.naruto), 0, "initial balance should be zero");
         deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
@@ -184,7 +202,8 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         );
 
         // it should return the margin collateral balance usd
-        expectedWithdrawMarginUsdX18 = ud60x18(amountToDeposit).mul(marginCollateralPriceUsdX18);
+        expectedWithdrawMarginUsdX18 =
+            convertTokenAmountToUd60x18(address(usdc), amountToDeposit).mul(marginCollateralPriceUsdX18);
         assertEq(
             expectedWithdrawMarginUsdX18.intoUint256(),
             withdrawnMarginUsdX18.intoUint256(),

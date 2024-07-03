@@ -26,7 +26,11 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
     function testFuzz_GivenTheSenderIsTheAccountNftContract(uint256 marginValueUsd) external {
         changePrank({ msgSender: users.naruto });
 
-        marginValueUsd = bound({ x: marginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(wstEth), to: users.naruto, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(wstEth));

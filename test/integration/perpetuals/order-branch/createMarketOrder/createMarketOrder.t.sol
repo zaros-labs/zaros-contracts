@@ -135,7 +135,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -181,15 +185,15 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         givenThePerpMarketIsDisabled
     {
         // give naruto some tokens
-        uint256 USER_STARTING_BALANCE = 100_000e18;
-        int128 USER_POS_SIZE_DELTA = 10e18;
-        deal({ token: address(usdc), to: users.naruto, give: USER_STARTING_BALANCE });
+        uint256 marginValueUsdc = 100_000e6;
+        int128 userPositionSizeDelta = 10e18;
+        deal({ token: address(usdc), to: users.naruto, give: marginValueUsdc });
         // naruto creates a trading account and deposits their tokens as collateral
         changePrank({ msgSender: users.naruto });
-        uint128 tradingAccountId = createAccountAndDeposit(USER_STARTING_BALANCE, address(usdc));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsdc, address(usdc));
         // naruto opens first position in BTC market
         openManualPosition(
-            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, USER_POS_SIZE_DELTA
+            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, userPositionSizeDelta
         );
         // protocol operator disables settlement for the BTC market
         changePrank({ msgSender: users.owner });
@@ -211,7 +215,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         // naruto closes their opened leverage BTC position
         openManualPosition(
-            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, -USER_POS_SIZE_DELTA
+            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, -userPositionSizeDelta
         );
     }
 
@@ -232,7 +236,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
         SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.minTradeSize).intoSD59x18().sub(sd59x18(1));
@@ -269,7 +277,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
         SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.maxOi).intoSD59x18().add(sd59x18(1));
@@ -333,7 +345,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             min: fuzzMarketConfig.imr + secondFuzzMarketConfig.imr,
             max: MAX_MARGIN_REQUIREMENTS * 2
         });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
@@ -511,7 +527,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -573,7 +593,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -622,7 +646,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({ x: marginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(wstEth), to: users.naruto, give: marginValueUsd });
 

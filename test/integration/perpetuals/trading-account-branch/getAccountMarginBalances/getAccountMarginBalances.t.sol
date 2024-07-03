@@ -16,12 +16,17 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
     }
 
     function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit) external {
-        amountToDeposit = bound({ x: amountToDeposit, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
         uint256 expectedMarginBalance = getPrice(
             MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
-        ).mul(ud60x18(amountToDeposit)).intoUint256();
+        ).mul(convertTokenAmountToUd60x18(address(usdc), amountToDeposit)).intoUint256();
+
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;
         uint256 expectedMaintenanceMargin = 0;
@@ -50,20 +55,28 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
     )
         external
     {
-        amountToDepositUsdc = bound({ x: amountToDepositUsdc, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
-        amountToDepositWstEth =
-            bound({ x: amountToDepositWstEth, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        amountToDepositUsdc = bound({
+            x: amountToDepositUsdc,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+        amountToDepositWstEth = bound({
+            x: amountToDepositWstEth,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
 
         deal({ token: address(usdc), to: users.naruto, give: amountToDepositUsdc });
         deal({ token: address(wstEth), to: users.naruto, give: amountToDepositWstEth });
 
-        uint256 expectedMarginBalance = getPrice(
-            MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
-        ).mul(ud60x18(amountToDepositUsdc)).add(
-            getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)).mul(
-                ud60x18(amountToDepositWstEth)
-            ).mul(ud60x18(WSTETH_LOAN_TO_VALUE))
-        ).intoUint256();
+        UD60x18 usdcEquityUsd = getPrice(MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)).mul(
+            convertTokenAmountToUd60x18(address(usdc), amountToDepositUsdc)
+        );
+
+        UD60x18 wstEthEquityUsd = getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed))
+            .mul(convertTokenAmountToUd60x18(address(wstEth), amountToDepositWstEth)).mul(ud60x18(WSTETH_LOAN_TO_VALUE));
+
+        uint256 expectedMarginBalance = usdcEquityUsd.add(wstEthEquityUsd).intoUint256();
 
         uint256 expectedAvailableBalance = expectedMarginBalance;
         uint256 expectedInitialMargin = 0;

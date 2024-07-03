@@ -54,7 +54,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
         perpsEngine.exposed_configure(
             collateral,
-            WSTETH_DEPOSIT_CAP,
+            WSTETH_DEPOSIT_CAP_X18.intoUint128(),
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
             address(mockPriceFeed),
@@ -149,7 +149,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
         perpsEngine.exposed_configure(
             collateral,
-            WSTETH_DEPOSIT_CAP,
+            WSTETH_DEPOSIT_CAP_X18.intoUint128(),
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
             address(mockPriceFeedWithInvalidReturn),
@@ -178,7 +178,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
         perpsEngine.exposed_configure(
             collateral,
-            WSTETH_DEPOSIT_CAP,
+            WSTETH_DEPOSIT_CAP_X18.intoUint128(),
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
             address(mockPriceFeedOldUpdatedAt),

@@ -162,12 +162,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         wEth = MockERC20(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         wBtc = MockERC20(marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
 
+        vm.label({ account: address(usdc), newLabel: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].symbol });
+        vm.label({ account: address(usdz), newLabel: marginCollaterals[USDZ_MARGIN_COLLATERAL_ID].symbol });
+        vm.label({ account: address(weEth), newLabel: marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].symbol });
+        vm.label({ account: address(wstEth), newLabel: marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].symbol });
+        vm.label({ account: address(wEth), newLabel: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].symbol });
+        vm.label({ account: address(wBtc), newLabel: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].symbol });
+
         perpsEngine.setUsdToken(address(usdz));
 
         configureContracts();
 
         vm.label({ account: address(tradingAccountToken), newLabel: "Trading Account NFT" });
-        vm.label({ account: address(usdz), newLabel: "Zaros USD" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
         approveContracts();

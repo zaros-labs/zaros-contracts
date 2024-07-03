@@ -144,6 +144,7 @@ library TradingAccount {
     {
         for (uint256 i; i < self.marginCollateralBalanceX18.length(); i++) {
             (address collateralType, uint256 balanceX18) = self.marginCollateralBalanceX18.at(i);
+
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
             UD60x18 balanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balanceX18));
@@ -369,12 +370,19 @@ library TradingAccount {
         internal
         returns (UD60x18 withdrawnMarginUsdX18, bool isMissingMargin)
     {
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
+
         UD60x18 marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
         UD60x18 requiredMarginInCollateralX18 = amountUsdX18.div(marginCollateralPriceUsdX18);
+        uint256 amountToTransfer;
+
         if (marginCollateralBalanceX18.gte(requiredMarginInCollateralX18)) {
             withdraw(self, collateralType, requiredMarginInCollateralX18);
+            amountToTransfer =
+                marginCollateralConfiguration.convertUd60x18ToTokenAmount(requiredMarginInCollateralX18);
 
-            IERC20(collateralType).safeTransfer(recipient, requiredMarginInCollateralX18.intoUint256());
+            IERC20(collateralType).safeTransfer(recipient, amountToTransfer);
 
             withdrawnMarginUsdX18 = amountUsdX18;
             isMissingMargin = false;
@@ -383,8 +391,9 @@ library TradingAccount {
         } else {
             UD60x18 marginToWithdrawUsdX18 = marginCollateralPriceUsdX18.mul(marginCollateralBalanceX18);
             withdraw(self, collateralType, marginCollateralBalanceX18);
+            amountToTransfer = marginCollateralConfiguration.convertUd60x18ToTokenAmount(marginCollateralBalanceX18);
 
-            IERC20(collateralType).safeTransfer(recipient, marginCollateralBalanceX18.intoUint256());
+            IERC20(collateralType).safeTransfer(recipient, amountToTransfer);
 
             withdrawnMarginUsdX18 = marginToWithdrawUsdX18;
             isMissingMargin = true;

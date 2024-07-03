@@ -43,7 +43,7 @@ contract TradingAccountBranch {
     /// @param sender The `msg.sender`.
     /// @param tradingAccountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
+    /// @param amount The token amount of margin collateral deposited (token::decimals()).
     event LogDepositMargin(
         address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
     );
@@ -52,7 +52,7 @@ contract TradingAccountBranch {
     /// @param sender The `msg.sender`.
     /// @param tradingAccountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @param amount The token amount of margin collateral withdrawn (token.decimals()).
+    /// @param amount The token amount of margin collateral withdrawn (token::decimals()).
     event LogWithdrawMargin(
         address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
     );
@@ -66,7 +66,7 @@ contract TradingAccountBranch {
     /// @notice Returns the account's margin amount of the given collateral type.
     /// @param tradingAccountId The trading account id.
     /// @param collateralType The margin collateral address.
-    /// @return marginCollateralBalanceX18 The margin amount of the given collateral type.
+    /// @return marginCollateralBalanceX18 The margin collateral amount of the given collateral type.
     function getAccountMarginCollateralBalance(
         uint128 tradingAccountId,
         address collateralType
@@ -262,7 +262,7 @@ contract TradingAccountBranch {
             MarginCollateralConfiguration.load(collateralType);
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
-        UD60x18 amountX18 = ud60x18(amount);
+        UD60x18 amountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
 
         UD60x18 depositCapX18 = ud60x18(marginCollateralConfiguration.depositCap);
         UD60x18 totalCollateralDepositedX18 = ud60x18(marginCollateralConfiguration.totalDeposited);
@@ -282,15 +282,17 @@ contract TradingAccountBranch {
     /// @param collateralType The margin collateral address.
     /// @param amount The UD60x18 amount of margin collateral to withdraw.
     function withdrawMargin(uint128 tradingAccountId, address collateralType, uint256 amount) external {
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
 
-        UD60x18 ud60x18Amount = ud60x18(amount);
+        UD60x18 amountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
 
-        _requireAmountNotZero(ud60x18Amount);
-        _requireEnoughMarginCollateral(tradingAccount, collateralType, ud60x18Amount);
+        _requireAmountNotZero(amountX18);
+        _requireEnoughMarginCollateral(tradingAccount, collateralType, amountX18);
 
-        tradingAccount.withdraw(collateralType, ud60x18Amount);
+        tradingAccount.withdraw(collateralType, amountX18);
         (UD60x18 requiredInitialMarginUsdX18,, SD59x18 accountTotalUnrealizedPnlUsdX18) =
             tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
         SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);

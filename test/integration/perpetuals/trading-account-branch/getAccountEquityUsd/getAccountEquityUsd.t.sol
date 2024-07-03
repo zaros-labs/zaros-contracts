@@ -36,36 +36,37 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
     }
 
     function test_GivenTheresNoOpenPosition(
-        uint256 initialMarginRate,
         uint256 usdcMarginValueUsd,
-        uint256 wstEthMarginValueUsd,
-        uint256 marketId
+        uint256 wstEthMarginValueUsd
     )
         external
         givenTheTradingAccountExists
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-
-        usdcMarginValueUsd = bound({ x: usdcMarginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        usdcMarginValueUsd = bound({
+            x: usdcMarginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(usdc), to: users.naruto, give: usdcMarginValueUsd });
 
-        wstEthMarginValueUsd =
-            bound({ x: wstEthMarginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        wstEthMarginValueUsd = bound({
+            x: wstEthMarginValueUsd,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(wstEth), to: users.naruto, give: wstEthMarginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(usdcMarginValueUsd, address(usdc));
         perpsEngine.depositMargin(tradingAccountId, address(wstEth), wstEthMarginValueUsd);
 
-        UD60x18 marginCollateralValue = getPrice(
-            MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
-        ).mul(ud60x18(usdcMarginValueUsd)).add(
-            getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)).mul(
-                ud60x18(wstEthMarginValueUsd)
-            )
+        UD60x18 usdcEquityUsd = getPrice(MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)).mul(
+            convertTokenAmountToUd60x18(address(usdc), usdcMarginValueUsd)
         );
+
+        UD60x18 wstEthEquityUsd = getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed))
+            .mul(convertTokenAmountToUd60x18(address(wstEth), wstEthMarginValueUsd));
+
+        UD60x18 marginCollateralValue = usdcEquityUsd.add(wstEthEquityUsd);
 
         // it should return the account equity usd
         SD59x18 equityUsd = perpsEngine.getAccountEquityUsd(tradingAccountId);
@@ -89,11 +90,18 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         initialMarginRate =
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
 
-        wstEthmarginValueUsd =
-            bound({ x: wstEthmarginValueUsd, min: WSTETH_MIN_DEPOSIT_MARGIN, max: WSTETH_DEPOSIT_CAP });
+        wstEthmarginValueUsd = bound({
+            x: wstEthmarginValueUsd,
+            min: WSTETH_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(wstEth), to: users.naruto, give: wstEthmarginValueUsd });
 
-        weEthmarginValueUsd = bound({ x: weEthmarginValueUsd, min: 1, max: WEETH_DEPOSIT_CAP });
+        weEthmarginValueUsd = bound({
+            x: weEthmarginValueUsd,
+            min: 1,
+            max: convertUd60x18ToTokenAmount(address(weEth), WEETH_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(weEth), to: users.naruto, give: weEthmarginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(wstEthmarginValueUsd, address(wstEth));

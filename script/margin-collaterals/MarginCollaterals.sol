@@ -14,10 +14,11 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
-import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     struct MarginCollateral {
+        string name;
+        string symbol;
         uint256 marginCollateralId;
         uint128 depositCap;
         uint120 loanToValue;
@@ -34,8 +35,10 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
     function setupMarginCollaterals() internal {
         MarginCollateral memory usdcConfig = MarginCollateral({
+            name: USDC_NAME,
+            symbol: USDC_SYMBOL,
             marginCollateralId: USDC_MARGIN_COLLATERAL_ID,
-            depositCap: USDC_DEPOSIT_CAP,
+            depositCap: USDC_DEPOSIT_CAP_X18.intoUint128(),
             loanToValue: USDC_LOAN_TO_VALUE,
             minDepositMargin: USDC_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_USDC_USD_PRICE,
@@ -48,8 +51,10 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         marginCollaterals[USDC_MARGIN_COLLATERAL_ID] = usdcConfig;
 
         MarginCollateral memory usdzConfig = MarginCollateral({
+            name: USDZ_NAME,
+            symbol: USDZ_SYMBOL,
             marginCollateralId: USDZ_MARGIN_COLLATERAL_ID,
-            depositCap: USDZ_DEPOSIT_CAP,
+            depositCap: USDZ_DEPOSIT_CAP_X18.intoUint128(),
             loanToValue: USDZ_LOAN_TO_VALUE,
             minDepositMargin: USDZ_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_USDZ_USD_PRICE,
@@ -62,8 +67,10 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         marginCollaterals[USDZ_MARGIN_COLLATERAL_ID] = usdzConfig;
 
         MarginCollateral memory wEth = MarginCollateral({
+            name: WETH_NAME,
+            symbol: WETH_SYMBOL,
             marginCollateralId: WETH_MARGIN_COLLATERAL_ID,
-            depositCap: WETH_DEPOSIT_CAP,
+            depositCap: WETH_DEPOSIT_CAP_X18.intoUint128(),
             loanToValue: WETH_LOAN_TO_VALUE,
             minDepositMargin: WETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WETH_USD_PRICE,
@@ -76,8 +83,10 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         marginCollaterals[WETH_MARGIN_COLLATERAL_ID] = wEth;
 
         MarginCollateral memory weEth = MarginCollateral({
+            name: WEETH_NAME,
+            symbol: WEETH_SYMBOL,
             marginCollateralId: WEETH_MARGIN_COLLATERAL_ID,
-            depositCap: WEETH_DEPOSIT_CAP,
+            depositCap: WEETH_DEPOSIT_CAP_X18.intoUint128(),
             loanToValue: WEETH_LOAN_TO_VALUE,
             minDepositMargin: WEETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WEETH_USD_PRICE,
@@ -90,8 +99,10 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         marginCollaterals[WEETH_MARGIN_COLLATERAL_ID] = weEth;
 
         MarginCollateral memory wBtc = MarginCollateral({
+            name: WBTC_NAME,
+            symbol: WBTC_SYMBOL,
             marginCollateralId: WBTC_MARGIN_COLLATERAL_ID,
-            depositCap: WBTC_DEPOSIT_CAP,
+            depositCap: WBTC_DEPOSIT_CAP_X18.intoUint128(),
             loanToValue: WBTC_LOAN_TO_VALUE,
             minDepositMargin: WBTC_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WBTC_USD_PRICE,
@@ -104,8 +115,10 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         marginCollaterals[WBTC_MARGIN_COLLATERAL_ID] = wBtc;
 
         MarginCollateral memory wstEth = MarginCollateral({
+            name: WSTETH_NAME,
+            symbol: WSTETH_SYMBOL,
             marginCollateralId: WSTETH_MARGIN_COLLATERAL_ID,
-            depositCap: WSTETH_DEPOSIT_CAP,
+            depositCap: WSTETH_DEPOSIT_CAP_X18.intoUint128(),
             loanToValue: WSTETH_LOAN_TO_VALUE,
             minDepositMargin: WSTETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WSTETH_USD_PRICE,
@@ -166,8 +179,8 @@ contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                 } else {
                     mockERC20 = address(
                         new MockERC20({
-                            name: "Collateral",
-                            symbol: "COL",
+                            name: filteredMarginCollateralsConfig[i].name,
+                            symbol: filteredMarginCollateralsConfig[i].symbol,
                             decimals_: filteredMarginCollateralsConfig[i].tokenDecimals,
                             deployerBalance: filteredMarginCollateralsConfig[i].minDepositMargin
                         })
