@@ -1267,6 +1267,10 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         int128 secondOrderSizeDelta;
         bytes secondMockSignedReport;
         MarketOrder.Data marketOrder;
+        uint256 expectedOpenInterest;
+        int256 expectedSkew;
+        UD60x18 openInterestX18;
+        SD59x18 skewX18;
     }
 
     function test_RevertGiven_TheMarginBalanceUsdIsUnderTheMaintenanceMarginUsdRequired()
@@ -1405,6 +1409,14 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
+
+        // it should update the open interest and skew
+        ctx.expectedOpenInterest = uint128(ctx.firstOrderSizeDelta + ctx.secondOrderSizeDelta);
+        ctx.expectedSkew = ctx.firstOrderSizeDelta + ctx.secondOrderSizeDelta;
+        (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
+        ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "second fill: open interest");
+        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "second fill: skew");
 
         // it should delete the market order
         ctx.marketOrder = perpsEngine.getActiveMarketOrder(ctx.tradingAccountId);
