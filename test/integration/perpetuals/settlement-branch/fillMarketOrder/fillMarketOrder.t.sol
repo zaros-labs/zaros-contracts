@@ -1252,7 +1252,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         _;
     }
 
-    modifier givenTheMarginBalancerUsdIsUnderTheInitialMarginUsdRequired() {
+    modifier givenTheMarginBalanceUsdIsUnderTheInitialMarginUsdRequired() {
         _;
     }
 
@@ -1281,7 +1281,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         givenTheMarketsOILimitWontBeExceeded
         givenTheUserHasAnOpenPosition
         givenTheUserWillReduceThePosition
-        givenTheMarginBalancerUsdIsUnderTheInitialMarginUsdRequired
+        givenTheMarginBalanceUsdIsUnderTheInitialMarginUsdRequired
     {
         Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context memory ctx;
 
@@ -1348,7 +1348,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         givenTheMarketsOILimitWontBeExceeded
         givenTheUserHasAnOpenPosition
         givenTheUserWillReduceThePosition
-        givenTheMarginBalancerUsdIsUnderTheInitialMarginUsdRequired
+        givenTheMarginBalanceUsdIsUnderTheInitialMarginUsdRequired
     {
         Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context memory ctx;
 

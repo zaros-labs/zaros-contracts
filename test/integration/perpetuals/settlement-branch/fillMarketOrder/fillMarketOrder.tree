@@ -42,7 +42,7 @@ FillMarketOrder_Integration_Test
                                 │   └── it should delete the market order
                                 └── given the user has an open position
                                     └── given the user will reduce the position
-                                        └── given the margin balancer usd is under the initial margin usd required
+                                        └── given the margin balance usd is under the initial margin usd required
                                             ├── given the margin balance usd is under the maintenance margin usd required
                                             │   └── it should revert
                                             └── given the margin balance usd is over the maintenance margin usd required
