@@ -1435,6 +1435,18 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "second fill: open interest");
         assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "second fill: skew");
 
+         // it should keep the account's active markets
+        assertEq(
+            1,
+            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
+            "second fill: active market id"
+        );
+        assertEq(
+            1,
+            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+            "second fill: accounts ids with active positions"
+        );
+
         // it should update the account's position
         ctx.expectedPosition = Position.Data({
             size: ctx.expectedSkew,
