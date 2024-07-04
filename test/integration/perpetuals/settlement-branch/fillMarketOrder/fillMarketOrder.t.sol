@@ -1259,23 +1259,23 @@ contract FillMarketOrder_Integration_Test is Base_Test {
     struct Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context {
         uint256 marketId;
         uint256 marginValueUsd;
-        MarketConfig fuzzMarketConfig;
-        address marketOrderKeeper;
-        uint128 tradingAccountId;
-        int128 firstOrderSizeDelta;
-        bytes firstMockSignedReport;
-        int128 secondOrderSizeDelta;
-        bytes secondMockSignedReport;
-        MarketOrder.Data marketOrder;
+        uint256 expectedLastFundingTime;
         uint256 expectedOpenInterest;
         int256 expectedSkew;
+        uint128 tradingAccountId;
+        int128 firstOrderSizeDelta;
+        int128 secondOrderSizeDelta;
+        bytes firstMockSignedReport;
+        bytes secondMockSignedReport;
         UD60x18 openInterestX18;
+        UD60x18 secondFillPriceX18;
         SD59x18 skewX18;
+        MarketConfig fuzzMarketConfig;
+        PerpMarket.Data perpMarketData;
+        MarketOrder.Data marketOrder;
         Position.Data expectedPosition;
         Position.Data position;
-        UD60x18 secondFillPriceX18;
-        uint256 expectedLastFundingTime;
-        PerpMarket.Data perpMarketData;
+        address marketOrderKeeper;
     }
 
     function test_RevertGiven_TheMarginBalanceUsdIsUnderTheMaintenanceMarginUsdRequired()
@@ -1368,12 +1368,13 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         // Config first fill order
 
-        ctx.firstOrderSizeDelta = 10e18;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(ctx.marketId);
+
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
+
         ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdz));
-        ctx.firstMockSignedReport =
-            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        ctx.firstOrderSizeDelta = 10e18;
 
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -1382,6 +1383,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
                 sizeDelta: ctx.firstOrderSizeDelta
             })
         );
+
+        ctx.firstMockSignedReport =
+            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
 
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
