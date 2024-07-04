@@ -1257,6 +1257,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
     }
 
     struct Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context {
+        uint256 marketId;
+        uint256 marginValueUsd;
         MarketConfig fuzzMarketConfig;
         address marketOrderKeeper;
         uint128 tradingAccountId;
@@ -1283,17 +1285,17 @@ contract FillMarketOrder_Integration_Test is Base_Test {
     {
         Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context memory ctx;
 
-        uint256 marketId = BTC_USD_MARKET_ID;
-        uint256 marginValueUsd = 100_000e18;
+        ctx.marketId = BTC_USD_MARKET_ID;
+        ctx.marginValueUsd = 100_000e18;
 
-        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
 
         // Config first fill order
 
         ctx.firstOrderSizeDelta = 10e18;
-        ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(ctx.marketId);
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
-        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdz));
         ctx.firstMockSignedReport =
             getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
 
@@ -1350,17 +1352,17 @@ contract FillMarketOrder_Integration_Test is Base_Test {
     {
         Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context memory ctx;
 
-        uint256 marketId = BTC_USD_MARKET_ID;
-        uint256 marginValueUsd = 100_000e18;
+        ctx.marketId = BTC_USD_MARKET_ID;
+        ctx.marginValueUsd = 100_000e18;
 
-        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
 
         // Config first fill order
 
         ctx.firstOrderSizeDelta = 10e18;
-        ctx.fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(ctx.marketId);
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
-        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdz));
         ctx.firstMockSignedReport =
             getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
 
