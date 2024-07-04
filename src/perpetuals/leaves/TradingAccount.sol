@@ -484,6 +484,9 @@ library TradingAccount {
                 );
                 ctx.pnlDeductedUsdX18 = ctx.pnlDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
             }
+            if (!ctx.isMissingMargin) {
+                break;
+            }
 
             marginDeductedUsdX18 =
                 ctx.settlementFeeDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18).add(ctx.pnlDeductedUsdX18);
