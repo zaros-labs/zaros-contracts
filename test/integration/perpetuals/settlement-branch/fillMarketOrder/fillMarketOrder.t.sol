@@ -1274,6 +1274,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         Position.Data expectedPosition;
         Position.Data position;
         UD60x18 secondFillPriceX18;
+        uint256 expectedLastFundingTime;
+        PerpMarket.Data perpMarketData;
     }
 
     function test_RevertGiven_TheMarginBalanceUsdIsUnderTheMaintenanceMarginUsdRequired()
@@ -1417,6 +1419,14 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
 
+        // it should update the funding values
+        ctx.expectedLastFundingTime = block.timestamp;
+        ctx.perpMarketData =
+            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+        assertEq(0, ctx.perpMarketData.lastFundingRate, "second fill: last funding rate");
+        assertEq(0, ctx.perpMarketData.lastFundingFeePerUnit, "second fill: last funding fee per unit");
+        assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "second fill: last funding time");
+
         // it should update the open interest and skew
         ctx.expectedOpenInterest = uint128(ctx.firstOrderSizeDelta + ctx.secondOrderSizeDelta);
         ctx.expectedSkew = ctx.firstOrderSizeDelta + ctx.secondOrderSizeDelta;
@@ -1434,14 +1444,14 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
             ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
         );
-        assertEq(ctx.expectedPosition.size, ctx.position.size, "first fill: position size");
+        assertEq(ctx.expectedPosition.size, ctx.position.size, "second fill: position size");
         assertEq(
-            ctx.expectedPosition.lastInteractionPrice, ctx.position.lastInteractionPrice, "first fill: position price"
+            ctx.expectedPosition.lastInteractionPrice, ctx.position.lastInteractionPrice, "second fill: position price"
         );
         assertEq(
             ctx.expectedPosition.lastInteractionFundingFeePerUnit,
             ctx.position.lastInteractionFundingFeePerUnit,
-            "first fill: position funding fee"
+            "second fill: position funding fee"
         );
 
         // it should delete the market order
