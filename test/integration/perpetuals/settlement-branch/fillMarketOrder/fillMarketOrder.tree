@@ -47,4 +47,5 @@ FillMarketOrder_Integration_Test
                                             │   └── it should revert
                                             └── given the margin balance usd is over the maintenance margin usd required
                                                 ├── it should update the open interest and skew
+                                                ├── it should update the account's position
                                                 └── it should delete the market order

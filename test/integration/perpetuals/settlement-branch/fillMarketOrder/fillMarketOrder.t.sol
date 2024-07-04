@@ -1271,6 +1271,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         int256 expectedSkew;
         UD60x18 openInterestX18;
         SD59x18 skewX18;
+        Position.Data expectedPosition;
+        Position.Data position;
+        UD60x18 secondFillPriceX18;
     }
 
     function test_RevertGiven_TheMarginBalanceUsdIsUnderTheMaintenanceMarginUsdRequired()
@@ -1395,6 +1398,10 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.secondOrderSizeDelta = -(ctx.firstOrderSizeDelta - ctx.firstOrderSizeDelta / 2);
         ctx.fuzzMarketConfig.mockUsdPrice = updatedPrice;
 
+        ctx.secondFillPriceX18 = perpsEngine.getMarkPrice(
+            ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice, ctx.secondOrderSizeDelta
+        );
+
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
                 tradingAccountId: ctx.tradingAccountId,
@@ -1417,6 +1424,25 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
         assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "second fill: open interest");
         assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "second fill: skew");
+
+        // it should update the account's position
+        ctx.expectedPosition = Position.Data({
+            size: ctx.expectedSkew,
+            lastInteractionPrice: ctx.secondFillPriceX18.intoUint128(),
+            lastInteractionFundingFeePerUnit: 0
+        });
+        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
+        );
+        assertEq(ctx.expectedPosition.size, ctx.position.size, "first fill: position size");
+        assertEq(
+            ctx.expectedPosition.lastInteractionPrice, ctx.position.lastInteractionPrice, "first fill: position price"
+        );
+        assertEq(
+            ctx.expectedPosition.lastInteractionFundingFeePerUnit,
+            ctx.position.lastInteractionFundingFeePerUnit,
+            "first fill: position funding fee"
+        );
 
         // it should delete the market order
         ctx.marketOrder = perpsEngine.getActiveMarketOrder(ctx.tradingAccountId);
