@@ -1389,6 +1389,13 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         // Config second fill order
 
+        // asserts initial upnl is zero
+        assertTrue(
+            perpsEngine.getPositionState(
+                ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice
+            ).unrealizedPnlUsdX18.isZero()
+        );
+
         changePrank({ msgSender: users.naruto });
 
         // if changed this to "/10" instead of "/11" naruto would be liquidatable,
