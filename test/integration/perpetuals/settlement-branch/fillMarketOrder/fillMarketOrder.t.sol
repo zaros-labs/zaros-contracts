@@ -1268,6 +1268,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         bytes firstMockSignedReport;
         bytes secondMockSignedReport;
         UD60x18 openInterestX18;
+        UD60x18 firstOrderFeeUsdX18;
+        UD60x18 secondOrderFeeUsdX18;
         UD60x18 secondFillPriceX18;
         SD59x18 skewX18;
         MarketConfig fuzzMarketConfig;
@@ -1376,6 +1378,13 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         ctx.firstOrderSizeDelta = 10e18;
 
+        (,,, ctx.firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            ctx.tradingAccountId,
+            ctx.fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            ctx.firstOrderSizeDelta
+        );
+
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
                 tradingAccountId: ctx.tradingAccountId,
@@ -1388,6 +1397,10 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
 
         changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        // it should transfer the pnl and fees
+        expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
 
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
 
@@ -1415,6 +1428,13 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice, ctx.secondOrderSizeDelta
         );
 
+        (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            ctx.tradingAccountId,
+            ctx.fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            ctx.secondOrderSizeDelta
+        );
+
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
                 tradingAccountId: ctx.tradingAccountId,
@@ -1427,6 +1447,10 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
 
         changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        // it should transfer the pnl and fees
+        expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
 
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
 
