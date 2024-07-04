@@ -492,10 +492,10 @@ library TradingAccount {
             if (!ctx.isMissingMargin) {
                 break;
             }
-
-            marginDeductedUsdX18 =
-                ctx.settlementFeeDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18).add(ctx.pnlDeductedUsdX18);
         }
+
+        marginDeductedUsdX18 =
+            ctx.settlementFeeDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18).add(ctx.pnlDeductedUsdX18);
     }
 
     /// @notice Updates the account's active markets ids based on the position's state transition.
