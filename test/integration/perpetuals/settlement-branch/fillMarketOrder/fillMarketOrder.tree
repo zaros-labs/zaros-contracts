@@ -51,4 +51,5 @@ FillMarketOrder_Integration_Test
                                                 ├── it should keep the account's active markets
                                                 ├── it should update the account's position
                                                 ├── it should transfer the pnl and fees
+                                                ├── it should emit a {LogFillOrder} event
                                                 └── it should delete the market order

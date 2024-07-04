@@ -1262,6 +1262,10 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         uint256 expectedLastFundingTime;
         uint256 expectedOpenInterest;
         int256 expectedSkew;
+        int256 firstOrderExpectedPnl;
+        int256 secondOrderExpectedPnl;
+        int256 expectedLastFundingRate;
+        int256 expectedLastFundingFeePerUnit;
         uint128 tradingAccountId;
         int128 firstOrderSizeDelta;
         int128 secondOrderSizeDelta;
@@ -1270,8 +1274,10 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         UD60x18 openInterestX18;
         UD60x18 firstOrderFeeUsdX18;
         UD60x18 secondOrderFeeUsdX18;
+        UD60x18 firstFillPriceX18;
         UD60x18 secondFillPriceX18;
         SD59x18 skewX18;
+        SD59x18 secondOrderExpectedPriceShiftPnlX18;
         MarketConfig fuzzMarketConfig;
         PerpMarket.Data perpMarketData;
         MarketOrder.Data marketOrder;
@@ -1385,6 +1391,10 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             ctx.firstOrderSizeDelta
         );
 
+        ctx.firstFillPriceX18 = perpsEngine.getMarkPrice(
+            ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice, ctx.firstOrderSizeDelta
+        );
+
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
                 tradingAccountId: ctx.tradingAccountId,
@@ -1392,6 +1402,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
                 sizeDelta: ctx.firstOrderSizeDelta
             })
         );
+
+        ctx.firstOrderExpectedPnl =
+            unary(ctx.firstOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE)).intoSD59x18()).intoInt256();
 
         ctx.firstMockSignedReport =
             getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
@@ -1401,6 +1414,20 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should transfer the pnl and fees
         expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
+
+        // it should emit a {LogFillOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit SettlementBranch.LogFillOrder({
+            sender: ctx.marketOrderKeeper,
+            tradingAccountId: ctx.tradingAccountId,
+            marketId: ctx.fuzzMarketConfig.marketId,
+            sizeDelta: ctx.firstOrderSizeDelta,
+            fillPrice: ctx.firstFillPriceX18.intoUint256(),
+            orderFeeUsd: ctx.firstOrderFeeUsdX18.intoUint256(),
+            settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
+            pnl: ctx.firstOrderExpectedPnl,
+            fundingFeePerUnit: ctx.expectedLastFundingFeePerUnit
+        });
 
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
 
@@ -1435,6 +1462,13 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             ctx.secondOrderSizeDelta
         );
 
+        ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
+        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
+            .exposed_getPendingFundingFeePerUnit(
+            ctx.fuzzMarketConfig.marketId, sd59x18(ctx.expectedLastFundingRate), ctx.secondFillPriceX18
+        ).intoInt256();
+        ctx.expectedLastFundingTime = block.timestamp;
+
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
                 tradingAccountId: ctx.tradingAccountId,
@@ -1446,11 +1480,35 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.secondMockSignedReport =
             getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
 
+        ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
+            ctx.firstFillPriceX18.intoSD59x18()
+        ).mul(sd59x18(ctx.firstOrderSizeDelta)).add(
+            sd59x18(ctx.expectedLastFundingFeePerUnit).mul(sd59x18(ctx.position.size))
+        );
+
+        ctx.secondOrderExpectedPnl = unary(
+            ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE)).intoSD59x18()
+        ).add(ctx.secondOrderExpectedPriceShiftPnlX18).intoInt256();
+
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should transfer the pnl and fees
         expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
+
+        // it should emit a {LogFillOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit SettlementBranch.LogFillOrder({
+            sender: ctx.marketOrderKeeper,
+            tradingAccountId: ctx.tradingAccountId,
+            marketId: ctx.fuzzMarketConfig.marketId,
+            sizeDelta: ctx.secondOrderSizeDelta,
+            fillPrice: ctx.secondFillPriceX18.intoUint256(),
+            orderFeeUsd: ctx.secondOrderFeeUsdX18.intoUint256(),
+            settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
+            pnl: ctx.secondOrderExpectedPnl,
+            fundingFeePerUnit: ctx.expectedLastFundingFeePerUnit
+        });
 
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
 
