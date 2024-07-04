@@ -1243,4 +1243,326 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         assertEq(ctx.marketOrder.sizeDelta, 0);
         assertEq(ctx.marketOrder.timestamp, 0);
     }
+
+    modifier givenTheUserHasAnOpenPosition() {
+        _;
+    }
+
+    modifier givenTheUserWillReduceThePosition() {
+        _;
+    }
+
+    modifier givenTheMarginBalanceUsdIsUnderTheInitialMarginUsdRequired() {
+        _;
+    }
+
+    struct Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context {
+        uint256 marketId;
+        uint256 marginValueUsd;
+        uint256 expectedLastFundingTime;
+        uint256 expectedOpenInterest;
+        int256 expectedSkew;
+        int256 firstOrderExpectedPnl;
+        int256 secondOrderExpectedPnl;
+        int256 expectedLastFundingRate;
+        int256 expectedLastFundingFeePerUnit;
+        uint128 tradingAccountId;
+        int128 firstOrderSizeDelta;
+        int128 secondOrderSizeDelta;
+        bytes firstMockSignedReport;
+        bytes secondMockSignedReport;
+        UD60x18 openInterestX18;
+        UD60x18 firstOrderFeeUsdX18;
+        UD60x18 secondOrderFeeUsdX18;
+        UD60x18 firstFillPriceX18;
+        UD60x18 secondFillPriceX18;
+        SD59x18 skewX18;
+        SD59x18 secondOrderExpectedPriceShiftPnlX18;
+        MarketConfig fuzzMarketConfig;
+        PerpMarket.Data perpMarketData;
+        MarketOrder.Data marketOrder;
+        Position.Data expectedPosition;
+        Position.Data position;
+        address marketOrderKeeper;
+    }
+
+    function test_RevertGiven_TheMarginBalanceUsdIsUnderTheMaintenanceMarginUsdRequired()
+        external
+        givenTheSenderIsTheKeeper
+        givenTheMarketOrderExists
+        givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
+        givenTheReportVerificationPasses
+        givenTheDataStreamsReportIsValid
+        givenTheAccountWillMeetTheMarginRequirement
+        givenTheMarketsOILimitWontBeExceeded
+        givenTheUserHasAnOpenPosition
+        givenTheUserWillReduceThePosition
+        givenTheMarginBalanceUsdIsUnderTheInitialMarginUsdRequired
+    {
+        Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context memory ctx;
+
+        ctx.marketId = BTC_USD_MARKET_ID;
+        ctx.marginValueUsd = 100_000e18;
+
+        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
+
+        // Config first fill order
+
+        ctx.firstOrderSizeDelta = 10e18;
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(ctx.marketId);
+        ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
+        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdz));
+        ctx.firstMockSignedReport =
+            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.firstOrderSizeDelta
+            })
+        );
+
+        changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
+
+        // Config second fill order
+
+        changePrank({ msgSender: users.naruto });
+
+        uint256 updatedPrice = MOCK_BTC_USD_PRICE - MOCK_BTC_USD_PRICE / 10;
+        updateMockPriceFeed(BTC_USD_MARKET_ID, updatedPrice);
+
+        // reduce the position with negative size delta
+        ctx.secondOrderSizeDelta = -(ctx.firstOrderSizeDelta - ctx.firstOrderSizeDelta / 2);
+        ctx.fuzzMarketConfig.mockUsdPrice = updatedPrice;
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.AccountIsLiquidatable.selector, ctx.tradingAccountId)
+        });
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.secondOrderSizeDelta
+            })
+        );
+    }
+
+    function test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired()
+        external
+        givenTheSenderIsTheKeeper
+        givenTheMarketOrderExists
+        givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
+        givenTheReportVerificationPasses
+        givenTheDataStreamsReportIsValid
+        givenTheAccountWillMeetTheMarginRequirement
+        givenTheMarketsOILimitWontBeExceeded
+        givenTheUserHasAnOpenPosition
+        givenTheUserWillReduceThePosition
+        givenTheMarginBalanceUsdIsUnderTheInitialMarginUsdRequired
+    {
+        Test_GivenTheMarginBalanceUsdIsOverTheMaintenanceMarginUsdRequired_Context memory ctx;
+
+        ctx.marketId = BTC_USD_MARKET_ID;
+        ctx.marginValueUsd = 100_000e18;
+
+        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
+
+        // Config first fill order
+
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(ctx.marketId);
+
+        ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
+
+        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdz));
+
+        ctx.firstOrderSizeDelta = 10e18;
+
+        (,,, ctx.firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            ctx.tradingAccountId,
+            ctx.fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            ctx.firstOrderSizeDelta
+        );
+
+        ctx.firstFillPriceX18 = perpsEngine.getMarkPrice(
+            ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice, ctx.firstOrderSizeDelta
+        );
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.firstOrderSizeDelta
+            })
+        );
+
+        ctx.firstOrderExpectedPnl =
+            unary(ctx.firstOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE)).intoSD59x18()).intoInt256();
+
+        ctx.firstMockSignedReport =
+            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        // it should transfer the pnl and fees
+        expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
+
+        // it should emit a {LogFillOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit SettlementBranch.LogFillOrder({
+            sender: ctx.marketOrderKeeper,
+            tradingAccountId: ctx.tradingAccountId,
+            marketId: ctx.fuzzMarketConfig.marketId,
+            sizeDelta: ctx.firstOrderSizeDelta,
+            fillPrice: ctx.firstFillPriceX18.intoUint256(),
+            orderFeeUsd: ctx.firstOrderFeeUsdX18.intoUint256(),
+            settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
+            pnl: ctx.firstOrderExpectedPnl,
+            fundingFeePerUnit: ctx.expectedLastFundingFeePerUnit
+        });
+
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
+
+        // Config second fill order
+
+        // asserts initial upnl is zero
+        assertTrue(
+            perpsEngine.getPositionState(
+                ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice
+            ).unrealizedPnlUsdX18.isZero()
+        );
+
+        changePrank({ msgSender: users.naruto });
+
+        // if changed this to "/10" instead of "/11" naruto would be liquidatable,
+        // so this is just on the verge of being liquidated
+        uint256 updatedPrice = MOCK_BTC_USD_PRICE - MOCK_BTC_USD_PRICE / 11;
+        updateMockPriceFeed(BTC_USD_MARKET_ID, updatedPrice);
+
+        // reduce the position with negative size delta
+        ctx.secondOrderSizeDelta = -(ctx.firstOrderSizeDelta - ctx.firstOrderSizeDelta / 2);
+        ctx.fuzzMarketConfig.mockUsdPrice = updatedPrice;
+
+        ctx.secondFillPriceX18 = perpsEngine.getMarkPrice(
+            ctx.fuzzMarketConfig.marketId, ctx.fuzzMarketConfig.mockUsdPrice, ctx.secondOrderSizeDelta
+        );
+
+        (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
+            ctx.tradingAccountId,
+            ctx.fuzzMarketConfig.marketId,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            ctx.secondOrderSizeDelta
+        );
+
+        ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
+        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
+            .exposed_getPendingFundingFeePerUnit(
+            ctx.fuzzMarketConfig.marketId, sd59x18(ctx.expectedLastFundingRate), ctx.secondFillPriceX18
+        ).intoInt256();
+        ctx.expectedLastFundingTime = block.timestamp;
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.secondOrderSizeDelta
+            })
+        );
+
+        ctx.secondMockSignedReport =
+            getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        ctx.secondOrderExpectedPriceShiftPnlX18 = ctx.secondFillPriceX18.intoSD59x18().sub(
+            ctx.firstFillPriceX18.intoSD59x18()
+        ).mul(sd59x18(ctx.firstOrderSizeDelta)).add(
+            sd59x18(ctx.expectedLastFundingFeePerUnit).mul(sd59x18(ctx.position.size))
+        );
+
+        ctx.secondOrderExpectedPnl = unary(
+            ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE)).intoSD59x18()
+        ).add(ctx.secondOrderExpectedPriceShiftPnlX18).intoInt256();
+
+        changePrank({ msgSender: ctx.marketOrderKeeper });
+
+        // it should transfer the pnl and fees
+        expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
+
+        // it should emit a {LogFillOrder} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit SettlementBranch.LogFillOrder({
+            sender: ctx.marketOrderKeeper,
+            tradingAccountId: ctx.tradingAccountId,
+            marketId: ctx.fuzzMarketConfig.marketId,
+            sizeDelta: ctx.secondOrderSizeDelta,
+            fillPrice: ctx.secondFillPriceX18.intoUint256(),
+            orderFeeUsd: ctx.secondOrderFeeUsdX18.intoUint256(),
+            settlementFeeUsd: DEFAULT_SETTLEMENT_FEE,
+            pnl: ctx.secondOrderExpectedPnl,
+            fundingFeePerUnit: ctx.expectedLastFundingFeePerUnit
+        });
+
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
+
+        // it should update the funding values
+        ctx.expectedLastFundingTime = block.timestamp;
+        ctx.perpMarketData =
+            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+        assertEq(0, ctx.perpMarketData.lastFundingRate, "second fill: last funding rate");
+        assertEq(0, ctx.perpMarketData.lastFundingFeePerUnit, "second fill: last funding fee per unit");
+        assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "second fill: last funding time");
+
+        // it should update the open interest and skew
+        ctx.expectedOpenInterest = uint128(ctx.firstOrderSizeDelta + ctx.secondOrderSizeDelta);
+        ctx.expectedSkew = ctx.firstOrderSizeDelta + ctx.secondOrderSizeDelta;
+        (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
+        ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "second fill: open interest");
+        assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "second fill: skew");
+
+         // it should keep the account's active markets
+        assertEq(
+            1,
+            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
+            "second fill: active market id"
+        );
+        assertEq(
+            1,
+            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+            "second fill: accounts ids with active positions"
+        );
+
+        // it should update the account's position
+        ctx.expectedPosition = Position.Data({
+            size: ctx.expectedSkew,
+            lastInteractionPrice: ctx.secondFillPriceX18.intoUint128(),
+            lastInteractionFundingFeePerUnit: 0
+        });
+        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+            ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
+        );
+        assertEq(ctx.expectedPosition.size, ctx.position.size, "second fill: position size");
+        assertEq(
+            ctx.expectedPosition.lastInteractionPrice, ctx.position.lastInteractionPrice, "second fill: position price"
+        );
+        assertEq(
+            ctx.expectedPosition.lastInteractionFundingFeePerUnit,
+            ctx.position.lastInteractionFundingFeePerUnit,
+            "second fill: position funding fee"
+        );
+
+        // it should delete the market order
+        ctx.marketOrder = perpsEngine.getActiveMarketOrder(ctx.tradingAccountId);
+        assertEq(ctx.marketOrder.marketId, 0);
+        assertEq(ctx.marketOrder.sizeDelta, 0);
+        assertEq(ctx.marketOrder.timestamp, 0);
+    }
 }
