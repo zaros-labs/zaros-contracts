@@ -80,7 +80,7 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         // Usdc Scenarios: the collateral type has 6 decimals (usdc)
 
-        uint256 amountToDepositMarginUsdc = USDC_DEPOSIT_CAP;
+        uint256 amountToDepositMarginUsdc = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
         deal({ token: address(usdc), to: users.naruto, give: amountToDepositMarginUsdc * 2 });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDepositMarginUsdc);
@@ -88,7 +88,10 @@ contract DepositMargin_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.DepositCap.selector, address(usdc), amountToDepositMarginUsdc, USDC_DEPOSIT_CAP
+                Errors.DepositCap.selector,
+                address(usdc),
+                convertTokenAmountToUd60x18(address(usdc), amountToDepositMarginUsdc).intoUint256(),
+                USDC_DEPOSIT_CAP_X18.intoUint256()
             )
         });
 
@@ -96,7 +99,7 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         // scenario: the collateral type has insufficient deposit cap
 
-        amountToDeposit = bound({ x: amountToDeposit, min: USDC_DEPOSIT_CAP, max: USDC_DEPOSIT_CAP });
+        amountToDeposit = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
         deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
         changePrank({ msgSender: users.owner });
@@ -111,7 +114,9 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.DepositCap.selector, address(usdc), amountToDeposit, 0)
+            revertData: abi.encodeWithSelector(
+                Errors.DepositCap.selector, address(usdc), convertTokenAmountToUd60x18(address(usdc), amountToDeposit), 0
+            )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);
