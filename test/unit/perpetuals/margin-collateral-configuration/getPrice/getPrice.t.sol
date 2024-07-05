@@ -11,6 +11,7 @@ import { MockPriceFeedWithInvalidReturn } from "test/mocks/MockPriceFeedWithInva
 import { MockPriceFeedOldUpdatedAt } from "test/mocks/MockPriceFeedOldUpdatedAt.sol";
 import { MockSequencerUptimeFeedWithInvalidReturn } from "test/mocks/MockSequencerUptimeFeedWithInvalidReturn.sol";
 import { MockSequencerUptimeFeedDown } from "test/mocks/MockSequencerUptimeFeedDown.sol";
+import { MockSequencerUptimeFeedGracePeriodNotOver } from "test/mocks/MockSequencerUptimeFeedGracePeriodNotOver.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -107,7 +108,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_SequncerUptimeFeedIsDown()
+    function test_RevertWhen_SequencerUptimeFeedIsDown()
         external
         whenPriceFeedIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
@@ -132,6 +133,42 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.OracleSequencerUptimeFeedIsDown.selector, address(mockSequencerUptimeFeedDown)
+            )
+        });
+
+        perpsEngine.exposed_getPrice(collateral);
+    }
+
+    modifier whenSequencerUptimeFeedIsOnline() {
+        _;
+    }
+
+    function test_RevertWhen_GracePeriodNotOver()
+        external
+        whenPriceFeedIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedIsNotZero
+        whenSequencerUptimeFeedReturnsAValidValue
+        whenSequencerUptimeFeedIsOnline
+    {
+        address collateral = address(wstEth);
+
+        changePrank({ msgSender: users.owner });
+        MockSequencerUptimeFeedGracePeriodNotOver mockSequencerUptimeFeedGracePeriodNotOver = new MockSequencerUptimeFeedGracePeriodNotOver();
+        uint256[] memory chainIds = new uint256[](1);
+        chainIds[0] = block.chainid;
+
+        address[] memory sequencerUptimeFeeds = new address[](1);
+        sequencerUptimeFeeds[0] = address(mockSequencerUptimeFeedGracePeriodNotOver);
+
+        perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
+
+        changePrank({ msgSender: users.naruto });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.GracePeriodNotOver.selector
             )
         });
 
