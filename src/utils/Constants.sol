@@ -11,7 +11,7 @@ library Constants {
     /// @notice Default grace period for the sequencer uptime feed.
     uint256 internal constant SEQUENCER_GRACE_PERIOD_TIME = 3600;
     /// @notice EIP712 domain separator typehash.
-    bytes32 internal constant CREATE_CUSTOM_ORDER_TYPEHASH = keccak256(
-        "CreateCustomOrder(uint128 tradingAccountId,uint128 marketId,uint128 settlementConfigurationId,int128 sizeDelta,uint256 targetPrice)"
+    bytes32 internal constant CREATE_SIGNED_ORDER_TYPEHASH = keccak256(
+        "CreateSignedOrder(uint128 tradingAccountId,uint128 marketId,uint128 settlementConfigurationId,int128 sizeDelta,uint128 targetPrice,uint120 nonce,bool shouldIncreaseNonce)"
     );
 }

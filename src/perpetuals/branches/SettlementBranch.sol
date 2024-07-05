@@ -136,15 +136,20 @@ contract SettlementBranch is EIP712Upgradeable {
             ctx.signedOrder = signedOrders[i];
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.signedOrder.tradingAccountId);
 
+            if (ctx.signedOrder.nonce != tradingAccount.nonce) {
+                revert Errors.InvalidSignedNonce(ctx.signedOrder.tradingAccountId, ctx.signedOrder.nonce);
+            }
+
             (ctx.v, ctx.r, ctx.s) = abi.decode(ctx.signedOrder.signature, (uint8, bytes32, bytes32));
             ctx.structHash = keccak256(
                 abi.encode(
-                    Constants.CREATE_CUSTOM_ORDER_TYPEHASH,
+                    Constants.CREATE_SIGNED_ORDER_TYPEHASH,
                     ctx.signedOrder.tradingAccountId,
                     marketId,
                     settlementConfigurationId,
                     ctx.signedOrder.sizeDelta,
-                    ctx.signedOrder.targetPrice
+                    ctx.signedOrder.targetPrice,
+                    ctx.signedOrder.shouldIncreaseNonce
                 )
             );
 
@@ -153,6 +158,12 @@ contract SettlementBranch is EIP712Upgradeable {
 
             if (ctx.signer != tradingAccount.owner) {
                 revert Errors.InvalidSignedOrderSignature(ctx.signer, tradingAccount.owner);
+            }
+
+            if (ctx.signedOrder.shouldIncreaseNonce) {
+                unchecked {
+                    tradingAccount.nonce++;
+                }
             }
 
             _fillOrder(

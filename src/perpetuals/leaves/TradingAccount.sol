@@ -38,11 +38,13 @@ library TradingAccount {
 
     /// @notice {TradingAccount} namespace storage structure.
     /// @param id The trading account id.
+    /// @param nonce An incremental index used to validate signed orders signed offchain.
     /// @param owner The trading account owner.
     /// @param marginCollateralBalanceX18 The trading account margin collateral enumerable map.
     /// @param activeMarketsIds The trading account active markets ids enumerable set.
     struct Data {
         uint128 id;
+        uint128 nonce;
         address owner;
         EnumerableMap.AddressToUintMap marginCollateralBalanceX18;
         EnumerableSet.UintSet activeMarketsIds;
