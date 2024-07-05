@@ -38,6 +38,8 @@ library Errors {
     error InvalidSequencerUptimeFeedReturn();
     /// @notice Thrown when an oracle sequencer uptime feed returns an unexpected, invalid value.
     error OracleSequencerUptimeFeedIsDown(address sequencerUptimeFeed);
+    /// @notice Thrown when an oracle grace period is not over.
+    error GracePeriodNotOver();
     /// @notice Thrown when an oracle returns an unexpected, invalid value.
     error InvalidOracleReturn();
     /// @notice Thrown when an oracle price feed is outdated.
