@@ -31,7 +31,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         external
         whenTheAmountIsNotZero
     {
-        // scenario: when user deposit more than the deposit cap by adding up all deposits
+        // 18 token decimals Scenarios: when user deposit more than the deposit cap by adding up all deposits
 
         uint256 amountToDepositMargin = WSTETH_DEPOSIT_CAP_X18.intoUint256();
         deal({ token: address(wstEth), to: users.naruto, give: amountToDepositMargin * 2 });
@@ -76,6 +76,44 @@ contract DepositMargin_Integration_Test is Base_Test {
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDeposit);
+
+        // Usdc Scenarios: the collateral type has 6 decimals (usdc)
+
+        uint256 amountToDepositMarginUsdc = USDC_DEPOSIT_CAP;
+        deal({ token: address(usdc), to: users.naruto, give: amountToDepositMarginUsdc * 2 });
+
+        perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDepositMarginUsdc);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.DepositCap.selector, address(usdc), amountToDepositMarginUsdc, USDC_DEPOSIT_CAP
+            )
+        });
+
+        perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDepositMarginUsdc);
+
+        // scenario: the collateral type has insufficient deposit cap
+
+        amountToDeposit = bound({ x: amountToDeposit, min: USDC_DEPOSIT_CAP, max: USDC_DEPOSIT_CAP });
+        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.configureMarginCollateral(
+            address(usdc),
+            0,
+            USDC_LOAN_TO_VALUE,
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed,
+            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+        );
+        changePrank({ msgSender: users.naruto });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.DepositCap.selector, address(usdc), amountToDeposit, 0)
+        });
+
+        perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);
     }
 
     modifier givenTheCollateralTypeHasSufficientDepositCap() {
