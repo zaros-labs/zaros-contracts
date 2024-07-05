@@ -89,7 +89,7 @@ contract DepositMargin_Integration_Test is Base_Test {
             revertData: abi.encodeWithSelector(
                 Errors.DepositCap.selector,
                 address(usdc),
-                convertTokenAmountToUd60x18(address(usdc), amountToDepositMarginUsdc),
+                convertTokenAmountToUd60x18(address(usdc), amountToDepositMarginUsdc).intoUint256(),
                 USDC_DEPOSIT_CAP_X18.intoUint256()
             )
         });
@@ -98,11 +98,7 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         // scenario: the collateral type has insufficient deposit cap
 
-        amountToDeposit = bound({
-            x: amountToDeposit,
-            min: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18),
-            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
-        });
+        amountToDeposit = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
         deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
         changePrank({ msgSender: users.owner });
