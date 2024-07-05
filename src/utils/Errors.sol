@@ -61,8 +61,8 @@ library Errors {
 
     /// @notice PerpsEngine.TradingAccountBranch
 
-    /// @notice Thrown When the provided amount of collateral exceeds the deposit cap.
-    error DepositCap(address collateralType, uint256 amount, uint256 depositCap);
+    /// @notice Thrown When the provided amount in 18 decimals of collateral exceeds the deposit cap.
+    error DepositCap(address collateralType, uint256 amountX18, uint256 depositCapX18);
     /// @notice Thrown when there's not enough margin collateral to be withdrawn.
     error InsufficientCollateralBalance(uint256 amount, uint256 balance);
     /// @notice Thrown When the caller is not the account token contract.
@@ -112,6 +112,8 @@ library Errors {
 
     /// @notice Thrown when the caller is not the registered Keeper contract.
     error OnlyKeeper(address sender, address keeper);
+    /// @notice Thrown when the signed `nonce` of a given order is not equal to the trading account's current nonce.
+    error InvalidSignedNonce(uint128 tradingAccountId, uint120 nonce);
     /// @notice Thrown when the provided ECDSA signature of a signed order is invalid.
     error InvalidSignedOrderSignature(address signer, address expectedSigner);
 

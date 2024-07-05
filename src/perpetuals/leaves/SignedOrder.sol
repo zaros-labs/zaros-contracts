@@ -5,7 +5,9 @@ library SignedOrder {
     struct Data {
         uint128 tradingAccountId;
         int128 sizeDelta;
-        uint256 targetPrice;
+        uint128 targetPrice;
+        uint120 nonce;
+        bool shouldIncreaseNonce;
         bytes signature;
     }
 }
