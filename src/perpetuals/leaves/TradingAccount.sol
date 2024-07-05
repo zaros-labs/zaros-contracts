@@ -386,8 +386,6 @@ library TradingAccount {
 
             withdrawnMarginUsdX18 = amountUsdX18;
             isMissingMargin = false;
-
-            return (withdrawnMarginUsdX18, isMissingMargin);
         } else {
             UD60x18 marginToWithdrawUsdX18 = marginCollateralPriceUsdX18.mul(marginCollateralBalanceX18);
             withdraw(self, collateralType, marginCollateralBalanceX18);
@@ -397,8 +395,6 @@ library TradingAccount {
 
             withdrawnMarginUsdX18 = marginToWithdrawUsdX18;
             isMissingMargin = true;
-
-            return (withdrawnMarginUsdX18, isMissingMargin);
         }
     }
 
