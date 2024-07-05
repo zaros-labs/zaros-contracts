@@ -54,6 +54,11 @@ contract SettlementBranch {
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
         address keeper = settlementConfiguration.keeper;
 
+        if (marketId != marketOrder.marketId) {
+            /// @notice Thrown when the selected market id mismatch with marder order market id
+            revert Errors.MarketOrderMarketIdMismatch(marketId, marketOrder.marketId);
+        }
+
         _requireIsKeeper(msg.sender, keeper);
 
         _fillOrder(

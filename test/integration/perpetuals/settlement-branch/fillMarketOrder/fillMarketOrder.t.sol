@@ -346,6 +346,63 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         _;
     }
 
+    function test_RevertWhen_TheMarketOrderIdMismatches()
+        external
+        givenTheSenderIsTheKeeper
+        givenTheMarketOrderExists
+        givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
+        givenTheReportVerificationPasses
+    {
+        // give naruto some tokens
+        uint256 USER_STARTING_BALANCE = 100_000e18;
+        int128 USER_POS_SIZE_DELTA = 10e18;
+        deal({ token: address(usdc), to: users.naruto, give: USER_STARTING_BALANCE });
+        // naruto creates a trading account and deposits their tokens as collateral
+        changePrank({ msgSender: users.naruto });
+        uint128 tradingAccountId = createAccountAndDeposit(USER_STARTING_BALANCE, address(usdc));
+
+        // naruto creates an open order in the BTC market
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: tradingAccountId,
+                marketId: BTC_USD_MARKET_ID,
+                sizeDelta: USER_POS_SIZE_DELTA
+            })
+        );
+        // some time passes and the order is not filled
+
+        vm.warp(block.timestamp + 100_000_000_000 + 1);
+
+        // at the same time:
+        // 1) keeper creates a transaction to fill naruto's open BTC order
+        // 2) naruto updates their open order to place it on ETH market
+        // 2) gets executed first; naruto changes position size and market id
+        int128 USER_POS_2_SIZE_DELTA = 5e18;
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: tradingAccountId,
+                marketId: ETH_USD_MARKET_ID,
+                sizeDelta: USER_POS_2_SIZE_DELTA
+            })
+        );
+
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.MarketOrderMarketIdMismatch.selector, BTC_USD_MARKET_ID, ETH_USD_MARKET_ID)
+        );
+
+        // 1) gets executed afterwards - the keeper is calling this
+        // with the parameters of the first opened order, in this case
+        // with BTC's market id and price !
+        bytes memory mockSignedReport = getMockedSignedReport(BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE);
+        changePrank({ msgSender: marketOrderKeepers[BTC_USD_MARKET_ID] });
+        perpsEngine.fillMarketOrder(tradingAccountId, BTC_USD_MARKET_ID, mockSignedReport);
+    }
+
+    modifier whenTheMarketOrderIdMatches() {
+        _;
+    }
+
     function testFuzz_RevertGiven_TheDataStreamsReportIsInvalid(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
@@ -358,6 +415,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         givenThePerpMarketIsEnabled
         givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
+        whenTheMarketOrderIdMatches
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -436,6 +494,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         givenThePerpMarketIsEnabled
         givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
+        whenTheMarketOrderIdMatches
         givenTheDataStreamsReportIsValid
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -529,6 +588,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         givenThePerpMarketIsEnabled
         givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
+        whenTheMarketOrderIdMatches
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
     {
@@ -641,6 +701,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         givenThePerpMarketIsEnabled
         givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
+        whenTheMarketOrderIdMatches
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
         givenTheMarketsOILimitWontBeExceeded
@@ -973,8 +1034,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         givenTheMarketOrderExists
         givenThePerpMarketIsEnabled
         givenTheSettlementStrategyIsEnabled
-        givenTheSettlementStrategyIsEnabled
         givenTheReportVerificationPasses
+        whenTheMarketOrderIdMatches
         givenTheDataStreamsReportIsValid
         givenTheAccountWillMeetTheMarginRequirement
         givenTheMarketsOILimitWontBeExceeded
