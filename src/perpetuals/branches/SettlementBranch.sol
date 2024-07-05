@@ -18,7 +18,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 contract SettlementBranch {
@@ -88,6 +88,9 @@ contract SettlementBranch {
         SD59x18 newSkew;
         UD60x18 requiredMarginUsdX18;
         bool shouldUseMaintenanceMargin;
+        UD60x18 totalPnlAbs;
+        UD60x18 totalFees;
+        UD60x18 marginToDeductUsdX18;
     }
 
     /// @param tradingAccountId The trading account id.
@@ -194,9 +197,31 @@ contract SettlementBranch {
         }
 
         if (ctx.pnl.lt(SD_ZERO)) {
-            UD60x18 marginToDeductUsdX18 = ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).gt(UD60x18_ZERO)
-                ? ctx.pnl.abs().intoUD60x18().sub(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18))
-                : ctx.pnl.abs().intoUD60x18();
+            ctx.totalPnlAbs = ctx.pnl.abs().intoUD60x18(); // total pnl to deduct
+            ctx.orderFeeUsdX18 = ctx.orderFeeUsdX18.gt(UD_ZERO) ? ctx.orderFeeUsdX18 : UD_ZERO;
+            ctx.totalFees = ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18);
+
+            // expected case where abs(pnl) > totalFees
+            if (ctx.totalPnlAbs.gt(ctx.totalFees)) {
+                ctx.marginToDeductUsdX18 = ctx.pnl.intoUD60x18().sub(ctx.totalFees);
+            }
+            // if abs(pnl) <= totalFees
+            else {
+                // totalFees - abs(pnl)
+                UD60x18 totalFeesMinusPnl = ctx.totalFees.sub(ctx.totalPnlAbs);
+
+                // settlementFee > totalFeesMinusPnl ?
+                if (ctx.settlementFeeUsdX18.gt(totalFeesMinusPnl)) {
+                    // deduct the diff from settlementFee
+                    ctx.settlementFeeUsdX18 = ctx.settlementFeeUsdX18.sub(totalFeesMinusPnl);
+                } else {
+                    // deducts as much as possible from settlementFee and
+                    // deduct the remainer from orderFee
+                    totalFeesMinusPnl = totalFeesMinusPnl.sub(ctx.settlementFeeUsdX18);
+                    ctx.settlementFeeUsdX18 = UD_ZERO;
+                    ctx.orderFeeUsdX18 = ctx.orderFeeUsdX18.sub(totalFeesMinusPnl); // shouldn't revert
+                }
+            }
 
             tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
@@ -204,8 +229,8 @@ contract SettlementBranch {
                     orderFeeRecipient: globalConfiguration.orderFeeRecipient,
                     settlementFeeRecipient: globalConfiguration.settlementFeeRecipient
                 }),
-                pnlUsdX18: marginToDeductUsdX18,
-                orderFeeUsdX18: ctx.orderFeeUsdX18.gt(UD60x18_ZERO) ? ctx.orderFeeUsdX18 : UD60x18_ZERO,
+                pnlUsdX18: ctx.marginToDeductUsdX18,
+                orderFeeUsdX18: ctx.orderFeeUsdX18.gt(UD_ZERO) ? ctx.orderFeeUsdX18 : UD_ZERO,
                 settlementFeeUsdX18: ctx.settlementFeeUsdX18
             });
         } else if (ctx.pnl.gt(SD_ZERO)) {
