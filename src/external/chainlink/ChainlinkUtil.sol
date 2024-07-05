@@ -39,7 +39,9 @@ library ChainlinkUtil {
         }
 
         if (address(sequencerUptimeFeed) != address(0)) {
-            try sequencerUptimeFeed.latestRoundData() returns (uint80, int256 answer, uint256 startedAt, uint256, uint80) {
+            try sequencerUptimeFeed.latestRoundData() returns (
+                uint80, int256 answer, uint256 startedAt, uint256, uint80
+            ) {
                 bool isSequencerUp = answer == 0;
                 if (!isSequencerUp) {
                     revert Errors.OracleSequencerUptimeFeedIsDown(address(sequencerUptimeFeed));

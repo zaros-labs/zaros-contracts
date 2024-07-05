@@ -145,7 +145,8 @@ contract SettlementBranch {
                 SD59x18 accountTotalUnrealizedPnlUsdX18
             ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDelta);
 
-            ctx.shouldUseMaintenanceMargin = !Position.isIncreasingPosition(tradingAccountId, marketId, sizeDelta) && oldPosition.size != 0;
+            ctx.shouldUseMaintenanceMargin =
+                !Position.isIncreasingPosition(tradingAccountId, marketId, sizeDelta) && oldPosition.size != 0;
 
             ctx.requiredMarginUsdX18 =
                 ctx.shouldUseMaintenanceMargin ? requiredMaintenanceMarginUsdX18 : requiredInitialMarginUsdX18;

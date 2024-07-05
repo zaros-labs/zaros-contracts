@@ -154,7 +154,8 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         address collateral = address(wstEth);
 
         changePrank({ msgSender: users.owner });
-        MockSequencerUptimeFeedGracePeriodNotOver mockSequencerUptimeFeedGracePeriodNotOver = new MockSequencerUptimeFeedGracePeriodNotOver();
+        MockSequencerUptimeFeedGracePeriodNotOver mockSequencerUptimeFeedGracePeriodNotOver =
+            new MockSequencerUptimeFeedGracePeriodNotOver();
         uint256[] memory chainIds = new uint256[](1);
         chainIds[0] = block.chainid;
 
@@ -166,11 +167,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                Errors.GracePeriodNotOver.selector
-            )
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.GracePeriodNotOver.selector) });
 
         perpsEngine.exposed_getPrice(collateral);
     }
