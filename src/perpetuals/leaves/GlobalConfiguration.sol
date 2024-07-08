@@ -95,7 +95,9 @@ library GlobalConfiguration {
     /// @param self The global configuration storage pointer.
     /// @param collateralTypes The array of collateral type addresses.
     function configureCollateralLiquidationPriority(Data storage self, address[] memory collateralTypes) internal {
-        for (uint256 i; i < collateralTypes.length; i++) {
+        uint256 cachedCollateralTypesCached = collateralTypes.length;
+
+        for (uint256 i; i < cachedCollateralTypesCached; i++) {
             if (collateralTypes[i] == address(0)) {
                 revert Errors.ZeroInput("collateralType");
             }

@@ -94,7 +94,9 @@ library RootUpgrade {
     )
         internal
     {
-        for (uint256 i; i < branchUpgrades.length; i++) {
+        uint256 cachedBranchUpgradesLength = branchUpgrades.length;
+
+        for (uint256 i; i < cachedBranchUpgradesLength; i++) {
             RootProxy.BranchUpgrade memory branchUpgrade = branchUpgrades[i];
 
             validateBranchUpgrade(branchUpgrade);
@@ -114,7 +116,10 @@ library RootUpgrade {
     function addBranch(Data storage self, address branch, bytes4[] memory selectors) internal {
         // slither-disable-next-line unused-return
         self.branches.add(branch);
-        for (uint256 i; i < selectors.length; i++) {
+
+        uint256 cachedSelectorsLength = selectors.length;
+
+        for (uint256 i; i < cachedSelectorsLength; i++) {
             bytes4 selector = selectors[i];
 
             if (selector == bytes4(0)) {
@@ -133,7 +138,10 @@ library RootUpgrade {
     function replaceBranch(Data storage self, address branch, bytes4[] memory selectors) internal {
         // slither-disable-next-line unused-return
         self.branches.add(branch);
-        for (uint256 i; i < selectors.length; i++) {
+
+        uint256 cachedSelectorsLength = selectors.length;
+
+        for (uint256 i; i < cachedSelectorsLength; i++) {
             bytes4 selector = selectors[i];
             address oldBranch = self.selectorToBranch[selector];
 
@@ -172,7 +180,9 @@ library RootUpgrade {
             revert Errors.ImmutableBranch();
         }
 
-        for (uint256 i; i < selectors.length; i++) {
+        uint256 cachedSelectorsLength = selectors.length;
+
+        for (uint256 i; i < cachedSelectorsLength; i++) {
             bytes4 selector = selectors[i];
             // also reverts if left side returns zero address
             if (selector == bytes4(0)) {

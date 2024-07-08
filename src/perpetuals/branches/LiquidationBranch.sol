@@ -53,8 +53,11 @@ contract LiquidationBranch {
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
+        uint256 cachedAccountsIdsWithActivePositionsLength =
+            globalConfiguration.accountsIdsWithActivePositions.length();
+
         for (uint256 i = lowerBound; i < upperBound; i++) {
-            if (i >= globalConfiguration.accountsIdsWithActivePositions.length()) break;
+            if (i >= cachedAccountsIdsWithActivePositionsLength) break;
             uint128 tradingAccountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
