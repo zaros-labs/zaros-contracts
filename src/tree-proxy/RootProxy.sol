@@ -47,13 +47,10 @@ abstract contract RootProxy is Proxy {
         );
     }
 
-    function _implementation() internal view override returns (address) {
+    function _implementation() internal view override returns (address branch) {
         RootUpgrade.Data storage rootUpgrade = RootUpgrade.load();
-        bytes4 functionSignature = msg.sig;
 
-        address branch = rootUpgrade.getBranchAddress(functionSignature);
-        if (branch == address(0)) revert Errors.UnsupportedFunction(functionSignature);
-
-        return branch;
+        branch = rootUpgrade.getBranchAddress(msg.sig);
+        if (branch == address(0)) revert Errors.UnsupportedFunction(msg.sig);
     }
 }

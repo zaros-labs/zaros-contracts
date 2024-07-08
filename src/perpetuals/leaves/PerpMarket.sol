@@ -102,7 +102,7 @@ library PerpMarket {
     )
         internal
         view
-        returns (UD60x18)
+        returns (UD60x18 markPrice)
     {
         SD59x18 skewScale = sd59x18(self.configuration.skewScale.toInt256());
         SD59x18 skew = sd59x18(self.skew);
@@ -118,9 +118,7 @@ library PerpMarket {
         UD60x18 priceAfterDelta =
             cachedIndexPriceX18.add(cachedIndexPriceX18.mul(priceImpactAfterDelta)).intoUD60x18();
 
-        UD60x18 markPrice = priceBeforeDelta.add(priceAfterDelta).div(ud60x18Convert(2));
-
-        return markPrice;
+        markPrice = priceBeforeDelta.add(priceAfterDelta).div(ud60x18Convert(2));
     }
 
     /// @notice Returns the current funding rate of the given market.

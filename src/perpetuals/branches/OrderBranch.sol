@@ -154,10 +154,8 @@ contract OrderBranch {
     }
 
     /// @param tradingAccountId The trading account id to get the active market
-    function getActiveMarketOrder(uint128 tradingAccountId) external pure returns (MarketOrder.Data memory) {
-        MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
-
-        return marketOrder;
+    function getActiveMarketOrder(uint128 tradingAccountId) external pure returns (MarketOrder.Data memory marketOrder) {
+        marketOrder = MarketOrder.load(tradingAccountId);
     }
 
     /// @param tradingAccountId The trading account id creating the market order
@@ -172,11 +170,8 @@ contract OrderBranch {
     struct CreateMarketOrderContext {
         SD59x18 marginBalanceUsdX18;
         UD60x18 requiredInitialMarginUsdX18;
-        UD60x18 requiredMaintenanceMarginUsdX18;
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
-        UD60x18 requiredMarginUsdX18;
-        bool shouldUseMaintenanceMargin;
     }
 
     /// @notice Creates a market order for the given trading account and market ids.
@@ -217,27 +212,15 @@ contract OrderBranch {
 
         CreateMarketOrderContext memory ctx;
 
-        (
-            ctx.marginBalanceUsdX18,
-            ctx.requiredInitialMarginUsdX18,
-            ctx.requiredMaintenanceMarginUsdX18,
-            ctx.orderFeeUsdX18,
-            ctx.settlementFeeUsdX18,
-        ) = simulateTrade({
+        (ctx.marginBalanceUsdX18, ctx.requiredInitialMarginUsdX18,, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) =
+        simulateTrade({
             tradingAccountId: params.tradingAccountId,
             marketId: params.marketId,
             settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta: params.sizeDelta
         });
-
-        ctx.shouldUseMaintenanceMargin = !Position.isIncreasingPosition(params.tradingAccountId, params.marketId, params.sizeDelta)
-            && position.size != 0;
-
-        ctx.requiredMarginUsdX18 =
-            ctx.shouldUseMaintenanceMargin ? ctx.requiredMaintenanceMarginUsdX18 : ctx.requiredInitialMarginUsdX18;
-
         tradingAccount.validateMarginRequirement(
-            ctx.requiredMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
+            ctx.requiredInitialMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
         );
 
         marketOrder.checkPendingOrder();

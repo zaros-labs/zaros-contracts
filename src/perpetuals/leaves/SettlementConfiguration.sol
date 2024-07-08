@@ -189,7 +189,7 @@ library SettlementConfiguration {
         IVerifierProxy chainlinkVerifier = dataStreamsStrategy.chainlinkVerifier;
 
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
-        FeeAsset memory fee = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
+        (FeeAsset memory fee) = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
 
         verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
     }
