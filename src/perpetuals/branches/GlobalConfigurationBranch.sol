@@ -379,7 +379,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             revert Errors.ZeroInput("maxSkew");
         }
         if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
-            revert Errors.ZeroInput("initialMarginRateX18");
+            revert Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate();
         }
         if (params.initialMarginRateX18 == 0) {
             revert Errors.ZeroInput("initialMarginRateX18");
