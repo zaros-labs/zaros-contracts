@@ -3,7 +3,6 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
 // Open Zeppelin dependencies

@@ -2,9 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 
 contract MarketOrderKeeper_GetConfig_Integration_Test is Base_Test {

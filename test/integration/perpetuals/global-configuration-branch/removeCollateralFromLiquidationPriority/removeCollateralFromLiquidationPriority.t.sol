@@ -5,8 +5,6 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
-import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
-import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
 contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Test {
     function setUp() public override {

@@ -2,11 +2,10 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { RootProxy } from "../RootProxy.sol";
-import { RootUpgrade } from "../leaves/RootUpgrade.sol";
-import { Branch } from "../leaves/Branch.sol";
+import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
+import { RootUpgrade } from "@zaros/tree-proxy/leaves/RootUpgrade.sol";
+import { Branch } from "@zaros/tree-proxy/leaves/Branch.sol";
 
 // Open Zeppelin dependencies
 import { Address } from "@openzeppelin/utils/Address.sol";
