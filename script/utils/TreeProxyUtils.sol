@@ -239,13 +239,15 @@ function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     RootProxy.BranchUpgrade[] memory harnessesUpgrades =
         getBranchUpgrades(harnesses, harnessesSelectors, RootProxy.BranchUpgradeAction.Add);
 
-    uint256 maxLength = branchUpgrades.length + harnessesUpgrades.length;
+    uint256 cachedBranchUpgradesLength = branchUpgrades.length;
+
+    uint256 maxLength = cachedBranchUpgradesLength + harnessesUpgrades.length;
 
     RootProxy.BranchUpgrade[] memory brancheAndHarnessesUpgrades = new RootProxy.BranchUpgrade[](maxLength);
 
     for (uint256 i; i < maxLength; i++) {
         brancheAndHarnessesUpgrades[i] =
-            i < branchUpgrades.length ? branchUpgrades[i] : harnessesUpgrades[i - branchUpgrades.length];
+            i < cachedBranchUpgradesLength ? branchUpgrades[i] : harnessesUpgrades[i - cachedBranchUpgradesLength];
     }
 
     return brancheAndHarnessesUpgrades;
