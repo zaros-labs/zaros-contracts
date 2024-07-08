@@ -2,7 +2,6 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Constants } from "@zaros/utils/Constants.sol";
 import { BaseScript } from "../Base.s.sol";
 import { MockERC20 } from "../../test/mocks/MockERC20.sol";
 
