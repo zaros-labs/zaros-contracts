@@ -1,0 +1,19 @@
+FillSignedOrders_Integration_Test
+├── when one of the trading accounts does not exist
+│   └── it should revert
+└── when all trading accounts exist
+    ├── when a signed order's nonce is not equal to the trading account's nonce
+    │   └── it should revert
+    └── when all signed orders' nonce are equal to the trading account's nonces
+        ├── when the signed order's signature can't be decoded
+        │   └── it should revert
+        └── when the signed order's signature can be decoded
+            ├── given the order's signer is not the trading account owner
+            │   └── it should revert
+            └── given the order's signer is the trading account owner
+                ├── when the signed order should increase the nonce
+                │   ├── it should increase the trading account nonce
+                │   └── it should fill the signed order
+                └── when the signed order shouldn't increase the nonce
+                    ├── it should not increase the trading account nonce
+                    └── it should fill the signed order
