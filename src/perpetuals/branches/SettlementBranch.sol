@@ -39,6 +39,20 @@ contract SettlementBranch is EIP712Upgradeable {
     using SafeERC20 for IERC20;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
+    constructor() {
+        _disableInitializers();
+    }
+
+    /// @notice Emitted when a order is filled.
+    /// @param sender The `msg.sender` address.
+    /// @param tradingAccountId The trading account id that created the order.
+    /// @param marketId The id of the perp market being settled.
+    /// @param sizeDelta The size delta of the order.
+    /// @param fillPrice The price at which the order was filled.
+    /// @param orderFeeUsd The order fee in USD.
+    /// @param settlementFeeUsd The settlement fee in USD.
+    /// @param pnl The realized profit or loss.
+    /// @param fundingFeePerUnit The funding fee per unit of the market being settled.
     event LogFillOrder(
         address indexed sender,
         uint128 indexed tradingAccountId,
@@ -69,6 +83,7 @@ contract SettlementBranch is EIP712Upgradeable {
         _;
     }
 
+    /// @dev {SettlementBranch}  UUPS initializer.
     function initialize() external initializer {
         __EIP712_init("Zaros Perpetuals DEX: Settlement", "1");
     }
@@ -317,7 +332,7 @@ contract SettlementBranch is EIP712Upgradeable {
 
             tradingAccount.deposit(ctx.usdToken, amountToIncrease);
 
-            // NOTE: testnet only - will be updated once Liquidity Engine is finalized
+            // NOTE: testnet only - will be updated once the Market Making Engine is finalized
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
         }
 

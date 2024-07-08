@@ -241,7 +241,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function configureContracts() internal {
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
-        // TODO: Temporary, switch to liquidity engine
+        // TODO: Temporary, switch to Market Making engine
         usdz.transferOwnership(address(perpsEngine));
     }
 
