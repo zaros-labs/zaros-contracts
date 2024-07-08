@@ -85,13 +85,11 @@ library ChainlinkUtil {
         bytes memory reportData
     )
         internal
-        returns (FeeAsset memory)
+        returns (FeeAsset memory fee)
     {
         IFeeManager chainlinkFeeManager = chainlinkVerifier.s_feeManager();
         address feeTokenAddress = chainlinkFeeManager.i_nativeAddress();
-        (FeeAsset memory fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
-
-        return fee;
+        (fee,,) = chainlinkFeeManager.getFeeAndReward(address(this), reportData, feeTokenAddress);
     }
 
     function verifyReport(
