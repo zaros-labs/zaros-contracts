@@ -363,10 +363,9 @@ library PerpMarket {
 
         uint256 cachedCustomOrdersConfigurationLength = params.customOrdersConfiguration.length;
 
-            for (uint256 i; i < cachedCustomOrdersConfigurationLength; i++) {
-                uint128 nextStrategyId = ++self.nextStrategyId;
-                SettlementConfiguration.update(params.marketId, nextStrategyId, params.customOrdersConfiguration[i]);
-            }
-
+        for (uint256 i; i < cachedCustomOrdersConfigurationLength; i++) {
+            uint128 nextStrategyId = ++self.nextStrategyId;
+            SettlementConfiguration.update(params.marketId, nextStrategyId, params.customOrdersConfiguration[i]);
+        }
     }
 }
