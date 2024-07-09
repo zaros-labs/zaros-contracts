@@ -32,8 +32,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.LiquidatorNotRegistered.selector, users.naruto) });
         perpsEngine.liquidateAccounts({
-            accountsIds: accountsIds,
-            liquidationFeeRecipient: users.settlementFeeRecipient
+            accountsIds: accountsIds
         });
     }
 
@@ -48,8 +47,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
         // it should return
         perpsEngine.liquidateAccounts({
-            accountsIds: accountsIds,
-            liquidationFeeRecipient: users.settlementFeeRecipient
+            accountsIds: accountsIds
         });
     }
 
@@ -72,8 +70,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, accountsIds[0], liquidationKeeper)
         });
         perpsEngine.liquidateAccounts({
-            accountsIds: accountsIds,
-            liquidationFeeRecipient: users.settlementFeeRecipient
+            accountsIds: accountsIds
         });
     }
 
@@ -197,7 +194,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
         ctx.expectedLastFundingTime = block.timestamp;
 
-        perpsEngine.liquidateAccounts(ctx.accountsIds, users.settlementFeeRecipient);
+        perpsEngine.liquidateAccounts(ctx.accountsIds);
 
         // it should update the market's funding values
         ctx.perpMarketData =

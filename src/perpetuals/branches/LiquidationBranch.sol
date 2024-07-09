@@ -89,8 +89,7 @@ contract LiquidationBranch {
     }
 
     /// @param accountsIds The list of accounts to liquidate
-    /// @param liquidationFeeRecipient The address to receive the liquidation fee
-    function liquidateAccounts(uint128[] calldata accountsIds, address liquidationFeeRecipient) external {
+    function liquidateAccounts(uint128[] calldata accountsIds) external {
         if (accountsIds.length == 0) return;
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -122,7 +121,7 @@ contract LiquidationBranch {
                 feeRecipients: FeeRecipients.Data({
                     marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,
                     orderFeeRecipient: address(0),
-                    settlementFeeRecipient: liquidationFeeRecipient
+                    settlementFeeRecipient: globalConfiguration.liquidationFeeRecipient
                 }),
                 pnlUsdX18: requiredMaintenanceMarginUsdX18,
                 orderFeeUsdX18: UD60x18_ZERO,

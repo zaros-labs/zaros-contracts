@@ -50,7 +50,8 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: MSIG_ADDRESS,
             orderFeeRecipient: MSIG_ADDRESS,
-            settlementFeeRecipient: MSIG_ADDRESS
+            settlementFeeRecipient: MSIG_ADDRESS,
+            liquidationFeeRecipient: MSIG_ADDRESS
         });
 
         uint256[2] memory marginCollateralIdsRange;

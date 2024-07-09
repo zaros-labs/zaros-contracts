@@ -27,7 +27,7 @@ contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
             users.owner, address(perpsEngine), users.settlementFeeRecipient
         );
 
-        (address keeperOwner, address perpsEngineOfLiquidationKeeper, address liquidationFeeRecipient) =
+        (address keeperOwner, address perpsEngineOfLiquidationKeeper) =
             LiquidationKeeper(liquidationKeeper).getConfig();
 
         // it should return owner
@@ -35,8 +35,5 @@ contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
 
         // it should return perpsEngine
         assertEq(perpsEngineOfLiquidationKeeper, address(perpsEngine), "owner is not correct");
-
-        // it should return liquidation fee recipient
-        assertEq(liquidationFeeRecipient, users.settlementFeeRecipient, "liquidation fee recipient is not correct");
     }
 }

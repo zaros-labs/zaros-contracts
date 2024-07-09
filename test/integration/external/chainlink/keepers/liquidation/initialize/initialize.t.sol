@@ -39,23 +39,4 @@ contract LiquidationKeeper_Initialize_Integration_Test is Base_Test {
             )
         );
     }
-
-    function test_RevertWhen_AddressOfLiquidationFeeRecipientIsZero()
-        external
-        givenInitializeContractWithSomeWrongInformation
-    {
-        address liquidationKeeperImplementation = address((new LiquidationKeeper()));
-
-        address liquidationFeeRecipient = address(0);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeRecipient") });
-
-        new ERC1967Proxy(
-            liquidationKeeperImplementation,
-            abi.encodeWithSelector(
-                LiquidationKeeper.initialize.selector, users.owner, address(perpsEngine), liquidationFeeRecipient
-            )
-        );
-    }
 }
