@@ -78,8 +78,7 @@ library ChainlinkAutomationUtils {
 
     function deployLiquidationKeeper(
         address owner,
-        address perpsEngine,
-        address settlementFeeRecipient
+        address perpsEngine
     )
         internal
         returns (address)
@@ -92,8 +91,7 @@ library ChainlinkAutomationUtils {
                 abi.encodeWithSelector(
                     LiquidationKeeper(liquidationKeeperImplementation).initialize.selector,
                     owner,
-                    perpsEngine,
-                    settlementFeeRecipient
+                    perpsEngine
                 )
             )
         );

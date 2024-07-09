@@ -61,7 +61,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, false, address(0));
 
         address liquidationKeeper =
-            ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS);
+            ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine));
         console.log("Liquidation Keeper: ", liquidationKeeper);
 
         address[] memory liquidators = new address[](1);

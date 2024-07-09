@@ -33,7 +33,7 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
 
         address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner, address(perpsEngine), users.settlementFeeRecipient
+            users.owner, address(perpsEngine)
         );
 
         // it should revert
@@ -52,7 +52,7 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
 
         address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner, address(perpsEngine), users.settlementFeeRecipient
+            users.owner, address(perpsEngine)
         );
 
         LiquidationKeeper(liquidationKeeper).setConfig(address(perpsEngine));
@@ -75,7 +75,7 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner });
 
         address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner, address(perpsEngine), users.settlementFeeRecipient
+            users.owner, address(perpsEngine)
         );
 
         address perpsEngine = address(0);
