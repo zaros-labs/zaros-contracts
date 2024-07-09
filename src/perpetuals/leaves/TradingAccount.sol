@@ -457,8 +457,6 @@ library TradingAccount {
                     feeRecipients.settlementFeeRecipient
                 );
                 ctx.settlementFeeDeductedUsdX18 = ctx.settlementFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
-
-                if (ctx.isMissingMargin) continue;
             }
 
             if (orderFeeUsdX18.gt(UD_ZERO) && ctx.orderFeeDeductedUsdX18.lt(orderFeeUsdX18)) {
@@ -470,8 +468,6 @@ library TradingAccount {
                     feeRecipients.orderFeeRecipient
                 );
                 ctx.orderFeeDeductedUsdX18 = ctx.orderFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
-
-                if (ctx.isMissingMargin) continue;
             }
 
             if (pnlUsdX18.gt(UD_ZERO) && ctx.pnlDeductedUsdX18.lt(pnlUsdX18)) {
