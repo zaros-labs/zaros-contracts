@@ -1,4 +1,6 @@
 PerpMarket_GetOrderFeeUsd_Unit_Test
+├── when skew is zero
+│   └── it should return the taker order fee
 ├── when skew and size delta are greather than zero
 │   └── it should return the taker order fee
 ├── when skew and size delta are less than zero

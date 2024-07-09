@@ -166,7 +166,7 @@ library PerpMarket {
         bool isSkewGtZero = skew.gt(SD59x18_ZERO);
         bool isBuyOrder = sizeDelta.gt(SD59x18_ZERO);
 
-        if (isSkewGtZero != isBuyOrder) {
+        if (isSkewGtZero != isBuyOrder && !skew.isZero()) {
             feeBps = ud60x18(self.configuration.orderFees.makerFee);
         } else {
             feeBps = ud60x18(self.configuration.orderFees.takerFee);
