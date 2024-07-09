@@ -155,6 +155,8 @@ library Errors {
     /// @notice Thrown when the provided settlement strategy for a perp market is invalid (e.g market order strategy
     /// for custom configuration).
     error InvalidSettlementStrategy();
+    /// @notice Thrown when the provided settlement configuration id does not exist.
+    error InvalidSettlementConfigurationId();
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
     /// one.
     error InvalidDataStreamReport(bytes32 streamId, bytes32 reportStreamId);

@@ -19,16 +19,6 @@ contract SettlementConfigurationHarness {
         return SettlementConfiguration.load(marketId, settlementConfigurationId);
     }
 
-    function exposed_checkIsValidSettlementStrategy(
-        uint128 settlementConfigurationId,
-        SettlementConfiguration.Strategy strategy
-    )
-        external
-        pure
-    {
-        SettlementConfiguration.checkIsValidSettlementStrategy(settlementConfigurationId, strategy);
-    }
-
     function exposed_checkIsSettlementEnabled(uint128 marketId, uint128 settlementConfigurationId) external view {
         SettlementConfiguration.Data storage self = SettlementConfiguration.load(marketId, settlementConfigurationId);
 

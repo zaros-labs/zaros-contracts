@@ -538,6 +538,12 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         onlyOwner
         onlyWhenPerpMarketIsInitialized(marketId)
     {
+        if (
+            settlementConfigurationId != SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID
+                && settlementConfigurationId != SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID
+        ) {
+            revert Errors.InvalidSettlementConfigurationId();
+        }
         SettlementConfiguration.update(marketId, settlementConfigurationId, newSettlementConfiguration);
 
         emit LogUpdateSettlementConfiguration(msg.sender, marketId, settlementConfigurationId);

@@ -73,21 +73,6 @@ library SettlementConfiguration {
         }
     }
 
-    /// @notice Checks during a perp market creation if the provided settlement strategy and ids are valid.
-    /// @param settlementConfigurationId The settlement configuration id.
-    /// @param strategy The strategy to check.
-    function checkIsValidSettlementStrategy(uint128 settlementConfigurationId, Strategy strategy) internal pure {
-        // if (settlementConfigurationId == MARKET_ORDER_CONFIGURATION_ID && strategy !=
-        // Strategy.DATA_STREAMS_ONCHAIN) {
-        //     revert Errors.InvalidSettlementStrategy();
-        // } else if (
-        //     settlementConfigurationId == OFFCHAIN_ORDER_CONFIGURATION_ID && strategy !=
-        // Strategy.DATA_STREAMS_OFFCHAIN
-        // ) {
-        //     revert Errors.InvalidSettlementStrategy();
-        // } else if
-    }
-
     /// @notice Checks if the configured settlement strategy is enabled to proceed with execution.
     /// @param self The {SettlementConfiguration} storage pointer.
     function checkIsSettlementEnabled(Data storage self) internal view {
@@ -139,8 +124,6 @@ library SettlementConfiguration {
     {
         Data storage self = load(marketId, settlementConfigurationId);
 
-        checkIsValidSettlementStrategy(settlementConfigurationId, settlementConfiguration.strategy);
-
         self.strategy = settlementConfiguration.strategy;
         self.isEnabled = settlementConfiguration.isEnabled;
         self.fee = settlementConfiguration.fee;
@@ -150,6 +133,7 @@ library SettlementConfiguration {
 
     /// @notice Returns the offchain price for a given order based on the configured strategy and its direction (bid
     /// vs ask).
+    /// @dev New settlement strategies may be added in the future, hence the if-else statement.
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param priceData The unverified price report data.
     /// @param isBuyOrder Whether the top-level order is a buy or sell order.
@@ -162,7 +146,7 @@ library SettlementConfiguration {
         internal
         returns (UD60x18 price)
     {
-        if (self.strategy == Strategy.DATA_STREAMS_DEFAULT || self.strategy == Strategy.DATA_STREAMS_DEFAULT) {
+        if (self.strategy == Strategy.DATA_STREAMS_DEFAULT) {
             DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
             bytes memory verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, priceData);
 
