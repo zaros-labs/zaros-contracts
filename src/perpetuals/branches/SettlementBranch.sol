@@ -105,18 +105,24 @@ contract SettlementBranch is EIP712Upgradeable {
         address keeper = settlementConfiguration.keeper;
 
         if (marketId != marketOrder.marketId) {
-            /// @notice Thrown when the selected market id mismatch with marder order market id
+            // Thrown when the selected market id mismatch with marder order market id
             revert Errors.MarketOrderMarketIdMismatch(marketId, marketOrder.marketId);
         }
 
         _requireIsKeeper(msg.sender, keeper);
+
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        UD60x18 fillPriceX18 = perpMarket.getMarkPrice(
+            sd59x18(marketOrder.sizeDelta),
+            settlementConfiguration.verifyOffchainPrice(priceData, marketOrder.sizeDelta > 0)
+        );
 
         _fillOrder(
             tradingAccountId,
             marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             marketOrder.sizeDelta,
-            priceData
+            fillPriceX18
         );
 
         marketOrder.clear();
@@ -181,14 +187,13 @@ contract SettlementBranch is EIP712Upgradeable {
                 }
             }
 
-            // TODO: verify target price
-            _fillOrder(
-                ctx.signedOrder.tradingAccountId,
-                marketId,
-                settlementConfigurationId,
-                ctx.signedOrder.sizeDelta,
-                priceData
-            );
+            // _fillOrder(
+            //     ctx.signedOrder.tradingAccountId,
+            //     marketId,
+            //     settlementConfigurationId,
+            //     ctx.signedOrder.sizeDelta,
+            //     priceData
+            // );
         }
     }
 
@@ -199,7 +204,6 @@ contract SettlementBranch is EIP712Upgradeable {
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         SD59x18 sizeDelta;
-        UD60x18 fillPrice;
         SD59x18 pnl;
         SD59x18 fundingFeePerUnit;
         SD59x18 fundingRate;
@@ -214,13 +218,13 @@ contract SettlementBranch is EIP712Upgradeable {
     /// @param marketId The perp market id.
     /// @param settlementConfigurationId The perp market settlement configuration id.
     /// @param sizeDelta The size delta of the order.
-    /// @param priceData The price data of the order.
+    /// @param fillPriceX18 The fill price of the order normalized to 18 decimals.
     function _fillOrder(
         uint128 tradingAccountId,
         uint128 marketId,
         uint128 settlementConfigurationId,
         int128 sizeDelta,
-        bytes memory priceData
+        UD60x18 fillPriceX18
     )
         internal
         virtual
@@ -249,19 +253,15 @@ contract SettlementBranch is EIP712Upgradeable {
         ctx.sizeDelta = sd59x18(sizeDelta);
         perpMarket.checkTradeSize(ctx.sizeDelta);
 
-        Position.Data storage oldPosition = Position.load(ctx.tradingAccountId, ctx.marketId);
-
-        ctx.fillPrice = perpMarket.getMarkPrice(
-            ctx.sizeDelta, settlementConfiguration.verifyOffchainPrice(priceData, ctx.sizeDelta.gt(SD_ZERO))
-        );
-
         ctx.fundingRate = perpMarket.getCurrentFundingRate();
-        ctx.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(ctx.fundingRate, ctx.fillPrice);
+        ctx.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(ctx.fundingRate, fillPriceX18);
 
         perpMarket.updateFunding(ctx.fundingRate, ctx.fundingFeePerUnit);
 
-        ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDelta, ctx.fillPrice);
+        ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDelta, fillPriceX18);
         ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
+
+        Position.Data storage oldPosition = Position.load(ctx.tradingAccountId, ctx.marketId);
 
         {
             (
@@ -283,13 +283,12 @@ contract SettlementBranch is EIP712Upgradeable {
             );
         }
 
-        ctx.pnl = oldPosition.getUnrealizedPnl(ctx.fillPrice).add(
-            oldPosition.getAccruedFunding(ctx.fundingFeePerUnit)
-        ).add(unary(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).intoSD59x18()));
+        ctx.pnl = oldPosition.getUnrealizedPnl(fillPriceX18).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnit))
+            .add(unary(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).intoSD59x18()));
 
         ctx.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(ctx.sizeDelta).intoInt256(),
-            lastInteractionPrice: ctx.fillPrice.intoUint128(),
+            lastInteractionPrice: fillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
         });
 
@@ -342,7 +341,7 @@ contract SettlementBranch is EIP712Upgradeable {
             ctx.tradingAccountId,
             ctx.marketId,
             ctx.sizeDelta.intoInt256(),
-            ctx.fillPrice.intoUint256(),
+            fillPriceX18.intoUint256(),
             ctx.orderFeeUsdX18.intoUint256(),
             ctx.settlementFeeUsdX18.intoUint256(),
             ctx.pnl.intoInt256(),
