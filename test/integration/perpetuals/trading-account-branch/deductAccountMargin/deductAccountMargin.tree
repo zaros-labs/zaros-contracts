@@ -1,5 +1,8 @@
 DeductAccountMargin_Unit_Test
     ├── when there is collateralLiquidationPriority //  enters for loop
+    │    ├── given the account has a margin balance different from 0
+    │    │   └── it should break the for loop
+    │    └── given the account has a margin balance of 0
     │    ├── when the settlementFeeUsdX18 is zero
     │    │    └── it should skip the settlementFeeUsdX18 check
     │    ├── when settlementFeeUsdX18 is greater than zero and if the already deducted settlement fee settlementFeeDeductedUsdX18 is less than the total settlementFeeUsdX18
