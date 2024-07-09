@@ -50,6 +50,8 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
     mapping(uint256 marketId => MarketConfig marketConfig) internal marketsConfig;
     /// @notice Market order keepers contracts mapped by market id.
     mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
+    /// @notice Signed orders keepers addresses mapped by market id.
+    mapping(uint256 marketId => address keeper) internal signedOrdersKeepers;
 
     /// @notice General perps engine system configuration parameters.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
@@ -294,7 +296,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                 marketsConfig[i].marketId, deployer, perpsEngine, marketOrderKeeperImplementation
             );
 
-            SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+            SettlementConfiguration.DataStreamsStrategy memory settlementConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
@@ -302,11 +304,15 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
                 keeper: marketOrderKeeper,
-                data: abi.encode(marketOrderConfigurationData)
+                data: abi.encode(settlementConfigurationData)
             });
 
-            // TODO: update to API orderbook config
-            SettlementConfiguration.Data[] memory signedOrdersConfiguration;
+            SettlementConfiguration.Data[] memory signedOrdersConfiguration = SettlementConfiguration.Data({
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_OFFCHAIN,
+                isEnabled: true,
+                keeper: signedOrdersKeeper,
+                data: abi.encode(settlementConfigurationData)
+            });
 
             // update stored price adapter at tests
             address priceAdapter = isTest

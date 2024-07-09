@@ -12,7 +12,8 @@ contract FillSignedOrders_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function test_RevertWhen_OneOfTheTradingAccountsDoesNotExist() external {
+    function testFuzz_RevertWhen_OneOfTheTradingAccountsDoesNotExist(uint256 marketId) external {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         // it should revert
     }
 

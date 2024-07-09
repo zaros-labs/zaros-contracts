@@ -181,6 +181,7 @@ contract SettlementBranch is EIP712Upgradeable {
                 }
             }
 
+            // TODO: verify target price
             _fillOrder(
                 ctx.signedOrder.tradingAccountId,
                 marketId,
