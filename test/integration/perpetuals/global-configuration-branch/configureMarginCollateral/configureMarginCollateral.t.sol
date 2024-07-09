@@ -38,7 +38,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidMarginCollateralConfiguration.selector, address(collateralWithNoDecimals), 0, priceFeed
-            )
+                )
         });
 
         perpsEngine.configureMarginCollateral(
@@ -52,7 +52,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidMarginCollateralConfiguration.selector, address(collateralWithZeroDecimals), 0, priceFeed
-            )
+                )
         });
 
         perpsEngine.configureMarginCollateral(
@@ -83,7 +83,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidMarginCollateralConfiguration.selector, address(collateral), decimals, priceFeed
-            )
+                )
         });
 
         perpsEngine.configureMarginCollateral(
@@ -121,7 +121,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
                 address(collateral),
                 Constants.SYSTEM_DECIMALS,
                 priceFeed
-            )
+                )
         });
 
         perpsEngine.configureMarginCollateral(
@@ -160,7 +160,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
                 address(collateral),
                 Constants.SYSTEM_DECIMALS,
                 priceFeed
-            )
+                )
         });
 
         perpsEngine.configureMarginCollateral(address(collateral), depositCap, loanToValue, priceFeed, 0);

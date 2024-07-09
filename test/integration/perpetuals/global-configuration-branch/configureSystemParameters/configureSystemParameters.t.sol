@@ -171,9 +171,11 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_LiquidationFeeRecipientIsZero(uint128 maxPositionsPerAccount,
+    function test_RevertWhen_LiquidationFeeRecipientIsZero(
+        uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
-        uint128 liquidationFeeUsdX18)
+        uint128 liquidationFeeUsdX18
+    )
         external
         whenMaxPositionsPerAccountIsNotZero
         whenLiquidationFeeIsNotZero

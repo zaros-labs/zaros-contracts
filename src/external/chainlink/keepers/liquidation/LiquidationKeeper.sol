@@ -23,13 +23,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
     }
 
     /// @notice {LiquidationKeeper} UUPS initializer.
-    function initialize(
-        address owner,
-        IPerpsEngine perpsEngine
-    )
-        external
-        initializer
-    {
+    function initialize(address owner, IPerpsEngine perpsEngine) external initializer {
         __BaseKeeper_init(owner);
 
         if (address(perpsEngine) == address(0)) {
@@ -40,11 +34,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         self.perpsEngine = perpsEngine;
     }
 
-    function getConfig()
-        external
-        view
-        returns (address keeperOwner, address perpsEngine)
-    {
+    function getConfig() external view returns (address keeperOwner, address perpsEngine) {
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
 
         keeperOwner = owner();
