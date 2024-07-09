@@ -105,8 +105,7 @@ contract SettlementBranch is EIP712Upgradeable {
         address keeper = settlementConfiguration.keeper;
 
         if (marketId != marketOrder.marketId) {
-            // Thrown when the selected market id mismatch with marder order market id
-            revert Errors.MarketOrderMarketIdMismatch(marketId, marketOrder.marketId);
+            revert Errors.OrderMarketIdMismatch(marketId, marketOrder.marketId);
         }
 
         _requireIsKeeper(msg.sender, keeper);
@@ -136,6 +135,7 @@ contract SettlementBranch is EIP712Upgradeable {
         bytes32 structHash;
         bytes32 hash;
         address signer;
+        UD60x18 fillPriceX18;
     }
 
     /// @param marketId The perp market id.
@@ -153,9 +153,17 @@ contract SettlementBranch is EIP712Upgradeable {
     {
         FillSignedOrders_Context memory ctx;
 
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
         for (uint256 i = 0; i < signedOrders.length; i++) {
             ctx.signedOrder = signedOrders[i];
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.signedOrder.tradingAccountId);
+
+            if (marketId != ctx.signedOrder.marketId) {
+                revert Errors.OrderMarketIdMismatch(marketId, ctx.signedOrder.marketId);
+            }
 
             if (ctx.signedOrder.nonce != tradingAccount.nonce) {
                 revert Errors.InvalidSignedNonce(ctx.signedOrder.tradingAccountId, ctx.signedOrder.nonce);
@@ -166,7 +174,7 @@ contract SettlementBranch is EIP712Upgradeable {
                 abi.encode(
                     Constants.CREATE_SIGNED_ORDER_TYPEHASH,
                     ctx.signedOrder.tradingAccountId,
-                    marketId,
+                    ctx.signedOrder.marketId,
                     settlementConfigurationId,
                     ctx.signedOrder.sizeDelta,
                     ctx.signedOrder.targetPrice,
@@ -187,13 +195,18 @@ contract SettlementBranch is EIP712Upgradeable {
                 }
             }
 
-            // _fillOrder(
-            //     ctx.signedOrder.tradingAccountId,
-            //     marketId,
-            //     settlementConfigurationId,
-            //     ctx.signedOrder.sizeDelta,
-            //     priceData
-            // );
+            ctx.fillPriceX18 = perpMarket.getMarkPrice(
+                sd59x18(ctx.signedOrder.sizeDelta),
+                settlementConfiguration.verifyOffchainPrice(priceData, ctx.signedOrder.sizeDelta > 0)
+            );
+
+            _fillOrder(
+                ctx.signedOrder.tradingAccountId,
+                marketId,
+                settlementConfigurationId,
+                ctx.signedOrder.sizeDelta,
+                ctx.fillPriceX18
+            );
         }
     }
 

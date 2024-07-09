@@ -388,7 +388,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.MarketOrderMarketIdMismatch.selector, BTC_USD_MARKET_ID, ETH_USD_MARKET_ID)
+            abi.encodeWithSelector(Errors.OrderMarketIdMismatch.selector, BTC_USD_MARKET_ID, ETH_USD_MARKET_ID)
         );
 
         // 1) gets executed afterwards - the keeper is calling this
