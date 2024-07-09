@@ -247,9 +247,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function configureLiquidationKeepers() internal {
         changePrank({ msgSender: users.owner });
-        liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner, address(perpsEngine)
-        );
+        liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);

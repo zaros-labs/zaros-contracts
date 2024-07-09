@@ -32,9 +32,8 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     function test_RevertWhen_IAmNotTheOwner() external givenInitializeContract givenCallSetConfigFunction {
         changePrank({ msgSender: users.naruto });
 
-        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner, address(perpsEngine)
-        );
+        address liquidationKeeper =
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
 
         // it should revert
         vm.expectRevert({
@@ -51,9 +50,8 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     function test_WhenIAmTheOwner() external givenInitializeContract givenCallSetConfigFunction whenIAmTheOwner {
         changePrank({ msgSender: users.owner });
 
-        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner, address(perpsEngine)
-        );
+        address liquidationKeeper =
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
 
         LiquidationKeeper(liquidationKeeper).setConfig(address(perpsEngine));
 
@@ -74,9 +72,8 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: users.owner });
 
-        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner, address(perpsEngine)
-        );
+        address liquidationKeeper =
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
 
         address perpsEngine = address(0);
 
