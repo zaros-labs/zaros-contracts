@@ -1,24 +1,16 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
-import { MockERC20 } from "test/mocks/MockERC20.sol";
-import { TradingAccount } from "../../../../../src/perpetuals/leaves/TradingAccount.sol";
-import { GlobalConfiguration } from "../../../../../src/perpetuals/leaves/GlobalConfiguration.sol";
-import { FeeRecipients } from "../../../../../src/perpetuals/leaves/FeeRecipients.sol";
-import { Position } from "../../../../../src/perpetuals/leaves/Position.sol";
-import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
+
+import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 
-import { console } from "forge-std/console.sol";
-
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
-import { PRBMathCastingUint256 } from "@prb-math/casting/Uint256.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
     /// @dev usually the funciton is called if pnl is < 0
