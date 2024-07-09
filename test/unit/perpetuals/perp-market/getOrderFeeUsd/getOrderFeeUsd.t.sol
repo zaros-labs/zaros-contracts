@@ -24,9 +24,7 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_WhenSkewIsZero(uint256 marketId,
-        uint256 sizeDeltaAbs) external {
-
+    function testFuzz_WhenSkewIsZero(uint256 marketId, uint256 sizeDeltaAbs) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
