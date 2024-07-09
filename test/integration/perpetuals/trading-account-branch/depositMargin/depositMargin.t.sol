@@ -43,9 +43,8 @@ contract DepositMargin_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.DepositCap.selector, address(wstEth), amountToDepositMargin,
-    WSTETH_DEPOSIT_CAP_X18.intoUint128()
-            )
+                Errors.DepositCap.selector, address(wstEth), amountToDepositMargin, WSTETH_DEPOSIT_CAP_X18.intoUint128()
+                )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDepositMargin);
@@ -88,15 +87,22 @@ contract DepositMargin_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.DepositCap.selector, address(usdc), convertTokenAmountToUd60x18(address(usdc), amountToDepositMarginUsdc), USDC_DEPOSIT_CAP_X18.intoUint256()
-            )
+                Errors.DepositCap.selector,
+                address(usdc),
+                convertTokenAmountToUd60x18(address(usdc), amountToDepositMarginUsdc),
+                USDC_DEPOSIT_CAP_X18.intoUint256()
+                )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDepositMarginUsdc);
 
         // scenario: the collateral type has insufficient deposit cap
 
-        amountToDeposit = bound({ x: amountToDeposit, min: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18), max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) });
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18),
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
         deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
 
         changePrank({ msgSender: users.owner });
@@ -111,7 +117,9 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.DepositCap.selector, address(usdc), convertTokenAmountToUd60x18(address(usdc), amountToDeposit), 0)
+            revertData: abi.encodeWithSelector(
+                Errors.DepositCap.selector, address(usdc), convertTokenAmountToUd60x18(address(usdc), amountToDeposit), 0
+                )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);

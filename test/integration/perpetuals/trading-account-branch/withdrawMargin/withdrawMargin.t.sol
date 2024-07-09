@@ -116,7 +116,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InsufficientCollateralBalance.selector, amountToWithdraw, expectedMarginCollateralBalance
-            )
+                )
         });
         perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
     }
@@ -223,7 +223,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
                     - ctx.settlementFeeUsdX18.intoSD59x18().intoInt256(),
                 ctx.requiredInitialMarginUsdX18,
                 0
-            )
+                )
         });
 
         changePrank({ msgSender: users.naruto });

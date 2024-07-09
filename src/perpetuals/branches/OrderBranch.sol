@@ -219,19 +219,24 @@ contract OrderBranch {
 
         CreateMarketOrderContext memory ctx;
 
-        (ctx.marginBalanceUsdX18, ctx.requiredInitialMarginUsdX18, ctx.requiredMaintenanceMarginUsdX18, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) =
-        simulateTrade({
+        (
+            ctx.marginBalanceUsdX18,
+            ctx.requiredInitialMarginUsdX18,
+            ctx.requiredMaintenanceMarginUsdX18,
+            ctx.orderFeeUsdX18,
+            ctx.settlementFeeUsdX18,
+        ) = simulateTrade({
             tradingAccountId: params.tradingAccountId,
             marketId: params.marketId,
             settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             sizeDelta: params.sizeDelta
         });
 
-        ctx.shouldUseMaintenanceMargin =
-                !Position.isIncreasingPosition(params.tradingAccountId, params.marketId, params.sizeDelta) && position.size != 0;
+        ctx.shouldUseMaintenanceMargin = !Position.isIncreasingPosition(params.tradingAccountId, params.marketId, params.sizeDelta)
+            && position.size != 0;
 
-            ctx.requiredMarginUsdX18 =
-                ctx.shouldUseMaintenanceMargin ? ctx.requiredMaintenanceMarginUsdX18 : ctx.requiredInitialMarginUsdX18;
+        ctx.requiredMarginUsdX18 =
+            ctx.shouldUseMaintenanceMargin ? ctx.requiredMaintenanceMarginUsdX18 : ctx.requiredInitialMarginUsdX18;
 
         tradingAccount.validateMarginRequirement(
             ctx.requiredInitialMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
