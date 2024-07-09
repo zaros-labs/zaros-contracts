@@ -33,7 +33,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
             streamId: fuzzMarketConfig.streamId
         });
         SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_OFFCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: false,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
@@ -67,7 +67,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
             streamId: fuzzMarketConfig.streamId
         });
         SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_OFFCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: false,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
@@ -98,7 +98,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
             streamId: fuzzMarketConfig.streamId
         });
         SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: false,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
@@ -107,7 +107,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
 
         perpsEngine.updateSettlementConfiguration(
             fuzzMarketConfig.marketId,
-            SettlementConfiguration.OFFCHAIN_ORDER_CONFIGURATION_ID,
+            SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
             newSettlementConfiguration
         );
     }
@@ -126,7 +126,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
             streamId: fuzzMarketConfig.streamId
         });
         SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: false,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
@@ -161,7 +161,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
             streamId: fuzzMarketConfig.streamId
         });
         SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_OFFCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: false,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
@@ -171,13 +171,13 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         // it should emit {LogUpdateSettlementConfiguration} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogUpdateSettlementConfiguration(
-            users.owner, fuzzMarketConfig.marketId, SettlementConfiguration.OFFCHAIN_ORDER_CONFIGURATION_ID
+            users.owner, fuzzMarketConfig.marketId, SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID
         );
 
         // it should update
         perpsEngine.updateSettlementConfiguration(
             uint128(fuzzMarketConfig.marketId),
-            SettlementConfiguration.OFFCHAIN_ORDER_CONFIGURATION_ID,
+            SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
             newSettlementConfiguration
         );
     }

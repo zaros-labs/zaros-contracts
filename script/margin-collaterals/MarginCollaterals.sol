@@ -15,7 +15,7 @@ import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
-contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
+abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     struct MarginCollateral {
         string name;
         string symbol;

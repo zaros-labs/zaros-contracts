@@ -43,7 +43,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
         console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
 
         for (uint256 i; i < filteredMarketsConfig.length; i++) {
-            SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+            SettlementConfiguration.DataStreamsStrategy memory orderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: filteredMarketsConfig[i].streamId });
 
             address marketOrderKeeper = deployMarketOrderKeeper(
@@ -58,14 +58,20 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
             );
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
                 keeper: marketOrderKeeper,
-                data: abi.encode(marketOrderConfigurationData)
+                data: abi.encode(orderConfigurationData)
             });
 
-            SettlementConfiguration.Data[] memory signedOrdersConfigurations;
+            SettlementConfiguration.Data memory signedOrdersConfiguration = SettlementConfiguration.Data({
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
+                isEnabled: true,
+                fee: DEFAULT_SETTLEMENT_FEE,
+                keeper: SIGNED_ORDERS_KEEPER_ADDRESS,
+                data: abi.encode(orderConfigurationData)
+            });
 
             perpsEngine.createPerpMarket({
                 params: GlobalConfigurationBranch.CreatePerpMarketParams({
@@ -81,7 +87,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                     minTradeSizeX18: filteredMarketsConfig[i].minTradeSize,
                     skewScale: filteredMarketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
-                    signedOrdersConfiguration: signedOrdersConfigurations,
+                    signedOrdersConfiguration: signedOrdersConfiguration,
                     orderFees: filteredMarketsConfig[i].orderFees,
                     priceFeedHeartbeatSeconds: filteredMarketsConfig[i].priceFeedHeartbeatSeconds
                 })

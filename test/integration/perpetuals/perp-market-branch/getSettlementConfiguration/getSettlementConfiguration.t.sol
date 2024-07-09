@@ -29,7 +29,7 @@ contract GetSettlementConfiguration_Integration_Test is Base_Test {
         });
 
         SettlementConfiguration.Data memory expectedMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],

@@ -243,7 +243,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             streamId: fuzzMarketConfig.streamId
         });
         SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: false,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
@@ -321,7 +321,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
             .DataStreamsStrategy({ chainlinkVerifier: IVerifierProxy(address(1)), streamId: fuzzMarketConfig.streamId });
         SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],

@@ -201,7 +201,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             .DataStreamsStrategy({ chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier), streamId: BTC_USD_STREAM_ID });
 
         SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: false,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[BTC_USD_MARKET_ID],

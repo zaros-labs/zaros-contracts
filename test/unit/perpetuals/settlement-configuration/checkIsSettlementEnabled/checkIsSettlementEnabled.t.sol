@@ -19,7 +19,7 @@ contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: false,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],

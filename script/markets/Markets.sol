@@ -13,6 +13,9 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
+// Forge dependencies
+import { StdCheats, StdUtils } from "forge-std/Test.sol";
+
 // Markets
 import { BtcUsd } from "./BtcUsd.sol";
 import { EthUsd } from "./EthUsd.sol";
@@ -25,7 +28,20 @@ import { MaticUsd } from "./MaticUsd.sol";
 import { LtcUsd } from "./LtcUsd.sol";
 import { FtmUsd } from "./FtmUsd.sol";
 
-contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, MaticUsd, LtcUsd, FtmUsd {
+abstract contract Markets is
+    StdCheats,
+    StdUtils,
+    BtcUsd,
+    EthUsd,
+    LinkUsd,
+    ArbUsd,
+    BnbUsd,
+    DogeUsd,
+    SolUsd,
+    MaticUsd,
+    LtcUsd,
+    FtmUsd
+{
     struct MarketConfig {
         uint128 marketId;
         string marketName;
@@ -51,7 +67,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
     /// @notice Market order keepers contracts mapped by market id.
     mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
     /// @notice Signed orders keepers addresses mapped by market id.
-    mapping(uint256 marketId => address keeper) internal signedOrdersKeepers;
+    address internal signedOrdersKeeper = makeAddr("Signed Orders Keeper");
 
     /// @notice General perps engine system configuration parameters.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
@@ -300,16 +316,17 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
                 keeper: marketOrderKeeper,
                 data: abi.encode(settlementConfigurationData)
             });
 
-            SettlementConfiguration.Data[] memory signedOrdersConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_OFFCHAIN,
+            SettlementConfiguration.Data memory signedOrdersConfiguration = SettlementConfiguration.Data({
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
                 isEnabled: true,
+                fee: DEFAULT_SETTLEMENT_FEE,
                 keeper: signedOrdersKeeper,
                 data: abi.encode(settlementConfigurationData)
             });

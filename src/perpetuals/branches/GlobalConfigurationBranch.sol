@@ -340,8 +340,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param maxFundingVelocity The perps market maximum funding rate velocity.
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
-    /// @param marketOrderConfiguration The perps market settlement configuration.
+    /// @param marketOrderConfiguration The market order settlement configuration of the given perp market.
+    /// @param signedOrdersConfiguration The signed orders settlement configuration of the given perp market.
     /// @param orderFees The perps market maker and taker fees.
+    /// @param priceFeedHeartbeatSeconds The number of seconds between CL price feed updates.
     struct CreatePerpMarketParams {
         uint128 marketId;
         string name;
@@ -355,7 +357,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 minTradeSizeX18;
         uint256 skewScale;
         SettlementConfiguration.Data marketOrderConfiguration;
-        SettlementConfiguration.Data[] signedOrdersConfiguration;
+        SettlementConfiguration.Data signedOrdersConfiguration;
         OrderFees.Data orderFees;
         uint32 priceFeedHeartbeatSeconds;
     }

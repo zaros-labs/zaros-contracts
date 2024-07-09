@@ -26,16 +26,13 @@ library SettlementConfiguration {
     /// @notice The default strategy id for a given market's onchain market orders settlementConfiguration.
     uint128 internal constant MARKET_ORDER_CONFIGURATION_ID = 0;
     /// @notice The default strategy id for a given market's offchain orders settlementConfiguration.
-    uint128 internal constant OFFCHAIN_ORDER_CONFIGURATION_ID = 1;
+    uint128 internal constant SIGNED_ORDERS_CONFIGURATION_ID = 1;
 
     /// @notice Supported settlement strategies.
-    /// @param DATA_STREAMS_ONCHAIN The strategy ID that uses basic or premium reports from CL Data Streams to
-    /// fill onchain orders.
-    /// @param DATA_STREAMS_OFFCHAIN The strategy ID that uses basic or premium reports from CL Data Streams to
-    /// fill offchain orders.
+    /// @param DATA_STREAMS_DEFAULT The strategy id that uses default Chainlink Data Streams feeds to settle orders.
+    /// @dev In the future we'll support RWA feeds and other types of settlement strategies.
     enum Strategy {
-        DATA_STREAMS_ONCHAIN,
-        DATA_STREAMS_OFFCHAIN
+        DATA_STREAMS_DEFAULT
     }
 
     /// @notice {SettlementConfiguration} namespace storage structure.
@@ -76,17 +73,19 @@ library SettlementConfiguration {
         }
     }
 
-    /// @notice Checks during a perp market creation if the provided settlement strategy is compatible.
+    /// @notice Checks during a perp market creation if the provided settlement strategy and ids are valid.
     /// @param settlementConfigurationId The settlement configuration id.
     /// @param strategy The strategy to check.
     function checkIsValidSettlementStrategy(uint128 settlementConfigurationId, Strategy strategy) internal pure {
-        if (settlementConfigurationId == MARKET_ORDER_CONFIGURATION_ID && strategy != Strategy.DATA_STREAMS_ONCHAIN) {
-            revert Errors.InvalidSettlementStrategy();
-        } else if (
-            settlementConfigurationId == OFFCHAIN_ORDER_CONFIGURATION_ID && strategy != Strategy.DATA_STREAMS_OFFCHAIN
-        ) {
-            revert Errors.InvalidSettlementStrategy();
-        }
+        // if (settlementConfigurationId == MARKET_ORDER_CONFIGURATION_ID && strategy !=
+        // Strategy.DATA_STREAMS_ONCHAIN) {
+        //     revert Errors.InvalidSettlementStrategy();
+        // } else if (
+        //     settlementConfigurationId == OFFCHAIN_ORDER_CONFIGURATION_ID && strategy !=
+        // Strategy.DATA_STREAMS_OFFCHAIN
+        // ) {
+        //     revert Errors.InvalidSettlementStrategy();
+        // } else if
     }
 
     /// @notice Checks if the configured settlement strategy is enabled to proceed with execution.
@@ -163,7 +162,7 @@ library SettlementConfiguration {
         internal
         returns (UD60x18 price)
     {
-        if (self.strategy == Strategy.DATA_STREAMS_ONCHAIN || self.strategy == Strategy.DATA_STREAMS_OFFCHAIN) {
+        if (self.strategy == Strategy.DATA_STREAMS_DEFAULT || self.strategy == Strategy.DATA_STREAMS_DEFAULT) {
             DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
             bytes memory verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, priceData);
 
