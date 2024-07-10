@@ -20,18 +20,18 @@ contract FillSignedOrders_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_ThePriceReportIsNotValid() external givenTheSenderIsTheKeeper {
+    function test_RevertWhen_ThePriceDataIsNotValid() external givenTheSenderIsTheKeeper {
         // it should revert
     }
 
-    modifier whenThePriceReportIsValid() {
+    modifier whenThePriceDataIsValid() {
         _;
     }
 
     function test_RevertWhen_ASignedOrdersSizeDeltaIsZero()
         external
         givenTheSenderIsTheKeeper
-        whenThePriceReportIsValid
+        whenThePriceDataIsValid
     {
         // it should revert
     }
@@ -43,7 +43,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
     function test_RevertWhen_OneOfTheTradingAccountsDoesNotExist()
         external
         givenTheSenderIsTheKeeper
-        whenThePriceReportIsValid
+        whenThePriceDataIsValid
         whenAllSignedOrdersHaveAValidSizeDelta
     {
         // it should revert
@@ -56,7 +56,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
     function test_RevertWhen_ASignedOrdersMarketIdIsNotEqualToTheProvidedMarketId()
         external
         givenTheSenderIsTheKeeper
-        whenThePriceReportIsValid
+        whenThePriceDataIsValid
         whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
     {
@@ -70,7 +70,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
     function test_RevertWhen_ASignedOrdersNonceIsNotEqualToTheTradingAccountsNonce()
         external
         givenTheSenderIsTheKeeper
-        whenThePriceReportIsValid
+        whenThePriceDataIsValid
         whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
         whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
@@ -85,7 +85,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
     function test_RevertWhen_TheSignedOrdersSignatureCantBeDecoded()
         external
         givenTheSenderIsTheKeeper
-        whenThePriceReportIsValid
+        whenThePriceDataIsValid
         whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
         whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
@@ -101,7 +101,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
     function test_RevertGiven_TheOrdersSignerIsNotTheTradingAccountOwner()
         external
         givenTheSenderIsTheKeeper
-        whenThePriceReportIsValid
+        whenThePriceDataIsValid
         whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
         whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
@@ -118,7 +118,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
     function test_WhenASignedOrdersTargetPriceCantBeMatchedWithItsFillPrice()
         external
         givenTheSenderIsTheKeeper
-        whenThePriceReportIsValid
+        whenThePriceDataIsValid
         whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
         whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
@@ -136,7 +136,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
     function test_WhenTheSignedOrderShouldIncreaseTheNonce()
         external
         givenTheSenderIsTheKeeper
-        whenThePriceReportIsValid
+        whenThePriceDataIsValid
         whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
         whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
@@ -152,7 +152,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
     function test_WhenTheSignedOrderShouldntIncreaseTheNonce()
         external
         givenTheSenderIsTheKeeper
-        whenThePriceReportIsValid
+        whenThePriceDataIsValid
         whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
         whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
