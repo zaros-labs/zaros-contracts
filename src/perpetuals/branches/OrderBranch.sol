@@ -142,7 +142,12 @@ contract OrderBranch {
     )
         external
         view
-        returns (UD60x18 initialMarginUsdX18, UD60x18 maintenanceMarginUsdX18, UD60x18 orderFeeUsdX18, UD60x18 settlementFeeUsdX18)
+        returns (
+            UD60x18 initialMarginUsdX18,
+            UD60x18 maintenanceMarginUsdX18,
+            UD60x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18
+        )
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
@@ -155,8 +160,7 @@ contract OrderBranch {
 
         initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.initialMarginRateX18));
 
-        maintenanceMarginUsdX18 =
-            orderValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
+        maintenanceMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
 
         orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), markPriceX18);
 
