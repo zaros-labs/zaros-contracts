@@ -9,7 +9,10 @@ library SignedOrder {
     /// @param targetPrice The minimum or maximum price of the signed order.
     /// @param nonce The signed index used to verify whether a given order is still valid or not.
     /// @param shouldIncreaseNonce Whether the trading account's nonce should be incremented or not.
-    /// @param signature The EIP-712 encoded signature.
+    /// @param salt A random 32 bytes value generated and signed offchain to distinguish a signed order.
+    /// @param v ECDSA signature recovery id.
+    /// @param r ECDSA signature output.
+    /// @param s ECDSA signature output.
     struct Data {
         uint128 tradingAccountId;
         uint128 marketId;
@@ -17,6 +20,9 @@ library SignedOrder {
         uint128 targetPrice;
         uint120 nonce;
         bool shouldIncreaseNonce;
-        bytes signature;
+        bytes32 salt;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
     }
 }

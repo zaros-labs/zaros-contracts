@@ -109,8 +109,11 @@ library Errors {
     error OnlyKeeper(address sender, address keeper);
     /// @notice Thrown when the signed `nonce` of a given order is not equal to the trading account's current nonce.
     error InvalidSignedNonce(uint128 tradingAccountId, uint120 nonce);
+    /// @notice Thrown when an order signed by the `tradingAccountId` owner using the given `salt` has already been
+    /// filled.
+    error OrderAlreadyFilled(uint128 tradingAccountId, bytes32 salt);
     /// @notice Thrown when the provided ECDSA signature of a signed order is invalid.
-    error InvalidSignedOrderSignature(address signer, address expectedSigner);
+    error InvalidOrderSignature(address signer, address expectedSigner);
 
     /// @notice PerpsEngine.PerpMarketBranch errors.
 

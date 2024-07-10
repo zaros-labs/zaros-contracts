@@ -324,7 +324,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
-            keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
+            keeper: marketOrderKeeper,
             data: abi.encode(marketOrderConfigurationData)
         });
 

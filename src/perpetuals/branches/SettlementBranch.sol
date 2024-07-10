@@ -85,7 +85,7 @@ contract SettlementBranch is EIP712Upgradeable {
 
     /// @dev {SettlementBranch}  UUPS initializer.
     function initialize() external initializer {
-        __EIP712_init("Zaros Perpetuals DEX: Settlement", "1");
+        __EIP712_init(Constants.SETTLEMENT_BRANCH_DOMAIN_NAME, Constants.SETTLEMENT_BRANCH_DOMAIN_VERSION);
     }
 
     struct FillMarketOrder_Context {
@@ -97,6 +97,7 @@ contract SettlementBranch is EIP712Upgradeable {
         UD60x18 fillPriceX18;
     }
 
+    /// @notice Fills a pending market order created by the given trading account id at a given market id.
     /// @param tradingAccountId The trading account id.
     /// @param marketId The perp market id.
     /// @param priceData The price data of market order.
@@ -150,9 +151,6 @@ contract SettlementBranch is EIP712Upgradeable {
         UD60x18 askX18;
         uint256 cachedSignedOrdersLength;
         SignedOrder.Data signedOrder;
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
         bytes32 structHash;
         bytes32 hash;
         address signer;
@@ -162,6 +160,9 @@ contract SettlementBranch is EIP712Upgradeable {
         bool isFillPriceValid;
     }
 
+    /// @notice Fills pending, eligible offchain signed orders targeting the given market id.
+    /// @dev If a trading account id owner transfers their account to another address, all signed orders will be
+    /// considered cancelled.
     /// @param marketId The perp market id.
     /// @param signedOrders The array of signed custom orders.
     /// @param priceData The price data of custom orders.
@@ -197,13 +198,15 @@ contract SettlementBranch is EIP712Upgradeable {
                 revert Errors.OrderMarketIdMismatch(marketId, ctx.signedOrder.marketId);
             }
 
-            // check if the nonce is valid, in order to prevent replay attacks depending on the signed order type
+            // First we c heck if the nonce is valid, as a first measure to protect from replay attacks, according to
+            // the signed order's type (each type may have its own business logic).
             // e.g TP/SL must increase the nonce in order to prevent older limit orders from being filled.
+            // NOTE: Since the nonce isn't always increased, we also need to store the typed data hash containing the
+            // 256 bits salt value to fully prevent replay attacks.
             if (ctx.signedOrder.nonce != tradingAccount.nonce) {
                 revert Errors.InvalidSignedNonce(ctx.signedOrder.tradingAccountId, ctx.signedOrder.nonce);
             }
 
-            (ctx.v, ctx.r, ctx.s) = abi.decode(ctx.signedOrder.signature, (uint8, bytes32, bytes32));
             ctx.structHash = keccak256(
                 abi.encode(
                     Constants.CREATE_SIGNED_ORDER_TYPEHASH,
@@ -212,17 +215,27 @@ contract SettlementBranch is EIP712Upgradeable {
                     SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
                     ctx.signedOrder.sizeDelta,
                     ctx.signedOrder.targetPrice,
-                    ctx.signedOrder.shouldIncreaseNonce
+                    ctx.signedOrder.shouldIncreaseNonce,
+                    ctx.signedOrder.salt
                 )
             );
-
-            // EIP-712 typed data default hashing and signature verification
             ctx.hash = _hashTypedDataV4(ctx.structHash);
-            ctx.signer = ECDSA.recover(ctx.hash, ctx.v, ctx.r, ctx.s);
+
+            // If the signed order has already been filled, revert.
+            // we store `ctx.hash`, and expect each order signed by the user to provide a unique salt so that filled
+            // orders can't be replayed regardless of the account's nonce.
+            if (tradingAccount.hasSignedOrderBeenFilled[ctx.hash]) {
+                revert Errors.OrderAlreadyFilled(ctx.signedOrder.tradingAccountId, ctx.signedOrder.salt);
+            }
+
+            // `ecrecover`s the order signer.
+            ctx.signer = ECDSA.recover(ctx.hash, ctx.signedOrder.v, ctx.signedOrder.r, ctx.signedOrder.s);
 
             // ensure the signer is the owner of the trading account, otherwise revert.
+            // NOTE: If an account's owner transfers to another address, this will fail. Therefore, clients must
+            // cancel all users offchain orders in that scenario.
             if (ctx.signer != tradingAccount.owner) {
-                revert Errors.InvalidSignedOrderSignature(ctx.signer, tradingAccount.owner);
+                revert Errors.InvalidOrderSignature(ctx.signer, tradingAccount.owner);
             }
 
             // cache the order side
@@ -254,8 +267,10 @@ contract SettlementBranch is EIP712Upgradeable {
                     tradingAccount.nonce++;
                 }
             }
+            // mark the signed order as filled.
+            tradingAccount.hasSignedOrderBeenFilled[ctx.hash] = true;
 
-            // fills the signed order.
+            // fill the signed order.
             _fillOrder(
                 ctx.signedOrder.tradingAccountId,
                 marketId,
