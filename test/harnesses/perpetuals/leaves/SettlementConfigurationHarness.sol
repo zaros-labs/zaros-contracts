@@ -25,17 +25,6 @@ contract SettlementConfigurationHarness {
         SettlementConfiguration.checkIsSettlementEnabled(self);
     }
 
-    // function exposed_getDataStreamsReportPrice(
-    //     bytes memory verifiedPriceData,
-    //     bool isBuyOrder
-    // )
-    //     external
-    //     pure
-    //     returns (UD60x18 price)
-    // {
-    //     return SettlementConfiguration.getDataStreamsReportPrice(verifiedPriceData, isBuyOrder);
-    // }
-
     function exposed_requireDataStreamsReportIsVaid(bytes32 streamId, bytes memory verifiedPriceData) external pure {
         SettlementConfiguration.requireDataStreamsReportIsValid(streamId, verifiedPriceData);
     }

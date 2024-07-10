@@ -74,9 +74,9 @@ contract SettlementBranch is EIP712Upgradeable {
         _;
     }
 
-    modifier onlySignedOrderKeeper(uint128 marketId, uint128 settlementConfigurationId) {
+    modifier onlySignedOrdersKeeper(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementConfigurationId);
+            SettlementConfiguration.load(marketId, SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID);
         address keeper = settlementConfiguration.keeper;
 
         _requireIsKeeper(msg.sender, keeper);
@@ -86,6 +86,15 @@ contract SettlementBranch is EIP712Upgradeable {
     /// @dev {SettlementBranch}  UUPS initializer.
     function initialize() external initializer {
         __EIP712_init("Zaros Perpetuals DEX: Settlement", "1");
+    }
+
+    struct FillMarketOrder_Context {
+        UD60x18 bidX18;
+        UD60x18 askX18;
+        SD59x18 sizeDeltaX18;
+        bool isBuyOrder;
+        UD60x18 indexPriceX18;
+        UD60x18 fillPriceX18;
     }
 
     /// @param tradingAccountId The trading account id.
@@ -99,38 +108,38 @@ contract SettlementBranch is EIP712Upgradeable {
         external
         onlyMarketOrderKeeper(marketId)
     {
+        FillMarketOrder_Context memory ctx;
+
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
-        address keeper = settlementConfiguration.keeper;
-        SD59x18 sizeDeltaX18 = sd59x18(marketOrder.sizeDelta);
 
         if (marketId != marketOrder.marketId) {
             revert Errors.OrderMarketIdMismatch(marketId, marketOrder.marketId);
         }
 
-        _requireIsKeeper(msg.sender, keeper);
-
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-        (UD60x18 bidX18, UD60x18 askX18) = settlementConfiguration.verifyOffchainPrice(priceData);
+        (ctx.bidX18, ctx.askX18) = settlementConfiguration.verifyOffchainPrice(priceData);
 
-        // TODO: encapsulate this logic in a function
+        // cache the order's size delta
+        ctx.sizeDeltaX18 = sd59x18(marketOrder.sizeDelta);
+
         // cache the order side
-        bool isBuyOrder = sizeDeltaX18.gt(SD59x18_ZERO);
+        ctx.isBuyOrder = ctx.sizeDeltaX18.gt(SD59x18_ZERO);
         // if it's a buy order, we need to match against the ask price, if it's a sell order, we need to match
         // agaainst the bid price.
-        UD60x18 indexPriceX18 = isBuyOrder ? askX18 : bidX18;
+        ctx.indexPriceX18 = ctx.isBuyOrder ? ctx.askX18 : ctx.bidX18;
 
         // verify the provided price data against the verifier and ensure it's valid, then get the mark price
         // based on the returned index price.
-        UD60x18 fillPriceX18 = perpMarket.getMarkPrice(sizeDeltaX18, indexPriceX18);
+        ctx.fillPriceX18 = perpMarket.getMarkPrice(ctx.sizeDeltaX18, ctx.indexPriceX18);
 
         _fillOrder(
             tradingAccountId,
             marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            sizeDeltaX18,
-            fillPriceX18
+            ctx.sizeDeltaX18,
+            ctx.fillPriceX18
         );
 
         marketOrder.clear();
@@ -139,6 +148,7 @@ contract SettlementBranch is EIP712Upgradeable {
     struct FillSignedOrders_Context {
         UD60x18 bidX18;
         UD60x18 askX18;
+        uint256 cachedSignedOrdersLength;
         SignedOrder.Data signedOrder;
         uint8 v;
         bytes32 r;
@@ -153,17 +163,15 @@ contract SettlementBranch is EIP712Upgradeable {
     }
 
     /// @param marketId The perp market id.
-    /// @param settlementConfigurationId The perp market settlement configuration id being used.
     /// @param signedOrders The array of signed custom orders.
     /// @param priceData The price data of custom orders.
     function fillSignedOrders(
         uint128 marketId,
-        uint128 settlementConfigurationId,
         SignedOrder.Data[] calldata signedOrders,
         bytes calldata priceData
     )
         external
-        onlySignedOrderKeeper(marketId, settlementConfigurationId)
+        onlySignedOrdersKeeper(marketId)
     {
         FillSignedOrders_Context memory ctx;
 
@@ -173,7 +181,10 @@ contract SettlementBranch is EIP712Upgradeable {
 
         (ctx.bidX18, ctx.askX18) = settlementConfiguration.verifyOffchainPrice(priceData);
 
-        for (uint256 i = 0; i < signedOrders.length; i++) {
+        // gas savings
+        ctx.cachedSignedOrdersLength = signedOrders.length;
+
+        for (uint256 i = 0; i < ctx.cachedSignedOrdersLength; i++) {
             ctx.signedOrder = signedOrders[i];
 
             if (ctx.signedOrder.sizeDelta == 0) {
@@ -198,7 +209,7 @@ contract SettlementBranch is EIP712Upgradeable {
                     Constants.CREATE_SIGNED_ORDER_TYPEHASH,
                     ctx.signedOrder.tradingAccountId,
                     ctx.signedOrder.marketId,
-                    settlementConfigurationId,
+                    SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
                     ctx.signedOrder.sizeDelta,
                     ctx.signedOrder.targetPrice,
                     ctx.signedOrder.shouldIncreaseNonce
@@ -248,7 +259,7 @@ contract SettlementBranch is EIP712Upgradeable {
             _fillOrder(
                 ctx.signedOrder.tradingAccountId,
                 marketId,
-                settlementConfigurationId,
+                SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
                 sd59x18(ctx.signedOrder.sizeDelta),
                 ctx.fillPriceX18
             );
