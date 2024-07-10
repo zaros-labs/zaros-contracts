@@ -376,7 +376,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         whenAllOffchainOrdersTargetPriceCanBeMatchedWithItsFillPrice
     {
         // it should increase the trading account nonce
-        // it should fill the signed order
+        // it should fill the offchain order
     }
 
     function test_WhenTheOffchainOrderShouldntIncreaseTheNonce()
@@ -392,6 +392,6 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         whenAllOffchainOrdersTargetPriceCanBeMatchedWithItsFillPrice
     {
         // it should not increase the trading account nonce
-        // it should fill the signed order
+        // it should fill the offchain order
     }
 }

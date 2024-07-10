@@ -38,11 +38,11 @@ library TradingAccount {
 
     /// @notice {TradingAccount} namespace storage structure.
     /// @param id The trading account id.
-    /// @param nonce An incremental index used to validate signed orders signed offchain.
+    /// @param nonce An incremental index used to validate offchain orders signed offchain.
     /// @param owner The trading account owner.
     /// @param marginCollateralBalanceX18 The trading account margin collateral enumerable map.
     /// @param activeMarketsIds The trading account active markets ids enumerable set.
-    /// @param hasOffchainOrderBeenFilled A mapping to keep track of signed orders that have been filled, protecting
+    /// @param hasOffchainOrderBeenFilled A mapping to keep track of offchain orders that have been filled, protecting
     /// from replay attacks.
     struct Data {
         uint128 id;

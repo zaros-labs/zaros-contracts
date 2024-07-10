@@ -160,8 +160,8 @@ contract SettlementBranch is EIP712Upgradeable {
         bool isFillPriceValid;
     }
 
-    /// @notice Fills pending, eligible offchain signed orders targeting the given market id.
-    /// @dev If a trading account id owner transfers their account to another address, all signed orders will be
+    /// @notice Fills pending, eligible offchain offchain orders targeting the given market id.
+    /// @dev If a trading account id owner transfers their account to another address, all offchain orders will be
     /// considered cancelled.
     /// @param marketId The perp market id.
     /// @param offchainOrders The array of signed custom orders.
@@ -200,7 +200,7 @@ contract SettlementBranch is EIP712Upgradeable {
             }
 
             // First we check if the nonce is valid, as a first measure to protect from replay attacks, according to
-            // the signed order's type (each type may have its own business logic).
+            // the offchain order's type (each type may have its own business logic).
             // e.g TP/SL must increase the nonce in order to prevent older limit orders from being filled.
             // NOTE: Since the nonce isn't always increased, we also need to store the typed data hash containing the
             // 256 bits salt value to fully prevent replay attacks.
@@ -222,7 +222,7 @@ contract SettlementBranch is EIP712Upgradeable {
             );
             ctx.hash = _hashTypedDataV4(ctx.structHash);
 
-            // If the signed order has already been filled, revert.
+            // If the offchain order has already been filled, revert.
             // we store `ctx.hash`, and expect each order signed by the user to provide a unique salt so that filled
             // orders can't be replayed regardless of the account's nonce.
             if (tradingAccount.hasOffchainOrderBeenFilled[ctx.hash]) {
@@ -268,10 +268,10 @@ contract SettlementBranch is EIP712Upgradeable {
                     tradingAccount.nonce++;
                 }
             }
-            // mark the signed order as filled.
+            // mark the offchain order as filled.
             tradingAccount.hasOffchainOrderBeenFilled[ctx.hash] = true;
 
-            // fill the signed order.
+            // fill the offchain order.
             _fillOrder(
                 ctx.offchainOrder.tradingAccountId,
                 marketId,

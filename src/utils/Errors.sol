@@ -112,7 +112,7 @@ library Errors {
     /// @notice Thrown when an order signed by the `tradingAccountId` owner using the given `salt` has already been
     /// filled.
     error OrderAlreadyFilled(uint128 tradingAccountId, bytes32 salt);
-    /// @notice Thrown when the provided ECDSA signature of a signed order is invalid.
+    /// @notice Thrown when the provided ECDSA signature of a offchain order is invalid.
     error InvalidOrderSignature(address signer, address expectedSigner);
 
     /// @notice PerpsEngine.PerpMarketBranch errors.

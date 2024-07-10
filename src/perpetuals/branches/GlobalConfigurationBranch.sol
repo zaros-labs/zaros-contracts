@@ -341,7 +341,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param marketOrderConfiguration The market order settlement configuration of the given perp market.
-    /// @param offchainOrdersConfiguration The signed orders settlement configuration of the given perp market.
+    /// @param offchainOrdersConfiguration The offchain orders settlement configuration of the given perp market.
     /// @param orderFees The perps market maker and taker fees.
     /// @param priceFeedHeartbeatSeconds The number of seconds between CL price feed updates.
     struct CreatePerpMarketParams {

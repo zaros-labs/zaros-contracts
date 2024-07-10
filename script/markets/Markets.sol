@@ -67,8 +67,8 @@ abstract contract Markets is
     /// @notice Market order keepers contracts mapped by market id.
     mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
 
-    // TODO: Update to actual signed orders keeper address
-    /// @notice The address responsible by filling the offchain created signed orders.
+    // TODO: Update to actual offchain orders keeper address
+    /// @notice The address responsible by filling the offchain created offchain orders.
     address internal constant OFFCHAIN_ORDERS_KEEPER_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
     /// @notice General perps engine system configuration parameters.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";

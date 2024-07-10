@@ -35,7 +35,7 @@ contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test
         // it should revert
         vm.expectRevert({ revertData: Errors.SettlementDisabled.selector });
         // TODO: bound settlement configuration ids from the market order configuration id, up to the higher id
-        // available once signed orders are implemented
+        // available once offchain orders are implemented
         SettlementConfigurationHarness(address(perpsEngine)).exposed_checkIsSettlementEnabled(
             fuzzMarketConfig.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID
         );
