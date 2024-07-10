@@ -1,19 +1,34 @@
 FillSignedOrders_Integration_Test
-├── when one of the trading accounts does not exist
+├── given the sender is not the keeper
 │   └── it should revert
-└── when all trading accounts exist
-    ├── when a signed order's nonce is not equal to the trading account's nonce
+└── given the sender is the keeper
+    ├── when the price report is not valid
     │   └── it should revert
-    └── when all signed orders' nonce are equal to the trading account's nonces
-        ├── when the signed order's signature can't be decoded
+    └── when the price report is valid
+        ├── when a signed order's size delta is zero
         │   └── it should revert
-        └── when the signed order's signature can be decoded
-            ├── given the order's signer is not the trading account owner
+        └── when all signed orders have a valid size delta
+            ├── when one of the trading accounts does not exist
             │   └── it should revert
-            └── given the order's signer is the trading account owner
-                ├── when the signed order should increase the nonce
-                │   ├── it should increase the trading account nonce
-                │   └── it should fill the signed order
-                └── when the signed order shouldn't increase the nonce
-                    ├── it should not increase the trading account nonce
-                    └── it should fill the signed order
+            └── when all trading accounts exist
+                ├── when a signed order's market id is not equal to the provided market id
+                │   └── it should revert
+                └── when a signed order's market id is equal to the provided market id
+                    ├── when a signed order's nonce is not equal to the trading account's nonce
+                    │   └── it should revert
+                    └── when all signed orders' nonces are equal to the trading accounts' nonces
+                        ├── when the signed order's signature can't be decoded
+                        │   └── it should revert
+                        └── when the signed order's signature can be decoded
+                            ├── given the order's signer is not the trading account owner
+                            │   └── it should revert
+                            └── given the order's signer is the trading account owner
+                                ├── when a signed order's target price can't be matched with its fill price
+                                │   └── it should not fill that order
+                                └── when all signed orders target price can be matched with its fill price
+                                    ├── when the signed order should increase the nonce
+                                    │   ├── it should increase the trading account nonce
+                                    │   └── it should fill the signed order
+                                    └── when the signed order shouldn't increase the nonce
+                                        ├── it should not increase the trading account nonce
+                                        └── it should fill the signed order

@@ -12,8 +12,40 @@ contract FillSignedOrders_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto });
     }
 
-    function testFuzz_RevertWhen_OneOfTheTradingAccountsDoesNotExist(uint256 marketId) external {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+    function test_RevertGiven_TheSenderIsNotTheKeeper() external {
+        // it should revert
+    }
+
+    modifier givenTheSenderIsTheKeeper() {
+        _;
+    }
+
+    function test_RevertWhen_ThePriceReportIsNotValid() external givenTheSenderIsTheKeeper {
+        // it should revert
+    }
+
+    modifier whenThePriceReportIsValid() {
+        _;
+    }
+
+    function test_RevertWhen_ASignedOrdersSizeDeltaIsZero()
+        external
+        givenTheSenderIsTheKeeper
+        whenThePriceReportIsValid
+    {
+        // it should revert
+    }
+
+    modifier whenAllSignedOrdersHaveAValidSizeDelta() {
+        _;
+    }
+
+    function test_RevertWhen_OneOfTheTradingAccountsDoesNotExist()
+        external
+        givenTheSenderIsTheKeeper
+        whenThePriceReportIsValid
+        whenAllSignedOrdersHaveAValidSizeDelta
+    {
         // it should revert
     }
 
@@ -21,21 +53,43 @@ contract FillSignedOrders_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_ASignedOrdersNonceIsNotEqualToTheTradingAccountsNonce()
+    function test_RevertWhen_ASignedOrdersMarketIdIsNotEqualToTheProvidedMarketId()
         external
+        givenTheSenderIsTheKeeper
+        whenThePriceReportIsValid
+        whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
     {
         // it should revert
     }
 
-    modifier whenAllSignedOrdersNonceAreEqualToTheTradingAccountsNonces() {
+    modifier whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId() {
+        _;
+    }
+
+    function test_RevertWhen_ASignedOrdersNonceIsNotEqualToTheTradingAccountsNonce()
+        external
+        givenTheSenderIsTheKeeper
+        whenThePriceReportIsValid
+        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllTradingAccountsExist
+        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
+    {
+        // it should revert
+    }
+
+    modifier whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces() {
         _;
     }
 
     function test_RevertWhen_TheSignedOrdersSignatureCantBeDecoded()
         external
+        givenTheSenderIsTheKeeper
+        whenThePriceReportIsValid
+        whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenAllSignedOrdersNonceAreEqualToTheTradingAccountsNonces
+        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
     {
         // it should revert
     }
@@ -46,8 +100,12 @@ contract FillSignedOrders_Integration_Test is Base_Test {
 
     function test_RevertGiven_TheOrdersSignerIsNotTheTradingAccountOwner()
         external
+        givenTheSenderIsTheKeeper
+        whenThePriceReportIsValid
+        whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenAllSignedOrdersNonceAreEqualToTheTradingAccountsNonces
+        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
         whenTheSignedOrdersSignatureCanBeDecoded
     {
         // it should revert
@@ -57,12 +115,35 @@ contract FillSignedOrders_Integration_Test is Base_Test {
         _;
     }
 
-    function test_WhenTheSignedOrderShouldIncreaseTheNonce()
+    function test_WhenASignedOrdersTargetPriceCantBeMatchedWithItsFillPrice()
         external
+        givenTheSenderIsTheKeeper
+        whenThePriceReportIsValid
+        whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenAllSignedOrdersNonceAreEqualToTheTradingAccountsNonces
+        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
         whenTheSignedOrdersSignatureCanBeDecoded
         givenTheOrdersSignerIsTheTradingAccountOwner
+    {
+        // it should not fill that order
+    }
+
+    modifier whenAllSignedOrdersTargetPriceCanBeMatchedWithItsFillPrice() {
+        _;
+    }
+
+    function test_WhenTheSignedOrderShouldIncreaseTheNonce()
+        external
+        givenTheSenderIsTheKeeper
+        whenThePriceReportIsValid
+        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllTradingAccountsExist
+        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
+        whenTheSignedOrdersSignatureCanBeDecoded
+        givenTheOrdersSignerIsTheTradingAccountOwner
+        whenAllSignedOrdersTargetPriceCanBeMatchedWithItsFillPrice
     {
         // it should increase the trading account nonce
         // it should fill the signed order
@@ -70,10 +151,15 @@ contract FillSignedOrders_Integration_Test is Base_Test {
 
     function test_WhenTheSignedOrderShouldntIncreaseTheNonce()
         external
+        givenTheSenderIsTheKeeper
+        whenThePriceReportIsValid
+        whenAllSignedOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenAllSignedOrdersNonceAreEqualToTheTradingAccountsNonces
+        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
         whenTheSignedOrdersSignatureCanBeDecoded
         givenTheOrdersSignerIsTheTradingAccountOwner
+        whenAllSignedOrdersTargetPriceCanBeMatchedWithItsFillPrice
     {
         // it should not increase the trading account nonce
         // it should fill the signed order
