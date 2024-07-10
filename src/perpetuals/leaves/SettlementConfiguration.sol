@@ -81,25 +81,6 @@ library SettlementConfiguration {
         }
     }
 
-    /// @notice Returns the UD60x18 price from a verified report based on its type and whether the top-level order is
-    /// a buy or sell order.
-    /// @param verifiedPriceData The verified report data.
-    /// @param isBuyOrder Whether the top-level order is a buy or sell order.
-    function getDataStreamsReportPrice(
-        bytes memory verifiedPriceData,
-        bool isBuyOrder
-    )
-        internal
-        pure
-        returns (UD60x18 price)
-    {
-        PremiumReport memory premiumReport = abi.decode(verifiedPriceData, (PremiumReport));
-
-        price = isBuyOrder
-            ? ud60x18(int256(premiumReport.ask).toUint256())
-            : ud60x18(int256(premiumReport.bid).toUint256());
-    }
-
     /// @notice Checks if the provided data streams report is using the expected stream id.
     /// @param streamId The expected stream id.
     /// @param verifiedReportData The verified report data.
@@ -136,15 +117,14 @@ library SettlementConfiguration {
     /// @dev New settlement strategies may be added in the future, hence the if-else statement.
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param priceData The unverified price report data.
-    /// @param isBuyOrder Whether the top-level order is a buy or sell order.
-    /// @return price The offchain price.
+    /// @return bidX18 The offchain bid price.
+    /// @return askX18 The offchain ask price.
     function verifyOffchainPrice(
         Data storage self,
-        bytes memory priceData,
-        bool isBuyOrder
+        bytes memory priceData
     )
         internal
-        returns (UD60x18 price)
+        returns (UD60x18 bidX18, UD60x18 askX18)
     {
         if (self.strategy == Strategy.DATA_STREAMS_DEFAULT) {
             DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
@@ -152,7 +132,9 @@ library SettlementConfiguration {
 
             requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
 
-            price = getDataStreamsReportPrice(verifiedPriceData, isBuyOrder);
+            PremiumReport memory premiumReport = abi.decode(verifiedPriceData, (PremiumReport));
+            (bidX18, askX18) =
+                (ud60x18(int256(premiumReport.bid).toUint256()), ud60x18(int256(premiumReport.ask).toUint256()));
         } else {
             revert Errors.InvalidSettlementStrategy();
         }
