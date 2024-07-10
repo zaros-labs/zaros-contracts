@@ -239,7 +239,7 @@ contract OrderBranch {
             ctx.shouldUseMaintenanceMargin ? ctx.requiredMaintenanceMarginUsdX18 : ctx.requiredInitialMarginUsdX18;
 
         tradingAccount.validateMarginRequirement(
-            ctx.requiredInitialMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
+            ctx.requiredMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
         );
 
         marketOrder.checkPendingOrder();
