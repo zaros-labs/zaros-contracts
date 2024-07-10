@@ -17,10 +17,6 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Sequencer
     // TODO: Update to actual multisig address
     address internal constant MSIG_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
 
-    // TODO: Update to actual signed orders keeper address
-    /// @notice The address responsible by filling the offchain created signed orders.
-    address internal constant SIGNED_ORDERS_KEEPER_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
-
     /// @notice The maximum value that can be represented in a UD60x18.
     uint256 internal constant uMAX_UD60x18 = LIB_uMAX_UD60x18;
 

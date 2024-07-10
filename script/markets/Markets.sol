@@ -66,9 +66,10 @@ abstract contract Markets is
     mapping(uint256 marketId => MarketConfig marketConfig) internal marketsConfig;
     /// @notice Market order keepers contracts mapped by market id.
     mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
-    /// @notice Signed orders keepers addresses mapped by market id.
-    address internal signedOrdersKeeper = makeAddr("Signed Orders Keeper");
 
+    // TODO: Update to actual signed orders keeper address
+    /// @notice The address responsible by filling the offchain created signed orders.
+    address internal constant SIGNED_ORDERS_KEEPER_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
     /// @notice General perps engine system configuration parameters.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
@@ -327,7 +328,7 @@ abstract contract Markets is
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
-                keeper: signedOrdersKeeper,
+                keeper: SIGNED_ORDERS_KEEPER_ADDRESS,
                 data: abi.encode(settlementConfigurationData)
             });
 

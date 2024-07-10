@@ -159,9 +159,10 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.getUserReferralData.selector;
     }
 
-    bytes4[] memory settlementBranchSelectors = new bytes4[](1);
+    bytes4[] memory settlementBranchSelectors = new bytes4[](2);
 
     settlementBranchSelectors[0] = SettlementBranch.fillMarketOrder.selector;
+    settlementBranchSelectors[1] = SettlementBranch.fillSignedOrders.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = lookupBranchSelectors;
