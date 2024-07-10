@@ -28,7 +28,7 @@ library SettlementConfiguration {
     /// @notice The default strategy id for a given market's onchain market orders settlementConfiguration.
     uint128 internal constant MARKET_ORDER_CONFIGURATION_ID = 0;
     /// @notice The default strategy id for a given market's offchain orders settlementConfiguration.
-    uint128 internal constant SIGNED_ORDERS_CONFIGURATION_ID = 1;
+    uint128 internal constant OFFCHAIN_ORDERS_CONFIGURATION_ID = 1;
 
     /// @notice Supported settlement strategies.
     /// @param DATA_STREAMS_DEFAULT The strategy id that uses default Chainlink Data Streams feeds to settle orders.

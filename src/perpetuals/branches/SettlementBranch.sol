@@ -74,9 +74,9 @@ contract SettlementBranch is EIP712Upgradeable {
         _;
     }
 
-    modifier onlySignedOrdersKeeper(uint128 marketId) {
+    modifier onlyOffchainOrdersKeeper(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID);
+            SettlementConfiguration.load(marketId, SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID);
         address keeper = settlementConfiguration.keeper;
 
         _requireIsKeeper(msg.sender, keeper);
@@ -146,11 +146,11 @@ contract SettlementBranch is EIP712Upgradeable {
         marketOrder.clear();
     }
 
-    struct FillSignedOrders_Context {
+    struct FillOffchainOrders_Context {
         UD60x18 bidX18;
         UD60x18 askX18;
-        uint256 cachedSignedOrdersLength;
-        SignedOrder.Data signedOrder;
+        uint256 cachedOffchainOrdersLength;
+        OffchainOrder.Data offchainOrder;
         bytes32 structHash;
         bytes32 hash;
         address signer;
@@ -164,59 +164,60 @@ contract SettlementBranch is EIP712Upgradeable {
     /// @dev If a trading account id owner transfers their account to another address, all signed orders will be
     /// considered cancelled.
     /// @param marketId The perp market id.
-    /// @param signedOrders The array of signed custom orders.
+    /// @param offchainOrders The array of signed custom orders.
     /// @param priceData The price data of custom orders.
-    function fillSignedOrders(
+    function fillOffchainOrders(
         uint128 marketId,
-        SignedOrder.Data[] calldata signedOrders,
+        OffchainOrder.Data[] calldata offchainOrders,
         bytes calldata priceData
     )
         external
-        onlySignedOrdersKeeper(marketId)
+        onlyOffchainOrdersKeeper(marketId)
     {
-        FillSignedOrders_Context memory ctx;
+        FillOffchainOrders_Context memory ctx;
 
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID);
+            SettlementConfiguration.load(marketId, SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID);
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
         (ctx.bidX18, ctx.askX18) = settlementConfiguration.verifyOffchainPrice(priceData);
 
         // gas savings
-        ctx.cachedSignedOrdersLength = signedOrders.length;
+        ctx.cachedOffchainOrdersLength = offchainOrders.length;
 
-        for (uint256 i = 0; i < ctx.cachedSignedOrdersLength; i++) {
-            ctx.signedOrder = signedOrders[i];
+        for (uint256 i = 0; i < ctx.cachedOffchainOrdersLength; i++) {
+            ctx.offchainOrder = offchainOrders[i];
 
-            if (ctx.signedOrder.sizeDelta == 0) {
-                revert Errors.ZeroInput("signedOrder.sizeDelta");
+            if (ctx.offchainOrder.sizeDelta == 0) {
+                revert Errors.ZeroInput("offchainOrder.sizeDelta");
             }
 
-            TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.signedOrder.tradingAccountId);
+            TradingAccount.Data storage tradingAccount =
+                TradingAccount.loadExisting(ctx.offchainOrder.tradingAccountId);
 
-            if (marketId != ctx.signedOrder.marketId) {
-                revert Errors.OrderMarketIdMismatch(marketId, ctx.signedOrder.marketId);
+            if (marketId != ctx.offchainOrder.marketId) {
+                revert Errors.OrderMarketIdMismatch(marketId, ctx.offchainOrder.marketId);
             }
 
-            // First we c heck if the nonce is valid, as a first measure to protect from replay attacks, according to
+            // First we check if the nonce is valid, as a first measure to protect from replay attacks, according to
             // the signed order's type (each type may have its own business logic).
             // e.g TP/SL must increase the nonce in order to prevent older limit orders from being filled.
             // NOTE: Since the nonce isn't always increased, we also need to store the typed data hash containing the
             // 256 bits salt value to fully prevent replay attacks.
-            if (ctx.signedOrder.nonce != tradingAccount.nonce) {
-                revert Errors.InvalidSignedNonce(ctx.signedOrder.tradingAccountId, ctx.signedOrder.nonce);
+            if (ctx.offchainOrder.nonce != tradingAccount.nonce) {
+                revert Errors.InvalidSignedNonce(ctx.offchainOrder.tradingAccountId, ctx.offchainOrder.nonce);
             }
 
             ctx.structHash = keccak256(
                 abi.encode(
                     Constants.SIGN_OFFCHAIN_ORDER_TYPEHASH,
-                    ctx.signedOrder.tradingAccountId,
-                    ctx.signedOrder.marketId,
-                    SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
-                    ctx.signedOrder.sizeDelta,
-                    ctx.signedOrder.targetPrice,
-                    ctx.signedOrder.shouldIncreaseNonce,
-                    ctx.signedOrder.salt
+                    ctx.offchainOrder.tradingAccountId,
+                    ctx.offchainOrder.marketId,
+                    SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
+                    ctx.offchainOrder.sizeDelta,
+                    ctx.offchainOrder.targetPrice,
+                    ctx.offchainOrder.shouldIncreaseNonce,
+                    ctx.offchainOrder.salt
                 )
             );
             ctx.hash = _hashTypedDataV4(ctx.structHash);
@@ -224,12 +225,12 @@ contract SettlementBranch is EIP712Upgradeable {
             // If the signed order has already been filled, revert.
             // we store `ctx.hash`, and expect each order signed by the user to provide a unique salt so that filled
             // orders can't be replayed regardless of the account's nonce.
-            if (tradingAccount.hasSignedOrderBeenFilled[ctx.hash]) {
-                revert Errors.OrderAlreadyFilled(ctx.signedOrder.tradingAccountId, ctx.signedOrder.salt);
+            if (tradingAccount.hasOffchainOrderBeenFilled[ctx.hash]) {
+                revert Errors.OrderAlreadyFilled(ctx.offchainOrder.tradingAccountId, ctx.offchainOrder.salt);
             }
 
             // `ecrecover`s the order signer.
-            ctx.signer = ECDSA.recover(ctx.hash, ctx.signedOrder.v, ctx.signedOrder.r, ctx.signedOrder.s);
+            ctx.signer = ECDSA.recover(ctx.hash, ctx.offchainOrder.v, ctx.offchainOrder.r, ctx.offchainOrder.s);
 
             // ensure the signer is the owner of the trading account, otherwise revert.
             // NOTE: If an account's owner transfers to another address, this will fail. Therefore, clients must
@@ -239,20 +240,20 @@ contract SettlementBranch is EIP712Upgradeable {
             }
 
             // cache the order side
-            ctx.isBuyOrder = ctx.signedOrder.sizeDelta > 0;
+            ctx.isBuyOrder = ctx.offchainOrder.sizeDelta > 0;
             // if it's a buy order, we need to match against the ask price, if it's a sell order, we need to match
             // agaainst the bid price.
             ctx.indexPriceX18 = ctx.isBuyOrder ? ctx.askX18 : ctx.bidX18;
 
             // verify the provided price data against the verifier and ensure it's valid, then get the mark price
             // based on the returned index price.
-            ctx.fillPriceX18 = perpMarket.getMarkPrice(sd59x18(ctx.signedOrder.sizeDelta), ctx.indexPriceX18);
+            ctx.fillPriceX18 = perpMarket.getMarkPrice(sd59x18(ctx.offchainOrder.sizeDelta), ctx.indexPriceX18);
 
             // if the order increases the trading account's position (buy order), the fill price must be less than or
             // equal to the target price, if it decreases the trading account's position (sell order), the fill price
             // must be greater than or equal to the target price.
-            ctx.isFillPriceValid = (ctx.isBuyOrder && ctx.signedOrder.targetPrice <= ctx.fillPriceX18.intoUint256())
-                || (!ctx.isBuyOrder && ctx.signedOrder.targetPrice >= ctx.fillPriceX18.intoUint256());
+            ctx.isFillPriceValid = (ctx.isBuyOrder && ctx.offchainOrder.targetPrice <= ctx.fillPriceX18.intoUint256())
+                || (!ctx.isBuyOrder && ctx.offchainOrder.targetPrice >= ctx.fillPriceX18.intoUint256());
 
             // we don't revert here because we want to continue filling other orders.
             if (!ctx.isFillPriceValid) {
@@ -262,20 +263,20 @@ contract SettlementBranch is EIP712Upgradeable {
             // account state updates start here
 
             // increase the trading account nonce if the order's flag is true.
-            if (ctx.signedOrder.shouldIncreaseNonce) {
+            if (ctx.offchainOrder.shouldIncreaseNonce) {
                 unchecked {
                     tradingAccount.nonce++;
                 }
             }
             // mark the signed order as filled.
-            tradingAccount.hasSignedOrderBeenFilled[ctx.hash] = true;
+            tradingAccount.hasOffchainOrderBeenFilled[ctx.hash] = true;
 
             // fill the signed order.
             _fillOrder(
-                ctx.signedOrder.tradingAccountId,
+                ctx.offchainOrder.tradingAccountId,
                 marketId,
-                SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
-                sd59x18(ctx.signedOrder.sizeDelta),
+                SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
+                sd59x18(ctx.offchainOrder.sizeDelta),
                 ctx.fillPriceX18
             );
         }

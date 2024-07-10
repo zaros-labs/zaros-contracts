@@ -69,7 +69,7 @@ abstract contract Markets is
 
     // TODO: Update to actual signed orders keeper address
     /// @notice The address responsible by filling the offchain created signed orders.
-    address internal constant SIGNED_ORDERS_KEEPER_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
+    address internal constant OFFCHAIN_ORDERS_KEEPER_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
     /// @notice General perps engine system configuration parameters.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
@@ -324,11 +324,11 @@ abstract contract Markets is
                 data: abi.encode(settlementConfigurationData)
             });
 
-            SettlementConfiguration.Data memory signedOrdersConfiguration = SettlementConfiguration.Data({
+            SettlementConfiguration.Data memory offchainOrdersConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
-                keeper: SIGNED_ORDERS_KEEPER_ADDRESS,
+                keeper: OFFCHAIN_ORDERS_KEEPER_ADDRESS,
                 data: abi.encode(settlementConfigurationData)
             });
 
@@ -353,7 +353,7 @@ abstract contract Markets is
                     minTradeSizeX18: marketsConfig[i].minTradeSize,
                     skewScale: marketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
-                    signedOrdersConfiguration: signedOrdersConfiguration,
+                    offchainOrdersConfiguration: offchainOrdersConfiguration,
                     orderFees: marketsConfig[i].orderFees,
                     priceFeedHeartbeatSeconds: marketsConfig[i].priceFeedHeartbeatSeconds
                 })

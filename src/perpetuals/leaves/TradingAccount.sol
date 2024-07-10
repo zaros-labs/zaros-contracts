@@ -42,7 +42,7 @@ library TradingAccount {
     /// @param owner The trading account owner.
     /// @param marginCollateralBalanceX18 The trading account margin collateral enumerable map.
     /// @param activeMarketsIds The trading account active markets ids enumerable set.
-    /// @param hasSignedOrderBeenFilled A mapping to keep track of signed orders that have been filled, protecting
+    /// @param hasOffchainOrderBeenFilled A mapping to keep track of signed orders that have been filled, protecting
     /// from replay attacks.
     struct Data {
         uint128 id;
@@ -50,7 +50,7 @@ library TradingAccount {
         address owner;
         EnumerableMap.AddressToUintMap marginCollateralBalanceX18;
         EnumerableSet.UintSet activeMarketsIds;
-        mapping(bytes32 signedOrderHash => bool hasBeenFilled) hasSignedOrderBeenFilled;
+        mapping(bytes32 offchainOrderHash => bool hasBeenFilled) hasOffchainOrderBeenFilled;
     }
 
     /// @notice Loads a {TradingAccount}.

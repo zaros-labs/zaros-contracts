@@ -307,7 +307,7 @@ library PerpMarket {
     /// @param minTradeSizeX18 The minimum trade size in 1e18.
     /// @param skewScale The skew scale, a configurable parameter that determines price marking and funding.
     /// @param marketOrderConfiguration The market order settlement configuration of the given perp market.
-    /// @param signedOrdersConfiguration The signed orders settlement configuration of the given perp market.
+    /// @param offchainOrdersConfiguration The signed orders settlement configuration of the given perp market.
     /// @param orderFees The configured maker and taker order fee tiers.
     /// @param priceFeedHeartbeatSeconds The price feed heartbeats in seconds.
     struct CreateParams {
@@ -323,7 +323,7 @@ library PerpMarket {
         uint128 minTradeSizeX18;
         uint256 skewScale;
         SettlementConfiguration.Data marketOrderConfiguration;
-        SettlementConfiguration.Data signedOrdersConfiguration;
+        SettlementConfiguration.Data offchainOrdersConfiguration;
         OrderFees.Data orderFees;
         uint32 priceFeedHeartbeatSeconds;
     }

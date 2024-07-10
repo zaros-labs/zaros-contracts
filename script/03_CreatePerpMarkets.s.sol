@@ -65,11 +65,11 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                 data: abi.encode(orderConfigurationData)
             });
 
-            SettlementConfiguration.Data memory signedOrdersConfiguration = SettlementConfiguration.Data({
+            SettlementConfiguration.Data memory offchainOrdersConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
-                keeper: SIGNED_ORDERS_KEEPER_ADDRESS,
+                keeper: OFFCHAIN_ORDERS_KEEPER_ADDRESS,
                 data: abi.encode(orderConfigurationData)
             });
 
@@ -87,7 +87,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                     minTradeSizeX18: filteredMarketsConfig[i].minTradeSize,
                     skewScale: filteredMarketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
-                    signedOrdersConfiguration: signedOrdersConfiguration,
+                    offchainOrdersConfiguration: offchainOrdersConfiguration,
                     orderFees: filteredMarketsConfig[i].orderFees,
                     priceFeedHeartbeatSeconds: filteredMarketsConfig[i].priceFeedHeartbeatSeconds
                 })

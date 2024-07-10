@@ -107,7 +107,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
 
         perpsEngine.updateSettlementConfiguration(
             fuzzMarketConfig.marketId,
-            SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
+            SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
             newSettlementConfiguration
         );
     }
@@ -171,13 +171,13 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         // it should emit {LogUpdateSettlementConfiguration} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogUpdateSettlementConfiguration(
-            users.owner, fuzzMarketConfig.marketId, SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID
+            users.owner, fuzzMarketConfig.marketId, SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID
         );
 
         // it should update
         perpsEngine.updateSettlementConfiguration(
             uint128(fuzzMarketConfig.marketId),
-            SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
+            SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
             newSettlementConfiguration
         );
     }

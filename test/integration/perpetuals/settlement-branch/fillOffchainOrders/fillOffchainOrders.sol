@@ -5,14 +5,14 @@ pragma solidity 0.8.25;
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { SignedOrder } from "@zaros/perpetuals/leaves/SignedOrder.sol";
+import { OffchainOrder } from "@zaros/perpetuals/leaves/OffchainOrder.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
 
 // PRB Math dependencies
 import { ud60x18 } from "@prb-math/UD60x18.sol";
 
-contract FillSignedOrders_Integration_Test is Base_Test {
+contract FillOffchainOrders_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner });
@@ -40,7 +40,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) / amountOfOrders
         });
 
-        SignedOrder.Data[] memory signedOrders = new SignedOrder.Data[](amountOfOrders);
+        OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders);
 
         for (uint256 i = 0; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
@@ -64,7 +64,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
-            signedOrders[i] = SignedOrder.Data({
+            offchainOrders[i] = OffchainOrder.Data({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
@@ -80,13 +80,13 @@ contract FillSignedOrders_Integration_Test is Base_Test {
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
-        address signedOrdersKeeper = SIGNED_ORDERS_KEEPER_ADDRESS;
+        address offchainOrdersKeeper = OFFCHAIN_ORDERS_KEEPER_ADDRESS;
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.OnlyKeeper.selector, users.naruto, signedOrdersKeeper)
+            revertData: abi.encodeWithSelector(Errors.OnlyKeeper.selector, users.naruto, offchainOrdersKeeper)
         });
-        perpsEngine.fillSignedOrders(fuzzMarketConfig.marketId, signedOrders, mockSignedReport);
+        perpsEngine.fillOffchainOrders(fuzzMarketConfig.marketId, offchainOrders, mockSignedReport);
     }
 
     modifier givenTheSenderIsTheKeeper() {
@@ -113,7 +113,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) / amountOfOrders
         });
 
-        SignedOrder.Data[] memory signedOrders = new SignedOrder.Data[](amountOfOrders);
+        OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders);
 
         for (uint256 i = 0; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
@@ -137,7 +137,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
-            signedOrders[i] = SignedOrder.Data({
+            offchainOrders[i] = OffchainOrder.Data({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
@@ -153,38 +153,38 @@ contract FillSignedOrders_Integration_Test is Base_Test {
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
-        address signedOrdersKeeper = SIGNED_ORDERS_KEEPER_ADDRESS;
+        address offchainOrdersKeeper = OFFCHAIN_ORDERS_KEEPER_ADDRESS;
 
-        SettlementConfiguration.DataStreamsStrategy memory signedOrdersConfigurationData = SettlementConfiguration
+        SettlementConfiguration.DataStreamsStrategy memory offchainOrdersConfigurationData = SettlementConfiguration
             .DataStreamsStrategy({ chainlinkVerifier: IVerifierProxy(address(1)), streamId: fuzzMarketConfig.streamId });
-        SettlementConfiguration.Data memory signedOrdersConfiguration = SettlementConfiguration.Data({
+        SettlementConfiguration.Data memory offchainOrdersConfiguration = SettlementConfiguration.Data({
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
-            keeper: signedOrdersKeeper,
-            data: abi.encode(signedOrdersConfigurationData)
+            keeper: offchainOrdersKeeper,
+            data: abi.encode(offchainOrdersConfigurationData)
         });
 
         changePrank({ msgSender: users.owner });
 
         perpsEngine.updateSettlementConfiguration({
             marketId: fuzzMarketConfig.marketId,
-            settlementConfigurationId: SettlementConfiguration.SIGNED_ORDERS_CONFIGURATION_ID,
-            newSettlementConfiguration: signedOrdersConfiguration
+            settlementConfigurationId: SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
+            newSettlementConfiguration: offchainOrdersConfiguration
         });
 
-        changePrank({ msgSender: signedOrdersKeeper });
+        changePrank({ msgSender: offchainOrdersKeeper });
         // it should revert
         vm.expectRevert();
 
-        perpsEngine.fillSignedOrders(fuzzMarketConfig.marketId, signedOrders, mockSignedReport);
+        perpsEngine.fillOffchainOrders(fuzzMarketConfig.marketId, offchainOrders, mockSignedReport);
     }
 
     modifier whenThePriceDataIsValid() {
         _;
     }
 
-    function testFuzz_RevertWhen_ASignedOrdersSizeDeltaIsZero(
+    function testFuzz_RevertWhen_AOffchainOrdersSizeDeltaIsZero(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -205,7 +205,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) / amountOfOrders
         });
 
-        SignedOrder.Data[] memory signedOrders = new SignedOrder.Data[](amountOfOrders + 1);
+        OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders + 1);
 
         for (uint256 i = 0; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
@@ -229,7 +229,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
-            signedOrders[i] = SignedOrder.Data({
+            offchainOrders[i] = OffchainOrder.Data({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
@@ -242,7 +242,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
                 s: bytes32(0)
             });
         }
-        signedOrders[signedOrders.length - 1] = SignedOrder.Data({
+        offchainOrders[offchainOrders.length - 1] = OffchainOrder.Data({
             tradingAccountId: 1,
             marketId: 0,
             sizeDelta: 0,
@@ -257,16 +257,16 @@ contract FillSignedOrders_Integration_Test is Base_Test {
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
-        address signedOrdersKeeper = SIGNED_ORDERS_KEEPER_ADDRESS;
+        address offchainOrdersKeeper = OFFCHAIN_ORDERS_KEEPER_ADDRESS;
 
-        changePrank({ msgSender: signedOrdersKeeper });
+        changePrank({ msgSender: offchainOrdersKeeper });
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "signedOrder.sizeDelta") });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "offchainOrder.sizeDelta") });
 
-        perpsEngine.fillSignedOrders(fuzzMarketConfig.marketId, signedOrders, mockSignedReport);
+        perpsEngine.fillOffchainOrders(fuzzMarketConfig.marketId, offchainOrders, mockSignedReport);
     }
 
-    modifier whenAllSignedOrdersHaveAValidSizeDelta() {
+    modifier whenAllOffchainOrdersHaveAValidSizeDelta() {
         _;
     }
 
@@ -274,7 +274,7 @@ contract FillSignedOrders_Integration_Test is Base_Test {
         external
         givenTheSenderIsTheKeeper
         whenThePriceDataIsValid
-        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllOffchainOrdersHaveAValidSizeDelta
     {
         // it should revert
     }
@@ -283,48 +283,48 @@ contract FillSignedOrders_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_ASignedOrdersMarketIdIsNotEqualToTheProvidedMarketId()
+    function test_RevertWhen_AOffchainOrdersMarketIdIsNotEqualToTheProvidedMarketId()
         external
         givenTheSenderIsTheKeeper
         whenThePriceDataIsValid
-        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllOffchainOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
     {
         // it should revert
     }
 
-    modifier whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId() {
+    modifier whenAOffchainOrdersMarketIdIsEqualToTheProvidedMarketId() {
         _;
     }
 
-    function test_RevertWhen_ASignedOrdersNonceIsNotEqualToTheTradingAccountsNonce()
+    function test_RevertWhen_AOffchainOrdersNonceIsNotEqualToTheTradingAccountsNonce()
         external
         givenTheSenderIsTheKeeper
         whenThePriceDataIsValid
-        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllOffchainOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAOffchainOrdersMarketIdIsEqualToTheProvidedMarketId
     {
         // it should revert
     }
 
-    modifier whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces() {
+    modifier whenAllOffchainOrdersNoncesAreEqualToTheTradingAccountsNonces() {
         _;
     }
 
-    function test_RevertWhen_TheSignedOrdersSignatureCantBeDecoded()
+    function test_RevertWhen_TheOffchainOrdersSignatureCantBeDecoded()
         external
         givenTheSenderIsTheKeeper
         whenThePriceDataIsValid
-        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllOffchainOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
-        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
+        whenAOffchainOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllOffchainOrdersNoncesAreEqualToTheTradingAccountsNonces
     {
         // it should revert
     }
 
-    modifier whenTheSignedOrdersSignatureCanBeDecoded() {
+    modifier whenTheOffchainOrdersSignatureCanBeDecoded() {
         _;
     }
 
@@ -332,11 +332,11 @@ contract FillSignedOrders_Integration_Test is Base_Test {
         external
         givenTheSenderIsTheKeeper
         whenThePriceDataIsValid
-        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllOffchainOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
-        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
-        whenTheSignedOrdersSignatureCanBeDecoded
+        whenAOffchainOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllOffchainOrdersNoncesAreEqualToTheTradingAccountsNonces
+        whenTheOffchainOrdersSignatureCanBeDecoded
     {
         // it should revert
     }
@@ -345,51 +345,51 @@ contract FillSignedOrders_Integration_Test is Base_Test {
         _;
     }
 
-    function test_WhenASignedOrdersTargetPriceCantBeMatchedWithItsFillPrice()
+    function test_WhenAOffchainOrdersTargetPriceCantBeMatchedWithItsFillPrice()
         external
         givenTheSenderIsTheKeeper
         whenThePriceDataIsValid
-        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllOffchainOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
-        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
-        whenTheSignedOrdersSignatureCanBeDecoded
+        whenAOffchainOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllOffchainOrdersNoncesAreEqualToTheTradingAccountsNonces
+        whenTheOffchainOrdersSignatureCanBeDecoded
         givenTheOrdersSignerIsTheTradingAccountOwner
     {
         // it should not fill that order
     }
 
-    modifier whenAllSignedOrdersTargetPriceCanBeMatchedWithItsFillPrice() {
+    modifier whenAllOffchainOrdersTargetPriceCanBeMatchedWithItsFillPrice() {
         _;
     }
 
-    function test_WhenTheSignedOrderShouldIncreaseTheNonce()
+    function test_WhenTheOffchainOrderShouldIncreaseTheNonce()
         external
         givenTheSenderIsTheKeeper
         whenThePriceDataIsValid
-        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllOffchainOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
-        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
-        whenTheSignedOrdersSignatureCanBeDecoded
+        whenAOffchainOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllOffchainOrdersNoncesAreEqualToTheTradingAccountsNonces
+        whenTheOffchainOrdersSignatureCanBeDecoded
         givenTheOrdersSignerIsTheTradingAccountOwner
-        whenAllSignedOrdersTargetPriceCanBeMatchedWithItsFillPrice
+        whenAllOffchainOrdersTargetPriceCanBeMatchedWithItsFillPrice
     {
         // it should increase the trading account nonce
         // it should fill the signed order
     }
 
-    function test_WhenTheSignedOrderShouldntIncreaseTheNonce()
+    function test_WhenTheOffchainOrderShouldntIncreaseTheNonce()
         external
         givenTheSenderIsTheKeeper
         whenThePriceDataIsValid
-        whenAllSignedOrdersHaveAValidSizeDelta
+        whenAllOffchainOrdersHaveAValidSizeDelta
         whenAllTradingAccountsExist
-        whenASignedOrdersMarketIdIsEqualToTheProvidedMarketId
-        whenAllSignedOrdersNoncesAreEqualToTheTradingAccountsNonces
-        whenTheSignedOrdersSignatureCanBeDecoded
+        whenAOffchainOrdersMarketIdIsEqualToTheProvidedMarketId
+        whenAllOffchainOrdersNoncesAreEqualToTheTradingAccountsNonces
+        whenTheOffchainOrdersSignatureCanBeDecoded
         givenTheOrdersSignerIsTheTradingAccountOwner
-        whenAllSignedOrdersTargetPriceCanBeMatchedWithItsFillPrice
+        whenAllOffchainOrdersTargetPriceCanBeMatchedWithItsFillPrice
     {
         // it should not increase the trading account nonce
         // it should fill the signed order

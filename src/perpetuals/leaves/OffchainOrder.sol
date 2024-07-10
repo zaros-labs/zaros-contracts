@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-library SignedOrder {
-    /// @notice {SignedOrder} namespace storage structure.
+library OffchainOrder {
+    /// @notice {OffchainOrder} namespace storage structure.
     /// @param tradingAccountId The trading account id that created the order offchain.
     /// @param marketId The target market id of the signed order.
     /// @param sizeDelta The size delta of the signed order.
