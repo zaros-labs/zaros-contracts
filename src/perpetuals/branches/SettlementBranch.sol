@@ -155,7 +155,7 @@ contract SettlementBranch is EIP712Upgradeable {
         UD60x18 bidX18;
         UD60x18 askX18;
         uint256 cachedOffchainOrdersLength;
-        OffchainOrder.Datan offchainOrder;
+        OffchainOrder.Data offchainOrder;
         bytes32 structHash;
         bytes32 hash;
         address signer;
@@ -173,7 +173,7 @@ contract SettlementBranch is EIP712Upgradeable {
     /// @param priceData The price data of custom orders.
     function fillOffchainOrders(
         uint128 marketId,
-        OffchainOrder.Data[] calldatan offchainOrders,
+        OffchainOrder.Data[] calldata offchainOrders,
         bytes calldata priceData
     )
         external
