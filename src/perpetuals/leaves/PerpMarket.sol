@@ -22,7 +22,7 @@ import {
     sd59x18,
     unary,
     UNIT as SD_UNIT,
-    ZERO as SD_ZERO,
+    ZERO as SD59x18_ZERO,
     convert as sd59x18Convert
 } from "@prb-math/SD59x18.sol";
 
@@ -138,7 +138,7 @@ library PerpMarket {
         SD59x18 skew = sd59x18(self.skew);
 
         if (skewScale.isZero()) {
-            return SD_ZERO;
+            return SD59x18_ZERO;
         }
 
         SD59x18 proportionalSkew = skew.div(skewScale);
@@ -163,8 +163,8 @@ library PerpMarket {
     {
         SD59x18 skew = sd59x18(self.skew);
 
-        bool isSkewGtZero = skew.gt(SD_ZERO);
-        bool isBuyOrder = sizeDelta.gt(SD_ZERO);
+        bool isSkewGtZero = skew.gt(SD59x18_ZERO);
+        bool isBuyOrder = sizeDelta.gt(SD59x18_ZERO);
 
         if (isSkewGtZero != isBuyOrder) {
             feeBps = ud60x18(self.configuration.orderFees.makerFee);
