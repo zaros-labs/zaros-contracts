@@ -11,9 +11,9 @@ library Constants {
     /// @notice Default grace period for the sequencer uptime feed.
     uint256 internal constant SEQUENCER_GRACE_PERIOD_TIME = 3600;
     /// @notice EIP712 domain name.
-    string internal constant SETTLEMENT_BRANCH_DOMAIN_NAME = "Zaros Perpetuals DEX: Settlement";
+    string internal constant ZAROS_DOMAIN_NAME = "Zaros Perpetuals DEX";
     /// @notice EIP712 domain version.
-    string internal constant SETTLEMENT_BRANCH_DOMAIN_VERSION = "1";
+    string internal constant ZAROS_DOMAIN_VERSION = "1";
     /// @notice EIP712 sign offchain order typehash.
     bytes32 internal constant CREATE_OFFCHAIN_ORDER_TYPEHASH = keccak256(
         "SignOffchainOrder(uint128 tradingAccountId,uint128 marketId,uint128 settlementConfigurationId,int128 sizeDelta,uint128 targetPrice,uint120 nonce,bool shouldIncreaseNonce,bytes32 salt)"

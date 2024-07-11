@@ -23,6 +23,9 @@ import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarnes
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 
+// Open Zeppelin Upgradeable dependencies
+import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
@@ -159,10 +162,12 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.getUserReferralData.selector;
     }
 
-    bytes4[] memory settlementBranchSelectors = new bytes4[](2);
+    bytes4[] memory settlementBranchSelectors = new bytes4[](4);
 
-    settlementBranchSelectors[0] = SettlementBranch.fillMarketOrder.selector;
-    settlementBranchSelectors[1] = SettlementBranch.fillOffchainOrders.selector;
+    settlementBranchSelectors[0] = EIP712Upgradeable.eip712Domain.selector;
+    settlementBranchSelectors[1] = SettlementBranch.DOMAIN_SEPARATOR.selector;
+    settlementBranchSelectors[2] = SettlementBranch.fillMarketOrder.selector;
+    settlementBranchSelectors[3] = SettlementBranch.fillOffchainOrders.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = lookupBranchSelectors;

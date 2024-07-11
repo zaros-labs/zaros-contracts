@@ -85,7 +85,12 @@ contract SettlementBranch is EIP712Upgradeable {
 
     /// @dev {SettlementBranch}  UUPS initializer.
     function initialize() external initializer {
-        __EIP712_init(Constants.SETTLEMENT_BRANCH_DOMAIN_NAME, Constants.SETTLEMENT_BRANCH_DOMAIN_VERSION);
+        __EIP712_init(Constants.ZAROS_DOMAIN_NAME, Constants.ZAROS_DOMAIN_VERSION);
+    }
+
+    /// @notice Returns the EIP-712 domain separator.
+    function DOMAIN_SEPARATOR() external view returns (bytes32) {
+        return _domainSeparatorV4();
     }
 
     struct FillMarketOrder_Context {

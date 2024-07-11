@@ -229,24 +229,24 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
-            // bytes32 digest = keccak256(
-            //     abi.encodePacked(
-            //         "\x19\x01",
-            //         DOMAIN_SEPARATOR,
-            //         abi.encode(
-            //             Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
-            //             tradingAccountId,
-            //             fuzzMarketConfig.marketId,
-            //             sizeDelta,
-            //             markPrice,
-            //             0,
-            //             false,
-            //             bytes32(vm.randomUint())
-            //         )
-            //     )
-            // );
+            bytes32 digest = keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    perpsEngine.DOMAIN_SEPARATOR(),
+                    abi.encode(
+                        Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
+                        tradingAccountId,
+                        fuzzMarketConfig.marketId,
+                        sizeDelta,
+                        markPrice,
+                        0,
+                        false,
+                        bytes32(block.prevrandao)
+                    )
+                )
+            );
 
-            // (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, digest);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(users.naruto.privateKey, digest);
 
             offchainOrders[i] = OffchainOrder.Data({
                 tradingAccountId: tradingAccountId,
@@ -256,9 +256,9 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 nonce: 0,
                 shouldIncreaseNonce: false,
                 salt: bytes32(0),
-                v: 0,
-                r: bytes32(0),
-                s: bytes32(0)
+                v: v,
+                r: r,
+                s: s
             });
         }
         offchainOrders[offchainOrders.length - 1] = OffchainOrder.Data({
