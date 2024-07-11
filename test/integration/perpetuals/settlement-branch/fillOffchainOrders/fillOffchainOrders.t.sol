@@ -229,6 +229,25 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            bytes32 digest = keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    DOMAIN_SEPARATOR,
+                    abi.encode(
+                        Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
+                        tradingAccountId,
+                        fuzzMarketConfig.marketId,
+                        sizeDelta,
+                        markPrice,
+                        0,
+                        false,
+                        bytes32(vm.randomUint())
+                    )
+                )
+            );
+
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, digest);
+
             offchainOrders[i] = OffchainOrder.Data({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,

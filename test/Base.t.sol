@@ -193,6 +193,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
         vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
+        vm.label({ account: OFFCHAIN_ORDERS_KEEPER_ADDRESS, newLabel: "Offchain Orders Keeper" });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -200,11 +201,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev Generates a user, labels its address, and funds it with test assets.
-    function createUser(string memory name) internal returns (address payable) {
-        address payable user = payable(makeAddr(name));
-        vm.deal({ account: user, newBalance: 100 ether });
+    function createUser(string memory name) internal returns (User memory) {
+        (address account, uint256 privateKey) = makeAddrAndKey(name);
+        vm.deal({ account: account, newBalance: 100 ether });
 
-        return user;
+        return User({ account: account, privateKey: privateKey });
     }
 
     /// @dev Approves all Zaros contracts to spend the test assets.
@@ -276,6 +277,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         createPerpMarkets(
             users.owner, perpsEngine, INITIAL_MARKET_ID, FINAL_MARKET_ID, IVerifierProxy(mockChainlinkVerifier), true
         );
+
+        for (uint256 i = INITIAL_MARKET_ID; i <= FINAL_MARKET_ID; i++) {
+            vm.label({ account: marketOrderKeepers[i], newLabel: "Market Order Keeper" });
+        }
     }
 
     function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {

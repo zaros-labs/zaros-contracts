@@ -6,25 +6,28 @@ import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 struct Users {
     // Default owner for all Zaros contracts.
-    address payable owner;
+    User owner;
     // Address that receives margin collateral from trading accounts.
-    address payable marginCollateralRecipient;
+    User marginCollateralRecipient;
     // Address that receives order fee payments.
-    address payable orderFeeRecipient;
+    User orderFeeRecipient;
     // Address that receives settlement fee payments.
-    address payable settlementFeeRecipient;
-    // Address that receives liquidation fee payments.
-    address payable liquidationFeeRecipient;
+    User settlementFeeRecipient;
     // Default forwarder for Chainlink Automation-powered keepers
-    address payable keepersForwarder;
+    User keepersForwarder;
     // Impartial user 1.
-    address payable naruto;
+    User naruto;
     // Impartial user 2.
-    address payable sasuke;
+    User sasuke;
     // Impartial user 3.
-    address payable sakura;
+    User sakura;
     // Malicious user.
-    address payable madara;
+    User madara;
+}
+
+struct User {
+    address payable account;
+    uint256 privateKey;
 }
 
 struct MockPriceAdapters {
