@@ -5,25 +5,25 @@ FillOffchainOrders_Integration_Test
     ├── when the price data is not valid
     │   └── it should revert
     └── when the price data is valid
-        ├── when a offchain order's size delta is zero
+        ├── when an offchain order's size delta is zero
         │   └── it should revert
         └── when all offchain orders have a valid size delta
             ├── when one of the trading accounts does not exist
             │   └── it should revert
             └── when all trading accounts exist
-                ├── when a offchain order's market id is not equal to the provided market id
+                ├── when an offchain order's market id is not equal to the provided market id
                 │   └── it should revert
-                └── when a offchain order's market id is equal to the provided market id
-                    ├── when a offchain order's nonce is not equal to the trading account's nonce
+                └── when an offchain order's market id is equal to the provided market id
+                    ├── when an offchain order's nonce is not equal to the trading account's nonce
                     │   └── it should revert
                     └── when all offchain orders' nonces are equal to the trading accounts' nonces
-                        ├── when the offchain order's signature can't be decoded
+                        ├── given an offchain order has already been filled
                         │   └── it should revert
-                        └── when the offchain order's signature can be decoded
+                        └── given all offchain orders have not been filled
                             ├── given the order's signer is not the trading account owner
                             │   └── it should revert
                             └── given the order's signer is the trading account owner
-                                ├── when a offchain order's target price can't be matched with its fill price
+                                ├── when an offchain order's target price can't be matched with its fill price
                                 │   └── it should not fill that order
                                 └── when all offchain orders target price can be matched with its fill price
                                     ├── when the offchain order should increase the nonce

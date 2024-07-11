@@ -155,7 +155,7 @@ contract SettlementBranch is EIP712Upgradeable {
         UD60x18 bidX18;
         UD60x18 askX18;
         uint256 cachedOffchainOrdersLength;
-        OffchainOrder.Data offchainOrder;
+        OffchainOrder.Datan offchainOrder;
         bytes32 structHash;
         bytes32 hash;
         address signer;
@@ -173,7 +173,7 @@ contract SettlementBranch is EIP712Upgradeable {
     /// @param priceData The price data of custom orders.
     function fillOffchainOrders(
         uint128 marketId,
-        OffchainOrder.Data[] calldata offchainOrders,
+        OffchainOrder.Data[] calldatan offchainOrders,
         bytes calldata priceData
     )
         external
@@ -208,9 +208,9 @@ contract SettlementBranch is EIP712Upgradeable {
             // the offchain order's type (each type may have its own business logic).
             // e.g TP/SL must increase the nonce in order to prevent older limit orders from being filled.
             // NOTE: Since the nonce isn't always increased, we also need to store the typed data hash containing the
-            // 256 bits salt value to fully prevent replay attacks.
+            // 256-bit salt value to fully prevent replay attacks.
             if (ctx.offchainOrder.nonce != tradingAccount.nonce) {
-                revert Errors.InvalidSignedNonce(ctx.offchainOrder.tradingAccountId, ctx.offchainOrder.nonce);
+                revert Errors.InvalidSignedNonce(tradingAccount.nonce, ctx.offchainOrder.nonce);
             }
 
             ctx.structHash = keccak256(
@@ -241,7 +241,7 @@ contract SettlementBranch is EIP712Upgradeable {
             // NOTE: If an account's owner transfers to another address, this will fail. Therefore, clients must
             // cancel all users offchain orders in that scenario.
             if (ctx.signer != tradingAccount.owner) {
-                revert Errors.InvalidOrderSignature(ctx.signer, tradingAccount.owner);
+                revert Errors.InvalidOrderSigner(ctx.signer, tradingAccount.owner);
             }
 
             // cache the order side

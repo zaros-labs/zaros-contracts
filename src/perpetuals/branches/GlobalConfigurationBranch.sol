@@ -357,7 +357,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 minTradeSizeX18;
         uint256 skewScale;
         SettlementConfiguration.Data marketOrderConfiguration;
-        SettlementConfiguration.Data offchainOrdersConfiguration;
+        SettlementConfiguration.Datan offchainOrdersConfiguration;
         OrderFees.Data orderFees;
         uint32 priceFeedHeartbeatSeconds;
     }

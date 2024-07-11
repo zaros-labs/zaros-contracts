@@ -108,12 +108,12 @@ library Errors {
     /// @notice Thrown when the caller is not the registered Keeper contract.
     error OnlyKeeper(address sender, address keeper);
     /// @notice Thrown when the signed `nonce` of a given order is not equal to the trading account's current nonce.
-    error InvalidSignedNonce(uint128 tradingAccountId, uint120 nonce);
+    error InvalidSignedNonce(uint128 tradingAccountNonce, uint120 orderNonce);
     /// @notice Thrown when an order signed by the `tradingAccountId` owner using the given `salt` has already been
     /// filled.
     error OrderAlreadyFilled(uint128 tradingAccountId, bytes32 salt);
-    /// @notice Thrown when the provided ECDSA signature of a offchain order is invalid.
-    error InvalidOrderSignature(address signer, address expectedSigner);
+    /// @notice Thrown when the recovered ECDSA signer of an offchain order is not the trading account owner.
+    error InvalidOrderSigner(address signer, address expectedSigner);
 
     /// @notice PerpsEngine.PerpMarketBranch errors.
 

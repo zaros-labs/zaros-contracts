@@ -9,7 +9,7 @@ library OffchainOrder {
     /// @param targetPrice The minimum or maximum price of the offchain order.
     /// @param shouldIncreaseNonce Whether the trading account's nonce should be incremented or not.
     /// @param nonce The signed index used to verify whether a given order is still valid or not.
-    /// @param salt A random 32 bytes value generated and signed offchain to distinguish a offchain order.
+    /// @param salt A random 32 bytes value generated and signed offchain to distinguish an offchain order.
     /// @param v ECDSA signature recovery id.
     /// @param r ECDSA signature output.
     /// @param s ECDSA signature output.
