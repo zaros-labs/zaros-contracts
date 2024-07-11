@@ -300,6 +300,7 @@ contract SettlementBranch is EIP712Upgradeable {
         SD59x18 newSkew;
         UD60x18 requiredMarginUsdX18;
         bool shouldUseMaintenanceMargin;
+        UD60x18 marginToDeductUsdX18;
     }
 
     /// @param tradingAccountId The trading account id.
@@ -397,28 +398,33 @@ contract SettlementBranch is EIP712Upgradeable {
         }
 
         if (ctx.pnl.lt(SD59x18_ZERO)) {
-            UD60x18 marginToDeductUsdX18 = ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).gt(UD60x18_ZERO)
+            ctx.marginToDeductUsdX18 = ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).gt(UD60x18_ZERO)
                 ? ctx.pnl.abs().intoUD60x18().sub(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18))
                 : ctx.pnl.abs().intoUD60x18();
-
-            tradingAccount.deductAccountMargin({
-                feeRecipients: FeeRecipients.Data({
-                    marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,
-                    orderFeeRecipient: globalConfiguration.orderFeeRecipient,
-                    settlementFeeRecipient: globalConfiguration.settlementFeeRecipient
-                }),
-                pnlUsdX18: marginToDeductUsdX18,
-                orderFeeUsdX18: ctx.orderFeeUsdX18.gt(UD60x18_ZERO) ? ctx.orderFeeUsdX18 : UD60x18_ZERO,
-                settlementFeeUsdX18: ctx.settlementFeeUsdX18
-            });
         } else if (ctx.pnl.gt(SD59x18_ZERO)) {
             UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
 
             tradingAccount.deposit(ctx.usdToken, amountToIncrease);
 
-            // NOTE: testnet only - will be updated once the Market Making Engine is finalized
+            ctx.marginToDeductUsdX18 = UD60x18_ZERO;
+
+            // NOTE: testnet only - will be updated once Liquidity Engine is finalized
             LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
+        } else {
+            // to avoid cases when pnl could be zero
+            ctx.marginToDeductUsdX18 = UD60x18_ZERO;
         }
+
+        tradingAccount.deductAccountMargin({
+                feeRecipients: FeeRecipients.Data({
+                    marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,
+                    orderFeeRecipient: globalConfiguration.orderFeeRecipient,
+                    settlementFeeRecipient: globalConfiguration.settlementFeeRecipient
+                }),
+                pnlUsdX18: ctx.marginToDeductUsdX18,
+                orderFeeUsdX18: ctx.orderFeeUsdX18.gt(UD60x18_ZERO) ? ctx.orderFeeUsdX18 : UD60x18_ZERO,
+                settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            });
 
         emit LogFillOrder(
             msg.sender,

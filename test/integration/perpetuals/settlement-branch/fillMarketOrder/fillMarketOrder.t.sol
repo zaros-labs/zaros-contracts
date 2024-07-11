@@ -1225,6 +1225,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             ctx.secondOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE)).intoSD59x18()
         ).add(ctx.secondOrderExpectedPriceShiftPnlX18).intoInt256();
 
+
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should emit a {LogFillOrder} event
@@ -1294,7 +1295,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
 
         // it should add the pnl into the account's margin
-        ctx.expectedMarginBalanceUsd = int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl;
+        ctx.expectedMarginBalanceUsd = (int256(marginValueUsd) + ctx.firstOrderExpectedPnl + ctx.secondOrderExpectedPnl) - (int256(ctx.secondOrderFeeUsdX18.intoUint256()) + int256(uint256(DEFAULT_SETTLEMENT_FEE)));
         (ctx.marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(ctx.tradingAccountId);
         assertEq(ctx.expectedMarginBalanceUsd, ctx.marginBalanceUsdX18.intoInt256(), "second fill: margin balance");
 
