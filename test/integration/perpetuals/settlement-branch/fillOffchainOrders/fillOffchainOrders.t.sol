@@ -205,7 +205,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) / amountOfOrders
         });
 
-        OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders);
+        OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders + 1);
 
         for (uint256 i = 0; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
@@ -265,18 +265,18 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 s: s
             });
         }
-        // offchainOrders[offchainOrders.length - 1] = OffchainOrder.Data({
-        //     tradingAccountId: 1,
-        //     marketId: 0,
-        //     sizeDelta: 0,
-        //     targetPrice: 0,
-        //     nonce: 0,
-        //     shouldIncreaseNonce: false,
-        //     salt: bytes32(0),
-        //     v: 0,
-        //     r: bytes32(0),
-        //     s: bytes32(0)
-        // });
+        offchainOrders[offchainOrders.length - 1] = OffchainOrder.Data({
+            tradingAccountId: 1,
+            marketId: 0,
+            sizeDelta: 0,
+            targetPrice: 0,
+            nonce: 0,
+            shouldIncreaseNonce: false,
+            salt: bytes32(0),
+            v: 0,
+            r: bytes32(0),
+            s: bytes32(0)
+        });
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
