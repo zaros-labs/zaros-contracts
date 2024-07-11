@@ -159,26 +159,38 @@ library PerpMarket {
     )
         internal
         view
-        returns (UD60x18 feeBps)
+        returns (UD60x18 orderFeeUsd)
     {
-        SD59x18 skew = sd59x18(self.skew);
-
-        bool isSkewGtZero = skew.gt(SD59x18_ZERO);
-        bool isBuyOrder = sizeDelta.gt(SD59x18_ZERO);
-
         // isSkewGtZero = true, isBuyOrder = true, skewIsZero = false -> taker
         // isSkewGtZero = true, isBuyOrder = false, skewIsZero = false -> maker
         // isSkewGtZero = false, isBuyOrder = true, skewIsZero = true -> taker
         // isSkewGtZero = false, isBuyOrder = false, skewIsZero = true -> taker
         // isSkewGtZero = false, isBuyOrder = true, skewIsZero = false -> maker
 
-        if (isSkewGtZero != isBuyOrder && !skew.isZero()) {
-            feeBps = ud60x18(self.configuration.orderFees.makerFee);
-        } else {
-            feeBps = ud60x18(self.configuration.orderFees.takerFee);
+        SD59x18 skew = sd59x18(self.skew);
+
+        bool isSkewGtZero = skew.gt(SD59x18_ZERO);
+        bool isBuyOrder = sizeDelta.gt(SD59x18_ZERO);
+
+        SD59x18 newSkew = skew.add(sizeDelta);
+
+        bool sameSide = newSkew.eq(SD59x18_ZERO) || skew.eq(SD59x18_ZERO) || newSkew.gt(SD59x18_ZERO) == skew.gt(SD59x18_ZERO);
+
+        if(sameSide) {
+            UD60x18 feeBps = isSkewGtZero != isBuyOrder && !skew.isZero() ?
+                ud60x18(self.configuration.orderFees.makerFee) : ud60x18(self.configuration.orderFees.takerFee);
+
+            orderFeeUsd = markPriceX18.mul(sizeDelta.abs().intoUD60x18()).mul(feeBps);
+            return orderFeeUsd;
         }
 
-        return markPriceX18.mul(sizeDelta.abs().intoUD60x18()).mul(feeBps);
+        uint256 takerSize = skew.add(sizeDelta).abs().intoUint256();
+        uint256 makerSize = sizeDelta.abs().sub(sd59x18(int256(takerSize))).abs().intoUint256();
+
+        UD60x18 takerFee = markPriceX18.mul(ud60x18(takerSize)).mul(ud60x18(self.configuration.orderFees.takerFee));
+        UD60x18 makerFee = markPriceX18.mul(ud60x18(makerSize)).mul(ud60x18(self.configuration.orderFees.makerFee));
+
+        orderFeeUsd = takerFee.add(makerFee);
     }
 
     /// @notice Returns the next funding fee per unit value.
