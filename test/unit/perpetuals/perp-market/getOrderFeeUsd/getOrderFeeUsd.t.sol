@@ -28,7 +28,7 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         _;
     }
 
-    function testFuzz_WhenSkewIsZero(uint256 marketId, uint256 sizeDeltaAbs) external whenSizeDeltaDontFlipsSkew{
+    function testFuzz_WhenSkewIsZero(uint256 marketId, uint256 sizeDeltaAbs) external whenSizeDeltaDontFlipsSkew {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
@@ -55,7 +55,8 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         uint256 skewAbs,
         uint256 sizeDeltaAbs
     )
-        external whenSizeDeltaDontFlipsSkew
+        external
+        whenSizeDeltaDontFlipsSkew
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -84,7 +85,8 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         uint256 skewAbs,
         uint256 sizeDeltaAbs
     )
-        external whenSizeDeltaDontFlipsSkew
+        external
+        whenSizeDeltaDontFlipsSkew
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -113,7 +115,8 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         uint256 skewAbs,
         uint256 sizeDeltaAbs
     )
-        external whenSizeDeltaDontFlipsSkew
+        external
+        whenSizeDeltaDontFlipsSkew
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -145,7 +148,8 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         uint256 skewAbs,
         uint256 sizeDeltaAbs
     )
-        external whenSizeDeltaDontFlipsSkew
+        external
+        whenSizeDeltaDontFlipsSkew
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -172,9 +176,7 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the maker order fee");
     }
 
-    function test_WhenSizeDeltaFlipsSkew(uint256 marketId,
-        uint256 skewAbs,
-        uint256 sizeDeltaAbs) external {
+    function test_WhenSizeDeltaFlipsSkew(uint256 marketId, uint256 skewAbs, uint256 sizeDeltaAbs) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
@@ -204,5 +206,4 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         // it should return the taker fee sum with maker fee
         assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the maker order fee");
     }
-
 }

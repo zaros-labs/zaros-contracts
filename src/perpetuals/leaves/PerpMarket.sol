@@ -176,9 +176,10 @@ library PerpMarket {
 
         bool sameSide = newSkew.eq(SD59x18_ZERO) || skew.eq(SD59x18_ZERO) || newSkew.gt(SD59x18_ZERO) == skew.gt(SD59x18_ZERO);
 
-        if(sameSide) {
-            UD60x18 feeBps = isSkewGtZero != isBuyOrder && !skew.isZero() ?
-                ud60x18(self.configuration.orderFees.makerFee) : ud60x18(self.configuration.orderFees.takerFee);
+        if (sameSide) {
+            UD60x18 feeBps = isSkewGtZero != isBuyOrder && !skew.isZero()
+                ? ud60x18(self.configuration.orderFees.makerFee)
+                : ud60x18(self.configuration.orderFees.takerFee);
 
             orderFeeUsd = markPriceX18.mul(sizeDelta.abs().intoUD60x18()).mul(feeBps);
             return orderFeeUsd;
