@@ -7,8 +7,8 @@ library OffchainOrder {
     /// @param marketId The target market id of the offchain order.
     /// @param sizeDelta The size delta of the offchain order.
     /// @param targetPrice The minimum or maximum price of the offchain order.
-    /// @param nonce The signed index used to verify whether a given order is still valid or not.
     /// @param shouldIncreaseNonce Whether the trading account's nonce should be incremented or not.
+    /// @param nonce The signed index used to verify whether a given order is still valid or not.
     /// @param salt A random 32 bytes value generated and signed offchain to distinguish a offchain order.
     /// @param v ECDSA signature recovery id.
     /// @param r ECDSA signature output.
@@ -18,8 +18,8 @@ library OffchainOrder {
         uint128 marketId;
         int128 sizeDelta;
         uint128 targetPrice;
-        uint120 nonce;
         bool shouldIncreaseNonce;
+        uint120 nonce;
         bytes32 salt;
         uint8 v;
         bytes32 r;

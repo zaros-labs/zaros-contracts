@@ -69,8 +69,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
                 targetPrice: markPrice,
-                nonce: 0,
                 shouldIncreaseNonce: false,
+                nonce: 0,
                 salt: bytes32(0),
                 v: 0,
                 r: bytes32(0),
@@ -142,8 +142,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
                 targetPrice: markPrice,
-                nonce: 0,
                 shouldIncreaseNonce: false,
+                nonce: 0,
                 salt: bytes32(0),
                 v: 0,
                 r: bytes32(0),
@@ -205,7 +205,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) / amountOfOrders
         });
 
-        OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders + 1);
+        OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders);
 
         for (uint256 i = 0; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
@@ -229,50 +229,54 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            bytes32 salt = bytes32(block.prevrandao + i);
+
             bytes32 digest = keccak256(
                 abi.encodePacked(
                     "\x19\x01",
                     perpsEngine.DOMAIN_SEPARATOR(),
-                    abi.encode(
-                        Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
-                        tradingAccountId,
-                        fuzzMarketConfig.marketId,
-                        sizeDelta,
-                        markPrice,
-                        0,
-                        false,
-                        bytes32(block.prevrandao)
+                    keccak256(
+                        abi.encode(
+                            Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
+                            tradingAccountId,
+                            fuzzMarketConfig.marketId,
+                            sizeDelta,
+                            markPrice,
+                            uint120(0),
+                            false,
+                            salt
+                        )
                     )
                 )
             );
 
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(users.naruto.privateKey, digest);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign({ privateKey: users.naruto.privateKey, digest: digest });
 
             offchainOrders[i] = OffchainOrder.Data({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
                 targetPrice: markPrice,
-                nonce: 0,
                 shouldIncreaseNonce: false,
-                salt: bytes32(0),
+                nonce: 0,
+                salt: salt,
                 v: v,
                 r: r,
                 s: s
             });
         }
-        offchainOrders[offchainOrders.length - 1] = OffchainOrder.Data({
-            tradingAccountId: 1,
-            marketId: 0,
-            sizeDelta: 0,
-            targetPrice: 0,
-            nonce: 0,
-            shouldIncreaseNonce: false,
-            salt: bytes32(0),
-            v: 0,
-            r: bytes32(0),
-            s: bytes32(0)
-        });
+        // offchainOrders[offchainOrders.length - 1] = OffchainOrder.Data({
+        //     tradingAccountId: 1,
+        //     marketId: 0,
+        //     sizeDelta: 0,
+        //     targetPrice: 0,
+        //     nonce: 0,
+        //     shouldIncreaseNonce: false,
+        //     salt: bytes32(0),
+        //     v: 0,
+        //     r: bytes32(0),
+        //     s: bytes32(0)
+        // });
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);

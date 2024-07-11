@@ -218,10 +218,10 @@ contract SettlementBranch is EIP712Upgradeable {
                     Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
                     ctx.offchainOrder.tradingAccountId,
                     ctx.offchainOrder.marketId,
-                    SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
                     ctx.offchainOrder.sizeDelta,
                     ctx.offchainOrder.targetPrice,
                     ctx.offchainOrder.shouldIncreaseNonce,
+                    ctx.offchainOrder.nonce,
                     ctx.offchainOrder.salt
                 )
             );

@@ -90,7 +90,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal mockChainlinkVerifier;
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
-    uint32 internal MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
+    uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
