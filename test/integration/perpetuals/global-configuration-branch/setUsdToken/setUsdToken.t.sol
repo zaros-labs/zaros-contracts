@@ -15,13 +15,13 @@ contract SetUsdToken_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotTheOwner(address newUsdToken) external {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         vm.assume(newUsdToken != address(0));
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto)
+            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto.account)
         });
 
         perpsEngine.setUsdToken(newUsdToken);
@@ -32,7 +32,7 @@ contract SetUsdToken_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_TheUsdTokenIsZero() external givenTheSenderIsTheOwner {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "usdToken") });
@@ -41,13 +41,13 @@ contract SetUsdToken_Integration_Test is Base_Test {
     }
 
     function test_WhenTheUsdTokenIsNotAZero(address newUsdToken) external givenTheSenderIsTheOwner {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         vm.assume(newUsdToken != address(0));
 
         // it should emit a {LogSetUsdToken} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit GlobalConfigurationBranch.LogSetUsdToken(users.owner, newUsdToken);
+        emit GlobalConfigurationBranch.LogSetUsdToken(users.owner.account, newUsdToken);
 
         perpsEngine.setUsdToken(newUsdToken);
 

@@ -8,13 +8,13 @@ import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 contract Position_Load_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
     }
 
     function testFuzz_GivenDontHaveAFilledMarketOrder(uint256 marketId) external {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -40,7 +40,7 @@ contract Position_Load_Unit_Test is Base_Test {
     )
         external
     {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 

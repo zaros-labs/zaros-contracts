@@ -13,7 +13,7 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 contract CreatePerpMarket_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
     }
 
@@ -43,7 +43,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketId") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -77,7 +77,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "name") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -111,7 +111,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "symbol") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -150,7 +150,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceAdapter") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -190,7 +190,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maintenanceMarginRateX18") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -231,7 +231,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxOpenInterest") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -273,7 +273,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxSkew") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -316,7 +316,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "initialMarginRateX18") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -359,7 +359,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate.selector });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -403,7 +403,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "skewScale") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -448,7 +448,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "minTradeSizeX18") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -494,7 +494,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxFundingVelocity") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -541,7 +541,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceFeedHeartbeatSeconds") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -559,7 +559,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMinTradeSizeIsNotZero
         whenMaxFundingVelocityIsNotZero
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
@@ -585,7 +585,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
 
         // it should emit {LogCreatePerpMarket} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit GlobalConfigurationBranch.LogCreatePerpMarket(users.owner, params.marketId);
+        emit GlobalConfigurationBranch.LogCreatePerpMarket(users.owner.account, params.marketId);
 
         // it should create perp market
         // it should enable perp market

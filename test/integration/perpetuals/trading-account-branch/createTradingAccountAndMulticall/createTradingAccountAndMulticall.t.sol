@@ -32,7 +32,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
 
         // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto);
+        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto.account);
 
         bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
         // it should return a null results array
@@ -46,7 +46,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
 
         // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto);
+        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto.account);
 
         bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
         address tradingAccountTokenReturned = abi.decode(results[0], (address));
@@ -64,14 +64,14 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
             min: 1,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
 
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encodeWithSelector(TradingAccountBranch.depositMargin.selector, address(usdc), amountToDeposit);
         uint128 expectedAccountId = 1;
 
         // it should transfer the amount from the sender to the trading account
-        expectCallToTransferFrom(usdc, users.naruto, address(perpsEngine), amountToDeposit);
+        expectCallToTransferFrom(usdc, users.naruto.account, address(perpsEngine), amountToDeposit);
         bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
 
         uint256 newMarginCollateralBalance = convertUd60x18ToTokenAmount(

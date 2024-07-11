@@ -13,12 +13,12 @@ import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-orde
 contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
 
         createPerpMarkets();
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContract() {
@@ -38,14 +38,14 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId, users.owner, perpsEngine, marketOrderKeeperImplementation
+            fuzzMarketConfig.marketId, users.owner.account, perpsEngine, marketOrderKeeperImplementation
         );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
         uint128 newMarketId = uint128(FINAL_MARKET_ID + 1);
         string memory newStreamId = "0x";
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         // it should update the config
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
@@ -53,7 +53,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         (address keeperOwner,, address perpsEngine, uint256 marketIdConfig) =
             MarketOrderKeeper(marketOrderKeeper).getConfig();
 
-        assertEq(users.owner, keeperOwner, "keeper owner is not correct");
+        assertEq(users.owner.account, keeperOwner, "keeper owner is not correct");
         assertEq(address(newPersEngine), perpsEngine, "perps engine is not correct");
         assertEq(newMarketId, marketIdConfig, "market id is not correct");
     }
@@ -67,7 +67,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId, users.owner, perpsEngine, marketOrderKeeperImplementation
+            fuzzMarketConfig.marketId, users.owner.account, perpsEngine, marketOrderKeeperImplementation
         );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0));
@@ -77,7 +77,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "perpsEngine") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
     }
 
@@ -90,7 +90,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId, users.owner, perpsEngine, marketOrderKeeperImplementation
+            fuzzMarketConfig.marketId, users.owner.account, perpsEngine, marketOrderKeeperImplementation
         );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
@@ -100,7 +100,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketId") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
     }
 
@@ -113,7 +113,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
 
         address marketOrderKeeper = deployMarketOrderKeeper(
-            fuzzMarketConfig.marketId, users.owner, perpsEngine, marketOrderKeeperImplementation
+            fuzzMarketConfig.marketId, users.owner.account, perpsEngine, marketOrderKeeperImplementation
         );
 
         IPerpsEngine newPersEngine = IPerpsEngine(address(0x123));
@@ -123,7 +123,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "streamId") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
     }
 }

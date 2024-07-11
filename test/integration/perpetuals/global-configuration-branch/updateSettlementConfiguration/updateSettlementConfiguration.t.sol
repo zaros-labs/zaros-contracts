@@ -11,10 +11,10 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_PerpMarketIsNotInitialized(uint256 marketId) external {
@@ -40,7 +40,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
             data: abi.encode(marketOrderConfigurationData)
         });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updateSettlementConfiguration(
             marketIdNotInitialized, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, newSettlementConfiguration
         );
@@ -54,7 +54,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         external
         whenPerpMarketIsInitialized
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -85,7 +85,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         external
         whenPerpMarketIsInitialized
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -116,7 +116,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         external
         whenPerpMarketIsInitialized
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -136,7 +136,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         // it should emit {LogUpdateSettlementConfiguration} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogUpdateSettlementConfiguration(
-            users.owner, fuzzMarketConfig.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID
+            users.owner.account, fuzzMarketConfig.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID
         );
 
         // it should update
@@ -151,7 +151,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         external
         whenPerpMarketIsInitialized
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -171,7 +171,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         // it should emit {LogUpdateSettlementConfiguration} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogUpdateSettlementConfiguration(
-            users.owner, fuzzMarketConfig.marketId, SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID
+            users.owner.account, fuzzMarketConfig.marketId, SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID
         );
 
         // it should update

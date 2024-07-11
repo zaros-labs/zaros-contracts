@@ -15,10 +15,10 @@ import { ud60x18 } from "@prb-math/UD60x18.sol";
 contract FillOffchainOrders_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotTheKeeper(
@@ -43,7 +43,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders);
 
         for (uint256 i = 0; i < amountOfOrders; i++) {
-            deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+            deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
                 FuzzOrderSizeDeltaParams({
@@ -84,7 +84,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.OnlyKeeper.selector, users.naruto, offchainOrdersKeeper)
+            revertData: abi.encodeWithSelector(Errors.OnlyKeeper.selector, users.naruto.account, offchainOrdersKeeper)
         });
         perpsEngine.fillOffchainOrders(fuzzMarketConfig.marketId, offchainOrders, mockSignedReport);
     }
@@ -116,7 +116,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders);
 
         for (uint256 i = 0; i < amountOfOrders; i++) {
-            deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+            deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
                 FuzzOrderSizeDeltaParams({
@@ -165,7 +165,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             data: abi.encode(offchainOrdersConfigurationData)
         });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         perpsEngine.updateSettlementConfiguration({
             marketId: fuzzMarketConfig.marketId,
@@ -208,7 +208,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders + 1);
 
         for (uint256 i = 0; i < amountOfOrders; i++) {
-            deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+            deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
                 FuzzOrderSizeDeltaParams({
@@ -229,24 +229,24 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
-            bytes32 digest = keccak256(
-                abi.encodePacked(
-                    "\x19\x01",
-                    DOMAIN_SEPARATOR,
-                    abi.encode(
-                        Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
-                        tradingAccountId,
-                        fuzzMarketConfig.marketId,
-                        sizeDelta,
-                        markPrice,
-                        0,
-                        false,
-                        bytes32(vm.randomUint())
-                    )
-                )
-            );
+            // bytes32 digest = keccak256(
+            //     abi.encodePacked(
+            //         "\x19\x01",
+            //         DOMAIN_SEPARATOR,
+            //         abi.encode(
+            //             Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
+            //             tradingAccountId,
+            //             fuzzMarketConfig.marketId,
+            //             sizeDelta,
+            //             markPrice,
+            //             0,
+            //             false,
+            //             bytes32(vm.randomUint())
+            //         )
+            //     )
+            // );
 
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, digest);
+            // (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, digest);
 
             offchainOrders[i] = OffchainOrder.Data({
                 tradingAccountId: tradingAccountId,

@@ -20,7 +20,7 @@ contract getAccountEquityUsd_Integration_Test is Base_Test {
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
 
         uint256 expectedMarginCollateralValue = getPrice(
             MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
@@ -51,8 +51,8 @@ contract getAccountEquityUsd_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: amountToDepositUsdc });
-        deal({ token: address(wstEth), to: users.naruto, give: amountToDepositWstEth });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDepositUsdc });
+        deal({ token: address(wstEth), to: users.naruto.account, give: amountToDepositWstEth });
 
         UD60x18 usdcEquityUsd = getPrice(MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)).mul(
             convertTokenAmountToUd60x18(address(usdc), amountToDepositUsdc)

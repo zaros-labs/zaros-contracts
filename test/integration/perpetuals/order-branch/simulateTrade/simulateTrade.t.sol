@@ -23,13 +23,13 @@ contract SimulateTradeIntegrationTest is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         configureSystemParameters();
 
         createPerpMarkets();
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_RevertGiven_TheAccountIdDoesNotExist(
@@ -43,7 +43,9 @@ contract SimulateTradeIntegrationTest is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // Expect revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.AccountNotFound.selector, tradingAccountId, users.naruto));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.AccountNotFound.selector, tradingAccountId, users.naruto.account)
+        );
 
         // perps engine calls and it gets forwarded to the order branch?
         perpsEngine.simulateTrade(tradingAccountId, fuzzMarketConfig.marketId, settlementConfigurationId, sizeDelta);
@@ -76,7 +78,7 @@ contract SimulateTradeIntegrationTest is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
@@ -175,7 +177,7 @@ contract SimulateTradeIntegrationTest is Base_Test {
         // convertUd60x18ToTokenAmount(USDC_DEPOSIT_CAP_X18) });
 
         // // give user usdc
-        // deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        // deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         // // create trading account
         // uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
@@ -236,13 +238,13 @@ contract SimulateTradeIntegrationTest is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
         int128 sizeDelta = int128(fuzzMarketConfig.minTradeSize - 9_999_999_999_999);
 
-        vm.startPrank(users.naruto);
+        vm.startPrank(users.naruto.account);
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.NewPositionSizeTooSmall.selector));
@@ -281,7 +283,7 @@ contract SimulateTradeIntegrationTest is Base_Test {
         });
 
         // give user usdc
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         // create trading account
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));

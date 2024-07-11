@@ -9,14 +9,14 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_RevertGiven_CollateralAddressIsZero() external {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         address collateral = address(0);
 
@@ -31,7 +31,7 @@ contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_CollateralHasAlreadyBeenRemoved() external givenCollateralAddressIsNotZero {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         address collateral = address(usdc);
 
@@ -46,13 +46,13 @@ contract RemoveCollateralFromLiquidationPriority_Integration_Test is Base_Test {
     }
 
     function test_WhenCollateralHasNotYetRemoved() external givenCollateralAddressIsNotZero {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         address collateral = address(usdc);
 
         // it should emit {LogRemoveCollateralFromLiquidationPriority} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit GlobalConfigurationBranch.LogRemoveCollateralFromLiquidationPriority(users.owner, collateral);
+        emit GlobalConfigurationBranch.LogRemoveCollateralFromLiquidationPriority(users.owner.account, collateral);
 
         // it should remove
         perpsEngine.removeCollateralFromLiquidationPriority(collateral);

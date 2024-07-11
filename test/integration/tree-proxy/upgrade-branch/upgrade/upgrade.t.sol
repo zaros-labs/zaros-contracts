@@ -34,18 +34,18 @@ abstract contract PerpsEngineWithNewOrderBranch is NewOrderBranch { }
 contract Upgrade_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_RevertGiven_TheSenderIsNotTheOwner() external {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto)
+            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto.account)
         });
 
         perpsEngine.upgrade(new RootProxy.BranchUpgrade[](0), new address[](0), new bytes[](0));
@@ -56,7 +56,7 @@ contract Upgrade_Integration_Test is Base_Test {
     }
 
     function test_WhenAddingANewBranch() external givenTheSenderIsTheOwner {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         address[] memory branches = new address[](1);
         address testContract = address(new TestContract());
@@ -77,7 +77,7 @@ contract Upgrade_Integration_Test is Base_Test {
     }
 
     function test_WhenReplacingABranch() external givenTheSenderIsTheOwner {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         address[] memory branches = new address[](1);
         address newOrderBranch = address(new NewOrderBranch());
@@ -100,7 +100,7 @@ contract Upgrade_Integration_Test is Base_Test {
     }
 
     function test_WhenRemovingABranch() external givenTheSenderIsTheOwner {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         // When we remove a function that already exists in the branch
 

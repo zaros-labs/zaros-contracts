@@ -12,10 +12,10 @@ import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_MarketIsNotInitialized(uint256 marketId) external {
@@ -44,7 +44,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             revertData: abi.encodeWithSelector(Errors.PerpMarketNotInitialized.selector, marketIdNotInitialized)
         });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(marketIdNotInitialized, params);
     }
 
@@ -74,7 +74,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "name") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -108,7 +108,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "symbol") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -143,7 +143,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceAdapter") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -179,7 +179,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maintenanceMarginRateX18") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -216,7 +216,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxOpenInterest") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -254,11 +254,50 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxSkew") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
     modifier whenMaxSkewIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_InitialMarginRateIsZero(uint256 marketId)
+        external
+        whenMarketIsInitialized
+        whenLengthOfNameIsNotZero
+        whenLengthOfSymbolIsNotZero
+        whenPriceAdapterIsNotZero
+        whenMaintenanceMarginRateIsNotZero
+        whenMaxOpenInterestIsNotZero
+        whenMaxSkewIsNotZero
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
+            name: fuzzMarketConfig.marketName,
+            symbol: fuzzMarketConfig.marketSymbol,
+            priceAdapter: fuzzMarketConfig.priceAdapter,
+            initialMarginRateX18: 0,
+            maintenanceMarginRateX18: fuzzMarketConfig.mmr,
+            maxOpenInterest: fuzzMarketConfig.maxOi,
+            maxSkew: fuzzMarketConfig.maxSkew,
+            maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
+            skewScale: fuzzMarketConfig.skewScale,
+            minTradeSizeX18: fuzzMarketConfig.minTradeSize,
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
+            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+        });
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "initialMarginRateX18") });
+
+        changePrank({ msgSender: users.owner.account });
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
+    }
+
+    modifier whenInitialMarginRateIsNotZero() {
         _;
     }
 
@@ -295,7 +334,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             revertData: abi.encodeWithSelector(Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate.selector)
         });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -335,7 +374,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "skewScale") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -376,7 +415,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "minTradeSizeX18") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -418,7 +457,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxFundingVelocity") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -461,7 +500,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceFeedHeartbeatSeconds") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
@@ -478,7 +517,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         whenSkewScaleIsNotZero
         whenMinTradeSizeIsNotZero
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -500,7 +539,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         // it should emit {LogUpdatePerpMarketConfiguration} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit GlobalConfigurationBranch.LogUpdatePerpMarketConfiguration(users.owner, fuzzMarketConfig.marketId);
+        emit GlobalConfigurationBranch.LogUpdatePerpMarketConfiguration(
+            users.owner.account, fuzzMarketConfig.marketId
+        );
 
         // it should update perp market
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);

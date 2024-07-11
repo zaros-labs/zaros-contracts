@@ -22,12 +22,12 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
 
         createPerpMarkets();
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertGiven_TheAccountIdDoesNotExist(
@@ -43,7 +43,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, tradingAccountId, users.naruto)
+            revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, tradingAccountId, users.naruto.account)
         });
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -67,17 +67,19 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         vm.assume(sizeDelta > 0);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
-        changePrank({ msgSender: users.sasuke });
+        changePrank({ msgSender: users.sasuke.account });
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, tradingAccountId, users.sasuke)
+            revertData: abi.encodeWithSelector(
+                Errors.AccountPermissionDenied.selector, tradingAccountId, users.sasuke.account
+            )
         });
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -141,7 +143,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         // size delta should be the reverse of the position if position is openeds
@@ -160,10 +162,10 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             })
         );
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketStatus({ marketId: fuzzMarketConfig.marketId, enable: false });
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.PerpMarketDisabled.selector, fuzzMarketConfig.marketId)
@@ -187,16 +189,16 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         // give naruto some tokens
         uint256 marginValueUsdc = 100_000e6;
         int128 userPositionSizeDelta = 10e18;
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsdc });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsdc });
         // naruto creates a trading account and deposits their tokens as collateral
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsdc, address(usdc));
         // naruto opens first position in BTC market
         openManualPosition(
             BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, userPositionSizeDelta
         );
         // protocol operator disables settlement for the BTC market
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
             .DataStreamsStrategy({ chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier), streamId: BTC_USD_STREAM_ID });
 
@@ -211,7 +213,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             BTC_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, marketOrderConfiguration
         );
         // naruto attempts to close their position
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         // naruto closes their opened leverage BTC position
         openManualPosition(
@@ -242,7 +244,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
         SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.minTradeSize).intoSD59x18().sub(sd59x18(1));
 
         int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
@@ -283,7 +285,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
         SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.maxOi).intoSD59x18().add(sd59x18(1));
 
         int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
@@ -351,7 +353,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 firstOrderSizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -368,7 +370,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             })
         );
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: 1,
             marketOrderMinLifetime: MARKET_ORDER_MIN_LIFETIME,
@@ -379,7 +381,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             liquidationFeeRecipient: users.liquidationFeeRecipient
         });
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -395,7 +397,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         int128 secondOrderSizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -455,7 +457,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
         initialMarginRate = bound({ x: initialMarginRate, min: 1, max: adjustedMarginRequirements.intoUint256() });
 
-        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -534,7 +536,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -600,7 +602,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -627,7 +629,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogCreateMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit OrderBranch.LogCreateMarketOrder(
-            users.naruto, tradingAccountId, fuzzMarketConfig.marketId, expectedMarketOrder
+            users.naruto.account, tradingAccountId, fuzzMarketConfig.marketId, expectedMarketOrder
         );
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -653,7 +655,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(wstEth), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(wstEth), to: users.naruto.account, give: marginValueUsd });
 
         tradingAccountId = createAccountAndDeposit(marginValueUsd, address(wstEth));
         sizeDelta = fuzzOrderSizeDelta(
@@ -680,7 +682,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogCreateMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit OrderBranch.LogCreateMarketOrder(
-            users.naruto, tradingAccountId, fuzzMarketConfig.marketId, expectedMarketOrder
+            users.naruto.account, tradingAccountId, fuzzMarketConfig.marketId, expectedMarketOrder
         );
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({

@@ -10,10 +10,10 @@ import { Base_Test } from "test/Base.t.sol";
 contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContract() {
@@ -33,7 +33,7 @@ contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Test {
         uint256 marginValueUsd = 10_000e18 / amountOfTradingAccounts;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
-        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
 
         uint128[] memory accountsIds = new uint128[](amountOfTradingAccounts + 1);
 
@@ -51,10 +51,10 @@ contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Test {
         uint128 nonLiquidatableTradingAccountId = createAccountAndDeposit(accountMarginValueUsd, address(usdz));
         accountsIds[amountOfTradingAccounts] = nonLiquidatableTradingAccountId;
 
-        changePrank({ msgSender: users.owner });
-        LiquidationKeeper(liquidationKeeper).setForwarder(users.keepersForwarder);
+        changePrank({ msgSender: users.owner.account });
+        LiquidationKeeper(liquidationKeeper).setForwarder(users.keepersForwarder.account);
 
-        changePrank({ msgSender: users.keepersForwarder });
+        changePrank({ msgSender: users.keepersForwarder.account });
         bytes memory performData = abi.encode(accountsIds);
 
         for (uint256 i; i < accountsIds.length; i++) {

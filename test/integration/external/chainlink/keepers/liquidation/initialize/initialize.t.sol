@@ -12,12 +12,12 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 contract LiquidationKeeper_Initialize_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
 
         createPerpMarkets();
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContractWithSomeWrongInformation() {
@@ -35,7 +35,10 @@ contract LiquidationKeeper_Initialize_Integration_Test is Base_Test {
         new ERC1967Proxy(
             liquidationKeeperImplementation,
             abi.encodeWithSelector(
-                LiquidationKeeper.initialize.selector, users.owner, perpsEngine, users.settlementFeeRecipient
+                LiquidationKeeper.initialize.selector,
+                users.owner.account,
+                perpsEngine,
+                users.settlementFeeRecipient.account
             )
         );
     }

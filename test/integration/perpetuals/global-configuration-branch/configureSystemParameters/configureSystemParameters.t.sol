@@ -10,12 +10,12 @@ import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguratio
 contract ConfigureSystemParameters_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
 
         createPerpMarkets();
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_MaxPositionsPerAccountIsZero(
@@ -27,7 +27,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxPositionsPerAccount") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureSystemParameters(
             0,
             marketOrderMinLifetime,
@@ -56,7 +56,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeUsdX18") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
             marketOrderMinLifetime,
@@ -88,7 +88,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marginCollateralRecipient") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
             marketOrderMinLifetime,
@@ -121,7 +121,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "orderFeeRecipient") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
             marketOrderMinLifetime,
@@ -155,7 +155,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "settlementFeeRecipient") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
             marketOrderMinLifetime,
@@ -220,10 +220,10 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         // it should emit {LogConfigureSystemParameters} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogConfigureSystemParameters(
-            users.owner, maxPositionsPerAccount, marketOrderMinLifetime, liquidationFeeUsdX18
+            users.owner.account, maxPositionsPerAccount, marketOrderMinLifetime, liquidationFeeUsdX18
         );
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
             marketOrderMinLifetime,

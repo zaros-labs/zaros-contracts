@@ -210,7 +210,7 @@ contract SettlementBranch is EIP712Upgradeable {
 
             ctx.structHash = keccak256(
                 abi.encode(
-                    Constants.SIGN_OFFCHAIN_ORDER_TYPEHASH,
+                    Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
                     ctx.offchainOrder.tradingAccountId,
                     ctx.offchainOrder.marketId,
                     SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,

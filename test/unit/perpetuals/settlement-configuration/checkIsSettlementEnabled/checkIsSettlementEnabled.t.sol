@@ -10,7 +10,7 @@ import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves
 contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
     }

@@ -12,10 +12,10 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 contract GetFundingRate_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_GivenTheresAMarketCreated(
@@ -34,7 +34,7 @@ contract GetFundingRate_Integration_Test is Base_Test {
         });
         timeElapsed = bound({ x: timeElapsed, min: 1 seconds, max: 365 days });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint256 initialMarginRate = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.001e18)).intoUint256();
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));

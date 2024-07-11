@@ -34,7 +34,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         // 18 token decimals Scenarios: when user deposit more than the deposit cap by adding up all deposits
 
         uint256 amountToDepositMargin = WSTETH_DEPOSIT_CAP_X18.intoUint256();
-        deal({ token: address(wstEth), to: users.naruto, give: amountToDepositMargin * 2 });
+        deal({ token: address(wstEth), to: users.naruto.account, give: amountToDepositMargin * 2 });
 
         uint128 userTradingAccountId = perpsEngine.createTradingAccount();
 
@@ -56,9 +56,9 @@ contract DepositMargin_Integration_Test is Base_Test {
             min: WSTETH_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(wstEth), to: users.naruto.account, give: amountToDeposit });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureMarginCollateral(
             address(wstEth),
             0,
@@ -66,7 +66,7 @@ contract DepositMargin_Integration_Test is Base_Test {
             marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed,
             MOCK_PRICE_FEED_HEARTBEAT_SECONDS
         );
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         userTradingAccountId = perpsEngine.createTradingAccount();
 
@@ -80,7 +80,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         // Usdc Scenarios: the collateral type has 6 decimals (usdc)
 
         uint256 amountToDepositMarginUsdc = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
-        deal({ token: address(usdc), to: users.naruto, give: amountToDepositMarginUsdc * 2 });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDepositMarginUsdc * 2 });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDepositMarginUsdc);
 
@@ -99,9 +99,9 @@ contract DepositMargin_Integration_Test is Base_Test {
         // scenario: the collateral type has insufficient deposit cap
 
         amountToDeposit = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureMarginCollateral(
             address(usdc),
             0,
@@ -109,7 +109,7 @@ contract DepositMargin_Integration_Test is Base_Test {
             marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed,
             MOCK_PRICE_FEED_HEARTBEAT_SECONDS
         );
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         // it should revert
         vm.expectRevert({
@@ -135,13 +135,13 @@ contract DepositMargin_Integration_Test is Base_Test {
             min: 1,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         perpsEngine.removeCollateralFromLiquidationPriority(address(usdc));
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         uint128 userTradingAccountId = perpsEngine.createTradingAccount();
 
@@ -170,11 +170,13 @@ contract DepositMargin_Integration_Test is Base_Test {
             min: 1,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, userTradingAccountId, users.naruto)
+            revertData: abi.encodeWithSelector(
+                Errors.AccountNotFound.selector, userTradingAccountId, users.naruto.account
+            )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);
@@ -188,28 +190,32 @@ contract DepositMargin_Integration_Test is Base_Test {
     {
         // Test with usdc that has 6 decimals
 
-        assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), 0, "initial balance should be zero");
+        assertEq(MockERC20(address(usdc)).balanceOf(users.naruto.account), 0, "initial balance should be zero");
 
         amountToDeposit = bound({
             x: amountToDeposit,
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
 
-        assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct");
+        assertEq(
+            MockERC20(address(usdc)).balanceOf(users.naruto.account), amountToDeposit, "balanceOf is not correct"
+        );
 
         uint128 userTradingAccountId = perpsEngine.createTradingAccount();
 
         // it should emit {LogDepositMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogDepositMargin(users.naruto, userTradingAccountId, address(usdc), amountToDeposit);
+        emit TradingAccountBranch.LogDepositMargin(
+            users.naruto.account, userTradingAccountId, address(usdc), amountToDeposit
+        );
 
         // it should transfer the amount from the sender to the trading account
-        expectCallToTransferFrom(usdc, users.naruto, address(perpsEngine), amountToDeposit);
+        expectCallToTransferFrom(usdc, users.naruto.account, address(perpsEngine), amountToDeposit);
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);
 
-        assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), 0, "balanceOf should be zero");
+        assertEq(MockERC20(address(usdc)).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
         uint256 newMarginCollateralBalance = convertUd60x18ToTokenAmount(
             address(usdc), perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(usdc))
@@ -220,28 +226,28 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         // Test with wstEth that has 18 decimals
 
-        assertEq(MockERC20(wstEth).balanceOf(users.naruto), 0, "initial balance should be zero");
+        assertEq(MockERC20(wstEth).balanceOf(users.naruto.account), 0, "initial balance should be zero");
 
         amountToDeposit = bound({
             x: amountToDeposit,
             min: WSTETH_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(wstEth), to: users.naruto.account, give: amountToDeposit });
 
-        assertEq(MockERC20(wstEth).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct");
+        assertEq(MockERC20(wstEth).balanceOf(users.naruto.account), amountToDeposit, "balanceOf is not correct");
 
         // it should emit {LogDepositMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit TradingAccountBranch.LogDepositMargin(
-            users.naruto, userTradingAccountId, address(wstEth), amountToDeposit
+            users.naruto.account, userTradingAccountId, address(wstEth), amountToDeposit
         );
 
         // it should transfer the amount from the sender to the trading account
-        expectCallToTransferFrom(wstEth, users.naruto, address(perpsEngine), amountToDeposit);
+        expectCallToTransferFrom(wstEth, users.naruto.account, address(perpsEngine), amountToDeposit);
         perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDeposit);
 
-        assertEq(MockERC20(wstEth).balanceOf(users.naruto), 0, "balanceOf should be zero");
+        assertEq(MockERC20(wstEth).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
         newMarginCollateralBalance = convertUd60x18ToTokenAmount(
             address(wstEth), perpsEngine.getAccountMarginCollateralBalance(userTradingAccountId, address(wstEth))

@@ -13,12 +13,12 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 contract MarketOrderKeeper_Initialize_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
 
         createPerpMarkets();
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContractWithSomeWrongInformation() {
@@ -40,7 +40,7 @@ contract MarketOrderKeeper_Initialize_Integration_Test is Base_Test {
             marketOrderKeeperImplementation,
             abi.encodeWithSelector(
                 MarketOrderKeeper.initialize.selector,
-                users.owner,
+                users.owner.account,
                 IPerpsEngine(address(0)),
                 fuzzMarketConfig.marketId,
                 fuzzMarketConfig.streamIdString
@@ -60,7 +60,7 @@ contract MarketOrderKeeper_Initialize_Integration_Test is Base_Test {
         new ERC1967Proxy(
             marketOrderKeeperImplementation,
             abi.encodeWithSelector(
-                MarketOrderKeeper.initialize.selector, users.owner, perpsEngine, marketId, streamIdString
+                MarketOrderKeeper.initialize.selector, users.owner.account, perpsEngine, marketId, streamIdString
             )
         );
     }
@@ -81,7 +81,7 @@ contract MarketOrderKeeper_Initialize_Integration_Test is Base_Test {
             marketOrderKeeperImplementation,
             abi.encodeWithSelector(
                 MarketOrderKeeper.initialize.selector,
-                users.owner,
+                users.owner.account,
                 perpsEngine,
                 fuzzMarketConfig.marketId,
                 streamIdString

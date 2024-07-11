@@ -19,10 +19,10 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_PriceFeedIsZero(
@@ -84,7 +84,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     {
         address collateral = address(wstEth);
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         MockSequencerUptimeFeedWithInvalidReturn mockSequencerUptimeFeedWithInvalidReturn =
             new MockSequencerUptimeFeedWithInvalidReturn();
 
@@ -96,7 +96,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
         perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidSequencerUptimeFeedReturn.selector) });
@@ -117,7 +117,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     {
         address collateral = address(wstEth);
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         MockSequencerUptimeFeedDown mockSequencerUptimeFeedDown = new MockSequencerUptimeFeedDown();
         uint256[] memory chainIds = new uint256[](1);
         chainIds[0] = block.chainid;
@@ -127,7 +127,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
         perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         // it should revert
         vm.expectRevert({
@@ -153,7 +153,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     {
         address collateral = address(wstEth);
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         MockSequencerUptimeFeedGracePeriodNotOver mockSequencerUptimeFeedGracePeriodNotOver =
             new MockSequencerUptimeFeedGracePeriodNotOver();
         uint256[] memory chainIds = new uint256[](1);
@@ -164,7 +164,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
         perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.GracePeriodNotOver.selector) });

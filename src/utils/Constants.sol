@@ -15,7 +15,7 @@ library Constants {
     /// @notice EIP712 domain version.
     string internal constant SETTLEMENT_BRANCH_DOMAIN_VERSION = "1";
     /// @notice EIP712 sign offchain order typehash.
-    bytes32 internal constant SIGN_OFFCHAIN_ORDER_TYPEHASH = keccak256(
+    bytes32 internal constant CREATE_OFFCHAIN_ORDER_TYPEHASH = keccak256(
         "SignOffchainOrder(uint128 tradingAccountId,uint128 marketId,uint128 settlementConfigurationId,int128 sizeDelta,uint128 targetPrice,uint120 nonce,bool shouldIncreaseNonce,bytes32 salt)"
     );
 }

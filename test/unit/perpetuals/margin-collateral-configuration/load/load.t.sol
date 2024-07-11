@@ -8,10 +8,10 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 contract MarginCollateralConfiguration_Load_Unit_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_WhenLoadIsCalled() external {

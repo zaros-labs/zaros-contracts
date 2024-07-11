@@ -13,12 +13,12 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
 
         createPerpMarkets();
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContract() {
@@ -30,17 +30,27 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_IAmNotTheOwner() external givenInitializeContract givenCallSetConfigFunction {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
+<<<<<<< HEAD
         address liquidationKeeper =
             ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
+=======
+        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
+            users.owner.account, address(perpsEngine), users.settlementFeeRecipient.account
+        );
+>>>>>>> f02e465c (test: update user struct across tests)
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto)
+            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto.account)
         });
 
+<<<<<<< HEAD
         LiquidationKeeper(liquidationKeeper).setConfig(address(perpsEngine));
+=======
+        LiquidationKeeper(liquidationKeeper).setConfig(address(perpsEngine), users.settlementFeeRecipient.account);
+>>>>>>> f02e465c (test: update user struct across tests)
     }
 
     modifier whenIAmTheOwner() {
@@ -48,10 +58,16 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     }
 
     function test_WhenIAmTheOwner() external givenInitializeContract givenCallSetConfigFunction whenIAmTheOwner {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
+<<<<<<< HEAD
         address liquidationKeeper =
             ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
+=======
+        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
+            users.owner.account, address(perpsEngine), users.settlementFeeRecipient.account
+        );
+>>>>>>> f02e465c (test: update user struct across tests)
 
         LiquidationKeeper(liquidationKeeper).setConfig(address(perpsEngine));
 
@@ -59,7 +75,7 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
         (address keeperOwner, address perpsEngineOfLiquidationKeeper) =
             LiquidationKeeper(liquidationKeeper).getConfig();
 
-        assertEq(keeperOwner, users.owner, "owner is not correct");
+        assertEq(keeperOwner, users.owner.account, "owner is not correct");
 
         assertEq(perpsEngineOfLiquidationKeeper, address(perpsEngine), "owner is not correct");
     }
@@ -70,10 +86,11 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
         givenCallSetConfigFunction
         whenIAmTheOwner
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
-        address liquidationKeeper =
-            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
+        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
+            users.owner.account, address(perpsEngine)
+        );
 
         address perpsEngine = address(0);
 
