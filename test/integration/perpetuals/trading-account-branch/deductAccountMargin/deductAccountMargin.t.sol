@@ -47,10 +47,10 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
     function setUp() public override {
         Base_Test.setUp();
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         usdcDepositCap = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
     }
@@ -76,7 +76,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
         randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
@@ -92,7 +92,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
             .exposed_getMarginCollateralBalance(tradingAccountId, address(usdc));
 
         perpsEngine.exposed_withdrawMarginUsd(
-            tradingAccountId, address(usdc), ud60x18(marginValueUsd), marginCollateralBalanceX18, users.naruto
+            tradingAccountId, address(usdc), ud60x18(marginValueUsd), marginCollateralBalanceX18, users.naruto.account
         );
 
         TradingAccountHarness(address(perpsEngine)).exposed_deductAccountMargin({
@@ -129,7 +129,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
         randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
@@ -174,7 +174,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
         randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
@@ -217,7 +217,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
         randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
@@ -262,7 +262,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
         randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
@@ -305,7 +305,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
         randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
@@ -350,7 +350,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
         randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
@@ -396,7 +396,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
         randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
