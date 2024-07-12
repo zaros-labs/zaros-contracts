@@ -91,7 +91,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         );
     }
 
-    modifier whenCollateralDecimalsIsNotGreatherThanSystemDecimals() {
+    modifier whenCollateralDecimalsIsNotGreaterThanSystemDecimals() {
         _;
     }
 
@@ -101,7 +101,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
     )
         external
         whenCollateralThatHasDecimals
-        whenCollateralDecimalsIsNotGreatherThanSystemDecimals
+        whenCollateralDecimalsIsNotGreaterThanSystemDecimals
     {
         changePrank({ msgSender: users.owner.account });
 
@@ -139,7 +139,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
     )
         external
         whenCollateralThatHasDecimals
-        whenCollateralDecimalsIsNotGreatherThanSystemDecimals
+        whenCollateralDecimalsIsNotGreaterThanSystemDecimals
         whenPriceFeedIsNotZero
     {
         changePrank({ msgSender: users.owner.account });
@@ -172,7 +172,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
     )
         external
         whenCollateralThatHasDecimals
-        whenCollateralDecimalsIsNotGreatherThanSystemDecimals
+        whenCollateralDecimalsIsNotGreaterThanSystemDecimals
         whenPriceFeedIsNotZero
     {
         changePrank({ msgSender: users.owner.account });

@@ -4,7 +4,7 @@ ConfigureMarginCollateral_Integration_Test
 └── when collateral that has decimals
     ├── when collateral decimals is greater than system decimals
     │   └── it should revert
-    └── when collateral decimals is not greather than system decimals
+    └── when collateral decimals is not greater than system decimals
         ├── when price feed is zero
         │   └── it should revert
         └── when price feed is not zero
