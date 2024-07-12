@@ -154,15 +154,13 @@ contract SettlementBranch is EIP712Upgradeable {
     struct FillOffchainOrders_Context {
         UD60x18 bidX18;
         UD60x18 askX18;
-        uint256 cachedOffchainOrdersLength;
-        OffchainOrder.Data offchainOrder;
-        bytes32 structHash;
-        bytes32 hash;
-        address signer;
-        bool isBuyOrder;
         UD60x18 indexPriceX18;
         UD60x18 fillPriceX18;
+        bytes32 structHash;
+        OffchainOrder.Data offchainOrder;
+        address signer;
         bool isFillPriceValid;
+        bool isBuyOrder;
     }
 
     /// @notice Fills pending, eligible offchain offchain orders targeting the given market id.
@@ -187,10 +185,7 @@ contract SettlementBranch is EIP712Upgradeable {
 
         (ctx.bidX18, ctx.askX18) = settlementConfiguration.verifyOffchainPrice(priceData);
 
-        // gas savings
-        ctx.cachedOffchainOrdersLength = offchainOrders.length;
-
-        for (uint256 i = 0; i < ctx.cachedOffchainOrdersLength; i++) {
+        for (uint256 i; i < offchainOrders.length; i++) {
             ctx.offchainOrder = offchainOrders[i];
 
             if (ctx.offchainOrder.sizeDelta == 0) {
@@ -225,7 +220,6 @@ contract SettlementBranch is EIP712Upgradeable {
                     ctx.offchainOrder.salt
                 )
             );
-            ctx.hash = _hashTypedDataV4(ctx.structHash);
 
             // If the offchain order has already been filled, revert.
             // we store `ctx.hash`, and expect each order signed by the user to provide a unique salt so that filled
@@ -235,7 +229,9 @@ contract SettlementBranch is EIP712Upgradeable {
             }
 
             // `ecrecover`s the order signer.
-            ctx.signer = ECDSA.recover(ctx.hash, ctx.offchainOrder.v, ctx.offchainOrder.r, ctx.offchainOrder.s);
+            ctx.signer = ECDSA.recover(
+                _hashTypedDataV4(ctx.structHash), ctx.offchainOrder.v, ctx.offchainOrder.r, ctx.offchainOrder.s
+            );
 
             // ensure the signer is the owner of the trading account, otherwise revert.
             // NOTE: If an account's owner transfers to another address, this will fail. Therefore, clients must

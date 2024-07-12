@@ -44,7 +44,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
 
         OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders);
 
-        for (uint256 i = 0; i < amountOfOrders; i++) {
+        for (uint256 i; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
@@ -117,7 +117,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
 
         OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders);
 
-        for (uint256 i = 0; i < amountOfOrders; i++) {
+        for (uint256 i; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
@@ -209,7 +209,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
 
         OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders + 1);
 
-        for (uint256 i = 0; i < amountOfOrders; i++) {
+        for (uint256 i; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
@@ -319,7 +319,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
 
         OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders + 1);
 
-        for (uint256 i = 0; i < amountOfOrders; i++) {
+        for (uint256 i; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
@@ -432,7 +432,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
 
         OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders + 1);
 
-        for (uint256 i = 0; i < amountOfOrders; i++) {
+        for (uint256 i; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
@@ -546,7 +546,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
 
         OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](amountOfOrders + 1);
 
-        for (uint256 i = 0; i < amountOfOrders; i++) {
+        for (uint256 i; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
@@ -826,7 +826,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidOrderSigner.selector, users.sasuke.account, users.naruto.account
-                )
+            )
         });
 
         perpsEngine.fillOffchainOrders(fuzzMarketConfig.marketId, offchainOrders, mockSignedReport);
@@ -863,7 +863,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) / amountOfOrders
         });
 
-        for (uint256 i = 0; i < amountOfOrders; i++) {
+        for (uint256 i; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
@@ -983,7 +983,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) / amountOfOrders
         });
 
-        for (uint256 i = 0; i < amountOfOrders; i++) {
+        for (uint256 i; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
@@ -1099,7 +1099,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) / amountOfOrders
         });
 
-        for (uint256 i = 0; i < amountOfOrders; i++) {
+        for (uint256 i; i < amountOfOrders; i++) {
             deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
             uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
             int128 sizeDelta = fuzzOrderSizeDelta(
