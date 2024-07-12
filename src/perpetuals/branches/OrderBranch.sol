@@ -130,27 +130,41 @@ contract OrderBranch {
 
     /// @param marketId The perp market id.
     /// @param sizeDelta The size delta of the order.
+    /// @param settlementConfigurationId The perp market settlement configuration id.
     /// @return initialMarginUsdX18 The initial margin requirement for the given trade.
     /// @return maintenanceMarginUsdX18 The maintenance margin requirement for the given trade.
+    /// @return orderFeeUsdX18 The order fee in USD.
+    /// @return settlementFeeUsdX18 The settlement fee in USD.
     function getMarginRequirementForTrade(
         uint128 marketId,
-        int128 sizeDelta
+        int128 sizeDelta,
+        uint128 settlementConfigurationId
     )
         external
         view
-        returns (UD60x18, UD60x18)
+        returns (
+            UD60x18 initialMarginUsdX18,
+            UD60x18 maintenanceMarginUsdX18,
+            UD60x18 orderFeeUsdX18,
+            UD60x18 settlementFeeUsdX18
+        )
     {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        SettlementConfiguration.Data storage settlementConfiguration =
+            SettlementConfiguration.load(marketId, settlementConfigurationId);
 
         UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
         UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
 
         UD60x18 orderValueX18 = markPriceX18.mul(sd59x18(sizeDelta).abs().intoUD60x18());
-        UD60x18 initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.initialMarginRateX18));
-        UD60x18 maintenanceMarginUsdX18 =
-            orderValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
 
-        return (initialMarginUsdX18, maintenanceMarginUsdX18);
+        initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.initialMarginRateX18));
+
+        maintenanceMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
+
+        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), markPriceX18);
+
+        settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
     }
 
     /// @param tradingAccountId The trading account id to get the active market
