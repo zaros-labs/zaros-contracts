@@ -24,6 +24,28 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
+    function testFuzz_WhenSkewIsZero(uint256 marketId, uint256 sizeDeltaAbs) external {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+
+        int128 skew = 0;
+
+        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, mockOpenInterest, sd59x18(skew));
+
+        SD59x18 sizeDeltaX18 = sd59x18(int256(sizeDeltaAbs));
+
+        UD60x18 markPriceX18 = ud60x18(fuzzMarketConfig.mockUsdPrice);
+
+        UD60x18 feeUsd = perpsEngine.exposed_getOrderFeeUsd(fuzzMarketConfig.marketId, sizeDeltaX18, markPriceX18);
+
+        UD60x18 expectedFeeUsd =
+            markPriceX18.mul(sizeDeltaX18.abs().intoUD60x18()).mul(ud60x18(fuzzMarketConfig.orderFees.takerFee));
+
+        // it should return the taker order fee
+        assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the taker order fee");
+    }
+
     function testFuzz_WhenSkewAndSizeDeltaAreGreatherThanZero(
         uint256 marketId,
         uint256 skewAbs,
