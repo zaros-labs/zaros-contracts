@@ -355,7 +355,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         givenTheReportVerificationPasses
     {
         // give naruto some tokens
-        uint256 USER_STARTING_BALANCE = 100_000e18;
+        uint256 USER_STARTING_BALANCE = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
         int128 USER_POS_SIZE_DELTA = 10e18;
         deal({ token: address(usdc), to: users.naruto, give: USER_STARTING_BALANCE });
         // naruto creates a trading account and deposits their tokens as collateral

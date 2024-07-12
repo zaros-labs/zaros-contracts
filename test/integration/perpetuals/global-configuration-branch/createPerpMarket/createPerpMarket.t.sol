@@ -281,49 +281,6 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_InitialMarginRateIsZero()
-        external
-        whenMarketIdIsNotZero
-        whenLengthOfNameIsNotZero
-        whenLengthOfSymbolIsNotZero
-        whenPriceAdapterIsNotZero
-        whenMaintenanceMarginRateIsNotZero
-        whenMaxOpenInterestIsNotZero
-        whenMaxSkewIsNotZero
-    {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
-        SettlementConfiguration.Data memory marketOrderConfiguration;
-
-        GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
-            .CreatePerpMarketParams({
-            marketId: 1,
-            name: "BTC/USD",
-            symbol: "BTC",
-            priceAdapter: address(0x20),
-            initialMarginRateX18: 0,
-            maintenanceMarginRateX18: 1,
-            maxOpenInterest: 1,
-            maxSkew: 1,
-            maxFundingVelocity: 1,
-            minTradeSizeX18: 1,
-            skewScale: 1,
-            marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
-        });
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "initialMarginRateX18") });
-
-        changePrank({ msgSender: users.owner });
-        perpsEngine.createPerpMarket(params);
-    }
-
-    modifier whenInitialMarginRateIsNotZero() {
-        _;
-    }
-
     function test_RevertWhen_InitialMarginRateIsLessOrEqualToMaintenanceMargin()
         external
         whenMarketIdIsNotZero
@@ -333,7 +290,6 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
     {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
         SettlementConfiguration.Data memory marketOrderConfiguration;
@@ -358,7 +314,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "initialMarginRateX18") });
+        vm.expectRevert({ revertData: Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate.selector });
 
         changePrank({ msgSender: users.owner });
         perpsEngine.createPerpMarket(params);
@@ -377,7 +333,6 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
     {
         SettlementConfiguration.Data[] memory customOrdersConfigurations;
@@ -422,7 +377,6 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
     {
@@ -468,7 +422,6 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
         whenMinTradeSizeIsNotZero
@@ -515,7 +468,6 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
         whenMinTradeSizeIsNotZero
@@ -559,7 +511,6 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
         whenMinTradeSizeIsNotZero
