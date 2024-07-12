@@ -6,7 +6,6 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
-import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
@@ -27,12 +26,10 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
-    address internal settlementFeeRecipient;
 
     function run(uint256 initialMarketId, uint256 finalMarketId) public broadcaster {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
-        settlementFeeRecipient = MSIG_ADDRESS;
 
         uint256[2] memory marketsIdsRange;
         marketsIdsRange[0] = initialMarketId;

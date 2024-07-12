@@ -2,10 +2,8 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
-import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { Base_Test } from "test/Base.t.sol";
 

@@ -6,7 +6,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
-import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 // PRB Math dependencies

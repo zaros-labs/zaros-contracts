@@ -4,7 +4,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { MarketConfiguration } from "@zaros/perpetuals/leaves/MarketConfiguration.sol";
-import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 contract MarketConfigurationHarness {
     function exposed_update(uint128 marketId, MarketConfiguration.Data memory params) external {

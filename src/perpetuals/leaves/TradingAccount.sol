@@ -3,12 +3,12 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { FeeRecipients } from "./FeeRecipients.sol";
-import { GlobalConfiguration } from "./GlobalConfiguration.sol";
-import { MarginCollateralConfiguration } from "./MarginCollateralConfiguration.sol";
-import { PerpMarket } from "./PerpMarket.sol";
-import { Position } from "./Position.sol";
-import { SettlementConfiguration } from "./SettlementConfiguration.sol";
+import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
