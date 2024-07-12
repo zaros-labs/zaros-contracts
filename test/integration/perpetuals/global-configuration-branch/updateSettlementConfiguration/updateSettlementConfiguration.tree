@@ -5,9 +5,9 @@ UpdateSettlementConfiguration_Integration_Test
     ├── when perp market is not initialized
     │   └── it should revert
     └── when perp market is initialized
-        ├── when update to market order configuration
+        ├── when updating the market order configuration
         │   ├── it should update
-        │   └── it should emit {LogUpdateSettlementConfiguration} event
-        └── when update to off chain configuration
+        │   └── it should emit a {LogUpdateSettlementConfiguration} event
+        └── when updating the offchain orders configuration
             ├── it should update
-            └── it should emit {LogUpdateSettlementConfiguration} event
+            └── it should emit a {LogUpdateSettlementConfiguration} event
