@@ -127,7 +127,7 @@ library SettlementConfiguration {
     /// @dev New settlement strategies may be added in the future, hence the if-else statement.
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param priceData The unverified price report data.
-    /// @param maxVerificationDelay The maximum delay allowed for the price verification.
+    /// @param maxVerificationDelay The maximum delay allowed for the off chain price verification.
     /// @return bidX18 The offchain bid price.
     /// @return askX18 The offchain ask price.
     function verifyOffchainPrice(
