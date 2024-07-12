@@ -462,11 +462,7 @@ library TradingAccount {
                     feeRecipients.settlementFeeRecipient
                 );
                 ctx.settlementFeeDeductedUsdX18 = ctx.settlementFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
-
-                if (ctx.isMissingMargin) continue;
             }
-
-            marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.settlementFeeDeductedUsdX18);
 
             if (orderFeeUsdX18.gt(UD60x18_ZERO) && ctx.orderFeeDeductedUsdX18.lt(orderFeeUsdX18)) {
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
@@ -477,11 +473,7 @@ library TradingAccount {
                     feeRecipients.orderFeeRecipient
                 );
                 ctx.orderFeeDeductedUsdX18 = ctx.orderFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
-
-                if (ctx.isMissingMargin) continue;
             }
-
-            marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18);
 
             if (pnlUsdX18.gt(UD60x18_ZERO) && ctx.pnlDeductedUsdX18.lt(pnlUsdX18)) {
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
@@ -492,14 +484,14 @@ library TradingAccount {
                     feeRecipients.marginCollateralRecipient
                 );
                 ctx.pnlDeductedUsdX18 = ctx.pnlDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
-
-                if (!ctx.isMissingMargin) {
-                    marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.pnlDeductedUsdX18);
-                    break;
-                }
             }
-            marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.pnlDeductedUsdX18);
+            if (!ctx.isMissingMargin) {
+                break;
+            }
         }
+
+        marginDeductedUsdX18 =
+            ctx.settlementFeeDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18).add(ctx.pnlDeductedUsdX18);
     }
 
     /// @notice Updates the account's active markets ids based on the position's state transition.
