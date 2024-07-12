@@ -1129,7 +1129,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                     fuzzMarketConfig.marketId,
                     sizeDelta,
                     markPrice,
-                    true,
+                    false,
                     uint120(0),
                     salt
                 )
@@ -1145,7 +1145,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
                 targetPrice: markPrice,
-                shouldIncreaseNonce: true,
+                shouldIncreaseNonce: false,
                 nonce: 0,
                 salt: salt,
                 v: v,

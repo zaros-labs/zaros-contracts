@@ -230,7 +230,7 @@ contract SettlementBranch is EIP712Upgradeable {
             // If the offchain order has already been filled, revert.
             // we store `ctx.hash`, and expect each order signed by the user to provide a unique salt so that filled
             // orders can't be replayed regardless of the account's nonce.
-            if (tradingAccount.hasOffchainOrderBeenFilled[ctx.hash]) {
+            if (tradingAccount.hasOffchainOrderBeenFilled[ctx.structHash]) {
                 revert Errors.OrderAlreadyFilled(ctx.offchainOrder.tradingAccountId, ctx.offchainOrder.salt);
             }
 
