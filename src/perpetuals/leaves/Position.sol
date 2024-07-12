@@ -147,30 +147,27 @@ library Position {
     /// @notice Determines if a given position size change is an increase in the position.
     /// @dev This function checks if the position is being opened or increased based on the size delta and the current
     /// position size.
-    /// @param _tradingAccountId The unique identifier for the trading account.
-    /// @param _marketId The market identifier where the position is held.
-    /// @param _sizeDelta The change in position size; positive for an increase, negative for a decrease.
-    /// @return isIncreasingPosition Returns true if the position is being opened (size is 0) or increased (sizeDelta
+    /// @param tradingAccountId The unique identifier for the trading account.
+    /// @param marketId The market identifier where the position is held.
+    /// @param sizeDelta The change in position size; positive for an increase, negative for a decrease.
+    /// @return isBeingIncreased Returns true if the position is being opened (size is 0) or increased (sizeDelta
     /// direction matches position size), otherwise false.
-    function isIncreasingPosition(
-        uint128 _tradingAccountId,
-        uint128 _marketId,
-        int128 _sizeDelta
+    function isIncreasing(
+        uint128 tradingAccountId,
+        uint128 marketId,
+        int128 sizeDelta
     )
         internal
         view
         returns (bool)
     {
-        Data storage position = Position.load(_tradingAccountId, _marketId);
+        Data storage self = Position.load(tradingAccountId, marketId);
 
         // If position is being opened (size is 0) or if position is being increased (sizeDelta direction is same as
         // position size)
         // For a positive position, sizeDelta should be positive to increase, and for a negative position, sizeDelta
         // should be negative to increase.
         // This also implicitly covers the case where if it's a new position (size is 0), it's considered an increase.
-        bool _isIncreasingPosition =
-            position.size == 0 || (position.size > 0 && _sizeDelta > 0) || (position.size < 0 && _sizeDelta < 0);
-
-        return _isIncreasingPosition;
+        return self.size == 0 || (self.size > 0 && sizeDelta > 0) || (self.size < 0 && sizeDelta < 0);
     }
 }
