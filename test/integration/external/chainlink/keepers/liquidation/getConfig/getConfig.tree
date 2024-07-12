@@ -2,5 +2,4 @@ LiquidationKeeper_GetConfig_Integration_Test
 └── given initialize contract
     └── when call getConfig function
         ├── it should return owner
-        ├── it should return perpsEngine
-        └── it should return liquidation fee recipient
+        └── it should return perpsEngine

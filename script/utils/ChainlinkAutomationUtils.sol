@@ -76,24 +76,14 @@ library ChainlinkAutomationUtils {
         IAutomationRegistrar(registrar).registerUpkeep(params);
     }
 
-    function deployLiquidationKeeper(
-        address owner,
-        address perpsEngine,
-        address settlementFeeRecipient
-    )
-        internal
-        returns (address)
-    {
+    function deployLiquidationKeeper(address owner, address perpsEngine) internal returns (address) {
         address liquidationKeeperImplementation = address(new LiquidationKeeper());
 
         address liquidationKeeper = address(
             new ERC1967Proxy(
                 liquidationKeeperImplementation,
                 abi.encodeWithSelector(
-                    LiquidationKeeper(liquidationKeeperImplementation).initialize.selector,
-                    owner,
-                    perpsEngine,
-                    settlementFeeRecipient
+                    LiquidationKeeper(liquidationKeeperImplementation).initialize.selector, owner, perpsEngine
                 )
             )
         );

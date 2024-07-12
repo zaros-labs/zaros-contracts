@@ -34,7 +34,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             liquidationFeeUsdX18,
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient
+            feeRecipients.settlementFeeRecipient,
+            users.liquidationFeeRecipient
         );
     }
 
@@ -62,7 +63,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             0,
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient
+            feeRecipients.settlementFeeRecipient,
+            users.liquidationFeeRecipient
         );
     }
 
@@ -93,7 +95,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             liquidationFeeUsdX18,
             address(0),
             feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient
+            feeRecipients.settlementFeeRecipient,
+            users.liquidationFeeRecipient
         );
     }
 
@@ -125,7 +128,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             liquidationFeeUsdX18,
             feeRecipients.marginCollateralRecipient,
             address(0),
-            feeRecipients.settlementFeeRecipient
+            feeRecipients.settlementFeeRecipient,
+            users.liquidationFeeRecipient
         );
     }
 
@@ -158,11 +162,47 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             liquidationFeeUsdX18,
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
+            address(0),
+            users.liquidationFeeRecipient
+        );
+    }
+
+    modifier whenSettlementFeeRecipientIsNotZero() {
+        _;
+    }
+
+    function test_RevertWhen_LiquidationFeeRecipientIsZero(
+        uint128 maxPositionsPerAccount,
+        uint128 marketOrderMinLifetime,
+        uint128 liquidationFeeUsdX18
+    )
+        external
+        whenMaxPositionsPerAccountIsNotZero
+        whenLiquidationFeeIsNotZero
+        whenMarginCollateralRecipientIsNotZero
+        whenOrderFeeRecipientIsNotZero
+        whenSettlementFeeRecipientIsNotZero
+    {
+        vm.assume(maxPositionsPerAccount > 0);
+        vm.assume(marketOrderMinLifetime > 0);
+        vm.assume(liquidationFeeUsdX18 > 0);
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeRecipient") });
+
+        changePrank({ msgSender: users.owner });
+        perpsEngine.configureSystemParameters(
+            maxPositionsPerAccount,
+            marketOrderMinLifetime,
+            liquidationFeeUsdX18,
+            feeRecipients.marginCollateralRecipient,
+            feeRecipients.orderFeeRecipient,
+            feeRecipients.settlementFeeRecipient,
             address(0)
         );
     }
 
-    function test_WhenSettlementFeeRecipientIsNotZero(
+    function test_WhenLiquidationFeeRecipientIsNotZero(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
@@ -190,7 +230,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             liquidationFeeUsdX18,
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient
+            feeRecipients.settlementFeeRecipient,
+            users.liquidationFeeRecipient
         );
     }
 }
