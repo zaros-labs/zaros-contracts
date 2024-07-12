@@ -96,9 +96,6 @@ contract MarketOrderKeeper_PerformUpkeep_Integration_Test is Base_Test {
             sizeDelta
         );
 
-        int256 firstOrderExpectedPnl =
-            unary(firstOrderFeeUsdX18.add(ud60x18(DEFAULT_SETTLEMENT_FEE)).intoSD59x18()).intoInt256();
-
         // it should emit {LogSettleOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit SettlementBranch.LogFillOrder(
@@ -109,7 +106,7 @@ contract MarketOrderKeeper_PerformUpkeep_Integration_Test is Base_Test {
             firstFillPriceX18.intoUint256(),
             firstOrderFeeUsdX18.intoUint256(),
             DEFAULT_SETTLEMENT_FEE,
-            firstOrderExpectedPnl,
+            0,
             0
         );
 

@@ -285,22 +285,22 @@ contract SettlementBranch is EIP712Upgradeable {
     }
 
     struct FillOrderContext {
-        address usdToken;
         uint128 marketId;
         uint128 tradingAccountId;
-        bool isIncreasingPosition;
+        Position.Data newPosition;
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
-        SD59x18 sizeDelta;
-        SD59x18 pnl;
-        SD59x18 fundingFeePerUnit;
-        SD59x18 fundingRate;
-        Position.Data newPosition;
-        UD60x18 newOpenInterest;
-        SD59x18 newSkew;
+        UD60x18 newOpenInterestX18;
         UD60x18 requiredMarginUsdX18;
+        UD60x18 marginToAddX18;
+        SD59x18 sizeDeltaX18;
+        SD59x18 pnlUsdX18;
+        SD59x18 fundingFeePerUnitX18;
+        SD59x18 fundingRateX18;
+        SD59x18 newSkewX18;
+        address usdToken;
         bool shouldUseMaintenanceMargin;
-        UD60x18 marginToDeductUsdX18;
+        bool isIncreasingPosition;
     }
 
     /// @param tradingAccountId The trading account id.
@@ -340,10 +340,10 @@ contract SettlementBranch is EIP712Upgradeable {
         PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
         perpMarket.checkTradeSize(sizeDeltaX18);
 
-        ctx.fundingRate = perpMarket.getCurrentFundingRate();
-        ctx.fundingFeePerUnit = perpMarket.getNextFundingFeePerUnit(ctx.fundingRate, fillPriceX18);
+        ctx.fundingRateX18 = perpMarket.getCurrentFundingRate();
+        ctx.fundingFeePerUnitX18 = perpMarket.getNextFundingFeePerUnit(ctx.fundingRateX18, fillPriceX18);
 
-        perpMarket.updateFunding(ctx.fundingRate, ctx.fundingFeePerUnit);
+        perpMarket.updateFunding(ctx.fundingRateX18, ctx.fundingFeePerUnitX18);
 
         ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sizeDeltaX18, fillPriceX18);
         ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
@@ -369,18 +369,18 @@ contract SettlementBranch is EIP712Upgradeable {
             );
         }
 
-        ctx.pnl = oldPosition.getUnrealizedPnl(fillPriceX18).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnit))
-            .add(unary(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).intoSD59x18()));
+        ctx.pnlUsdX18 =
+            oldPosition.getUnrealizedPnl(fillPriceX18).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnitX18));
 
         ctx.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(sizeDeltaX18).intoInt256(),
             lastInteractionPrice: fillPriceX18.intoUint128(),
-            lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnit.intoInt256().toInt128()
+            lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnitX18.intoInt256().toInt128()
         });
 
-        (ctx.newOpenInterest, ctx.newSkew) =
+        (ctx.newOpenInterestX18, ctx.newSkewX18) =
             perpMarket.checkOpenInterestLimits(sizeDeltaX18, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
-        perpMarket.updateOpenInterest(ctx.newOpenInterest, ctx.newSkew);
+        perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
 
         tradingAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
@@ -397,22 +397,12 @@ contract SettlementBranch is EIP712Upgradeable {
             oldPosition.update(ctx.newPosition);
         }
 
-        if (ctx.pnl.lt(SD59x18_ZERO)) {
-            ctx.marginToDeductUsdX18 = ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).gt(UD60x18_ZERO)
-                ? ctx.pnl.abs().intoUD60x18().sub(ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18))
-                : ctx.pnl.abs().intoUD60x18();
-        } else if (ctx.pnl.gt(SD59x18_ZERO)) {
-            UD60x18 amountToIncrease = ctx.pnl.intoUD60x18();
-
-            tradingAccount.deposit(ctx.usdToken, amountToIncrease);
-
-            ctx.marginToDeductUsdX18 = UD60x18_ZERO;
+        if (ctx.pnlUsdX18.gt(SD59x18_ZERO)) {
+            ctx.marginToAddX18 = ctx.pnlUsdX18.intoUD60x18();
+            tradingAccount.deposit(ctx.usdToken, ctx.marginToAddX18);
 
             // NOTE: testnet only - will be updated once Liquidity Engine is finalized
-            LimitedMintingERC20(ctx.usdToken).mint(address(this), amountToIncrease.intoUint256());
-        } else {
-            // to avoid cases when pnl could be zero
-            ctx.marginToDeductUsdX18 = UD60x18_ZERO;
+            LimitedMintingERC20(ctx.usdToken).mint(address(this), ctx.marginToAddX18.intoUint256());
         }
 
         tradingAccount.deductAccountMargin({
@@ -421,8 +411,8 @@ contract SettlementBranch is EIP712Upgradeable {
                 orderFeeRecipient: globalConfiguration.orderFeeRecipient,
                 settlementFeeRecipient: globalConfiguration.settlementFeeRecipient
             }),
-            pnlUsdX18: ctx.marginToDeductUsdX18,
-            orderFeeUsdX18: ctx.orderFeeUsdX18.gt(UD60x18_ZERO) ? ctx.orderFeeUsdX18 : UD60x18_ZERO,
+            pnlUsdX18: ctx.pnlUsdX18.lt(SD59x18_ZERO) ? ctx.pnlUsdX18.abs().intoUD60x18() : UD60x18_ZERO,
+            orderFeeUsdX18: ctx.orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18
         });
 
@@ -434,8 +424,8 @@ contract SettlementBranch is EIP712Upgradeable {
             fillPriceX18.intoUint256(),
             ctx.orderFeeUsdX18.intoUint256(),
             ctx.settlementFeeUsdX18.intoUint256(),
-            ctx.pnl.intoInt256(),
-            ctx.fundingFeePerUnit.intoInt256()
+            ctx.pnlUsdX18.intoInt256(),
+            ctx.fundingFeePerUnitX18.intoInt256()
         );
     }
 
