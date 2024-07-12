@@ -270,7 +270,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
-            liquidationFeeRecipient: users.liquidationFeeRecipient.account
+            liquidationFeeRecipient: users.liquidationFeeRecipient.account,
+            maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
     }
 

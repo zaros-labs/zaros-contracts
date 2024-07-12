@@ -17,4 +17,7 @@ ConfigureSystemParameters_Integration_Test
                     ├── when liquidation fee recipient is zero
                     │   └── it should revert
                     └── when liquidation fee recipient is not zero
-                        └── it should emit {LogConfigureSystemParameters} event
+                        ├── when maxVerificationDelay is zero
+                        │   └── it should revert
+                        └── when maxVerificationdelay is not zero
+                            └── it should emit {LogConfigureSystemParameters} event

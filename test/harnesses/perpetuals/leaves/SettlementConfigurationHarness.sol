@@ -25,8 +25,8 @@ contract SettlementConfigurationHarness {
         SettlementConfiguration.checkIsSettlementEnabled(self);
     }
 
-    function exposed_requireDataStreamsReportIsVaid(bytes32 streamId, bytes memory verifiedPriceData) external pure {
-        SettlementConfiguration.requireDataStreamsReportIsValid(streamId, verifiedPriceData);
+    function exposed_requireDataStreamsReportIsVaid(bytes32 streamId, bytes memory verifiedPriceData, uint256 maxVerificationDelay) external view {
+        SettlementConfiguration.requireDataStreamsReportIsValid(streamId, verifiedPriceData, maxVerificationDelay);
     }
 
     function exposed_update(
@@ -42,14 +42,15 @@ contract SettlementConfigurationHarness {
     function exposed_verifyOffchainPrice(
         uint128 marketId,
         uint128 settlementConfigurationId,
-        bytes memory priceData
+        bytes memory priceData,
+        uint256 maxVerificationDelay
     )
         external
         returns (UD60x18, UD60x18)
     {
         SettlementConfiguration.Data storage self = SettlementConfiguration.load(marketId, settlementConfigurationId);
 
-        return SettlementConfiguration.verifyOffchainPrice(self, priceData);
+        return SettlementConfiguration.verifyOffchainPrice(self, priceData, maxVerificationDelay);
     }
 
     function exposed_verifyDataStreamsReport(
