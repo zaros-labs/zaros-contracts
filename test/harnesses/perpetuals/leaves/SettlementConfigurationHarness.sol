@@ -25,7 +25,14 @@ contract SettlementConfigurationHarness {
         SettlementConfiguration.checkIsSettlementEnabled(self);
     }
 
-    function exposed_requireDataStreamsReportIsVaid(bytes32 streamId, bytes memory verifiedPriceData, uint256 maxVerificationDelay) external view {
+    function exposed_requireDataStreamsReportIsVaid(
+        bytes32 streamId,
+        bytes memory verifiedPriceData,
+        uint256 maxVerificationDelay
+    )
+        external
+        view
+    {
         SettlementConfiguration.requireDataStreamsReportIsValid(streamId, verifiedPriceData, maxVerificationDelay);
     }
 

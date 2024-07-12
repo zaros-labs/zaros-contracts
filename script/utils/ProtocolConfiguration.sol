@@ -52,5 +52,4 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Sequencer
 
     /// @notice The maximum delay allowed for the price verification.
     uint256 internal constant MAX_VERIFICATION_DELAY = 10 seconds;
-
 }

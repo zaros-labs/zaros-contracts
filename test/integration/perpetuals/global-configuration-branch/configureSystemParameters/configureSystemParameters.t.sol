@@ -212,9 +212,11 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MaxVerificationDelayIsZero(uint128 maxPositionsPerAccount,
+    function testFuzz_RevertWhen_MaxVerificationDelayIsZero(
+        uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
-        uint128 liquidationFeeUsdX18)
+        uint128 liquidationFeeUsdX18
+    )
         external
         whenMaxPositionsPerAccountIsNotZero
         whenLiquidationFeeIsNotZero

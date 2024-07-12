@@ -11,7 +11,6 @@ contract MockChainlinkVerifier {
         s_feeManager = feeManager;
     }
 
-
     function verify(
         bytes calldata payload,
         bytes calldata

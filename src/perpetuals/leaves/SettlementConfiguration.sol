@@ -84,10 +84,20 @@ library SettlementConfiguration {
     /// @notice Checks if the provided data streams report is using the expected stream id.
     /// @param streamId The expected stream id.
     /// @param verifiedReportData The verified report data.
-    function requireDataStreamsReportIsValid(bytes32 streamId, bytes memory verifiedReportData, uint256 maxVerificationDelay) internal view {
+    function requireDataStreamsReportIsValid(
+        bytes32 streamId,
+        bytes memory verifiedReportData,
+        uint256 maxVerificationDelay
+    )
+        internal
+        view
+    {
         PremiumReport memory premiumReport = abi.decode(verifiedReportData, (PremiumReport));
 
-        if (streamId != premiumReport.feedId || block.timestamp > premiumReport.validFromTimestamp + maxVerificationDelay) {
+        if (
+            streamId != premiumReport.feedId
+                || block.timestamp > premiumReport.validFromTimestamp + maxVerificationDelay
+        ) {
             revert Errors.InvalidDataStreamReport(streamId, premiumReport.feedId);
         }
     }

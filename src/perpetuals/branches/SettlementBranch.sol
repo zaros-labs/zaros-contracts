@@ -132,7 +132,8 @@ contract SettlementBranch is EIP712Upgradeable {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         // verifies provided price data following the configured settlement strategy, returning the bid and ask prices
-        (ctx.bidX18, ctx.askX18) = settlementConfiguration.verifyOffchainPrice(priceData, globalConfiguration.maxVerificationDelay);
+        (ctx.bidX18, ctx.askX18) =
+            settlementConfiguration.verifyOffchainPrice(priceData, globalConfiguration.maxVerificationDelay);
 
         // cache the order's size delta
         ctx.sizeDeltaX18 = sd59x18(marketOrder.sizeDelta);
@@ -193,7 +194,8 @@ contract SettlementBranch is EIP712Upgradeable {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        (ctx.bidX18, ctx.askX18) = settlementConfiguration.verifyOffchainPrice(priceData, globalConfiguration.maxVerificationDelay);
+        (ctx.bidX18, ctx.askX18) =
+            settlementConfiguration.verifyOffchainPrice(priceData, globalConfiguration.maxVerificationDelay);
 
         for (uint256 i; i < offchainOrders.length; i++) {
             ctx.offchainOrder = offchainOrders[i];
