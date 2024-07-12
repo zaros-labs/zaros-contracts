@@ -15,8 +15,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 /// @notice Settlement strategies supported by the protocol.
 library SettlementConfiguration {
     using SafeCast for int256;
@@ -128,18 +126,13 @@ library SettlementConfiguration {
         internal
         returns (UD60x18 bidX18, UD60x18 askX18)
     {
-        console.log("from verify offchain price 1");
         if (self.strategy == Strategy.DATA_STREAMS_DEFAULT) {
             DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
-            console.log("from verify offchain price 2");
             bytes memory verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, priceData);
-            console.log("from verify offchain price 3");
 
             requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
-            console.log("from verify offchain price 4");
 
             PremiumReport memory premiumReport = abi.decode(verifiedPriceData, (PremiumReport));
-            console.log("from verify offchain price 5");
             (bidX18, askX18) =
                 (ud60x18(int256(premiumReport.bid).toUint256()), ud60x18(int256(premiumReport.ask).toUint256()));
         } else {

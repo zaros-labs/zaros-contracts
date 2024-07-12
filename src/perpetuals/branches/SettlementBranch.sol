@@ -274,7 +274,8 @@ contract SettlementBranch is EIP712Upgradeable {
                 }
             }
             // mark the offchain order as filled.
-            tradingAccount.hasOffchainOrderBeenFilled[ctx.hash] = true;
+            // we store the struct hash to be marked as filled.
+            tradingAccount.hasOffchainOrderBeenFilled[ctx.structHash] = true;
 
             // fill the offchain order.
             _fillOrder(
