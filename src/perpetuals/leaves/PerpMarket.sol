@@ -174,7 +174,8 @@ library PerpMarket {
 
         SD59x18 newSkew = skew.add(sizeDelta);
 
-        bool sameSide = newSkew.eq(SD59x18_ZERO) || skew.eq(SD59x18_ZERO) || newSkew.gt(SD59x18_ZERO) == skew.gt(SD59x18_ZERO);
+        bool sameSide =
+            newSkew.eq(SD59x18_ZERO) || skew.eq(SD59x18_ZERO) || newSkew.gt(SD59x18_ZERO) == skew.gt(SD59x18_ZERO);
 
         if (sameSide) {
             UD60x18 feeBps = isSkewGtZero != isBuyOrder && !skew.isZero()
@@ -256,15 +257,26 @@ library PerpMarket {
         view
         returns (UD60x18 newOpenInterest, SD59x18 newSkew)
     {
+        // load max & current open interest for this perp market uint128 -> UD60x18
         UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
         UD60x18 currentOpenInterest = ud60x18(self.openInterest);
 
+        // calculate new open interest which would result from proposed trade
+        // by subtracting old position size then adding new position size to
+        // current open interest
         newOpenInterest =
             currentOpenInterest.sub(oldPositionSize.abs().intoUD60x18()).add(newPositionSize.abs().intoUD60x18());
 
+        // if new open interest would be greater than this market's max open interest,
+        // we still want to allow trades as long as they decrease the open interest. This
+        // allows traders to reduce/close their positions in markets where protocol admins
+        // have reduced the max open interest to reduce the protocol's exposure to a given
+        // perp market
         if (newOpenInterest.gt(maxOpenInterest)) {
+            // is the proposed trade reducing open interest?
             bool isReducingOpenInterest = currentOpenInterest.gt(newOpenInterest);
 
+            // revert if the proposed trade isn't reducing open interest
             if (!isReducingOpenInterest) {
                 revert Errors.ExceedsOpenInterestLimit(
                     self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
@@ -272,11 +284,16 @@ library PerpMarket {
             }
         }
 
+        // load max & current skew for this perp market uint128 -> UD60x18 -> SD59x18
         SD59x18 maxSkew = ud60x18(self.configuration.maxSkew).intoSD59x18();
+        // int128 -> SD59x18
         SD59x18 currentSkew = sd59x18(self.skew);
 
+        // calculate new skew
         newSkew = currentSkew.add(sizeDelta);
 
+        // similar logic to the open interest check; if the new skew is greater than
+        // the max, we still want to allow trades as long as they decrease the skew
         if (newSkew.abs().gt(maxSkew)) {
             bool isReducingSkew = currentSkew.abs().gt(newSkew.abs());
 
