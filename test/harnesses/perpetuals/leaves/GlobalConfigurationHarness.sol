@@ -20,13 +20,14 @@ contract GlobalConfigurationHarness {
     function workaround_getCollateralLiquidationPriority() external view returns (address[] memory) {
         GlobalConfiguration.Data storage self = GlobalConfiguration.load();
         uint256 length = self.collateralLiquidationPriority.length();
-        address[] memory collateralTypes = new address[](length);
+
+        address[] memory collateralLiquidationPriority = new address[](length);
 
         for (uint256 i; i < length; i++) {
-            collateralTypes[i] = self.collateralLiquidationPriority.at(i);
+            collateralLiquidationPriority[i] = self.collateralLiquidationPriority.at(i);
         }
 
-        return collateralTypes;
+        return collateralLiquidationPriority;
     }
 
     function workaround_getTradingAccountToken() external view returns (address) {
