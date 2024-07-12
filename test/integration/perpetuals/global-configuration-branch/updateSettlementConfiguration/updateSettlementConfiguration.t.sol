@@ -8,6 +8,9 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 
+// Open Zeppelin dependencies
+import { Ownable } from "@openzeppelin/access/Ownable.sol";
+
 contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
@@ -17,7 +20,39 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_RevertWhen_PerpMarketIsNotInitialized(uint256 marketId) external {
+    function test_RevertGiven_TheSenderIsNotTheOwner(uint256 marketId) external {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+            .DataStreamsStrategy({
+            chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
+            streamId: fuzzMarketConfig.streamId
+        });
+        SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
+            isEnabled: false,
+            fee: DEFAULT_SETTLEMENT_FEE,
+            keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
+            data: abi.encode(marketOrderConfigurationData)
+        });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto.account)
+        });
+
+        perpsEngine.updateSettlementConfiguration(
+            uint128(fuzzMarketConfig.marketId),
+            SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
+            newSettlementConfiguration
+        );
+    }
+
+    modifier givenTheSenderIsTheOwner() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_PerpMarketIsNotInitialized(uint256 marketId) external givenTheSenderIsTheOwner{
         uint128 marketIdNotInitialized = uint128(FINAL_MARKET_ID) + 1;
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -50,70 +85,9 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_MarketOrderConfigurationOnChainHasWrongStrategy(uint256 marketId)
+    function test_WhenUpdateToMarketOrderConfiguration(uint256 marketId)
         external
-        whenPerpMarketIsInitialized
-    {
-        changePrank({ msgSender: users.owner.account });
-
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidSettlementStrategy.selector) });
-
-        SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
-            .DataStreamsStrategy({
-            chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-            streamId: fuzzMarketConfig.streamId
-        });
-        SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
-            isEnabled: false,
-            fee: DEFAULT_SETTLEMENT_FEE,
-            keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
-            data: abi.encode(marketOrderConfigurationData)
-        });
-
-        perpsEngine.updateSettlementConfiguration(
-            fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            newSettlementConfiguration
-        );
-    }
-
-    function test_RevertWhen_OffChainConfigurationHasWrongStrategy(uint256 marketId)
-        external
-        whenPerpMarketIsInitialized
-    {
-        changePrank({ msgSender: users.owner.account });
-
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidSettlementStrategy.selector) });
-
-        SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
-            .DataStreamsStrategy({
-            chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
-            streamId: fuzzMarketConfig.streamId
-        });
-        SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
-            isEnabled: false,
-            fee: DEFAULT_SETTLEMENT_FEE,
-            keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
-            data: abi.encode(marketOrderConfigurationData)
-        });
-
-        perpsEngine.updateSettlementConfiguration(
-            fuzzMarketConfig.marketId,
-            SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
-            newSettlementConfiguration
-        );
-    }
-
-    function test_WhenMarketOrderConfigurationOnChainHasCorrectStrategy(uint256 marketId)
-        external
+        givenTheSenderIsTheOwner
         whenPerpMarketIsInitialized
     {
         changePrank({ msgSender: users.owner.account });
@@ -147,8 +121,9 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         );
     }
 
-    function test_WhenOffChainConfigurationHasCorrectStrategy(uint256 marketId)
+    function test_WhenUpdateToOffChainConfiguration(uint256 marketId)
         external
+        givenTheSenderIsTheOwner
         whenPerpMarketIsInitialized
     {
         changePrank({ msgSender: users.owner.account });
