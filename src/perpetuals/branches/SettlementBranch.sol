@@ -68,18 +68,16 @@ contract SettlementBranch is EIP712Upgradeable {
     modifier onlyMarketOrderKeeper(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
-        address keeper = settlementConfiguration.keeper;
 
-        _requireIsKeeper(msg.sender, keeper);
+        _requireIsKeeper(msg.sender, settlementConfiguration.keeper);
         _;
     }
 
     modifier onlyOffchainOrdersKeeper(uint128 marketId) {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID);
-        address keeper = settlementConfiguration.keeper;
 
-        _requireIsKeeper(msg.sender, keeper);
+        _requireIsKeeper(msg.sender, settlementConfiguration.keeper);
         _;
     }
 
@@ -116,15 +114,21 @@ contract SettlementBranch is EIP712Upgradeable {
     {
         FillMarketOrder_Context memory ctx;
 
+        // fetch storage slot for perp market's market order config
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
+
+        // load trader's pending order; reverts if no pending order
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
 
+        // enforce that keeper is filling the order for the correct marketId
         if (marketId != marketOrder.marketId) {
             revert Errors.OrderMarketIdMismatch(marketId, marketOrder.marketId);
         }
 
+        // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        // verifies provided price data following the configured settlement strategy, returning the bid and ask prices
         (ctx.bidX18, ctx.askX18) = settlementConfiguration.verifyOffchainPrice(priceData);
 
         // cache the order's size delta
@@ -140,6 +144,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // based on the returned index price.
         ctx.fillPriceX18 = perpMarket.getMarkPrice(ctx.sizeDeltaX18, ctx.indexPriceX18);
 
+        // perform the fill
         _fillOrder(
             tradingAccountId,
             marketId,
@@ -148,6 +153,7 @@ contract SettlementBranch is EIP712Upgradeable {
             ctx.fillPriceX18
         );
 
+        // reset pending order details
         marketOrder.clear();
     }
 
@@ -318,26 +324,41 @@ contract SettlementBranch is EIP712Upgradeable {
         internal
         virtual
     {
+        // working data
         FillOrderContext memory ctx;
 
+        // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+
+        // fetch storage slot for perp market's settlement config
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
-        ctx.usdToken = globalConfiguration.usdToken;
-        ctx.marketId = marketId;
 
+        // cache settlement token
+        ctx.usdToken = globalConfiguration.usdToken;
+
+        // determine whether position is being increased or not
         ctx.isIncreasingPosition =
             Position.isIncreasingPosition(tradingAccountId, marketId, sizeDeltaX18.intoInt256().toInt128());
 
+        // both markets and settlement can be disabled, however when this happens we want to:
+        // 1) allow open positions not subject to liquidation to decrease their size or close
+        // 2) prevent new positions from being opened & existing positions being increased
+        //
+        // the idea is to prevent a state where traders have open positions but are unable
+        // to reduce size or close even though they can still be liquidated; such a state
+        // would severly disadvantage traders
         if (ctx.isIncreasingPosition) {
-            globalConfiguration.checkMarketIsEnabled(ctx.marketId);
+            // both checks revert if disabled
+            globalConfiguration.checkMarketIsEnabled(marketId);
             settlementConfiguration.checkIsSettlementEnabled();
         }
 
-        ctx.tradingAccountId = tradingAccountId;
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
+        // load existing trading account; reverts for non-existent account
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
-        PerpMarket.Data storage perpMarket = PerpMarket.load(ctx.marketId);
+        // fetch storage slot for perp market
+        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         perpMarket.checkTradeSize(sizeDeltaX18);
 
         ctx.fundingRateX18 = perpMarket.getCurrentFundingRate();
@@ -348,20 +369,36 @@ contract SettlementBranch is EIP712Upgradeable {
         ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sizeDeltaX18, fillPriceX18);
         ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
-        Position.Data storage oldPosition = Position.load(ctx.tradingAccountId, ctx.marketId);
+        // fetch storage slot for account's potential existing position in this market
+        Position.Data storage oldPosition = Position.load(tradingAccountId, marketId);
 
         {
+            // calculate required initial & maintenance margin for the simulated trade
+            // and account's unrealized PNL
+
             (
                 UD60x18 requiredInitialMarginUsdX18,
                 UD60x18 requiredMaintenanceMarginUsdX18,
                 SD59x18 accountTotalUnrealizedPnlUsdX18
             ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sizeDeltaX18);
 
+            // check maintenance margin if:
+            // 1) position is not increasing AND
+            // 2) existing position is being decreased in size
+            //
+            // when a position is under the higher initial margin requirement but over the
+            // lower maintenance margin requirement, we want to allow the trader to decrease
+            // their losing position size before they become subject to liquidation
+            //
+            // but if the trader is opening a new position or increasing the size
+            // of their existing position we want to ensure they satisfy the higher
+            // initial margin requirement
             ctx.shouldUseMaintenanceMargin = !ctx.isIncreasingPosition && oldPosition.size != 0;
 
             ctx.requiredMarginUsdX18 =
                 ctx.shouldUseMaintenanceMargin ? requiredMaintenanceMarginUsdX18 : requiredInitialMarginUsdX18;
 
+            // reverts if the trader can't satisfy the appropriate margin requirement
             tradingAccount.validateMarginRequirement(
                 ctx.requiredMarginUsdX18,
                 tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
@@ -369,24 +406,37 @@ contract SettlementBranch is EIP712Upgradeable {
             );
         }
 
+        // cache unrealized PNL from potential existing position in this market
+        // subtract order/settlement fees from unrealized PNL
         ctx.pnlUsdX18 =
             oldPosition.getUnrealizedPnl(fillPriceX18).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnitX18));
 
+        // create new position in working area
         ctx.newPosition = Position.Data({
             size: sd59x18(oldPosition.size).add(sizeDeltaX18).intoInt256(),
             lastInteractionPrice: fillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnitX18.intoInt256().toInt128()
         });
 
+        // enforce open interest and skew limits for target market and calculate
+        // new open interest and new skew
         (ctx.newOpenInterestX18, ctx.newSkewX18) =
             perpMarket.checkOpenInterestLimits(sizeDeltaX18, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+
+        // update open interest and skew for this perp market
         perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
 
-        tradingAccount.updateActiveMarkets(ctx.marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+        // update active markets for this account; may also trigger update
+        // to global config set of active accounts
+        tradingAccount.updateActiveMarkets(marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
 
+        // if the position is being closed, clear old position data
         if (ctx.newPosition.size == 0) {
             oldPosition.clear();
-        } else {
+        }
+        // otherwise we are opening a new position or modifying an existing position
+        else {
+            // revert if new position size is under the minimum for this market
             if (
                 sd59x18(ctx.newPosition.size).abs().lt(
                     sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18)))
@@ -394,6 +444,8 @@ contract SettlementBranch is EIP712Upgradeable {
             ) {
                 revert Errors.NewPositionSizeTooSmall();
             }
+
+            // update trader's existing position in this market with new position data
             oldPosition.update(ctx.newPosition);
         }
 
@@ -401,7 +453,10 @@ contract SettlementBranch is EIP712Upgradeable {
             ctx.marginToAddX18 = ctx.pnlUsdX18.intoUD60x18();
             tradingAccount.deposit(ctx.usdToken, ctx.marginToAddX18);
 
-            // NOTE: testnet only - will be updated once Liquidity Engine is finalized
+            // mint settlement tokens credited to trader; tokens are minted to
+            // address(this) since they have been credited to trader's deposited collateral
+            //
+            // NOTE: testnet only - this call will be updated once the Market Making Engine is finalized
             LimitedMintingERC20(ctx.usdToken).mint(address(this), ctx.marginToAddX18.intoUint256());
         }
 
@@ -418,8 +473,8 @@ contract SettlementBranch is EIP712Upgradeable {
 
         emit LogFillOrder(
             msg.sender,
-            ctx.tradingAccountId,
-            ctx.marketId,
+            tradingAccountId,
+            marketId,
             sizeDeltaX18.intoInt256(),
             fillPriceX18.intoUint256(),
             ctx.orderFeeUsdX18.intoUint256(),

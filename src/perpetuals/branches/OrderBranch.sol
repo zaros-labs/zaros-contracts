@@ -88,37 +88,60 @@ contract OrderBranch {
             UD60x18 fillPriceX18
         )
     {
+        // load existing trading account; reverts for non-existent account
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
+
+        // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+        // fetch storage slot for perp market's settlement config
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
 
+        // working data
         SimulateTradeContext memory ctx;
 
+        // int128 -> SD59x18
         ctx.sizeDeltaX18 = sd59x18(sizeDelta);
 
+        // calculate & output execution price
         fillPriceX18 = perpMarket.getMarkPrice(ctx.sizeDeltaX18, perpMarket.getIndexPrice());
 
+        // calculate & output order fee
         orderFeeUsdX18 = perpMarket.getOrderFeeUsd(ctx.sizeDeltaX18, fillPriceX18);
 
+        // output settlement fee uint80 -> uint256 -> UD60x18
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
+        // calculate & output required initial & maintenance margin for the simulated trade
+        // and account's unrealized PNL
         (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, ctx.accountTotalUnrealizedPnlUsdX18) =
             tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDeltaX18);
+
+        // use unrealized PNL to calculate & output account's margin balance
         marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(ctx.accountTotalUnrealizedPnlUsdX18);
         {
+            // get account's current required margin maintenance (before this trade)
             (, ctx.previousRequiredMaintenanceMarginUsdX18,) =
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD59x18_ZERO);
 
+            // prevent liquidatable accounts from trading
             if (TradingAccount.isLiquidatable(ctx.previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
                 revert Errors.AccountIsLiquidatable(tradingAccountId);
             }
         }
         {
+            // fetch storage slot for account's potential existing position in this market
             Position.Data storage position = Position.load(tradingAccountId, marketId);
 
+            // calculate and store new position size in working data
             ctx.newPositionSizeX18 = sd59x18(position.size).add(ctx.sizeDeltaX18);
 
+            // revert if
+            // 1) this trade doesn't close an existing open position AND
+            // 2) abs(newPositionSize) is smaller than minimum position size
+            // this enforces a minimum position size both for new trades but
+            // also for existing trades which have their position size reduced
             if (
                 !ctx.newPositionSizeX18.isZero()
                     && ctx.newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))
@@ -149,14 +172,22 @@ contract OrderBranch {
             UD60x18 settlementFeeUsdX18
         )
     {
+        // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
 
+        // fetch index price for perp market
         UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
-        UD60x18 markPriceX18 = perpMarket.getMarkPrice(sd59x18(sizeDelta), indexPriceX18);
 
-        UD60x18 orderValueX18 = markPriceX18.mul(sd59x18(sizeDelta).abs().intoUD60x18());
+        // cache size delta as SD59x18
+        SD59x18 sizeDeltaX18 = sd59x18(sizeDelta);
+
+        // calculate & output execution price
+        UD60x18 markPriceX18 = perpMarket.getMarkPrice(sizeDeltaX18, indexPriceX18);
+
+        // calculate order value
+        UD60x18 orderValueX18 = markPriceX18.mul(sizeDeltaX18.abs().intoUD60x18());
 
         initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.initialMarginRateX18));
 
@@ -187,51 +218,90 @@ contract OrderBranch {
 
     struct CreateMarketOrderContext {
         SD59x18 marginBalanceUsdX18;
+        SD59x18 sizeDeltaX18;
+        SD59x18 positionSizeX18;
         UD60x18 requiredInitialMarginUsdX18;
         UD60x18 requiredMaintenanceMarginUsdX18;
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         UD60x18 requiredMarginUsdX18;
+        bool isIncreasingPosition;
         bool shouldUseMaintenanceMargin;
+        bool isMarketWithActivePosition;
     }
 
     /// @notice Creates a market order for the given trading account and market ids.
     /// @dev See {CreateMarketOrderParams}.
     function createMarketOrder(CreateMarketOrderParams calldata params) external {
+        // working data
+        CreateMarketOrderContext memory ctx;
+
+        // revert for non-sensical zero size order
         if (params.sizeDelta == 0) {
             revert Errors.ZeroInput("sizeDelta");
         }
+
+        // int128 -> SD59x18
+        ctx.sizeDeltaX18 = sd59x18(params.sizeDelta);
+
+        // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+
+        // fetch storage slot for perp market's settlement config
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(params.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
 
-        bool isIncreasingPosition =
+        // determine whether position is being increased or not
+        ctx.isIncreasingPosition =
             Position.isIncreasingPosition(params.tradingAccountId, params.marketId, params.sizeDelta);
 
-        // Check if market is enabled only if the position is being opened or increased
-        if (isIncreasingPosition) {
+        // both markets and settlement can be disabled, however when this happens we want to:
+        // 1) allow open positions not subject to liquidation to decrease their size or close
+        // 2) prevent new positions from being opened & existing positions being increased
+        //
+        // the idea is to prevent a state where traders have open positions but are unable
+        // to reduce size or close even though they can still be liquidated; such a state
+        // would severly disadvantage traders
+        if (ctx.isIncreasingPosition) {
+            // both checks revert if disabled
             globalConfiguration.checkMarketIsEnabled(params.marketId);
             settlementConfiguration.checkIsSettlementEnabled();
         }
 
-        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
-
+        // load existing trading account; reverts for non-existent account
+        // enforces `msg.sender == owner` so only account owner can place trades
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(params.tradingAccountId);
-        bool isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(params.marketId);
-        if (!isMarketWithActivePosition) {
+
+        // find if account has active position in this market
+        ctx.isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(params.marketId);
+
+        // if the account doesn't have an active position in this market then
+        // this trade is opening a new active position in a new market, hence
+        // revert if this new position would put the account over the maximum
+        // number of open positions
+        if (!ctx.isMarketWithActivePosition) {
             tradingAccount.validatePositionsLimit();
         }
 
+        // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
-        perpMarket.checkTradeSize(sd59x18(params.sizeDelta));
+
+        // enforce minimum trade size for this market
+        perpMarket.checkTradeSize(ctx.sizeDeltaX18);
+
+        // fetch storage slot for account's potential existing position in this market
+        Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
+        // int128 -> SD59x18
+        ctx.positionSizeX18 = sd59x18(position.size);
+
+        // enforce open interest and skew limits for target market
         perpMarket.checkOpenInterestLimits(
-            sd59x18(params.sizeDelta), sd59x18(position.size), sd59x18(position.size).add(sd59x18(params.sizeDelta))
+            ctx.sizeDeltaX18, ctx.positionSizeX18, ctx.positionSizeX18.add(ctx.sizeDeltaX18)
         );
 
+        // fetch storage slot for trader's potential pending order
         MarketOrder.Data storage marketOrder = MarketOrder.load(params.tradingAccountId);
-
-        CreateMarketOrderContext memory ctx;
 
         (
             ctx.marginBalanceUsdX18,
@@ -246,17 +316,33 @@ contract OrderBranch {
             sizeDelta: params.sizeDelta
         });
 
+        // check maintenance margin if:
+        // 1) position is not increasing AND
+        // 2) existing position is being decreased in size
+        //
+        // when a position is under the higher initial margin requirement but over the
+        // lower maintenance margin requirement, we want to allow the trader to decrease
+        // their losing position size before they become subject to liquidation
+        //
+        // but if the trader is opening a new position or increasing the size
+        // of their existing position we want to ensure they satisfy the higher
+        // initial margin requirement
         ctx.shouldUseMaintenanceMargin = !Position.isIncreasingPosition(params.tradingAccountId, params.marketId, params.sizeDelta)
-            && position.size != 0;
+            && ctx.isMarketWithActivePosition;
 
         ctx.requiredMarginUsdX18 =
             ctx.shouldUseMaintenanceMargin ? ctx.requiredMaintenanceMarginUsdX18 : ctx.requiredInitialMarginUsdX18;
 
+        // reverts if the trader can't satisfy the appropriate margin requirement
         tradingAccount.validateMarginRequirement(
             ctx.requiredMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
         );
 
+        // reverts if a trader has a pending order and that pending order hasn't
+        // existed for the minimum order lifetime
         marketOrder.checkPendingOrder();
+
+        // store pending order details
         marketOrder.update({ marketId: params.marketId, sizeDelta: params.sizeDelta });
 
         emit LogCreateMarketOrder(msg.sender, params.tradingAccountId, params.marketId, marketOrder);
@@ -267,12 +353,20 @@ contract OrderBranch {
     /// given account and market.
     /// @param tradingAccountId The trading account id.
     function cancelMarketOrder(uint128 tradingAccountId) external {
+        // load existing trading account; reverts for non-existent account
+        // enforces `msg.sender == owner` so only account owner can cancel
+        // pendin orders
         TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
 
+        // load trader's pending order; reverts if no pending order
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
 
+        // reverts if a trader has a pending order and that pending order hasn't
+        // existed for the minimum order lifetime; pending orders can't be cancelled
+        // until they have existed for the minimum order lifetime
         marketOrder.checkPendingOrder();
 
+        // reset pending order details
         marketOrder.clear();
 
         emit LogCancelMarketOrder(msg.sender, tradingAccountId);
