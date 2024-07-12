@@ -262,45 +262,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_InitialMarginRateIsZero(uint256 marketId)
-        external
-        whenMarketIsInitialized
-        whenLengthOfNameIsNotZero
-        whenLengthOfSymbolIsNotZero
-        whenPriceAdapterIsNotZero
-        whenMaintenanceMarginRateIsNotZero
-        whenMaxOpenInterestIsNotZero
-        whenMaxSkewIsNotZero
-    {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-
-        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
-            .UpdatePerpMarketConfigurationParams({
-            name: fuzzMarketConfig.marketName,
-            symbol: fuzzMarketConfig.marketSymbol,
-            priceAdapter: fuzzMarketConfig.priceAdapter,
-            initialMarginRateX18: 0,
-            maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
-            maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
-            skewScale: fuzzMarketConfig.skewScale,
-            minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
-        });
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "initialMarginRateX18") });
-
-        changePrank({ msgSender: users.owner });
-        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
-    }
-
-    modifier whenInitialMarginRateIsNotZero() {
-        _;
-    }
-
     function testFuzz_RevertWhen_InitialMarginRateIsLessOrEqualToMaintenanceMargin(uint256 marketId)
         external
         whenMarketIsInitialized
@@ -310,7 +271,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -352,7 +312,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -393,7 +352,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
     {
@@ -435,7 +393,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
         whenMinTradeSizeIsNotZero
@@ -478,7 +435,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
         whenMinTradeSizeIsNotZero
@@ -518,7 +474,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
-        whenInitialMarginRateIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
         whenMinTradeSizeIsNotZero

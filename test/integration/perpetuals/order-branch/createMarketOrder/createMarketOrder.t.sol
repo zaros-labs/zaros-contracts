@@ -12,7 +12,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, UNIT as UD_UNIT } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
@@ -375,7 +375,8 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
-            settlementFeeRecipient: feeRecipients.settlementFeeRecipient
+            settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
+            liquidationFeeRecipient: users.liquidationFeeRecipient
         });
 
         changePrank({ msgSender: users.naruto });

@@ -44,7 +44,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.DepositCap.selector, address(wstEth), amountToDepositMargin, WSTETH_DEPOSIT_CAP_X18.intoUint128()
-                )
+            )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDepositMargin);
@@ -91,7 +91,7 @@ contract DepositMargin_Integration_Test is Base_Test {
                 address(usdc),
                 convertTokenAmountToUd60x18(address(usdc), amountToDepositMarginUsdc),
                 USDC_DEPOSIT_CAP_X18.intoUint256()
-                )
+            )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDepositMarginUsdc);
@@ -119,7 +119,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.DepositCap.selector, address(usdc), convertTokenAmountToUd60x18(address(usdc), amountToDeposit), 0
-                )
+            )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);

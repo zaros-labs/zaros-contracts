@@ -3,12 +3,12 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { FeeRecipients } from "../leaves/FeeRecipients.sol";
-import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
-import { TradingAccount } from "../leaves/TradingAccount.sol";
-import { PerpMarket } from "../leaves/PerpMarket.sol";
-import { Position } from "../leaves/Position.sol";
-import { MarketOrder } from "../leaves/MarketOrder.sol";
+import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -89,8 +89,7 @@ contract LiquidationBranch {
     }
 
     /// @param accountsIds The list of accounts to liquidate
-    /// @param liquidationFeeRecipient The address to receive the liquidation fee
-    function liquidateAccounts(uint128[] calldata accountsIds, address liquidationFeeRecipient) external {
+    function liquidateAccounts(uint128[] calldata accountsIds) external {
         if (accountsIds.length == 0) return;
 
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -122,7 +121,7 @@ contract LiquidationBranch {
                 feeRecipients: FeeRecipients.Data({
                     marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,
                     orderFeeRecipient: address(0),
-                    settlementFeeRecipient: liquidationFeeRecipient
+                    settlementFeeRecipient: globalConfiguration.liquidationFeeRecipient
                 }),
                 pnlUsdX18: requiredMaintenanceMarginUsdX18,
                 orderFeeUsdX18: UD60x18_ZERO,

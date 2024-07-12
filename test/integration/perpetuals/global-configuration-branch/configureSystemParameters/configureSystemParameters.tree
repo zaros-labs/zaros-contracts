@@ -14,4 +14,7 @@ ConfigureSystemParameters_Integration_Test
                 ├── when settlement fee recipient is zero
                 │   └── it should revert
                 └── when settlement fee recipient is not zero
-                    └── it should emit {LogConfigureSystemParameters} event
+                    ├── when liquidation fee recipient is zero
+                    │   └── it should revert
+                    └── when liquidation fee recipient is not zero
+                        └── it should emit {LogConfigureSystemParameters} event

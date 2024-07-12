@@ -283,7 +283,8 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 liquidationFeeUsdX18,
         address marginCollateralRecipient,
         address orderFeeRecipient,
-        address settlementFeeRecipient
+        address settlementFeeRecipient,
+        address liquidationFeeRecipient
     )
         external
         onlyOwner
@@ -308,6 +309,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             revert Errors.ZeroInput("settlementFeeRecipient");
         }
 
+        if (liquidationFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("liquidationFeeRecipient");
+        }
+
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         globalConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
@@ -316,6 +321,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         globalConfiguration.marginCollateralRecipient = marginCollateralRecipient;
         globalConfiguration.orderFeeRecipient = orderFeeRecipient;
         globalConfiguration.settlementFeeRecipient = settlementFeeRecipient;
+        globalConfiguration.liquidationFeeRecipient = liquidationFeeRecipient;
 
         emit LogConfigureSystemParameters(
             msg.sender, maxPositionsPerAccount, marketOrderMinLifetime, liquidationFeeUsdX18
@@ -379,10 +385,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             revert Errors.ZeroInput("maxSkew");
         }
         if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
-            revert Errors.ZeroInput("initialMarginRateX18");
-        }
-        if (params.initialMarginRateX18 == 0) {
-            revert Errors.ZeroInput("initialMarginRateX18");
+            revert Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate();
         }
         if (params.skewScale == 0) {
             revert Errors.ZeroInput("skewScale");
@@ -483,9 +486,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         }
         if (params.maxSkew == 0) {
             revert Errors.ZeroInput("maxSkew");
-        }
-        if (params.initialMarginRateX18 == 0) {
-            revert Errors.ZeroInput("initialMarginRateX18");
         }
         if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
             revert Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate();

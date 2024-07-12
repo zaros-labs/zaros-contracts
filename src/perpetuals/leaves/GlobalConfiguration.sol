@@ -25,6 +25,7 @@ library GlobalConfiguration {
     /// @param marginCollateralRecipient The address that receives deducted margin collateral.
     /// @param orderFeeRecipient The address that receives order fees.
     /// @param settlementFeeRecipient The address that receives settlement fees.
+    /// @param liquidationFeeRecipient The address that receives liquidation fees.
     /// @param usdToken The address of the USD token (USDz).
     /// @param tradingAccountToken The address of the trading account NFT.
     /// @param nextAccountId The next available trading account id.
@@ -40,6 +41,7 @@ library GlobalConfiguration {
         address marginCollateralRecipient;
         address orderFeeRecipient;
         address settlementFeeRecipient;
+        address liquidationFeeRecipient;
         address usdToken;
         address tradingAccountToken;
         uint96 nextAccountId;

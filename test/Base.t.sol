@@ -118,6 +118,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             marginCollateralRecipient: createUser({ name: "Margin Collateral Recipient" }),
             orderFeeRecipient: createUser({ name: "Order Fee Recipient" }),
             settlementFeeRecipient: createUser({ name: "Settlement Fee Recipient" }),
+            liquidationFeeRecipient: createUser({ name: "Liquidation Fee Recipient" }),
             keepersForwarder: createUser({ name: "Keepers Forwarder" }),
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
@@ -246,9 +247,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function configureLiquidationKeepers() internal {
         changePrank({ msgSender: users.owner });
-        liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner, address(perpsEngine), users.settlementFeeRecipient
-        );
+        liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);
@@ -268,7 +267,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
-            settlementFeeRecipient: feeRecipients.settlementFeeRecipient
+            settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
+            liquidationFeeRecipient: users.liquidationFeeRecipient
         });
     }
 

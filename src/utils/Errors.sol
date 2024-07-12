@@ -7,8 +7,6 @@ library Errors {
 
     /// @notice Thrown when the given input of a function is its zero value.
     error ZeroInput(string parameter);
-    /// @notice General error thrown when a given parameter is invalid.
-    error InvalidParameter(string parameter, string reason);
     /// @notice Thrown when the sender is not authorized to perform a given action.
     error Unauthorized(address sender);
     /// @notice Thrown when two or more array parameters are expected to have the same length, but they don't.
@@ -46,8 +44,6 @@ library Errors {
     error OracleSequencerDown(address priceFeed);
     /// @notice Thrown when an oracle price feed is outdated.
     error OraclePriceFeedHeartbeat(address priceFeed);
-    /// @notice Thrown when the caller is not the Chainlink Automation Forwarder.
-    error OnlyForwarder(address sender, address forwarder);
     /// @notice Thrown when the keeper provided checkData bounds are invalid.
     error InvalidBounds();
 
@@ -89,8 +85,6 @@ library Errors {
     error SequencerUptimeFeedNotDefined();
     /// @notice Thrown when the provided `accountToken` is the zero address.
     error TradingAccountTokenNotDefined();
-    /// @notice Thrown when the provided `liquidationReward` is less than 1e18.
-    error InvalidLiquidationReward(uint128 liquidationFeeUsdX18);
     /// @notice Thrown when `collateralType` decimals are greater than the system's decimals.
     error InvalidMarginCollateralConfiguration(address collateralType, uint8 decimals, address priceFeed);
     /// @notice Thrown when trying to update a market status but it hasn't been initialized yet.

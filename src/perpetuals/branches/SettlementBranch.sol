@@ -4,13 +4,13 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { MarketOrder } from "../leaves/MarketOrder.sol";
-import { TradingAccount } from "../leaves/TradingAccount.sol";
-import { FeeRecipients } from "../leaves/FeeRecipients.sol";
-import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
-import { PerpMarket } from "../leaves/PerpMarket.sol";
-import { Position } from "../leaves/Position.sol";
-import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
+import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";

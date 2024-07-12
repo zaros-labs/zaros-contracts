@@ -2,7 +2,6 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
@@ -23,11 +22,10 @@ contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
     }
 
     function test_WhenCallGetConfigFunction() external givenInitializeContract {
-        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner, address(perpsEngine), users.settlementFeeRecipient
-        );
+        address liquidationKeeper =
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
 
-        (address keeperOwner, address perpsEngineOfLiquidationKeeper, address liquidationFeeRecipient) =
+        (address keeperOwner, address perpsEngineOfLiquidationKeeper) =
             LiquidationKeeper(liquidationKeeper).getConfig();
 
         // it should return owner
@@ -35,8 +33,5 @@ contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
 
         // it should return perpsEngine
         assertEq(perpsEngineOfLiquidationKeeper, address(perpsEngine), "owner is not correct");
-
-        // it should return liquidation fee recipient
-        assertEq(liquidationFeeRecipient, users.settlementFeeRecipient, "liquidation fee recipient is not correct");
     }
 }

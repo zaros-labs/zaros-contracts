@@ -2,10 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies

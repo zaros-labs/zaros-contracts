@@ -20,23 +20,21 @@ UpdatePerpMarketConfiguration_Integration_Test
                         ├── when max skew is zero
                         │   └── it should revert
                         └── when max skew is not zero
-                            ├── when initial margin rate is zero
+                            ├── when initial margin rate is less or equal to maintenance margin
                             │   └── it should revert
-                            └── when initial margin rate is not zero
-                                ├── when initial margin rate is less or equal to maintenance margin
+                            └── when initial margin is not less or equal to maintenance margin
+                                ├── when skew scale is zero
                                 │   └── it should revert
-                                └── when initial margin is not less or equal to maintenance margin
-                                    ├── when skew scale is zero
+                                └── when skew scale is not zero
+                                    ├── when min trade size is zero
                                     │   └── it should revert
-                                    └── when skew scale is not zero
-                                        ├── when min trade size is zero
+                                    └── when min trade size is not zero
+                                        ├── when max funding velocity is zero
                                         │   └── it should revert
-                                        └── when min trade size is not zero
-                                            ├── when max funding velocity is zero
+                                        └── when max funding velocity is not zero
+                                            ├── when priceFeedHeartbeatSeconds is zero
                                             │   └── it should revert
-                                            └── when max funding velocity is not zero
-                                                ├── when priceFeedHeartbeatSeconds is zero
-                                                │   └── it should revert
-                                                └── when priceFeedHearbeatSeconds is not zero
-                                                    ├── it should update perp market
-                                                    └── it should emit {LogUpdatePerpMarketConfiguration} event
+                                            └── when priceFeedHearbeatSeconds is not zero
+                                                ├── it should update perp market
+                                                └── it should emit {LogUpdatePerpMarketConfiguration} event
+   ```

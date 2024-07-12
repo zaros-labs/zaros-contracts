@@ -50,7 +50,8 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: MSIG_ADDRESS,
             orderFeeRecipient: MSIG_ADDRESS,
-            settlementFeeRecipient: MSIG_ADDRESS
+            settlementFeeRecipient: MSIG_ADDRESS,
+            liquidationFeeRecipient: MSIG_ADDRESS
         });
 
         uint256[2] memory marginCollateralIdsRange;
@@ -59,8 +60,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, false, address(0));
 
-        address liquidationKeeper =
-            ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine), MSIG_ADDRESS);
+        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine));
         console.log("Liquidation Keeper: ", liquidationKeeper);
 
         address[] memory liquidators = new address[](1);
