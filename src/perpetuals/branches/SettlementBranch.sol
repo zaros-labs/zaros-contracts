@@ -306,7 +306,7 @@ contract SettlementBranch is EIP712Upgradeable {
         SD59x18 newSkewX18;
         address usdToken;
         bool shouldUseMaintenanceMargin;
-        bool isIncreasingPosition;
+        bool isIncreasing;
     }
 
     /// @param tradingAccountId The trading account id.
@@ -338,8 +338,7 @@ contract SettlementBranch is EIP712Upgradeable {
         ctx.usdToken = globalConfiguration.usdToken;
 
         // determine whether position is being increased or not
-        ctx.isIncreasingPosition =
-            Position.isIncreasingPosition(tradingAccountId, marketId, sizeDeltaX18.intoInt256().toInt128());
+        ctx.isIncreasing = Position.isIncreasing(tradingAccountId, marketId, sizeDeltaX18.intoInt256().toInt128());
 
         // both markets and settlement can be disabled, however when this happens we want to:
         // 1) allow open positions not subject to liquidation to decrease their size or close
@@ -348,7 +347,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // the idea is to prevent a state where traders have open positions but are unable
         // to reduce size or close even though they can still be liquidated; such a state
         // would severly disadvantage traders
-        if (ctx.isIncreasingPosition) {
+        if (ctx.isIncreasing) {
             // both checks revert if disabled
             globalConfiguration.checkMarketIsEnabled(marketId);
             settlementConfiguration.checkIsSettlementEnabled();
@@ -393,7 +392,7 @@ contract SettlementBranch is EIP712Upgradeable {
             // but if the trader is opening a new position or increasing the size
             // of their existing position we want to ensure they satisfy the higher
             // initial margin requirement
-            ctx.shouldUseMaintenanceMargin = !ctx.isIncreasingPosition && oldPosition.size != 0;
+            ctx.shouldUseMaintenanceMargin = !ctx.isIncreasing && oldPosition.size != 0;
 
             ctx.requiredMarginUsdX18 =
                 ctx.shouldUseMaintenanceMargin ? requiredMaintenanceMarginUsdX18 : requiredInitialMarginUsdX18;
