@@ -24,11 +24,17 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    modifier whenSizeDeltaDontFlipsSkew() {
+    modifier whenSizeDeltaDoesntFlipTheSkew() {
         _;
     }
 
-    function testFuzz_WhenSkewIsZero(uint256 marketId, uint256 sizeDeltaAbs) external whenSizeDeltaDontFlipsSkew {
+    function testFuzz_WhenSkewIsZero(
+        uint256 marketId,
+        uint256 sizeDeltaAbs
+    )
+        external
+        whenSizeDeltaDoesntFlipTheSkew
+    {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
@@ -50,13 +56,13 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the taker order fee");
     }
 
-    function testFuzz_WhenSkewAndSizeDeltaAreGreatherThanZero(
+    function testFuzz_WhenSkewAndSizeDeltaAreGreaterThanZero(
         uint256 marketId,
         uint256 skewAbs,
         uint256 sizeDeltaAbs
     )
         external
-        whenSizeDeltaDontFlipsSkew
+        whenSizeDeltaDoesntFlipTheSkew
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -86,7 +92,7 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         uint256 sizeDeltaAbs
     )
         external
-        whenSizeDeltaDontFlipsSkew
+        whenSizeDeltaDoesntFlipTheSkew
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -110,13 +116,13 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the taker order fee");
     }
 
-    function test_WhenSkewIsGreatherThanZeroAndSizeDeltaIsLessThanZero(
+    function test_WhenSkewIsGreaterThanZeroAndSizeDeltaIsLessThanZero(
         uint256 marketId,
         uint256 skewAbs,
         uint256 sizeDeltaAbs
     )
         external
-        whenSizeDeltaDontFlipsSkew
+        whenSizeDeltaDoesntFlipTheSkew
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -143,13 +149,13 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the maker order fee");
     }
 
-    function test_WhenSkewIsLessThanZeroAndSizeDeltaIsGreatherThanZero(
+    function test_WhenSkewIsLessThanZeroAndSizeDeltaIsGreaterThanZero(
         uint256 marketId,
         uint256 skewAbs,
         uint256 sizeDeltaAbs
     )
         external
-        whenSizeDeltaDontFlipsSkew
+        whenSizeDeltaDoesntFlipTheSkew
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -176,7 +182,7 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
         assertEq(expectedFeeUsd.intoUint256(), feeUsd.intoUint256(), "should return the maker order fee");
     }
 
-    function test_WhenSizeDeltaFlipsSkew(uint256 marketId, uint256 skewAbs, uint256 sizeDeltaAbs) external {
+    function test_WhenSizeDeltaFlipsTheSkew(uint256 marketId, uint256 skewAbs, uint256 sizeDeltaAbs) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });

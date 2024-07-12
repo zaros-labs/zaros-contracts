@@ -17,7 +17,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function test_WhenTheMarginCollateralBalanceUsdIsGreatherThanOrEqualToTheRequiredMarginCollateral(
+    function test_WhenTheMarginCollateralBalanceUsdIsGreaterThanOrEqualToTheRequiredMarginCollateral(
         uint256 amountToDeposit,
         uint256 amountToWithdrawUsd,
         uint256 marginCollateralPriceUsd
