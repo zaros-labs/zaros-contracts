@@ -365,6 +365,38 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
+    function getMockedSignedReportWithValidFromTimestampZero(
+        bytes32 streamId,
+        uint256 price
+    )
+        internal
+        view
+        returns (bytes memory mockedSignedReport)
+    {
+        bytes memory mockedReportData;
+
+        PremiumReport memory premiumReport = PremiumReport({
+            feedId: streamId,
+            validFromTimestamp: 0,
+            observationsTimestamp: uint32(block.timestamp),
+            nativeFee: 0,
+            linkFee: 0,
+            expiresAt: uint32(block.timestamp + MOCK_DATA_STREAMS_EXPIRATION_DELAY),
+            price: int192(int256(price)),
+            bid: int192(int256(price)),
+            ask: int192(int256(price))
+        });
+
+        mockedReportData = abi.encode(premiumReport);
+
+        bytes32[3] memory mockedSignatures;
+        mockedSignatures[0] = bytes32(uint256(keccak256(abi.encodePacked("mockedSignature1"))));
+        mockedSignatures[1] = bytes32(uint256(keccak256(abi.encodePacked("mockedSignature2"))));
+        mockedSignatures[2] = bytes32(uint256(keccak256(abi.encodePacked("mockedSignature3"))));
+
+        mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
+    }
+
     function createAccountAndDeposit(
         uint256 amount,
         address collateralType
