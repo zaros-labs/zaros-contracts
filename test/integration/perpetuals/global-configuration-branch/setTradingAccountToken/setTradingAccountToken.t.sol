@@ -15,13 +15,13 @@ contract SetTradingAccountToken_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotTheOwner(address tradingAccountToken) external {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         vm.assume(tradingAccountToken != address(0));
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto)
+            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto.account)
         });
 
         perpsEngine.setTradingAccountToken(tradingAccountToken);
@@ -32,7 +32,7 @@ contract SetTradingAccountToken_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_TheTradingAccountTokenIsZero() external givenTheSenderIsTheOwner {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.TradingAccountTokenNotDefined.selector) });
@@ -44,13 +44,13 @@ contract SetTradingAccountToken_Integration_Test is Base_Test {
         external
         givenTheSenderIsTheOwner
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         vm.assume(tradingAccountToken != address(0));
 
         // it should emit a {LogSetTradingAccountToken} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit GlobalConfigurationBranch.LogSetTradingAccountToken(users.owner, tradingAccountToken);
+        emit GlobalConfigurationBranch.LogSetTradingAccountToken(users.owner.account, tradingAccountToken);
 
         perpsEngine.setTradingAccountToken(tradingAccountToken);
 

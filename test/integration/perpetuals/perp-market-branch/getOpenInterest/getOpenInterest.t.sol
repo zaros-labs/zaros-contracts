@@ -13,10 +13,10 @@ import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 contract GetOpenInterest_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_GivenTheresAPositionCreated(
@@ -28,7 +28,7 @@ contract GetOpenInterest_Integration_Test is Base_Test {
     )
         external
     {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -42,7 +42,7 @@ contract GetOpenInterest_Integration_Test is Base_Test {
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -99,7 +99,7 @@ contract GetOpenInterest_Integration_Test is Base_Test {
         assertAlmostEq(expectedOpenInterest, totalOpenInterest.intoUint256(), 1, "open interest is not correct");
 
         // Create a second order
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         int128 secondSizeDelta = -sizeDelta;
 

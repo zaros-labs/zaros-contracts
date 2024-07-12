@@ -29,7 +29,7 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
 
         // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto);
+        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto.account);
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
@@ -43,7 +43,7 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
 
         // it should emit {LogCreateTradingAccount}
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto);
+        emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto.account);
         uint128 tradingAccountId = perpsEngine.createTradingAccount();
 
         // it should return a valid tradingAccountId

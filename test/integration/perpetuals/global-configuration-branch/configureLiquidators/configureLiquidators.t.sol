@@ -18,11 +18,11 @@ contract ConfigureLiquidators_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidators") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         perpsEngine.configureLiquidators(liquidators, enable);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenThereAreLiquidators() {
@@ -43,11 +43,11 @@ contract ConfigureLiquidators_Integration_Test is Base_Test {
             revertData: abi.encodeWithSelector(Errors.ArrayLengthMismatch.selector, liquidators.length, enable.length)
         });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         perpsEngine.configureLiquidators(liquidators, enable);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_GivenNumberOfLiquidatorsAndArrayOfEnableIsEqual(address randomLiquidator)
@@ -61,12 +61,12 @@ contract ConfigureLiquidators_Integration_Test is Base_Test {
 
         // it should emit a {LogConfigureLiquidators} event
         vm.expectEmit();
-        emit GlobalConfigurationBranch.LogConfigureLiquidators(users.owner, liquidators, enable);
+        emit GlobalConfigurationBranch.LogConfigureLiquidators(users.owner.account, liquidators, enable);
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         perpsEngine.configureLiquidators(liquidators, enable);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 }

@@ -14,10 +14,10 @@ import { ud60x18 } from "@prb-math/UD60x18.sol";
 contract CancelMarketOrder_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotTheTradingAccountOwner(
@@ -27,7 +27,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
     )
         external
     {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -39,15 +39,17 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdz), USDZ_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.AccountPermissionDenied.selector, tradingAccountId, users.owner)
+            revertData: abi.encodeWithSelector(
+                Errors.AccountPermissionDenied.selector, tradingAccountId, users.owner.account
+            )
         });
 
         perpsEngine.cancelMarketOrder(tradingAccountId);
@@ -75,7 +77,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdz), USDZ_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
 
@@ -109,7 +111,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -163,7 +165,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
         int128 sizeDelta = fuzzOrderSizeDelta(
@@ -189,7 +191,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             })
         );
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMinLifetime: 0,
@@ -197,13 +199,13 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
-            liquidationFeeRecipient: users.liquidationFeeRecipient
+            liquidationFeeRecipient: users.liquidationFeeRecipient.account
         });
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         // it should emit {LogCancelMarketOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit OrderBranch.LogCancelMarketOrder(users.naruto, tradingAccountId);
+        emit OrderBranch.LogCancelMarketOrder(users.naruto.account, tradingAccountId);
 
         perpsEngine.cancelMarketOrder(tradingAccountId);
 

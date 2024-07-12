@@ -38,7 +38,7 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
         SettlementConfiguration.DataStreamsStrategy memory solUsdMarketOrderConfigurationData =
         SettlementConfiguration.DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: solUsdStreamId });
         SettlementConfiguration.Data memory solUsdMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: solUsdMarketOrderKeeper,

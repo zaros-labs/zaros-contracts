@@ -9,10 +9,10 @@ import { Base_Test } from "test/Base.t.sol";
 contract GetSettlementConfiguration_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_GivenSettlementIsConfigured(uint128 marketId) external {
@@ -29,7 +29,7 @@ contract GetSettlementConfiguration_Integration_Test is Base_Test {
         });
 
         SettlementConfiguration.Data memory expectedMarketOrderConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],

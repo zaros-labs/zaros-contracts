@@ -8,8 +8,8 @@ import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, unary, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @title Perps Engine Branch.
 /// @notice The perps engine  is responsible by the state management of perps markets.
@@ -64,8 +64,9 @@ contract PerpMarketBranch {
         SD59x18 currentOpenInterest = ud60x18(perpMarket.openInterest).intoSD59x18();
         SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18(2e18));
 
-        longsOpenInterest =
-            halfOpenInterest.add(halfSkew).lt(SD_ZERO) ? UD_ZERO : halfOpenInterest.add(halfSkew).intoUD60x18();
+        longsOpenInterest = halfOpenInterest.add(halfSkew).lt(SD59x18_ZERO)
+            ? UD60x18_ZERO
+            : halfOpenInterest.add(halfSkew).intoUD60x18();
         shortsOpenInterest = unary(halfOpenInterest).add(halfSkew).abs().intoUD60x18();
         totalOpenInterest = longsOpenInterest.add(shortsOpenInterest);
     }

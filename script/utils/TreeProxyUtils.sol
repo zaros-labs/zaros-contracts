@@ -23,6 +23,9 @@ import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarnes
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 
+// Open Zeppelin Upgradeable dependencies
+import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
@@ -159,9 +162,12 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.getUserReferralData.selector;
     }
 
-    bytes4[] memory settlementBranchSelectors = new bytes4[](1);
+    bytes4[] memory settlementBranchSelectors = new bytes4[](4);
 
-    settlementBranchSelectors[0] = SettlementBranch.fillMarketOrder.selector;
+    settlementBranchSelectors[0] = EIP712Upgradeable.eip712Domain.selector;
+    settlementBranchSelectors[1] = SettlementBranch.DOMAIN_SEPARATOR.selector;
+    settlementBranchSelectors[2] = SettlementBranch.fillMarketOrder.selector;
+    settlementBranchSelectors[3] = SettlementBranch.fillOffchainOrders.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = lookupBranchSelectors;
@@ -360,23 +366,19 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     positionHarnessSelectors[6] = PositionHarness.exposed_getNotionalValue.selector;
     positionHarnessSelectors[7] = PositionHarness.exposed_getUnrealizedPnl.selector;
 
-    bytes4[] memory settlementConfigurationHarnessSelectors = new bytes4[](8);
+    bytes4[] memory settlementConfigurationHarnessSelectors = new bytes4[](6);
     settlementConfigurationHarnessSelectors[0] =
         SettlementConfigurationHarness.exposed_SettlementConfiguration_load.selector;
     settlementConfigurationHarnessSelectors[1] =
-        SettlementConfigurationHarness.exposed_checkIsValidSettlementStrategy.selector;
-    settlementConfigurationHarnessSelectors[2] =
         SettlementConfigurationHarness.exposed_checkIsSettlementEnabled.selector;
-    settlementConfigurationHarnessSelectors[3] =
-        SettlementConfigurationHarness.exposed_getDataStreamsReportPrice.selector;
-    settlementConfigurationHarnessSelectors[4] =
+    settlementConfigurationHarnessSelectors[2] =
         SettlementConfigurationHarness.exposed_requireDataStreamsReportIsVaid.selector;
-    settlementConfigurationHarnessSelectors[5] = SettlementConfigurationHarness.exposed_update.selector;
-    settlementConfigurationHarnessSelectors[6] = SettlementConfigurationHarness.exposed_verifyOffchainPrice.selector;
-    settlementConfigurationHarnessSelectors[7] =
+    settlementConfigurationHarnessSelectors[3] = SettlementConfigurationHarness.exposed_update.selector;
+    settlementConfigurationHarnessSelectors[4] = SettlementConfigurationHarness.exposed_verifyOffchainPrice.selector;
+    settlementConfigurationHarnessSelectors[5] =
         SettlementConfigurationHarness.exposed_verifyDataStreamsReport.selector;
 
-    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](19);
+    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](21);
     tradingAccountHarnessSelectors[0] = TradingAccountHarness.exposed_TradingAccount_loadExisting.selector;
     tradingAccountHarnessSelectors[1] = TradingAccountHarness.exposed_loadExistingAccountAndVerifySender.selector;
     tradingAccountHarnessSelectors[2] = TradingAccountHarness.exposed_validatePositionsLimit.selector;
@@ -397,6 +399,8 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     tradingAccountHarnessSelectors[16] = TradingAccountHarness.exposed_updateActiveMarkets.selector;
     tradingAccountHarnessSelectors[17] = TradingAccountHarness.workaround_getActiveMarketId.selector;
     tradingAccountHarnessSelectors[18] = TradingAccountHarness.workaround_getActiveMarketsIdsLength.selector;
+    tradingAccountHarnessSelectors[19] = TradingAccountHarness.workaround_getNonce.selector;
+    tradingAccountHarnessSelectors[20] = TradingAccountHarness.workaround_hasOffchainOrderBeenFilled.selector;
 
     selectors[0] = globalConfigurationHarnessSelectors;
     selectors[1] = marginCollateralConfigurationHarnessSelectors;

@@ -13,12 +13,12 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 contract CreatePerpMarket_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
     }
 
     function test_RevertWhen_MarketIdIsZero() external {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -35,7 +35,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -43,7 +43,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marketId") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -52,7 +52,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_LengthOfNameIsZero() external whenMarketIdIsNotZero {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -69,7 +69,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -77,7 +77,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "name") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -86,7 +86,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_LengthOfSymbolIsZero() external whenMarketIdIsNotZero whenLengthOfNameIsNotZero {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -103,7 +103,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -111,7 +111,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "symbol") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -125,7 +125,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenLengthOfNameIsNotZero
         whenLengthOfSymbolIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -142,7 +142,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -150,7 +150,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceAdapter") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -165,7 +165,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenLengthOfSymbolIsNotZero
         whenPriceAdapterIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -182,7 +182,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -190,7 +190,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maintenanceMarginRateX18") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -206,7 +206,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenPriceAdapterIsNotZero
         whenMaintenanceMarginRateIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -223,7 +223,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -231,7 +231,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxOpenInterest") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -248,7 +248,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaintenanceMarginRateIsNotZero
         whenMaxOpenInterestIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -265,7 +265,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -273,7 +273,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxSkew") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -291,7 +291,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaxOpenInterestIsNotZero
         whenMaxSkewIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -308,7 +308,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -316,7 +316,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate.selector });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -335,7 +335,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMaxSkewIsNotZero
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -352,7 +352,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 0,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -360,7 +360,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "skewScale") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -380,7 +380,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
         whenSkewScaleIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -397,7 +397,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 0,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -405,7 +405,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "minTradeSizeX18") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -426,7 +426,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenSkewScaleIsNotZero
         whenMinTradeSizeIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -443,7 +443,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
@@ -451,7 +451,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxFundingVelocity") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -473,7 +473,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMinTradeSizeIsNotZero
         whenMaxFundingVelocityIsNotZero
     {
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -490,7 +490,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 0
         });
@@ -498,7 +498,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceFeedHeartbeatSeconds") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.createPerpMarket(params);
     }
 
@@ -516,9 +516,9 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         whenMinTradeSizeIsNotZero
         whenMaxFundingVelocityIsNotZero
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
-        SettlementConfiguration.Data[] memory customOrdersConfigurations;
+        SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         GlobalConfigurationBranch.CreatePerpMarketParams memory params = GlobalConfigurationBranch
@@ -535,14 +535,14 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             minTradeSizeX18: 1,
             skewScale: 1,
             marketOrderConfiguration: marketOrderConfiguration,
-            customOrdersConfiguration: customOrdersConfigurations,
+            offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
             priceFeedHeartbeatSeconds: 1
         });
 
         // it should emit {LogCreatePerpMarket} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit GlobalConfigurationBranch.LogCreatePerpMarket(users.owner, params.marketId);
+        emit GlobalConfigurationBranch.LogCreatePerpMarket(users.owner.account, params.marketId);
 
         // it should create perp market
         // it should enable perp market

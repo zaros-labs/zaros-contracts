@@ -10,7 +10,7 @@ import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves
 contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
     }
@@ -19,7 +19,7 @@ contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
-            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: false,
             fee: DEFAULT_SETTLEMENT_FEE,
             keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
@@ -35,7 +35,7 @@ contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test
         // it should revert
         vm.expectRevert({ revertData: Errors.SettlementDisabled.selector });
         // TODO: bound settlement configuration ids from the market order configuration id, up to the higher id
-        // available once signed orders are implemented
+        // available once offchain orders are implemented
         SettlementConfigurationHarness(address(perpsEngine)).exposed_checkIsSettlementEnabled(
             fuzzMarketConfig.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID
         );

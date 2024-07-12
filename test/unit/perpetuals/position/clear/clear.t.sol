@@ -8,7 +8,7 @@ import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 contract Position_Clear_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
     }
@@ -21,7 +21,7 @@ contract Position_Clear_Unit_Test is Base_Test {
     )
         external
     {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -33,7 +33,7 @@ contract Position_Clear_Unit_Test is Base_Test {
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 

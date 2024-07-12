@@ -16,7 +16,7 @@ contract GetAccountMarginCollateralBalance_Integration_Test is Base_Test {
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 

@@ -20,17 +20,19 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 contract LiquidateAccounts_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_RevertGiven_TheSenderIsNotARegisteredLiquidator() external {
         uint128[] memory accountsIds = new uint128[](1);
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.LiquidatorNotRegistered.selector, users.naruto) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.LiquidatorNotRegistered.selector, users.naruto.account)
+        });
         perpsEngine.liquidateAccounts({ accountsIds: accountsIds });
     }
 
@@ -119,7 +121,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         ctx.marginValueUsd = 10_000e18 / amountOfTradingAccounts;
         ctx.initialMarginRate = ctx.fuzzMarketConfig.imr;
 
-        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto.account, give: ctx.marginValueUsd });
 
         // last account id == 0
         ctx.accountsIds = new uint128[](amountOfTradingAccounts + 2);
@@ -147,7 +149,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
             ctx.accountsIds[i] = ctx.tradingAccountId;
 
-            deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
+            deal({ token: address(usdz), to: users.naruto.account, give: ctx.marginValueUsd });
         }
 
         setAccountsAsLiquidatable(ctx.fuzzMarketConfig, isLong);

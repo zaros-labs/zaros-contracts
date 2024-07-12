@@ -9,12 +9,12 @@ import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.
 contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
 
         createPerpMarkets();
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContract() {
@@ -23,13 +23,13 @@ contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
 
     function test_WhenCallGetConfigFunction() external givenInitializeContract {
         address liquidationKeeper =
-            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner.account, address(perpsEngine));
 
         (address keeperOwner, address perpsEngineOfLiquidationKeeper) =
             LiquidationKeeper(liquidationKeeper).getConfig();
 
         // it should return owner
-        assertEq(keeperOwner, users.owner, "owner is not correct");
+        assertEq(keeperOwner, users.owner.account, "owner is not correct");
 
         // it should return perpsEngine
         assertEq(perpsEngineOfLiquidationKeeper, address(perpsEngine), "owner is not correct");

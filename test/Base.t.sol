@@ -22,7 +22,7 @@ import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 import { Storage } from "test/utils/Storage.sol";
-import { Users, MockPriceAdapters } from "test/utils/Types.sol";
+import { Users, User, MockPriceAdapters } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
@@ -90,7 +90,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal mockChainlinkVerifier;
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
-    uint32 internal MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
+    uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -125,9 +125,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             sakura: createUser({ name: "Sakura Haruno" }),
             madara: createUser({ name: "Madara Uchiha" })
         });
-        vm.startPrank({ msgSender: users.owner });
+        vm.startPrank({ msgSender: users.owner.account });
 
-        tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner);
+        tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner.account);
 
         bool isTestnet = false;
         address[] memory branches = deployBranches(isTestnet);
@@ -136,7 +136,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches);
         bytes[] memory initializePayloads =
-            getInitializePayloads(users.owner, address(tradingAccountToken), address(0));
+            getInitializePayloads(users.owner.account, address(tradingAccountToken), address(0));
 
         branchUpgrades = deployHarnesses(branchUpgrades);
 
@@ -154,7 +154,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;
         marginCollateralIdsRange[1] = FINAL_MARGIN_COLLATERAL_ID;
 
-        configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, true, users.owner);
+        configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, true, users.owner.account);
 
         usdc = MockERC20(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         usdz = MockUSDToken(marginCollaterals[USDZ_MARGIN_COLLATERAL_ID].marginCollateralAddress);
@@ -178,14 +178,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
         approveContracts();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
         feeRecipients = FeeRecipients.Data({
-            marginCollateralRecipient: users.marginCollateralRecipient,
-            orderFeeRecipient: users.orderFeeRecipient,
-            settlementFeeRecipient: users.settlementFeeRecipient
+            marginCollateralRecipient: users.marginCollateralRecipient.account,
+            orderFeeRecipient: users.orderFeeRecipient.account,
+            settlementFeeRecipient: users.settlementFeeRecipient.account
         });
 
         setupMarketsConfig();
@@ -193,6 +193,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
         vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
+        vm.label({ account: OFFCHAIN_ORDERS_KEEPER_ADDRESS, newLabel: "Offchain Orders Keeper" });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -200,54 +201,55 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev Generates a user, labels its address, and funds it with test assets.
-    function createUser(string memory name) internal returns (address payable) {
-        address payable user = payable(makeAddr(name));
-        vm.deal({ account: user, newBalance: 100 ether });
+    function createUser(string memory name) internal returns (User memory) {
+        (address account, uint256 privateKey) = makeAddrAndKey(name);
+        vm.deal({ account: account, newBalance: 100 ether });
 
-        return user;
+        return User({ account: payable(account), privateKey: privateKey });
     }
 
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
         for (uint256 i = INITIAL_MARGIN_COLLATERAL_ID; i <= FINAL_MARGIN_COLLATERAL_ID; i++) {
-            changePrank({ msgSender: users.naruto });
+            changePrank({ msgSender: users.naruto.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
 
-            changePrank({ msgSender: users.sasuke });
+            changePrank({ msgSender: users.sasuke.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
 
-            changePrank({ msgSender: users.sakura });
+            changePrank({ msgSender: users.sakura.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
 
-            changePrank({ msgSender: users.madara });
+            changePrank({ msgSender: users.madara.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
         }
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
     }
 
     function configureContracts() internal {
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
-        // TODO: Temporary, switch to liquidity engine
+        // TODO: Temporary, switch to Market Making engine
         usdz.transferOwnership(address(perpsEngine));
     }
 
     function configureLiquidationKeepers() internal {
-        changePrank({ msgSender: users.owner });
-        liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
+        changePrank({ msgSender: users.owner.account });
+        liquidationKeeper =
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner.account, address(perpsEngine));
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);
@@ -257,7 +259,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function configureSystemParameters() internal {
@@ -268,14 +270,23 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
-            liquidationFeeRecipient: users.liquidationFeeRecipient
+            liquidationFeeRecipient: users.liquidationFeeRecipient.account
         });
     }
 
     function createPerpMarkets() internal {
         createPerpMarkets(
-            users.owner, perpsEngine, INITIAL_MARKET_ID, FINAL_MARKET_ID, IVerifierProxy(mockChainlinkVerifier), true
+            users.owner.account,
+            perpsEngine,
+            INITIAL_MARKET_ID,
+            FINAL_MARKET_ID,
+            IVerifierProxy(mockChainlinkVerifier),
+            true
         );
+
+        for (uint256 i = INITIAL_MARKET_ID; i <= FINAL_MARKET_ID; i++) {
+            vm.label({ account: marketOrderKeepers[i], newLabel: "Market Order Keeper" });
+        }
     }
 
     function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {
@@ -502,7 +513,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     {
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        deal({ token: address(usdz), to: users.naruto, give: marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
 
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -536,7 +547,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         // fill first order and open position
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function setAccountsAsLiquidatable(MarketConfig memory fuzzMarketConfig, bool isLong) internal {
@@ -569,7 +580,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         changePrank({ msgSender: marketOrderKeepers[marketId] });
         // fill first order and open position
         perpsEngine.fillMarketOrder(tradingAccountId, marketId, mockSignedReport);
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     /*//////////////////////////////////////////////////////////////////////////

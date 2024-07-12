@@ -13,6 +13,9 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
+// Forge dependencies
+import { StdCheats, StdUtils } from "forge-std/Test.sol";
+
 // Markets
 import { BtcUsd } from "./BtcUsd.sol";
 import { EthUsd } from "./EthUsd.sol";
@@ -25,7 +28,20 @@ import { MaticUsd } from "./MaticUsd.sol";
 import { LtcUsd } from "./LtcUsd.sol";
 import { FtmUsd } from "./FtmUsd.sol";
 
-contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, MaticUsd, LtcUsd, FtmUsd {
+abstract contract Markets is
+    StdCheats,
+    StdUtils,
+    BtcUsd,
+    EthUsd,
+    LinkUsd,
+    ArbUsd,
+    BnbUsd,
+    DogeUsd,
+    SolUsd,
+    MaticUsd,
+    LtcUsd,
+    FtmUsd
+{
     struct MarketConfig {
         uint128 marketId;
         string marketName;
@@ -51,6 +67,9 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
     /// @notice Market order keepers contracts mapped by market id.
     mapping(uint256 marketId => address keeper) internal marketOrderKeepers;
 
+    // TODO: Update to actual offchain orders keeper address
+    /// @notice The address responsible by filling the offchain created offchain orders.
+    address internal constant OFFCHAIN_ORDERS_KEEPER_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
     /// @notice General perps engine system configuration parameters.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
@@ -294,19 +313,24 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                 marketsConfig[i].marketId, deployer, perpsEngine, marketOrderKeeperImplementation
             );
 
-            SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
+            SettlementConfiguration.DataStreamsStrategy memory settlementConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
-                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_ONCHAIN,
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
                 isEnabled: true,
                 fee: DEFAULT_SETTLEMENT_FEE,
                 keeper: marketOrderKeeper,
-                data: abi.encode(marketOrderConfigurationData)
+                data: abi.encode(settlementConfigurationData)
             });
 
-            // TODO: update to API orderbook config
-            SettlementConfiguration.Data[] memory customOrdersConfiguration;
+            SettlementConfiguration.Data memory offchainOrdersConfiguration = SettlementConfiguration.Data({
+                strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
+                isEnabled: true,
+                fee: DEFAULT_SETTLEMENT_FEE,
+                keeper: OFFCHAIN_ORDERS_KEEPER_ADDRESS,
+                data: abi.encode(settlementConfigurationData)
+            });
 
             // update stored price adapter at tests
             address priceAdapter = isTest
@@ -329,7 +353,7 @@ contract Markets is BtcUsd, EthUsd, LinkUsd, ArbUsd, BnbUsd, DogeUsd, SolUsd, Ma
                     minTradeSizeX18: marketsConfig[i].minTradeSize,
                     skewScale: marketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
-                    customOrdersConfiguration: customOrdersConfiguration,
+                    offchainOrdersConfiguration: offchainOrdersConfiguration,
                     orderFees: marketsConfig[i].orderFees,
                     priceFeedHeartbeatSeconds: marketsConfig[i].priceFeedHeartbeatSeconds
                 })

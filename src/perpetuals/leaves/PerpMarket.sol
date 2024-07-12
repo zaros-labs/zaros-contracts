@@ -22,7 +22,7 @@ import {
     sd59x18,
     unary,
     UNIT as SD_UNIT,
-    ZERO as SD_ZERO,
+    ZERO as SD59x18_ZERO,
     convert as sd59x18Convert
 } from "@prb-math/SD59x18.sol";
 
@@ -138,7 +138,7 @@ library PerpMarket {
         SD59x18 skew = sd59x18(self.skew);
 
         if (skewScale.isZero()) {
-            return SD_ZERO;
+            return SD59x18_ZERO;
         }
 
         SD59x18 proportionalSkew = skew.div(skewScale);
@@ -163,8 +163,8 @@ library PerpMarket {
     {
         SD59x18 skew = sd59x18(self.skew);
 
-        bool isSkewGtZero = skew.gt(SD_ZERO);
-        bool isBuyOrder = sizeDelta.gt(SD_ZERO);
+        bool isSkewGtZero = skew.gt(SD59x18_ZERO);
+        bool isBuyOrder = sizeDelta.gt(SD59x18_ZERO);
 
         if (isSkewGtZero != isBuyOrder) {
             feeBps = ud60x18(self.configuration.orderFees.makerFee);
@@ -306,8 +306,8 @@ library PerpMarket {
     /// @param maxFundingVelocity The maximum funding velocity allowed.
     /// @param minTradeSizeX18 The minimum trade size in 1e18.
     /// @param skewScale The skew scale, a configurable parameter that determines price marking and funding.
-    /// @param marketOrderConfiguration The market order configuration.
-    /// @param customOrdersConfiguration The custom orders configuration.
+    /// @param marketOrderConfiguration The market order settlement configuration of the given perp market.
+    /// @param offchainOrdersConfiguration The offchain orders settlement configuration of the given perp market.
     /// @param orderFees The configured maker and taker order fee tiers.
     /// @param priceFeedHeartbeatSeconds The price feed heartbeats in seconds.
     struct CreateParams {
@@ -323,7 +323,7 @@ library PerpMarket {
         uint128 minTradeSizeX18;
         uint256 skewScale;
         SettlementConfiguration.Data marketOrderConfiguration;
-        SettlementConfiguration.Data[] customOrdersConfiguration;
+        SettlementConfiguration.Data offchainOrdersConfiguration;
         OrderFees.Data orderFees;
         uint32 priceFeedHeartbeatSeconds;
     }
@@ -359,11 +359,10 @@ library PerpMarket {
             params.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, params.marketOrderConfiguration
         );
 
-        uint256 cachedCustomOrdersConfigurationLength = params.customOrdersConfiguration.length;
-
-        for (uint256 i; i < cachedCustomOrdersConfigurationLength; i++) {
-            uint128 nextStrategyId = ++self.nextStrategyId;
-            SettlementConfiguration.update(params.marketId, nextStrategyId, params.customOrdersConfiguration[i]);
-        }
+        SettlementConfiguration.update(
+            params.marketId,
+            SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
+            params.offchainOrdersConfiguration
+        );
     }
 }

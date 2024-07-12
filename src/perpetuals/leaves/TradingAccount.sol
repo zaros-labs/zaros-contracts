@@ -17,8 +17,8 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 /// @title The TradingAccount namespace.
 library TradingAccount {
@@ -38,14 +38,19 @@ library TradingAccount {
 
     /// @notice {TradingAccount} namespace storage structure.
     /// @param id The trading account id.
+    /// @param nonce An incremental index used to validate offchain orders signed offchain.
     /// @param owner The trading account owner.
     /// @param marginCollateralBalanceX18 The trading account margin collateral enumerable map.
     /// @param activeMarketsIds The trading account active markets ids enumerable set.
+    /// @param hasOffchainOrderBeenFilled A mapping to keep track of offchain orders that have been filled, protecting
+    /// from replay attacks.
     struct Data {
         uint128 id;
+        uint128 nonce;
         address owner;
         EnumerableMap.AddressToUintMap marginCollateralBalanceX18;
         EnumerableSet.UintSet activeMarketsIds;
+        mapping(bytes32 offchainOrderHash => bool hasBeenFilled) hasOffchainOrderBeenFilled;
     }
 
     /// @notice Loads a {TradingAccount}.
@@ -448,7 +453,7 @@ library TradingAccount {
 
             ctx.marginCollateralPriceUsdX18 = marginCollateralConfiguration.getPrice();
 
-            if (settlementFeeUsdX18.gt(UD_ZERO) && ctx.settlementFeeDeductedUsdX18.lt(settlementFeeUsdX18)) {
+            if (settlementFeeUsdX18.gt(UD60x18_ZERO) && ctx.settlementFeeDeductedUsdX18.lt(settlementFeeUsdX18)) {
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
                     collateralType,
@@ -463,7 +468,7 @@ library TradingAccount {
 
             marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.settlementFeeDeductedUsdX18);
 
-            if (orderFeeUsdX18.gt(UD_ZERO) && ctx.orderFeeDeductedUsdX18.lt(orderFeeUsdX18)) {
+            if (orderFeeUsdX18.gt(UD60x18_ZERO) && ctx.orderFeeDeductedUsdX18.lt(orderFeeUsdX18)) {
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
                     collateralType,
@@ -478,7 +483,7 @@ library TradingAccount {
 
             marginDeductedUsdX18 = marginDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18);
 
-            if (pnlUsdX18.gt(UD_ZERO) && ctx.pnlDeductedUsdX18.lt(pnlUsdX18)) {
+            if (pnlUsdX18.gt(UD60x18_ZERO) && ctx.pnlDeductedUsdX18.lt(pnlUsdX18)) {
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
                     collateralType,
@@ -517,7 +522,7 @@ library TradingAccount {
                 globalConfiguration.accountsIdsWithActivePositions.add(self.id);
             }
             self.activeMarketsIds.add(marketId);
-        } else if (oldPositionSize.neq(SD_ZERO) && newPositionSize.eq(SD_ZERO)) {
+        } else if (oldPositionSize.neq(SD59x18_ZERO) && newPositionSize.eq(SD59x18_ZERO)) {
             self.activeMarketsIds.remove(marketId);
 
             if (self.activeMarketsIds.length() == 0) {

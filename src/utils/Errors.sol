@@ -57,8 +57,8 @@ library Errors {
 
     /// @notice PerpsEngine.TradingAccountBranch
 
-    /// @notice Thrown When the provided amount of collateral exceeds the deposit cap.
-    error DepositCap(address collateralType, uint256 amount, uint256 depositCap);
+    /// @notice Thrown When the provided amount in 18 decimals of collateral exceeds the deposit cap.
+    error DepositCap(address collateralType, uint256 amountX18, uint256 depositCapX18);
     /// @notice Thrown when there's not enough margin collateral to be withdrawn.
     error InsufficientCollateralBalance(uint256 amount, uint256 balance);
     /// @notice Thrown When the caller is not the account token contract.
@@ -102,10 +102,18 @@ library Errors {
 
     /// @notice PerpsEngine.SettlementBranch errors.
 
-    error MarketOrderMarketIdMismatch(uint128 marketId, uint128 orderMarketId);
+    /// @notice Thrown when the selected market id mismatch with the order's market id.
+    error OrderMarketIdMismatch(uint128 marketId, uint128 orderMarketId);
 
     /// @notice Thrown when the caller is not the registered Keeper contract.
     error OnlyKeeper(address sender, address keeper);
+    /// @notice Thrown when the signed `nonce` of a given order is not equal to the trading account's current nonce.
+    error InvalidSignedNonce(uint128 tradingAccountNonce, uint120 orderNonce);
+    /// @notice Thrown when an order signed by the `tradingAccountId` owner using the given `salt` has already been
+    /// filled.
+    error OrderAlreadyFilled(uint128 tradingAccountId, bytes32 salt);
+    /// @notice Thrown when the recovered ECDSA signer of an offchain order is not the trading account owner.
+    error InvalidOrderSigner(address signer, address expectedSigner);
 
     /// @notice PerpsEngine.PerpMarketBranch errors.
 
@@ -151,6 +159,8 @@ library Errors {
     /// @notice Thrown when the provided settlement strategy for a perp market is invalid (e.g market order strategy
     /// for custom configuration).
     error InvalidSettlementStrategy();
+    /// @notice Thrown when the provided settlement configuration id does not exist.
+    error InvalidSettlementConfigurationId();
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
     /// one.
     error InvalidDataStreamReport(bytes32 streamId, bytes32 reportStreamId);

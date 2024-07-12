@@ -9,14 +9,14 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_RevertGiven_AddressArrayIsEmpty() external {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         address[] memory emptyArray;
 
@@ -34,11 +34,11 @@ contract ConfigureCollateralLiquidationPriority_Integration_Test is Base_Test {
         collateralTypes[0] = collateralType1;
         collateralTypes[1] = collateralType2;
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         // it should emit {LogConfigureCollateralLiquidationPriority} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit GlobalConfigurationBranch.LogConfigureCollateralLiquidationPriority(users.owner, collateralTypes);
+        emit GlobalConfigurationBranch.LogConfigureCollateralLiquidationPriority(users.owner.account, collateralTypes);
 
         // it should add
         perpsEngine.configureCollateralLiquidationPriority(collateralTypes);

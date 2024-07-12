@@ -8,10 +8,10 @@ import { Base_Test } from "test/Base.t.sol";
 contract AddMarket_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_TheMarketIsAlreadyAdded(uint256 marketId) external {

@@ -340,8 +340,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param maxFundingVelocity The perps market maximum funding rate velocity.
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
-    /// @param marketOrderConfiguration The perps market settlement configuration.
+    /// @param marketOrderConfiguration The market order settlement configuration of the given perp market.
+    /// @param offchainOrdersConfiguration The offchain orders settlement configuration of the given perp market.
     /// @param orderFees The perps market maker and taker fees.
+    /// @param priceFeedHeartbeatSeconds The number of seconds between CL price feed updates.
     struct CreatePerpMarketParams {
         uint128 marketId;
         string name;
@@ -355,7 +357,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 minTradeSizeX18;
         uint256 skewScale;
         SettlementConfiguration.Data marketOrderConfiguration;
-        SettlementConfiguration.Data[] customOrdersConfiguration;
+        SettlementConfiguration.Data offchainOrdersConfiguration;
         OrderFees.Data orderFees;
         uint32 priceFeedHeartbeatSeconds;
     }
@@ -416,7 +418,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
                 minTradeSizeX18: params.minTradeSizeX18,
                 skewScale: params.skewScale,
                 marketOrderConfiguration: params.marketOrderConfiguration,
-                customOrdersConfiguration: params.customOrdersConfiguration,
+                offchainOrdersConfiguration: params.offchainOrdersConfiguration,
                 orderFees: params.orderFees,
                 priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
             })
@@ -487,6 +489,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maxSkew == 0) {
             revert Errors.ZeroInput("maxSkew");
         }
+        if (params.initialMarginRateX18 == 0) {
+            revert Errors.ZeroInput("initialMarginRateX18");
+        }
         if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
             revert Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate();
         }
@@ -536,6 +541,12 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         onlyOwner
         onlyWhenPerpMarketIsInitialized(marketId)
     {
+        if (
+            settlementConfigurationId != SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID
+                && settlementConfigurationId != SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID
+        ) {
+            revert Errors.InvalidSettlementConfigurationId();
+        }
         SettlementConfiguration.update(marketId, settlementConfigurationId, newSettlementConfiguration);
 
         emit LogUpdateSettlementConfiguration(msg.sender, marketId, settlementConfigurationId);

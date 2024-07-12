@@ -9,10 +9,10 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertGiven_PerpMarketIsNotInitialized() external {
@@ -23,7 +23,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
             revertData: abi.encodeWithSelector(Errors.PerpMarketNotInitialized.selector, marketIdNotInitialized)
         });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketStatus(marketIdNotInitialized, true);
     }
 
@@ -42,7 +42,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
             revertData: abi.encodeWithSelector(Errors.PerpMarketAlreadyEnabled.selector, fuzzMarketConfig.marketId)
         });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, true);
     }
 
@@ -52,11 +52,11 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         // it should emit {LogDisablePerpMarket} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit GlobalConfigurationBranch.LogDisablePerpMarket(users.owner, fuzzMarketConfig.marketId);
+        emit GlobalConfigurationBranch.LogDisablePerpMarket(users.owner.account, fuzzMarketConfig.marketId);
 
         // it should remove market
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, false);
@@ -68,13 +68,13 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, false);
 
         // it should emit {LogEnablePerpMarket} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit GlobalConfigurationBranch.LogEnablePerpMarket(users.owner, fuzzMarketConfig.marketId);
+        emit GlobalConfigurationBranch.LogEnablePerpMarket(users.owner.account, fuzzMarketConfig.marketId);
 
         // it should add market
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, true);
@@ -86,7 +86,7 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, false);
 

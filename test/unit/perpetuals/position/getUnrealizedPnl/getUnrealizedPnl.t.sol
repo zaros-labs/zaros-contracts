@@ -12,7 +12,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 contract Position_GetUnrealizedPnl_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
     }
@@ -25,7 +25,7 @@ contract Position_GetUnrealizedPnl_Unit_Test is Base_Test {
     )
         external
     {
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 

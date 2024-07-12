@@ -52,7 +52,7 @@ contract BranchAddresses_Integration_Test is Base_Test {
 
         testPerpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
 
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_WhenBranchAddressesIsCalled() external {

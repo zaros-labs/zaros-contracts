@@ -11,10 +11,10 @@ import { UD60x18, ud60x18, convert as ud60x18Convert } from "@prb-math/UD60x18.s
 contract WithdrawMarginUsd_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_WhenTheMarginCollateralBalanceUsdIsGreatherThanOrEqualToTheRequiredMarginCollateral(
@@ -40,21 +40,27 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         UD60x18 marginCollateralPriceUsdX18 = ud60x18Convert(marginCollateralPriceUsd);
         UD60x18 amountToWithdrawUsdX18 = convertTokenAmountToUd60x18(address(wstEth), amountToWithdrawUsd);
 
-        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), 0, "initial balance should be zero");
-        deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
-        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct");
+        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto.account), 0, "initial balance should be zero");
+        deal({ token: address(wstEth), to: users.naruto.account, give: amountToDeposit });
+        assertEq(
+            MockERC20(address(wstEth)).balanceOf(users.naruto.account), amountToDeposit, "balanceOf is not correct"
+        );
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
-        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), 0, "balanceOf should be zero");
+        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
         (UD60x18 withdrawnMarginUsdX18, bool isMissingMargin) = perpsEngine.exposed_withdrawMarginUsd(
-            tradingAccountId, address(wstEth), marginCollateralPriceUsdX18, amountToWithdrawUsdX18, users.naruto
+            tradingAccountId,
+            address(wstEth),
+            marginCollateralPriceUsdX18,
+            amountToWithdrawUsdX18,
+            users.naruto.account
         );
 
         // it should withdraw required margin collateral
         UD60x18 expectedBalance = amountToWithdrawUsdX18.div(marginCollateralPriceUsdX18);
         assertEq(
-            MockERC20(address(wstEth)).balanceOf(users.naruto),
+            MockERC20(address(wstEth)).balanceOf(users.naruto.account),
             expectedBalance.intoUint256(),
             "balanceOf is not correct after withdrawMarginUsd"
         );
@@ -81,21 +87,21 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
 
         vm.assume(amountToDeposit >= amountToWithdrawUsd / marginCollateralPriceUsd);
 
-        assertEq(MockERC20((usdc)).balanceOf(users.naruto), 0, "initial balance should be zero");
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
-        assertEq(MockERC20((usdc)).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct");
+        assertEq(MockERC20((usdc)).balanceOf(users.naruto.account), 0, "initial balance should be zero");
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
+        assertEq(MockERC20((usdc)).balanceOf(users.naruto.account), amountToDeposit, "balanceOf is not correct");
 
         tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
-        assertEq(MockERC20((usdc)).balanceOf(users.naruto), 0, "balanceOf should be zero");
+        assertEq(MockERC20((usdc)).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
         (withdrawnMarginUsdX18, isMissingMargin) = perpsEngine.exposed_withdrawMarginUsd(
-            tradingAccountId, address(usdc), marginCollateralPriceUsdX18, amountToWithdrawUsdX18, users.naruto
+            tradingAccountId, address(usdc), marginCollateralPriceUsdX18, amountToWithdrawUsdX18, users.naruto.account
         );
 
         // it should withdraw required margin collateral
         expectedBalance = amountToWithdrawUsdX18.div(marginCollateralPriceUsdX18);
         assertEq(
-            MockERC20((usdc)).balanceOf(users.naruto),
+            MockERC20((usdc)).balanceOf(users.naruto.account),
             convertUd60x18ToTokenAmount(address(usdc), expectedBalance),
             "balanceOf is not correct after withdrawMarginUsd"
         );
@@ -134,20 +140,26 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         UD60x18 marginCollateralPriceUsdX18 = ud60x18Convert(marginCollateralPriceUsd);
         UD60x18 amountToWithdrawUsdX18 = convertTokenAmountToUd60x18(address(wstEth), amountToWithdrawUsd);
 
-        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), 0, "initial balance should be zero");
-        deal({ token: address(wstEth), to: users.naruto, give: amountToDeposit });
-        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct");
+        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto.account), 0, "initial balance should be zero");
+        deal({ token: address(wstEth), to: users.naruto.account, give: amountToDeposit });
+        assertEq(
+            MockERC20(address(wstEth)).balanceOf(users.naruto.account), amountToDeposit, "balanceOf is not correct"
+        );
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
-        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto), 0, "balanceOf should be zero");
+        assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
         (UD60x18 withdrawnMarginUsdX18, bool isMissingMargin) = perpsEngine.exposed_withdrawMarginUsd(
-            tradingAccountId, address(wstEth), marginCollateralPriceUsdX18, amountToWithdrawUsdX18, users.naruto
+            tradingAccountId,
+            address(wstEth),
+            marginCollateralPriceUsdX18,
+            amountToWithdrawUsdX18,
+            users.naruto.account
         );
 
         // it should withdraw margin collateral balance usd
         assertEq(
-            MockERC20(address(wstEth)).balanceOf(users.naruto),
+            MockERC20(address(wstEth)).balanceOf(users.naruto.account),
             amountToDeposit,
             "balanceOf is not correct after withdrawMarginUsd"
         );
@@ -181,20 +193,22 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         marginCollateralPriceUsdX18 = ud60x18Convert(marginCollateralPriceUsd);
         amountToWithdrawUsdX18 = convertTokenAmountToUd60x18(address(usdc), amountToWithdrawUsd);
 
-        assertEq(MockERC20(usdc).balanceOf(users.naruto), 0, "initial balance should be zero");
-        deal({ token: address(usdc), to: users.naruto, give: amountToDeposit });
-        assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), amountToDeposit, "balanceOf is not correct");
+        assertEq(MockERC20(usdc).balanceOf(users.naruto.account), 0, "initial balance should be zero");
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
+        assertEq(
+            MockERC20(address(usdc)).balanceOf(users.naruto.account), amountToDeposit, "balanceOf is not correct"
+        );
 
         tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
-        assertEq(MockERC20(address(usdc)).balanceOf(users.naruto), 0, "balanceOf should be zero");
+        assertEq(MockERC20(address(usdc)).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
         (withdrawnMarginUsdX18, isMissingMargin) = perpsEngine.exposed_withdrawMarginUsd(
-            tradingAccountId, address(usdc), marginCollateralPriceUsdX18, amountToWithdrawUsdX18, users.naruto
+            tradingAccountId, address(usdc), marginCollateralPriceUsdX18, amountToWithdrawUsdX18, users.naruto.account
         );
 
         // it should withdraw margin collateral balance usd
         assertEq(
-            MockERC20(usdc).balanceOf(users.naruto),
+            MockERC20(usdc).balanceOf(users.naruto.account),
             amountToDeposit,
             "balanceOf is not correct after withdrawMarginUsd"
         );

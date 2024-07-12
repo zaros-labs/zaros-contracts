@@ -9,10 +9,10 @@ import { Base_Test } from "test/Base.t.sol";
 contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_TheCheckLowerBoundIsEqualThenTheCheckUpperBound(
@@ -172,7 +172,7 @@ contract LiquidationKeeper_CheckUpkeep_Integration_Test is Base_Test {
         ctx.checkData =
             abi.encode(ctx.checkLowerBound, ctx.checkUpperBound, ctx.performLowerBound, ctx.performUpperBound);
 
-        deal({ token: address(usdz), to: users.naruto, give: ctx.marginValueUsd });
+        deal({ token: address(usdz), to: users.naruto.account, give: ctx.marginValueUsd });
 
         for (uint256 i; i < ctx.amountOfTradingAccounts; i++) {
             ctx.accountMarginValueUsd = ctx.marginValueUsd / ctx.amountOfTradingAccounts;

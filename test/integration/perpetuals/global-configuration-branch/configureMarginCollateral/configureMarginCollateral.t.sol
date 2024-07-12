@@ -16,10 +16,10 @@ import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 contract ConfigureMarginCollateral_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_CollateralThatDoesNotHaveDecimals(
@@ -29,7 +29,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
     )
         external
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         MockERC20WithNoDecimals collateralWithNoDecimals =
             new MockERC20WithNoDecimals({ name: "Collateral", symbol: "COL", deployerBalance: 100_000_000e18 });
@@ -38,7 +38,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidMarginCollateralConfiguration.selector, address(collateralWithNoDecimals), 0, priceFeed
-                )
+            )
         });
 
         perpsEngine.configureMarginCollateral(
@@ -52,7 +52,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidMarginCollateralConfiguration.selector, address(collateralWithZeroDecimals), 0, priceFeed
-                )
+            )
         });
 
         perpsEngine.configureMarginCollateral(
@@ -71,7 +71,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         external
         whenCollateralThatHasDecimals
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         uint8 decimals = Constants.SYSTEM_DECIMALS + 1;
         address priceFeed = address(0x20);
@@ -83,7 +83,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidMarginCollateralConfiguration.selector, address(collateral), decimals, priceFeed
-                )
+            )
         });
 
         perpsEngine.configureMarginCollateral(
@@ -103,7 +103,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         whenCollateralThatHasDecimals
         whenCollateralDecimalsIsNotGreatherThanSystemDecimals
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         address priceFeed = address(0);
 
@@ -121,7 +121,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
                 address(collateral),
                 Constants.SYSTEM_DECIMALS,
                 priceFeed
-                )
+            )
         });
 
         perpsEngine.configureMarginCollateral(
@@ -142,7 +142,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         whenCollateralDecimalsIsNotGreatherThanSystemDecimals
         whenPriceFeedIsNotZero
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         address priceFeed = address(0);
 
@@ -160,7 +160,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
                 address(collateral),
                 Constants.SYSTEM_DECIMALS,
                 priceFeed
-                )
+            )
         });
 
         perpsEngine.configureMarginCollateral(address(collateral), depositCap, loanToValue, priceFeed, 0);
@@ -175,7 +175,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         whenCollateralDecimalsIsNotGreatherThanSystemDecimals
         whenPriceFeedIsNotZero
     {
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
 
         address priceFeed = address(0x20);
 
@@ -189,7 +189,7 @@ contract ConfigureMarginCollateral_Integration_Test is Base_Test {
         // it should emit {LogConfigureMarginCollateral} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogConfigureMarginCollateral(
-            users.owner,
+            users.owner.account,
             address(collateral),
             depositCap,
             loanToValue,

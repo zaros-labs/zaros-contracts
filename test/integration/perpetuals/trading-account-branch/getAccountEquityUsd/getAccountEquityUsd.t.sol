@@ -15,15 +15,17 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 contract GetAccountEquityUsd_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto });
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertGiven_TheTradingAccountDoesNotExist(uint128 randomTradingAccountId) external {
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, randomTradingAccountId, users.naruto)
+            revertData: abi.encodeWithSelector(
+                Errors.AccountNotFound.selector, randomTradingAccountId, users.naruto.account
+            )
         });
 
         // it should revert
@@ -46,14 +48,14 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: users.naruto, give: usdcMarginValueUsd });
+        deal({ token: address(usdc), to: users.naruto.account, give: usdcMarginValueUsd });
 
         wstEthMarginValueUsd = bound({
             x: wstEthMarginValueUsd,
             min: WSTETH_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(wstEth), to: users.naruto, give: wstEthMarginValueUsd });
+        deal({ token: address(wstEth), to: users.naruto.account, give: wstEthMarginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(usdcMarginValueUsd, address(usdc));
         perpsEngine.depositMargin(tradingAccountId, address(wstEth), wstEthMarginValueUsd);
@@ -94,14 +96,14 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
             min: WSTETH_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(wstEth), to: users.naruto, give: wstEthmarginValueUsd });
+        deal({ token: address(wstEth), to: users.naruto.account, give: wstEthmarginValueUsd });
 
         weEthmarginValueUsd = bound({
             x: weEthmarginValueUsd,
             min: 1,
             max: convertUd60x18ToTokenAmount(address(weEth), WEETH_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(weEth), to: users.naruto, give: weEthmarginValueUsd });
+        deal({ token: address(weEth), to: users.naruto.account, give: weEthmarginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(wstEthmarginValueUsd, address(wstEth));
         perpsEngine.depositMargin(tradingAccountId, address(weEth), weEthmarginValueUsd);

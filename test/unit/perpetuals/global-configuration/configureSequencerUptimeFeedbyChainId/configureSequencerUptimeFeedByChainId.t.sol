@@ -9,7 +9,7 @@ import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConf
 contract ConfigureSequencerUptimeFeedByChainId_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
     }
@@ -49,7 +49,7 @@ contract ConfigureSequencerUptimeFeedByChainId_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.ArrayLengthMismatch.selector, chainIds.length, sequencerUptimeFeeds.length
-                )
+            )
         });
 
         perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
@@ -67,7 +67,7 @@ contract ConfigureSequencerUptimeFeedByChainId_Integration_Test is Base_Test {
             // it should emit {LogSetSequencerUptimeFeed} event
             vm.expectEmit({ emitter: address(perpsEngine) });
             emit GlobalConfigurationBranch.LogSetSequencerUptimeFeed(
-                users.owner, chainIds[i], sequencerUptimeFeeds[i]
+                users.owner.account, chainIds[i], sequencerUptimeFeeds[i]
             );
         }
 

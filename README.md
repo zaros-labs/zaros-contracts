@@ -12,14 +12,21 @@
   - [Roles](#roles)
   - [Known Issues](#known-issues)
 
-# About
+## About
 
 Zaros is a Perpetuals DEX powered by Boosted (Re)Staking Vaults. It seeks to maximize LPs yield generation, while offering a
 top-notch trading experience on Arbitrum (and Monad in the future).
 
-Zaros connects Liquid Re(Staking) Tokens (LSTs & LRTs) with Perpetual Futures, offering opportunities amplify LPs yield
-through its innovative ZLP Vaults system. With the ability to trade with leverage of up to 100x. Zaros Gitbook:
-https://docs.zaros.fi/overview
+Zaros connects Liquid Re(Staking) Tokens (LSTs & LRTs) and other yield bearing collateral types with its Perpetual Futures
+Engine, allowing LPs to amplify their returns with additional APY coming from trading fees. The protocol is composed of two
+separate, interconnected smart contracts systems:
+
+- The Perpetuals Trading Engine (`PerpsEngine` root proxy contract).
+- THe Market Making Engine (`MarketMakingEngine` root proxy contract).
+
+The Market Making Engine is responsible by the creation of the ZLP Vaults and the delegation of their underlying liquidity to
+markets managed by the Perpetuals Trading Engine. In this first phase, the codebase presents the smart contracts that define
+the functionality of the `PerpsEngine`.
 
 # Tree Proxy Pattern
 
@@ -36,7 +43,26 @@ faced by large smart contract systems, by introducing the following solutions:
 
   > **_NOTE:_** The pattern is still in a preliminary version.
 
-Documentation: https://docs.zaros.fi/overview/getting-started/tree-proxy-pattern
+## Relevant links
+
+- [TPP Documentation](https://docs.zaros.fi/overview/getting-started/tree-proxy-pattern)
+- [Zaros Gitbook](https://docs.zaros.fi/overview)
+- [Github](https://github.com/zaros-labs/zaros-core)
+- [X](https://x.com/zarosfi)
+- [Website](https://www.zaros.fi/)
+- [Live Alpha Testnet](https://testnet.app.zaros.fi/)
+
+## Actors
+
+- eDAO: The "Executioner DAO" role. It's a multi-sig wallet responsible by configuring protocol parameters and is set as the
+  `owner`.
+- Trader: Protocol user which may call all non-restricted external functions.
+- Market Order Keeper: Chainlink Automation compatible contract that is reponsible by filling market orders.
+- Liquidation Keeper: Chainlink Automation compatible contract or allowlisted EOA that has the permission of liquidating
+  trading accounts when their MMR is below 1.
+- Signed Orders Keeper: EOA responsible by filling offchain offchain orders (e.g Limit, TP/SL).
+
+````
 
 # Getting Started
 
@@ -55,7 +81,7 @@ Documentation: https://docs.zaros.fi/overview/getting-started/tree-proxy-pattern
 git clone git@github.com:zaros-labs/zaros-core.git
 cd zaros-core
 make
-```
+````
 
 ## Quickstart
 

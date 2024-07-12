@@ -18,7 +18,7 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD_ZERO, unary } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 /// @title Trading Account Branch.
 /// @notice This branch is used by users in order to mint trading account nfts
@@ -294,7 +294,7 @@ contract TradingAccountBranch {
 
         tradingAccount.withdraw(collateralType, amountX18);
         (UD60x18 requiredInitialMarginUsdX18,, SD59x18 accountTotalUnrealizedPnlUsdX18) =
-            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD_ZERO);
+            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD59x18_ZERO);
         SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
         tradingAccount.validateMarginRequirement(requiredInitialMarginUsdX18, marginBalanceUsdX18, UD60x18_ZERO);

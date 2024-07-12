@@ -27,6 +27,25 @@ contract TradingAccountHarness {
         return self.activeMarketsIds.length();
     }
 
+    function workaround_getNonce(uint128 tradingAccountId) external view returns (uint128) {
+        TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
+
+        return self.nonce;
+    }
+
+    function workaround_hasOffchainOrderBeenFilled(
+        uint128 tradingAccountId,
+        bytes32 offchainOrderHash
+    )
+        external
+        view
+        returns (bool)
+    {
+        TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
+
+        return self.hasOffchainOrderBeenFilled[offchainOrderHash];
+    }
+
     function exposed_TradingAccount_loadExisting(uint128 tradingAccountId) external view {
         TradingAccount.loadExisting(tradingAccountId);
     }
