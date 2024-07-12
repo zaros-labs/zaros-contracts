@@ -42,13 +42,17 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         SD59x18 newSkew;
     }
 
+    uint256 usdcDepositCap;
+
     function setUp() public override {
         Base_Test.setUp();
-        // do we need these?
+
         changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();
         changePrank({ msgSender: users.naruto });
+
+        usdcDepositCap = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
     }
 
     modifier whenThereIsCollateralLiquidationPriority() {
@@ -66,11 +70,11 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
     {
         // it should break the for loop
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
 
-        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
+        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -119,11 +123,11 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         whenThereIsCollateralLiquidationPriority
     {
         // it should skip the settlementFeeUsdX18 check
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
 
-        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
+        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -164,11 +168,11 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         // it should return isMissingMargin a boolean indicating whether there was insufficient margin to cover the
         // fee
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
 
-        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
+        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -207,11 +211,11 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
     {
         // it should skip the orderFeeUsdX18 check
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
 
-        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
+        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -252,11 +256,11 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         // it should return isMissingMargin a boolean indicating whether there was insufficient margin to cover the
         // fee
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
 
-        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
+        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -295,11 +299,11 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
     {
         // it should skip the pnlUsdX18 check
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
 
-        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
+        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -340,11 +344,11 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
         // it should return isMissingMargin a boolean indicating whether there was insufficient margin to cover the
         // fee
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
 
-        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
+        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
@@ -386,11 +390,11 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
 
         perpsEngine.exposed_configureCollateralLiquidationPriority(collateralTypes);
 
-        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: USDC_DEPOSIT_CAP });
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
 
-        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
-        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: USDC_DEPOSIT_CAP - 1 });
+        feeAmount = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount1 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
+        randomFeeAmount2 = bound({ x: feeAmount, min: USDC_MIN_DEPOSIT_MARGIN - 1, max: usdcDepositCap - 1 });
 
         deal({ token: address(usdc), to: users.naruto, give: marginValueUsd });
 
