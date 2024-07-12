@@ -49,7 +49,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountPermissionDenied.selector, tradingAccountId, users.owner.account
-            )
+                )
         });
 
         perpsEngine.cancelMarketOrder(tradingAccountId);
@@ -199,7 +199,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
-            liquidationFeeRecipient: users.liquidationFeeRecipient
+            liquidationFeeRecipient: users.liquidationFeeRecipient.account
         });
         changePrank({ msgSender: users.naruto.account });
 

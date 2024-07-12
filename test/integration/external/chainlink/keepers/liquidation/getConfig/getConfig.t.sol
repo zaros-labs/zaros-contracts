@@ -22,9 +22,8 @@ contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
     }
 
     function test_WhenCallGetConfigFunction() external givenInitializeContract {
-        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner.account, address(perpsEngine)
-        );
+        address liquidationKeeper =
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner.account, address(perpsEngine));
 
         (address keeperOwner, address perpsEngineOfLiquidationKeeper) =
             LiquidationKeeper(liquidationKeeper).getConfig();

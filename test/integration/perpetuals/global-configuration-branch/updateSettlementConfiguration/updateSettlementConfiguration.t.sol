@@ -52,7 +52,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_PerpMarketIsNotInitialized(uint256 marketId) external givenTheSenderIsTheOwner{
+    function testFuzz_RevertWhen_PerpMarketIsNotInitialized(uint256 marketId) external givenTheSenderIsTheOwner {
         uint128 marketIdNotInitialized = uint128(FINAL_MARKET_ID) + 1;
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);

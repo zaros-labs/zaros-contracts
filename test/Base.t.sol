@@ -248,9 +248,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function configureLiquidationKeepers() internal {
         changePrank({ msgSender: users.owner.account });
-        liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner.account, address(perpsEngine)
-        );
+        liquidationKeeper =
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner.account, address(perpsEngine));
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);
@@ -271,7 +270,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
-            liquidationFeeRecipient: users.liquidationFeeRecipient
+            liquidationFeeRecipient: users.liquidationFeeRecipient.account
         });
     }
 

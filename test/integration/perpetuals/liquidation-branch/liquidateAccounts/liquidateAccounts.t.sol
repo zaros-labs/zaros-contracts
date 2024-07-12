@@ -33,9 +33,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.LiquidatorNotRegistered.selector, users.naruto.account)
         });
-        perpsEngine.liquidateAccounts({
-            accountsIds: accountsIds
-        });
+        perpsEngine.liquidateAccounts({ accountsIds: accountsIds });
     }
 
     modifier givenTheSenderIsARegisteredLiquidator() {
@@ -48,9 +46,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         changePrank({ msgSender: liquidationKeeper });
 
         // it should return
-        perpsEngine.liquidateAccounts({
-            accountsIds: accountsIds
-        });
+        perpsEngine.liquidateAccounts({ accountsIds: accountsIds });
     }
 
     modifier whenTheAccountsIdsArrayIsNotEmpty() {
@@ -71,9 +67,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Errors.AccountNotFound.selector, accountsIds[0], liquidationKeeper)
         });
-        perpsEngine.liquidateAccounts({
-            accountsIds: accountsIds
-        });
+        perpsEngine.liquidateAccounts({ accountsIds: accountsIds });
     }
 
     modifier givenAllAccountsExist() {

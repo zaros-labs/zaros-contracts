@@ -32,25 +32,15 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     function test_RevertWhen_IAmNotTheOwner() external givenInitializeContract givenCallSetConfigFunction {
         changePrank({ msgSender: users.naruto.account });
 
-<<<<<<< HEAD
         address liquidationKeeper =
-            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
-=======
-        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner.account, address(perpsEngine), users.settlementFeeRecipient.account
-        );
->>>>>>> f02e465c (test: update user struct across tests)
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner.account, address(perpsEngine));
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto.account)
         });
 
-<<<<<<< HEAD
         LiquidationKeeper(liquidationKeeper).setConfig(address(perpsEngine));
-=======
-        LiquidationKeeper(liquidationKeeper).setConfig(address(perpsEngine), users.settlementFeeRecipient.account);
->>>>>>> f02e465c (test: update user struct across tests)
     }
 
     modifier whenIAmTheOwner() {
@@ -60,14 +50,8 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     function test_WhenIAmTheOwner() external givenInitializeContract givenCallSetConfigFunction whenIAmTheOwner {
         changePrank({ msgSender: users.owner.account });
 
-<<<<<<< HEAD
         address liquidationKeeper =
-            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner, address(perpsEngine));
-=======
-        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner.account, address(perpsEngine), users.settlementFeeRecipient.account
-        );
->>>>>>> f02e465c (test: update user struct across tests)
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner.account, address(perpsEngine));
 
         LiquidationKeeper(liquidationKeeper).setConfig(address(perpsEngine));
 
@@ -88,9 +72,8 @@ contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: users.owner.account });
 
-        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(
-            users.owner.account, address(perpsEngine)
-        );
+        address liquidationKeeper =
+            ChainlinkAutomationUtils.deployLiquidationKeeper(users.owner.account, address(perpsEngine));
 
         address perpsEngine = address(0);
 

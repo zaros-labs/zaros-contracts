@@ -61,7 +61,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountPermissionDenied.selector, tradingAccountId, users.sasuke.account
-            )
+                )
         });
         perpsEngine.withdrawMargin(tradingAccountId, address(usdc), amountToWithdraw);
     }

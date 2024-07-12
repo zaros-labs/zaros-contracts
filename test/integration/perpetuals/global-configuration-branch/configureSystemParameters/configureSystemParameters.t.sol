@@ -35,7 +35,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient
+            users.liquidationFeeRecipient.account
         );
     }
 
@@ -64,7 +64,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient
+            users.liquidationFeeRecipient.account
         );
     }
 
@@ -96,7 +96,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             address(0),
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient
+            users.liquidationFeeRecipient.account
         );
     }
 
@@ -129,7 +129,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             address(0),
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient
+            users.liquidationFeeRecipient.account
         );
     }
 
@@ -163,7 +163,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
             address(0),
-            users.liquidationFeeRecipient
+            users.liquidationFeeRecipient.account
         );
     }
 
@@ -190,7 +190,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeRecipient") });
 
-        changePrank({ msgSender: users.owner });
+        changePrank({ msgSender: users.owner.account });
         perpsEngine.configureSystemParameters(
             maxPositionsPerAccount,
             marketOrderMinLifetime,
@@ -231,7 +231,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient
+            users.liquidationFeeRecipient.account
         );
     }
 }
