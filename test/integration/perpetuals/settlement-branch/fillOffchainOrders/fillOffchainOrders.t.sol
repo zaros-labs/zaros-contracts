@@ -1071,7 +1071,13 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         }
     }
 
-    function test_WhenTheOffchainOrderShouldntIncreaseTheNonce()
+    function testFuzz_WhenTheOffchainOrderShouldntIncreaseTheNonce(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        bool isLong,
+        uint256 marketId,
+        uint256 amountOfOrders
+    )
         external
         givenTheSenderIsTheKeeper
         whenThePriceDataIsValid
@@ -1083,7 +1089,101 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         givenTheOrdersSignerIsTheTradingAccountOwner
         whenAllOffchainOrdersTargetPriceCanBeMatchedWithItsFillPrice
     {
-        // it should not increase the trading account nonce
-        // it should fill the offchain order
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+        amountOfOrders = bound({ x: amountOfOrders, min: 2, max: 5 });
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) / amountOfOrders
+        });
+
+        for (uint256 i = 0; i < amountOfOrders; i++) {
+            deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
+            uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+            int128 sizeDelta = fuzzOrderSizeDelta(
+                FuzzOrderSizeDeltaParams({
+                    tradingAccountId: tradingAccountId,
+                    marketId: fuzzMarketConfig.marketId,
+                    settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                    initialMarginRate: ud60x18(initialMarginRate),
+                    marginValueUsd: ud60x18(marginValueUsd),
+                    maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                    minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                    price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                    isLong: isLong,
+                    shouldDiscountFees: true
+                })
+            );
+
+            uint128 markPrice = perpsEngine.getMarkPrice(
+                fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
+            ).intoUint128();
+
+            bytes32 salt = bytes32(block.prevrandao + i);
+            bytes32 structHash = keccak256(
+                abi.encode(
+                    Constants.CREATE_OFFCHAIN_ORDER_TYPEHASH,
+                    tradingAccountId,
+                    fuzzMarketConfig.marketId,
+                    sizeDelta,
+                    markPrice,
+                    true,
+                    uint120(0),
+                    salt
+                )
+            );
+
+            bytes32 digest = keccak256(abi.encodePacked("\x19\x01", perpsEngine.DOMAIN_SEPARATOR(), structHash));
+
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign({ privateKey: users.naruto.privateKey, digest: digest });
+
+            OffchainOrder.Data[] memory offchainOrders = new OffchainOrder.Data[](1);
+            offchainOrders[0] = OffchainOrder.Data({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: sizeDelta,
+                targetPrice: markPrice,
+                shouldIncreaseNonce: true,
+                nonce: 0,
+                salt: salt,
+                v: v,
+                r: r,
+                s: s
+            });
+
+            // it should fill the offchain order
+            vm.expectEmit({ checkTopic1: true, checkTopic2: true, checkTopic3: true, checkData: false });
+            emit SettlementBranch.LogFillOrder({
+                sender: OFFCHAIN_ORDERS_KEEPER_ADDRESS,
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                sizeDelta: 0,
+                fillPrice: 0,
+                orderFeeUsd: 0,
+                settlementFeeUsd: 0,
+                pnl: 0,
+                fundingFeePerUnit: 0
+            });
+
+            bytes memory mockSignedReport =
+                getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+
+            changePrank({ msgSender: OFFCHAIN_ORDERS_KEEPER_ADDRESS });
+
+            perpsEngine.fillOffchainOrders(fuzzMarketConfig.marketId, offchainOrders, mockSignedReport);
+
+            changePrank({ msgSender: users.naruto.account });
+
+            // it should fill the offchain order
+            bool hasOffchainOrderBeenFilled = TradingAccountHarness(address(perpsEngine))
+                .workaround_hasOffchainOrderBeenFilled(tradingAccountId, structHash);
+            assertTrue(hasOffchainOrderBeenFilled, "hasOffchainOrderBeenFilled");
+
+            uint128 nonce = TradingAccountHarness(address(perpsEngine)).workaround_getNonce(tradingAccountId);
+            // it should not increase the trading account nonce
+            assertEq(nonce, 0, "nonce has not been increased");
+        }
     }
 }
