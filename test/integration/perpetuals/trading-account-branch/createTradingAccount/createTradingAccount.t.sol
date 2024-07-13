@@ -124,7 +124,6 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
         whenTheUserHasAReferralCode
         whenTheReferralCodeIsNotCustom
     {
-
         string memory customReferralCode = "customReferralCode";
         changePrank({ msgSender: users.owner.account });
         perpsEngine.createCustomReferralCode(users.naruto.account, customReferralCode);

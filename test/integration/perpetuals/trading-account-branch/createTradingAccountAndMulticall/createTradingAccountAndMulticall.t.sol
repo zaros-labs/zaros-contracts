@@ -82,4 +82,100 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         assertEq(results.length, 1, "createTradingAccountAndMulticall: results");
         assertEq(newMarginCollateralBalance, amountToDeposit, "createTradingAccountAndMulticall: account margin");
     }
+
+    modifier whenTheUserHasAReferralCode() {
+        _;
+    }
+
+    modifier whenTheReferralCodeIsCustom() {
+        _;
+    }
+
+    function test_RevertWhen_TheReferralCodeIsInvalid()
+        external
+        whenTheDataArrayDoesNotProvideARevertingCall
+        whenTheUserHasAReferralCode
+        whenTheReferralCodeIsCustom
+    {
+        bytes[] memory data = new bytes[](0);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.InvalidReferralCode.selector)
+        });
+
+        perpsEngine.createTradingAccountAndMulticall(data, bytes("customReferralCode"), true);
+    }
+
+    function test_WhenTheReferralCodeIsValid()
+        external
+        whenTheDataArrayDoesNotProvideARevertingCall
+        whenTheUserHasAReferralCode
+        whenTheReferralCodeIsCustom
+    {
+        bytes[] memory data = new bytes[](0);
+
+        string memory customReferralCode = "customReferralCode";
+        changePrank({ msgSender: users.owner.account });
+        perpsEngine.createCustomReferralCode(users.owner.account, customReferralCode);
+
+        changePrank({ msgSender: users.naruto.account });
+
+        // it should emit {LogReferralSet} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit TradingAccountBranch.LogReferralSet(users.naruto.account, users.owner.account, bytes(customReferralCode), true);
+
+        perpsEngine.createTradingAccountAndMulticall(data, bytes(customReferralCode), true);
+    }
+
+    modifier whenTheReferralCodeIsNotCustom() {
+        _;
+    }
+
+    function test_RevertWhen_TheReferralCodeIsEqualToMsgSender()
+        external
+        whenTheDataArrayDoesNotProvideARevertingCall
+        whenTheUserHasAReferralCode
+        whenTheReferralCodeIsNotCustom
+    {
+        bytes[] memory data = new bytes[](0);
+
+        string memory customReferralCode = "customReferralCode";
+        changePrank({ msgSender: users.owner.account });
+        perpsEngine.createCustomReferralCode(users.naruto.account, customReferralCode);
+
+        changePrank({ msgSender: users.naruto.account });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.InvalidReferralCode.selector)
+        });
+
+        bytes memory referralCode = abi.encode(users.naruto.account);
+
+        perpsEngine.createTradingAccountAndMulticall(data, referralCode, false);
+    }
+
+    function test_WhenTheReferralCodeIsNotEqualToMsgSender()
+        external
+        whenTheDataArrayDoesNotProvideARevertingCall
+        whenTheUserHasAReferralCode
+        whenTheReferralCodeIsNotCustom
+    {
+        bytes[] memory data = new bytes[](0);
+
+        string memory customReferralCode = "customReferralCode";
+        changePrank({ msgSender: users.owner.account });
+        perpsEngine.createCustomReferralCode(users.naruto.account, customReferralCode);
+
+        changePrank({ msgSender: users.naruto.account });
+
+        bytes memory referralCode = abi.encode(users.owner.account);
+
+        // it should emit {LogReferralSet} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit TradingAccountBranch.LogReferralSet(users.naruto.account, users.owner.account, referralCode, false);
+
+        perpsEngine.createTradingAccountAndMulticall(data, referralCode, false);
+    }
 }
