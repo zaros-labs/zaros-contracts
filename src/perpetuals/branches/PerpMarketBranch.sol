@@ -59,14 +59,23 @@ contract PerpMarketBranch {
         view
         returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest)
     {
+        // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+        // calculate half skew
         SD59x18 halfSkew = sd59x18(perpMarket.skew).div(sd59x18(2e18));
+
+        // load current open interest from storage, convert to signed
         SD59x18 currentOpenInterest = ud60x18(perpMarket.openInterest).intoSD59x18();
+
+        // calculate half current open interest
         SD59x18 halfOpenInterest = currentOpenInterest.div(sd59x18(2e18));
 
+        // prepare outputs
         longsOpenInterest = halfOpenInterest.add(halfSkew).lt(SD59x18_ZERO)
             ? UD60x18_ZERO
             : halfOpenInterest.add(halfSkew).intoUD60x18();
+
         shortsOpenInterest = unary(halfOpenInterest).add(halfSkew).abs().intoUD60x18();
         totalOpenInterest = longsOpenInterest.add(shortsOpenInterest);
     }

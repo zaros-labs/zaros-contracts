@@ -161,38 +161,61 @@ library PerpMarket {
         view
         returns (UD60x18 orderFeeUsd)
     {
-        // isSkewGtZero = true, isBuyOrder = true, skewIsZero = false -> taker
-        // isSkewGtZero = true, isBuyOrder = false, skewIsZero = false -> maker
-        // isSkewGtZero = false, isBuyOrder = true, skewIsZero = true -> taker
-        // isSkewGtZero = false, isBuyOrder = false, skewIsZero = true -> taker
-        // isSkewGtZero = false, isBuyOrder = true, skewIsZero = false -> maker
+        // isSkewGtZero = true,  isBuyOrder = true,  skewIsZero = false -> taker
+        // isSkewGtZero = true,  isBuyOrder = false, skewIsZero = false -> maker
+        // isSkewGtZero = false, isBuyOrder = true,  skewIsZero = true  -> taker
+        // isSkewGtZero = false, isBuyOrder = false, skewIsZero = true  -> taker
+        // isSkewGtZero = false, isBuyOrder = true,  skewIsZero = false -> maker
 
+        // get current skew int128 -> SD59x18
         SD59x18 skew = sd59x18(self.skew);
 
+        // is current skew > 0 ?
         bool isSkewGtZero = skew.gt(SD59x18_ZERO);
+
+        // is this order a buy/long ?
         bool isBuyOrder = sizeDelta.gt(SD59x18_ZERO);
 
+        // apply new order's skew to current skew
         SD59x18 newSkew = skew.add(sizeDelta);
 
+        // does the new order result in the skew remaining on the same side?
+        // true if:
+        //   the new skew  is 0 OR
+        //   original skew is 0 OR
+        //   new skew > 0 == skew > 0 (new and old skew on the same side)
         bool sameSide =
             newSkew.eq(SD59x18_ZERO) || skew.eq(SD59x18_ZERO) || newSkew.gt(SD59x18_ZERO) == skew.gt(SD59x18_ZERO);
 
         if (sameSide) {
+            // charge (typically) lower maker fee when:
+            //    current skew > 0 AND order is sell/short AND current skew != 0
+            //    current skew < 0 AND order is buy/long   AND current skew != 0
             UD60x18 feeBps = isSkewGtZero != isBuyOrder && !skew.isZero()
                 ? ud60x18(self.configuration.orderFees.makerFee)
                 : ud60x18(self.configuration.orderFees.takerFee);
 
+            // output order fee
             orderFeeUsd = markPriceX18.mul(sizeDelta.abs().intoUD60x18()).mul(feeBps);
-            return orderFeeUsd;
         }
+        // special logic for trades that flip the skew; trader should receive:
+        //   makerFee for portion of size that returns skew to 0
+        //   takerFee for portion of size that flips skew in other direction
+        else {
+            // convert new skew abs(SD59x18) -> uint256
+            uint256 takerSize = newSkew.abs().intoUint256();
 
-        uint256 takerSize = skew.add(sizeDelta).abs().intoUint256();
-        uint256 makerSize = sizeDelta.abs().sub(sd59x18(int256(takerSize))).abs().intoUint256();
+            // abs( abs(orderSize) - abs(newSkew) ) -> uint256
+            uint256 makerSize = sizeDelta.abs().sub(sd59x18(int256(takerSize))).abs().intoUint256();
 
-        UD60x18 takerFee = markPriceX18.mul(ud60x18(takerSize)).mul(ud60x18(self.configuration.orderFees.takerFee));
-        UD60x18 makerFee = markPriceX18.mul(ud60x18(makerSize)).mul(ud60x18(self.configuration.orderFees.makerFee));
+            // calculate corresponding fees for maker and taker portions
+            // of this trade which flipped the skew
+            UD60x18 takerFee = markPriceX18.mul(ud60x18(takerSize)).mul(ud60x18(self.configuration.orderFees.takerFee));
+            UD60x18 makerFee = markPriceX18.mul(ud60x18(makerSize)).mul(ud60x18(self.configuration.orderFees.makerFee));
 
-        orderFeeUsd = takerFee.add(makerFee);
+             // output order fee
+            orderFeeUsd = takerFee.add(makerFee);
+        }
     }
 
     /// @notice Returns the next funding fee per unit value.

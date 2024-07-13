@@ -16,6 +16,7 @@ contract AccountNFT is ERC721Enumerable, Ownable {
     constructor(string memory name, string memory symbol, address owner) ERC721(name, symbol) Ownable(owner) { }
 
     function mint(address to, uint256 tokenId) external onlyOwner {
+        // intentionally not using _safeMint
         _mint(to, tokenId);
     }
 
