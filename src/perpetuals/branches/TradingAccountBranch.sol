@@ -4,13 +4,13 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { TradingAccount } from "../leaves/TradingAccount.sol";
-import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
-import { PerpMarket } from "../leaves/PerpMarket.sol";
-import { Position } from "../leaves/Position.sol";
-import { MarginCollateralConfiguration } from "../leaves/MarginCollateralConfiguration.sol";
-import { CustomReferralConfiguration } from "../leaves/CustomReferralConfiguration.sol";
-import { Referral } from "../leaves/Referral.sol";
+import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
+import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
+import { CustomReferralConfiguration } from "@zaros/perpetuals/leaves/CustomReferralConfiguration.sol";
+import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
