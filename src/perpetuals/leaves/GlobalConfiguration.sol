@@ -115,30 +115,51 @@ library GlobalConfiguration {
     /// @param self The global configuration storage pointer.
     /// @param collateralType The address of the collateral type to remove.
     function removeCollateralFromLiquidationPriority(Data storage self, address collateralType) internal {
+        // does the collateral being removed exist?
         bool isInCollateralLiquidationPriority = self.collateralLiquidationPriority.contains(collateralType);
 
+        // if not, revert
         if (!isInCollateralLiquidationPriority) revert Errors.MarginCollateralTypeNotInPriority(collateralType);
 
+        // the following code is required since EnumerableSet::remove
+        // uses the swap-and-pop technique which corrupts the order
+
+        // @audit should cache `copyCollateralLiquidationPriority.length`
+        // since it is in memory not calldata and the expected length > 3
+
+        // copy the existing collateral order
         address[] memory copyCollateralLiquidationPriority = self.collateralLiquidationPriority.values();
+
+        // create a new array to store the new order
         address[] memory newCollateralLiquidationPriority =
             new address[](copyCollateralLiquidationPriority.length - 1);
 
-        uint256 indexCollateral = 0;
+        uint256 indexCollateral;
 
-        for (uint256 i = 0; i < copyCollateralLiquidationPriority.length; i++) {
+        // iterate over the in-memory copies
+        for (uint256 i; i < copyCollateralLiquidationPriority.length; i++) {
+            // fetch current collateral
             address collateral = copyCollateralLiquidationPriority[i];
 
+            // remove current collateral from storage set
             self.collateralLiquidationPriority.remove(collateral);
 
+            // if the current collateral is the one we want to remove, skip
+            // to the next loop iteration
             if (collateral == collateralType) {
                 continue;
             }
 
+            // otherwise add current collateral to the new in-memory
+            // order we are building
             newCollateralLiquidationPriority[indexCollateral] = collateral;
             indexCollateral++;
         }
 
-        for (uint256 i = 0; i < copyCollateralLiquidationPriority.length - 1; i++) {
+        // the collateral priority in storage has been emptied and the new
+        // order has been built in memory, so iterate through the new order
+        // and add it to storage
+        for (uint256 i; i < copyCollateralLiquidationPriority.length - 1; i++) {
             self.collateralLiquidationPriority.add(newCollateralLiquidationPriority[i]);
         }
     }

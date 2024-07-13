@@ -112,6 +112,7 @@ contract SettlementBranch is EIP712Upgradeable {
         external
         onlyMarketOrderKeeper(marketId)
     {
+        // working data
         FillMarketOrder_Context memory ctx;
 
         // fetch storage slot for perp market's market order config
@@ -128,7 +129,9 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
-        // verifies provided price data following the configured settlement strategy, returning the bid and ask prices
+
+        // verifies provided price data following the configured settlement strategy
+        // returning the bid and ask prices
         (ctx.bidX18, ctx.askX18) = settlementConfiguration.verifyOffchainPrice(priceData);
 
         // cache the order's size delta
@@ -136,8 +139,9 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // cache the order side
         ctx.isBuyOrder = ctx.sizeDeltaX18.gt(SD59x18_ZERO);
-        // if it's a buy order, we need to match against the ask price, if it's a sell order, we need to match
-        // agaainst the bid price.
+
+        //  buy order -> match against the ask price 
+        // sell order -> match against the bid price
         ctx.indexPriceX18 = ctx.isBuyOrder ? ctx.askX18 : ctx.bidX18;
 
         // verify the provided price data against the verifier and ensure it's valid, then get the mark price
@@ -183,24 +187,35 @@ contract SettlementBranch is EIP712Upgradeable {
         external
         onlyOffchainOrdersKeeper(marketId)
     {
+        // working data
         FillOffchainOrders_Context memory ctx;
 
+        // fetch storage slot for perp market's offchain order config
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID);
+
+        // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
+        // verifies provided price data following the configured settlement strategy
+        // returning the bid and ask prices
         (ctx.bidX18, ctx.askX18) = settlementConfiguration.verifyOffchainPrice(priceData);
 
+        // iterate through off-chain orders; intentionally not caching
+        // length as reading from calldata is faster
         for (uint256 i; i < offchainOrders.length; i++) {
             ctx.offchainOrder = offchainOrders[i];
 
+            // enforce size > 0
             if (ctx.offchainOrder.sizeDelta == 0) {
                 revert Errors.ZeroInput("offchainOrder.sizeDelta");
             }
 
+            // load existing trading account; reverts for non-existent account
             TradingAccount.Data storage tradingAccount =
                 TradingAccount.loadExisting(ctx.offchainOrder.tradingAccountId);
 
+            // enforce that keeper is filling the order for the correct marketId
             if (marketId != ctx.offchainOrder.marketId) {
                 revert Errors.OrderMarketIdMismatch(marketId, ctx.offchainOrder.marketId);
             }
@@ -248,8 +263,9 @@ contract SettlementBranch is EIP712Upgradeable {
 
             // cache the order side
             ctx.isBuyOrder = ctx.offchainOrder.sizeDelta > 0;
-            // if it's a buy order, we need to match against the ask price, if it's a sell order, we need to match
-            // agaainst the bid price.
+
+            //  buy order -> match against the ask price 
+            // sell order -> match against the bid price
             ctx.indexPriceX18 = ctx.isBuyOrder ? ctx.askX18 : ctx.bidX18;
 
             // verify the provided price data against the verifier and ensure it's valid, then get the mark price
@@ -275,6 +291,7 @@ contract SettlementBranch is EIP712Upgradeable {
                     tradingAccount.nonce++;
                 }
             }
+            
             // mark the offchain order as filled.
             // we store the struct hash to be marked as filled.
             tradingAccount.hasOffchainOrderBeenFilled[ctx.structHash] = true;
@@ -299,6 +316,11 @@ contract SettlementBranch is EIP712Upgradeable {
         UD60x18 newOpenInterestX18;
         UD60x18 requiredMarginUsdX18;
         UD60x18 marginToAddX18;
+        // @audit sizeDeltaX18 is never used so either delete it or
+        // rename & use it to cache sd59x18(oldPosition.size) which
+        // gets read from storage & computed multiple times
+        // may also want to cache sd59x18(ctx.newPosition.size) since
+        // it is faster than computing it 3 times
         SD59x18 sizeDeltaX18;
         SD59x18 pnlUsdX18;
         SD59x18 fundingFeePerUnitX18;
@@ -358,13 +380,18 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+        // enforce minimum trade size
         perpMarket.checkTradeSize(sizeDeltaX18);
 
+        // get funding rates for this perp market
         ctx.fundingRateX18 = perpMarket.getCurrentFundingRate();
         ctx.fundingFeePerUnitX18 = perpMarket.getNextFundingFeePerUnit(ctx.fundingRateX18, fillPriceX18);
 
+        // update funding rates
         perpMarket.updateFunding(ctx.fundingRateX18, ctx.fundingFeePerUnitX18);
 
+        // calculate order & settlement fees
         ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sizeDeltaX18, fillPriceX18);
         ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
@@ -372,9 +399,8 @@ contract SettlementBranch is EIP712Upgradeable {
         Position.Data storage oldPosition = Position.load(tradingAccountId, marketId);
 
         {
-            // calculate required initial & maintenance margin for the simulated trade
+            // calculate required initial & maintenance margin for this trade
             // and account's unrealized PNL
-
             (
                 UD60x18 requiredInitialMarginUsdX18,
                 UD60x18 requiredMaintenanceMarginUsdX18,
@@ -406,7 +432,7 @@ contract SettlementBranch is EIP712Upgradeable {
         }
 
         // cache unrealized PNL from potential existing position in this market
-        // subtract order/settlement fees from unrealized PNL
+        // including accrued funding
         ctx.pnlUsdX18 =
             oldPosition.getUnrealizedPnl(fillPriceX18).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnitX18));
 
@@ -448,6 +474,7 @@ contract SettlementBranch is EIP712Upgradeable {
             oldPosition.update(ctx.newPosition);
         }
 
+        // if trader's old position had positive pnl then credit that to the trader
         if (ctx.pnlUsdX18.gt(SD59x18_ZERO)) {
             ctx.marginToAddX18 = ctx.pnlUsdX18.intoUD60x18();
             tradingAccount.deposit(ctx.usdToken, ctx.marginToAddX18);
@@ -459,6 +486,8 @@ contract SettlementBranch is EIP712Upgradeable {
             LimitedMintingERC20(ctx.usdToken).mint(address(this), ctx.marginToAddX18.intoUint256());
         }
 
+        // pay order/settlement fees and deduct collateral
+        // if trader's old position had negative pnl
         tradingAccount.deductAccountMargin({
             feeRecipients: FeeRecipients.Data({
                 marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,

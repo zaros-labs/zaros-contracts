@@ -174,6 +174,8 @@ contract OrderBranch {
     {
         // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+        // fetch storage slot for perp market's settlement config
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
 
@@ -189,12 +191,12 @@ contract OrderBranch {
         // calculate order value
         UD60x18 orderValueX18 = markPriceX18.mul(sizeDeltaX18.abs().intoUD60x18());
 
+        // calculate & output initial & maintenance margin requirements
         initialMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.initialMarginRateX18));
-
         maintenanceMarginUsdX18 = orderValueX18.mul(ud60x18(perpMarket.configuration.maintenanceMarginRateX18));
 
-        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sd59x18(sizeDelta), markPriceX18);
-
+        // calculate & output order and settlement fees
+        orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sizeDeltaX18, markPriceX18);
         settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
     }
 

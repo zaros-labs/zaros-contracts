@@ -437,23 +437,39 @@ library TradingAccount {
         internal
         returns (UD60x18 marginDeductedUsdX18)
     {
+        // working data
         DeductAccountMarginContext memory ctx;
 
+        // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
+        // cache collateral liquidation priority length
         uint256 cachedCollateralLiquidationPriorityLength = globalConfiguration.collateralLiquidationPriority.length();
 
+        // loop through configured collateral types
         for (uint256 i; i < cachedCollateralLiquidationPriorityLength; i++) {
+            // get ith collateral type
             address collateralType = globalConfiguration.collateralLiquidationPriority.at(i);
+
+            // fetch storage slot for this collateral's config config
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
 
+            // get trader's collateral balance for this collateral, scaled to 18 decimals
             ctx.marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
+
+            // skip to next loop iteration if trader hasn't deposited any of this collateral
             if (ctx.marginCollateralBalanceX18.isZero()) continue;
 
+            // get this collateral's USD price
             ctx.marginCollateralPriceUsdX18 = marginCollateralConfiguration.getPrice();
 
+            // if:
+            // settlement fee > 0 AND
+            // amount of settlement fee paid so far < settlement fee
             if (settlementFeeUsdX18.gt(UD60x18_ZERO) && ctx.settlementFeeDeductedUsdX18.lt(settlementFeeUsdX18)) {
+                // attempt to deduct from this collateral difference between settlement fee
+                // and amount of settlement fee paid so far
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
                     collateralType,
@@ -461,9 +477,13 @@ library TradingAccount {
                     settlementFeeUsdX18.sub(ctx.settlementFeeDeductedUsdX18),
                     feeRecipients.settlementFeeRecipient
                 );
+
+                // update amount of settlement fee paid so far by the amount
+                // that was actually withdraw from this collateral
                 ctx.settlementFeeDeductedUsdX18 = ctx.settlementFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
             }
 
+            // order fee logic same as settlement fee above
             if (orderFeeUsdX18.gt(UD60x18_ZERO) && ctx.orderFeeDeductedUsdX18.lt(orderFeeUsdX18)) {
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
@@ -475,6 +495,7 @@ library TradingAccount {
                 ctx.orderFeeDeductedUsdX18 = ctx.orderFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
             }
 
+            // pnl logic same as settlement & order fee above
             if (pnlUsdX18.gt(UD60x18_ZERO) && ctx.pnlDeductedUsdX18.lt(pnlUsdX18)) {
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
@@ -485,11 +506,15 @@ library TradingAccount {
                 );
                 ctx.pnlDeductedUsdX18 = ctx.pnlDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
             }
+
+            // if there is no missing margin then exit the loop
+            // since all amounts have been deducted
             if (!ctx.isMissingMargin) {
                 break;
             }
         }
 
+        // output total margin deducted
         marginDeductedUsdX18 =
             ctx.settlementFeeDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18).add(ctx.pnlDeductedUsdX18);
     }
