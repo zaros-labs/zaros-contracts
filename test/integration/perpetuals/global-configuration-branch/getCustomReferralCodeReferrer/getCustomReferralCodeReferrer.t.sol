@@ -11,7 +11,12 @@ contract GetCustomReferralCode_Integration_Test is Base_Test {
         configureSystemParameters();
     }
 
-    function testFuzz_WhenGetCustomReferralCodeIsCalled(address referrer, string memory customReferralCode) external{
+    function testFuzz_WhenGetCustomReferralCodeIsCalled(
+        address referrer,
+        string memory customReferralCode
+    )
+        external
+    {
         changePrank({ msgSender: users.owner.account });
         perpsEngine.createCustomReferralCode(referrer, customReferralCode);
 

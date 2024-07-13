@@ -16,7 +16,12 @@ contract CreateCustomReferralCode_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-     function testFuzz_RevertGiven_TheSenderIsNotTheOwner(address referrer, string memory customReferralCode) external {
+    function testFuzz_RevertGiven_TheSenderIsNotTheOwner(
+        address referrer,
+        string memory customReferralCode
+    )
+        external
+    {
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto.account)
@@ -29,13 +34,17 @@ contract CreateCustomReferralCode_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_WhenCreateCustomReferralCodeIsCalled(address referrer, string memory customReferralCode) external givenTheSenderIsTheOwner{
+    function testFuzz_WhenCreateCustomReferralCodeIsCalled(
+        address referrer,
+        string memory customReferralCode
+    )
+        external
+        givenTheSenderIsTheOwner
+    {
         changePrank({ msgSender: users.owner.account });
 
         // it should emit {LogCreateCustomReferralCode} event
-        vm.expectEmit({
-            emitter: address(perpsEngine)
-        });
+        vm.expectEmit({ emitter: address(perpsEngine) });
         emit GlobalConfigurationBranch.LogCreateCustomReferralCode(referrer, customReferralCode);
 
         perpsEngine.createCustomReferralCode(referrer, customReferralCode);

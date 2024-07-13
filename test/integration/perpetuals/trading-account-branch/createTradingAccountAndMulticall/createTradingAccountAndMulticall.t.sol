@@ -100,9 +100,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         bytes[] memory data = new bytes[](0);
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.InvalidReferralCode.selector)
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidReferralCode.selector) });
 
         perpsEngine.createTradingAccountAndMulticall(data, bytes("customReferralCode"), true);
     }
@@ -123,7 +121,9 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
 
         // it should emit {LogReferralSet} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogReferralSet(users.naruto.account, users.owner.account, bytes(customReferralCode), true);
+        emit TradingAccountBranch.LogReferralSet(
+            users.naruto.account, users.owner.account, bytes(customReferralCode), true
+        );
 
         perpsEngine.createTradingAccountAndMulticall(data, bytes(customReferralCode), true);
     }
@@ -147,9 +147,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.InvalidReferralCode.selector)
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidReferralCode.selector) });
 
         bytes memory referralCode = abi.encode(users.naruto.account);
 

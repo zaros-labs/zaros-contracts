@@ -226,7 +226,14 @@ contract TradingAccountBranch {
 
     /// @notice Creates a new trading account and mints its NFT
     /// @return tradingAccountId The trading account id.
-    function createTradingAccount(bytes memory referralCode, bool isCustomReferralCode) public virtual returns (uint128) {
+    function createTradingAccount(
+        bytes memory referralCode,
+        bool isCustomReferralCode
+    )
+        public
+        virtual
+        returns (uint128)
+    {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         uint128 tradingAccountId = ++globalConfiguration.nextAccountId;
         IAccountNFT tradingAccountToken = IAccountNFT(globalConfiguration.tradingAccountToken);
@@ -267,8 +274,11 @@ contract TradingAccountBranch {
     /// @notice Creates a new trading account and multicalls using the provided data payload.
     /// @param data The data payload to be multicalled.
     /// @return results The array of results of the multicall.
-    function createTradingAccountAndMulticall(bytes[] calldata data, bytes memory referralCode,
-        bool isCustomReferralCode)
+    function createTradingAccountAndMulticall(
+        bytes[] calldata data,
+        bytes memory referralCode,
+        bool isCustomReferralCode
+    )
         external
         payable
         virtual

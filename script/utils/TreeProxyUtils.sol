@@ -104,8 +104,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
     globalConfigurationBranchSelectors[12] = GlobalConfigurationBranch.setUsdToken.selector;
     globalConfigurationBranchSelectors[13] = GlobalConfigurationBranch.configureSequencerUptimeFeedByChainId.selector;
-    globalConfigurationBranchSelectors[14] =
-            GlobalConfigurationBranch.getCustomReferralCodeReferrer.selector;
+    globalConfigurationBranchSelectors[14] = GlobalConfigurationBranch.getCustomReferralCodeReferrer.selector;
     globalConfigurationBranchSelectors[15] = GlobalConfigurationBranch.createCustomReferralCode.selector;
 
     if (isTestnet) {

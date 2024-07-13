@@ -2,8 +2,7 @@
 pragma solidity 0.8.25;
 
 library CustomReferralConfiguration {
-    string internal constant CUSTOM_REFERRAL_CONFIGURATION_DOMAIN =
-        "fi.zaros.CustomReferralConfiguration";
+    string internal constant CUSTOM_REFERRAL_CONFIGURATION_DOMAIN = "fi.zaros.CustomReferralConfiguration";
 
     struct Data {
         address referrer;
