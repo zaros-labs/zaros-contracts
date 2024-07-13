@@ -214,16 +214,23 @@ contract TradingAccountBranch {
 
     /// @notice Creates a new trading account and mints its NFT
     /// @return tradingAccountId The trading account id.
-    function createTradingAccount() public virtual returns (uint128) {
+    function createTradingAccount() public virtual returns (uint128 tradingAccountId) {
+        // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        uint128 tradingAccountId = ++globalConfiguration.nextAccountId;
+
+        // increment next account id & output
+        tradingAccountId = ++globalConfiguration.nextAccountId;
+
+        // get refrence to account nft token
         IAccountNFT tradingAccountToken = IAccountNFT(globalConfiguration.tradingAccountToken);
+
+        // create account record
         TradingAccount.create(tradingAccountId, msg.sender);
 
+        // mint nft token to account owner
         tradingAccountToken.mint(msg.sender, tradingAccountId);
 
         emit LogCreateTradingAccount(tradingAccountId, msg.sender);
-        return tradingAccountId;
     }
 
     /// @notice Creates a new trading account and multicalls using the provided data payload.
@@ -258,21 +265,42 @@ contract TradingAccountBranch {
     /// @param collateralType The margin collateral address.
     /// @param amount The amount of margin collateral to deposit.
     function depositMargin(uint128 tradingAccountId, address collateralType, uint256 amount) public virtual {
+        // fetch storage slot for this collateral's config config
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
+
+        // load existing trading account; reverts for non-existent account
+        // does not enforce msg.sender == account owner so anyone can deposit
+        // collateral for other traders if they wish    
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
+        // convert uint256 -> UD60x18; scales input amount to 18 decimals
         UD60x18 amountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
 
+        // uint128 -> UD60x18
         UD60x18 depositCapX18 = ud60x18(marginCollateralConfiguration.depositCap);
+
+        // @audit it doesn't make sense to have depositCap as uint128 but totalDeposited as uint256,
+        // since totalDeposited could never be bigger than uint128 due to the deposit cap size?
+        // hence consider changing totalDeposited to be uint128 or depositCap to uint256
+        //
+        // uint256 -> UD60x18
         UD60x18 totalCollateralDepositedX18 = ud60x18(marginCollateralConfiguration.totalDeposited);
 
+        // enforce converted amount > 0
         _requireAmountNotZero(amountX18);
+
+        // enforce new deposit + already deposited <= deposit cap
         _requireEnoughDepositCap(collateralType, amountX18, depositCapX18, totalCollateralDepositedX18);
+
+        // enforce collateral has configured liquidation priority
         _requireCollateralLiquidationPriorityDefined(collateralType);
 
-        tradingAccount.deposit(collateralType, amountX18);
+        // get the tokens first
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
+
+        // then perform the actual deposit
+        tradingAccount.deposit(collateralType, amountX18);
 
         emit LogDepositMargin(msg.sender, tradingAccountId, collateralType, amount);
     }
@@ -282,23 +310,42 @@ contract TradingAccountBranch {
     /// @param collateralType The margin collateral address.
     /// @param amount The UD60x18 amount of margin collateral to withdraw.
     function withdrawMargin(uint128 tradingAccountId, address collateralType, uint256 amount) external {
+        // fetch storage slot for this collateral's config config
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
+
+        // load existing trading account; reverts for non-existent account
+        // enforces `msg.sender == owner` so only account owner can withdraw
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
 
+        // convert uint256 -> UD60x18; scales input amount to 18 decimals
         UD60x18 amountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
 
+        // enforce converted amount > 0
         _requireAmountNotZero(amountX18);
+
+        // enforces that user has deposited enough collateral of this type to withdraw
         _requireEnoughMarginCollateral(tradingAccount, collateralType, amountX18);
 
+        // deduct amount from trader's collateral balance
         tradingAccount.withdraw(collateralType, amountX18);
+
+        // load account required initial margin requirement & unrealized USD profit/loss
+        // ignores "required maintenance margin" output parameter
         (UD60x18 requiredInitialMarginUsdX18,, SD59x18 accountTotalUnrealizedPnlUsdX18) =
             tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD59x18_ZERO);
+
+        // get trader's margin balance
         SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
+        // check against initial margin requirement as initial margin > maintenance margin
+        // hence prevent the user from withdrawing all the way to the maintenance margin
+        // so that they couldn't be liquidated very soon afterwards if their position
+        // goes against them even a little bit
         tradingAccount.validateMarginRequirement(requiredInitialMarginUsdX18, marginBalanceUsdX18, UD60x18_ZERO);
 
+        // finally send the tokens
         IERC20(collateralType).safeTransfer(msg.sender, amount);
 
         emit LogWithdrawMargin(msg.sender, tradingAccountId, collateralType, amount);
@@ -359,8 +406,12 @@ contract TradingAccountBranch {
         internal
         view
     {
+        // get currently deposited scaled-to-18-decimals this account has
+        // for this collateral type
         UD60x18 marginCollateralBalanceX18 = tradingAccount.getMarginCollateralBalance(collateralType);
 
+        // enforces that user has deposited sufficient collateral of this
+        // type; they can only withdraw what they have deposited/remaining
         if (marginCollateralBalanceX18.lt(amount)) {
             revert Errors.InsufficientCollateralBalance(
                 amount.intoUint256(), marginCollateralBalanceX18.intoUint256()

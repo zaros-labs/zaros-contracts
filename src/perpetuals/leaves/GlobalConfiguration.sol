@@ -124,20 +124,20 @@ library GlobalConfiguration {
         // the following code is required since EnumerableSet::remove
         // uses the swap-and-pop technique which corrupts the order
 
-        // @audit should cache `copyCollateralLiquidationPriority.length`
-        // since it is in memory not calldata and the expected length > 3
-
         // copy the existing collateral order
         address[] memory copyCollateralLiquidationPriority = self.collateralLiquidationPriority.values();
 
+        // cache length
+        uint256 copyCollateralLiquidationPriorityLength = copyCollateralLiquidationPriority.length;
+
         // create a new array to store the new order
         address[] memory newCollateralLiquidationPriority =
-            new address[](copyCollateralLiquidationPriority.length - 1);
+            new address[](copyCollateralLiquidationPriorityLength - 1);
 
         uint256 indexCollateral;
 
         // iterate over the in-memory copies
-        for (uint256 i; i < copyCollateralLiquidationPriority.length; i++) {
+        for (uint256 i; i < copyCollateralLiquidationPriorityLength; i++) {
             // fetch current collateral
             address collateral = copyCollateralLiquidationPriority[i];
 
@@ -159,7 +159,7 @@ library GlobalConfiguration {
         // the collateral priority in storage has been emptied and the new
         // order has been built in memory, so iterate through the new order
         // and add it to storage
-        for (uint256 i; i < copyCollateralLiquidationPriority.length - 1; i++) {
+        for (uint256 i; i < copyCollateralLiquidationPriorityLength - 1; i++) {
             self.collateralLiquidationPriority.add(newCollateralLiquidationPriority[i]);
         }
     }
