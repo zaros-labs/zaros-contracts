@@ -4,13 +4,13 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
-import { PerpMarket } from "../leaves/PerpMarket.sol";
-import { MarginCollateralConfiguration } from "../leaves/MarginCollateralConfiguration.sol";
-import { MarketConfiguration } from "../leaves/MarketConfiguration.sol";
-import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
-import { OrderFees } from "../leaves/OrderFees.sol";
-import { CustomReferralConfiguration } from "../leaves/CustomReferralConfiguration.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
+import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
+import { MarketConfiguration } from "@zaros/perpetuals/leaves/MarketConfiguration.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
+import { CustomReferralConfiguration } from "@zaros/perpetuals/leaves/CustomReferralConfiguration.sol";
 
 // OpenZeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
