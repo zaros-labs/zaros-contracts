@@ -88,7 +88,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 17 : 14);
+    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 17 : 16);
 
     globalConfigurationBranchSelectors[0] = GlobalConfigurationBranch.getAccountsWithActivePositions.selector;
     globalConfigurationBranchSelectors[1] = GlobalConfigurationBranch.getMarginCollateralConfiguration.selector;
@@ -104,12 +104,12 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
     globalConfigurationBranchSelectors[12] = GlobalConfigurationBranch.setUsdToken.selector;
     globalConfigurationBranchSelectors[13] = GlobalConfigurationBranch.configureSequencerUptimeFeedByChainId.selector;
+    globalConfigurationBranchSelectors[14] =
+            GlobalConfigurationBranch.getCustomReferralCodeReferrer.selector;
+    globalConfigurationBranchSelectors[15] = GlobalConfigurationBranch.createCustomReferralCode.selector;
 
     if (isTestnet) {
-        globalConfigurationBranchSelectors[14] =
-            GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
-        globalConfigurationBranchSelectors[15] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
-        globalConfigurationBranchSelectors[16] = GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
+        globalConfigurationBranchSelectors[16] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
     }
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
@@ -140,7 +140,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpMarketBranchSelectors[9] = PerpMarketBranch.getFundingVelocity.selector;
     perpMarketBranchSelectors[10] = PerpMarketBranch.getPerpMarketConfiguration.selector;
 
-    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 14 : 12);
+    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 14 : 13);
 
     tradingAccountBranchSelectors[0] = TradingAccountBranch.getTradingAccountToken.selector;
     tradingAccountBranchSelectors[1] = TradingAccountBranch.getAccountMarginCollateralBalance.selector;
@@ -154,12 +154,12 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     tradingAccountBranchSelectors[9] = TradingAccountBranch.depositMargin.selector;
     tradingAccountBranchSelectors[10] = TradingAccountBranch.withdrawMargin.selector;
     tradingAccountBranchSelectors[11] = TradingAccountBranch.notifyAccountTransfer.selector;
+    tradingAccountBranchSelectors[12] = TradingAccountBranch.getUserReferralData.selector;
 
     if (isTestnet) {
         tradingAccountBranchSelectors[7] = bytes4(keccak256("createTradingAccount(bytes,bool)"));
         tradingAccountBranchSelectors[8] = bytes4(keccak256("createTradingAccountAndMulticall(bytes[],bytes,bool)"));
-        tradingAccountBranchSelectors[12] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
-        tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.getUserReferralData.selector;
+        tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
     }
 
     bytes4[] memory settlementBranchSelectors = new bytes4[](4);

@@ -9,6 +9,8 @@ import { GlobalConfiguration } from "../leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
 import { Position } from "../leaves/Position.sol";
 import { MarginCollateralConfiguration } from "../leaves/MarginCollateralConfiguration.sol";
+import { CustomReferralConfiguration } from "../leaves/CustomReferralConfiguration.sol";
+import { Referral } from "../leaves/Referral.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -33,6 +35,7 @@ contract TradingAccountBranch {
     using SafeERC20 for IERC20;
     using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
+    using Referral for Referral.Data;
 
     /// @notice Emitted when a new trading account is created.
     /// @param tradingAccountId The trading account id.
@@ -55,6 +58,15 @@ contract TradingAccountBranch {
     /// @param amount The token amount of margin collateral withdrawn (token::decimals()).
     event LogWithdrawMargin(
         address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
+    );
+
+    /// @notice Emitted when a referral code is set.
+    /// @param user The user address.
+    /// @param referrer The referrer address.
+    /// @param referralCode The referral code.
+    /// @param isCustomReferralCode A boolean indicating if the referral code is custom.
+    event LogReferralSet(
+        address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode
     );
 
     /// @notice Gets the contract address of the trading accounts NFTs.
@@ -214,7 +226,7 @@ contract TradingAccountBranch {
 
     /// @notice Creates a new trading account and mints its NFT
     /// @return tradingAccountId The trading account id.
-    function createTradingAccount() public virtual returns (uint128) {
+    function createTradingAccount(bytes memory referralCode, bool isCustomReferralCode) public virtual returns (uint128) {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         uint128 tradingAccountId = ++globalConfiguration.nextAccountId;
         IAccountNFT tradingAccountToken = IAccountNFT(globalConfiguration.tradingAccountToken);
@@ -223,19 +235,46 @@ contract TradingAccountBranch {
         tradingAccountToken.mint(msg.sender, tradingAccountId);
 
         emit LogCreateTradingAccount(tradingAccountId, msg.sender);
+
+        Referral.Data storage referral = Referral.load(msg.sender);
+
+        if (referralCode.length != 0 && referral.referralCode.length == 0) {
+            if (isCustomReferralCode) {
+                CustomReferralConfiguration.Data storage customReferral =
+                    CustomReferralConfiguration.load(string(referralCode));
+                if (customReferral.referrer == address(0)) {
+                    revert Errors.InvalidReferralCode();
+                }
+                referral.referralCode = referralCode;
+                referral.isCustomReferralCode = true;
+            } else {
+                address referrer = abi.decode(referralCode, (address));
+
+                if (referrer == msg.sender) {
+                    revert Errors.InvalidReferralCode();
+                }
+
+                referral.referralCode = referralCode;
+                referral.isCustomReferralCode = false;
+            }
+
+            emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
+        }
+
         return tradingAccountId;
     }
 
     /// @notice Creates a new trading account and multicalls using the provided data payload.
     /// @param data The data payload to be multicalled.
     /// @return results The array of results of the multicall.
-    function createTradingAccountAndMulticall(bytes[] calldata data)
+    function createTradingAccountAndMulticall(bytes[] calldata data, bytes memory referralCode,
+        bool isCustomReferralCode)
         external
         payable
         virtual
         returns (bytes[] memory results)
     {
-        uint128 tradingAccountId = createTradingAccount();
+        uint128 tradingAccountId = createTradingAccount(referralCode, isCustomReferralCode);
 
         results = new bytes[](data.length);
         for (uint256 i; i < data.length; i++) {
@@ -314,6 +353,16 @@ contract TradingAccountBranch {
 
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         tradingAccount.owner = to;
+    }
+
+    /// @notice Get the user referral data
+    /// @param user The user address.
+    /// @return referralCode The user's referral code.
+    /// @return isCustomReferralCode A boolean indicating if the referral code is custom.
+    function getUserReferralData(address user) external pure returns (bytes memory, bool) {
+        Referral.Data memory referral = Referral.load(user);
+
+        return (referral.referralCode, referral.isCustomReferralCode);
     }
 
     /// @notice Reverts if the amount is zero.

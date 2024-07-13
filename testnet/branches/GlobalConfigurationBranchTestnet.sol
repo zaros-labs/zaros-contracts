@@ -13,19 +13,7 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 
 contract GlobalConfigurationBranchTestnet is GlobalConfigurationBranch {
-    event LogCreateCustomReferralCode(address indexed referrer, string customReferralCode);
-
-    function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) {
-        return CustomReferralConfigurationTestnet.load(customReferralCode).referrer;
-    }
-
     function setUserPoints(address user, uint256 value) external onlyOwner {
         Points.load(user).amount = value;
-    }
-
-    function createCustomReferralCode(address referrer, string memory customReferralCode) external onlyOwner {
-        CustomReferralConfigurationTestnet.load(customReferralCode).referrer = referrer;
-
-        emit LogCreateCustomReferralCode(referrer, customReferralCode);
     }
 }

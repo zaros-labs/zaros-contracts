@@ -78,6 +78,8 @@ library Errors {
     );
     /// @notice Thrown when trying to deposit a collteral type that isn't in the liquidation priority configuration.
     error CollateralLiquidationPriorityNotDefined(address collateralType);
+    /// @notice Thrown when the provided referral code is invalid.
+    error InvalidReferralCode();
 
     /// @notice PerpsEngine.GlobalConfigurationBranch
 

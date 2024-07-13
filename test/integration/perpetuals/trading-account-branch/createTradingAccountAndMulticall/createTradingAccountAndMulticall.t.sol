@@ -18,7 +18,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
-        perpsEngine.createTradingAccountAndMulticall(data);
+        perpsEngine.createTradingAccountAndMulticall(data, bytes(""), false);
     }
 
     modifier whenTheDataArrayDoesNotProvideARevertingCall() {
@@ -34,7 +34,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto.account);
 
-        bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
+        bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data, bytes(""), false);
         // it should return a null results array
         assertEq(results.length, expectedResultsLength, "createTradingAccountAndMulticall");
     }
@@ -48,7 +48,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit TradingAccountBranch.LogCreateTradingAccount(expectedAccountId, users.naruto.account);
 
-        bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
+        bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data, bytes(""), false);
         address tradingAccountTokenReturned = abi.decode(results[0], (address));
 
         // it should return a valid results array
@@ -72,7 +72,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
 
         // it should transfer the amount from the sender to the trading account
         expectCallToTransferFrom(usdc, users.naruto.account, address(perpsEngine), amountToDeposit);
-        bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data);
+        bytes[] memory results = perpsEngine.createTradingAccountAndMulticall(data, bytes(""), false);
 
         uint256 newMarginCollateralBalance = convertUd60x18ToTokenAmount(
             address(usdc), perpsEngine.getAccountMarginCollateralBalance(expectedAccountId, address(usdc))

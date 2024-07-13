@@ -10,6 +10,7 @@ import { MarginCollateralConfiguration } from "../leaves/MarginCollateralConfigu
 import { MarketConfiguration } from "../leaves/MarketConfiguration.sol";
 import { SettlementConfiguration } from "../leaves/SettlementConfiguration.sol";
 import { OrderFees } from "../leaves/OrderFees.sol";
+import { CustomReferralConfiguration } from "../leaves/CustomReferralConfiguration.sol";
 
 // OpenZeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -111,6 +112,11 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @notice Emitted when a perp market is disabled by the owner.
     /// @param marketId The perps market id.
     event LogDisablePerpMarket(address indexed sender, uint128 marketId);
+
+    /// @notice Emitted when a custom referral code is created.
+    /// @param referrer The address of the referrer.
+    /// @param customReferralCode The custom referral code.
+    event LogCreateCustomReferralCode(address indexed referrer, string customReferralCode);
 
     /// @notice Ensures that perp market is initialized.
     /// @param marketId The perps market id.
@@ -582,6 +588,9 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         }
     }
 
+    /// @notice Configures the sequencer uptime feed by chain id.
+    /// @param chainIds The array of chain ids.
+    /// @param sequencerUptimeFeedAddresses The array of sequencer uptime feed addresses.
     function configureSequencerUptimeFeedByChainId(
         uint256[] memory chainIds,
         address[] memory sequencerUptimeFeedAddresses
@@ -608,5 +617,21 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
             emit LogSetSequencerUptimeFeed(msg.sender, chainIds[i], sequencerUptimeFeedAddresses[i]);
         }
+    }
+
+    /// @notice Returns the address of custom referral code
+    /// @param customReferralCode The custom referral code.
+    /// @return referrer The address of the referrer.
+    function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) {
+        return CustomReferralConfiguration.load(customReferralCode).referrer;
+    }
+
+    /// @notice Creates a custom referral code.
+    /// @param referrer The address of the referrer.
+    /// @param customReferralCode The custom referral code.
+    function createCustomReferralCode(address referrer, string memory customReferralCode) external onlyOwner {
+        CustomReferralConfiguration.load(customReferralCode).referrer = referrer;
+
+        emit LogCreateCustomReferralCode(referrer, customReferralCode);
     }
 }

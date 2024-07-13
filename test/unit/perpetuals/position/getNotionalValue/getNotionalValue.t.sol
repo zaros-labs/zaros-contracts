@@ -38,7 +38,7 @@ contract Position_GetNotionalValue_Unit_Test is Base_Test {
             bound({ x: sizeAbs, min: uint256(fuzzMarketConfig.minTradeSize), max: uint256(fuzzMarketConfig.maxSkew) });
         int256 size = isLong ? int256(sizeAbs) : -int256(sizeAbs);
 
-        uint128 tradingAccountId = perpsEngine.createTradingAccount();
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         Position.Data memory mockPosition = Position.Data({
             size: size,
