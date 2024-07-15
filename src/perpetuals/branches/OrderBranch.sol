@@ -41,6 +41,11 @@ contract OrderBranch {
         uint128 indexed marketId,
         MarketOrder.Data marketOrder
     );
+    /// @notice Emitted when all offchain orders are cancelled.
+    /// @param sender The account that cancelled all offchain orders.
+    /// @param tradingAccountId The trading account id.
+    /// @param newNonce The new nonce value.
+    event LogCancelAllOffchainOrders(address indexed sender, uint128 indexed tradingAccountId, uint128 newNonce);
     /// @notice Emitted when a market order is cancelled.
     /// @param sender The account that cancelled the market order.
     /// @param tradingAccountId The trading account id.
@@ -347,14 +352,37 @@ contract OrderBranch {
         emit LogCreateMarketOrder(msg.sender, params.tradingAccountId, params.marketId, marketOrder);
     }
 
+    /// @notice Cancels all active offchain orders.
+    /// @dev Reverts if the sender is not the trading account owner or it does not exist.
+    /// @dev By increasing the `tradingAccount.nonce` value, all offchain orders signed with the previous nonce won't
+    /// be able to be filled.
+    /// @dev If for some reason the trading account owner has signed offchain orders with nonce values higher than the
+    /// current nonce, and the new nonce value matches those values, the offchain orders will become fillable. Offchain
+    /// actors must enforce signing orders with the latest nonce value.
+    /// @param tradingAccountId The trading account id.
+    function cancelAllOffchainOrders(uint128 tradingAccountId) external {
+        // load existing trading account; reverts for non-existent account
+        // enforces `msg.sender == owner` so only account owner can cancel
+        // pendin orders.
+        TradingAccount.Data storage tradingAccount =
+            TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
+
+        // bump the nonce value, which will invalidate all offchain orders signed with the previous nonce
+        unchecked {
+            tradingAccount.nonce++;
+        }
+
+        emit LogCancelAllOffchainOrders(msg.sender, tradingAccountId, tradingAccount.nonce);
+    }
+
     /// @notice Cancels an active market order.
-    /// @dev Reverts if the sender is not the trading account or if there is no active market order for the
-    /// given account and market.
+    /// @dev Reverts if the sender is not the trading account owner, if it doesn't exist, or if there is no active
+    /// market order for the given trading account.
     /// @param tradingAccountId The trading account id.
     function cancelMarketOrder(uint128 tradingAccountId) external {
         // load existing trading account; reverts for non-existent account
         // enforces `msg.sender == owner` so only account owner can cancel
-        // pendin orders
+        // pending orders
         TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
 
         // load trader's pending order; reverts if no pending order
