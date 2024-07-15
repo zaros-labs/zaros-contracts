@@ -23,7 +23,7 @@ contract CancelAllOffchainOrders_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountNotFound.selector, nonExistingTradingAccountId, users.naruto.account
-                )
+            )
         });
         perpsEngine.cancelAllOffchainOrders(nonExistingTradingAccountId);
     }
@@ -40,7 +40,7 @@ contract CancelAllOffchainOrders_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountPermissionDenied.selector, tradingAccountId, users.sasuke.account
-                )
+            )
         });
         perpsEngine.cancelAllOffchainOrders(tradingAccountId);
     }

@@ -133,7 +133,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.OracleSequencerUptimeFeedIsDown.selector, address(mockSequencerUptimeFeedDown)
-                )
+            )
         });
 
         perpsEngine.exposed_getPrice(collateral);
@@ -223,7 +223,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.OraclePriceFeedHeartbeat.selector, address(mockPriceFeedOldUpdatedAt)
-                )
+            )
         });
 
         perpsEngine.exposed_getPrice(collateral);
@@ -254,7 +254,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
-                )
+            )
         });
 
         perpsEngine.exposed_getPrice(address(usdc));
@@ -268,7 +268,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
-                )
+            )
         });
 
         perpsEngine.exposed_getPrice(address(usdc));
@@ -295,7 +295,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
-                )
+            )
         });
 
         perpsEngine.exposed_getPrice(address(usdc));
@@ -309,7 +309,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
-                )
+            )
         });
 
         perpsEngine.exposed_getPrice(address(usdc));
