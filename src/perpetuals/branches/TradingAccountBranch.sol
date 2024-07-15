@@ -226,19 +226,15 @@ contract TradingAccountBranch {
 
     /// @notice Creates a new trading account and mints its NFT
     /// @return tradingAccountId The trading account id.
-<<<<<<< HEAD
     function createTradingAccount(
         bytes memory referralCode,
         bool isCustomReferralCode
     )
         public
         virtual
-        returns (uint128)
+        returns (uint128 tradingAccountId)
     {
-=======
-    function createTradingAccount() public virtual returns (uint128 tradingAccountId) {
         // fetch storage slot for global config
->>>>>>> 2f90908b (audit comments, gas improvements and one bug fix after mitigation review)
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         // increment next account id & output
@@ -254,7 +250,6 @@ contract TradingAccountBranch {
         tradingAccountToken.mint(msg.sender, tradingAccountId);
 
         emit LogCreateTradingAccount(tradingAccountId, msg.sender);
-<<<<<<< HEAD
 
         Referral.Data storage referral = Referral.load(msg.sender);
 
@@ -282,8 +277,6 @@ contract TradingAccountBranch {
         }
 
         return tradingAccountId;
-=======
->>>>>>> 2f90908b (audit comments, gas improvements and one bug fix after mitigation review)
     }
 
     /// @notice Creates a new trading account and multicalls using the provided data payload.
@@ -328,7 +321,7 @@ contract TradingAccountBranch {
 
         // load existing trading account; reverts for non-existent account
         // does not enforce msg.sender == account owner so anyone can deposit
-        // collateral for other traders if they wish    
+        // collateral for other traders if they wish
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
         // convert uint256 -> UD60x18; scales input amount to 18 decimals

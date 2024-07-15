@@ -130,6 +130,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
+        // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         // verifies provided price data following the configured settlement strategy
@@ -200,6 +201,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
+        // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         // verifies provided price data following the configured settlement strategy
