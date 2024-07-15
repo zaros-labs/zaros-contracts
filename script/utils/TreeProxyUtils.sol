@@ -320,7 +320,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     globalConfigurationHarnessSelectors[10] =
         GlobalConfigurationHarness.workaround_getSequencerUptimeFeedByChainId.selector;
 
-    bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](5);
+    bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](6);
     marginCollateralConfigurationHarnessSelectors[0] =
         MarginCollateralConfigurationHarness.exposed_MarginCollateral_load.selector;
     marginCollateralConfigurationHarnessSelectors[1] =
@@ -329,6 +329,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
         MarginCollateralConfigurationHarness.exposed_convertUd60x18ToTokenAmount.selector;
     marginCollateralConfigurationHarnessSelectors[3] = MarginCollateralConfigurationHarness.exposed_getPrice.selector;
     marginCollateralConfigurationHarnessSelectors[4] = MarginCollateralConfigurationHarness.exposed_configure.selector;
+    marginCollateralConfigurationHarnessSelectors[5] = MarginCollateralConfigurationHarness.workaround_getTotalDeposited.selector;
 
     bytes4[] memory marketConfigurationHarnessSelectors = new bytes4[](1);
     marketConfigurationHarnessSelectors[0] = MarketConfigurationHarness.exposed_update.selector;
@@ -378,7 +379,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     settlementConfigurationHarnessSelectors[5] =
         SettlementConfigurationHarness.exposed_verifyDataStreamsReport.selector;
 
-    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](21);
+    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](22);
     tradingAccountHarnessSelectors[0] = TradingAccountHarness.exposed_TradingAccount_loadExisting.selector;
     tradingAccountHarnessSelectors[1] = TradingAccountHarness.exposed_loadExistingAccountAndVerifySender.selector;
     tradingAccountHarnessSelectors[2] = TradingAccountHarness.exposed_validatePositionsLimit.selector;
@@ -401,6 +402,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     tradingAccountHarnessSelectors[18] = TradingAccountHarness.workaround_getActiveMarketsIdsLength.selector;
     tradingAccountHarnessSelectors[19] = TradingAccountHarness.workaround_getNonce.selector;
     tradingAccountHarnessSelectors[20] = TradingAccountHarness.workaround_hasOffchainOrderBeenFilled.selector;
+    tradingAccountHarnessSelectors[21] = TradingAccountHarness.workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral.selector;
 
     selectors[0] = globalConfigurationHarnessSelectors;
     selectors[1] = marginCollateralConfigurationHarnessSelectors;

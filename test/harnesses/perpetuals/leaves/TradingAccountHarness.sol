@@ -7,6 +7,7 @@ import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -14,6 +15,13 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract TradingAccountHarness {
     using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
+
+    function workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral(uint128 tradingAccountId, address collateral) external view returns (bool) {
+        TradingAccount.Data storage self = TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
+
+        return self.marginCollateralBalanceX18.contains(collateral);
+    }
 
     function workaround_getActiveMarketId(uint128 tradingAccountId, uint128 index) external view returns (uint128) {
         TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
