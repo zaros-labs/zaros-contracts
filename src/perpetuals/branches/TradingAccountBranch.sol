@@ -330,10 +330,6 @@ contract TradingAccountBranch {
         // uint128 -> UD60x18
         UD60x18 depositCapX18 = ud60x18(marginCollateralConfiguration.depositCap);
 
-        // @audit it doesn't make sense to have depositCap as uint128 but totalDeposited as uint256,
-        // since totalDeposited could never be bigger than uint128 due to the deposit cap size?
-        // hence consider changing totalDeposited to be uint128 or depositCap to uint256
-        //
         // uint256 -> UD60x18
         UD60x18 totalCollateralDepositedX18 = ud60x18(marginCollateralConfiguration.totalDeposited);
 

@@ -324,12 +324,8 @@ contract SettlementBranch is EIP712Upgradeable {
         UD60x18 newOpenInterestX18;
         UD60x18 requiredMarginUsdX18;
         UD60x18 marginToAddX18;
-        // @audit sizeDeltaX18 is never used so either delete it or
-        // rename & use it to cache sd59x18(oldPosition.size) which
-        // gets read from storage & computed multiple times
-        // may also want to cache sd59x18(ctx.newPosition.size) since
-        // it is faster than computing it 3 times
-        SD59x18 sizeDeltaX18;
+        SD59x18 oldPositionSizeX18;
+        SD59x18 newPositionSizeX18;
         SD59x18 pnlUsdX18;
         SD59x18 fundingFeePerUnitX18;
         SD59x18 fundingRateX18;
@@ -405,6 +401,8 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // fetch storage slot for account's potential existing position in this market
         Position.Data storage oldPosition = Position.load(tradingAccountId, marketId);
+        // int256 -> SD59x18
+        ctx.oldPositionSizeX18 = sd59x18(oldPosition.size);
 
         {
             // calculate required initial & maintenance margin for this trade
@@ -426,7 +424,7 @@ contract SettlementBranch is EIP712Upgradeable {
             // but if the trader is opening a new position or increasing the size
             // of their existing position we want to ensure they satisfy the higher
             // initial margin requirement
-            ctx.shouldUseMaintenanceMargin = !ctx.isIncreasing && oldPosition.size != 0;
+            ctx.shouldUseMaintenanceMargin = !ctx.isIncreasing && !ctx.oldPositionSizeX18.isZero();
 
             ctx.requiredMarginUsdX18 =
                 ctx.shouldUseMaintenanceMargin ? requiredMaintenanceMarginUsdX18 : requiredInitialMarginUsdX18;
@@ -446,35 +444,33 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // create new position in working area
         ctx.newPosition = Position.Data({
-            size: sd59x18(oldPosition.size).add(sizeDeltaX18).intoInt256(),
+            size: ctx.oldPositionSizeX18.add(sizeDeltaX18).intoInt256(),
             lastInteractionPrice: fillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnitX18.intoInt256().toInt128()
         });
+        // int256 -> SD59x18
+        ctx.newPositionSizeX18 = sd59x18(ctx.newPosition.size);
 
         // enforce open interest and skew limits for target market and calculate
         // new open interest and new skew
         (ctx.newOpenInterestX18, ctx.newSkewX18) =
-            perpMarket.checkOpenInterestLimits(sizeDeltaX18, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+            perpMarket.checkOpenInterestLimits(sizeDeltaX18, ctx.oldPositionSizeX18, ctx.newPositionSizeX18);
 
         // update open interest and skew for this perp market
         perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
 
         // update active markets for this account; may also trigger update
         // to global config set of active accounts
-        tradingAccount.updateActiveMarkets(marketId, sd59x18(oldPosition.size), sd59x18(ctx.newPosition.size));
+        tradingAccount.updateActiveMarkets(marketId, ctx.oldPositionSizeX18, ctx.newPositionSizeX18);
 
         // if the position is being closed, clear old position data
-        if (ctx.newPosition.size == 0) {
+        if (ctx.newPositionSizeX18.isZero()) {
             oldPosition.clear();
         }
         // otherwise we are opening a new position or modifying an existing position
         else {
             // revert if new position size is under the minimum for this market
-            if (
-                sd59x18(ctx.newPosition.size).abs().lt(
-                    sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18)))
-                )
-            ) {
+            if (ctx.newPositionSizeX18.abs().lt(sd59x18(int256(uint256(perpMarket.configuration.minTradeSizeX18))))) {
                 revert Errors.NewPositionSizeTooSmall();
             }
 
