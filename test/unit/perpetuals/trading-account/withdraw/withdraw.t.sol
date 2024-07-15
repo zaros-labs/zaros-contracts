@@ -16,7 +16,7 @@ contract Withdraw_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_WhenNewMarginCollateralBalanceIsZero(uint256 amountToDeposit) external {
+    function testFuzz_WhenTheNewMarginCollateralBalanceIsZero(uint256 amountToDeposit) external {
         // Test with wstEth that has 18 decimals
 
         amountToDeposit = bound({
@@ -39,11 +39,11 @@ contract Withdraw_Unit_Test is Base_Test {
         bool marginCollateralBalanceX18ContainsTheCollateral = perpsEngine
             .workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral(tradingAccountId, address(wstEth));
 
-        uint256 receivedTotalDeposited = perpsEngine.workaround_getTotalDeposited(address(wstEth));
+        uint256 actualTotalDeposited = perpsEngine.workaround_getTotalDeposited(address(wstEth));
         uint256 expectedTotalDeposited = 0;
 
         // it should update the total deposited
-        assertEq(expectedTotalDeposited, receivedTotalDeposited, "total deposited is not correct");
+        assertEq(expectedTotalDeposited, actualTotalDeposited, "total deposited is not correct");
 
         // it should remove the collateral
         assertEq(marginCollateralBalanceX18ContainsTheCollateral, false, "the collateral should be removed");
@@ -70,17 +70,17 @@ contract Withdraw_Unit_Test is Base_Test {
         marginCollateralBalanceX18ContainsTheCollateral = perpsEngine
             .workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral(tradingAccountId, address(usdc));
 
-        receivedTotalDeposited = perpsEngine.workaround_getTotalDeposited(address(wstEth));
+        actualTotalDeposited = perpsEngine.workaround_getTotalDeposited(address(wstEth));
         expectedTotalDeposited = 0;
 
         // it should update the total deposited
-        assertEq(expectedTotalDeposited, receivedTotalDeposited, "total deposited is not correct");
+        assertEq(expectedTotalDeposited, actualTotalDeposited, "total deposited is not correct");
 
         // it should remove the collateral
         assertEq(marginCollateralBalanceX18ContainsTheCollateral, false, "the collateral should be removed");
     }
 
-    function testFuzz_WhenNewMarginCollateralBalanceIsNotZero(
+    function testFuzz_WhenTheNewMarginCollateralBalanceIsNotZero(
         uint256 amountToDeposit,
         uint256 amountToWithdraw
     )
@@ -108,15 +108,15 @@ contract Withdraw_Unit_Test is Base_Test {
         uint256 receivedMarginCollateralBalance =
             perpsEngine.exposed_getMarginCollateralBalance(tradingAccountId, address(wstEth)).intoUint256();
 
-        uint256 receivedTotalDeposited = perpsEngine.workaround_getTotalDeposited(address(wstEth));
+        uint256 actualTotalDeposited = perpsEngine.workaround_getTotalDeposited(address(wstEth));
         uint256 expectedTotalDeposited = (amountToDepositX18.sub(amountToWithdrawX18)).intoUint256();
 
         // it should update the total deposited
-        assertEq(expectedTotalDeposited, receivedTotalDeposited, "total deposited is not correct");
+        assertEq(expectedTotalDeposited, actualTotalDeposited, "total deposited is not correct");
 
         // it should update the new balance
         assertEq(
-            receivedTotalDeposited, receivedMarginCollateralBalance, "the margin collateral balance should be updated"
+            actualTotalDeposited, receivedMarginCollateralBalance, "the margin collateral balance should be updated"
         );
 
         // Test with usdc that has 6 decimals
@@ -140,17 +140,17 @@ contract Withdraw_Unit_Test is Base_Test {
 
         receivedMarginCollateralBalance =
             perpsEngine.exposed_getMarginCollateralBalance(tradingAccountId, address(usdc)).intoUint256();
-        receivedTotalDeposited = (amountToDepositX18.sub(amountToWithdrawX18)).intoUint256();
+        actualTotalDeposited = (amountToDepositX18.sub(amountToWithdrawX18)).intoUint256();
 
-        receivedTotalDeposited = perpsEngine.workaround_getTotalDeposited(address(usdc));
+        actualTotalDeposited = perpsEngine.workaround_getTotalDeposited(address(usdc));
         expectedTotalDeposited = (amountToDepositX18.sub(amountToWithdrawX18)).intoUint256();
 
         // it should update the total deposited
-        assertEq(expectedTotalDeposited, receivedTotalDeposited, "total deposited is not correct");
+        assertEq(expectedTotalDeposited, actualTotalDeposited, "total deposited is not correct");
 
         // it should update the new balance
         assertEq(
-            receivedTotalDeposited, receivedMarginCollateralBalance, "the margin collateral balance should be updated"
+            actualTotalDeposited, receivedMarginCollateralBalance, "the margin collateral balance should be updated"
         );
     }
 }
