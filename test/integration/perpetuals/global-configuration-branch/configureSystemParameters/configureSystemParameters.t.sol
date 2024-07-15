@@ -35,7 +35,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account
+            users.liquidationFeeRecipient.account,
+            MAX_VERIFICATION_DELAY
         );
     }
 
@@ -64,7 +65,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account
+            users.liquidationFeeRecipient.account,
+            MAX_VERIFICATION_DELAY
         );
     }
 
@@ -96,7 +98,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             address(0),
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account
+            users.liquidationFeeRecipient.account,
+            MAX_VERIFICATION_DELAY
         );
     }
 
@@ -129,7 +132,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             address(0),
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account
+            users.liquidationFeeRecipient.account,
+            MAX_VERIFICATION_DELAY
         );
     }
 
@@ -137,7 +141,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_SettlementFeeRecipientIsZero(
+    function testFuzz_RevertWhen_SettlementFeeRecipientIsZero(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
@@ -163,7 +167,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
             address(0),
-            users.liquidationFeeRecipient.account
+            users.liquidationFeeRecipient.account,
+            MAX_VERIFICATION_DELAY
         );
     }
 
@@ -171,7 +176,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_LiquidationFeeRecipientIsZero(
+    function testFuzz_RevertWhen_LiquidationFeeRecipientIsZero(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
@@ -198,11 +203,16 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
-            address(0)
+            address(0),
+            MAX_VERIFICATION_DELAY
         );
     }
 
-    function test_WhenLiquidationFeeRecipientIsNotZero(
+    modifier whenLiquidationFeeRecipientIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_MaxVerificationDelayIsZero(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
         uint128 liquidationFeeUsdX18
@@ -212,6 +222,41 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         whenLiquidationFeeIsNotZero
         whenMarginCollateralRecipientIsNotZero
         whenOrderFeeRecipientIsNotZero
+        whenSettlementFeeRecipientIsNotZero
+        whenLiquidationFeeRecipientIsNotZero
+    {
+        vm.assume(maxPositionsPerAccount > 0);
+        vm.assume(marketOrderMinLifetime > 0);
+        vm.assume(liquidationFeeUsdX18 > 0);
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxVerificationDelay") });
+
+        changePrank({ msgSender: users.owner.account });
+        perpsEngine.configureSystemParameters(
+            maxPositionsPerAccount,
+            marketOrderMinLifetime,
+            liquidationFeeUsdX18,
+            feeRecipients.marginCollateralRecipient,
+            feeRecipients.orderFeeRecipient,
+            feeRecipients.settlementFeeRecipient,
+            users.liquidationFeeRecipient.account,
+            0
+        );
+    }
+
+    function test_WhenMaxVerificationdelayIsNotZero(
+        uint128 maxPositionsPerAccount,
+        uint128 marketOrderMinLifetime,
+        uint128 liquidationFeeUsdX18
+    )
+        external
+        whenMaxPositionsPerAccountIsNotZero
+        whenLiquidationFeeIsNotZero
+        whenMarginCollateralRecipientIsNotZero
+        whenOrderFeeRecipientIsNotZero
+        whenSettlementFeeRecipientIsNotZero
+        whenLiquidationFeeRecipientIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
         vm.assume(marketOrderMinLifetime > 0);
@@ -231,7 +276,8 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.marginCollateralRecipient,
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account
+            users.liquidationFeeRecipient.account,
+            MAX_VERIFICATION_DELAY
         );
     }
 }

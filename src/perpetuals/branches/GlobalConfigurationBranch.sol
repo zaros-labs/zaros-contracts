@@ -284,7 +284,8 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         address marginCollateralRecipient,
         address orderFeeRecipient,
         address settlementFeeRecipient,
-        address liquidationFeeRecipient
+        address liquidationFeeRecipient,
+        uint256 maxVerificationDelay
     )
         external
         onlyOwner
@@ -313,6 +314,10 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
             revert Errors.ZeroInput("liquidationFeeRecipient");
         }
 
+        if (maxVerificationDelay == 0) {
+            revert Errors.ZeroInput("maxVerificationDelay");
+        }
+
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         globalConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
@@ -322,6 +327,7 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         globalConfiguration.orderFeeRecipient = orderFeeRecipient;
         globalConfiguration.settlementFeeRecipient = settlementFeeRecipient;
         globalConfiguration.liquidationFeeRecipient = liquidationFeeRecipient;
+        globalConfiguration.maxVerificationDelay = maxVerificationDelay;
 
         emit LogConfigureSystemParameters(
             msg.sender, maxPositionsPerAccount, marketOrderMinLifetime, liquidationFeeUsdX18

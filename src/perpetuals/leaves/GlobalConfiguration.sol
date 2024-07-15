@@ -28,6 +28,7 @@ library GlobalConfiguration {
     /// @param liquidationFeeRecipient The address that receives liquidation fees.
     /// @param usdToken The address of the USD token (USDz).
     /// @param tradingAccountToken The address of the trading account NFT.
+    /// @param maxVerificationDelay The maximum delay allowed for the off chain price verification.
     /// @param nextAccountId The next available trading account id.
     /// @param isLiquidatorEnabled The mapping of liquidator addresses to their enabled status.
     /// @param collateralLiquidationPriority The set of collateral types in order of liquidation priority.
@@ -44,6 +45,7 @@ library GlobalConfiguration {
         address liquidationFeeRecipient;
         address usdToken;
         address tradingAccountToken;
+        uint256 maxVerificationDelay;
         uint96 nextAccountId;
         mapping(address => bool) isLiquidatorEnabled;
         EnumerableSet.AddressSet collateralLiquidationPriority;

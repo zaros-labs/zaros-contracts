@@ -84,10 +84,20 @@ library SettlementConfiguration {
     /// @notice Checks if the provided data streams report is using the expected stream id.
     /// @param streamId The expected stream id.
     /// @param verifiedReportData The verified report data.
-    function requireDataStreamsReportIsValid(bytes32 streamId, bytes memory verifiedReportData) internal pure {
+    function requireDataStreamsReportIsValid(
+        bytes32 streamId,
+        bytes memory verifiedReportData,
+        uint256 maxVerificationDelay
+    )
+        internal
+        view
+    {
         PremiumReport memory premiumReport = abi.decode(verifiedReportData, (PremiumReport));
 
-        if (streamId != premiumReport.feedId) {
+        if (
+            streamId != premiumReport.feedId
+                || block.timestamp > premiumReport.validFromTimestamp + maxVerificationDelay
+        ) {
             revert Errors.InvalidDataStreamReport(streamId, premiumReport.feedId);
         }
     }
@@ -117,11 +127,13 @@ library SettlementConfiguration {
     /// @dev New settlement strategies may be added in the future, hence the if-else statement.
     /// @param self The {SettlementConfiguration} storage pointer.
     /// @param priceData The unverified price report data.
+    /// @param maxVerificationDelay The maximum delay allowed for the off chain price verification.
     /// @return bidX18 The offchain bid price.
     /// @return askX18 The offchain ask price.
     function verifyOffchainPrice(
         Data storage self,
-        bytes memory priceData
+        bytes memory priceData,
+        uint256 maxVerificationDelay
     )
         internal
         returns (UD60x18 bidX18, UD60x18 askX18)
@@ -130,9 +142,10 @@ library SettlementConfiguration {
             DataStreamsStrategy memory dataStreamsStrategy = abi.decode(self.data, (DataStreamsStrategy));
             bytes memory verifiedPriceData = verifyDataStreamsReport(dataStreamsStrategy, priceData);
 
-            requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData);
+            requireDataStreamsReportIsValid(dataStreamsStrategy.streamId, verifiedPriceData, maxVerificationDelay);
 
             PremiumReport memory premiumReport = abi.decode(verifiedPriceData, (PremiumReport));
+
             (bidX18, askX18) =
                 (ud60x18(int256(premiumReport.bid).toUint256()), ud60x18(int256(premiumReport.ask).toUint256()));
         } else {
@@ -155,7 +168,6 @@ library SettlementConfiguration {
 
         bytes memory reportData = ChainlinkUtil.getReportData(signedReport);
         (FeeAsset memory fee) = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
-
         verifiedReportData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, signedReport);
     }
 }

@@ -51,7 +51,8 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             marginCollateralRecipient: MSIG_ADDRESS,
             orderFeeRecipient: MSIG_ADDRESS,
             settlementFeeRecipient: MSIG_ADDRESS,
-            liquidationFeeRecipient: MSIG_ADDRESS
+            liquidationFeeRecipient: MSIG_ADDRESS,
+            maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
 
         uint256[2] memory marginCollateralIdsRange;

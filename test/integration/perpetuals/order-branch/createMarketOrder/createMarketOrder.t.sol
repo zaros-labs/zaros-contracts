@@ -79,7 +79,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountPermissionDenied.selector, tradingAccountId, users.sasuke.account
-            )
+                )
         });
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -298,7 +298,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId,
                 fuzzMarketConfig.maxOi,
                 sizeDeltaAbs.intoUint256()
-            )
+                )
         });
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -378,7 +378,8 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
-            liquidationFeeRecipient: users.liquidationFeeRecipient.account
+            liquidationFeeRecipient: users.liquidationFeeRecipient.account,
+            maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
 
         changePrank({ msgSender: users.naruto.account });
@@ -496,7 +497,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 marginBalanceUsdX18.intoInt256(),
                 requiredInitialMarginUsdX18,
                 orderFeeUsdX18.add(settlementFeeUsdX18).intoUint256()
-            )
+                )
         });
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
