@@ -133,8 +133,7 @@ library GlobalConfiguration {
         uint256 copyCollateralLiquidationPriorityLength = copyCollateralLiquidationPriority.length;
 
         // create a new array to store the new order
-        address[] memory newCollateralLiquidationPriority =
-            new address[](copyCollateralLiquidationPriorityLength - 1);
+        address[] memory newCollateralLiquidationPriority = new address[](copyCollateralLiquidationPriorityLength - 1);
 
         uint256 indexCollateral;
 

@@ -182,7 +182,7 @@ library TradingAccount {
             // read key/value from storage for current iteration
             (address collateralType, uint256 balance) = self.marginCollateralBalanceX18.at(i);
 
-             // load collateral margin config for this collateral type
+            // load collateral margin config for this collateral type
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
 
@@ -251,7 +251,7 @@ library TradingAccount {
             SD59x18 positionUnrealizedPnl =
                 position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
 
-             // update cumulative outputs
+            // update cumulative outputs
             requiredInitialMarginUsdX18 = requiredInitialMarginUsdX18.add(positionInitialMarginUsdX18);
             requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
             accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
@@ -372,11 +372,11 @@ library TradingAccount {
     /// @param collateralType The address of the collateral type.
     /// @param amountX18 The amount of margin collateral to be added.
     function deposit(Data storage self, address collateralType, UD60x18 amountX18) internal {
-         // load address : collateral map for this account
+        // load address : collateral map for this account
         EnumerableMap.AddressToUintMap storage marginCollateralBalanceX18 = self.marginCollateralBalanceX18;
 
         // get currently deposited scaled-to-18-decimals this account has
-        // for this collateral type, then add newly deposited amount also scaled to 18 decimals 
+        // for this collateral type, then add newly deposited amount also scaled to 18 decimals
         UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).add(amountX18);
 
         // converts updated scaled-to-18-decimals UD60x18 to uint256 and stores
@@ -401,7 +401,7 @@ library TradingAccount {
         EnumerableMap.AddressToUintMap storage marginCollateralBalanceX18 = self.marginCollateralBalanceX18;
 
         // get currently deposited scaled-to-18-decimals this account has
-        // for this collateral type, then subtracts newly withdrawn amount also scaled to 18 decimals 
+        // for this collateral type, then subtracts newly withdrawn amount also scaled to 18 decimals
         UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).sub(amountX18);
 
         if (newMarginCollateralBalance.isZero()) {
@@ -596,7 +596,6 @@ library TradingAccount {
         if (oldPositionSize.isZero() && !newPositionSize.isZero()) {
             // if this account has no other active positions
             if (!globalConfiguration.accountsIdsWithActivePositions.contains(self.id)) {
-
                 // then record it into global config as an account having active positions
                 globalConfiguration.accountsIdsWithActivePositions.add(self.id);
             }
@@ -604,7 +603,6 @@ library TradingAccount {
             // add this market id as active for this account
             self.activeMarketsIds.add(marketId);
         }
-        
         // if the existing position was closed
         else if (oldPositionSize.neq(SD59x18_ZERO) && newPositionSize.eq(SD59x18_ZERO)) {
             // remove this market as active for this account

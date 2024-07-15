@@ -17,7 +17,14 @@ contract TradingAccountHarness {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
-    function workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral(uint128 tradingAccountId, address collateral) external view returns (bool) {
+    function workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral(
+        uint128 tradingAccountId,
+        address collateral
+    )
+        external
+        view
+        returns (bool)
+    {
         TradingAccount.Data storage self = TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
 
         return self.marginCollateralBalanceX18.contains(collateral);

@@ -210,10 +210,12 @@ library PerpMarket {
 
             // calculate corresponding fees for maker and taker portions
             // of this trade which flipped the skew
-            UD60x18 takerFee = markPriceX18.mul(ud60x18(takerSize)).mul(ud60x18(self.configuration.orderFees.takerFee));
-            UD60x18 makerFee = markPriceX18.mul(ud60x18(makerSize)).mul(ud60x18(self.configuration.orderFees.makerFee));
+            UD60x18 takerFee =
+                markPriceX18.mul(ud60x18(takerSize)).mul(ud60x18(self.configuration.orderFees.takerFee));
+            UD60x18 makerFee =
+                markPriceX18.mul(ud60x18(makerSize)).mul(ud60x18(self.configuration.orderFees.makerFee));
 
-             // output order fee
+            // output order fee
             orderFeeUsd = takerFee.add(makerFee);
         }
     }
