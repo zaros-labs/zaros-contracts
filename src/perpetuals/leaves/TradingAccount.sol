@@ -174,20 +174,29 @@ library TradingAccount {
         view
         returns (SD59x18 marginBalanceUsdX18)
     {
+        // cache colllateral length
         uint256 cachedMarginCollateralBalanceLength = self.marginCollateralBalanceX18.length();
 
+        // iterate over every collateral account has deposited
         for (uint256 i; i < cachedMarginCollateralBalanceLength; i++) {
+            // read key/value from storage for current iteration
             (address collateralType, uint256 balance) = self.marginCollateralBalanceX18.at(i);
+
+            // load collateral margin config for this collateral type
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
 
+            // calculate the collateral's "effective" balance as:
+            // collateral_price * deposited_balance * collateral_loan_to_value_ratio
             UD60x18 adjustedBalanceUsdX18 = marginCollateralConfiguration.getPrice().mul(ud60x18(balance)).mul(
                 ud60x18(marginCollateralConfiguration.loanToValue)
             );
 
+            // add this account's "effective" collateral balance to cumulative output
             marginBalanceUsdX18 = marginBalanceUsdX18.add(adjustedBalanceUsdX18.intoSD59x18());
         }
 
+        // finally add the unrealized PNL to the cumulative output
         marginBalanceUsdX18 = marginBalanceUsdX18.add(activePositionsUnrealizedPnlUsdX18);
     }
 
@@ -211,11 +220,18 @@ library TradingAccount {
             SD59x18 accountTotalUnrealizedPnlUsdX18
         )
     {
+        // if an existing position is being changed, perform some additional processing
         if (targetMarketId != 0) {
+            // load the market's perp information
             PerpMarket.Data storage perpMarket = PerpMarket.load(targetMarketId);
+
+            // load the account's position in that market
             Position.Data storage position = Position.load(self.id, targetMarketId);
 
+            // calculate price impact of the change in position
             UD60x18 markPrice = perpMarket.getMarkPrice(sizeDeltaX18, perpMarket.getIndexPrice());
+
+            // get funding fee per unit
             SD59x18 fundingFeePerUnit =
                 perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
 
@@ -223,47 +239,64 @@ library TradingAccount {
             // margin requirements.
             UD60x18 notionalValueX18 = sd59x18(position.size).add(sizeDeltaX18).abs().intoUD60x18().mul(markPrice);
 
+            // calculate margin requirements
             (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
                 .getMarginRequirement(
                 notionalValueX18,
                 ud60x18(perpMarket.configuration.initialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
             );
+
+            // get unrealized pnl + accrued funding fees
             SD59x18 positionUnrealizedPnl =
                 position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
 
+            // update cumulative outputs
             requiredInitialMarginUsdX18 = requiredInitialMarginUsdX18.add(positionInitialMarginUsdX18);
             requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
             accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
         }
 
+        // iterate over account's active markets
         uint256 cachedActiveMarketsIdsLength = self.activeMarketsIds.length();
 
         for (uint256 i; i < cachedActiveMarketsIdsLength; i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
 
+            // if the previous special processing occured, skip this iteration
             if (marketId == targetMarketId) {
                 continue;
             }
 
+            // load the current active market's perp information
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+
+            // load the account's position in that market
             Position.Data storage position = Position.load(self.id, marketId);
 
+            // calculate price impact as if trader were to close the entire position
             UD60x18 markPrice = perpMarket.getMarkPrice(sd59x18(-position.size), perpMarket.getIndexPrice());
+
+            // get funding fee per unit
             SD59x18 fundingFeePerUnit =
                 perpMarket.getNextFundingFeePerUnit(perpMarket.getCurrentFundingRate(), markPrice);
 
+            // calculate notional value
             UD60x18 notionalValueX18 = position.getNotionalValue(markPrice);
 
+            // calculate margin requirements
             (UD60x18 positionInitialMarginUsdX18, UD60x18 positionMaintenanceMarginUsdX18) = Position
                 .getMarginRequirement(
                 notionalValueX18,
                 ud60x18(perpMarket.configuration.initialMarginRateX18),
                 ud60x18(perpMarket.configuration.maintenanceMarginRateX18)
             );
+
+            // get unrealized pnl + accrued funding fees
             SD59x18 positionUnrealizedPnl =
                 position.getUnrealizedPnl(markPrice).add(position.getAccruedFunding(fundingFeePerUnit));
 
+            // update cumulative outputs
             requiredInitialMarginUsdX18 = requiredInitialMarginUsdX18.add(positionInitialMarginUsdX18);
             requiredMaintenanceMarginUsdX18 = requiredMaintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
             accountTotalUnrealizedPnlUsdX18 = accountTotalUnrealizedPnlUsdX18.add(positionUnrealizedPnl);
@@ -339,13 +372,22 @@ library TradingAccount {
     /// @param collateralType The address of the collateral type.
     /// @param amountX18 The amount of margin collateral to be added.
     function deposit(Data storage self, address collateralType, UD60x18 amountX18) internal {
+        // load address : collateral map for this account
         EnumerableMap.AddressToUintMap storage marginCollateralBalanceX18 = self.marginCollateralBalanceX18;
+
+        // get currently deposited scaled-to-18-decimals this account has
+        // for this collateral type, then add newly deposited amount also scaled to 18 decimals
+        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).add(amountX18);
+
+        // converts updated scaled-to-18-decimals UD60x18 to uint256 and stores
+        // it in address : collateral map for this account
+        marginCollateralBalanceX18.set(collateralType, newMarginCollateralBalance.intoUint256());
+
+        // load collateral configuration for this collateral type
         MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
             MarginCollateralConfiguration.load(collateralType);
 
-        UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).add(amountX18);
-
-        marginCollateralBalanceX18.set(collateralType, newMarginCollateralBalance.intoUint256());
+        // update total deposited for this collateral type
         marginCollateralConfiguration.totalDeposited =
             ud60x18(marginCollateralConfiguration.totalDeposited).add(amountX18).intoUint256();
     }
@@ -355,14 +397,30 @@ library TradingAccount {
     /// @param collateralType The address of the collateral type.
     /// @param amountX18 The amount of margin collateral to be removed.
     function withdraw(Data storage self, address collateralType, UD60x18 amountX18) internal {
+        // load address : collateral map for this account
         EnumerableMap.AddressToUintMap storage marginCollateralBalanceX18 = self.marginCollateralBalanceX18;
+
+        // get currently deposited scaled-to-18-decimals this account has
+        // for this collateral type, then subtracts newly withdrawn amount also scaled to 18 decimals
         UD60x18 newMarginCollateralBalance = getMarginCollateralBalance(self, collateralType).sub(amountX18);
 
         if (newMarginCollateralBalance.isZero()) {
+            // if no more collateral, remove this collateral type
+            // from this account's deposited collateral
             marginCollateralBalanceX18.remove(collateralType);
         } else {
+            // else convert updated scaled-to-18-decimals UD60x18 to uint256 and stores
+            // it in address : collateral map for this account
             marginCollateralBalanceX18.set(collateralType, newMarginCollateralBalance.intoUint256());
         }
+
+        // load collateral configuration for this collateral type
+        MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
+            MarginCollateralConfiguration.load(collateralType);
+
+        // update total deposited for this collateral type
+        marginCollateralConfiguration.totalDeposited =
+            ud60x18(marginCollateralConfiguration.totalDeposited).sub(amountX18).intoUint256();
     }
 
     /// @notice Withdraws the given amount of margin collateral in USD from the trading account.
@@ -437,23 +495,39 @@ library TradingAccount {
         internal
         returns (UD60x18 marginDeductedUsdX18)
     {
+        // working data
         DeductAccountMarginContext memory ctx;
 
+        // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
+        // cache collateral liquidation priority length
         uint256 cachedCollateralLiquidationPriorityLength = globalConfiguration.collateralLiquidationPriority.length();
 
+        // loop through configured collateral types
         for (uint256 i; i < cachedCollateralLiquidationPriorityLength; i++) {
+            // get ith collateral type
             address collateralType = globalConfiguration.collateralLiquidationPriority.at(i);
+
+            // fetch storage slot for this collateral's config config
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
                 MarginCollateralConfiguration.load(collateralType);
 
+            // get trader's collateral balance for this collateral, scaled to 18 decimals
             ctx.marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
+
+            // skip to next loop iteration if trader hasn't deposited any of this collateral
             if (ctx.marginCollateralBalanceX18.isZero()) continue;
 
+            // get this collateral's USD price
             ctx.marginCollateralPriceUsdX18 = marginCollateralConfiguration.getPrice();
 
+            // if:
+            // settlement fee > 0 AND
+            // amount of settlement fee paid so far < settlement fee
             if (settlementFeeUsdX18.gt(UD60x18_ZERO) && ctx.settlementFeeDeductedUsdX18.lt(settlementFeeUsdX18)) {
+                // attempt to deduct from this collateral difference between settlement fee
+                // and amount of settlement fee paid so far
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
                     collateralType,
@@ -461,9 +535,13 @@ library TradingAccount {
                     settlementFeeUsdX18.sub(ctx.settlementFeeDeductedUsdX18),
                     feeRecipients.settlementFeeRecipient
                 );
+
+                // update amount of settlement fee paid so far by the amount
+                // that was actually withdraw from this collateral
                 ctx.settlementFeeDeductedUsdX18 = ctx.settlementFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
             }
 
+            // order fee logic same as settlement fee above
             if (orderFeeUsdX18.gt(UD60x18_ZERO) && ctx.orderFeeDeductedUsdX18.lt(orderFeeUsdX18)) {
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
@@ -475,6 +553,7 @@ library TradingAccount {
                 ctx.orderFeeDeductedUsdX18 = ctx.orderFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
             }
 
+            // pnl logic same as settlement & order fee above
             if (pnlUsdX18.gt(UD60x18_ZERO) && ctx.pnlDeductedUsdX18.lt(pnlUsdX18)) {
                 (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin) = withdrawMarginUsd(
                     self,
@@ -485,11 +564,15 @@ library TradingAccount {
                 );
                 ctx.pnlDeductedUsdX18 = ctx.pnlDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
             }
+
+            // if there is no missing margin then exit the loop
+            // since all amounts have been deducted
             if (!ctx.isMissingMargin) {
                 break;
             }
         }
 
+        // output total margin deducted
         marginDeductedUsdX18 =
             ctx.settlementFeeDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18).add(ctx.pnlDeductedUsdX18);
     }
@@ -509,15 +592,25 @@ library TradingAccount {
     {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
+        // if this is a new position
         if (oldPositionSize.isZero() && !newPositionSize.isZero()) {
+            // if this account has no other active positions
             if (!globalConfiguration.accountsIdsWithActivePositions.contains(self.id)) {
+                // then record it into global config as an account having active positions
                 globalConfiguration.accountsIdsWithActivePositions.add(self.id);
             }
+
+            // add this market id as active for this account
             self.activeMarketsIds.add(marketId);
-        } else if (oldPositionSize.neq(SD59x18_ZERO) && newPositionSize.eq(SD59x18_ZERO)) {
+        }
+        // if the existing position was closed
+        else if (oldPositionSize.neq(SD59x18_ZERO) && newPositionSize.eq(SD59x18_ZERO)) {
+            // remove this market as active for this account
             self.activeMarketsIds.remove(marketId);
 
+            // if the account has no more active markets
             if (self.activeMarketsIds.length() == 0) {
+                // then remove the account from active accounts in global config
                 globalConfiguration.accountsIdsWithActivePositions.remove(self.id);
             }
         }

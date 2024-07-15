@@ -8,6 +8,10 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 contract MarginCollateralConfigurationHarness {
+    function workaround_getTotalDeposited(address collateralType) external view returns (uint256) {
+        return MarginCollateralConfiguration.load(collateralType).totalDeposited;
+    }
+
     function exposed_MarginCollateral_load(address collateralType)
         external
         pure
