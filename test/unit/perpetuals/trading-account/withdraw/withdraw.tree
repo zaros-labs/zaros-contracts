@@ -1,7 +1,7 @@
 Withdraw_Unit_Test
-└── when withdraw function is called
-    ├── when new margin collateral balance is zero
-    │   └── it should remove the collateral
-    ├── when new margin collateral balance is not zero
-    │   └── it should update the new balance
-    └── it should update the total deposited
+├── when new margin collateral balance is zero
+│   ├── it should update the total deposited
+│   └── it should remove the collateral
+└── when new margin collateral balance is not zero
+    ├── it should update the total deposited
+    └── it should update the new balance
