@@ -356,6 +356,9 @@ contract OrderBranch {
     /// @dev Reverts if the sender is not the trading account owner or it does not exist.
     /// @dev By increasing the `tradingAccount.nonce` value, all offchain orders signed with the previous nonce won't
     /// be able to be filled.
+    /// @dev If for some reason the trading account owner has signed offchain orders with nonce values higher than the
+    /// current nonce, and the new nonce value matches those values, the offchain orders will become fillable. Offchain
+    /// actors must enforce signing orders with the latest nonce value.
     /// @param tradingAccountId The trading account id.
     function cancelAllOffchainOrders(uint128 tradingAccountId) external {
         // load existing trading account; reverts for non-existent account
