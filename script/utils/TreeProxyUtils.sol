@@ -116,14 +116,15 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     liquidationBranchSelectors[0] = LiquidationBranch.checkLiquidatableAccounts.selector;
     liquidationBranchSelectors[1] = LiquidationBranch.liquidateAccounts.selector;
 
-    bytes4[] memory orderBranchSelectors = new bytes4[](6);
+    bytes4[] memory orderBranchSelectors = new bytes4[](7);
 
     orderBranchSelectors[0] = OrderBranch.getConfiguredOrderFees.selector;
     orderBranchSelectors[1] = OrderBranch.simulateTrade.selector;
     orderBranchSelectors[2] = OrderBranch.getMarginRequirementForTrade.selector;
     orderBranchSelectors[3] = OrderBranch.getActiveMarketOrder.selector;
     orderBranchSelectors[4] = OrderBranch.createMarketOrder.selector;
-    orderBranchSelectors[5] = OrderBranch.cancelMarketOrder.selector;
+    orderBranchSelectors[5] = OrderBranch.cancelAllOffchainOrders.selector;
+    orderBranchSelectors[6] = OrderBranch.cancelMarketOrder.selector;
 
     bytes4[] memory perpMarketBranchSelectors = new bytes4[](11);
 
