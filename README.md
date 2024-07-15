@@ -60,7 +60,7 @@ faced by large smart contract systems, by introducing the following solutions:
 - Market Order Keeper: Chainlink Automation compatible contract that is reponsible by filling market orders.
 - Liquidation Keeper: Chainlink Automation compatible contract or allowlisted EOA that has the permission of liquidating
   trading accounts when their MMR is below 1.
-- Signed Orders Keeper: EOA responsible by filling offchain offchain orders (e.g Limit, TP/SL).
+- Offchain Orders Keeper: EOA responsible by filling offchain offchain orders (e.g Limit, TP/SL).
 
 ````
 
