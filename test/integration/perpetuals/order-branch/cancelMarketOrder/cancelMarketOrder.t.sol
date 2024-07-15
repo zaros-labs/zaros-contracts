@@ -49,7 +49,7 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountPermissionDenied.selector, tradingAccountId, users.owner.account
-                )
+            )
         });
 
         perpsEngine.cancelMarketOrder(tradingAccountId);
