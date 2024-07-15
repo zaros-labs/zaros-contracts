@@ -22,14 +22,8 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
 
     mapping(address user => bool accountCreated) internal isAccountCreated;
 
-    error UserWithoutAccess();
     error UserAlreadyHasAccount();
-    error InvalidReferralCode();
     error FaucetAlreadyDeposited();
-
-    event LogReferralSet(
-        address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode
-    );
 
     constructor() {
         _disableInitializers();
@@ -39,83 +33,16 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
         return isAccountCreated[user];
     }
 
-    function getUserReferralData(address user) external pure returns (bytes memory, bool) {
-        ReferralTestnet.Data memory referral = ReferralTestnet.load(user);
-
-        return (referral.referralCode, referral.isCustomReferralCode);
-    }
-
-    function createTradingAccount() public override returns (uint128) { }
-
-    function createTradingAccount(bytes memory referralCode, bool isCustomReferralCode) public returns (uint128) {
+    function createTradingAccount(bytes memory referralCode, bool isCustomReferralCode) public override returns (uint128) {
         bool userHasAccount = isAccountCreated[msg.sender];
         if (userHasAccount) {
             revert UserAlreadyHasAccount();
         }
 
-        uint128 tradingAccountId = super.createTradingAccount();
+        uint128 tradingAccountId = super.createTradingAccount(referralCode, isCustomReferralCode);
         isAccountCreated[msg.sender] = true;
 
-        ReferralTestnet.Data storage referral = ReferralTestnet.load(msg.sender);
-
-        if (referralCode.length != 0 && referral.referralCode.length == 0) {
-            if (isCustomReferralCode) {
-                CustomReferralConfigurationTestnet.Data storage customReferral =
-                    CustomReferralConfigurationTestnet.load(string(referralCode));
-                if (customReferral.referrer == address(0)) {
-                    revert InvalidReferralCode();
-                }
-                referral.referralCode = referralCode;
-                referral.isCustomReferralCode = true;
-            } else {
-                address referrer = abi.decode(referralCode, (address));
-
-                if (referrer == msg.sender) {
-                    revert InvalidReferralCode();
-                }
-
-                referral.referralCode = referralCode;
-                referral.isCustomReferralCode = false;
-            }
-
-            emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
-        }
-
         return tradingAccountId;
-    }
-
-    function createTradingAccountAndMulticall(bytes[] calldata data)
-        external
-        payable
-        override
-        returns (bytes[] memory results)
-    { }
-
-    function createTradingAccountAndMulticall(
-        bytes[] calldata data,
-        bytes memory referralCode,
-        bool isCustomReferralCode
-    )
-        external
-        payable
-        returns (bytes[] memory results)
-    {
-        uint128 tradingAccountId = createTradingAccount(referralCode, isCustomReferralCode);
-
-        results = new bytes[](data.length);
-        for (uint256 i; i < data.length; i++) {
-            bytes memory dataWithAccountId = abi.encodePacked(data[i][0:4], abi.encode(tradingAccountId), data[i][4:]);
-            (bool success, bytes memory result) = address(this).delegatecall(dataWithAccountId);
-
-            if (!success) {
-                uint256 len = result.length;
-                assembly {
-                    revert(add(result, 0x20), len)
-                }
-            }
-
-            results[i] = result;
-        }
     }
 
     function depositMargin(

@@ -104,7 +104,7 @@ contract MarketOrderKeeper_CheckLog_Integration_Test is Base_Test {
                 "timestamp",
                 marketOrder.timestamp,
                 abi.encode(tradingAccountId)
-                )
+            )
         });
 
         MarketOrderKeeper(marketOrderKeeper).checkLog(mockedLog, extraData);

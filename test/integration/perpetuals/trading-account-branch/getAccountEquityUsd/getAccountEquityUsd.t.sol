@@ -25,7 +25,7 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountNotFound.selector, randomTradingAccountId, users.naruto.account
-                )
+            )
         });
 
         // it should revert

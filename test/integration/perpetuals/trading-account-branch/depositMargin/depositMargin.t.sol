@@ -15,7 +15,7 @@ contract DepositMargin_Integration_Test is Base_Test {
 
     function test_RevertWhen_TheAmountIsZero() external {
         uint256 amountToDeposit = 0;
-        uint128 userTradingAccountId = perpsEngine.createTradingAccount();
+        uint128 userTradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
@@ -36,7 +36,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         uint256 amountToDepositMargin = WSTETH_DEPOSIT_CAP_X18.intoUint256();
         deal({ token: address(wstEth), to: users.naruto.account, give: amountToDepositMargin * 2 });
 
-        uint128 userTradingAccountId = perpsEngine.createTradingAccount();
+        uint128 userTradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDepositMargin);
 
@@ -44,7 +44,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.DepositCap.selector, address(wstEth), amountToDepositMargin, WSTETH_DEPOSIT_CAP_X18.intoUint128()
-                )
+            )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(wstEth), amountToDepositMargin);
@@ -68,7 +68,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         );
         changePrank({ msgSender: users.naruto.account });
 
-        userTradingAccountId = perpsEngine.createTradingAccount();
+        userTradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         // it should revert
         vm.expectRevert({
@@ -91,7 +91,7 @@ contract DepositMargin_Integration_Test is Base_Test {
                 address(usdc),
                 convertTokenAmountToUd60x18(address(usdc), amountToDepositMarginUsdc).intoUint256(),
                 USDC_DEPOSIT_CAP_X18.intoUint256()
-                )
+            )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDepositMarginUsdc);
@@ -115,7 +115,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.DepositCap.selector, address(usdc), convertTokenAmountToUd60x18(address(usdc), amountToDeposit), 0
-                )
+            )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);
@@ -143,7 +143,7 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.naruto.account });
 
-        uint128 userTradingAccountId = perpsEngine.createTradingAccount();
+        uint128 userTradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         // it should revert
         vm.expectRevert({
@@ -176,7 +176,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountNotFound.selector, userTradingAccountId, users.naruto.account
-                )
+            )
         });
 
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);
@@ -203,7 +203,7 @@ contract DepositMargin_Integration_Test is Base_Test {
             MockERC20(address(usdc)).balanceOf(users.naruto.account), amountToDeposit, "balanceOf is not correct"
         );
 
-        uint128 userTradingAccountId = perpsEngine.createTradingAccount();
+        uint128 userTradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         // it should emit {LogDepositMargin}
         vm.expectEmit({ emitter: address(perpsEngine) });

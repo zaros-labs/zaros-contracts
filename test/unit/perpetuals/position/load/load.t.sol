@@ -18,7 +18,7 @@ contract Position_Load_Unit_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        uint128 tradingAccountId = perpsEngine.createTradingAccount();
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
 
@@ -48,7 +48,7 @@ contract Position_Load_Unit_Test is Base_Test {
             bound({ x: sizeAbs, min: uint256(fuzzMarketConfig.minTradeSize), max: uint256(fuzzMarketConfig.maxSkew) });
         int256 size = isLong ? int256(sizeAbs) : -int256(sizeAbs);
 
-        uint128 tradingAccountId = perpsEngine.createTradingAccount();
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         Position.Data memory mockPosition = Position.Data({
             size: size,

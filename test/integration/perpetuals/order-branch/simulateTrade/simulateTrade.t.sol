@@ -108,7 +108,7 @@ contract SimulateTradeIntegrationTest is Base_Test {
 
         // MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        // uint128 tradingAccountId = perpsEngine.createTradingAccount();
+        // uint128 tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         // // it should revert
         // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "sizeDelta") });

@@ -474,7 +474,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidDataStreamReport.selector, fuzzMarketConfig.streamId, premiumReport.feedId
-                )
+            )
         });
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
@@ -567,7 +567,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
                 marginBalanceUsdX18.intoInt256(),
                 requiredInitialMarginUsdX18,
                 orderFeeUsdX18.add(settlementFeeUsdX18).intoUint256()
-                )
+            )
         });
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }
@@ -641,7 +641,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.ExceedsOpenInterestLimit.selector, fuzzMarketConfig.marketId, newMaxOi, sizeDeltaAbs
-                )
+            )
         });
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
     }

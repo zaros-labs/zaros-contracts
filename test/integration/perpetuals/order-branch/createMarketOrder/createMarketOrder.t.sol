@@ -71,7 +71,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        uint128 tradingAccountId = perpsEngine.createTradingAccount();
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         changePrank({ msgSender: users.sasuke.account });
 
@@ -79,7 +79,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountPermissionDenied.selector, tradingAccountId, users.sasuke.account
-                )
+            )
         });
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -101,7 +101,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        uint128 tradingAccountId = perpsEngine.createTradingAccount();
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "sizeDelta") });
@@ -298,7 +298,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId,
                 fuzzMarketConfig.maxOi,
                 sizeDeltaAbs.intoUint256()
-                )
+            )
         });
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
@@ -497,7 +497,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 marginBalanceUsdX18.intoInt256(),
                 requiredInitialMarginUsdX18,
                 orderFeeUsdX18.add(settlementFeeUsdX18).intoUint256()
-                )
+            )
         });
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({

@@ -39,7 +39,7 @@ contract Position_GetUnrealizedPnl_Unit_Test is Base_Test {
             lastInteractionFundingFeePerUnit: lastInteractionFundingFeePerUnit
         });
 
-        uint128 tradingAccountId = perpsEngine.createTradingAccount();
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         perpsEngine.exposed_update(tradingAccountId, fuzzMarketConfig.marketId, mockPosition);
 

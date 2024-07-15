@@ -49,7 +49,7 @@ contract ConfigureSequencerUptimeFeedByChainId_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.ArrayLengthMismatch.selector, chainIds.length, sequencerUptimeFeeds.length
-                )
+            )
         });
 
         perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);

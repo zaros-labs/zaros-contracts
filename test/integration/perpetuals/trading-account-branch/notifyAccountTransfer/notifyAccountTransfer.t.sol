@@ -14,7 +14,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
     function test_RevertGiven_TheSenderIsNotTheAccountNftContract() external {
         changePrank({ msgSender: users.naruto.account });
 
-        uint128 tradingAccountId = perpsEngine.createTradingAccount();
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
 
         // it should revert
         vm.expectRevert({
@@ -44,7 +44,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountPermissionDenied.selector, tradingAccountId, users.naruto.account
-                )
+            )
         });
 
         // old user cannot withdraw

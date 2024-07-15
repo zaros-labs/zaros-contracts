@@ -404,7 +404,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         internal
         returns (uint128 tradingAccountId)
     {
-        tradingAccountId = perpsEngine.createTradingAccount();
+        tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);
         perpsEngine.depositMargin(tradingAccountId, collateralType, amount);
     }
 
