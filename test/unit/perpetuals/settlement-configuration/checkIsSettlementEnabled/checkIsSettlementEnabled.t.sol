@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 
 contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test {
     function setUp() public override {
@@ -26,7 +25,7 @@ contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test
             data: bytes("")
         });
 
-        SettlementConfigurationHarness(address(perpsEngine)).exposed_update(
+        perpsEngine.exposed_update(
             fuzzMarketConfig.marketId,
             SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
             newSettlementConfiguration
@@ -36,7 +35,7 @@ contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test
         vm.expectRevert({ revertData: Errors.SettlementDisabled.selector });
         // TODO: bound settlement configuration ids from the market order configuration id, up to the higher id
         // available once offchain orders are implemented
-        SettlementConfigurationHarness(address(perpsEngine)).exposed_checkIsSettlementEnabled(
+        perpsEngine.exposed_checkIsSettlementEnabled(
             fuzzMarketConfig.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID
         );
     }
@@ -45,7 +44,7 @@ contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         // it should pass
-        SettlementConfigurationHarness(address(perpsEngine)).exposed_checkIsSettlementEnabled(
+        perpsEngine.exposed_checkIsSettlementEnabled(
             fuzzMarketConfig.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID
         );
     }

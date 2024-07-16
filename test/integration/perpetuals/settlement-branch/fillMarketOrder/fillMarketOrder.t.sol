@@ -13,10 +13,6 @@ import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
-import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
-import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
-import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -789,7 +785,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should update the funding values
         ctx.expectedLastFundingTime = block.timestamp;
         ctx.perpMarketData =
-            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+            perpsEngine.exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
         assertEq(0, ctx.perpMarketData.lastFundingRate, "first fill: last funding rate");
         assertEq(0, ctx.perpMarketData.lastFundingFeePerUnit, "first fill: last funding fee per unit");
         assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "first fill: last funding time");
@@ -805,11 +801,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should update the account's active markets
         ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
         ctx.activeMarketId =
-            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketId(ctx.tradingAccountId, 0);
+            perpsEngine.workaround_getActiveMarketId(ctx.tradingAccountId, 0);
         assertEq(ctx.expectedActiveMarketId, ctx.activeMarketId, "first fill: active market id");
         ctx.expectedAccountIdWithActivePosition = ctx.tradingAccountId;
         ctx.accountIdWithActivePosition =
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
+            perpsEngine.workaround_getAccountIdWithActivePositions(0);
         assertEq(
             ctx.expectedAccountIdWithActivePosition,
             ctx.accountIdWithActivePosition,
@@ -822,7 +818,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             lastInteractionPrice: ctx.firstFillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: 0
         });
-        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+        ctx.position = perpsEngine.exposed_Position_load(
             ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
         );
         assertEq(ctx.expectedPosition.size, ctx.position.size, "first fill: position size");
@@ -867,7 +863,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         skip(timeDelta);
         ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
-        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
+        ctx.expectedLastFundingFeePerUnit = perpsEngine
             .exposed_getPendingFundingFeePerUnit(
             ctx.fuzzMarketConfig.marketId, sd59x18(ctx.expectedLastFundingRate), ctx.secondFillPriceX18
         ).intoInt256();
@@ -920,7 +916,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         // it should update the funding values
         ctx.perpMarketData =
-            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+            perpsEngine.exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
         assertEq(ctx.expectedLastFundingRate, ctx.perpMarketData.lastFundingRate, "second fill: last funding rate");
         assertEq(
             ctx.expectedLastFundingFeePerUnit,
@@ -940,19 +936,19 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should update the account's active markets
         assertEq(
             0,
-            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
+            perpsEngine.workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
             "second fill: active market id"
         );
         assertEq(
             0,
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+            perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(),
             "second fill: accounts ids with active positions"
         );
 
         // it should update the account's position
         ctx.expectedPosition =
             Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
-        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+        ctx.position = perpsEngine.exposed_Position_load(
             ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
         );
         assertEq(ctx.expectedPosition.size, ctx.position.size, "second fill: position size");
@@ -1119,7 +1115,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should update the funding values
         ctx.expectedLastFundingTime = block.timestamp;
         ctx.perpMarketData =
-            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+            perpsEngine.exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
         assertEq(0, ctx.perpMarketData.lastFundingRate, "first fill: last funding rate");
         assertEq(0, ctx.perpMarketData.lastFundingFeePerUnit, "first fill: last funding fee per unit");
         assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "first fill: last funding time");
@@ -1135,11 +1131,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should update the account's active markets
         ctx.expectedActiveMarketId = ctx.fuzzMarketConfig.marketId;
         ctx.activeMarketId =
-            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketId(ctx.tradingAccountId, 0);
+            perpsEngine.workaround_getActiveMarketId(ctx.tradingAccountId, 0);
         assertEq(ctx.expectedActiveMarketId, ctx.activeMarketId, "first fill: active market id");
         ctx.expectedAccountIdWithActivePosition = ctx.tradingAccountId;
         ctx.accountIdWithActivePosition =
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
+            perpsEngine.workaround_getAccountIdWithActivePositions(0);
 
         assertEq(
             ctx.expectedAccountIdWithActivePosition,
@@ -1153,7 +1149,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             lastInteractionPrice: ctx.firstFillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: 0
         });
-        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+        ctx.position = perpsEngine.exposed_Position_load(
             ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
         );
         assertEq(ctx.expectedPosition.size, ctx.position.size, "first fill: position size");
@@ -1193,7 +1189,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         skip(timeDelta);
         ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
-        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
+        ctx.expectedLastFundingFeePerUnit = perpsEngine
             .exposed_getPendingFundingFeePerUnit(
             ctx.fuzzMarketConfig.marketId, sd59x18(ctx.expectedLastFundingRate), ctx.secondFillPriceX18
         ).intoInt256();
@@ -1237,7 +1233,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         // it should update the funding values
         ctx.perpMarketData =
-            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+            perpsEngine.exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
         assertEq(ctx.expectedLastFundingRate, ctx.perpMarketData.lastFundingRate, "second fill: last funding rate");
         assertEq(
             ctx.expectedLastFundingFeePerUnit,
@@ -1256,19 +1252,19 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should update the account's active markets
         assertEq(
             0,
-            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
+            perpsEngine.workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
             "second fill: active market id"
         );
         assertEq(
             0,
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+            perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(),
             "second fill: accounts ids with active positions"
         );
 
         // it should update the account's position
         ctx.expectedPosition =
             Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
-        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+        ctx.position = perpsEngine.exposed_Position_load(
             ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
         );
         assertEq(ctx.expectedPosition.size, ctx.position.size, "second fill: position size");
@@ -1518,7 +1514,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
 
         ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
-        ctx.expectedLastFundingFeePerUnit = PerpMarketHarness(address(perpsEngine))
+        ctx.expectedLastFundingFeePerUnit = perpsEngine
             .exposed_getPendingFundingFeePerUnit(
             ctx.fuzzMarketConfig.marketId, sd59x18(ctx.expectedLastFundingRate), ctx.secondFillPriceX18
         ).intoInt256();
@@ -1565,7 +1561,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should update the funding values
         ctx.expectedLastFundingTime = block.timestamp;
         ctx.perpMarketData =
-            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+            perpsEngine.exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
         assertEq(0, ctx.perpMarketData.lastFundingRate, "second fill: last funding rate");
         assertEq(0, ctx.perpMarketData.lastFundingFeePerUnit, "second fill: last funding fee per unit");
         assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "second fill: last funding time");
@@ -1581,12 +1577,12 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should keep the account's active markets
         assertEq(
             1,
-            TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
+            perpsEngine.workaround_getActiveMarketsIdsLength(ctx.tradingAccountId),
             "second fill: active market id"
         );
         assertEq(
             1,
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+            perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(),
             "second fill: accounts ids with active positions"
         );
 
@@ -1596,7 +1592,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             lastInteractionPrice: ctx.secondFillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: 0
         });
-        ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
+        ctx.position = perpsEngine.exposed_Position_load(
             ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId
         );
         assertEq(ctx.expectedPosition.size, ctx.position.size, "second fill: position size");

@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 
 // PRB Math dependencies
@@ -35,7 +34,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
             data: bytes("")
         });
 
-        SettlementConfigurationHarness(perpsEngine).exposed_update(
+        perpsEngine.exposed_update(
             fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration
         );
 
@@ -78,7 +77,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
             data: abi.encode(dataStreamsStrategy)
         });
 
-        SettlementConfigurationHarness(perpsEngine).exposed_update(
+        perpsEngine.exposed_update(
             fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration
         );
 
@@ -120,7 +119,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
             data: abi.encode(dataStreamsStrategy)
         });
 
-        SettlementConfigurationHarness(perpsEngine).exposed_update(
+        perpsEngine.exposed_update(
             fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration
         );
 
@@ -162,7 +161,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
             data: abi.encode(dataStreamsStrategy)
         });
 
-        SettlementConfigurationHarness(perpsEngine).exposed_update(
+        perpsEngine.exposed_update(
             fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration
         );
 
