@@ -7,8 +7,6 @@ pragma solidity 0.8.25;
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
 
-import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
-
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
@@ -58,9 +56,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             })
         );
 
-        bool isIncreased = PositionHarness(address(perpsEngine)).exposed_isIncreasing(
-            tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
-        );
+        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
         // it should assert true
         assertEq(isIncreased, true);
     }
@@ -100,9 +96,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             isLong: isLong
         });
 
-        bool isIncreased = PositionHarness(address(perpsEngine)).exposed_isIncreasing(
-            tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
-        );
+        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
 
         // it should assert true
         assertEq(isIncreased, true);
@@ -143,9 +137,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             isLong: isLong
         });
 
-        bool isIncreased = PositionHarness(address(perpsEngine)).exposed_isIncreasing(
-            tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
-        );
+        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
 
         // it should assert true
         assertEq(isIncreased, true);
@@ -186,9 +178,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             isLong: isLong
         });
 
-        bool isIncreased = PositionHarness(address(perpsEngine)).exposed_isIncreasing(
-            tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
-        );
+        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
 
         // it should assert false
         assertEq(isIncreased, false);
@@ -229,9 +219,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             isLong: isLong
         });
 
-        bool isIncreased = PositionHarness(address(perpsEngine)).exposed_isIncreasing(
-            tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
-        );
+        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
 
         // it should assert false
         assertEq(isIncreased, false);
