@@ -44,7 +44,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountPermissionDenied.selector, tradingAccountId, users.naruto.account
-                )
+            )
         });
 
         // old user cannot withdraw

@@ -131,7 +131,7 @@ contract Upgrade_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.UnsupportedFunction.selector, OrderBranch.getActiveMarketOrder.selector
-                )
+            )
         });
         perpsEngine.getActiveMarketOrder(1);
 

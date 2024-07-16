@@ -84,7 +84,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidDataStreamReport.selector, bytes32(fuzzStreamId), fuzzMarketConfig.streamId
-                )
+            )
         });
 
         perpsEngine.exposed_verifyOffchainPrice(
@@ -124,7 +124,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidDataStreamReport.selector, fuzzMarketConfig.streamId, fuzzMarketConfig.streamId
-                )
+            )
         });
 
         perpsEngine.exposed_verifyOffchainPrice(

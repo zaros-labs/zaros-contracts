@@ -825,7 +825,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidOrderSigner.selector, users.sasuke.account, users.naruto.account
-                )
+            )
         });
 
         perpsEngine.fillOffchainOrders(fuzzMarketConfig.marketId, offchainOrders, mockSignedReport);
