@@ -1,0 +1,80 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.25;
+
+// Zaros dependencies
+import { Base_Test } from "test/Base.t.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
+
+contract ValidateMarginRequirement_Unit_Test is Base_Test {
+    function setUp() public override {
+        Base_Test.setUp();
+        changePrank({ msgSender: users.owner.account });
+        configureSystemParameters();
+        createPerpMarkets();
+        changePrank({ msgSender: users.naruto.account });
+    }
+
+    function test_RevertWhen_RequiredMarginPlusTotalFeesIsGreaterThanTheMarginBalance() external {
+        uint256 requiredMarginUsdUint = 100;
+        uint256 totalFeesUsdUint = 100;
+
+        uint128 tradingAccountId;
+        UD60x18 requiredMarginUsdX18 = ud60x18(requiredMarginUsdUint);
+        SD59x18 marginBalanceUsdX18;
+        UD60x18 totalFeesUsdX18 = ud60x18(totalFeesUsdUint);
+
+        //  when requiredMarginUsdX18 + totalFeesUsdX18 > marginBalanceUsdX18 -> revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InsufficientMargin.selector,
+                tradingAccountId,
+                marginBalanceUsdX18.intoInt256(),
+                requiredMarginUsdX18.intoUint128(),
+                totalFeesUsdX18.intoUint128()
+            )
+        });
+
+        // it should revert
+        perpsEngine.exposed_validateMarginRequirements(
+            tradingAccountId, requiredMarginUsdX18, marginBalanceUsdX18, totalFeesUsdX18
+        );
+    }
+
+    function test_WhenRequiredMarginPlusTotalFeesIsEqualToTheMarginBalance() external {
+        uint256 marginBalanceUsdXUint = 100;
+        uint256 requiredMarginUsdUint = 100;
+        uint256 totalFeesUsdUint = 100;
+
+        uint128 tradingAccountId;
+        UD60x18 requiredMarginUsdX18 = ud60x18(requiredMarginUsdUint);
+        SD59x18 marginBalanceUsdX18 = sd59x18(200);
+        UD60x18 totalFeesUsdX18 = ud60x18(100);
+
+        //  when requiredMarginUsdX18 + totalFeesUsdX18 = marginBalanceUsdX18 -> continue
+        // it should continue execution
+
+        perpsEngine.exposed_validateMarginRequirements(
+            tradingAccountId, requiredMarginUsdX18, marginBalanceUsdX18, totalFeesUsdX18
+        );
+    }
+
+    function test_WhenRequiredMarginPlusTotalFeesIsLessThanTheMarginBalance() external {
+        uint256 marginBalanceUsdXUint = 300;
+        uint256 requiredMarginUsdUint = 100;
+        uint256 totalFeesUsdUint = 100;
+
+        uint128 tradingAccountId;
+        UD60x18 requiredMarginUsdX18 = ud60x18(requiredMarginUsdUint);
+        SD59x18 marginBalanceUsdX18 = sd59x18(marginBalanceUsdXUint);
+        UD60x18 totalFeesUsdX18 = ud60x18(totalFeesUsdUint);
+
+        //  when requiredMarginUsdX18 + totalFeesUsdX18 < marginBalanceUsdX18 -> continue
+        // it should continue execution
+
+        perpsEngine.exposed_validateMarginRequirements(
+            tradingAccountId, requiredMarginUsdX18, marginBalanceUsdX18, totalFeesUsdX18
+        );
+    }
+}
