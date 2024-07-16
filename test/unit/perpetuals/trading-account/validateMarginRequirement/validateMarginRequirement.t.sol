@@ -45,7 +45,7 @@ contract ValidateMarginRequirement_Unit_Test is Base_Test {
         );
     }
 
-    function test_WhenRequiredMarginPlusTotalFeesIsEqualToTheMarginBalance() external {
+    function test_WhenRequiredMarginPlusTotalFeesIsEqualToTheMarginBalance() external view {
         //  when requiredMarginUsdX18 + totalFeesUsdX18 = marginBalanceUsdX18 -> continue
         int256 marginBalanceUsdXUint = 200;
         uint256 requiredMarginUsdUint = 100;
@@ -63,7 +63,7 @@ contract ValidateMarginRequirement_Unit_Test is Base_Test {
         );
     }
 
-    function test_WhenRequiredMarginPlusTotalFeesIsLessThanTheMarginBalance() external {
+    function test_WhenRequiredMarginPlusTotalFeesIsLessThanTheMarginBalance() external view {
         //  when requiredMarginUsdX18 + totalFeesUsdX18 < marginBalanceUsdX18 -> continue
         int256 marginBalanceUsdXUint = 300;
         uint256 requiredMarginUsdUint = 100;
