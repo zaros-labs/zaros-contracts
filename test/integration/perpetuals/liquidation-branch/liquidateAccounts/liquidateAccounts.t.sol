@@ -8,10 +8,6 @@ import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
-import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
-import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
-import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
-import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -193,25 +189,21 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         perpsEngine.liquidateAccounts(ctx.accountsIds);
 
         // it should update the market's funding values
-        ctx.perpMarketData =
-            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
+        ctx.perpMarketData = perpsEngine.exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
         assertEq(ctx.expectedLastFundingRate, ctx.perpMarketData.lastFundingRate, "last funding rate");
         assertEq(ctx.expectedLastFundingTime, ctx.perpMarketData.lastFundingTime, "last funding time");
 
         // it should update open interest value
         (,, ctx.openInterestX18) = perpsEngine.getOpenInterest(ctx.fuzzMarketConfig.marketId);
         ctx.expectedOpenInterest = sd59x18(
-            PositionHarness(address(perpsEngine)).exposed_Position_load(
-                ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId
-            ).size
+            perpsEngine.exposed_Position_load(ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId).size
         ).abs().intoUD60x18().intoUint256();
         assertEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), "open interest");
 
         // it should update skew value
         ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
-        ctx.expectedSkew = PositionHarness(address(perpsEngine)).exposed_Position_load(
-            ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId
-        ).size;
+        ctx.expectedSkew =
+            perpsEngine.exposed_Position_load(ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId).size;
         assertEq(ctx.expectedSkew, ctx.skewX18.intoInt256(), "skew");
 
         for (uint256 i; i < ctx.accountsIds.length; i++) {
@@ -228,9 +220,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             // it should close all active positions
             ctx.expectedPosition =
                 Position.Data({ size: 0, lastInteractionPrice: 0, lastInteractionFundingFeePerUnit: 0 });
-            ctx.position = PositionHarness(address(perpsEngine)).exposed_Position_load(
-                ctx.accountsIds[i], ctx.fuzzMarketConfig.marketId
-            );
+            ctx.position = perpsEngine.exposed_Position_load(ctx.accountsIds[i], ctx.fuzzMarketConfig.marketId);
             assertEq(ctx.expectedPosition.size, ctx.position.size, "position size");
             assertEq(ctx.expectedPosition.lastInteractionPrice, ctx.position.lastInteractionPrice, "position price");
             assertEq(
@@ -240,14 +230,10 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             );
 
             // it should remove the account's all active markets
+            assertEq(0, perpsEngine.workaround_getActiveMarketsIdsLength(ctx.accountsIds[i]), "active market id");
             assertEq(
                 0,
-                TradingAccountHarness(address(perpsEngine)).workaround_getActiveMarketsIdsLength(ctx.accountsIds[i]),
-                "active market id"
-            );
-            assertEq(
-                0,
-                GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+                perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(),
                 "accounts ids with active positions"
             );
         }

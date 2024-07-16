@@ -6,7 +6,6 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
 
 // PRB Math dependencies
 import { ud60x18 } from "@prb-math/UD60x18.sol";
@@ -51,8 +50,7 @@ contract GetFundingVelocity_Integration_Test is Base_Test {
 
         skip(timeElapsed);
 
-        PerpMarket.Data memory perpMarket =
-            PerpMarketHarness(address(perpsEngine)).exposed_PerpMarket_load(fuzzMarketConfig.marketId);
+        PerpMarket.Data memory perpMarket = perpsEngine.exposed_PerpMarket_load(fuzzMarketConfig.marketId);
         SD59x18 maxFundingVelocity = sd59x18(uint256(perpMarket.configuration.maxFundingVelocity).toInt256());
         SD59x18 skewScale = sd59x18(uint256(perpMarket.configuration.skewScale).toInt256());
 
