@@ -825,7 +825,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidOrderSigner.selector, users.sasuke.account, users.naruto.account
-            )
+                )
         });
 
         perpsEngine.fillOffchainOrders(fuzzMarketConfig.marketId, offchainOrders, mockSignedReport);
@@ -1060,8 +1060,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             changePrank({ msgSender: users.naruto.account });
 
             // it should fill the offchain order
-            bool hasOffchainOrderBeenFilled = perpsEngine
-                .workaround_hasOffchainOrderBeenFilled(tradingAccountId, structHash);
+            bool hasOffchainOrderBeenFilled =
+                perpsEngine.workaround_hasOffchainOrderBeenFilled(tradingAccountId, structHash);
             assertTrue(hasOffchainOrderBeenFilled, "hasOffchainOrderBeenFilled");
 
             uint128 nonce = perpsEngine.workaround_getNonce(tradingAccountId);
@@ -1176,8 +1176,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             changePrank({ msgSender: users.naruto.account });
 
             // it should fill the offchain order
-            bool hasOffchainOrderBeenFilled = perpsEngine
-                .workaround_hasOffchainOrderBeenFilled(tradingAccountId, structHash);
+            bool hasOffchainOrderBeenFilled =
+                perpsEngine.workaround_hasOffchainOrderBeenFilled(tradingAccountId, structHash);
             assertTrue(hasOffchainOrderBeenFilled, "hasOffchainOrderBeenFilled");
 
             uint128 nonce = perpsEngine.workaround_getNonce(tradingAccountId);

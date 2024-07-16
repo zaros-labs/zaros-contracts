@@ -34,9 +34,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
             data: bytes("")
         });
 
-        perpsEngine.exposed_update(
-            fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration
-        );
+        perpsEngine.exposed_update(fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration);
 
         // TODO: we need to have more Strategy types to test this
 
@@ -77,9 +75,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
             data: abi.encode(dataStreamsStrategy)
         });
 
-        perpsEngine.exposed_update(
-            fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration
-        );
+        perpsEngine.exposed_update(fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration);
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
@@ -88,7 +84,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidDataStreamReport.selector, bytes32(fuzzStreamId), fuzzMarketConfig.streamId
-            )
+                )
         });
 
         perpsEngine.exposed_verifyOffchainPrice(
@@ -119,9 +115,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
             data: abi.encode(dataStreamsStrategy)
         });
 
-        perpsEngine.exposed_update(
-            fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration
-        );
+        perpsEngine.exposed_update(fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration);
 
         bytes memory mockSignedReport =
             getMockedSignedReportWithValidFromTimestampZero(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
@@ -130,7 +124,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.InvalidDataStreamReport.selector, fuzzMarketConfig.streamId, fuzzMarketConfig.streamId
-            )
+                )
         });
 
         perpsEngine.exposed_verifyOffchainPrice(
@@ -161,9 +155,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
             data: abi.encode(dataStreamsStrategy)
         });
 
-        perpsEngine.exposed_update(
-            fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration
-        );
+        perpsEngine.exposed_update(fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration);
 
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);

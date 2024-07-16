@@ -57,8 +57,7 @@ contract GetMarkPrice_Integration_Test is Base_Test {
 
         UD60x18 indexPriceX18 = ud60x18(fuzzMarketConfig.mockUsdPrice);
 
-        PerpMarket.Data memory perpMarket =
-            perpsEngine.exposed_PerpMarket_load(fuzzMarketConfig.marketId);
+        PerpMarket.Data memory perpMarket = perpsEngine.exposed_PerpMarket_load(fuzzMarketConfig.marketId);
 
         SD59x18 skewScale = sd59x18(uint256(perpMarket.configuration.skewScale).toInt256());
 

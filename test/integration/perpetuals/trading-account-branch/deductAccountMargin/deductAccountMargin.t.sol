@@ -86,8 +86,8 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
-        UD60x18 marginCollateralBalanceX18 = perpsEngine
-            .exposed_getMarginCollateralBalance(tradingAccountId, address(usdc));
+        UD60x18 marginCollateralBalanceX18 =
+            perpsEngine.exposed_getMarginCollateralBalance(tradingAccountId, address(usdc));
 
         perpsEngine.exposed_withdrawMarginUsd(
             tradingAccountId, address(usdc), ud60x18(marginValueUsd), marginCollateralBalanceX18, users.naruto.account
