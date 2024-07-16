@@ -12,8 +12,6 @@ import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarnes
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract Position_IsIncreasing_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
@@ -23,7 +21,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function test_WhenIsIncreasingIsCalledAndANewPositionIsBeingCreated(
+    function test_WhenANewPositionIsBeingCreated(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -31,7 +29,6 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
     )
         external
     {
-        // it should return true
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
@@ -64,19 +61,17 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
         bool isIncreased = PositionHarness(address(perpsEngine)).exposed_isIncreasing(
             tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
         );
-
+        // it should return true
         assertEq(isIncreased, true);
     }
 
-    function test_WhenIsIncreasingIsCalledAndSizeDeltaIsPositiveAndPositionSizeIsPositive(
+    function test_WhenSizeDeltaIsPositiveAndPositionSizeIsPositive(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
     )
         external
     {
-        // it should return true
-
         // isLong should be true, not fuzzed
         bool isLong = true;
 
@@ -109,18 +104,17 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
         );
 
+        // it should return true
         assertEq(isIncreased, true);
     }
 
-    function test_WhenIsIncreasingIsCalledAndSizeDeltaIsNegativeAndPositionSizeIsNegative(
+    function test_WhenSizeDeltaIsNegativeAndPositionSizeIsNegative(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
     )
         external
     {
-        // it should return true
-
         // isLong should be false, not fuzzed
         bool isLong = false;
 
@@ -153,18 +147,17 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
         );
 
+        // it should return true
         assertEq(isIncreased, true);
     }
 
-    function test_WhenIsIncreasingIsCalledAndSizeDeltaIsPositiveAndPositionSizeIsNegative(
+    function test_WhenSizeDeltaIsPositiveAndPositionSizeIsNegative(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
     )
         external
     {
-        // it should return false
-
         // isLong should be false, not fuzzed
         bool isLong = false;
 
@@ -197,18 +190,17 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
         );
 
+        // it should return false
         assertEq(isIncreased, false);
     }
 
-    function test_WhenIsIncreasingIsCalledAndSizeDeltaIsNegativeAndPositionSizeIsPositive(
+    function test_WhenSizeDeltaIsNegativeAndPositionSizeIsPositive(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
     )
         external
     {
-        // it should return false
-
         // isLong should be false, not fuzzed
         bool isLong = false;
 
@@ -241,6 +233,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             tradingAccountId, fuzzMarketConfig.marketId, sizeDelta
         );
 
+        // it should return false
         assertEq(isIncreased, false);
     }
 }
