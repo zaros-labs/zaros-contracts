@@ -19,7 +19,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function test_WhenANewPositionIsBeingCreated(
+    function testFuzz_WhenANewPositionIsBeingCreated(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -61,7 +61,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
         assertEq(isIncreased, true);
     }
 
-    function test_WhenSizeDeltaIsPositiveAndPositionSizeIsPositive(
+    function testFuzz_WhenSizeDeltaIsPositiveAndPositionSizeIsPositive(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
@@ -102,7 +102,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
         assertEq(isIncreased, true);
     }
 
-    function test_WhenSizeDeltaIsNegativeAndPositionSizeIsNegative(
+    function testFuzz_WhenSizeDeltaIsNegativeAndPositionSizeIsNegative(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
@@ -143,7 +143,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
         assertEq(isIncreased, true);
     }
 
-    function test_WhenSizeDeltaIsPositiveAndPositionSizeIsNegative(
+    function testFuzz_WhenSizeDeltaIsPositiveAndPositionSizeIsNegative(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
@@ -184,7 +184,7 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
         assertEq(isIncreased, false);
     }
 
-    function test_WhenSizeDeltaIsNegativeAndPositionSizeIsPositive(
+    function testFuzz_WhenSizeDeltaIsNegativeAndPositionSizeIsPositive(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
