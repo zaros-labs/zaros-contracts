@@ -80,6 +80,8 @@ library Errors {
     error CollateralLiquidationPriorityNotDefined(address collateralType);
     /// @notice Thrown when the provided referral code is invalid.
     error InvalidReferralCode();
+    /// @notice Thrown when the user already has a referral code.
+    error UserAlreadyHasReferralCode();
 
     /// @notice PerpsEngine.GlobalConfigurationBranch
 

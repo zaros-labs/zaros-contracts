@@ -253,13 +253,19 @@ contract TradingAccountBranch {
 
         Referral.Data storage referral = Referral.load(msg.sender);
 
-        if (referralCode.length != 0 && referral.referralCode.length == 0) {
+        if (referralCode.length != 0 && referral.referralCode.length != 0) {
+            revert Errors.UserAlreadyHasReferralCode();
+        }
+
+        if (referralCode.length != 0) {
             if (isCustomReferralCode) {
                 CustomReferralConfiguration.Data storage customReferral =
                     CustomReferralConfiguration.load(string(referralCode));
+
                 if (customReferral.referrer == address(0)) {
                     revert Errors.InvalidReferralCode();
                 }
+
                 referral.referralCode = referralCode;
                 referral.isCustomReferralCode = true;
             } else {

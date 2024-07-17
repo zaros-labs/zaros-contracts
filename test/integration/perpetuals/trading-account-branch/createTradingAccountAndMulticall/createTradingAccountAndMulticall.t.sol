@@ -83,7 +83,30 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         assertEq(newMarginCollateralBalance, amountToDeposit, "createTradingAccountAndMulticall: account margin");
     }
 
-    modifier whenTheUserHasAReferralCode() {
+    modifier whenTheUserAlreadyHasAReferralCodeRegistered() {
+        _;
+    }
+
+    function test_RevertWhen_TheUserTriesToRegisterANewReferralCode()
+        external
+        whenTheDataArrayDoesNotProvideARevertingCall
+        whenTheUserAlreadyHasAReferralCodeRegistered
+    {
+        string memory customReferralCode = "customReferralCode";
+        changePrank({ msgSender: users.owner.account });
+        perpsEngine.createCustomReferralCode(users.owner.account, customReferralCode);
+
+        changePrank({ msgSender: users.naruto.account });
+
+        perpsEngine.createTradingAccount(bytes(customReferralCode), true);
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UserAlreadyHasReferralCode.selector) });
+
+        perpsEngine.createTradingAccount(bytes(customReferralCode), true);
+    }
+
+    modifier whenTheUserDoesntHaveAReferralCodeRegistered() {
         _;
     }
 
@@ -94,7 +117,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
     function test_RevertWhen_TheReferralCodeIsInvalid()
         external
         whenTheDataArrayDoesNotProvideARevertingCall
-        whenTheUserHasAReferralCode
+        whenTheUserDoesntHaveAReferralCodeRegistered
         whenTheReferralCodeIsCustom
     {
         bytes[] memory data = new bytes[](0);
@@ -108,7 +131,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
     function test_WhenTheReferralCodeIsValid()
         external
         whenTheDataArrayDoesNotProvideARevertingCall
-        whenTheUserHasAReferralCode
+        whenTheUserDoesntHaveAReferralCodeRegistered
         whenTheReferralCodeIsCustom
     {
         bytes[] memory data = new bytes[](0);
@@ -135,7 +158,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
     function test_RevertWhen_TheReferralCodeIsEqualToMsgSender()
         external
         whenTheDataArrayDoesNotProvideARevertingCall
-        whenTheUserHasAReferralCode
+        whenTheUserDoesntHaveAReferralCodeRegistered
         whenTheReferralCodeIsNotCustom
     {
         bytes[] memory data = new bytes[](0);
@@ -157,7 +180,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
     function test_WhenTheReferralCodeIsNotEqualToMsgSender()
         external
         whenTheDataArrayDoesNotProvideARevertingCall
-        whenTheUserHasAReferralCode
+        whenTheUserDoesntHaveAReferralCodeRegistered
         whenTheReferralCodeIsNotCustom
     {
         bytes[] memory data = new bytes[](0);

@@ -8,7 +8,10 @@ CreateTradingAccountAndMulticall_Unit_Test
     ├── when the data array is not null
     │   ├── it should emit {LogCreateTradingAccount} event
     │   └── it should return a valid results array
-    └── when the user has a referral code
+    ├── when the user already has a referral code registered
+    │   └── when the user tries to register a new referral code
+    │       └── it should revert
+    └── when the user doesn't have a referral code registered
         ├── when the referral code is custom
         │   ├── when the referral code is invalid
         │   │   └── it should revert

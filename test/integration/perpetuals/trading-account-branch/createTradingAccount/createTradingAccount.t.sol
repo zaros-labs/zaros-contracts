@@ -51,7 +51,30 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
         assertEq(tradingAccountId, expectedAccountId, "createTradingAccount");
     }
 
-    modifier whenTheUserHasAReferralCode() {
+    modifier whenTheUserAlreadyHasAReferralCodeRegistered() {
+        _;
+    }
+
+    function test_RevertWhen_TheUserTriesToRegisterANewReferralCode()
+        external
+        givenTheTradingAccountTokenIsSet
+        whenTheUserAlreadyHasAReferralCodeRegistered
+    {
+        string memory customReferralCode = "customReferralCode";
+        changePrank({ msgSender: users.owner.account });
+        perpsEngine.createCustomReferralCode(users.owner.account, customReferralCode);
+
+        changePrank({ msgSender: users.naruto.account });
+
+        perpsEngine.createTradingAccount(bytes(customReferralCode), true);
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UserAlreadyHasReferralCode.selector) });
+
+        perpsEngine.createTradingAccount(bytes(customReferralCode), true);
+    }
+
+    modifier whenTheUserDoesntHaveAReferralCodeRegistered() {
         _;
     }
 
@@ -62,7 +85,7 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
     function test_RevertWhen_TheReferralCodeIsInvalid()
         external
         givenTheTradingAccountTokenIsSet
-        whenTheUserHasAReferralCode
+        whenTheUserDoesntHaveAReferralCodeRegistered
         whenTheReferralCodeIsCustom
     {
         // it should revert
@@ -74,7 +97,7 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
     function test_WhenTheReferralCodeIsValid()
         external
         givenTheTradingAccountTokenIsSet
-        whenTheUserHasAReferralCode
+        whenTheUserDoesntHaveAReferralCodeRegistered
         whenTheReferralCodeIsCustom
     {
         string memory customReferralCode = "customReferralCode";
@@ -99,7 +122,7 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
     function test_RevertWhen_TheReferralCodeIsEqualToMsgSender()
         external
         givenTheTradingAccountTokenIsSet
-        whenTheUserHasAReferralCode
+        whenTheUserDoesntHaveAReferralCodeRegistered
         whenTheReferralCodeIsNotCustom
     {
         string memory customReferralCode = "customReferralCode";
@@ -119,7 +142,7 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
     function test_WhenTheReferralCodeIsNotEqualToMsgSender()
         external
         givenTheTradingAccountTokenIsSet
-        whenTheUserHasAReferralCode
+        whenTheUserDoesntHaveAReferralCodeRegistered
         whenTheReferralCodeIsNotCustom
     {
         string memory customReferralCode = "customReferralCode";
