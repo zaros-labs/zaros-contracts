@@ -159,6 +159,13 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
         }
     }
 
+    /// @notice Returns the address of custom referral code
+    /// @param customReferralCode The custom referral code.
+    /// @return referrer The address of the referrer.
+    function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) {
+        return CustomReferralConfiguration.load(customReferralCode).referrer;
+    }
+
     /// @dev Returns the maximum amount that can be deposited as margin for a given
     /// collateral type.
     /// @param collateralType The address of the collateral type.
@@ -617,13 +624,6 @@ contract GlobalConfigurationBranch is Initializable, OwnableUpgradeable {
 
             emit LogSetSequencerUptimeFeed(msg.sender, chainIds[i], sequencerUptimeFeedAddresses[i]);
         }
-    }
-
-    /// @notice Returns the address of custom referral code
-    /// @param customReferralCode The custom referral code.
-    /// @return referrer The address of the referrer.
-    function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) {
-        return CustomReferralConfiguration.load(customReferralCode).referrer;
     }
 
     /// @notice Creates a custom referral code.
