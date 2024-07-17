@@ -5,12 +5,6 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
-// PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
-
-import {console} from 'forge-std/console.sol';
-
 contract ValidatePositionsLimit_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
@@ -28,18 +22,17 @@ contract ValidatePositionsLimit_Unit_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
+        uint256 maxPositionsPerAccount = perpsEngine.workaround_getMaxPositionsPerAccount();
+
         uint256 marginValueUsd = 10_000_000e18;
-        uint256 marginValueUsdPerPosition = marginValueUsd / MAX_POSITIONS_PER_ACCOUNT;
+        uint256 marginValueUsdPerPosition = marginValueUsd / maxPositionsPerAccount;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
         deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
 
-        for(uint i; i < MAX_POSITIONS_PER_ACCOUNT - 1; i++) {
-            console.log("---------------------------------------");
-            console.log(fuzzMarketConfig.marketId);
-
+        for (uint256 i; i < maxPositionsPerAccount - 1; i++) {
             openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsdPerPosition, isLong);
 
             fuzzMarketConfig = getFuzzMarketConfig(fuzzMarketConfig.marketId + 1);
@@ -48,22 +41,41 @@ contract ValidatePositionsLimit_Unit_Test is Base_Test {
 
         uint256 activeMarketsLength = perpsEngine.workaround_getActiveMarketsIdsLength(tradingAccountId);
 
-        assertEq(activeMarketsLength, MAX_POSITIONS_PER_ACCOUNT - 1, "active markets length should be equal to MAX_POSITIONS_PER_ACCOUNT - 1");
+        assertEq(
+            activeMarketsLength,
+            maxPositionsPerAccount - 1,
+            "active markets length should be equal to maxPositionsPerAccount - 1"
+        );
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.MaxPositionsPerAccountReached.selector, MAX_POSITIONS_PER_ACCOUNT - 1, MAX_POSITIONS_PER_ACCOUNT)
+            revertData: abi.encodeWithSelector(
+                Errors.MaxPositionsPerAccountReached.selector, maxPositionsPerAccount - 1, maxPositionsPerAccount
+                )
         });
 
         openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsdPerPosition, isLong);
     }
 
-    function test_WhenUserActivePositionsIsLessThanTheMaxPositionsPerAccount(
-        uint256 requiredMaintenanceMarginUsd,
-        int256 marginBalanceUsd
+    function testFuzz_WhenUserActivePositionsIsLessThanTheMaxPositionsPerAccount(
+        uint256 marketId,
+        bool isLong
     )
         external
     {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
+        uint256 maxPositionsPerAccount = perpsEngine.workaround_getMaxPositionsPerAccount();
+        assertEq(maxPositionsPerAccount > 0, true, "maxPositionsPerAccount should be greater than 0");
+
+        uint256 marginValueUsd = 10_000_000e18;
+        uint256 initialMarginRate = fuzzMarketConfig.imr;
+
+        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+
+        // it should not revert
+        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
     }
 }
