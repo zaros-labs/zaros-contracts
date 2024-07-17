@@ -4,7 +4,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
 // PRB Math dependencies

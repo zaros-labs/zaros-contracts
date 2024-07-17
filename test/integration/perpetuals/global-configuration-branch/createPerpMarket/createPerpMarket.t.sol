@@ -5,9 +5,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
-import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
-import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 
 contract CreatePerpMarket_Integration_Test is Base_Test {

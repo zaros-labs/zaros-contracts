@@ -2,8 +2,6 @@
 
 pragma solidity 0.8.25;
 
-import { IOffchainAggregator } from "@zaros/external/chainlink/interfaces/IOffchainAggregator.sol";
-
 contract MockAggregator {
     // Lowest answer the system is allowed to report in response to transmissions
     int192 public immutable _minAnswer;

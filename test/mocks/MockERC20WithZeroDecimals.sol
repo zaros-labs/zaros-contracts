@@ -2,9 +2,6 @@
 
 pragma solidity 0.8.25;
 
-// Zaros dependencies
-import { MockERC20 } from "./MockERC20.sol";
-
 // Open Zeppelin dependencies
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 

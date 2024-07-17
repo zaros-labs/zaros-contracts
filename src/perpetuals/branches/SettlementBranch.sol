@@ -25,7 +25,7 @@ import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 contract SettlementBranch is EIP712Upgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
