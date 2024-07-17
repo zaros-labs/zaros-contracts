@@ -8,9 +8,6 @@ import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 contract Referral_Load_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
     }
 
     function test_WhenLoadIsCalled() external {
