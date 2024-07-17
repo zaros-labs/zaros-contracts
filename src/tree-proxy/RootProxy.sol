@@ -6,7 +6,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { RootUpgrade } from "./leaves/RootUpgrade.sol";
 
 // Open Zeppelin dependencies
-import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
+import { Proxy } from "@openzeppelin/proxy/Proxy.sol";
 
 /**
  * @title RootProxy

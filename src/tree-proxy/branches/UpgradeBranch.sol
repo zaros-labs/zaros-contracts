@@ -5,10 +5,6 @@ pragma solidity 0.8.25;
 import { RootProxy } from "../RootProxy.sol";
 import { RootUpgrade } from "../leaves/RootUpgrade.sol";
 
-// Open Zeppelin dependencies
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-
 // Open Zeppelin Upgradeable dependencies
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";

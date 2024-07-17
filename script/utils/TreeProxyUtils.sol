@@ -157,8 +157,6 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     tradingAccountBranchSelectors[12] = TradingAccountBranch.getUserReferralData.selector;
 
     if (isTestnet) {
-        tradingAccountBranchSelectors[7] = bytes4(keccak256("createTradingAccount(bytes,bool)"));
-        tradingAccountBranchSelectors[8] = bytes4(keccak256("createTradingAccountAndMulticall(bytes[],bytes,bool)"));
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
     }
 

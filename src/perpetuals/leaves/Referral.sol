@@ -5,21 +5,31 @@ pragma solidity 0.8.25;
 import { CustomReferralConfiguration } from "@zaros/perpetuals/leaves/CustomReferralConfiguration.sol";
 
 library Referral {
-    string internal constant REFERRAL_DOMAIN = "fi.zaros.Referral";
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant REFERRAL_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.perpetuals.Referral")) - 1)) & ~bytes32(uint256(0xff));
 
+    /// @notice {Referral} namespace storage structure.
+    /// @param referralCode ABI encoded referral code, may be a string or address.
+    /// @param isCustomReferralCode True if the referral code is a custom referral code.
     struct Data {
         bytes referralCode;
         bool isCustomReferralCode;
     }
 
-    function load(address accountOwner) internal pure returns (Data storage referralTestnet) {
-        bytes32 slot = keccak256(abi.encode(REFERRAL_DOMAIN, accountOwner));
-
+    /// @notice Loads a {Referral}.
+    /// @param accountOwner The owner of the referred trading account.
+    /// @dev The referral object is linked to all trading accounts created by the accountOwner.
+    /// @return referral The user referral data.
+    function load(address accountOwner) internal pure returns (Data storage referral) {
+        bytes32 slot = keccak256(abi.encode(REFERRAL_LOCATION, accountOwner));
         assembly {
-            referralTestnet.slot := slot
+            referral.slot := slot
         }
     }
 
+    /// @notice Returns the address of the referrer according to the referral code.
+    /// @return referrer The referrer address.
     function getReferrerAddress(Data storage self) internal view returns (address referrer) {
         if (!self.isCustomReferralCode) {
             referrer = abi.decode(self.referralCode, (address));

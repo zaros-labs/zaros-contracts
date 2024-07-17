@@ -9,7 +9,7 @@ import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract DeductAccountMargin_Unit_Test is Base_Test {
     /// @dev usually the funciton is called if pnl is < 0
