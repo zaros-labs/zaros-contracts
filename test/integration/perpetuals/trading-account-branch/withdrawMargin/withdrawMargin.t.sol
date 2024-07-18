@@ -35,10 +35,6 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertGiven_TheSenderIsNotAuthorized() external givenTheAccountExists {
-        // it should revert
-    }
-
     function testFuzz_RevertGiven_TheSenderIsNotAuthorized(
         uint256 amountToDeposit,
         uint256 amountToWithdraw
