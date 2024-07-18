@@ -33,6 +33,8 @@ import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarnes
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 import { ReferralHarness } from "test/harnesses/perpetuals/leaves/ReferralHarness.sol";
+import { CustomReferralConfigurationHarness } from
+    "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 
@@ -72,7 +74,8 @@ abstract contract IPerpsEngine is
     PositionHarness,
     SettlementConfigurationHarness,
     TradingAccountHarness,
-    ReferralHarness
+    ReferralHarness,
+    CustomReferralConfigurationHarness
 { }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
