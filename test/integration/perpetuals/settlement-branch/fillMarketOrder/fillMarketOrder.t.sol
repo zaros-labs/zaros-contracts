@@ -14,7 +14,7 @@ import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
-import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
 import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 
@@ -809,7 +809,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         assertEq(ctx.expectedActiveMarketId, ctx.activeMarketId, "first fill: active market id");
         ctx.expectedAccountIdWithActivePosition = ctx.tradingAccountId;
         ctx.accountIdWithActivePosition =
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
+            PerpsEngineConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
         assertEq(
             ctx.expectedAccountIdWithActivePosition,
             ctx.accountIdWithActivePosition,
@@ -945,7 +945,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
         assertEq(
             0,
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+            PerpsEngineConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
             "second fill: accounts ids with active positions"
         );
 
@@ -1139,7 +1139,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         assertEq(ctx.expectedActiveMarketId, ctx.activeMarketId, "first fill: active market id");
         ctx.expectedAccountIdWithActivePosition = ctx.tradingAccountId;
         ctx.accountIdWithActivePosition =
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
+            PerpsEngineConfigurationHarness(address(perpsEngine)).workaround_getAccountIdWithActivePositions(0);
 
         assertEq(
             ctx.expectedAccountIdWithActivePosition,
@@ -1261,7 +1261,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
         assertEq(
             0,
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+            PerpsEngineConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
             "second fill: accounts ids with active positions"
         );
 
@@ -1586,7 +1586,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
         assertEq(
             1,
-            GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+            PerpsEngineConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
             "second fill: accounts ids with active positions"
         );
 

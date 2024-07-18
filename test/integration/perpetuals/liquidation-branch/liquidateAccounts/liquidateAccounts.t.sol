@@ -9,7 +9,7 @@ import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
-import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHarness.sol";
 import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 
@@ -247,7 +247,8 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             );
             assertEq(
                 0,
-                GlobalConfigurationHarness(address(perpsEngine)).workaround_getAccountsIdsWithActivePositionsLength(),
+                PerpsEngineConfigurationHarness(address(perpsEngine))
+                    .workaround_getAccountsIdsWithActivePositionsLength(),
                 "accounts ids with active positions"
             );
         }

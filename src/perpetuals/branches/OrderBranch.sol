@@ -6,7 +6,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
-import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
@@ -25,7 +25,7 @@ contract OrderBranch {
     using SafeERC20 for IERC20;
     using MarketOrder for MarketOrder.Data;
     using TradingAccount for TradingAccount.Data;
-    using GlobalConfiguration for GlobalConfiguration.Data;
+    using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
     using SettlementConfiguration for SettlementConfiguration.Data;
@@ -252,7 +252,7 @@ contract OrderBranch {
         ctx.sizeDeltaX18 = sd59x18(params.sizeDelta);
 
         // fetch storage slot for global config
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // fetch storage slot for perp market's settlement config
         SettlementConfiguration.Data storage settlementConfiguration =
@@ -270,7 +270,7 @@ contract OrderBranch {
         // would severly disadvantage traders
         if (ctx.isIncreasing) {
             // both checks revert if disabled
-            globalConfiguration.checkMarketIsEnabled(params.marketId);
+            perpsEngineConfiguration.checkMarketIsEnabled(params.marketId);
             settlementConfiguration.checkIsSettlementEnabled();
         }
 

@@ -81,7 +81,7 @@ library Errors {
     /// @notice Thrown when the provided referral code is invalid.
     error InvalidReferralCode();
 
-    /// @notice PerpsEngine.GlobalConfigurationBranch
+    /// @notice PerpsEngine.PerpsEngineConfigurationBranch
 
     /// @notice Thrown when the provided `sequencerUptimeFeed` is the zero address.
     error SequencerUptimeFeedNotDefined();
@@ -119,7 +119,7 @@ library Errors {
 
     /// @notice PerpsEngine.PerpMarketBranch errors.
 
-    /// @notice PerpsEngine.GlobalConfiguration errors.
+    /// @notice PerpsEngine.PerpsEngineConfiguration errors.
 
     /// @notice Thrown when the provided `marketId` doesn't exist or is currently disabled.
     error PerpMarketDisabled(uint128 marketId);

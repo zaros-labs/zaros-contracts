@@ -9,7 +9,7 @@ import { OffchainOrder } from "@zaros/perpetuals/leaves/OffchainOrder.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
-import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
@@ -29,7 +29,7 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18
 
 contract SettlementBranch is EIP712Upgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
-    using GlobalConfiguration for GlobalConfiguration.Data;
+    using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
     using MarketOrder for MarketOrder.Data;
     using TradingAccount for TradingAccount.Data;
     using PerpMarket for PerpMarket.Data;
@@ -131,12 +131,12 @@ contract SettlementBranch is EIP712Upgradeable {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
         // fetch storage slot for global config
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // verifies provided price data following the configured settlement strategy
         // returning the bid and ask prices
         (ctx.bidX18, ctx.askX18) =
-            settlementConfiguration.verifyOffchainPrice(priceData, globalConfiguration.maxVerificationDelay);
+            settlementConfiguration.verifyOffchainPrice(priceData, perpsEngineConfiguration.maxVerificationDelay);
 
         // cache the order's size delta
         ctx.sizeDeltaX18 = sd59x18(marketOrder.sizeDelta);
@@ -202,12 +202,12 @@ contract SettlementBranch is EIP712Upgradeable {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
         // fetch storage slot for global config
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // verifies provided price data following the configured settlement strategy
         // returning the bid and ask prices
         (ctx.bidX18, ctx.askX18) =
-            settlementConfiguration.verifyOffchainPrice(priceData, globalConfiguration.maxVerificationDelay);
+            settlementConfiguration.verifyOffchainPrice(priceData, perpsEngineConfiguration.maxVerificationDelay);
 
         // iterate through off-chain orders; intentionally not caching
         // length as reading from calldata is faster
@@ -354,14 +354,14 @@ contract SettlementBranch is EIP712Upgradeable {
         FillOrderContext memory ctx;
 
         // fetch storage slot for global config
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // fetch storage slot for perp market's settlement config
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
 
         // cache settlement token
-        ctx.usdToken = globalConfiguration.usdToken;
+        ctx.usdToken = perpsEngineConfiguration.usdToken;
 
         // determine whether position is being increased or not
         ctx.isIncreasing = Position.isIncreasing(tradingAccountId, marketId, sizeDeltaX18.intoInt256().toInt128());
@@ -375,7 +375,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // would severly disadvantage traders
         if (ctx.isIncreasing) {
             // both checks revert if disabled
-            globalConfiguration.checkMarketIsEnabled(marketId);
+            perpsEngineConfiguration.checkMarketIsEnabled(marketId);
             settlementConfiguration.checkIsSettlementEnabled();
         }
 
@@ -494,9 +494,9 @@ contract SettlementBranch is EIP712Upgradeable {
         // if trader's old position had negative pnl
         tradingAccount.deductAccountMargin({
             feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,
-                orderFeeRecipient: globalConfiguration.orderFeeRecipient,
-                settlementFeeRecipient: globalConfiguration.settlementFeeRecipient
+                marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
+                orderFeeRecipient: perpsEngineConfiguration.orderFeeRecipient,
+                settlementFeeRecipient: perpsEngineConfiguration.settlementFeeRecipient
             }),
             pnlUsdX18: ctx.pnlUsdX18.lt(SD59x18_ZERO) ? ctx.pnlUsdX18.abs().intoUD60x18() : UD60x18_ZERO,
             orderFeeUsdX18: ctx.orderFeeUsdX18,

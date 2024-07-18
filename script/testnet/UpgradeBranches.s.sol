@@ -4,11 +4,11 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
-import { GlobalConfigurationBranchTestnet } from "testnet/branches/GlobalConfigurationBranchTestnet.sol";
+import { PerpsEngineConfigurationBranchTestnet } from "testnet/branches/PerpsEngineConfigurationBranchTestnet.sol";
 import { TradingAccountBranchTestnet } from "testnet/branches/TradingAccountBranchTestnet.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
-import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
+import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
@@ -32,19 +32,20 @@ contract UpgradeBranches is BaseScript {
     function run() public broadcaster {
         // TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
-        // GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
+        // PerpsEngineConfigurationBranchTestnet perpsEngineConfigurationBranchTestnet = new
+        // PerpsEngineConfigurationBranchTestnet();
         SettlementBranch settlementBranch = new SettlementBranch();
         // OrderBranch orderBranch = new OrderBranch();
 
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](3);
-        // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
+        // bytes4[] memory perpsEngineConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
         bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
 
         // RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](4);
 
-        // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
+        // bytes4[] memory perpsEngineConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory perpMarketBranchSelectorsUpdated = new bytes4[](1);
 
         RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](1);
@@ -69,15 +70,15 @@ contract UpgradeBranches is BaseScript {
         // tradingAccountBranchTestnetSelectorsUpdated[2] =
         // bytes4(keccak256("depositMargin(uint128,address,uint256)"));
 
-        // globalConfigurationBranchTestnetSelectorsAdded[0] =
-        //     GlobalConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
-        // globalConfigurationBranchTestnetSelectorsAdded[1] =
-        //     GlobalConfigurationBranchTestnet.createCustomReferralCode.selector;
+        // perpsEngineConfigurationBranchTestnetSelectorsAdded[0] =
+        //     PerpsEngineConfigurationBranchTestnet.getCustomReferralCodeReferrer.selector;
+        // perpsEngineConfigurationBranchTestnetSelectorsAdded[1] =
+        //     PerpsEngineConfigurationBranchTestnet.createCustomReferralCode.selector;
 
         settlementBranchSelectorsUpdated[0] = SettlementBranch.fillMarketOrder.selector;
 
-        // globalConfigurationBranchTestnetSelectorsAdded[0] =
-        //     GlobalConfigurationBranch.updateSettlementConfiguration.selector;
+        // perpsEngineConfigurationBranchTestnetSelectorsAdded[0] =
+        //     PerpsEngineConfigurationBranch.updateSettlementConfiguration.selector;
 
         // perpMarketBranchSelectorsUpdated[0] = PerpMarketBranch.getOpenInterest.selector;
 
@@ -109,9 +110,9 @@ contract UpgradeBranches is BaseScript {
 
         // branchUpgrades[2] = (
         //     RootProxy.BranchUpgrade({
-        //         branch: address(globalConfigurationBranchTestnet),
+        //         branch: address(perpsEngineConfigurationBranchTestnet),
         //         action: RootProxy.BranchUpgradeAction.Add,
-        //         selectors: globalConfigurationBranchTestnetSelectorsAdded
+        //         selectors: perpsEngineConfigurationBranchTestnetSelectorsAdded
         //     })
         // );
 

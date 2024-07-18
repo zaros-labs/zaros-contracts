@@ -10,7 +10,7 @@ import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEng
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
-import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
+import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
@@ -24,7 +24,7 @@ import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol"
 import { Storage } from "test/utils/Storage.sol";
 import { Users, User, MockPriceAdapters } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
-import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";
 import { MarketConfigurationHarness } from "test/harnesses/perpetuals/leaves/MarketConfigurationHarness.sol";
@@ -67,7 +67,7 @@ import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
 abstract contract IPerpsEngine is
     IPerpsEngineBranches,
-    GlobalConfigurationHarness,
+    PerpsEngineConfigurationHarness,
     MarginCollateralConfigurationHarness,
     MarketConfigurationHarness,
     MarketOrderHarness,
@@ -409,8 +409,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
-        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
-            .UpdatePerpMarketConfigurationParams({
+        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
+        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -429,8 +429,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function updatePerpMarketMaxOi(uint128 marketId, UD60x18 newMaxOi) internal {
-        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
-            .UpdatePerpMarketConfigurationParams({
+        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
+        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -449,8 +449,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function updatePerpMarketMaxSkew(uint128 marketId, UD60x18 newMaxSkew) internal {
-        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
-            .UpdatePerpMarketConfigurationParams({
+        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
+        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),

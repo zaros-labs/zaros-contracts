@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
-import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
@@ -28,7 +28,7 @@ library TradingAccount {
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
-    using GlobalConfiguration for GlobalConfiguration.Data;
+    using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using SettlementConfiguration for SettlementConfiguration.Data;
 
@@ -90,9 +90,9 @@ library TradingAccount {
     /// context
     /// of an already active market, the check may be misleading.
     function validatePositionsLimit(Data storage self) internal view {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
-        uint256 maxPositionsPerAccount = globalConfiguration.maxPositionsPerAccount;
+        uint256 maxPositionsPerAccount = perpsEngineConfiguration.maxPositionsPerAccount;
         uint256 activePositionsLength = self.activeMarketsIds.length();
 
         if (activePositionsLength >= maxPositionsPerAccount) {
@@ -499,15 +499,16 @@ library TradingAccount {
         DeductAccountMarginContext memory ctx;
 
         // fetch storage slot for global config
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // cache collateral liquidation priority length
-        uint256 cachedCollateralLiquidationPriorityLength = globalConfiguration.collateralLiquidationPriority.length();
+        uint256 cachedCollateralLiquidationPriorityLength =
+            perpsEngineConfiguration.collateralLiquidationPriority.length();
 
         // loop through configured collateral types
         for (uint256 i; i < cachedCollateralLiquidationPriorityLength; i++) {
             // get ith collateral type
-            address collateralType = globalConfiguration.collateralLiquidationPriority.at(i);
+            address collateralType = perpsEngineConfiguration.collateralLiquidationPriority.at(i);
 
             // fetch storage slot for this collateral's config config
             MarginCollateralConfiguration.Data storage marginCollateralConfiguration =
@@ -590,14 +591,14 @@ library TradingAccount {
     )
         internal
     {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // if this is a new position
         if (oldPositionSize.isZero() && !newPositionSize.isZero()) {
             // if this account has no other active positions
-            if (!globalConfiguration.accountsIdsWithActivePositions.contains(self.id)) {
+            if (!perpsEngineConfiguration.accountsIdsWithActivePositions.contains(self.id)) {
                 // then record it into global config as an account having active positions
-                globalConfiguration.accountsIdsWithActivePositions.add(self.id);
+                perpsEngineConfiguration.accountsIdsWithActivePositions.add(self.id);
             }
 
             // add this market id as active for this account
@@ -611,7 +612,7 @@ library TradingAccount {
             // if the account has no more active markets
             if (self.activeMarketsIds.length() == 0) {
                 // then remove the account from active accounts in global config
-                globalConfiguration.accountsIdsWithActivePositions.remove(self.id);
+                perpsEngineConfiguration.accountsIdsWithActivePositions.remove(self.id);
             }
         }
     }

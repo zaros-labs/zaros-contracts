@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
-import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
@@ -33,7 +33,7 @@ contract TradingAccountBranch {
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
-    using GlobalConfiguration for GlobalConfiguration.Data;
+    using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using Referral for Referral.Data;
 
@@ -72,7 +72,7 @@ contract TradingAccountBranch {
     /// @notice Gets the contract address of the trading accounts NFTs.
     /// @return tradingAccountToken The account token address.
     function getTradingAccountToken() public view returns (address) {
-        return GlobalConfiguration.load().tradingAccountToken;
+        return PerpsEngineConfiguration.load().tradingAccountToken;
     }
 
     /// @notice Returns the account's margin amount of the given collateral type.
@@ -235,13 +235,13 @@ contract TradingAccountBranch {
         returns (uint128 tradingAccountId)
     {
         // fetch storage slot for global config
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // increment next account id & output
-        tradingAccountId = ++globalConfiguration.nextAccountId;
+        tradingAccountId = ++perpsEngineConfiguration.nextAccountId;
 
         // get refrence to account nft token
-        IAccountNFT tradingAccountToken = IAccountNFT(globalConfiguration.tradingAccountToken);
+        IAccountNFT tradingAccountToken = IAccountNFT(perpsEngineConfiguration.tradingAccountToken);
 
         // create account record
         TradingAccount.create(tradingAccountId, msg.sender);
@@ -443,9 +443,9 @@ contract TradingAccountBranch {
 
     /// @notice Reverts if the given collateral type is not in the liquidation priority list.
     function _requireCollateralLiquidationPriorityDefined(address collateralType) internal view {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
         bool isInCollateralLiquidationPriority =
-            globalConfiguration.collateralLiquidationPriority.contains(collateralType);
+            perpsEngineConfiguration.collateralLiquidationPriority.contains(collateralType);
 
         if (!isInCollateralLiquidationPriority) revert Errors.CollateralLiquidationPriorityNotDefined(collateralType);
     }
