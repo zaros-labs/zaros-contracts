@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
 
