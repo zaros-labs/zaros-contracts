@@ -49,7 +49,7 @@ contract isLiquidatable_Unit_Test is Base_Test {
 
         bool isLiquidatable = perpsEngine.exposed_isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18);
 
-        // it should return true
+        // it should return false
         assertEq(isLiquidatable, false, "isLiquidatable should return false");
     }
 }
