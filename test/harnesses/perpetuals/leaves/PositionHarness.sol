@@ -59,6 +59,18 @@ contract PositionHarness {
         return Position.getAccruedFunding(self, fundingFeePerUnit);
     }
 
+    function exposed_isIncreasing(
+        uint128 tradingAccountId,
+        uint128 marketId,
+        int128 sizeDelta
+    )
+        external
+        view
+        returns (bool)
+    {
+        return Position.isIncreasing(tradingAccountId, marketId, sizeDelta);
+    }
+
     function exposed_getMarginRequirements(
         UD60x18 notionalValueX18,
         UD60x18 initialMarginRateX18,
