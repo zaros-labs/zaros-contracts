@@ -96,7 +96,8 @@ contract TradingAccountBranch {
     /// @notice Returns the total equity of all assets under the trading account without considering the collateral
     /// value
     /// ratio
-    /// @dev This function doesn't take open positions into account.
+    /// @dev This function take open positions into account.
+    /// @dev This function doesn't take the LTV configured value of the margin collateral types
     /// @param tradingAccountId The trading account id.
     /// @return equityUsdX18 The USD denominated total margin collateral value.
     function getAccountEquityUsd(uint128 tradingAccountId) external view returns (SD59x18) {
