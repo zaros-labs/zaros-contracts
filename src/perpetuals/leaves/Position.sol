@@ -144,15 +144,16 @@ library Position {
         return sd59x18(self.size).abs().intoUD60x18().mul(price);
     }
 
-    /// @notice Determines if a given position size change is an increase in the position.
+    /// @notice Determines if a given position size change is an increase in the position's notional value.
     /// @dev This function checks if the position is being opened or increased based on the size delta and the current
     /// position size.
     /// @param tradingAccountId The unique identifier for the trading account.
     /// @param marketId The market identifier where the position is held.
     /// @param sizeDelta The change in position size; positive for an increase, negative for a decrease.
-    /// @return isBeingIncreased Returns true if the position is being opened (size is 0) or increased (sizeDelta
+    /// @return isNotionalValueIncreasing Returns true if the position is being opened (size is 0) or increased
+    /// (sizeDelta
     /// direction matches position size), otherwise false.
-    function isIncreasing(
+    function isNotionalValueIncreasing(
         uint128 tradingAccountId,
         uint128 marketId,
         int128 sizeDelta
@@ -161,7 +162,7 @@ library Position {
         view
         returns (bool)
     {
-        Data storage self = Position.load(tradingAccountId, marketId);
+        Data storage self = load(tradingAccountId, marketId);
 
         // If position is being opened (size is 0) or if position is being increased (sizeDelta direction is same as
         // position size)

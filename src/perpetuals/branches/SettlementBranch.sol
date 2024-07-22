@@ -332,7 +332,7 @@ contract SettlementBranch is EIP712Upgradeable {
         SD59x18 newSkewX18;
         address usdToken;
         bool shouldUseMaintenanceMargin;
-        bool isIncreasing;
+        bool isNotionalValueIncreasing;
     }
 
     /// @param tradingAccountId The trading account id.
@@ -364,7 +364,8 @@ contract SettlementBranch is EIP712Upgradeable {
         ctx.usdToken = globalConfiguration.usdToken;
 
         // determine whether position is being increased or not
-        ctx.isIncreasing = Position.isIncreasing(tradingAccountId, marketId, sizeDeltaX18.intoInt256().toInt128());
+        ctx.isNotionalValueIncreasing =
+            Position.isNotionalValueIncreasing(tradingAccountId, marketId, sizeDeltaX18.intoInt256().toInt128());
 
         // both markets and settlement can be disabled, however when this happens we want to:
         // 1) allow open positions not subject to liquidation to decrease their size or close
@@ -373,7 +374,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // the idea is to prevent a state where traders have open positions but are unable
         // to reduce size or close even though they can still be liquidated; such a state
         // would severly disadvantage traders
-        if (ctx.isIncreasing) {
+        if (ctx.isNotionalValueIncreasing) {
             // both checks revert if disabled
             globalConfiguration.checkMarketIsEnabled(marketId);
             settlementConfiguration.checkIsSettlementEnabled();
@@ -424,7 +425,7 @@ contract SettlementBranch is EIP712Upgradeable {
             // but if the trader is opening a new position or increasing the size
             // of their existing position we want to ensure they satisfy the higher
             // initial margin requirement
-            ctx.shouldUseMaintenanceMargin = !ctx.isIncreasing && !ctx.oldPositionSizeX18.isZero();
+            ctx.shouldUseMaintenanceMargin = !ctx.isNotionalValueIncreasing && !ctx.oldPositionSizeX18.isZero();
 
             ctx.requiredMarginUsdX18 =
                 ctx.shouldUseMaintenanceMargin ? requiredMaintenanceMarginUsdX18 : requiredInitialMarginUsdX18;
