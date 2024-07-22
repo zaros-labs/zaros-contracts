@@ -8,7 +8,7 @@ library Vault {
 
     // TODO: pack storage slots
     struct Data {
-        address vaultToken;
+        address indexToken;
         address collateralType;
         uint256 vaultId;
         uint256 totalDeposited;
