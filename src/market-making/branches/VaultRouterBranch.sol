@@ -17,6 +17,7 @@ contract VaultRouterBranch {
         return Vault.load(vaultId);
     }
 
+    // TODO: should we delay deposits?
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
