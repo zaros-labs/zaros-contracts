@@ -7,7 +7,7 @@ import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 // Open Zeppelin dependencies
 import { IERC20, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
-contract VaultBranch {
+contract VaultRouterBranch {
     using SafeERC20 for IERC20;
 
     /// @notice Returns the data and state of a given vault.
