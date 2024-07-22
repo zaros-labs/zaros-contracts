@@ -59,7 +59,7 @@ contract PositionHarness {
         return Position.getAccruedFunding(self, fundingFeePerUnit);
     }
 
-    function exposed_isIncreasing(
+    function exposed_isNotionalValueIncreasing(
         uint128 tradingAccountId,
         uint128 marketId,
         int128 sizeDelta
@@ -68,7 +68,7 @@ contract PositionHarness {
         view
         returns (bool)
     {
-        return Position.isIncreasing(tradingAccountId, marketId, sizeDelta);
+        return Position.isNotionalValueIncreasing(tradingAccountId, marketId, sizeDelta);
     }
 
     function exposed_getMarginRequirements(

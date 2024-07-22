@@ -54,7 +54,8 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             })
         );
 
-        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
+        bool isIncreased =
+            perpsEngine.exposed_isNotionalValueIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
         // it should assert true
         assertEq(isIncreased, true);
     }
@@ -94,7 +95,8 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             isLong: isLong
         });
 
-        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
+        bool isIncreased =
+            perpsEngine.exposed_isNotionalValueIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
 
         // it should assert true
         assertEq(isIncreased, true);
@@ -135,7 +137,8 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             isLong: isLong
         });
 
-        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
+        bool isIncreased =
+            perpsEngine.exposed_isNotionalValueIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
 
         // it should assert true
         assertEq(isIncreased, true);
@@ -176,7 +179,8 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             isLong: isLong
         });
 
-        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
+        bool isIncreased =
+            perpsEngine.exposed_isNotionalValueIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
 
         // it should assert false
         assertEq(isIncreased, false);
@@ -217,7 +221,8 @@ contract Position_IsIncreasing_Unit_Test is Base_Test {
             isLong: isLong
         });
 
-        bool isIncreased = perpsEngine.exposed_isIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
+        bool isIncreased =
+            perpsEngine.exposed_isNotionalValueIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
 
         // it should assert false
         assertEq(isIncreased, false);

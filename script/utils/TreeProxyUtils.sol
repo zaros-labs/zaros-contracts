@@ -365,7 +365,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     positionHarnessSelectors[5] = PositionHarness.exposed_getMarginRequirements.selector;
     positionHarnessSelectors[6] = PositionHarness.exposed_getNotionalValue.selector;
     positionHarnessSelectors[7] = PositionHarness.exposed_getUnrealizedPnl.selector;
-    positionHarnessSelectors[8] = PositionHarness.exposed_isIncreasing.selector;
+    positionHarnessSelectors[8] = PositionHarness.exposed_isNotionalValueIncreasing.selector;
 
     bytes4[] memory settlementConfigurationHarnessSelectors = new bytes4[](6);
     settlementConfigurationHarnessSelectors[0] =
