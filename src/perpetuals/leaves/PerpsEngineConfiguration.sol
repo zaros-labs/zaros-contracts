@@ -14,7 +14,7 @@ library PerpsEngineConfiguration {
     using SafeCast for int256;
 
     /// @notice ERC7201 storage location.
-    bytes32 internal constant GLOBAL_CONFIGURATION_LOCATION = keccak256(
+    bytes32 internal constant PERPS_ENGINE_CONFIGURATION_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.perpetuals.PerpsEngineConfiguration")) - 1)
     ) & ~bytes32(uint256(0xff));
 
@@ -54,10 +54,10 @@ library PerpsEngineConfiguration {
         mapping(uint256 chainId => address sequencerUptimeFeed) sequencerUptimeFeedByChainId;
     }
 
-    /// @notice Loads the PerpsEngineConfiguration entity.
-    /// @return perpsEngineConfiguration The global configuration storage pointer.
+    /// @notice Loads the {PerpsEngineConfiguration}.
+    /// @return perpsEngineConfiguration The perps engine configuration storage pointer.
     function load() internal pure returns (Data storage perpsEngineConfiguration) {
-        bytes32 slot = GLOBAL_CONFIGURATION_LOCATION;
+        bytes32 slot = PERPS_ENGINE_CONFIGURATION_LOCATION;
 
         assembly {
             perpsEngineConfiguration.slot := slot
@@ -65,7 +65,7 @@ library PerpsEngineConfiguration {
     }
 
     /// @notice Reverts if the provided `marketId` is disabled.
-    /// @param self The global configuration storage pointer.
+    /// @param self The perps engine configuration storage pointer.
     /// @param marketId The id of the market to check.
     function checkMarketIsEnabled(Data storage self, uint128 marketId) internal view {
         if (!self.enabledMarketsIds.contains(marketId)) {
@@ -74,7 +74,7 @@ library PerpsEngineConfiguration {
     }
 
     /// @notice Adds a new perps market to the enabled markets set.
-    /// @param self The global configuration storage pointer.
+    /// @param self The perps engine configuration storage pointer.
     /// @param marketId The id of the market to add.
     function addMarket(Data storage self, uint128 marketId) internal {
         bool added = self.enabledMarketsIds.add(uint256(marketId));
@@ -85,7 +85,7 @@ library PerpsEngineConfiguration {
     }
 
     /// @notice Removes a perps market from the enabled markets set.
-    /// @param self The global configuration storage pointer.
+    /// @param self The perps engine configuration storage pointer.
     /// @param marketId The id of the market to add.
     function removeMarket(Data storage self, uint128 marketId) internal {
         bool removed = self.enabledMarketsIds.remove(uint256(marketId));
@@ -96,7 +96,7 @@ library PerpsEngineConfiguration {
     }
 
     /// @notice Configures the collateral priority.
-    /// @param self The global configuration storage pointer.
+    /// @param self The perps engine configuration storage pointer.
     /// @param collateralTypes The array of collateral type addresses.
     function configureCollateralLiquidationPriority(Data storage self, address[] memory collateralTypes) internal {
         uint256 cachedCollateralTypesCached = collateralTypes.length;
@@ -114,7 +114,7 @@ library PerpsEngineConfiguration {
 
     /// @notice Removes the given collateral type from the collateral priority.
     /// @dev Reverts if the collateral type is not in the set.
-    /// @param self The global configuration storage pointer.
+    /// @param self The perps engine configuration storage pointer.
     /// @param collateralType The address of the collateral type to remove.
     function removeCollateralFromLiquidationPriority(Data storage self, address collateralType) internal {
         // does the collateral being removed exist?
