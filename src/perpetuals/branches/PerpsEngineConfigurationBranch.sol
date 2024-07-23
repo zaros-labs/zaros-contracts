@@ -12,7 +12,7 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { CustomReferralConfiguration } from "@zaros/perpetuals/leaves/CustomReferralConfiguration.sol";
 
-// OpenZeppelin Upgradeable dependencies
+// Open Zeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
@@ -134,6 +134,7 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @dev {PerpsEngineConfigurationBranch} UUPS initializer.
     function initialize(address tradingAccountToken, address usdToken) external initializer {
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+
         perpsEngineConfiguration.tradingAccountToken = tradingAccountToken;
         perpsEngineConfiguration.usdToken = usdToken;
     }
@@ -157,6 +158,13 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
             accountsIds[index] = uint128(perpsEngineConfiguration.accountsIdsWithActivePositions.at(i));
             index++;
         }
+    }
+
+    /// @notice Returns the address of custom referral code
+    /// @param customReferralCode The custom referral code.
+    /// @return referrer The address of the referrer.
+    function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) {
+        return CustomReferralConfiguration.load(customReferralCode).referrer;
     }
 
     /// @dev Returns the maximum amount that can be deposited as margin for a given
@@ -617,13 +625,6 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
 
             emit LogSetSequencerUptimeFeed(msg.sender, chainIds[i], sequencerUptimeFeedAddresses[i]);
         }
-    }
-
-    /// @notice Returns the address of custom referral code
-    /// @param customReferralCode The custom referral code.
-    /// @return referrer The address of the referrer.
-    function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) {
-        return CustomReferralConfiguration.load(customReferralCode).referrer;
     }
 
     /// @notice Creates a custom referral code.

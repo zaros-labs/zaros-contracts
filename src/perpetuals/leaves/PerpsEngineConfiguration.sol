@@ -39,6 +39,8 @@ library PerpsEngineConfiguration {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMinLifetime;
         uint128 liquidationFeeUsdX18;
+        // TODO: We may need to update the two following recipients
+        // to call functions from the MM engine.
         address marginCollateralRecipient;
         address orderFeeRecipient;
         address settlementFeeRecipient;
