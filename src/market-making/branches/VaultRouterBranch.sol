@@ -27,7 +27,7 @@ contract VaultRouterBranch {
 
         Vault.Data storage vault = Vault.load(vaultId);
 
-        IERC20(vault.collateralType).safeTransferFrom(msg.sender, address(this), assets);
+        IERC20(vault.collateral.asset).safeTransferFrom(msg.sender, address(this), assets);
         uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
 
         if (shares < minShares) {

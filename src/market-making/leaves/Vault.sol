@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { Collateral } from "./Collateral.sol";
+import { DebtDistribution } from "./DebtDistribution.sol";
+
 library Vault {
     /// @notice ERC7201 storage location.
     bytes32 internal constant VAULT_LOCATION =
@@ -8,13 +12,15 @@ library Vault {
 
     // TODO: pack storage slots
     struct Data {
-        address indexToken;
-        address collateralType;
         uint256 vaultId;
         uint256 totalDeposited;
-        int256 totalUnrealizedDebtUsd;
-        int256 totalRealizedDebtUsd;
+        uint256 depositCap;
+        int256 totalUnsettledDebtUsd;
+        int256 totalSettledDebtUsd;
+        address indexToken;
         bool isDegenVault;
+        Collateral.Data collateral;
+        DebtDistribution.Data debtDistribution;
     }
 
     /// @notice Loads a {Vault}.
