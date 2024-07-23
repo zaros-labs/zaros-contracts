@@ -8,7 +8,11 @@ library MarketMakingEngineConfiguration {
 
     // TODO: pack storage slots
     struct Data {
-        uint256 slot;
+        address usdToken;
+        address perpsEngine;
+        mapping(uint256 chainId => address sequencerUptimeFeed) sequencerUptimeFeedByChainId;
+        // TODO: define roles
+        mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;
     }
 
     /// @notice Loads the {MarketMakingEngineConfiguration}.
