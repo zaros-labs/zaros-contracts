@@ -299,7 +299,7 @@ function deployAddressHarnesses() returns (address[] memory) {
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](11);
+    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](12);
     globalConfigurationHarnessSelectors[0] = GlobalConfigurationHarness.exposed_checkMarketIsEnabled.selector;
     globalConfigurationHarnessSelectors[1] = GlobalConfigurationHarness.exposed_addMarket.selector;
     globalConfigurationHarnessSelectors[2] = GlobalConfigurationHarness.exposed_removeMarket.selector;
@@ -317,6 +317,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
         GlobalConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
     globalConfigurationHarnessSelectors[10] =
         GlobalConfigurationHarness.workaround_getSequencerUptimeFeedByChainId.selector;
+    globalConfigurationHarnessSelectors[11] = GlobalConfigurationHarness.workaround_getMaxPositionsPerAccount.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](6);
     marginCollateralConfigurationHarnessSelectors[0] =
