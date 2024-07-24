@@ -45,13 +45,11 @@ contract Load_Unit_Test is Base_Test {
         });
 
         // it should load the market order
-
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_load(tradingAccountId);
     }
 
     function testFuzz_GivenYouDoNotHaveAMarketOrder(uint128 tradingAccountId) external {
         // it should not load the market order
-
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_load(tradingAccountId);
     }
 }
