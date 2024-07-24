@@ -94,6 +94,10 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
         perpsEngine.exposed_updateActiveMarkets(
             tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, newPositionSizeSD59x18
         );
+
+        uint256 accountsIdsWithActivePositions = perpsEngine.workaround_getAccountsIdsWithActivePositionsLength();
+
+        assertEq(accountsIdsWithActivePositions, 1);
     }
 
     function testFuzz_WhenThisAccountHasOtherActivePositions(
@@ -144,6 +148,10 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
         perpsEngine.exposed_updateActiveMarkets(
             tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, newPositionSizeSD59x18
         );
+
+        uint256 accountsIdsWithActivePositions = perpsEngine.workaround_getAccountsIdsWithActivePositionsLength();
+
+        assertEq(accountsIdsWithActivePositions, 1);
     }
 
     modifier whenTheExistingPositionWasClosed() {
@@ -192,6 +200,10 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
         perpsEngine.exposed_updateActiveMarkets(
             tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, newPositionSizeSD59x18
         );
+
+        uint256 accountsIdsWithActivePositions = perpsEngine.workaround_getAccountsIdsWithActivePositionsLength();
+
+        assertEq(accountsIdsWithActivePositions, 0);
     }
 
     function testFuzz_WhenTheAccountHasActiveMarkets(
@@ -204,6 +216,7 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
         external
         whenTheExistingPositionWasClosed
     {
+        uint256 accountsIdsWithActivePositions;
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         marginValueUsd = bound({
@@ -255,6 +268,28 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
             oldMarketIdPositionSizeSD59x18,
             newMarketIdPositionSizeSD59x18
         );
+
+        accountsIdsWithActivePositions =
+            accountsIdsWithActivePositions = perpsEngine.workaround_getAccountsIdsWithActivePositionsLength();
+
+        // ensure there is an open marketId for accout
+        if (accountsIdsWithActivePositions == 0) {
+            // prevent marketId collisions
+            if (fuzzMarketConfig.marketId == newFuzzMarketConfigMarketId.marketId) {
+                if (fuzzMarketConfig.marketId == INITIAL_MARKET_ID) {
+                    newFuzzMarketConfigMarketId.marketId += 1;
+                } else if (fuzzMarketConfig.marketId == FINAL_MARKET_ID) {
+                    newFuzzMarketConfigMarketId.marketId -= 1;
+                }
+            }
+            // add another market id to skip one of the if checks
+            perpsEngine.exposed_updateActiveMarkets(
+                tradingAccountId,
+                newFuzzMarketConfigMarketId.marketId,
+                oldMarketIdPositionSizeSD59x18,
+                newMarketIdPositionSizeSD59x18
+            );
+        }
 
         // it should remove this market as active for this account
         perpsEngine.exposed_updateActiveMarkets(
