@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract UpdateActiveMarkets_Unit_Test is Base_Test {
