@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
 
-contract Withdraw_Unit_Test is Base_Test {
+contract IsMarketWithActivePosition_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
@@ -13,7 +13,7 @@ contract Withdraw_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function test_WhenTheMarketHasActivePositions(
+    function testFuzz_WhenTheMarketHasActivePositions(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint128 marketId,
@@ -45,7 +45,7 @@ contract Withdraw_Unit_Test is Base_Test {
         assertEq(_isMarketWithActivePosition, true);
     }
 
-    function test_WhenTheMarketHasNoActivePositions(uint256 marginValueUsd, uint128 marketId) external {
+    function testFuzz_WhenTheMarketHasNoActivePositions(uint256 marginValueUsd, uint128 marketId) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         marginValueUsd = bound({
             x: marginValueUsd,
