@@ -23,6 +23,6 @@ abstract contract IPerpsEngine is
     TradingAccountBranch
 { }
 
-contract PerpsEngine is RootProxy {
+contract PerpsEngine is RootProxy, IPerpsEngine {
     constructor(InitParams memory initParams) RootProxy(initParams) { }
 }

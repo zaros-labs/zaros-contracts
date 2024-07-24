@@ -37,6 +37,7 @@ import { CustomReferralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
+import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 
 // Zaros dependencies script
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -245,6 +246,28 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         }
 
         changePrank({ msgSender: users.owner.account });
+    }
+
+    function mintTokens() internal {
+        changePrank({ msgSender: users.owner.account });
+
+        for (uint256 i = INITIAL_MARGIN_COLLATERAL_ID; i <= FINAL_MARGIN_COLLATERAL_ID; i++) {
+            if(marginCollaterals[i].marginCollateralAddress == address(usdz)) {
+                continue;
+            }
+
+            changePrank({ msgSender: users.naruto.account });
+            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(users.naruto.account, convertUd60x18ToTokenAmount(marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 6)));
+
+            changePrank({ msgSender: users.sasuke.account });
+            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(users.sasuke.account, convertUd60x18ToTokenAmount(marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 6)));
+
+            changePrank({ msgSender: users.sakura.account });
+            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(users.sakura.account , convertUd60x18ToTokenAmount(marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 6)));
+
+            changePrank({ msgSender: users.madara.account });
+            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(users.madara.account, convertUd60x18ToTokenAmount(marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 6)));
+        }
     }
 
     function configureContracts() internal {
