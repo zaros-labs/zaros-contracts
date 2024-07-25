@@ -59,8 +59,8 @@ contract LoadExisting_Unit_Test is Base_Test {
 
         // it should load the market order
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_loadExisting(tradingAccountId);
-
         assertEq(marketOrder.marketId, fuzzMarketConfig.marketId);
+        assertEq(marketOrder.sizeDelta, sizeDelta);
     }
 
     function testFuzz_RevertGiven_YouDoNotHaveAMarketOrder(uint128 tradingAccountId) external {
@@ -69,5 +69,6 @@ contract LoadExisting_Unit_Test is Base_Test {
         // it should revert
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_loadExisting(tradingAccountId);
         assertEq(marketOrder.marketId, 0);
+        assertEq(marketOrder.sizeDelta, 0);
     }
 }
