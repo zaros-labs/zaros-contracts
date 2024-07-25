@@ -9,9 +9,21 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { ERC721, ERC721Enumerable } from "@openzeppelin/token/ERC721/extensions/ERC721Enumerable.sol";
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract AccountNFT is ERC721Enumerable, Ownable {
+contract AccountNFT is ERC721Enumerable, Ownable, UUPSUpgradeable {
     using SafeCast for uint256;
+
+    /// @dev Disables initialize functions at the implementation.
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address _owner, string memory _name, string memory _symbol) external initializer {
+        __ERC20_init(_name, _symbol);
+        __ERC20Permit_init(_name);
+        __Ownable_init(_owner);
+    }
 
     constructor(string memory name, string memory symbol, address owner) ERC721(name, symbol) Ownable(owner) { }
 
