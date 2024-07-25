@@ -5,6 +5,10 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+
+// PRB Math dependencies
+import { ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract LoadExisting_Unit_Test is Base_Test {
     function setUp() public override {
@@ -15,7 +19,7 @@ contract LoadExisting_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function test_GivenYouHaveAMarketOrder(
+    function testFuzz_GivenYouHaveAMarketOrder(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId,
@@ -36,23 +40,34 @@ contract LoadExisting_Unit_Test is Base_Test {
         deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+        int128 sizeDelta = fuzzOrderSizeDelta(
+            FuzzOrderSizeDeltaParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                initialMarginRate: ud60x18(initialMarginRate),
+                marginValueUsd: ud60x18(marginValueUsd),
+                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
+                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
+                isLong: isLong,
+                shouldDiscountFees: true
+            })
+        );
 
-        openPosition({
-            fuzzMarketConfig: fuzzMarketConfig,
-            tradingAccountId: tradingAccountId,
-            initialMarginRate: initialMarginRate,
-            marginValueUsd: marginValueUsd,
-            isLong: isLong
-        });
+        perpsEngine.exposed_update(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
 
         // it should load the market order
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_loadExisting(tradingAccountId);
+
+        assertEq(marketOrder.marketId, fuzzMarketConfig.marketId);
     }
 
-    function test_RevertGiven_YouDoNotHaveAMarketOrder(uint128 tradingAccountId) external {
+    function testFuzz_RevertGiven_YouDoNotHaveAMarketOrder(uint128 tradingAccountId) external {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, tradingAccountId) });
 
         // it should revert
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_loadExisting(tradingAccountId);
+        assertEq(marketOrder.marketId, 0);
     }
 }
