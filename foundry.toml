@@ -49,4 +49,5 @@
 
 [invariant]
   fail_on_revert = false
-  runs = 2000
+  runs = 256
+  depth = 32

@@ -345,7 +345,7 @@ contract TradingAccountBranch {
         _requireAmountNotZero(amountX18);
 
         // enforce new deposit + already deposited <= deposit cap
-        // _requireEnoughDepositCap(collateralType, amountX18, depositCapX18, totalCollateralDepositedX18);
+        _requireEnoughDepositCap(collateralType, amountX18, depositCapX18, totalCollateralDepositedX18);
 
         // enforce collateral has configured liquidation priority
         _requireCollateralLiquidationPriorityDefined(collateralType);
