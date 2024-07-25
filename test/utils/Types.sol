@@ -25,6 +25,8 @@ struct Users {
     User sakura;
     // Malicious user.
     User madara;
+    // Malicious user.
+    User minato;
 }
 
 struct User {

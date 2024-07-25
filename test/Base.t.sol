@@ -126,7 +126,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
             sakura: createUser({ name: "Sakura Haruno" }),
-            madara: createUser({ name: "Madara Uchiha" })
+            madara: createUser({ name: "Madara Uchiha" }),
+            minato: createUser({ name: "Minato Namikaze" })
         });
         vm.startPrank({ msgSender: users.owner.account });
 
@@ -252,21 +253,41 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         changePrank({ msgSender: users.owner.account });
 
         for (uint256 i = INITIAL_MARGIN_COLLATERAL_ID; i <= FINAL_MARGIN_COLLATERAL_ID; i++) {
-            if(marginCollaterals[i].marginCollateralAddress == address(usdz)) {
+            if (marginCollaterals[i].marginCollateralAddress == address(usdz)) {
                 continue;
             }
 
             changePrank({ msgSender: users.naruto.account });
-            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(users.naruto.account, convertUd60x18ToTokenAmount(marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 6)));
+            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(
+                users.naruto.account,
+                convertUd60x18ToTokenAmount(
+                    marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 10)
+                )
+            );
 
             changePrank({ msgSender: users.sasuke.account });
-            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(users.sasuke.account, convertUd60x18ToTokenAmount(marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 6)));
+            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(
+                users.sasuke.account,
+                convertUd60x18ToTokenAmount(
+                    marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 10)
+                )
+            );
 
             changePrank({ msgSender: users.sakura.account });
-            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(users.sakura.account , convertUd60x18ToTokenAmount(marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 6)));
+            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(
+                users.sakura.account,
+                convertUd60x18ToTokenAmount(
+                    marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 10)
+                )
+            );
 
             changePrank({ msgSender: users.madara.account });
-            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(users.madara.account, convertUd60x18ToTokenAmount(marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 6)));
+            LimitedMintingERC20(marginCollaterals[i].marginCollateralAddress).mint(
+                users.madara.account,
+                convertUd60x18ToTokenAmount(
+                    marginCollaterals[i].marginCollateralAddress, ud60x18(marginCollaterals[i].depositCap * 10)
+                )
+            );
         }
     }
 
