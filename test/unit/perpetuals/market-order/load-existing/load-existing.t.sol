@@ -4,6 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 contract LoadExisting_Unit_Test is Base_Test {
     function setUp() public override {
@@ -48,7 +49,10 @@ contract LoadExisting_Unit_Test is Base_Test {
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_loadExisting(tradingAccountId);
     }
 
-    function test_RevertGiven_YouDoNotHaveAMarketOrder() external {
+    function test_RevertGiven_YouDoNotHaveAMarketOrder(uint128 tradingAccountId) external {
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, tradingAccountId) });
+
         // it should revert
+        MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_loadExisting(tradingAccountId);
     }
 }
