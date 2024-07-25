@@ -20,6 +20,9 @@ import {
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
+// Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+
 contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
@@ -33,8 +36,16 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", deployer);
-        console.log("Trading Account NFT: ", address(tradingAccountToken));
+        address tradingAccountTokenImplementation = address(new AccountNFT());
+        bytes memory tradingAccountTokenInitializeData = abi.encodeWithSelector(
+            AccountNFT.initialize.selector, deployer, "Zaros Trading Accounts", "ZRS-TRADE-ACC"
+        );
+        tradingAccountToken = AccountNFT(
+            address(new ERC1967Proxy(tradingAccountTokenImplementation, tradingAccountTokenInitializeData))
+        );
+
+        console.log("Trading Account NFT Implementation: ", tradingAccountTokenImplementation);
+        console.log("Trading Account NFT Proxy: ", address(tradingAccountToken));
 
         isTestnet = vm.envBool("IS_TESTNET");
 

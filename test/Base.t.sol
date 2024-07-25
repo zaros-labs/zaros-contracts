@@ -128,7 +128,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
         vm.startPrank({ msgSender: users.owner.account });
 
-        tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner.account);
+        address tradingAccountTokenImplementation = address(new AccountNFT());
+        bytes memory tradingAccountTokenInitializeData = abi.encodeWithSelector(
+            AccountNFT.initialize.selector, users.owner.account, "Zaros Trading Accounts", "ZRS-TRADE-ACC"
+        );
+        tradingAccountToken = AccountNFT(
+            address(new ERC1967Proxy(tradingAccountTokenImplementation, tradingAccountTokenInitializeData))
+        );
 
         bool isTestnet = false;
         address[] memory branches = deployBranches(isTestnet);
