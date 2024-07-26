@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test, IPerpsEngine } from "test/Base.t.sol";
-import { getBranchesSelectors } from "script/utils/TreeProxyUtils.sol";
+import { getBranchesSelectors, getHarnessesSelectors } from "script/utils/TreeProxyUtils.sol";
 
 // Forge dependencies
 import { StdInvariant } from "forge-std/StdInvariant.sol";
@@ -105,13 +105,20 @@ contract TestInvariantFoundry is Base_Test, StdInvariant {
 
         // Config targetSelector
         bytes4[][] memory branchesSelectors = getBranchesSelectors(false);
+        bytes4[][] memory harnessesSelectors = getHarnessesSelectors();
 
-        bytes4[] memory selectors = new bytes4[](58);
+        bytes4[] memory selectors = new bytes4[](132);
 
         uint256 selectorsIndex = 0;
         for (uint256 i; i < branchesSelectors.length; i++) {
             for (uint256 j; j < branchesSelectors[i].length; j++) {
                 selectors[selectorsIndex] = (branchesSelectors[i][j]);
+                selectorsIndex++;
+            }
+        }
+        for (uint256 i; i < harnessesSelectors.length; i++) {
+            for (uint256 j; j < harnessesSelectors[i].length; j++) {
+                selectors[selectorsIndex] = (harnessesSelectors[i][j]);
                 selectorsIndex++;
             }
         }

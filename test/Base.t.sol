@@ -66,6 +66,8 @@ import { PRBTest } from "@prb-test/PRBTest.sol";
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
+/// @title IPerpsEngine
+/// @notice This contract is used to join all branches from the PerpsEngine and the Harness from tests
 abstract contract IPerpsEngine is
     IPerpsEngineBranches,
     GlobalConfigurationHarness,
@@ -80,12 +82,16 @@ abstract contract IPerpsEngine is
     CustomReferralConfigurationHarness
 { }
 
+/// @title PerpsEngineInvariantTest
+/// @notice This contract is used to test the invariants scenarios
 contract PerpsEngineInvariantTest is PerpsEngine, IPerpsEngine {
     constructor(InitParams memory initParams) PerpsEngine(initParams) { }
 
     receive() external payable { }
 }
 
+/// @title Base_Test
+/// @notice This contract is used to setup the tests
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     using Math for UD60x18;
     using SafeCast for int256;
@@ -116,7 +122,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     MockERC20 internal wBtc;
 
     IPerpsEngine internal perpsEngine;
-    IPerpsEngine internal perpsEngineImplementation;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -163,7 +168,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             initializePayloads: initializePayloads
         });
 
-        if(usePerpsEngineInvariantTest) {
+        if (usePerpsEngineInvariantTest) {
             perpsEngine = IPerpsEngine(address(new PerpsEngineInvariantTest(initParams)));
             usePerpsEngineInvariantTest = false;
         } else {
