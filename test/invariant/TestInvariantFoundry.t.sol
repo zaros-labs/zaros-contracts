@@ -24,6 +24,7 @@ import { ud60x18 } from "@prb-math/UD60x18.sol";
 contract TestInvariantFoundry is Base_Test, StdInvariant {
     function setUp() public override {
         // Setup the system
+        usePerpsEngineInvariantTest = true;
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
         configureSystemParameters();

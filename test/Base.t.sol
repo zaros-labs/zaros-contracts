@@ -80,6 +80,12 @@ abstract contract IPerpsEngine is
     CustomReferralConfigurationHarness
 { }
 
+contract PerpsEngineInvariantTest is PerpsEngine, IPerpsEngine {
+    constructor(InitParams memory initParams) PerpsEngine(initParams) { }
+
+    receive() external payable { }
+}
+
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     using Math for UD60x18;
     using SafeCast for int256;
@@ -94,6 +100,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
     uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
+    bool usePerpsEngineInvariantTest = false;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS
@@ -156,7 +163,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             initializePayloads: initializePayloads
         });
 
-        perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
+        if(usePerpsEngineInvariantTest) {
+            perpsEngine = IPerpsEngine(address(new PerpsEngineInvariantTest(initParams)));
+            usePerpsEngineInvariantTest = false;
+        } else {
+            perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
+        }
 
         configureSequencerUptimeFeeds(perpsEngine);
 
