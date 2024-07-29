@@ -34,9 +34,13 @@ contract VaultRouterBranch {
         if (shares < minShares) revert();
     }
 
+    /// @notice Stakes a given amount of index tokens in the contract.
+    /// @dev Index token holders must stake in order to earn fees distributions from the market making engine.
+    /// @param vaultId The vault identifier.
+    /// @param shares The amount of index tokens to stake, in 18 decimals.
     function stake(uint256 vaultId, uint256 shares) external { }
 
-    ///. @notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
+    ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
     /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
@@ -63,5 +67,9 @@ contract VaultRouterBranch {
         if (assets < withdrawalRequest.minAssets) revert();
     }
 
+    /// @notice Unstakes a given amount of index tokens from the contract.
+    /// @dev Unstaked tokens don't participate in fees distributions.
+    /// @param vaultId The vault identifier.
+    /// @param shares The amount of index tokens to unstake, in 18 decimals.
     function unstake(uint256 vaultId, uint256 shares) external { }
 }
