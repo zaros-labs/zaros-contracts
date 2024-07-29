@@ -10,7 +10,6 @@ import { ERC721, ERC721Enumerable } from "@openzeppelin/token/ERC721/extensions/
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-// TODO: move to uups
 contract AccountNFT is ERC721Enumerable, Ownable {
     using SafeCast for uint256;
 

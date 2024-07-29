@@ -15,6 +15,7 @@ library Vault {
         uint256 vaultId;
         uint256 totalDeposited;
         uint256 depositCap;
+        uint256 withdrawalDelay;
         int256 totalUnsettledDebtUsd;
         int256 totalSettledDebtUsd;
         address indexToken;
