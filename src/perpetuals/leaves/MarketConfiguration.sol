@@ -17,6 +17,7 @@ library MarketConfiguration {
     /// @param minTradeSizeX18 The minimum trade size in 1e18.
     /// @param skewScale The skew scale, a configurable parameter that determines price marking and funding.
     /// @param orderFees The configured maker and taker order fee tiers.
+    /// @param priceFeedHeartbeatSeconds The price feed heartbeat interval in seconds.
     struct Data {
         string name;
         string symbol;
@@ -46,5 +47,6 @@ library MarketConfiguration {
         self.minTradeSizeX18 = params.minTradeSizeX18;
         self.skewScale = params.skewScale;
         self.orderFees = params.orderFees;
+        self.priceFeedHeartbeatSeconds = params.priceFeedHeartbeatSeconds;
     }
 }
