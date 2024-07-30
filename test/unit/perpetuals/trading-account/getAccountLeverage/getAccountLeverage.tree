@@ -1,0 +1,6 @@
+GetAccountLeverage_Unit_Test
+├── when the marginBalanceUsdX18 is Zero
+│   └── it should stop the execution and return zero in UD60x18 format
+└── when the marginBalanceUsdX18 is not Zero
+    └── it should continue execution and return the current leverage of trading account account
+
