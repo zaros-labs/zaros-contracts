@@ -137,10 +137,6 @@ library PerpMarket {
 
         SD59x18 skew = sd59x18(self.skew);
 
-        if (skewScale.isZero()) {
-            return SD59x18_ZERO;
-        }
-
         SD59x18 proportionalSkew = skew.div(skewScale);
         SD59x18 proportionalSkewBounded = Math.min(Math.max(unary(SD_UNIT), proportionalSkew), SD_UNIT);
 
