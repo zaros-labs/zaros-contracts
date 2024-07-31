@@ -1,8 +1,5 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
-
-// Zaros dependencies
-import { DistributionActor } from "./DistributionActor.sol";
+pragma solidity 0.8.25;
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
@@ -16,10 +13,15 @@ library Distribution {
 
     error Zaros_Distribution_EmptyDistribution();
 
+    struct Actor {
+        uint128 shares;
+        int128 lastValuePerShare;
+    }
+
     struct Data {
         uint128 totalShares;
         int128 valuePerShare;
-        mapping(bytes32 actorId => DistributionActor.Data) actorInfo;
+        mapping(bytes32 actorId => Actor.Data) actorInfo;
     }
 
     function distributeValue(Data storage self, SD59x18 value) internal {
