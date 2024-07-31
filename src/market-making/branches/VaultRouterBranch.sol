@@ -8,6 +8,7 @@ import { WithdrawalRequest } from "@zaros/market-making/leaves/WithdrawalRequest
 // Open Zeppelin dependencies
 import { IERC20, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
+// TODO: think about referrals
 contract VaultRouterBranch {
     using SafeERC20 for IERC20;
 
@@ -43,14 +44,14 @@ contract VaultRouterBranch {
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
-    /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
-    function initiateWithdrawal(uint256 vaultId, uint256 shares, uint256 minAssets) external { }
+    function initiateWithdrawal(uint256 vaultId, uint256 shares) external { }
 
     /// @notice Redeems a given amount of index tokens in exchange for collateral assets from the provided vault,
     /// after the withdrawal delay period has elapsed.
     /// @param vaultId The vault identifier.
     /// @param withdrawalRequestId The previously initiated withdrawal request id.
-    function redeem(uint256 vaultId, uint256 withdrawalRequestId) external {
+    /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
+    function redeem(uint256 vaultId, uint256 withdrawalRequestId, uint256 minAssets) external {
         Vault.Data storage vault = Vault.load(vaultId);
         WithdrawalRequest.Data storage withdrawalRequest =
             WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestId);
