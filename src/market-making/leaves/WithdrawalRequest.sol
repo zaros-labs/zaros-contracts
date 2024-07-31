@@ -10,7 +10,6 @@ library WithdrawalRequest {
     struct Data {
         uint256 timestamp;
         uint256 shares;
-        uint256 minAssets;
         bool fulfilled;
     }
 

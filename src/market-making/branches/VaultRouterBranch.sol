@@ -65,7 +65,7 @@ contract VaultRouterBranch {
         if (withdrawalRequest.timestamp + vault.withdrawalDelay < block.timestamp) revert();
 
         // TODO: add custom error
-        if (assets < withdrawalRequest.minAssets) revert();
+        if (assets < minAssets) revert();
     }
 
     /// @notice Unstakes a given amount of index tokens from the contract.
