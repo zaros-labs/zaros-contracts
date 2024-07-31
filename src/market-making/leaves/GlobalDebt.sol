@@ -4,6 +4,9 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Distribution } from "./Distribution.sol";
 
+// Solady dependencies
+import { MinHeapLib } from "@solady/Milady.sol";
+
 library GlobalDebt {
     bytes32 internal constant GLOBAL_DEBT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.GlobalDebt")) - 1));
@@ -12,6 +15,7 @@ library GlobalDebt {
         int256 totalUnsettledDebt;
         int256 totalSettledDebt;
         uint256 totalMarketsCreditWeight;
+        MinHeapLib.Heap vaultsDebtSettlementPriority;
         Distribution.Data vaultsDebtDistribution;
     }
 
