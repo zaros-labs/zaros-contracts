@@ -18,7 +18,7 @@ contract Load_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_GivenYouHaveAMarketOrder(
+    function testFuzz_GivenTheresAMarketOrder(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId,
@@ -62,7 +62,7 @@ contract Load_Unit_Test is Base_Test {
         assertEq(marketOrder.sizeDelta, sizeDelta);
     }
 
-    function testFuzz_GivenYouDoNotHaveAMarketOrder(uint128 tradingAccountId) external {
+    function testFuzz_GivenTheresNotHaveAMarketOrder(uint128 tradingAccountId) external {
         // it should not load the market order
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_load(tradingAccountId);
         assertEq(marketOrder.marketId, 0);
