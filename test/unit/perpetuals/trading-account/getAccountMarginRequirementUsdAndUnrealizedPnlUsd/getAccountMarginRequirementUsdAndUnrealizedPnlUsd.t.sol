@@ -43,6 +43,7 @@ contract GetAccountMarginRequirementUsdAndUnrealizedPnlUsd_Unit_Test is Base_Tes
 
         int256 sizeDelta = 100;
 
+        // it should update cumulative outputs
         perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
             tradingAccountId, fuzzMarketConfig.marketId, sd59x18(sizeDelta)
         );
@@ -72,9 +73,20 @@ contract GetAccountMarginRequirementUsdAndUnrealizedPnlUsd_Unit_Test is Base_Tes
         // open an existing position to enter the if check
         openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
 
-        int256 sizeDelta = 100;
+        int256 sizeDelta = 10_000;
 
-        perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(tradingAccountId, 0, sd59x18(sizeDelta));
+        // it should update cumulative outputs
+        (
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 accountTotalUnrealizedPnlUsdX18
+        ) = perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
+            tradingAccountId, 0, sd59x18(sizeDelta)
+        );
+
+        assertNotEq(requiredInitialMarginUsdX18.intoUint256(), 0);
+        assertNotEq(requiredMaintenanceMarginUsdX18.intoUint256(), 0);
+        assertEq(accountTotalUnrealizedPnlUsdX18.intoUint256(), 0);
     }
 
     function testFuzz_WhenPositionIsNotOpenedAndMarketIdIsNotZero(
@@ -95,15 +107,23 @@ contract GetAccountMarginRequirementUsdAndUnrealizedPnlUsd_Unit_Test is Base_Tes
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
-        int256 sizeDelta = 100;
+        int256 sizeDelta = 10_000;
 
         // it should update cumulative outputs
-        perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
+        (
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 accountTotalUnrealizedPnlUsdX18
+        ) = perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
             tradingAccountId, fuzzMarketConfig.marketId, sd59x18(sizeDelta)
         );
+
+        assertNotEq(requiredInitialMarginUsdX18.intoUint256(), 0);
+        assertNotEq(requiredMaintenanceMarginUsdX18.intoUint256(), 0);
+        assertEq(accountTotalUnrealizedPnlUsdX18.intoUint256(), 0);
     }
 
-    function test_WhenPositionIsNotOpenedAndMarketIdIsZero(uint256 marginValueUsd, uint256 marketId) external {
+    function testFuzz_WhenPositionIsNotOpenedAndMarketIdIsZero(uint256 marginValueUsd) external {
         // it should update cumulative outputs and return zero
 
         marginValueUsd = bound({
@@ -119,6 +139,17 @@ contract GetAccountMarginRequirementUsdAndUnrealizedPnlUsd_Unit_Test is Base_Tes
         int256 sizeDelta = 100;
 
         // passing targetMarketId as 0
-        perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(tradingAccountId, 0, sd59x18(sizeDelta));
+        // it should update cumulative outputs
+        (
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 accountTotalUnrealizedPnlUsdX18
+        ) = perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
+            tradingAccountId, 0, sd59x18(sizeDelta)
+        );
+
+        assertEq(requiredInitialMarginUsdX18.intoUint256(), 0);
+        assertEq(requiredMaintenanceMarginUsdX18.intoUint256(), 0);
+        assertEq(accountTotalUnrealizedPnlUsdX18.intoUint256(), 0);
     }
 }
