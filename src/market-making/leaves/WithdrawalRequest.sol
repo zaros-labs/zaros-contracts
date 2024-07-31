@@ -14,7 +14,7 @@ library WithdrawalRequest {
         bool fulfilled;
     }
 
-    /// @notice Loads a {WithdrawalRequest}.
+    /// @notice Loads a {WithdrawalRequest} namespace.
     /// @param vaultId The vault identifier.
     /// @param account The withdrawal requester.
     /// @param withdrawalRequestId The withdrawal request identifier.

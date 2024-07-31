@@ -15,7 +15,7 @@ library MarketMakingEngineConfiguration {
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;
     }
 
-    /// @notice Loads the {MarketMakingEngineConfiguration}.
+    /// @notice Loads the {MarketMakingEngineConfiguration} namespace.
     /// @return marketMakingEngineConfiguration The loaded market making engine configuration storage pointer.
     function load() internal pure returns (Data storage marketMakingEngineConfiguration) {
         bytes32 slot = MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION;

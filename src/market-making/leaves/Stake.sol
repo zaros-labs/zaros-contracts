@@ -10,7 +10,7 @@ library Stake {
         uint256 shares;
     }
 
-    /// @notice Loads a {Stake}.
+    /// @notice Loads a {Stake} namespace.
     /// @param vaultId The vault identifier.
     /// @param account The staker address.
     function load(uint256 vaultId, address account) internal pure returns (Data storage stake) {

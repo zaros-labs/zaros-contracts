@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Collateral } from "./Collateral.sol";
-import { DebtDistribution } from "./DebtDistribution.sol";
 
 library Vault {
     /// @notice ERC7201 storage location.
@@ -21,10 +20,9 @@ library Vault {
         address indexToken;
         bool isDegenVault;
         Collateral.Data collateral;
-        DebtDistribution.Data debtDistribution;
     }
 
-    /// @notice Loads a {Vault}.
+    /// @notice Loads a {Vault} namespace.
     /// @param vaultId The vault identifier.
     /// @return vault The loaded vault storage pointer.
     function load(uint256 vaultId) internal pure returns (Data storage vault) {
