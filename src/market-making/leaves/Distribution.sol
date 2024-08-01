@@ -1,6 +1,9 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
+
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
@@ -10,8 +13,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 library Distribution {
     using SafeCast for int256;
-
-    error Zaros_Distribution_EmptyDistribution();
 
     struct Actor {
         uint128 shares;
@@ -32,7 +33,7 @@ library Distribution {
         UD60x18 totalShares = ud60x18(self.totalShares);
 
         if (totalShares.eq(UD_ZERO)) {
-            revert Zaros_Distribution_EmptyDistribution();
+            revert Errors.EmptyDistribution();
         }
 
         SD59x18 deltaValuePerShare = value.div(totalShares.intoSD59x18());

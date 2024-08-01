@@ -166,4 +166,9 @@ library Errors {
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
     /// one.
     error InvalidDataStreamReport(bytes32 streamId, bytes32 reportStreamId);
+
+    /// @notice MarketMakingEngine.Distribution errors.
+
+    /// @notice Thrown when trying to distribute value to an empty distribution.
+    error EmptyDistribution();
 }
