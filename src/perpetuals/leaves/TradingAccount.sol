@@ -20,6 +20,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 /// @title The TradingAccount namespace.
 library TradingAccount {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -308,11 +310,16 @@ library TradingAccount {
     /// @return totalUnrealizedPnlUsdX18 The total unrealized PnL of the account.
     function getAccountUnrealizedPnlUsd(Data storage self) internal view returns (SD59x18 totalUnrealizedPnlUsdX18) {
         uint256 cachedActiveMarketsIdsLength = self.activeMarketsIds.length();
+        console.log("cachedActiveMarketsIdsLength");
+        console.log(cachedActiveMarketsIdsLength);
 
         for (uint256 i; i < cachedActiveMarketsIdsLength; i++) {
             uint128 marketId = self.activeMarketsIds.at(i).toUint128();
             PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
             Position.Data storage position = Position.load(self.id, marketId);
+
+            console.log("position.size");
+            console.log(position.size);
 
             UD60x18 indexPriceX18 = perpMarket.getIndexPrice();
             UD60x18 markPriceX18 = perpMarket.getMarkPrice(unary(sd59x18(position.size)), indexPriceX18);
@@ -322,6 +329,11 @@ library TradingAccount {
 
             SD59x18 accruedFundingUsdX18 = position.getAccruedFunding(fundingFeePerUnitX18);
             SD59x18 unrealizedPnlUsdX18 = position.getUnrealizedPnl(markPriceX18);
+
+            console.log("accruedFundingUsdX18.intoUint256()");
+            console.log(accruedFundingUsdX18.intoUint256());
+            console.log("unrealizedPnlUsdX18.intoUint256()");
+            console.log(unrealizedPnlUsdX18.intoUint256());
 
             totalUnrealizedPnlUsdX18 = totalUnrealizedPnlUsdX18.add(unrealizedPnlUsdX18).add(accruedFundingUsdX18);
         }
