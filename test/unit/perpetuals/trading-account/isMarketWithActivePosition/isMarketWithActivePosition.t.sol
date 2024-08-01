@@ -42,7 +42,7 @@ contract IsMarketWithActivePosition_Unit_Test is Base_Test {
         bool _isMarketWithActivePosition =
             perpsEngine.exposed_isMarketWithActivePosition(tradingAccountId, fuzzMarketConfig.marketId);
 
-        assertEq(_isMarketWithActivePosition, true);
+        assertEq(_isMarketWithActivePosition, true, "market should have active position");
     }
 
     function testFuzz_WhenTheMarketHasNoActivePositions(uint256 marginValueUsd, uint128 marketId) external {
@@ -59,6 +59,6 @@ contract IsMarketWithActivePosition_Unit_Test is Base_Test {
         bool _isMarketWithActivePosition =
             perpsEngine.exposed_isMarketWithActivePosition(tradingAccountId, fuzzMarketConfig.marketId);
 
-        assertEq(_isMarketWithActivePosition, false);
+        assertEq(_isMarketWithActivePosition, false, "market should have active position");
     }
 }
