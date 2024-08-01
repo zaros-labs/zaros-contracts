@@ -22,7 +22,7 @@ library Distribution {
     struct Data {
         uint128 totalShares;
         int128 valuePerShare;
-        mapping(bytes32 actorId => Actor) actorInfo;
+        mapping(bytes32 actorId => Actor) actor;
     }
 
     function distributeValue(Data storage self, SD59x18 value) internal {
@@ -49,7 +49,7 @@ library Distribution {
         returns (SD59x18 valueChange)
     {
         valueChange = getActorValueChange(self, actorId);
-        Actor storage actor = self.actorInfo[actorId];
+        Actor storage actor = self.actor[actorId];
 
         self.totalShares = ud60x18(self.totalShares).add(newActorShares).sub(ud60x18(actor.shares)).intoUint128();
         actor.shares = newActorShares.intoUint128();
@@ -58,16 +58,16 @@ library Distribution {
     }
 
     function accumulateActor(Data storage self, bytes32 actorId) internal returns (SD59x18 valueChange) {
-        Actor storage actor = self.actorInfo[actorId];
+        Actor storage actor = self.actor[actorId];
         return _updateLastValuePerShare(self, actor, ud60x18(actor.shares));
     }
 
     function getActorValueChange(Data storage self, bytes32 actorId) internal view returns (SD59x18 valueChange) {
-        return _getActorValueChange(self, self.actorInfo[actorId]);
+        return _getActorValueChange(self, self.actor[actorId]);
     }
 
     function getActorShares(Data storage self, bytes32 actorId) internal view returns (UD60x18 shares) {
-        return ud60x18(self.actorInfo[actorId].shares);
+        return ud60x18(self.actor[actorId].shares);
     }
 
     function getValuePerShare(Data storage self) internal view returns (SD59x18) {
