@@ -62,7 +62,7 @@ contract Load_Unit_Test is Base_Test {
         assertEq(marketOrder.sizeDelta, sizeDelta);
     }
 
-    function testFuzz_GivenTheresNotHaveAMarketOrder(uint128 tradingAccountId) external {
+    function testFuzz_GivenTheresNotAMarketOrder(uint128 tradingAccountId) external {
         // it should not load the market order
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_load(tradingAccountId);
         assertEq(marketOrder.marketId, 0);
