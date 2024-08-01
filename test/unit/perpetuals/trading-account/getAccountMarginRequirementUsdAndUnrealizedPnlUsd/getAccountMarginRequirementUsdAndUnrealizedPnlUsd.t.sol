@@ -44,9 +44,17 @@ contract GetAccountMarginRequirementUsdAndUnrealizedPnlUsd_Unit_Test is Base_Tes
         int256 sizeDelta = 100;
 
         // it should update cumulative outputs
-        perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
+        (
+            UD60x18 requiredInitialMarginUsdX18,
+            UD60x18 requiredMaintenanceMarginUsdX18,
+            SD59x18 accountTotalUnrealizedPnlUsdX18
+        ) = perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
             tradingAccountId, fuzzMarketConfig.marketId, sd59x18(sizeDelta)
         );
+
+        assertNotEq(requiredInitialMarginUsdX18.intoUint256(), 0);
+        assertNotEq(requiredMaintenanceMarginUsdX18.intoUint256(), 0);
+        assertNotEq(accountTotalUnrealizedPnlUsdX18.intoUint256(), 0);
     }
 
     function testFuzz_WhenPositionIsOpenedAndTargetMarketIdIsZero(
