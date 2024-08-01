@@ -18,7 +18,6 @@ library Vault {
         int256 totalUnsettledDebtUsd;
         int256 totalSettledDebtUsd;
         address indexToken;
-        bool isDegenVault;
         Collateral.Data collateral;
     }
 
