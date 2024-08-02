@@ -20,9 +20,8 @@ import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.so
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
-import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 import { Storage } from "test/utils/Storage.sol";
-import { Users, User, MockPriceAdapters } from "test/utils/Types.sol";
+import { Users, User } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
@@ -33,6 +32,9 @@ import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHa
 import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
+import { ReferralHarness } from "test/harnesses/perpetuals/leaves/ReferralHarness.sol";
+import { CustomReferralConfigurationHarness } from
+    "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 
@@ -51,9 +53,6 @@ import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.
 // Open Zeppelin dependencies
 import { ERC20, IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
-
-// Open Zeppelin Upgradeable dependencies
-import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // PRB Math dependencies
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
@@ -74,7 +73,9 @@ abstract contract IPerpsEngine is
     PerpMarketHarness,
     PositionHarness,
     SettlementConfigurationHarness,
-    TradingAccountHarness
+    TradingAccountHarness,
+    ReferralHarness,
+    CustomReferralConfigurationHarness
 { }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {

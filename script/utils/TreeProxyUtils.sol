@@ -22,6 +22,9 @@ import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHa
 import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
+import { ReferralHarness } from "test/harnesses/perpetuals/leaves/ReferralHarness.sol";
+import { CustomReferralConfigurationHarness } from
+    "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
@@ -258,7 +261,7 @@ function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
 }
 
 function deployAddressHarnesses() returns (address[] memory) {
-    address[] memory addressHarnesses = new address[](8);
+    address[] memory addressHarnesses = new address[](10);
 
     address globalConfigurationHarness = address(new GlobalConfigurationHarness());
     console.log("GlobalConfigurationHarness: ", globalConfigurationHarness);
@@ -284,6 +287,12 @@ function deployAddressHarnesses() returns (address[] memory) {
     address tradingAccountHarness = address(new TradingAccountHarness());
     console.log("TradingAccountHarness: ", tradingAccountHarness);
 
+    address referralHarness = address(new ReferralHarness());
+    console.log("ReferralHarness: ", referralHarness);
+
+    address customReferralConfigurationHarness = address(new CustomReferralConfigurationHarness());
+    console.log("CustomReferralConfiguration: ", customReferralConfigurationHarness);
+
     addressHarnesses[0] = globalConfigurationHarness;
     addressHarnesses[1] = marginCollateralConfigurationHarness;
     addressHarnesses[2] = marketConfigurationHarness;
@@ -292,12 +301,14 @@ function deployAddressHarnesses() returns (address[] memory) {
     addressHarnesses[5] = positionHarness;
     addressHarnesses[6] = settlementConfigurationHarness;
     addressHarnesses[7] = tradingAccountHarness;
+    addressHarnesses[8] = referralHarness;
+    addressHarnesses[9] = customReferralConfigurationHarness;
 
     return addressHarnesses;
 }
 
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](8);
+    bytes4[][] memory selectors = new bytes4[][](10);
 
     bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](12);
     globalConfigurationHarnessSelectors[0] = GlobalConfigurationHarness.exposed_checkMarketIsEnabled.selector;
@@ -406,6 +417,14 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     tradingAccountHarnessSelectors[21] =
         TradingAccountHarness.workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral.selector;
 
+    bytes4[] memory referralHarnessSelectors = new bytes4[](2);
+    referralHarnessSelectors[0] = ReferralHarness.exposed_Referral_load.selector;
+    referralHarnessSelectors[1] = ReferralHarness.exposed_Referral_getReferrerAddress.selector;
+
+    bytes4[] memory customReferralConfigurationHarnessSelectors = new bytes4[](1);
+    customReferralConfigurationHarnessSelectors[0] =
+        CustomReferralConfigurationHarness.exposed_CustomReferralConfiguration_load.selector;
+
     selectors[0] = globalConfigurationHarnessSelectors;
     selectors[1] = marginCollateralConfigurationHarnessSelectors;
     selectors[2] = marketConfigurationHarnessSelectors;
@@ -414,6 +433,8 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     selectors[5] = positionHarnessSelectors;
     selectors[6] = settlementConfigurationHarnessSelectors;
     selectors[7] = tradingAccountHarnessSelectors;
+    selectors[8] = referralHarnessSelectors;
+    selectors[9] = customReferralConfigurationHarnessSelectors;
 
     return selectors;
 }
