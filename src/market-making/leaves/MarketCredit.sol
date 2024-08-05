@@ -19,4 +19,14 @@ library MarketCredit {
         uint256 autoDeleveragingFactor;
         uint256 autoDeleveragingScale;
     }
+
+    /// @notice Loads a {MarketCredit} namespace.
+    /// @param marketId The perp market id.
+    /// @return marketCredit The loaded market credit storage pointer.
+    function load(uint256 marketId) internal pure returns (Data storage marketCredit) {
+        bytes32 slot = keccak256(abi.encode(MARKET_CREDIT_LOCATION, marketId));
+        assembly {
+            marketCredit.slot := slot
+        }
+    }
 }
