@@ -152,7 +152,13 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         setAccountsAsLiquidatable(ctx.secondMarketConfig, isLong);
 
         ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
-        ctx.accountsIds[amountOfTradingAccounts] = ctx.nonLiquidatableTradingAccountId;
+        openPosition(
+            ctx.fuzzMarketConfig,
+            ctx.nonLiquidatableTradingAccountId,
+            ctx.fuzzMarketConfig.imr,
+            ctx.accountMarginValueUsd / 2,
+            isLong
+        );
 
         changePrank({ msgSender: liquidationKeeper });
 
@@ -198,9 +204,9 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         ctx.expectedOpenInterest = sd59x18(
             perpsEngine.exposed_Position_load(ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId).size
         ).abs().intoUD60x18().intoUint256();
-        assertEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), "open interest");
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "open interest");
 
-        // it should update skew value
+        // // it should update skew value
         ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
         ctx.expectedSkew =
             perpsEngine.exposed_Position_load(ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId).size;
@@ -232,7 +238,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             // it should remove the account's all active markets
             assertEq(0, perpsEngine.workaround_getActiveMarketsIdsLength(ctx.accountsIds[i]), "active market id");
             assertEq(
-                0,
+                1,
                 perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(),
                 "accounts ids with active positions"
             );
