@@ -66,7 +66,11 @@ contract TradingAccountBranch {
     /// @param referralCode The referral code.
     /// @param isCustomReferralCode A boolean indicating if the referral code is custom.
     event LogReferralSet(
-        address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode
+        uint128 tradingAccountId,
+        address indexed user,
+        address indexed referrer,
+        bytes referralCode,
+        bool isCustomReferralCode
     );
 
     /// @notice Gets the contract address of the trading accounts NFTs.
@@ -251,9 +255,9 @@ contract TradingAccountBranch {
 
         emit LogCreateTradingAccount(tradingAccountId, msg.sender);
 
-        Referral.Data storage referral = Referral.load(msg.sender);
+        Referral.Data storage referral = Referral.load(tradingAccountId);
 
-        if (referralCode.length != 0 && referral.referralCode.length == 0) {
+        if (referralCode.length != 0) {
             if (isCustomReferralCode) {
                 CustomReferralConfiguration.Data storage customReferral =
                     CustomReferralConfiguration.load(string(referralCode));
@@ -273,7 +277,9 @@ contract TradingAccountBranch {
                 referral.isCustomReferralCode = false;
             }
 
-            emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
+            emit LogReferralSet(
+                tradingAccountId, msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode
+            );
         }
 
         return tradingAccountId;
@@ -410,11 +416,11 @@ contract TradingAccountBranch {
     }
 
     /// @notice Get the user referral data
-    /// @param user The user address.
+    /// @param tradingAccountId The trading account id.
     /// @return referralCode The user's referral code.
     /// @return isCustomReferralCode A boolean indicating if the referral code is custom.
-    function getUserReferralData(address user) external pure returns (bytes memory, bool) {
-        Referral.Data memory referral = Referral.load(user);
+    function getUserReferralData(uint128 tradingAccountId) external pure returns (bytes memory, bool) {
+        Referral.Data memory referral = Referral.load(tradingAccountId);
 
         return (referral.referralCode, referral.isCustomReferralCode);
     }

@@ -119,10 +119,12 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.naruto.account });
 
+        uint128 expectedTradingAccountId = 1;
+
         // it should emit {LogReferralSet} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit TradingAccountBranch.LogReferralSet(
-            users.naruto.account, users.owner.account, bytes(customReferralCode), true
+            expectedTradingAccountId, users.naruto.account, users.owner.account, bytes(customReferralCode), true
         );
 
         perpsEngine.createTradingAccountAndMulticall(data, bytes(customReferralCode), true);
@@ -170,9 +172,13 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
 
         bytes memory referralCode = abi.encode(users.owner.account);
 
+        uint128 expectedTradingAccountId = 1;
+
         // it should emit {LogReferralSet} event
         vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogReferralSet(users.naruto.account, users.owner.account, referralCode, false);
+        emit TradingAccountBranch.LogReferralSet(
+            expectedTradingAccountId, users.naruto.account, users.owner.account, referralCode, false
+        );
 
         perpsEngine.createTradingAccountAndMulticall(data, referralCode, false);
     }

@@ -13,9 +13,9 @@ contract Referral_Load_Unit_Test is Base_Test {
     function test_WhenLoadIsCalled() external {
         changePrank({ msgSender: users.owner.account });
 
-        perpsEngine.createTradingAccount(abi.encode(users.naruto.account), false);
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(abi.encode(users.naruto.account), false);
 
-        Referral.Data memory referral = perpsEngine.exposed_Referral_load(users.owner.account);
+        Referral.Data memory referral = perpsEngine.exposed_Referral_load(tradingAccountId);
 
         // it should return the referral code
         assertEq(
@@ -32,9 +32,9 @@ contract Referral_Load_Unit_Test is Base_Test {
 
         changePrank({ msgSender: users.sakura.account });
 
-        perpsEngine.createTradingAccount(bytesReferralCode, true);
+        tradingAccountId = perpsEngine.createTradingAccount(bytesReferralCode, true);
 
-        referral = perpsEngine.exposed_Referral_load(users.sakura.account);
+        referral = perpsEngine.exposed_Referral_load(tradingAccountId);
 
         // it should return the referral code
         assertEq(referral.referralCode, bytesReferralCode, "the referral code is not correct");
