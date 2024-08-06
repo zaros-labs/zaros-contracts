@@ -3,6 +3,10 @@ pragma solidity 0.8.25;
 
 /// @dev A perp market won't be abl
 library MarketCredit {
+    /// @notice ERC7201 storage location.
+    bytes32 internal constant MARKET_CREDIT_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Swap")) - 1));
+
     // TODO: pack storage slots
     /// @param marketId The perps engine's linked market id.
     /// @param creditShare The market's share of the protocol total credit.

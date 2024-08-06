@@ -18,7 +18,7 @@ library Collateral {
     /// @param asset The collateral asset address.
     /// @return collateral The loaded collateral storage pointer.
     function load(address asset) internal pure returns (Data storage collateral) {
-        bytes32 slot = keccak256(abi.encode(asset));
+        bytes32 slot = keccak256(abi.encode(COLLATERAL_LOCATION, asset));
         assembly {
             collateral.slot := slot
         }
