@@ -3,6 +3,13 @@ pragma solidity 0.8.25;
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
+    /// @dev Called by the perps engine during order settlement to get a market's OI and skew caps.
+    function getCreditForMarketId(uint128 marketId)
+        external
+        view
+        returns (uint256 openInterestCap, uint256 skewCap)
+    { }
+
     /// @dev Called by the perps engine to send margin collateral deducted from a trader's account during a negative
     /// pnl settlement or a liquidation event.
     function receiveMarginCollateral(address collateralType, uint256 amount) external { }
