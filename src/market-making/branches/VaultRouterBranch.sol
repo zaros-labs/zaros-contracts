@@ -19,6 +19,11 @@ contract VaultRouterBranch {
         return Vault.load(vaultId);
     }
 
+    /// @notice Returns the swap rate from index token to collateral asset for the provided vault.
+    /// @param vaultId The vault identifier.
+    /// @return price The swap price from index token to collateral asset.
+    function getIndexTokenSwapRate(uint256 vaultId) external view returns (uint256 price) { }
+
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
