@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { FeeRecipient } from "@zaros/market-making/leaves/FeeRecipient.sol";
+
 library MarketMakingEngineConfiguration {
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION =
@@ -10,6 +13,8 @@ library MarketMakingEngineConfiguration {
     struct Data {
         address usdToken;
         address perpsEngine;
+        address feeDistributor;
+        FeeRecipient.Data[][] feeRecipients;
         mapping(uint256 chainId => address sequencerUptimeFeed) sequencerUptimeFeedByChainId;
         // TODO: define roles
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;
