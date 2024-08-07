@@ -10,6 +10,7 @@ library Vault {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Vault")) - 1));
 
     // TODO: pack storage slots
+    // TODO: add list of markets that this Vault provides credit to.
     struct Data {
         uint256 vaultId;
         uint256 totalDeposited;

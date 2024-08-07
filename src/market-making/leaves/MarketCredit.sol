@@ -8,6 +8,7 @@ library MarketCredit {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Swap")) - 1));
 
     // TODO: pack storage slots
+    // TODO: add heap of in range and out range Vaults that provide credit to this market.
     /// @param marketId The perps engine's linked market id.
     /// @param creditShare The market's share of the protocol total credit.
     /// @param autoDeleveragingThreshold A decimal rate which determines when the market should enter the
