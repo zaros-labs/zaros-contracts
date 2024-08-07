@@ -12,6 +12,7 @@ library MarketMakingEngineConfiguration {
     // TODO: pack storage slots
     struct Data {
         address usdToken;
+        address usdc;
         address perpsEngine;
         address feeDistributor;
         FeeRecipient.Data[][] feeRecipients;

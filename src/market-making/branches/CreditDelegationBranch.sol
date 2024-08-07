@@ -3,12 +3,10 @@ pragma solidity 0.8.25;
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
-    /// @dev Called by the perps engine during order settlement to get a market's OI and skew caps.
-    function getCreditForMarketId(uint128 marketId)
-        external
-        view
-        returns (uint256 openInterestCap, uint256 skewCap)
-    { }
+    /// @dev Returns the OI and skew caps for the given market id.
+    /// @dev `CreditDelegationBranch::updateCreditDelegation` must be called before calling this function in order to
+    /// retrieve the latest state.
+    function getCreditForMarketId(uint128 marketId) public view returns (uint256 openInterestCap, uint256 skewCap) { }
 
     /// @dev Called by the perps engine to send margin collateral deducted from a trader's account during a negative
     /// pnl settlement or a liquidation event.
@@ -33,5 +31,15 @@ contract CreditDelegationBranch {
     /// @dev Must be called whenever the perps trading engine needs to know a market's skew and OI caps.
     /// @dev It takes into accounts all vault's credit delegated to each available markets. N Vaults may delegate
     /// credit to N markets, configured by the protocol admin.
-    function updateCreditDelegation() external { }
+    function updateCreditDelegation() public { }
+
+    /// @dev Called by the perps trading engine to update the credit delegation and return the credit for a given
+    /// market id
+    function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
+        external
+        returns (uint256 openInterestCap, uint256 skewCap)
+    {
+        updateCreditDelegation();
+        return getCreditForMarketId(marketId);
+    }
 }
