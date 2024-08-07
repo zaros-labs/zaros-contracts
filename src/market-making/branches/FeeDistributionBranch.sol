@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
 contract FeeDistributionBranch {
-    function getEarnedFees(address staker) external view returns (uint256) { }
+    function getEarnedFees(uint256 vaultId, address staker) external view returns (uint256) { }
 
     function receiveOrderFee(address collateral, uint256 amount) external { }
 
@@ -13,5 +13,5 @@ contract FeeDistributionBranch {
 
     function sendWethToFeeRecipients() external { }
 
-    function claimEarnedFees() external { }
+    function claimFees(uint256 vaultId) external { }
 }
