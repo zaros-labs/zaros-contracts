@@ -13,6 +13,7 @@ library MarketMakingEngineConfiguration {
     struct Data {
         address usdToken;
         address usdc;
+        address weth;
         address perpsEngine;
         address feeDistributor;
         FeeRecipient.Data[][] feeRecipients;
