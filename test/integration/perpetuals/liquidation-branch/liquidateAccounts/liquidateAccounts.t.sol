@@ -8,13 +8,10 @@ import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
-import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
-
-import { console } from "forge-std/console.sol";
 
 contract LiquidateAccounts_Integration_Test is Base_Test {
     function setUp() public override {
@@ -168,9 +165,6 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         skip(timeDelta);
 
         for (uint256 i; i < ctx.accountsIds.length; i++) {
-            console.log("--------------------------- ctx.accountsIds[i]: ", ctx.accountsIds[i]);
-
-            // ctx.accountsUnrealizedPnl[i] = perpsEngine.exposed_getAccontUnrealizedPnlUsd(ctx.accountsIds[i]);
             (,, ctx.accountsUnrealizedPnl[i]) = perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
                 ctx.accountsIds[i], 0, sd59x18(0)
             );
@@ -198,8 +192,6 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
                 liquidationFeeUsd: 0
             });
         }
-
-        // skip(timeDelta);
 
         ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
         ctx.expectedLastFundingTime = block.timestamp;
