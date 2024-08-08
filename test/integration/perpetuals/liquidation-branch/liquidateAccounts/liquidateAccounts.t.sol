@@ -8,10 +8,13 @@ import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+
+import { console } from "forge-std/console.sol";
 
 contract LiquidateAccounts_Integration_Test is Base_Test {
     function setUp() public override {
@@ -90,6 +93,8 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         uint256 expectedOpenInterest;
         SD59x18 skewX18;
         int256 expectedSkew;
+        SD59x18[] accountsUnrealizedPnl;
+        SD59x18[] accountsMarginBalanceInitial;
     }
 
     function testFuzz_GivenThereAreLiquidatableAccountsInTheArray(
@@ -121,6 +126,8 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
         // last account id == 0
         ctx.accountsIds = new uint128[](amountOfTradingAccounts + 2);
+        ctx.accountsUnrealizedPnl = new SD59x18[](amountOfTradingAccounts + 2);
+        ctx.accountsMarginBalanceInitial = new SD59x18[](amountOfTradingAccounts + 2);
 
         ctx.accountMarginValueUsd = ctx.marginValueUsd / (amountOfTradingAccounts + 1);
 
@@ -144,6 +151,8 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             );
 
             ctx.accountsIds[i] = ctx.tradingAccountId;
+            ctx.accountsMarginBalanceInitial[i] =
+                perpsEngine.exposed_getMarginBalanceUsd(ctx.accountsIds[i], sd59x18(0));
 
             deal({ token: address(usdz), to: users.naruto.account, give: ctx.marginValueUsd });
         }
@@ -156,7 +165,16 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
         changePrank({ msgSender: liquidationKeeper });
 
+        skip(timeDelta);
+
         for (uint256 i; i < ctx.accountsIds.length; i++) {
+            console.log("--------------------------- ctx.accountsIds[i]: ", ctx.accountsIds[i]);
+
+            // ctx.accountsUnrealizedPnl[i] = perpsEngine.exposed_getAccontUnrealizedPnlUsd(ctx.accountsIds[i]);
+            (,, ctx.accountsUnrealizedPnl[i]) = perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
+                ctx.accountsIds[i], 0, sd59x18(0)
+            );
+
             if (ctx.accountsIds[i] == ctx.nonLiquidatableTradingAccountId || ctx.accountsIds[i] == 0) {
                 continue;
             }
@@ -181,7 +199,7 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             });
         }
 
-        skip(timeDelta);
+        // skip(timeDelta);
 
         ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
         ctx.expectedLastFundingTime = block.timestamp;
@@ -235,6 +253,23 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
                 0,
                 perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(),
                 "accounts ids with active positions"
+            );
+
+            // it should deduct unrealized pnl from the margin balance
+            uint128 liquidationFeeUsdX18 = perpsEngine.workaround_getLiquidationFeeUsdX18();
+            SD59x18 marginBalanceUsdX18 = perpsEngine.exposed_getMarginBalanceUsd(ctx.accountsIds[i], sd59x18(0));
+            SD59x18 expectedMarginBalanceUsdX18 = ctx.accountsMarginBalanceInitial[i].add(
+                ctx.accountsUnrealizedPnl[i]
+            ).sub(sd59x18(int128(liquidationFeeUsdX18)));
+
+            if (expectedMarginBalanceUsdX18.lt(sd59x18(0))) {
+                expectedMarginBalanceUsdX18 = sd59x18(0);
+            }
+
+            // using `<=` instead of `==` because of the price impact (new skew) after liquidation of the trading
+            // accounts
+            assertEq(
+                marginBalanceUsdX18.intoInt256() <= expectedMarginBalanceUsdX18.intoInt256(), true, "margin balance"
             );
         }
     }

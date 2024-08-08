@@ -99,6 +99,8 @@ contract LiquidationBranch {
         SD59x18 fundingFeePerUnitX18;
         UD60x18 newOpenInterestX18;
         SD59x18 newSkewX18;
+        UD60x18 requiredMaintenanceMarginUsdX18;
+        SD59x18 accountTotalUnrealizedPnlUsdX18;
     }
 
     /// @param accountsIds The list of accounts to liquidate
@@ -135,15 +137,15 @@ contract LiquidationBranch {
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
 
             // get account's required maintenance margin & unrealized PNL
-            (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
+            (, ctx.requiredMaintenanceMarginUsdX18, ctx.accountTotalUnrealizedPnlUsdX18) =
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD59x18_ZERO);
 
             // get then save margin balance into working data
-            ctx.marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+            ctx.marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(ctx.accountTotalUnrealizedPnlUsdX18);
 
             // if account is not liquidatable, skip to next account
             // account is liquidatable if requiredMaintenanceMarginUsdX18 > ctx.marginBalanceUsdX18
-            if (!TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, ctx.marginBalanceUsdX18)) {
+            if (!TradingAccount.isLiquidatable(ctx.requiredMaintenanceMarginUsdX18, ctx.marginBalanceUsdX18)) {
                 continue;
             }
 
@@ -155,7 +157,7 @@ contract LiquidationBranch {
                     orderFeeRecipient: address(0),
                     settlementFeeRecipient: globalConfiguration.liquidationFeeRecipient
                 }),
-                pnlUsdX18: requiredMaintenanceMarginUsdX18,
+                pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18(),
                 orderFeeUsdX18: UD60x18_ZERO,
                 settlementFeeUsdX18: ctx.liquidationFeeUsdX18
             });
@@ -213,7 +215,7 @@ contract LiquidationBranch {
                 msg.sender,
                 ctx.tradingAccountId,
                 ctx.activeMarketsIds.length,
-                requiredMaintenanceMarginUsdX18.intoUint256(),
+                ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
                 ctx.marginBalanceUsdX18.intoInt256(),
                 ctx.liquidatedCollateralUsdX18.intoUint256(),
                 ctx.liquidationFeeUsdX18.intoUint128()
