@@ -181,10 +181,12 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         );
 
         (,,, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) = perpsEngine.simulateTrade(
-            ctx.tradingAccountId,
-            ctx.fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            sizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: sizeDelta
+            })
         );
 
         ctx.amountToWithdraw =
@@ -200,10 +202,12 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         (ctx.marginBalanceUsdX18, ctx.requiredInitialMarginUsdX18,, ctx.orderFeeUsdX18, ctx.settlementFeeUsdX18,) =
         perpsEngine.simulateTrade(
-            ctx.tradingAccountId,
-            ctx.fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            sizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: sizeDelta
+            })
         );
 
         ctx.mockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);

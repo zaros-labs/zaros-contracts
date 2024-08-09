@@ -543,10 +543,12 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             UD60x18 orderFeeUsdX18,
             UD60x18 settlementFeeUsdX18,
         ) = perpsEngine.simulateTrade(
-            tradingAccountId,
-            fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            sizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: sizeDelta
+            })
         );
 
         bytes memory mockSignedReport =
@@ -738,10 +740,12 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
 
         (,,, ctx.firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.tradingAccountId,
-            ctx.fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            ctx.firstOrderSizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: ctx.firstOrderSizeDelta
+            })
         );
 
         ctx.firstFillPriceX18 = perpsEngine.getMarkPrice(
@@ -847,10 +851,12 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
 
         (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.tradingAccountId,
-            ctx.fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            ctx.secondOrderSizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: ctx.secondOrderSizeDelta
+            })
         );
 
         ctx.secondFillPriceX18 =
@@ -1055,10 +1061,12 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
 
         (,,, ctx.firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.tradingAccountId,
-            ctx.fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            ctx.firstOrderSizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: ctx.firstOrderSizeDelta
+            })
         );
 
         ctx.firstFillPriceX18 = perpsEngine.getMarkPrice(
@@ -1162,10 +1170,12 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
 
         (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.tradingAccountId,
-            ctx.fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            ctx.secondOrderSizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: ctx.secondOrderSizeDelta
+            })
         );
 
         ctx.secondFillPriceX18 =
@@ -1415,10 +1425,12 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.firstOrderSizeDelta = 10e18;
 
         (,,, ctx.firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.tradingAccountId,
-            ctx.fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            ctx.firstOrderSizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: ctx.firstOrderSizeDelta
+            })
         );
 
         ctx.firstFillPriceX18 = perpsEngine.getMarkPrice(
@@ -1485,10 +1497,12 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
 
         (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            ctx.tradingAccountId,
-            ctx.fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            ctx.secondOrderSizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: ctx.secondOrderSizeDelta
+            })
         );
 
         ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();

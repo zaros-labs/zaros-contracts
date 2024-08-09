@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
+import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -47,7 +48,14 @@ contract SimulateTradeIntegrationTest is Base_Test {
         );
 
         // perps engine calls and it gets forwarded to the order branch?
-        perpsEngine.simulateTrade(tradingAccountId, fuzzMarketConfig.marketId, settlementConfigurationId, sizeDelta);
+        perpsEngine.simulateTrade(
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: settlementConfigurationId,
+                sizeDelta: sizeDelta
+            })
+        );
     }
 
     modifier givenTheAccountIdExists() {
@@ -87,7 +95,12 @@ contract SimulateTradeIntegrationTest is Base_Test {
         vm.expectRevert(abi.encodeWithSelector(Errors.PriceAdapterNotDefined.selector, 0));
 
         perpsEngine.simulateTrade(
-            tradingAccountId, unFilteredMarketsConfig.marketId, settlementConfigurationId, sizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: tradingAccountId,
+                marketId: unFilteredMarketsConfig.marketId,
+                settlementConfigurationId: settlementConfigurationId,
+                sizeDelta: sizeDelta
+            })
         );
     }
 
@@ -249,10 +262,12 @@ contract SimulateTradeIntegrationTest is Base_Test {
         vm.expectRevert(abi.encodeWithSelector(Errors.NewPositionSizeTooSmall.selector));
 
         perpsEngine.simulateTrade(
-            tradingAccountId,
-            fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            sizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: sizeDelta
+            })
         );
 
         vm.stopPrank();
@@ -302,10 +317,12 @@ contract SimulateTradeIntegrationTest is Base_Test {
         );
 
         perpsEngine.simulateTrade(
-            tradingAccountId,
-            fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            sizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: sizeDelta
+            })
         );
     }
 }

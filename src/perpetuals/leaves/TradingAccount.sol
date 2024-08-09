@@ -341,13 +341,14 @@ library TradingAccount {
     /// @param marginBalanceUsdX18 The account's margin balance in USD.
     function isLiquidatable(
         UD60x18 requiredMaintenanceMarginUsdX18,
-        SD59x18 marginBalanceUsdX18
+        SD59x18 marginBalanceUsdX18,
+        UD60x18 liquidationFeeUsdX18
     )
         internal
         pure
         returns (bool)
     {
-        return requiredMaintenanceMarginUsdX18.intoSD59x18().gt(marginBalanceUsdX18);
+        return requiredMaintenanceMarginUsdX18.add(liquidationFeeUsdX18).intoSD59x18().gt(marginBalanceUsdX18);
     }
 
     /// @notice Checks if the account has an active position in the given market.
