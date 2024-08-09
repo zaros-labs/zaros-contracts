@@ -13,7 +13,9 @@ contract VerifySender_Unit_Test is Base_Test {
         createPerpMarkets();
     }
 
-    function testFuzz_RevertWhen_TheTradingAccountOwnerIsDifferentOfMsgSender(uint256 amountToDeposit) external {
+    function testFuzz_RevertWhen_TheTradingAccountOwnerIsDifferentFromTheMsgSender(uint256 amountToDeposit)
+        external
+    {
         amountToDeposit = bound({
             x: amountToDeposit,
             min: WSTETH_MIN_DEPOSIT_MARGIN,
@@ -30,7 +32,7 @@ contract VerifySender_Unit_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.AccountPermissionDenied.selector, tradingAccountId, users.madara.account
-                )
+            )
         });
 
         changePrank({ msgSender: users.madara.account });
@@ -38,7 +40,7 @@ contract VerifySender_Unit_Test is Base_Test {
         perpsEngine.exposed_verifySender(tradingAccountId);
     }
 
-    function testFuzz_WhenTheTradingAccountOwnerIsEqualOfMsgSender(uint256 amountToDeposit) external {
+    function testFuzz_WhenTheTradingAccountOwnerIsEqualToTheMsgSender(uint256 amountToDeposit) external {
         amountToDeposit = bound({
             x: amountToDeposit,
             min: WSTETH_MIN_DEPOSIT_MARGIN,
