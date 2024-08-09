@@ -12,9 +12,9 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-/// @title AccountNFT
+/// @title TradingAccountNFT
 /// @notice ERC721 token representing a trading account.
-contract AccountNFT is ERC721EnumerableUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
+contract TradingAccountNFT is ERC721EnumerableUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
     using SafeCast for uint256;
 
     /// @dev Disables initialize functions at the implementation.
@@ -39,7 +39,7 @@ contract AccountNFT is ERC721EnumerableUpgradeable, OwnableUpgradeable, UUPSUpgr
         _mint(to, tokenId);
     }
 
-    /// @notice Change owner of the AccountNFT.
+    /// @notice Change owner of the TradingAccountNFT.
     /// @param to The address to transfer the token to.
     /// @param tokenId The token ID to transfer.
     /// @param auth The address that is allowed to transfer the token.

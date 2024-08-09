@@ -3,7 +3,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies source
-import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
+import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
@@ -97,7 +97,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    AccountNFT internal tradingAccountToken;
+    TradingAccountNFT internal tradingAccountToken;
 
     MockERC20 internal usdc;
     MockUSDToken internal usdz;
@@ -128,11 +128,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
         vm.startPrank({ msgSender: users.owner.account });
 
-        address tradingAccountTokenImplementation = address(new AccountNFT());
+        address tradingAccountTokenImplementation = address(new TradingAccountNFT());
         bytes memory tradingAccountTokenInitializeData = abi.encodeWithSelector(
-            AccountNFT.initialize.selector, users.owner.account, "Zaros Trading Accounts", "ZRS-TRADE-ACC"
+            TradingAccountNFT.initialize.selector, users.owner.account, "Zaros Trading Accounts", "ZRS-TRADE-ACC"
         );
-        tradingAccountToken = AccountNFT(
+        tradingAccountToken = TradingAccountNFT(
             address(new ERC1967Proxy(tradingAccountTokenImplementation, tradingAccountTokenInitializeData))
         );
 

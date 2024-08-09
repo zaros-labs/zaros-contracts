@@ -3,7 +3,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
+import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
@@ -32,15 +32,15 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
-    AccountNFT internal tradingAccountToken;
+    TradingAccountNFT internal tradingAccountToken;
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        address tradingAccountTokenImplementation = address(new AccountNFT());
+        address tradingAccountTokenImplementation = address(new TradingAccountNFT());
         bytes memory tradingAccountTokenInitializeData = abi.encodeWithSelector(
-            AccountNFT.initialize.selector, deployer, "Zaros Trading Accounts", "ZRS-TRADE-ACC"
+            TradingAccountNFT.initialize.selector, deployer, "Zaros Trading Accounts", "ZRS-TRADE-ACC"
         );
-        tradingAccountToken = AccountNFT(
+        tradingAccountToken = TradingAccountNFT(
             address(new ERC1967Proxy(tradingAccountTokenImplementation, tradingAccountTokenInitializeData))
         );
 
