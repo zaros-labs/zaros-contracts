@@ -59,9 +59,6 @@ contract LiquidationBranch {
         // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
-        // get the liquidation fee usd
-        UD60x18 liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
-
         // cache active account ids length
         uint256 cachedAccountsIdsWithActivePositionsLength =
             globalConfiguration.accountsIdsWithActivePositions.length();
@@ -88,7 +85,9 @@ contract LiquidationBranch {
             // account can be liquidated if requiredMargin > marginBalance
             if (
                 TradingAccount.isLiquidatable(
-                    requiredMaintenanceMarginUsdX18, marginBalanceUsdX18, liquidationFeeUsdX18
+                    requiredMaintenanceMarginUsdX18,
+                    marginBalanceUsdX18,
+                    ud60x18(globalConfiguration.liquidationFeeUsdX18)
                 )
             ) {
                 liquidatableAccountsIds[i] = tradingAccountId;
