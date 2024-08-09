@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
+import { ITradingAccountNFT } from "@zaros/trading-account-nft/interfaces/ITradingAccountNFT.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
 import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
@@ -242,7 +242,7 @@ contract TradingAccountBranch {
         tradingAccountId = ++globalConfiguration.nextAccountId;
 
         // get refrence to account nft token
-        IAccountNFT tradingAccountToken = IAccountNFT(globalConfiguration.tradingAccountToken);
+        ITradingAccountNFT tradingAccountToken = ITradingAccountNFT(globalConfiguration.tradingAccountToken);
 
         // create account record
         TradingAccount.create(tradingAccountId, msg.sender);
