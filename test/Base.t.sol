@@ -51,6 +51,7 @@ import {
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
 // Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { ERC20, IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
