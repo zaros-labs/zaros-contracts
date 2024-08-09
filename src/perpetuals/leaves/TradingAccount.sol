@@ -339,6 +339,7 @@ library TradingAccount {
     /// @notice Checks if the account is liquidatable.
     /// @param requiredMaintenanceMarginUsdX18 The required maintenance margin in USD.
     /// @param marginBalanceUsdX18 The account's margin balance in USD.
+    /// @param liquidationFeeUsdX18 The liquidation fee in USD.
     function isLiquidatable(
         UD60x18 requiredMaintenanceMarginUsdX18,
         SD59x18 marginBalanceUsdX18,
