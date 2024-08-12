@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 
 // PRB Math dependencies
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 contract UpdateActiveMarkets_Unit_Test is Base_Test {
     function setUp() public override {
@@ -38,9 +38,6 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        SD59x18 oldPositionSize;
-        SD59x18 newPositionSize;
-
         deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         // create trading account
@@ -48,8 +45,11 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
 
         // it should not do anything
         perpsEngine.exposed_updateActiveMarkets(
-            tradingAccountId, fuzzMarketConfig.marketId, oldPositionSize, newPositionSize
+            tradingAccountId, fuzzMarketConfig.marketId, SD59x18_ZERO, SD59x18_ZERO
         );
+
+        assertEq(perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(), 0);
+        assertEq(perpsEngine.workaround_getActiveMarketsIdsLength(tradingAccountId), 0);
     }
 
     function testFuzz_WhenThisAccountHasNoOtherActivePositions(
@@ -81,8 +81,6 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        SD59x18 oldPositionSizeSD59x18 = sd59x18(int256(0));
-
         SD59x18 newPositionSizeSD59x18 = sd59x18(int256(newPositionSize));
 
         deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
@@ -92,12 +90,11 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
 
         // it should add this market id as active for this account
         perpsEngine.exposed_updateActiveMarkets(
-            tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, newPositionSizeSD59x18
+            tradingAccountId, fuzzMarketConfig.marketId, SD59x18_ZERO, newPositionSizeSD59x18
         );
 
-        uint256 accountsIdsWithActivePositions = perpsEngine.workaround_getAccountsIdsWithActivePositionsLength();
-
-        assertEq(accountsIdsWithActivePositions, 1);
+        assertEq(perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(), 1);
+        assertEq(perpsEngine.workaround_getActiveMarketsIdsLength(tradingAccountId), 1);
     }
 
     function testFuzz_WhenThisAccountHasOtherActivePositions(
@@ -132,8 +129,6 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        SD59x18 oldPositionSizeSD59x18 = sd59x18(int256(0));
-
         SD59x18 newPositionSizeSD59x18 = sd59x18(int256(newPositionSize));
 
         deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
@@ -146,12 +141,11 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
 
         // it should add this market id as active for this account
         perpsEngine.exposed_updateActiveMarkets(
-            tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, newPositionSizeSD59x18
+            tradingAccountId, fuzzMarketConfig.marketId, SD59x18_ZERO, newPositionSizeSD59x18
         );
 
-        uint256 accountsIdsWithActivePositions = perpsEngine.workaround_getAccountsIdsWithActivePositionsLength();
-
-        assertEq(accountsIdsWithActivePositions, 1);
+        assertEq(perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(), 1);
+        assertEq(perpsEngine.workaround_getActiveMarketsIdsLength(tradingAccountId), 1);
     }
 
     modifier whenTheExistingPositionWasClosed() {
@@ -189,8 +183,6 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
 
         SD59x18 oldPositionSizeSD59x18 = sd59x18(int256(oldPositionSize));
 
-        SD59x18 newPositionSizeSD59x18 = sd59x18(int256(0));
-
         deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         // create trading account
@@ -198,12 +190,11 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
 
         // it should remove the account from active accounts in global config
         perpsEngine.exposed_updateActiveMarkets(
-            tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, newPositionSizeSD59x18
+            tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, SD59x18_ZERO
         );
 
-        uint256 accountsIdsWithActivePositions = perpsEngine.workaround_getAccountsIdsWithActivePositionsLength();
-
-        assertEq(accountsIdsWithActivePositions, 0);
+        assertEq(perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(), 0);
+        assertEq(perpsEngine.workaround_getActiveMarketsIdsLength(tradingAccountId), 0);
     }
 
     function testFuzz_WhenTheAccountHasActiveMarkets(
@@ -216,8 +207,10 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
         external
         whenTheExistingPositionWasClosed
     {
-        uint256 accountsIdsWithActivePositions;
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        MarketConfig memory newFuzzMarketConfigMarketId = getFuzzMarketConfig(newMarketId);
+
+        vm.assume(fuzzMarketConfig.marketId != newFuzzMarketConfigMarketId.marketId);
 
         marginValueUsd = bound({
             x: marginValueUsd,
@@ -239,61 +232,31 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
 
         SD59x18 oldPositionSizeSD59x18 = sd59x18(int256(oldPositionSize));
 
-        SD59x18 newPositionSizeSD59x18 = sd59x18(int256(0));
+        SD59x18 newMarketIdPositionSizeSD59x18 = sd59x18(int256(100_000));
 
         deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         // create trading account
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
-        MarketConfig memory newFuzzMarketConfigMarketId = getFuzzMarketConfig(newMarketId);
-
-        // prevent marketId collisions
-        if (fuzzMarketConfig.marketId == newFuzzMarketConfigMarketId.marketId) {
-            if (fuzzMarketConfig.marketId == INITIAL_MARKET_ID) {
-                newFuzzMarketConfigMarketId.marketId += 1;
-            } else if (fuzzMarketConfig.marketId == FINAL_MARKET_ID) {
-                newFuzzMarketConfigMarketId.marketId -= 1;
-            }
-        }
-
-        SD59x18 oldMarketIdPositionSizeSD59x18 = sd59x18(int256(0));
-
-        SD59x18 newMarketIdPositionSizeSD59x18 = sd59x18(int256(100_000));
+        perpsEngine.exposed_updateActiveMarkets(
+            tradingAccountId, fuzzMarketConfig.marketId, SD59x18_ZERO, newMarketIdPositionSizeSD59x18
+        );
 
         // add another market id to skip one of the if checks
         perpsEngine.exposed_updateActiveMarkets(
-            tradingAccountId,
-            newFuzzMarketConfigMarketId.marketId,
-            oldMarketIdPositionSizeSD59x18,
-            newMarketIdPositionSizeSD59x18
+            tradingAccountId, newFuzzMarketConfigMarketId.marketId, SD59x18_ZERO, newMarketIdPositionSizeSD59x18
         );
 
-        accountsIdsWithActivePositions =
-            accountsIdsWithActivePositions = perpsEngine.workaround_getAccountsIdsWithActivePositionsLength();
-
-        // ensure there is an open marketId for accout
-        if (accountsIdsWithActivePositions == 0) {
-            // prevent marketId collisions
-            if (fuzzMarketConfig.marketId == newFuzzMarketConfigMarketId.marketId) {
-                if (fuzzMarketConfig.marketId == INITIAL_MARKET_ID) {
-                    newFuzzMarketConfigMarketId.marketId += 1;
-                } else if (fuzzMarketConfig.marketId == FINAL_MARKET_ID) {
-                    newFuzzMarketConfigMarketId.marketId -= 1;
-                }
-            }
-            // add another market id to skip one of the if checks
-            perpsEngine.exposed_updateActiveMarkets(
-                tradingAccountId,
-                newFuzzMarketConfigMarketId.marketId,
-                oldMarketIdPositionSizeSD59x18,
-                newMarketIdPositionSizeSD59x18
-            );
-        }
+        assertEq(perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(), 1);
+        assertEq(perpsEngine.workaround_getActiveMarketsIdsLength(tradingAccountId), 2);
 
         // it should remove this market as active for this account
         perpsEngine.exposed_updateActiveMarkets(
-            tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, newPositionSizeSD59x18
+            tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, SD59x18_ZERO
         );
+
+        assertEq(perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(), 1);
+        assertEq(perpsEngine.workaround_getActiveMarketsIdsLength(tradingAccountId), 1);
     }
 }
