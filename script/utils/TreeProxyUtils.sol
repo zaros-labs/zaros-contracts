@@ -392,7 +392,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     settlementConfigurationHarnessSelectors[5] =
         SettlementConfigurationHarness.exposed_verifyDataStreamsReport.selector;
 
-    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](22);
+    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](23);
     tradingAccountHarnessSelectors[0] = TradingAccountHarness.exposed_TradingAccount_loadExisting.selector;
     tradingAccountHarnessSelectors[1] = TradingAccountHarness.exposed_loadExistingAccountAndVerifySender.selector;
     tradingAccountHarnessSelectors[2] = TradingAccountHarness.exposed_validatePositionsLimit.selector;
@@ -417,6 +417,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     tradingAccountHarnessSelectors[20] = TradingAccountHarness.workaround_hasOffchainOrderBeenFilled.selector;
     tradingAccountHarnessSelectors[21] =
         TradingAccountHarness.workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral.selector;
+    tradingAccountHarnessSelectors[22] = TradingAccountHarness.workaround_getTradingAccountIdAndOwner.selector;
 
     bytes4[] memory referralHarnessSelectors = new bytes4[](2);
     referralHarnessSelectors[0] = ReferralHarness.exposed_Referral_load.selector;

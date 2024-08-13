@@ -43,7 +43,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         );
 
         (UD60x18 receivedNewOpenInterest,) = perpsEngine.exposed_checkOpenInterestLimits(
-            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, true
+            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, false
         );
 
         // it should return the new open interest
@@ -56,7 +56,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         SD59x18 expectedNewSkew = currentSkew.add(sizeDeltaX18);
 
         (, SD59x18 receivedNewSkew) = perpsEngine.exposed_checkOpenInterestLimits(
-            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, true
+            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, false
         );
 
         // it should return the new skew
