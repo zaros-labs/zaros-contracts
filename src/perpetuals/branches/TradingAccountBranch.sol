@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IAccountNFT } from "@zaros/account-nft/interfaces/IAccountNFT.sol";
+import { ITradingAccountNFT } from "@zaros/trading-account-nft/interfaces/ITradingAccountNFT.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
 import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
@@ -96,7 +96,8 @@ contract TradingAccountBranch {
     /// @notice Returns the total equity of all assets under the trading account without considering the collateral
     /// value
     /// ratio
-    /// @dev This function doesn't take open positions into account.
+    /// @dev This function takes open positions into account.
+    /// @dev This function doesn't take the configured LTV of margin collateral types into account.
     /// @param tradingAccountId The trading account id.
     /// @return equityUsdX18 The USD denominated total margin collateral value.
     function getAccountEquityUsd(uint128 tradingAccountId) external view returns (SD59x18) {
@@ -241,7 +242,7 @@ contract TradingAccountBranch {
         tradingAccountId = ++perpsEngineConfiguration.nextAccountId;
 
         // get refrence to account nft token
-        IAccountNFT tradingAccountToken = IAccountNFT(perpsEngineConfiguration.tradingAccountToken);
+        ITradingAccountNFT tradingAccountToken = ITradingAccountNFT(perpsEngineConfiguration.tradingAccountToken);
 
         // create account record
         TradingAccount.create(tradingAccountId, msg.sender);

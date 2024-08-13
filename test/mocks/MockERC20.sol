@@ -3,7 +3,6 @@
 pragma solidity 0.8.25;
 
 // Open Zeppelin dependencies
-import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract MockERC20 is ERC20 {

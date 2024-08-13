@@ -7,13 +7,11 @@ import { Base_Test } from "test/Base.t.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
-import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
-
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
+contract DeductAccountMargin_Unit_Test is Base_Test {
     /// @dev usually the funciton is called if pnl is < 0
 
     struct DeductAccountMarginContext {
@@ -88,14 +86,14 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
-        UD60x18 marginCollateralBalanceX18 = TradingAccountHarness(address(perpsEngine))
-            .exposed_getMarginCollateralBalance(tradingAccountId, address(usdc));
+        UD60x18 marginCollateralBalanceX18 =
+            perpsEngine.exposed_getMarginCollateralBalance(tradingAccountId, address(usdc));
 
         perpsEngine.exposed_withdrawMarginUsd(
             tradingAccountId, address(usdc), ud60x18(marginValueUsd), marginCollateralBalanceX18, users.naruto.account
         );
 
-        TradingAccountHarness(address(perpsEngine)).exposed_deductAccountMargin({
+        perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
                 marginCollateralRecipient: MSIG_ADDRESS,
@@ -141,7 +139,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
-        TradingAccountHarness(address(perpsEngine)).exposed_deductAccountMargin({
+        perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
                 marginCollateralRecipient: MSIG_ADDRESS,
@@ -186,7 +184,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
-        TradingAccountHarness(address(perpsEngine)).exposed_deductAccountMargin({
+        perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
                 marginCollateralRecipient: MSIG_ADDRESS,
@@ -229,7 +227,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
-        TradingAccountHarness(address(perpsEngine)).exposed_deductAccountMargin({
+        perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
                 marginCollateralRecipient: MSIG_ADDRESS,
@@ -274,7 +272,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
 
         UD60x18 orderFeeUsdX18 = ud60x18(feeAmount);
 
-        TradingAccountHarness(address(perpsEngine)).exposed_deductAccountMargin({
+        perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
                 marginCollateralRecipient: MSIG_ADDRESS,
@@ -317,7 +315,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
 
         UD60x18 orderFeeUsdX18 = ud60x18(feeAmount);
 
-        TradingAccountHarness(address(perpsEngine)).exposed_deductAccountMargin({
+        perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
                 marginCollateralRecipient: MSIG_ADDRESS,
@@ -362,7 +360,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
-        TradingAccountHarness(address(perpsEngine)).exposed_deductAccountMargin({
+        perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
                 marginCollateralRecipient: MSIG_ADDRESS,
@@ -408,7 +406,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test, TradingAccountHarness {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
-        TradingAccountHarness(address(perpsEngine)).exposed_deductAccountMargin({
+        perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
                 marginCollateralRecipient: MSIG_ADDRESS,

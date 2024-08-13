@@ -42,6 +42,16 @@ contract TradingAccountHarness {
         return self.activeMarketsIds.length();
     }
 
+    function workaround_getTradingAccountIdAndOwner(uint128 tradingAccountId)
+        external
+        view
+        returns (uint128, address)
+    {
+        TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
+
+        return (self.id, self.owner);
+    }
+
     function workaround_getNonce(uint128 tradingAccountId) external view returns (uint128) {
         TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
 

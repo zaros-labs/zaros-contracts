@@ -9,7 +9,6 @@ import { OffchainOrder } from "@zaros/perpetuals/leaves/OffchainOrder.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 
 // PRB Math dependencies
 import { ud60x18 } from "@prb-math/UD60x18.sol";
@@ -1061,11 +1060,11 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             changePrank({ msgSender: users.naruto.account });
 
             // it should fill the offchain order
-            bool hasOffchainOrderBeenFilled = TradingAccountHarness(address(perpsEngine))
-                .workaround_hasOffchainOrderBeenFilled(tradingAccountId, structHash);
+            bool hasOffchainOrderBeenFilled =
+                perpsEngine.workaround_hasOffchainOrderBeenFilled(tradingAccountId, structHash);
             assertTrue(hasOffchainOrderBeenFilled, "hasOffchainOrderBeenFilled");
 
-            uint128 nonce = TradingAccountHarness(address(perpsEngine)).workaround_getNonce(tradingAccountId);
+            uint128 nonce = perpsEngine.workaround_getNonce(tradingAccountId);
             // it should increase the trading account nonce
             assertEq(nonce, 1, "nonce has not been increased");
         }
@@ -1177,11 +1176,11 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             changePrank({ msgSender: users.naruto.account });
 
             // it should fill the offchain order
-            bool hasOffchainOrderBeenFilled = TradingAccountHarness(address(perpsEngine))
-                .workaround_hasOffchainOrderBeenFilled(tradingAccountId, structHash);
+            bool hasOffchainOrderBeenFilled =
+                perpsEngine.workaround_hasOffchainOrderBeenFilled(tradingAccountId, structHash);
             assertTrue(hasOffchainOrderBeenFilled, "hasOffchainOrderBeenFilled");
 
-            uint128 nonce = TradingAccountHarness(address(perpsEngine)).workaround_getNonce(tradingAccountId);
+            uint128 nonce = perpsEngine.workaround_getNonce(tradingAccountId);
             // it should not increase the trading account nonce
             assertEq(nonce, 0, "nonce has not been increased");
         }

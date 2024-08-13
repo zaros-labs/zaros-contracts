@@ -4,7 +4,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
-import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
 import { Base_Test } from "test/Base.t.sol";
 
 contract CancelAllOffchainOrders_Integration_Test is Base_Test {
@@ -54,7 +53,7 @@ contract CancelAllOffchainOrders_Integration_Test is Base_Test {
         emit OrderBranch.LogCancelAllOffchainOrders(users.naruto.account, tradingAccountId, expectedNonce);
         perpsEngine.cancelAllOffchainOrders(tradingAccountId);
 
-        uint128 newNonce = TradingAccountHarness(address(perpsEngine)).workaround_getNonce(tradingAccountId);
+        uint128 newNonce = perpsEngine.workaround_getNonce(tradingAccountId);
 
         // it should increase the trading account nonce
         assertEq(expectedNonce, newNonce, "tradingAccount.nonce");

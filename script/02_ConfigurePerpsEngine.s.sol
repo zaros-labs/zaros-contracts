@@ -3,7 +3,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
+import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
@@ -22,13 +22,13 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
-    AccountNFT internal tradingAccountToken;
+    TradingAccountNFT internal tradingAccountToken;
     address internal link;
     address internal automationRegistrar;
     IPerpsEngine internal perpsEngine;
 
     function run(uint256 initialMarginCollateralId, uint256 finalMarginCollateralId) public broadcaster {
-        tradingAccountToken = AccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
+        tradingAccountToken = TradingAccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         link = vm.envAddress("LINK");
         automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");

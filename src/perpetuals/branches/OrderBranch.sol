@@ -232,7 +232,7 @@ contract OrderBranch {
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         UD60x18 requiredMarginUsdX18;
-        bool isIncreasing;
+        bool isNotionalValueIncreasing;
         bool shouldUseMaintenanceMargin;
         bool isMarketWithActivePosition;
     }
@@ -259,7 +259,8 @@ contract OrderBranch {
             SettlementConfiguration.load(params.marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
 
         // determine whether position is being increased or not
-        ctx.isIncreasing = Position.isIncreasing(params.tradingAccountId, params.marketId, params.sizeDelta);
+        ctx.isNotionalValueIncreasing =
+            Position.isNotionalValueIncreasing(params.tradingAccountId, params.marketId, params.sizeDelta);
 
         // both markets and settlement can be disabled, however when this happens we want to:
         // 1) allow open positions not subject to liquidation to decrease their size or close
@@ -268,7 +269,7 @@ contract OrderBranch {
         // the idea is to prevent a state where traders have open positions but are unable
         // to reduce size or close even though they can still be liquidated; such a state
         // would severly disadvantage traders
-        if (ctx.isIncreasing) {
+        if (ctx.isNotionalValueIncreasing) {
             // both checks revert if disabled
             perpsEngineConfiguration.checkMarketIsEnabled(params.marketId);
             settlementConfiguration.checkIsSettlementEnabled();
@@ -333,7 +334,7 @@ contract OrderBranch {
         // but if the trader is opening a new position or increasing the size
         // of their existing position we want to ensure they satisfy the higher
         // initial margin requirement
-        ctx.shouldUseMaintenanceMargin = !Position.isIncreasing(params.tradingAccountId, params.marketId, params.sizeDelta)
+        ctx.shouldUseMaintenanceMargin = !Position.isNotionalValueIncreasing(params.tradingAccountId, params.marketId, params.sizeDelta)
             && ctx.isMarketWithActivePosition;
 
         ctx.requiredMarginUsdX18 =

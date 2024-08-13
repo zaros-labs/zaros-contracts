@@ -4,7 +4,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";

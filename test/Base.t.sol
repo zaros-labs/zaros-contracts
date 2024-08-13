@@ -3,7 +3,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies source
-import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
+import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
@@ -20,9 +20,8 @@ import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.so
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
-import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 import { Storage } from "test/utils/Storage.sol";
-import { Users, User, MockPriceAdapters } from "test/utils/Types.sol";
+import { Users, User } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
@@ -33,6 +32,9 @@ import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHa
 import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
+import { ReferralHarness } from "test/harnesses/perpetuals/leaves/ReferralHarness.sol";
+import { CustomReferralConfigurationHarness } from
+    "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 
@@ -49,11 +51,9 @@ import {
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
 // Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { ERC20, IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
-
-// Open Zeppelin Upgradeable dependencies
-import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 // PRB Math dependencies
 import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
@@ -74,7 +74,9 @@ abstract contract IPerpsEngine is
     PerpMarketHarness,
     PositionHarness,
     SettlementConfigurationHarness,
-    TradingAccountHarness
+    TradingAccountHarness,
+    ReferralHarness,
+    CustomReferralConfigurationHarness
 { }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
@@ -96,7 +98,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    AccountNFT internal tradingAccountToken;
+    TradingAccountNFT internal tradingAccountToken;
 
     MockERC20 internal usdc;
     MockUSDToken internal usdz;
@@ -127,7 +129,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
         vm.startPrank({ msgSender: users.owner.account });
 
-        tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner.account);
+        address tradingAccountTokenImplementation = address(new TradingAccountNFT());
+        bytes memory tradingAccountTokenInitializeData = abi.encodeWithSelector(
+            TradingAccountNFT.initialize.selector, users.owner.account, "Zaros Trading Accounts", "ZRS-TRADE-ACC"
+        );
+        tradingAccountToken = TradingAccountNFT(
+            address(new ERC1967Proxy(tradingAccountTokenImplementation, tradingAccountTokenInitializeData))
+        );
 
         bool isTestnet = false;
         address[] memory branches = deployBranches(isTestnet);

@@ -9,7 +9,6 @@ import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 contract GetActiveMarketOrder_Integration_Test is Base_Test {
     function setUp() public override {

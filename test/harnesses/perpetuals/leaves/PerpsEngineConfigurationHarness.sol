@@ -11,6 +11,12 @@ contract PerpsEngineConfigurationHarness {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    function workaround_getMaxPositionsPerAccount() external view returns (uint128) {
+        PerpsEngineConfiguration.Data storage self = PerpsEngineConfiguration.load();
+
+        return self.maxPositionsPerAccount;
+    }
+
     function workaround_getSequencerUptimeFeedByChainId(uint256 chainId) external view returns (address) {
         PerpsEngineConfiguration.Data storage self = PerpsEngineConfiguration.load();
 

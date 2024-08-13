@@ -13,3 +13,6 @@
 [submodule "lib/prb-test"]
 	path = lib/prb-test
 	url = https://github.com/PaulRBerg/prb-test
+[submodule "lib/solady"]
+	path = lib/solady
+	url = https://github.com/vectorized/solady
