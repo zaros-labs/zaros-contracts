@@ -205,6 +205,11 @@ contract LiquidationBranch {
                 // is why we are iterating over a memory copy of the trader's active markets
                 tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD59x18_ZERO);
 
+                // we don't check skew during liquidations to protect from DoS
+                (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
+                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false
+                );
+
                 // update perp market's open interest and skew; we don't enforce ipen
                 // interest and skew caps during liquidations as:
                 // 1) open interest and skew are both decreased by liquidations
