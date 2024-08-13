@@ -18,6 +18,55 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
+    modifier whenShouldNotCheckTheMaxOpenInterestAndTheMaxSkew() {
+        _;
+    }
+
+    function test_WhenTheNewOpenInterestAndNewSkewAreGreaterThanTheMax(uint256 marketId)
+        external
+        whenShouldNotCheckTheMaxOpenInterestAndTheMaxSkew
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        SD59x18 currentSkew = sd59x18(int128(fuzzMarketConfig.maxSkew));
+
+        SD59x18 sizeDeltaX18 = currentSkew.add(sd59x18(1));
+        SD59x18 oldPositionSizeX18 = sd59x18(int128(fuzzMarketConfig.maxOi));
+        SD59x18 newPositionSizeX18 = oldPositionSizeX18.add(sd59x18(1));
+
+        UD60x18 currentOpenInterest = ud60x18(oldPositionSizeX18.intoUint256());
+
+        perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, currentOpenInterest, currentSkew);
+
+        UD60x18 expectedNewOpenInterest = currentOpenInterest.sub(oldPositionSizeX18.abs().intoUD60x18()).add(
+            newPositionSizeX18.abs().intoUD60x18()
+        );
+
+        (UD60x18 receivedNewOpenInterest,) = perpsEngine.exposed_checkOpenInterestLimits(
+            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, true
+        );
+
+        // it should return the new open interest
+        assertEq(
+            receivedNewOpenInterest.intoUint256(),
+            expectedNewOpenInterest.intoUint256(),
+            "new open interest is not correct"
+        );
+
+        SD59x18 expectedNewSkew = currentSkew.add(sizeDeltaX18);
+
+        (, SD59x18 receivedNewSkew) = perpsEngine.exposed_checkOpenInterestLimits(
+            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, true
+        );
+
+        // it should return the new skew
+        assertEq(receivedNewSkew.intoInt256(), expectedNewSkew.intoInt256(), "new skew is not correct");
+    }
+
+    modifier whenShouldCheckTheMaxOpenInterestAndTheMaxSkew() {
+        _;
+    }
+
     modifier whenTheNewOpenInterestIsGreaterThanTheMaxOpenInterest() {
         _;
     }
@@ -27,6 +76,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         int256 sizeDelta
     )
         external
+        whenShouldCheckTheMaxOpenInterestAndTheMaxSkew
         whenTheNewOpenInterestIsGreaterThanTheMaxOpenInterest
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -50,16 +100,17 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
                 fuzzMarketConfig.marketId,
                 fuzzMarketConfig.maxOi,
                 expectedNewOpenInterest.intoUint256()
-            )
+                )
         });
 
         perpsEngine.exposed_checkOpenInterestLimits(
-            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18
+            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, true
         );
     }
 
     function test_WhenIsReducingOpenInterest(uint256 marketId)
         external
+        whenShouldCheckTheMaxOpenInterestAndTheMaxSkew
         whenTheNewOpenInterestIsGreaterThanTheMaxOpenInterest
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -77,7 +128,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         );
 
         (UD60x18 receivedNewOpenInterest,) = perpsEngine.exposed_checkOpenInterestLimits(
-            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18
+            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, true
         );
 
         // it should return the new open interest
@@ -92,7 +143,11 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_IsNotReducingSkew(uint256 marketId) external whenTheNewSkewIsGreaterThanTheMaxSkew {
+    function test_RevertWhen_IsNotReducingSkew(uint256 marketId)
+        external
+        whenShouldCheckTheMaxOpenInterestAndTheMaxSkew
+        whenTheNewSkewIsGreaterThanTheMaxSkew
+    {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         SD59x18 currentSkew = sd59x18(int128(fuzzMarketConfig.maxSkew));
@@ -114,15 +169,19 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
                 fuzzMarketConfig.marketId,
                 fuzzMarketConfig.maxSkew,
                 expectedNewSkew.intoInt256()
-            )
+                )
         });
 
         perpsEngine.exposed_checkOpenInterestLimits(
-            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18
+            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, true
         );
     }
 
-    function test_WhenIsReducingSkew(uint256 marketId) external whenTheNewSkewIsGreaterThanTheMaxSkew {
+    function test_WhenIsReducingSkew(uint256 marketId)
+        external
+        whenShouldCheckTheMaxOpenInterestAndTheMaxSkew
+        whenTheNewSkewIsGreaterThanTheMaxSkew
+    {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         SD59x18 currentSkew = sd59x18(int128(fuzzMarketConfig.maxSkew)).div(sd59x18(2e18));
@@ -138,7 +197,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         SD59x18 expectedNewSkew = currentSkew.add(sizeDeltaX18);
 
         (, SD59x18 receivedNewSkew) = perpsEngine.exposed_checkOpenInterestLimits(
-            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18
+            fuzzMarketConfig.marketId, sizeDeltaX18, oldPositionSizeX18, newPositionSizeX18, true
         );
 
         // it should return the new skew
