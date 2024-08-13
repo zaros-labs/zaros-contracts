@@ -47,11 +47,14 @@ contract LiquidationBranch {
         view
         returns (uint128[] memory liquidatableAccountsIds)
     {
-        // prepare output array size
-        liquidatableAccountsIds = new uint128[](upperBound - lowerBound);
-
         // return if nothing to process
-        if (liquidatableAccountsIds.length == 0) return liquidatableAccountsIds;
+        if (upperBound == 0 && lowerBound == 0) return liquidatableAccountsIds;
+
+        // if lowerBound is 0, set it to 1 (the first account)
+        if (lowerBound == 0) lowerBound = 1;
+
+        // prepare output array size
+        liquidatableAccountsIds = new uint128[]((upperBound - lowerBound) + 1);
 
         // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -61,12 +64,13 @@ contract LiquidationBranch {
             globalConfiguration.accountsIdsWithActivePositions.length();
 
         // iterate over active accounts within given bounds
-        for (uint256 i = lowerBound; i < upperBound; i++) {
+        for (uint256 i; i <= upperBound - lowerBound; i++) {
             // break if `i` greater then length of active account ids
             if (i >= cachedAccountsIdsWithActivePositionsLength) break;
 
             // get the `tradingAccountId` of the current active account
-            uint128 tradingAccountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
+            uint128 tradingAccountId =
+                uint128(globalConfiguration.accountsIdsWithActivePositions.at((lowerBound + i) - 1));
 
             // load that account's leaf (data + functions)
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
