@@ -15,5 +15,5 @@ LiquidateAccounts_Integration_Test
                 ├── it should remove the account's all active markets
                 ├── it should emit a {LogLiquidateAccount} event
                 ├── it should update open interest value
-                └── it should update skew value
-
+                ├── it should update skew value
+                └── it should deduct unrealized pnl from the margin balance

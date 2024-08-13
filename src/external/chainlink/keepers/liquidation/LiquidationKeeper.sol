@@ -125,7 +125,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         LiquidationKeeperStorage storage self = _getLiquidationKeeperStorage();
         (IPerpsEngine perpsEngine, address liquidationFeeRecipient) = (self.perpsEngine, self.liquidationFeeRecipient);
 
-        perpsEngine.liquidateAccounts(accountsToBeLiquidated, liquidationFeeRecipient);
+        perpsEngine.liquidateAccounts(accountsToBeLiquidated);
     }
 
     function _getLiquidationKeeperStorage() internal pure returns (LiquidationKeeperStorage storage self) {

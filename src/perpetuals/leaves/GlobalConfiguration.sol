@@ -33,6 +33,7 @@ library GlobalConfiguration {
         EnumerableSet.AddressSet collateralLiquidationPriority;
         EnumerableSet.UintSet enabledMarketsIds;
         EnumerableSet.UintSet accountsIdsWithActivePositions;
+        address liquidationFeeRecipient;
     }
 
     /// @notice Loads the GlobalConfiguration entity.

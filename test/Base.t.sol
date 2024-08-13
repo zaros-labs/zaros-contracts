@@ -116,7 +116,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
             sakura: createUser({ name: "Sakura Haruno" }),
-            madara: createUser({ name: "Madara Uchiha" })
+            madara: createUser({ name: "Madara Uchiha" }),
+            liquidationFeeRecipient: createUser({ name: "Liquidation Fee Recipient" })
         });
         vm.startPrank({ msgSender: users.owner });
 
@@ -268,7 +269,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
             marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
-            settlementFeeRecipient: feeRecipients.settlementFeeRecipient
+            settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
+            liquidationFeeRecipient: users.liquidationFeeRecipient
         });
     }
 
