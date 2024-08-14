@@ -16,19 +16,17 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 contract LiquidateAccounts_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner});
+        changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto});
+        changePrank({ msgSender: users.naruto });
     }
 
     function test_RevertGiven_TheSenderIsNotARegisteredLiquidator() external {
         uint128[] memory accountsIds = new uint128[](1);
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.LiquidatorNotRegistered.selector, users.naruto)
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.LiquidatorNotRegistered.selector, users.naruto) });
         perpsEngine.liquidateAccounts({ accountsIds: accountsIds });
     }
 

@@ -7,10 +7,10 @@ import { Base_Test } from "test/Base.t.sol";
 contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner});
+        changePrank({ msgSender: users.owner });
         configureSystemParameters();
         createPerpMarkets();
-        changePrank({ msgSender: users.naruto});
+        changePrank({ msgSender: users.naruto });
     }
 
     function test_WhenTheBoundsAreZero() external {
