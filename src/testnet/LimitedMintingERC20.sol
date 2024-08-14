@@ -32,10 +32,10 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         _mint(to, amount);
     }
 
-    function mint(address to) external {
-        amountMintedPerAddress[to] += AMOUNT_TO_MINT_USDC;
+    function mint() external {
+        amountMintedPerAddress[msg.sender] += AMOUNT_TO_MINT_USDC;
 
-        _mint(to, AMOUNT_TO_MINT_USDC);
+        _mint(msg.sender, AMOUNT_TO_MINT_USDC);
     }
 
     function burn(address from, uint256 amount) external {

@@ -25,16 +25,20 @@ contract UpgradeUUPS is BaseScript {
     MarketOrderKeeper internal btcUsdMarketOrderKeeper;
 
     function run() public broadcaster {
-        // usdc = LimitedMintingERC20(vm.envAddress("USDC"));
+        usdc = LimitedMintingERC20(vm.envAddress("USDC"));
 
-        btcUsdMarketOrderKeeper = MarketOrderKeeper(vm.envAddress("BTC_USD_MARKET_ORDER_KEEPER"));
-        // forwarder = vm.envAddress("KEEPER_FORWARDER");
-        // address newImplementation = address(new LimitedMintingERC20());
-        address btcUsdMarketOrderKeeperNewImplementation = address(new MarketOrderKeeper());
+        address usdcNewImplementation = address(new LimitedMintingERC20());
 
-        UUPSUpgradeable(address(btcUsdMarketOrderKeeper)).upgradeToAndCall(
-            btcUsdMarketOrderKeeperNewImplementation, bytes("")
-        );
+        // btcUsdMarketOrderKeeper = MarketOrderKeeper(vm.envAddress("BTC_USD_MARKET_ORDER_KEEPER"));
+        // // forwarder = vm.envAddress("KEEPER_FORWARDER");
+        // // address newImplementation = address(new LimitedMintingERC20());
+        // address btcUsdMarketOrderKeeperNewImplementation = address(new MarketOrderKeeper());
+
+        // UUPSUpgradeable(address(btcUsdMarketOrderKeeper)).upgradeToAndCall(
+        //     btcUsdMarketOrderKeeperNewImplementation, bytes("")
+        // );
+
+        UUPSUpgradeable(address(usdc)).upgradeToAndCall(usdcNewImplementation, bytes(""));
 
         // btcUsdMarketOrderKeeper.setForwarder(forwarder);
     }
