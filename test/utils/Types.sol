@@ -23,6 +23,8 @@ struct Users {
     address payable sakura;
     // Malicious user.
     address payable madara;
+    // User that receives liquidation fees.
+    address payable liquidationFeeRecipient;
 }
 
 struct MockPriceAdapters {
