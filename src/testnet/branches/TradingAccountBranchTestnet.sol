@@ -9,12 +9,8 @@ import { CustomReferralConfigurationTestnet } from "../leaves/CustomReferralConf
 import { ReferralTestnet } from "../leaves/ReferralTestnet.sol";
 
 // Open Zeppelin dependencies
-import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
-
-// PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, OwnableUpgradeable {
     using TradingAccount for TradingAccount.Data;
@@ -25,7 +21,6 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
     error UserWithoutAccess();
     error UserAlreadyHasAccount();
     error InvalidReferralCode();
-    error FaucetAlreadyDeposited();
 
     event LogReferralSet(
         address indexed user, address indexed referrer, bytes referralCode, bool isCustomReferralCode
@@ -128,12 +123,5 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
         override
     {
         super.depositMargin(tradingAccountId, collateralType, amount);
-
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
-        UD60x18 marginCollateralBalance = tradingAccount.getMarginCollateralBalance(collateralType);
-
-        if (marginCollateralBalance > ud60x18(100_000e18)) {
-            revert FaucetAlreadyDeposited();
-        }
     }
 }
