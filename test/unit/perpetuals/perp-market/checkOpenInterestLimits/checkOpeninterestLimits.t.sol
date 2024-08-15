@@ -100,7 +100,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
                 fuzzMarketConfig.marketId,
                 fuzzMarketConfig.maxOi,
                 expectedNewOpenInterest.intoUint256()
-                )
+            )
         });
 
         perpsEngine.exposed_checkOpenInterestLimits(
@@ -169,7 +169,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
                 fuzzMarketConfig.marketId,
                 fuzzMarketConfig.maxSkew,
                 expectedNewSkew.intoInt256()
-                )
+            )
         });
 
         perpsEngine.exposed_checkOpenInterestLimits(

@@ -181,6 +181,19 @@ contract TradingAccountHarness {
         TradingAccount.deposit(self, collateralType, amount);
     }
 
+    function exposed_isMarketWithActivePosition(
+        uint128 tradingAccountId,
+        uint128 marketId
+    )
+        external
+        view
+        returns (bool)
+    {
+        TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
+
+        return TradingAccount.isMarketWithActivePosition(self, marketId);
+    }
+
     function exposed_withdraw(uint128 tradingAccountId, address collateralType, UD60x18 amount) external {
         TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
 
