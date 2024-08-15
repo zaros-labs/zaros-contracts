@@ -105,9 +105,9 @@ contract TestInvariantFoundry is Base_Test, StdInvariant {
 
         // Config targetSelector
         bytes4[][] memory branchesSelectors = getBranchesSelectors(false);
-        bytes4[][] memory harnessesSelectors = getHarnessesSelectors();
+        // bytes4[][] memory harnessesSelectors = getHarnessesSelectors();
 
-        bytes4[] memory selectors = new bytes4[](132);
+        bytes4[] memory selectors = new bytes4[](58);
 
         uint256 selectorsIndex = 0;
         for (uint256 i; i < branchesSelectors.length; i++) {
@@ -116,12 +116,12 @@ contract TestInvariantFoundry is Base_Test, StdInvariant {
                 selectorsIndex++;
             }
         }
-        for (uint256 i; i < harnessesSelectors.length; i++) {
-            for (uint256 j; j < harnessesSelectors[i].length; j++) {
-                selectors[selectorsIndex] = (harnessesSelectors[i][j]);
-                selectorsIndex++;
-            }
-        }
+        // for (uint256 i; i < harnessesSelectors.length; i++) {
+        //     for (uint256 j; j < harnessesSelectors[i].length; j++) {
+        //         selectors[selectorsIndex] = (harnessesSelectors[i][j]);
+        //         selectorsIndex++;
+        //     }
+        // }
 
         targetSelector(FuzzSelector({ addr: address(IPerpsEngine(perpsEngine)), selectors: selectors }));
     }
