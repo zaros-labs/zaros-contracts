@@ -63,7 +63,36 @@ contract CheckPendingOrder_Unit_Test is Base_Test {
         perpsEngine.exposed_checkPendingOrder(tradingAccountId);
     }
 
-    function testFuzz_WhenThereIsNoPendingOrder(uint128 tradingAccountId) external view {
+    function testFuzz_WhenThereIsNoPendingOrder(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        uint256 marketId,
+        bool isLong
+    )
+        external
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
+
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+
+        openPosition({
+            fuzzMarketConfig: fuzzMarketConfig,
+            tradingAccountId: tradingAccountId,
+            initialMarginRate: initialMarginRate,
+            marginValueUsd: marginValueUsd,
+            isLong: isLong
+        });
+
         // it should continue execution
         perpsEngine.exposed_checkPendingOrder(tradingAccountId);
     }
