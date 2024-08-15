@@ -682,6 +682,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         SD59x18 secondOrderExpectedPnlX18;
         bytes secondMockSignedReport;
         MarketOrder.Data marketOrder;
+        uint128 liquidationFeeUsdX18;
     }
 
     function testFuzz_GivenThePnlIsNegative(
@@ -849,6 +850,12 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         updateMockPriceFeed(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice);
 
         ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
+
+        ctx.liquidationFeeUsdX18 = perpsEngine.workaround_getLiquidationFeeUsdX18();
+
+        deal({ token: address(usdz), to: users.naruto.account, give: ctx.liquidationFeeUsdX18 });
+
+        perpsEngine.depositMargin(ctx.tradingAccountId, address(usdz), ctx.liquidationFeeUsdX18);
 
         (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
             OrderBranch.SimulateTradeParams({
