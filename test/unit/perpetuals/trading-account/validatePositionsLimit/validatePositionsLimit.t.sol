@@ -51,7 +51,7 @@ contract ValidatePositionsLimit_Unit_Test is Base_Test {
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 Errors.MaxPositionsPerAccountReached.selector, maxPositionsPerAccount - 1, maxPositionsPerAccount
-                )
+            )
         });
 
         openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsdPerPosition, isLong);

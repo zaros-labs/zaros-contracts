@@ -61,13 +61,14 @@ contract TradingAccountBranch {
     );
 
     /// @notice Emitted when a referral code is set.
-    /// @param user The user address.
+    /// @param accountOwner The account owner address.
+    /// @param tradingAccountId The newly created trading account id.
     /// @param referrer The referrer address.
     /// @param referralCode The referral code.
     /// @param isCustomReferralCode A boolean indicating if the referral code is custom.
     event LogReferralSet(
-        uint128 tradingAccountId,
-        address indexed user,
+        address indexed accountOwner,
+        uint128 indexed tradingAccountId,
         address indexed referrer,
         bytes referralCode,
         bool isCustomReferralCode
@@ -278,7 +279,7 @@ contract TradingAccountBranch {
             }
 
             emit LogReferralSet(
-                tradingAccountId, msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode
+                msg.sender, tradingAccountId, referral.getReferrerAddress(), referralCode, isCustomReferralCode
             );
         }
 

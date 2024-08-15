@@ -88,7 +88,7 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
         // it should emit {LogReferralSet} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit TradingAccountBranch.LogReferralSet(
-            expectedTradingAccountId, users.naruto.account, users.owner.account, bytes(customReferralCode), true
+            users.naruto.account, expectedTradingAccountId, users.owner.account, bytes(customReferralCode), true
         );
 
         perpsEngine.createTradingAccount(bytes(customReferralCode), true);
@@ -137,7 +137,7 @@ contract CreateTradingAccount_Integration_Test is Base_Test {
         // it should emit {LogReferralSet} event
         vm.expectEmit({ emitter: address(perpsEngine) });
         emit TradingAccountBranch.LogReferralSet(
-            expectedTradingAccountId, users.naruto.account, users.owner.account, referralCode, false
+            users.naruto.account, expectedTradingAccountId, users.owner.account, referralCode, false
         );
 
         perpsEngine.createTradingAccount(referralCode, false);
