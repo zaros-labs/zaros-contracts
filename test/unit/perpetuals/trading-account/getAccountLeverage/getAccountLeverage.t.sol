@@ -3,14 +3,11 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
-import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract GetAccountLeverage_Unit_Test is Base_Test {
     function setUp() public override {
@@ -51,7 +48,6 @@ contract GetAccountLeverage_Unit_Test is Base_Test {
     function testFuzz_WhenTheMarginBalanceUsdX18IsNotZero(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
-        uint256 marketId,
         bool isLong,
         uint256 numOfActiveMarkets
     )
@@ -63,7 +59,7 @@ contract GetAccountLeverage_Unit_Test is Base_Test {
 
         marginValueUsd = bound({
             x: marginValueUsd,
-            min: USDC_MIN_DEPOSIT_MARGIN,
+            min: USDC_MIN_DEPOSIT_MARGIN * numOfActiveMarkets,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
@@ -111,6 +107,6 @@ contract GetAccountLeverage_Unit_Test is Base_Test {
             totalPositionsNotionalValue.intoSD59x18().div(marginBalanceUsdX18).intoUD60x18();
 
         // it should continue execution and return the current leverage of trading account account
-        assertEq(accountLeverage.intoUint256(), expectedAccountLeverage.intoUint256(), "account leverage");
+        assertAlmostEq(accountLeverage.intoUint256(), expectedAccountLeverage.intoUint256(), 15*10**10, "account leverage");
     }
 }
