@@ -6,6 +6,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 
 contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
     function setUp() public override {
@@ -519,20 +520,20 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory newParams = GlobalConfigurationBranch
             .UpdatePerpMarketConfigurationParams({
             name: "New market name",
-            symbol: fuzzMarketConfig.marketSymbol,
-            priceAdapter: fuzzMarketConfig.priceAdapter,
-            initialMarginRateX18: fuzzMarketConfig.imr,
-            maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
-            maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
-            skewScale: fuzzMarketConfig.skewScale,
-            minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            symbol: "New symbol",
+            priceAdapter: address(123),
+            initialMarginRateX18: 2,
+            maintenanceMarginRateX18: 1,
+            maxOpenInterest: 3,
+            maxSkew: 4,
+            maxFundingVelocity: 5,
+            skewScale: 6,
+            minTradeSizeX18: 8,
+            orderFees: OrderFees.Data({ makerFee: 0.0009e18, takerFee: 0.0001e18 }),
+            priceFeedHeartbeatSeconds: 10
         });
 
         // it should emit {LogUpdatePerpMarketConfiguration} event
@@ -542,6 +543,46 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         );
 
         // it should update perp market
-        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
+        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, newParams);
+
+        PerpMarket.Data memory perpMarket = perpsEngine.exposed_PerpMarket_load(fuzzMarketConfig.marketId);
+
+        assertEq(perpMarket.configuration.name, newParams.name, "Name should be updated");
+        assertEq(perpMarket.configuration.symbol, newParams.symbol, "Symbol should be updated");
+        assertEq(perpMarket.configuration.priceAdapter, newParams.priceAdapter, "PriceAdapter should be updated");
+        assertEq(
+            perpMarket.configuration.initialMarginRateX18,
+            newParams.initialMarginRateX18,
+            "InitialMarginRate should be updated"
+        );
+        assertEq(
+            perpMarket.configuration.maintenanceMarginRateX18,
+            newParams.maintenanceMarginRateX18,
+            "MaintenanceMarginRate should be updated"
+        );
+        assertEq(
+            perpMarket.configuration.maxOpenInterest, newParams.maxOpenInterest, "MaxOpenInterest should be updated"
+        );
+        assertEq(perpMarket.configuration.maxSkew, newParams.maxSkew, "MaxSkew should be updated");
+        assertEq(
+            perpMarket.configuration.maxFundingVelocity,
+            newParams.maxFundingVelocity,
+            "MaxFundingVelocity should be updated"
+        );
+        assertEq(perpMarket.configuration.skewScale, newParams.skewScale, "SkewScale should be updated");
+        assertEq(
+            perpMarket.configuration.minTradeSizeX18, newParams.minTradeSizeX18, "MinTradeSize should be updated"
+        );
+        assertEq(
+            perpMarket.configuration.orderFees.makerFee, newParams.orderFees.makerFee, "MakerFee should be updated"
+        );
+        assertEq(
+            perpMarket.configuration.orderFees.takerFee, newParams.orderFees.takerFee, "TakerFee should be updated"
+        );
+        assertEq(
+            perpMarket.configuration.priceFeedHeartbeatSeconds,
+            newParams.priceFeedHeartbeatSeconds,
+            "PriceFeedHeartbeatSeconds should be updated"
+        );
     }
 }
