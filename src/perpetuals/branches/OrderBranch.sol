@@ -64,24 +64,23 @@ contract OrderBranch {
         SD59x18 newPositionSizeX18;
     }
 
+    struct SimulateTradeParams {
+        uint128 tradingAccountId;
+        uint128 marketId;
+        uint128 settlementConfigurationId;
+        int128 sizeDelta;
+    }
+
     /// @notice Simulates the settlement costs and validity of a given order.
     /// @dev Reverts if there's not enough margin to cover the trade.
-    /// @param tradingAccountId The trading account id.
-    /// @param marketId The perp market id.
-    /// @param settlementConfigurationId The perp market settlement configuration id.
-    /// @param sizeDelta The size delta of the order.
+    /// @param params The simulation parameters.
     /// @return marginBalanceUsdX18 The given account's current margin balance.
     /// @return requiredInitialMarginUsdX18 The required initial margin to settle the given trade.
     /// @return requiredMaintenanceMarginUsdX18 The required maintenance margin to settle the given trade.
     /// @return orderFeeUsdX18 The order fee in USD.
     /// @return settlementFeeUsdX18 The settlement fee in USD.
     /// @return fillPriceX18 The fill price quote.
-    function simulateTrade(
-        uint128 tradingAccountId,
-        uint128 marketId,
-        uint128 settlementConfigurationId,
-        int128 sizeDelta
-    )
+    function simulateTrade(SimulateTradeParams memory params)
         public
         view
         returns (
@@ -94,20 +93,23 @@ contract OrderBranch {
         )
     {
         // load existing trading account; reverts for non-existent account
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(params.tradingAccountId);
 
         // fetch storage slot for perp market
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
 
         // fetch storage slot for perp market's settlement config
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementConfigurationId);
+            SettlementConfiguration.load(params.marketId, params.settlementConfigurationId);
+
+        // fetch storage slot for global config
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         // working data
         SimulateTradeContext memory ctx;
 
         // int128 -> SD59x18
-        ctx.sizeDeltaX18 = sd59x18(sizeDelta);
+        ctx.sizeDeltaX18 = sd59x18(params.sizeDelta);
 
         // calculate & output execution price
         fillPriceX18 = perpMarket.getMarkPrice(ctx.sizeDeltaX18, perpMarket.getIndexPrice());
@@ -121,7 +123,7 @@ contract OrderBranch {
         // calculate & output required initial & maintenance margin for the simulated trade
         // and account's unrealized PNL
         (requiredInitialMarginUsdX18, requiredMaintenanceMarginUsdX18, ctx.accountTotalUnrealizedPnlUsdX18) =
-            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, ctx.sizeDeltaX18);
+            tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(params.marketId, ctx.sizeDeltaX18);
 
         // use unrealized PNL to calculate & output account's margin balance
         marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(ctx.accountTotalUnrealizedPnlUsdX18);
@@ -131,13 +133,19 @@ contract OrderBranch {
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD59x18_ZERO);
 
             // prevent liquidatable accounts from trading
-            if (TradingAccount.isLiquidatable(ctx.previousRequiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
-                revert Errors.AccountIsLiquidatable(tradingAccountId);
+            if (
+                TradingAccount.isLiquidatable(
+                    ctx.previousRequiredMaintenanceMarginUsdX18,
+                    marginBalanceUsdX18,
+                    ud60x18(globalConfiguration.liquidationFeeUsdX18)
+                )
+            ) {
+                revert Errors.AccountIsLiquidatable(params.tradingAccountId);
             }
         }
         {
             // fetch storage slot for account's potential existing position in this market
-            Position.Data storage position = Position.load(tradingAccountId, marketId);
+            Position.Data storage position = Position.load(params.tradingAccountId, params.marketId);
 
             // calculate and store new position size in working data
             ctx.newPositionSizeX18 = sd59x18(position.size).add(ctx.sizeDeltaX18);
@@ -316,12 +324,14 @@ contract OrderBranch {
             ctx.requiredMaintenanceMarginUsdX18,
             ctx.orderFeeUsdX18,
             ctx.settlementFeeUsdX18,
-        ) = simulateTrade({
-            tradingAccountId: params.tradingAccountId,
-            marketId: params.marketId,
-            settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            sizeDelta: params.sizeDelta
-        });
+        ) = simulateTrade(
+            SimulateTradeParams({
+                tradingAccountId: params.tradingAccountId,
+                marketId: params.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: params.sizeDelta
+            })
+        );
 
         // check maintenance margin if:
         // 1) position is not increasing AND

@@ -83,7 +83,13 @@ contract LiquidationBranch {
             SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
             // account can be liquidated if requiredMargin > marginBalance
-            if (TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
+            if (
+                TradingAccount.isLiquidatable(
+                    requiredMaintenanceMarginUsdX18,
+                    marginBalanceUsdX18,
+                    ud60x18(globalConfiguration.liquidationFeeUsdX18)
+                )
+            ) {
                 liquidatableAccountsIds[i] = tradingAccountId;
             }
         }
@@ -149,7 +155,11 @@ contract LiquidationBranch {
 
             // if account is not liquidatable, skip to next account
             // account is liquidatable if requiredMaintenanceMarginUsdX18 > ctx.marginBalanceUsdX18
-            if (!TradingAccount.isLiquidatable(ctx.requiredMaintenanceMarginUsdX18, ctx.marginBalanceUsdX18)) {
+            if (
+                !TradingAccount.isLiquidatable(
+                    ctx.requiredMaintenanceMarginUsdX18, ctx.marginBalanceUsdX18, ctx.liquidationFeeUsdX18
+                )
+            ) {
                 continue;
             }
 

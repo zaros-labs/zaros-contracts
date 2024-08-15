@@ -90,10 +90,12 @@ contract MarketOrderKeeper_PerformUpkeep_Integration_Test is Base_Test {
             perpsEngine.getMarkPrice(fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta);
 
         (,,, UD60x18 firstOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
-            tradingAccountId,
-            fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            sizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: sizeDelta
+            })
         );
 
         // it should emit {LogSettleOrder} event
