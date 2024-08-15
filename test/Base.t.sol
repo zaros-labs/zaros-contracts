@@ -3,7 +3,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies source
-import { AccountNFT } from "@zaros/account-nft/AccountNFT.sol";
+import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
@@ -51,6 +51,7 @@ import {
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
 // Open Zeppelin dependencies
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { ERC20, IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
@@ -97,7 +98,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    AccountNFT internal tradingAccountToken;
+    TradingAccountNFT internal tradingAccountToken;
 
     MockERC20 internal usdc;
     MockUSDToken internal usdz;
@@ -128,7 +129,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
         vm.startPrank({ msgSender: users.owner.account });
 
-        tradingAccountToken = new AccountNFT("Zaros Trading Accounts", "ZRS-TRADE-ACC", users.owner.account);
+        address tradingAccountTokenImplementation = address(new TradingAccountNFT());
+        bytes memory tradingAccountTokenInitializeData = abi.encodeWithSelector(
+            TradingAccountNFT.initialize.selector, users.owner.account, "Zaros Trading Accounts", "ZRS-TRADE-ACC"
+        );
+        tradingAccountToken = TradingAccountNFT(
+            address(new ERC1967Proxy(tradingAccountTokenImplementation, tradingAccountTokenInitializeData))
+        );
 
         bool isTestnet = false;
         address[] memory branches = deployBranches(isTestnet);

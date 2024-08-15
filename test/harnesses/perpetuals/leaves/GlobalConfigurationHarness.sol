@@ -11,6 +11,12 @@ contract GlobalConfigurationHarness {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    function workaround_getLiquidationFeeUsdX18() external view returns (uint128) {
+        GlobalConfiguration.Data storage self = GlobalConfiguration.load();
+
+        return self.liquidationFeeUsdX18;
+    }
+
     function workaround_getMaxPositionsPerAccount() external view returns (uint128) {
         GlobalConfiguration.Data storage self = GlobalConfiguration.load();
 
