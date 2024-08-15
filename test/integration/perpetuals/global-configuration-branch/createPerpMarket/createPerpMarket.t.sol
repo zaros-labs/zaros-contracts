@@ -500,7 +500,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    function test_WhenPriceFeedHearbeatSecondsIsNotZero()
+    function test_WhenPriceFeedHeartbeatSecondsIsNotZero()
         external
         whenMarketIdIsNotZero
         whenLengthOfNameIsNotZero
