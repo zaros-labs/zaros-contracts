@@ -479,6 +479,8 @@ library TradingAccount {
     }
 
     /// @notice Deducts the account's margin to pay for the settlement fee, order fee, and realize the pnl.
+    /// @dev When a fee recipient is passed as `address(0)`, its fee MUST be zero, otherwise this function may produce
+    /// unexpected behaviors.
     /// @param self The trading account storage pointer.
     /// @param feeRecipients The fee recipients.
     /// @param pnlUsdX18 The total unrealized PnL of the account.
