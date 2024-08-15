@@ -6,9 +6,11 @@ import { Base_Test } from "test/Base.t.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies
-import { ud60x18, UD60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 contract GetAccountLeverage_Unit_Test is Base_Test {
     function setUp() public override {
@@ -50,13 +52,14 @@ contract GetAccountLeverage_Unit_Test is Base_Test {
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId,
-        bool isLong
+        bool isLong,
+        uint256 numOfActiveMarkets
     )
         external
     {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        numOfActiveMarkets = bound({ x: numOfActiveMarkets, min: 1, max: (FINAL_MARKET_ID - INITIAL_MARKET_ID) + 1 });
 
-        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+        MarketConfig memory fuzzMarketConfig;
 
         marginValueUsd = bound({
             x: marginValueUsd,
@@ -68,66 +71,46 @@ contract GetAccountLeverage_Unit_Test is Base_Test {
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
-        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
+        uint256 amountPerPosition = marginValueUsd / numOfActiveMarkets;
+
+        UD60x18 totalPositionsNotionalValue;
+
+        uint256[2] memory marketsIdsRange;
+
+        for (uint256 i = 1; i <= numOfActiveMarkets; i++) {
+
+            marketsIdsRange[0] = i;
+            marketsIdsRange[1] = i;
+
+            fuzzMarketConfig = getFilteredMarketsConfig(marketsIdsRange)[0];
+
+            initialMarginRate =
+                bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+
+            openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, amountPerPosition, isLong);
+
+            Position.Data memory position =
+                perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
+
+            UD60x18 indexPrice = perpsEngine.exposed_getIndexPrice(fuzzMarketConfig.marketId);
+
+            UD60x18 markPrice =
+                perpsEngine.exposed_getMarkPrice(fuzzMarketConfig.marketId, sd59x18(position.size), indexPrice);
+
+            UD60x18 positionNotionalValueX18 =
+                perpsEngine.exposed_getNotionalValue(tradingAccountId, fuzzMarketConfig.marketId, markPrice);
+
+            totalPositionsNotionalValue = totalPositionsNotionalValue.add(positionNotionalValueX18);
+        }
 
         UD60x18 accountLeverage = perpsEngine.getAccountLeverage(tradingAccountId);
 
-        // it should continue execution and return the current leverage of trading account account
-        assertNotEq(accountLeverage.intoUint256(), 0);
+        (SD59x18 marginBalanceUsdX18,,,) = perpsEngine.getAccountMarginBreakdown(tradingAccountId);
 
-        // check when the user has more than one active positions
-        // Test with wstEth that has 18 decimals
-
-        initialMarginRate =
-            bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
-        marginValueUsd = bound({
-            x: marginValueUsd,
-            min: WSTETH_MIN_DEPOSIT_MARGIN,
-            max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
-        });
-
-        deal({ token: address(wstEth), to: users.naruto.account, give: marginValueUsd });
-        tradingAccountId = createAccountAndDeposit(marginValueUsd, address(wstEth));
-
-        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);
-
-        int128 sizeDelta = fuzzOrderSizeDelta(
-            FuzzOrderSizeDeltaParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-                initialMarginRate: ud60x18(initialMarginRate),
-                marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
-                minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
-                price: ud60x18(fuzzMarketConfig.mockUsdPrice),
-                isLong: isLong,
-                shouldDiscountFees: true
-            })
-        );
-
-        MarketOrder.Data memory expectedMarketOrder = MarketOrder.Data({
-            marketId: fuzzMarketConfig.marketId,
-            sizeDelta: sizeDelta,
-            timestamp: uint128(block.timestamp)
-        });
-
-        // it should emit a {LogCreateMarketOrder} event
-        vm.expectEmit({ emitter: address(perpsEngine) });
-        emit OrderBranch.LogCreateMarketOrder(
-            users.naruto.account, tradingAccountId, fuzzMarketConfig.marketId, expectedMarketOrder
-        );
-        perpsEngine.createMarketOrder(
-            OrderBranch.CreateMarketOrderParams({
-                tradingAccountId: tradingAccountId,
-                marketId: fuzzMarketConfig.marketId,
-                sizeDelta: sizeDelta
-            })
-        );
-
-        accountLeverage = perpsEngine.getAccountLeverage(tradingAccountId);
+        UD60x18 expectedAccountLeverage =
+            totalPositionsNotionalValue.intoSD59x18().div(marginBalanceUsdX18).intoUD60x18();
 
         // it should continue execution and return the current leverage of trading account account
-        assertNotEq(accountLeverage.intoUint256(), 0);
+        assertEq(accountLeverage.intoUint256(), expectedAccountLeverage.intoUint256(), "account leverage");
     }
 }
