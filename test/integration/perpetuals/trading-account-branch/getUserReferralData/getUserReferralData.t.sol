@@ -24,10 +24,10 @@ contract GetUserReferralData_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.naruto.account });
 
-        perpsEngine.createTradingAccount(bytesReferralCode, isCustomReferralCode);
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(bytesReferralCode, isCustomReferralCode);
 
         (bytes memory receivedReferralCode, bool receivedIsCustomReferralCode) =
-            perpsEngine.getUserReferralData(users.naruto.account);
+            perpsEngine.getUserReferralData(tradingAccountId);
 
         // it should return the referral code
         assertEq(bytesReferralCode, receivedReferralCode, "referral code is not correct");

@@ -17,9 +17,9 @@ contract GetReferrerAddress_Unit_Test is Base_Test {
 
         perpsEngine.createCustomReferralCode(users.naruto.account, customReferralCode);
 
-        perpsEngine.createTradingAccount(bytesReferralCode, true);
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(bytesReferralCode, true);
 
-        address referrer = perpsEngine.exposed_Referral_getReferrerAddress(users.owner.account);
+        address referrer = perpsEngine.exposed_Referral_getReferrerAddress(tradingAccountId);
 
         // it should return the address of referrer
         assertEq(referrer, users.naruto.account, "the referrer is not correct");
@@ -28,9 +28,9 @@ contract GetReferrerAddress_Unit_Test is Base_Test {
     function test_WhenReferralCodeIsNotCustom() external {
         changePrank({ msgSender: users.owner.account });
 
-        perpsEngine.createTradingAccount(abi.encode(users.naruto.account), false);
+        uint128 tradingAccountId = perpsEngine.createTradingAccount(abi.encode(users.naruto.account), false);
 
-        address referrer = perpsEngine.exposed_Referral_getReferrerAddress(users.owner.account);
+        address referrer = perpsEngine.exposed_Referral_getReferrerAddress(tradingAccountId);
 
         // it should return the address of referrer
         assertEq(referrer, users.naruto.account, "the referrer is not correct");
