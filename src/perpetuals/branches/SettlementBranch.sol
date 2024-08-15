@@ -455,7 +455,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // enforce open interest and skew limits for target market and calculate
         // new open interest and new skew
         (ctx.newOpenInterestX18, ctx.newSkewX18) =
-            perpMarket.checkOpenInterestLimits(sizeDeltaX18, ctx.oldPositionSizeX18, ctx.newPositionSizeX18);
+            perpMarket.checkOpenInterestLimits(sizeDeltaX18, ctx.oldPositionSizeX18, ctx.newPositionSizeX18, true);
 
         // update open interest and skew for this perp market
         perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);

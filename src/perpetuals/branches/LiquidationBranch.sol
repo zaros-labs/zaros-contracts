@@ -47,11 +47,14 @@ contract LiquidationBranch {
         view
         returns (uint128[] memory liquidatableAccountsIds)
     {
-        // prepare output array size
-        liquidatableAccountsIds = new uint128[](upperBound - lowerBound);
-
         // return if nothing to process
-        if (liquidatableAccountsIds.length == 0) return liquidatableAccountsIds;
+        if (upperBound == 0 && lowerBound == 0) return liquidatableAccountsIds;
+
+        // if lowerBound is 0, set it to 1 (the first account)
+        if (lowerBound == 0) lowerBound = 1;
+
+        // prepare output array size
+        liquidatableAccountsIds = new uint128[]((upperBound - lowerBound) + 1);
 
         // fetch storage slot for global config
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
@@ -61,12 +64,13 @@ contract LiquidationBranch {
             globalConfiguration.accountsIdsWithActivePositions.length();
 
         // iterate over active accounts within given bounds
-        for (uint256 i = lowerBound; i < upperBound; i++) {
+        for (uint256 i; i <= upperBound - lowerBound; i++) {
             // break if `i` greater then length of active account ids
             if (i >= cachedAccountsIdsWithActivePositionsLength) break;
 
             // get the `tradingAccountId` of the current active account
-            uint128 tradingAccountId = uint128(globalConfiguration.accountsIdsWithActivePositions.at(i));
+            uint128 tradingAccountId =
+                uint128(globalConfiguration.accountsIdsWithActivePositions.at((lowerBound + i) - 1));
 
             // load that account's leaf (data + functions)
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
@@ -99,6 +103,8 @@ contract LiquidationBranch {
         SD59x18 fundingFeePerUnitX18;
         UD60x18 newOpenInterestX18;
         SD59x18 newSkewX18;
+        UD60x18 requiredMaintenanceMarginUsdX18;
+        SD59x18 accountTotalUnrealizedPnlUsdX18;
     }
 
     /// @param accountsIds The list of accounts to liquidate
@@ -135,15 +141,15 @@ contract LiquidationBranch {
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(ctx.tradingAccountId);
 
             // get account's required maintenance margin & unrealized PNL
-            (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
+            (, ctx.requiredMaintenanceMarginUsdX18, ctx.accountTotalUnrealizedPnlUsdX18) =
                 tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD59x18_ZERO);
 
             // get then save margin balance into working data
-            ctx.marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+            ctx.marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(ctx.accountTotalUnrealizedPnlUsdX18);
 
             // if account is not liquidatable, skip to next account
             // account is liquidatable if requiredMaintenanceMarginUsdX18 > ctx.marginBalanceUsdX18
-            if (!TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, ctx.marginBalanceUsdX18)) {
+            if (!TradingAccount.isLiquidatable(ctx.requiredMaintenanceMarginUsdX18, ctx.marginBalanceUsdX18)) {
                 continue;
             }
 
@@ -155,7 +161,7 @@ contract LiquidationBranch {
                     orderFeeRecipient: address(0),
                     settlementFeeRecipient: globalConfiguration.liquidationFeeRecipient
                 }),
-                pnlUsdX18: requiredMaintenanceMarginUsdX18,
+                pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18(),
                 orderFeeUsdX18: UD60x18_ZERO,
                 settlementFeeUsdX18: ctx.liquidationFeeUsdX18
             });
@@ -201,6 +207,11 @@ contract LiquidationBranch {
                 // is why we are iterating over a memory copy of the trader's active markets
                 tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD59x18_ZERO);
 
+                // we don't check skew during liquidations to protect from DoS
+                (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
+                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false
+                );
+
                 // update perp market's open interest and skew; we don't enforce ipen
                 // interest and skew caps during liquidations as:
                 // 1) open interest and skew are both decreased by liquidations
@@ -213,7 +224,7 @@ contract LiquidationBranch {
                 msg.sender,
                 ctx.tradingAccountId,
                 ctx.activeMarketsIds.length,
-                requiredMaintenanceMarginUsdX18.intoUint256(),
+                ctx.requiredMaintenanceMarginUsdX18.intoUint256(),
                 ctx.marginBalanceUsdX18.intoInt256(),
                 ctx.liquidatedCollateralUsdX18.intoUint256(),
                 ctx.liquidationFeeUsdX18.intoUint128()

@@ -503,7 +503,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
-    function test_WhenPriceFeedHearbeatSecondsIsNotZero(uint256 marketId)
+    function test_WhenPriceFeedHeartbeatSecondsIsNotZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
