@@ -61,14 +61,13 @@ contract LoadExisting_Unit_Test is Base_Test {
         MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_loadExisting(tradingAccountId);
         assertEq(marketOrder.marketId, fuzzMarketConfig.marketId);
         assertEq(marketOrder.sizeDelta, sizeDelta);
+        assertEq(marketOrder.timestamp, block.timestamp);
     }
 
     function testFuzz_RevertGiven_YouDoNotHaveAMarketOrder(uint128 tradingAccountId) external {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, tradingAccountId) });
 
         // it should revert
-        MarketOrder.Data memory marketOrder = perpsEngine.exposed_MarketOrder_loadExisting(tradingAccountId);
-        assertEq(marketOrder.marketId, 0);
-        assertEq(marketOrder.sizeDelta, 0);
+        perpsEngine.exposed_MarketOrder_loadExisting(tradingAccountId);
     }
 }
