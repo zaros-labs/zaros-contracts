@@ -17,6 +17,16 @@ contract TradingAccountHarness {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
+    function workaround_getTradingAccountIdAndOwner(uint128 tradingAccountId)
+        external
+        view
+        returns (uint128, address)
+    {
+        TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
+
+        return (self.id, self.owner);
+    }
+
     function workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral(
         uint128 tradingAccountId,
         address collateral
@@ -169,6 +179,19 @@ contract TradingAccountHarness {
         TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
 
         TradingAccount.deposit(self, collateralType, amount);
+    }
+
+    function exposed_isMarketWithActivePosition(
+        uint128 tradingAccountId,
+        uint128 marketId
+    )
+        external
+        view
+        returns (bool)
+    {
+        TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
+
+        return TradingAccount.isMarketWithActivePosition(self, marketId);
     }
 
     function exposed_withdraw(uint128 tradingAccountId, address collateralType, UD60x18 amount) external {

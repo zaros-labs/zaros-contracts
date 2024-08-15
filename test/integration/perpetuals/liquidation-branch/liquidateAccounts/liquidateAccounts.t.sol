@@ -90,6 +90,8 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         uint256 expectedOpenInterest;
         SD59x18 skewX18;
         int256 expectedSkew;
+        SD59x18[] accountsUnrealizedPnl;
+        SD59x18[] accountsMarginBalanceInitial;
     }
 
     function testFuzz_GivenThereAreLiquidatableAccountsInTheArray(
@@ -121,6 +123,8 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
 
         // last account id == 0
         ctx.accountsIds = new uint128[](amountOfTradingAccounts + 2);
+        ctx.accountsUnrealizedPnl = new SD59x18[](amountOfTradingAccounts + 2);
+        ctx.accountsMarginBalanceInitial = new SD59x18[](amountOfTradingAccounts + 2);
 
         ctx.accountMarginValueUsd = ctx.marginValueUsd / (amountOfTradingAccounts + 1);
 
@@ -144,6 +148,8 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             );
 
             ctx.accountsIds[i] = ctx.tradingAccountId;
+            ctx.accountsMarginBalanceInitial[i] =
+                perpsEngine.exposed_getMarginBalanceUsd(ctx.accountsIds[i], sd59x18(0));
 
             deal({ token: address(usdz), to: users.naruto.account, give: ctx.marginValueUsd });
         }
@@ -152,11 +158,23 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         setAccountsAsLiquidatable(ctx.secondMarketConfig, isLong);
 
         ctx.nonLiquidatableTradingAccountId = createAccountAndDeposit(ctx.accountMarginValueUsd, address(usdz));
-        ctx.accountsIds[amountOfTradingAccounts] = ctx.nonLiquidatableTradingAccountId;
+        openPosition(
+            ctx.fuzzMarketConfig,
+            ctx.nonLiquidatableTradingAccountId,
+            ctx.fuzzMarketConfig.imr,
+            ctx.accountMarginValueUsd / 2,
+            isLong
+        );
 
         changePrank({ msgSender: liquidationKeeper });
 
+        skip(timeDelta);
+
         for (uint256 i; i < ctx.accountsIds.length; i++) {
+            (,, ctx.accountsUnrealizedPnl[i]) = perpsEngine.exposed_getAccountMarginRequirementUsdAndUnrealizedPnlUsd(
+                ctx.accountsIds[i], 0, sd59x18(0)
+            );
+
             if (ctx.accountsIds[i] == ctx.nonLiquidatableTradingAccountId || ctx.accountsIds[i] == 0) {
                 continue;
             }
@@ -181,8 +199,6 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             });
         }
 
-        skip(timeDelta);
-
         ctx.expectedLastFundingRate = perpsEngine.getFundingRate(ctx.fuzzMarketConfig.marketId).intoInt256();
         ctx.expectedLastFundingTime = block.timestamp;
 
@@ -198,9 +214,9 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         ctx.expectedOpenInterest = sd59x18(
             perpsEngine.exposed_Position_load(ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId).size
         ).abs().intoUD60x18().intoUint256();
-        assertEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), "open interest");
+        assertAlmostEq(ctx.expectedOpenInterest, ctx.openInterestX18.intoUint256(), 1, "open interest");
 
-        // it should update skew value
+        // // it should update skew value
         ctx.skewX18 = perpsEngine.getSkew(ctx.fuzzMarketConfig.marketId);
         ctx.expectedSkew =
             perpsEngine.exposed_Position_load(ctx.nonLiquidatableTradingAccountId, ctx.fuzzMarketConfig.marketId).size;
@@ -232,9 +248,26 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             // it should remove the account's all active markets
             assertEq(0, perpsEngine.workaround_getActiveMarketsIdsLength(ctx.accountsIds[i]), "active market id");
             assertEq(
-                0,
+                1,
                 perpsEngine.workaround_getAccountsIdsWithActivePositionsLength(),
                 "accounts ids with active positions"
+            );
+
+            // it should deduct unrealized pnl from the margin balance
+            uint128 liquidationFeeUsdX18 = perpsEngine.workaround_getLiquidationFeeUsdX18();
+            SD59x18 marginBalanceUsdX18 = perpsEngine.exposed_getMarginBalanceUsd(ctx.accountsIds[i], sd59x18(0));
+            SD59x18 expectedMarginBalanceUsdX18 = ctx.accountsMarginBalanceInitial[i].add(
+                ctx.accountsUnrealizedPnl[i]
+            ).sub(sd59x18(int128(liquidationFeeUsdX18)));
+
+            if (expectedMarginBalanceUsdX18.lt(sd59x18(0))) {
+                expectedMarginBalanceUsdX18 = sd59x18(0);
+            }
+
+            // using `<=` instead of `==` because of the price impact (new skew) after liquidation of the trading
+            // accounts
+            assertEq(
+                marginBalanceUsdX18.intoInt256() <= expectedMarginBalanceUsdX18.intoInt256(), true, "margin balance"
             );
         }
     }

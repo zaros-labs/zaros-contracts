@@ -58,12 +58,20 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
     function testFuzz_WhenThereAreOneOrManyLiquidatableAccounts(
         uint256 marketId,
         bool isLong,
-        uint256 amountOfTradingAccounts
+        uint256 amountOfTradingAccounts,
+        uint256 lowerBound,
+        uint256 upperBound
     )
         external
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
         amountOfTradingAccounts = bound({ x: amountOfTradingAccounts, min: 1, max: 10 });
+
+        upperBound = bound({ x: upperBound, min: 1, max: amountOfTradingAccounts });
+
+        lowerBound = bound({ x: lowerBound, min: 1, max: upperBound });
+
         uint256 marginValueUsd = 10_000e18 / amountOfTradingAccounts;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
@@ -77,15 +85,12 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
         }
         setAccountsAsLiquidatable(fuzzMarketConfig, isLong);
 
-        uint256 lowerBound = 0;
-        uint256 upperBound = amountOfTradingAccounts;
-
         uint128[] memory liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(lowerBound, upperBound);
 
-        assertEq(liquidatableAccountIds.length, amountOfTradingAccounts);
+        assertEq(liquidatableAccountIds.length, (upperBound - lowerBound) + 1);
         for (uint256 i; i < liquidatableAccountIds.length; i++) {
             // it should return an array with the liquidatable accounts ids
-            assertEq(liquidatableAccountIds[i], i + 1);
+            assertEq(liquidatableAccountIds[i], lowerBound + i);
         }
     }
 }
