@@ -18,7 +18,7 @@ contract GetAccountLeverage_Unit_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_WhenTheMarginBalanceUsdX18IsZero(
+    function testFuzz_GivenTheMarginBalanceUsdX18IsZero(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
@@ -45,7 +45,7 @@ contract GetAccountLeverage_Unit_Test is Base_Test {
         assertEq(accountLeverage.intoUint256(), 0);
     }
 
-    function testFuzz_WhenTheMarginBalanceUsdX18IsNotZero(
+    function testFuzz_GivenTheMarginBalanceUsdX18IsNotZero(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
