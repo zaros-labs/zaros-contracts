@@ -27,6 +27,7 @@ abstract contract FtmUsd {
     // TODO: Update address value
     address internal constant FTM_USD_PRICE_FEED = address(0x8A592fCc0cA4cdA594919af08daD910013b361B8);
     uint32 internal constant FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    bool internal constant FTM_USD_USE_CUSTOM_PRICE_ADAPTER = false;
 
     // TODO: Update stream id value
     bytes32 internal constant FTM_USD_STREAM_ID = 0x0003c0cb688504dc63298cc1c61e5bdaa3542f8bf98c996f370c30f820e04a9f;

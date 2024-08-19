@@ -369,6 +369,7 @@ library PerpMarket {
     /// @param offchainOrdersConfiguration The offchain orders settlement configuration of the given perp market.
     /// @param orderFees The configured maker and taker order fee tiers.
     /// @param priceFeedHeartbeatSeconds The price feed heartbeats in seconds.
+    /// @param useCustomPriceAdapter Whether to use a custom price adapter or not.
     struct CreateParams {
         uint128 marketId;
         string name;
@@ -385,6 +386,7 @@ library PerpMarket {
         SettlementConfiguration.Data offchainOrdersConfiguration;
         OrderFees.Data orderFees;
         uint32 priceFeedHeartbeatSeconds;
+        bool useCustomPriceAdapter;
     }
 
     /// @notice Creates a new PerpMarket.

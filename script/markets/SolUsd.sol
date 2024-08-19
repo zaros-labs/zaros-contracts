@@ -27,6 +27,7 @@ abstract contract SolUsd {
     // TODO: Update address value
     address internal constant SOL_USD_PRICE_FEED = address(0x32377717BC9F9bA8Db45A244bCE77e7c0Cc5A775);
     uint32 internal constant SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    bool internal constant SOL_USD_USE_CUSTOM_PRICE_ADAPTER = false;
 
     // TODO: Update stream id value
     bytes32 internal constant SOL_USD_STREAM_ID = 0x0003d338ea2ac3be9e026033b1aa601673c37bab5e13851c59966f9f820754d6;

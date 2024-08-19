@@ -380,6 +380,7 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
         SettlementConfiguration.Data offchainOrdersConfiguration;
         OrderFees.Data orderFees;
         uint32 priceFeedHeartbeatSeconds;
+        bool useCustomPriceAdapter;
     }
 
     /// @notice Creates a new market with the requested market id.
@@ -440,7 +441,8 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
                 marketOrderConfiguration: params.marketOrderConfiguration,
                 offchainOrdersConfiguration: params.offchainOrdersConfiguration,
                 orderFees: params.orderFees,
-                priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
+                priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds,
+                useCustomPriceAdapter: params.useCustomPriceAdapter
             })
         );
         perpsEngineConfiguration.addMarket(params.marketId);

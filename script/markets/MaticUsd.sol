@@ -27,6 +27,7 @@ abstract contract MaticUsd {
     // TODO: Update address value
     address internal constant MATIC_USD_PRICE_FEED = address(0x44a502d94c47f47aC6D65ebdFDf4c39500e72491);
     uint32 internal constant MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    bool internal constant MATIC_USD_USE_CUSTOM_PRICE_ADAPTER = false;
 
     // TODO: Update stream id value
     bytes32 internal constant MATIC_USD_STREAM_ID = 0x0003fd6ff25e1a28ddd55c85882279987be478a66a75abdf05a468beb5b8b467;

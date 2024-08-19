@@ -27,6 +27,7 @@ abstract contract ArbUsd {
     // TODO: Update address value
     address internal constant ARB_USD_PRICE_FEED = address(0xD1092a65338d049DB68D7Be6bD89d17a0929945e);
     uint32 internal constant ARB_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    bool internal constant ARB_USD_USE_CUSTOM_PRICE_ADAPTER = false;
 
     // TODO: Update stream id value
     bytes32 internal constant ARB_USD_STREAM_ID = 0x0003c90f4d0e133914a02466e44f3392560c86248925ce651ef8e44f1ec2ef4a;

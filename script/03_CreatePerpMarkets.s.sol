@@ -89,7 +89,8 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                     marketOrderConfiguration: marketOrderConfiguration,
                     offchainOrdersConfiguration: offchainOrdersConfiguration,
                     orderFees: filteredMarketsConfig[i].orderFees,
-                    priceFeedHeartbeatSeconds: filteredMarketsConfig[i].priceFeedHeartbeatSeconds
+                    priceFeedHeartbeatSeconds: filteredMarketsConfig[i].priceFeedHeartbeatSeconds,
+                    useCustomPriceAdapter: filteredMarketsConfig[i].useCustomPriceAdapter
                 })
             });
         }

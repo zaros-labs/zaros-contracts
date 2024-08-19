@@ -60,6 +60,7 @@ abstract contract Markets is
         OrderFees.Data orderFees;
         uint256 mockUsdPrice;
         uint32 priceFeedHeartbeatSeconds;
+        bool useCustomPriceAdapter;
     }
 
     /// @notice Market configurations mapped by market id.
@@ -93,7 +94,8 @@ abstract contract Markets is
             streamIdString: STRING_BTC_USD_STREAM_ID,
             orderFees: btcUsdOrderFees,
             mockUsdPrice: MOCK_BTC_USD_PRICE,
-            priceFeedHeartbeatSeconds: BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: BTC_USD_USE_CUSTOM_PRICE_ADAPTER
         });
 
         marketsConfig[ETH_USD_MARKET_ID] = MarketConfig({
@@ -113,7 +115,8 @@ abstract contract Markets is
             streamIdString: STRING_ETH_USD_STREAM_ID,
             orderFees: ethUsdOrderFees,
             mockUsdPrice: MOCK_ETH_USD_PRICE,
-            priceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: ETH_USD_USE_CUSTOM_PRICE_ADAPTER
         });
 
         marketsConfig[LINK_USD_MARKET_ID] = MarketConfig({
@@ -133,7 +136,8 @@ abstract contract Markets is
             streamIdString: STRING_LINK_USD_STREAM_ID,
             orderFees: linkUsdOrderFees,
             mockUsdPrice: MOCK_LINK_USD_PRICE,
-            priceFeedHeartbeatSeconds: LINK_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: LINK_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: LINK_USD_USE_CUSTOM_PRICE_ADAPTER
         });
 
         marketsConfig[ARB_USD_MARKET_ID] = MarketConfig({
@@ -153,7 +157,8 @@ abstract contract Markets is
             streamIdString: STRING_ARB_USD_STREAM_ID,
             orderFees: arbUsdOrderFees,
             mockUsdPrice: MOCK_ARB_USD_PRICE,
-            priceFeedHeartbeatSeconds: ARB_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: ARB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: ARB_USD_USE_CUSTOM_PRICE_ADAPTER
         });
 
         marketsConfig[BNB_USD_MARKET_ID] = MarketConfig({
@@ -173,7 +178,8 @@ abstract contract Markets is
             streamIdString: STRING_BNB_USD_STREAM_ID,
             orderFees: bnbUsdOrderFees,
             mockUsdPrice: MOCK_BNB_USD_PRICE,
-            priceFeedHeartbeatSeconds: BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: BNB_USD_USE_CUSTOM_PRICE_ADAPTER
         });
 
         marketsConfig[DOGE_USD_MARKET_ID] = MarketConfig({
@@ -193,7 +199,8 @@ abstract contract Markets is
             streamIdString: STRING_DOGE_USD_STREAM_ID,
             orderFees: dogeUsdOrderFees,
             mockUsdPrice: MOCK_DOGE_USD_PRICE,
-            priceFeedHeartbeatSeconds: DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: DOGE_USD_USE_CUSTOM_PRICE_ADAPTER
         });
 
         marketsConfig[SOL_USD_MARKET_ID] = MarketConfig({
@@ -213,7 +220,8 @@ abstract contract Markets is
             streamIdString: STRING_SOL_USD_STREAM_ID,
             orderFees: solUsdOrderFees,
             mockUsdPrice: MOCK_SOL_USD_PRICE,
-            priceFeedHeartbeatSeconds: SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: SOL_USD_USE_CUSTOM_PRICE_ADAPTER
         });
 
         marketsConfig[MATIC_USD_MARKET_ID] = MarketConfig({
@@ -233,7 +241,8 @@ abstract contract Markets is
             streamIdString: STRING_MATIC_USD_STREAM_ID,
             orderFees: maticUsdOrderFees,
             mockUsdPrice: MOCK_MATIC_USD_PRICE,
-            priceFeedHeartbeatSeconds: MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: MATIC_USD_USE_CUSTOM_PRICE_ADAPTER
         });
 
         marketsConfig[LTC_USD_MARKET_ID] = MarketConfig({
@@ -253,7 +262,8 @@ abstract contract Markets is
             streamIdString: STRING_LTC_USD_STREAM_ID,
             orderFees: ltcUsdOrderFees,
             mockUsdPrice: MOCK_LTC_USD_PRICE,
-            priceFeedHeartbeatSeconds: LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: LTC_USD_USE_CUSTOM_PRICE_ADAPTER
         });
 
         marketsConfig[FTM_USD_MARKET_ID] = MarketConfig({
@@ -273,7 +283,8 @@ abstract contract Markets is
             streamIdString: STRING_FTM_USD_STREAM_ID,
             orderFees: ftmUsdOrderFees,
             mockUsdPrice: MOCK_FTM_USD_PRICE,
-            priceFeedHeartbeatSeconds: FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            priceFeedHeartbeatSeconds: FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+            useCustomPriceAdapter: FTM_USD_USE_CUSTOM_PRICE_ADAPTER
         });
     }
 
@@ -355,7 +366,8 @@ abstract contract Markets is
                     marketOrderConfiguration: marketOrderConfiguration,
                     offchainOrdersConfiguration: offchainOrdersConfiguration,
                     orderFees: marketsConfig[i].orderFees,
-                    priceFeedHeartbeatSeconds: marketsConfig[i].priceFeedHeartbeatSeconds
+                    priceFeedHeartbeatSeconds: marketsConfig[i].priceFeedHeartbeatSeconds,
+                    useCustomPriceAdapter: marketsConfig[i].useCustomPriceAdapter
                 })
             );
         }

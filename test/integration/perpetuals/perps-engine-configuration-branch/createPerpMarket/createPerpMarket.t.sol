@@ -35,7 +35,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: false
         });
 
         // it should revert
@@ -69,7 +70,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: false
         });
 
         // it should revert
@@ -103,7 +105,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: false
         });
 
         // it should revert
@@ -142,7 +145,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: true
         });
 
         // it should revert
@@ -182,7 +186,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: true
         });
 
         // it should revert
@@ -223,7 +228,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: false
         });
 
         // it should revert
@@ -265,7 +271,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: false
         });
 
         // it should revert
@@ -308,7 +315,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: true
         });
 
         // it should revert
@@ -352,7 +360,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: true
         });
 
         // it should revert
@@ -397,7 +406,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: false
         });
 
         // it should revert
@@ -443,7 +453,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: true
         });
 
         // it should revert
@@ -490,7 +501,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 0
+            priceFeedHeartbeatSeconds: 0,
+            useCustomPriceAdapter: true
         });
 
         // it should revert
@@ -535,7 +547,8 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
             marketOrderConfiguration: marketOrderConfiguration,
             offchainOrdersConfiguration: offchainOrdersConfiguration,
             orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 1
+            priceFeedHeartbeatSeconds: 1,
+            useCustomPriceAdapter: true
         });
 
         // it should emit {LogCreatePerpMarket} event

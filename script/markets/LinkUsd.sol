@@ -27,6 +27,7 @@ abstract contract LinkUsd {
     // TODO: Update address value
     address internal constant LINK_USD_PRICE_FEED = address(0x0FB99723Aee6f420beAD13e6bBB79b7E6F034298);
     uint32 internal constant LINK_USD_PRICE_FEED_HEARTBEATS_SECONDS = 3600;
+    bool internal constant LINK_USD_USE_CUSTOM_PRICE_ADAPTER = false;
 
     // TODO: Update stream id value
     bytes32 internal constant LINK_USD_STREAM_ID = 0x00036fe43f87884450b4c7e093cd5ed99cac6640d8c2000e6afc02c8838d0265;
