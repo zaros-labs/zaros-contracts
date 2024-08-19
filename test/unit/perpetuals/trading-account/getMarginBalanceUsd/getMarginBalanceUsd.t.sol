@@ -4,6 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -48,12 +49,22 @@ contract GetMarginBalanceUsd_Unit_Test is Base_Test {
         deal({ token: address(usdc), to: users.naruto.account, give: amountToDepositUsdc });
         deal({ token: address(wstEth), to: users.naruto.account, give: amountToDepositWstEth });
 
-        UD60x18 usdcEquityUsd = getPrice(MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)).mul(
-            convertTokenAmountToUd60x18(address(usdc), amountToDepositUsdc)
-        ).mul(ud60x18(USDC_LOAN_TO_VALUE));
+        // UD60x18 usdcEquityUsd =
+        // getPrice(MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)).mul(
+        //     convertTokenAmountToUd60x18(address(usdc), amountToDepositUsdc)
+        // ).mul(ud60x18(USDC_LOAN_TO_VALUE));
 
-        UD60x18 wstEthEquityUsd = getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed))
-            .mul(convertTokenAmountToUd60x18(address(wstEth), amountToDepositWstEth)).mul(ud60x18(WSTETH_LOAN_TO_VALUE));
+        UD60x18 usdcEquityUsd = IPriceAdapter((marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter)).getPrice()
+            .mul(convertTokenAmountToUd60x18(address(usdc), amountToDepositUsdc)).mul(ud60x18(USDC_LOAN_TO_VALUE));
+
+        // UD60x18 wstEthEquityUsd = getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed))
+        //     .mul(convertTokenAmountToUd60x18(address(wstEth),
+        // amountToDepositWstEth)).mul(ud60x18(WSTETH_LOAN_TO_VALUE));
+
+        UD60x18 wstEthEquityUsd = IPriceAdapter((marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter))
+            .getPrice().mul(convertTokenAmountToUd60x18(address(wstEth), amountToDepositWstEth)).mul(
+            ud60x18(WSTETH_LOAN_TO_VALUE)
+        );
 
         int256 expectedMarginBalanceUsd =
             int256(usdcEquityUsd.add(wstEthEquityUsd).intoUint256()) + activePositionsUnrealizedPnl;

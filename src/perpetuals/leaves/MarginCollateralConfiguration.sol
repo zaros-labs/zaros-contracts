@@ -7,6 +7,7 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -21,15 +22,15 @@ library MarginCollateralConfiguration {
     /// @param depositCap The maximum deposit cap of the given margin collateral type.
     /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The decimals of the given margin collateral type's ERC20 token.
-    /// @param priceFeed The chainlink price feed address of the given margin collateral type.
+    /// @param priceAdapter The price adapter address of the given margin collateral type.
     /// @param totalDeposited The total amount of margin collateral deposited normalized to 18 decimals.
+    /// @param useCustomPriceAdapter A flag indicating if the margin collateral type uses a custom price adapter.
     struct Data {
         uint128 depositCap;
         uint120 loanToValue;
         uint8 decimals;
-        address priceFeed;
+        address priceAdapter;
         uint256 totalDeposited;
-        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Loads a {MarginCollateralConfiguration} object.
@@ -66,23 +67,13 @@ library MarginCollateralConfiguration {
     /// @param self The margin collateral type storage pointer.
     /// @return price The price of the given margin collateral type.
     function getPrice(Data storage self) internal view returns (UD60x18 price) {
-        address priceFeed = self.priceFeed;
-        uint32 priceFeedHeartbeatSeconds = self.priceFeedHeartbeatSeconds;
+        address priceAdapter = self.priceAdapter;
 
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
-        address sequencerUptimeFeed = perpsEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
-
-        if (priceFeed == address(0)) {
+        if (priceAdapter == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-        price = ChainlinkUtil.getPrice(
-            ChainlinkUtil.GetPriceParams({
-                priceFeed: IAggregatorV3(priceFeed),
-                priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
-                sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
-            })
-        );
+        price = IPriceAdapter(priceAdapter).getPrice();
     }
 
     /// @notice Configures the settings of a given margin collateral type.
@@ -91,15 +82,13 @@ library MarginCollateralConfiguration {
     /// @param depositCap The maximum amount of  collateral that can be deposited.
     /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The amount of decimals of the given margin collateral type's ERC20 token.
-    /// @param priceFeed The price oracle address.
-    /// @param priceFeedHeartbeatSeconds The time in seconds between price feed updates.
+    /// @param priceAdapter The price oracle address.
     function configure(
         address collateralType,
         uint128 depositCap,
         uint120 loanToValue,
         uint8 decimals,
-        address priceFeed,
-        uint32 priceFeedHeartbeatSeconds
+        address priceAdapter
     )
         internal
     {
@@ -108,7 +97,6 @@ library MarginCollateralConfiguration {
         self.depositCap = depositCap;
         self.loanToValue = loanToValue;
         self.decimals = decimals;
-        self.priceFeed = priceFeed;
-        self.priceFeedHeartbeatSeconds = priceFeedHeartbeatSeconds;
+        self.priceAdapter = priceAdapter;
     }
 }

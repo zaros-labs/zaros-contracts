@@ -12,7 +12,9 @@ contract MarginCollateralConfigurationHarness {
         return MarginCollateralConfiguration.load(collateralType).totalDeposited;
     }
 
-    function exposed_MarginCollateral_load(address collateralType)
+    function exposed_MarginCollateral_load(
+        address collateralType
+    )
         external
         pure
         returns (MarginCollateralConfiguration.Data memory)
@@ -54,13 +56,10 @@ contract MarginCollateralConfigurationHarness {
         uint128 depositCap,
         uint120 loanToValue,
         uint8 decimals,
-        address priceFeed,
-        uint32 priceFeedHeartbeatSeconds
+        address priceAdapter
     )
         external
     {
-        MarginCollateralConfiguration.configure(
-            collateralType, depositCap, loanToValue, decimals, priceFeed, priceFeedHeartbeatSeconds
-        );
+        MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceAdapter);
     }
 }

@@ -12,6 +12,7 @@ import { MockPriceFeedOldUpdatedAt } from "test/mocks/MockPriceFeedOldUpdatedAt.
 import { MockSequencerUptimeFeedWithInvalidReturn } from "test/mocks/MockSequencerUptimeFeedWithInvalidReturn.sol";
 import { MockSequencerUptimeFeedDown } from "test/mocks/MockSequencerUptimeFeedDown.sol";
 import { MockSequencerUptimeFeedGracePeriodNotOver } from "test/mocks/MockSequencerUptimeFeedGracePeriodNotOver.sol";
+import { IPriceAdapter, PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -32,11 +33,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     )
         external
     {
-        address newPriceFeed = address(0);
+        address newPriceAdapter = address(0);
 
-        perpsEngine.exposed_configure(
-            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
-        );
+        perpsEngine.exposed_configure(address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceAdapter);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralPriceFeedNotDefined.selector) });
@@ -58,8 +57,18 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             WSTETH_DEPOSIT_CAP_X18.intoUint128(),
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
-            address(mockPriceFeed),
-            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+            address(
+                new PriceAdapter(
+                    PriceAdapter.ConstructorParams({
+                        perpsEngine: address(perpsEngine),
+                        priceFeed: address(mockPriceFeed),
+                        ethUsdPriceFeed: address(0),
+                        priceFeedHeartbeatSeconds: 86_400,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useCustomPriceAdapter: false
+                    })
+                )
+            )
         );
 
         // it should revert
@@ -186,8 +195,18 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             WSTETH_DEPOSIT_CAP_X18.intoUint128(),
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
-            address(mockPriceFeedWithInvalidReturn),
-            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+            address(
+                new PriceAdapter(
+                    PriceAdapter.ConstructorParams({
+                        perpsEngine: address(perpsEngine),
+                        priceFeed: address(mockPriceFeedWithInvalidReturn),
+                        ethUsdPriceFeed: address(0),
+                        priceFeedHeartbeatSeconds: 86_400,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useCustomPriceAdapter: false
+                    })
+                )
+            )
         );
 
         // it should revert
@@ -215,8 +234,18 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             WSTETH_DEPOSIT_CAP_X18.intoUint128(),
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
-            address(mockPriceFeedOldUpdatedAt),
-            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+            address(
+                new PriceAdapter(
+                    PriceAdapter.ConstructorParams({
+                        perpsEngine: address(perpsEngine),
+                        priceFeed: address(mockPriceFeedOldUpdatedAt),
+                        ethUsdPriceFeed: address(0),
+                        priceFeedHeartbeatSeconds: 86_400,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useCustomPriceAdapter: false
+                    })
+                )
+            )
         );
 
         // it should revert
@@ -243,17 +272,20 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
             perpsEngine.exposed_MarginCollateral_load(address(usdc));
 
-        (, int256 price,,,) = MockPriceFeed(marginCollateralConfiguration.priceFeed).latestRoundData();
+        int256 price = int256(IPriceAdapter(marginCollateralConfiguration.priceAdapter).getPrice().intoUint256());
 
         // when the price is equal to the minAnswer
         int256 minAnswer = price;
         int256 maxAnswer = price + 2;
-        MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
+        MockPriceFeed(PriceAdapter(marginCollateralConfiguration.priceAdapter).priceFeed()).updateMockAggregator(
+            minAnswer, maxAnswer
+        );
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
+                Errors.OraclePriceFeedOutOfRange.selector,
+                address(PriceAdapter(marginCollateralConfiguration.priceAdapter).priceFeed())
             )
         });
 
@@ -262,12 +294,15 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         // when the price is less than the minAnswer
         minAnswer = price + 1;
 
-        MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
+        MockPriceFeed(PriceAdapter(marginCollateralConfiguration.priceAdapter).priceFeed()).updateMockAggregator(
+            minAnswer, maxAnswer
+        );
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
+                Errors.OraclePriceFeedOutOfRange.selector,
+                address(PriceAdapter(marginCollateralConfiguration.priceAdapter).priceFeed())
             )
         });
 
@@ -284,17 +319,20 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
             perpsEngine.exposed_MarginCollateral_load(address(usdc));
 
-        (, int256 price,,,) = MockPriceFeed(marginCollateralConfiguration.priceFeed).latestRoundData();
+        int256 price = int256(IPriceAdapter(marginCollateralConfiguration.priceAdapter).getPrice().intoUint256());
 
         // when the price is equal to the maxAnswer
         int256 minAnswer = price - 2;
         int256 maxAnswer = price;
-        MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
+        MockPriceFeed(PriceAdapter(marginCollateralConfiguration.priceAdapter).priceFeed()).updateMockAggregator(
+            minAnswer, maxAnswer
+        );
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
+                Errors.OraclePriceFeedOutOfRange.selector,
+                address(PriceAdapter(marginCollateralConfiguration.priceAdapter).priceFeed())
             )
         });
 
@@ -303,12 +341,15 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         // when the price is greater than the maxAnswer
         maxAnswer = price - 1;
 
-        MockPriceFeed(marginCollateralConfiguration.priceFeed).updateMockAggregator(minAnswer, maxAnswer);
+        MockPriceFeed(PriceAdapter(marginCollateralConfiguration.priceAdapter).priceFeed()).updateMockAggregator(
+            minAnswer, maxAnswer
+        );
 
         // it should revert
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                Errors.OraclePriceFeedOutOfRange.selector, address(marginCollateralConfiguration.priceFeed)
+                Errors.OraclePriceFeedOutOfRange.selector,
+                address(PriceAdapter(marginCollateralConfiguration.priceAdapter).priceFeed())
             )
         });
 
@@ -324,7 +365,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
     {
         UD60x18 price = perpsEngine.exposed_getPrice(address(wstEth));
 
-        uint8 priceFeedDecimals = MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed).decimals();
+        MockPriceFeed priceFeed = MockPriceFeed(
+            address(PriceAdapter(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter).priceFeed())
+        );
+
+        uint8 priceFeedDecimals = priceFeed.decimals();
 
         UD60x18 expectedPrice = ud60x18(
             marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].mockUsdPrice

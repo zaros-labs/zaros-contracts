@@ -35,7 +35,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
         marketsIdsRange[0] = initialMarketId;
         marketsIdsRange[1] = finalMarketId;
 
-        setupMarketsConfig();
+        setupMarketsConfig(address(perpsEngine));
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 
@@ -88,9 +88,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                     skewScale: filteredMarketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
                     offchainOrdersConfiguration: offchainOrdersConfiguration,
-                    orderFees: filteredMarketsConfig[i].orderFees,
-                    priceFeedHeartbeatSeconds: filteredMarketsConfig[i].priceFeedHeartbeatSeconds,
-                    useCustomPriceAdapter: filteredMarketsConfig[i].useCustomPriceAdapter
+                    orderFees: filteredMarketsConfig[i].orderFees
                 })
             });
         }

@@ -30,13 +30,7 @@ library ChainlinkUtil {
 
     /// @notice Queries the provided Chainlink Price Feed for the margin collateral oracle price.
     /// @param params The GetPriceParams struct.
-    function getPrice(
-        GetPriceParams memory params
-    )
-        internal
-        view
-        returns (UD60x18 price)
-    {
+    function getPrice(GetPriceParams memory params) internal view returns (UD60x18 price) {
         uint8 priceDecimals = params.priceFeed.decimals();
         // should revert if priceDecimals > 18
         if (priceDecimals > Constants.SYSTEM_DECIMALS) {
