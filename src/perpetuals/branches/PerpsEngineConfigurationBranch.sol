@@ -10,7 +10,7 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 import { MarketConfiguration } from "@zaros/perpetuals/leaves/MarketConfiguration.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
-import { CustomReferralConfiguration } from "@zaros/perpetuals/leaves/CustomReferralConfiguration.sol";
+import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";

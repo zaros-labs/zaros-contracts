@@ -9,7 +9,7 @@ import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineCo
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
-import { CustomReferralConfiguration } from "@zaros/perpetuals/leaves/CustomReferralConfiguration.sol";
+import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 
 // Open Zeppelin dependencies
