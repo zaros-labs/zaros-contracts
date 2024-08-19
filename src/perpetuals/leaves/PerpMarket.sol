@@ -81,7 +81,11 @@ library PerpMarket {
         }
 
         indexPrice = ChainlinkUtil.getPrice(
-            IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
+            ChainlinkUtil.GetPriceParams({
+                priceFeed: IAggregatorV3(priceAdapter),
+                priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
+                sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
+            })
         );
     }
 

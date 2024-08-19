@@ -77,7 +77,11 @@ library MarginCollateralConfiguration {
         }
 
         price = ChainlinkUtil.getPrice(
-            IAggregatorV3(priceFeed), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
+            ChainlinkUtil.GetPriceParams({
+                priceFeed: IAggregatorV3(priceFeed),
+                priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
+                sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
+            })
         );
     }
 
