@@ -226,6 +226,8 @@ contract TradingAccountBranch {
     }
 
     /// @notice Creates a new trading account and mints its NFT
+    /// @param referralCode The referral code to use.
+    /// @param isCustomReferralCode True if the referral code is a custom referral code.
     /// @return tradingAccountId The trading account id.
     function createTradingAccount(
         bytes memory referralCode,
@@ -282,6 +284,8 @@ contract TradingAccountBranch {
 
     /// @notice Creates a new trading account and multicalls using the provided data payload.
     /// @param data The data payload to be multicalled.
+    /// @param referralCode The referral code to use.
+    /// @param isCustomReferralCode True if the referral code is a custom referral code.
     /// @return results The array of results of the multicall.
     function createTradingAccountAndMulticall(
         bytes[] calldata data,

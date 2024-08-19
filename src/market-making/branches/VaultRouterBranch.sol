@@ -44,7 +44,9 @@ contract VaultRouterBranch {
     /// @dev Index token holders must stake in order to earn fees distributions from the market making engine.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to stake, in 18 decimals.
-    function stake(uint256 vaultId, uint256 shares) external { }
+    /// @param referralCode The referral code to use.
+    /// @param isCustomReferralCode True if the referral code is a custom referral code.
+    function stake(uint256 vaultId, uint256 shares, bytes memory referralCode, bool isCustomReferralCode) external { }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
     /// @param vaultId The vault identifier.
