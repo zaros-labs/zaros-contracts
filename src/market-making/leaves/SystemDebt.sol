@@ -7,9 +7,9 @@ import { Distribution } from "./Distribution.sol";
 // Solady dependencies
 import { MinHeapLib } from "@solady/Milady.sol";
 
-library GlobalDebt {
+library SystemDebt {
     bytes32 internal constant GLOBAL_DEBT_LOCATION =
-        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.GlobalDebt")) - 1));
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.SystemDebt")) - 1));
 
     // TODO: work on encoding nodes into the priority queue
     struct PriorityQueueNode {
@@ -25,7 +25,7 @@ library GlobalDebt {
         Distribution.Data vaultsDebtDistribution;
     }
 
-    /// @notice Loads the {GlobalDebt} namespace.
+    /// @notice Loads the {SystemDebt} namespace.
     function load() internal pure returns (Data storage globalDebt) {
         bytes32 slot = keccak256(abi.encode(GLOBAL_DEBT_LOCATION));
         assembly {
