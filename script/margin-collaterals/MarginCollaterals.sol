@@ -232,7 +232,6 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             uint256 indexLiquidationPriority = filteredMarginCollateralsConfig[i].liquidationPriority - 1;
 
             address marginCollateralAddress;
-            address priceFeed;
             address priceAdapter;
             address mockERC20;
 
@@ -257,13 +256,11 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                     int256(filteredMarginCollateralsConfig[i].mockUsdPrice)
                 );
 
-                priceFeed = address(mockPriceFeed);
-
                 priceAdapter = address(
                     new PriceAdapter(
                         PriceAdapter.ConstructorParams({
                             perpsEngine: address(perpsEngine),
-                            priceFeed: priceFeed,
+                            priceFeed: address(mockPriceFeed),
                             ethUsdPriceFeed: address(0),
                             priceFeedHeartbeatSeconds: 86_400,
                             ethUsdPriceFeedHeartbeatSeconds: 0,
