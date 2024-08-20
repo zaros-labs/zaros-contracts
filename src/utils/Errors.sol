@@ -41,8 +41,6 @@ library Errors {
     /// @notice Thrown when an oracle returns an unexpected, invalid value.
     error InvalidOracleReturn();
     /// @notice Thrown when an oracle price feed is outdated.
-    error OracleSequencerDown(address priceFeed);
-    /// @notice Thrown when an oracle price feed is outdated.
     error OraclePriceFeedHeartbeat(address priceFeed);
     /// @notice Thrown when the keeper provided checkData bounds are invalid.
     error InvalidBounds();
