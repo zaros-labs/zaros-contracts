@@ -10,8 +10,6 @@ import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 
-import { console } from "forge-std/console.sol";
-
 /// @notice The interface for the price adapter.
 interface IPriceAdapter {
     /// @notice Gets the price of the token.
@@ -82,11 +80,7 @@ contract PriceAdapter is IPriceAdapter {
     /// @notice Gets the price of the token.
     /// @return price The price of the token.
     function getPrice() external view returns (UD60x18 price) {
-        console.log("getPrice ------ 1");
-
         address sequencerUptimeFeed = IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid);
-
-        console.log("getPrice ------ 2");
 
         if (useCustomPriceAdapter) {
             UD60x18 quantityTokenInEth = ChainlinkUtil.getPrice(

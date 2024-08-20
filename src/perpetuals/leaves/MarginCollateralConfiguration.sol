@@ -2,11 +2,8 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
-import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
