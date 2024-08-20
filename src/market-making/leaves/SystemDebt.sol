@@ -26,10 +26,10 @@ library SystemDebt {
     }
 
     /// @notice Loads the {SystemDebt} namespace.
-    function load() internal pure returns (Data storage globalDebt) {
+    function load() internal pure returns (Data storage systemDebt) {
         bytes32 slot = keccak256(abi.encode(GLOBAL_DEBT_LOCATION));
         assembly {
-            globalDebt.slot := slot
+            systemDebt.slot := slot
         }
     }
 }
