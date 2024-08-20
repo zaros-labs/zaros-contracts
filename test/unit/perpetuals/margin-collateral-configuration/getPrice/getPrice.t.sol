@@ -63,7 +63,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         perpsEngine: address(perpsEngine),
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
-                        priceFeedHeartbeatSeconds: 86_400,
+                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
                     })
@@ -201,7 +201,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         perpsEngine: address(perpsEngine),
                         priceFeed: address(mockPriceFeedWithInvalidReturn),
                         ethUsdPriceFeed: address(0),
-                        priceFeedHeartbeatSeconds: 86_400,
+                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
                     })
@@ -240,7 +240,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         perpsEngine: address(perpsEngine),
                         priceFeed: address(mockPriceFeedOldUpdatedAt),
                         ethUsdPriceFeed: address(0),
-                        priceFeedHeartbeatSeconds: 86_400,
+                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
                     })
