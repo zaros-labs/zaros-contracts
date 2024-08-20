@@ -11,6 +11,12 @@ contract PerpsEngineConfigurationHarness {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    function workaround_getLiquidationFeeUsdX18() external view returns (uint128) {
+        PerpsEngineConfiguration.Data storage self = PerpsEngineConfiguration.load();
+
+        return self.liquidationFeeUsdX18;
+    }
+
     function workaround_getMaxPositionsPerAccount() external view returns (uint128) {
         PerpsEngineConfiguration.Data storage self = PerpsEngineConfiguration.load();
 

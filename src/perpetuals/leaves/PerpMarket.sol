@@ -268,11 +268,13 @@ library PerpMarket {
     /// @param sizeDelta The size delta of the order.
     /// @param oldPositionSize The old position size.
     /// @param newPositionSize The new position size.
+    /// @param shouldCheckNewOpenInterestAndNewSkew Whether to check the new open interest and skew.
     function checkOpenInterestLimits(
         Data storage self,
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
-        SD59x18 newPositionSize
+        SD59x18 newPositionSize,
+        bool shouldCheckNewOpenInterestAndNewSkew
     )
         internal
         view
@@ -293,7 +295,7 @@ library PerpMarket {
         // allows traders to reduce/close their positions in markets where protocol admins
         // have reduced the max open interest to reduce the protocol's exposure to a given
         // perp market
-        if (newOpenInterest.gt(maxOpenInterest)) {
+        if (newOpenInterest.gt(maxOpenInterest) && shouldCheckNewOpenInterestAndNewSkew) {
             // is the proposed trade reducing open interest?
             bool isReducingOpenInterest = currentOpenInterest.gt(newOpenInterest);
 
@@ -315,7 +317,7 @@ library PerpMarket {
 
         // similar logic to the open interest check; if the new skew is greater than
         // the max, we still want to allow trades as long as they decrease the skew
-        if (newSkew.abs().gt(maxSkew)) {
+        if (newSkew.abs().gt(maxSkew) && shouldCheckNewOpenInterestAndNewSkew) {
             bool isReducingSkew = currentSkew.abs().gt(newSkew.abs());
 
             if (!isReducingSkew) {

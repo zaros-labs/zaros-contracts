@@ -483,10 +483,12 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             UD60x18 orderFeeUsdX18,
             UD60x18 settlementFeeUsdX18,
         ) = perpsEngine.simulateTrade(
-            tradingAccountId,
-            fuzzMarketConfig.marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            sizeDelta
+            OrderBranch.SimulateTradeParams({
+                tradingAccountId: tradingAccountId,
+                marketId: fuzzMarketConfig.marketId,
+                settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                sizeDelta: sizeDelta
+            })
         );
 
         // it should revert

@@ -162,13 +162,15 @@ contract TradingAccountHarness {
 
     function exposed_isLiquidatable(
         UD60x18 requiredMaintenanceMarginUsdX18,
-        SD59x18 marginBalanceUsdX18
+        SD59x18 marginBalanceUsdX18,
+        UD60x18 liquidationFeeUsdX18
     )
         external
         pure
         returns (bool)
     {
-        return TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18);
+        return
+            TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18, liquidationFeeUsdX18);
     }
 
     function exposed_create(uint128 tradingAccountId, address owner) external {
@@ -179,6 +181,19 @@ contract TradingAccountHarness {
         TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
 
         TradingAccount.deposit(self, collateralType, amount);
+    }
+
+    function exposed_isMarketWithActivePosition(
+        uint128 tradingAccountId,
+        uint128 marketId
+    )
+        external
+        view
+        returns (bool)
+    {
+        TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
+
+        return TradingAccount.isMarketWithActivePosition(self, marketId);
     }
 
     function exposed_withdraw(uint128 tradingAccountId, address collateralType, UD60x18 amount) external {

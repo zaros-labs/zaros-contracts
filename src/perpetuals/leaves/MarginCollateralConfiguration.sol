@@ -29,7 +29,7 @@ library MarginCollateralConfiguration {
         uint8 decimals;
         address priceFeed;
         uint256 totalDeposited;
-        uint32 priceFeedHearbeatSeconds;
+        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Loads a {MarginCollateralConfiguration} object.
@@ -67,7 +67,7 @@ library MarginCollateralConfiguration {
     /// @return price The price of the given margin collateral type.
     function getPrice(Data storage self) internal view returns (UD60x18 price) {
         address priceFeed = self.priceFeed;
-        uint32 priceFeedHearbeatSeconds = self.priceFeedHearbeatSeconds;
+        uint32 priceFeedHeartbeatSeconds = self.priceFeedHeartbeatSeconds;
 
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
         address sequencerUptimeFeed = perpsEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
@@ -77,7 +77,7 @@ library MarginCollateralConfiguration {
         }
 
         price = ChainlinkUtil.getPrice(
-            IAggregatorV3(priceFeed), priceFeedHearbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
+            IAggregatorV3(priceFeed), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
         );
     }
 
@@ -88,14 +88,14 @@ library MarginCollateralConfiguration {
     /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The amount of decimals of the given margin collateral type's ERC20 token.
     /// @param priceFeed The price oracle address.
-    /// @param priceFeedHearbeatSeconds The time in seconds between price feed updates.
+    /// @param priceFeedHeartbeatSeconds The time in seconds between price feed updates.
     function configure(
         address collateralType,
         uint128 depositCap,
         uint120 loanToValue,
         uint8 decimals,
         address priceFeed,
-        uint32 priceFeedHearbeatSeconds
+        uint32 priceFeedHeartbeatSeconds
     )
         internal
     {
@@ -105,6 +105,6 @@ library MarginCollateralConfiguration {
         self.loanToValue = loanToValue;
         self.decimals = decimals;
         self.priceFeed = priceFeed;
-        self.priceFeedHearbeatSeconds = priceFeedHearbeatSeconds;
+        self.priceFeedHeartbeatSeconds = priceFeedHeartbeatSeconds;
     }
 }

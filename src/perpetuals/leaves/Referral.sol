@@ -18,11 +18,11 @@ library Referral {
     }
 
     /// @notice Loads a {Referral}.
-    /// @param accountOwner The owner of the referred trading account.
+    /// @param tradingAccountId The trading account ID.
     /// @dev The referral object is linked to all trading accounts created by the accountOwner.
     /// @return referral The user referral data.
-    function load(address accountOwner) internal pure returns (Data storage referral) {
-        bytes32 slot = keccak256(abi.encode(REFERRAL_LOCATION, accountOwner));
+    function load(uint128 tradingAccountId) internal pure returns (Data storage referral) {
+        bytes32 slot = keccak256(abi.encode(REFERRAL_LOCATION, tradingAccountId));
         assembly {
             referral.slot := slot
         }

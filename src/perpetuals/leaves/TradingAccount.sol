@@ -339,15 +339,17 @@ library TradingAccount {
     /// @notice Checks if the account is liquidatable.
     /// @param requiredMaintenanceMarginUsdX18 The required maintenance margin in USD.
     /// @param marginBalanceUsdX18 The account's margin balance in USD.
+    /// @param liquidationFeeUsdX18 The liquidation fee in USD.
     function isLiquidatable(
         UD60x18 requiredMaintenanceMarginUsdX18,
-        SD59x18 marginBalanceUsdX18
+        SD59x18 marginBalanceUsdX18,
+        UD60x18 liquidationFeeUsdX18
     )
         internal
         pure
         returns (bool)
     {
-        return requiredMaintenanceMarginUsdX18.intoSD59x18().gt(marginBalanceUsdX18);
+        return requiredMaintenanceMarginUsdX18.add(liquidationFeeUsdX18).intoSD59x18().gt(marginBalanceUsdX18);
     }
 
     /// @notice Checks if the account has an active position in the given market.
@@ -479,6 +481,8 @@ library TradingAccount {
     }
 
     /// @notice Deducts the account's margin to pay for the settlement fee, order fee, and realize the pnl.
+    /// @dev When a fee recipient is passed as `address(0)`, its fee MUST be zero, otherwise this function may produce
+    /// unexpected behaviors.
     /// @param self The trading account storage pointer.
     /// @param feeRecipients The fee recipients.
     /// @param pnlUsdX18 The total unrealized PnL of the account.

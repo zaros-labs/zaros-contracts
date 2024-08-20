@@ -13,41 +13,53 @@ contract isLiquidatable_Unit_Test is Base_Test {
         Base_Test.setUp();
     }
 
-    function testFuzz_WhenRequiredMaintenanceMarginUsdIsGreaterThanTheMarginBalanceUsd(
+    function test_WhenRequiredMaintenanceMarginUsdPlusLiquidationFeeUsdIsGreaterThanTheMarginBalanceUsd(
         uint256 requiredMaintenanceMarginUsd,
-        int256 marginBalanceUsd
+        int256 marginBalanceUsd,
+        uint256 liquidationFee
     )
         external
     {
         requiredMaintenanceMarginUsd =
             bound({ x: requiredMaintenanceMarginUsd, min: 1, max: MAX_MARGIN_REQUIREMENTS });
 
-        vm.assume(int256(requiredMaintenanceMarginUsd) > marginBalanceUsd);
+        liquidationFee = bound({ x: liquidationFee, min: 0, max: 100_000_000e18 });
+
+        vm.assume(int256(requiredMaintenanceMarginUsd) + int256(liquidationFee) > marginBalanceUsd);
 
         UD60x18 requiredMaintenanceMarginUsdX18 = ud60x18(requiredMaintenanceMarginUsd);
         SD59x18 marginBalanceUsdX18 = sd59x18(marginBalanceUsd);
+        UD60x18 liquidationFeeUsdX18 = ud60x18(liquidationFee);
 
-        bool isLiquidatable = perpsEngine.exposed_isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18);
+        bool isLiquidatable = perpsEngine.exposed_isLiquidatable(
+            requiredMaintenanceMarginUsdX18, marginBalanceUsdX18, liquidationFeeUsdX18
+        );
 
         // it should return true
         assertEq(isLiquidatable, true, "isLiquidatable should return true");
     }
 
-    function testFuzz_WhenRequiredMaintenanceMarginUsdIsLessThanOrEqualTheMarginBalanceUsd(
+    function test_WhenRequiredMaintenanceMarginUsdPlusLiquidationFeeUsdIsLessThanOrEqualTheMarginBalanceUsd(
         uint256 requiredMaintenanceMarginUsd,
-        int256 marginBalanceUsd
+        int256 marginBalanceUsd,
+        uint256 liquidationFee
     )
         external
     {
         requiredMaintenanceMarginUsd =
             bound({ x: requiredMaintenanceMarginUsd, min: 1, max: MAX_MARGIN_REQUIREMENTS });
 
-        vm.assume(int256(requiredMaintenanceMarginUsd) <= marginBalanceUsd);
+        liquidationFee = bound({ x: liquidationFee, min: 0, max: 100_000_000e18 });
+
+        vm.assume(int256(requiredMaintenanceMarginUsd) + int256(liquidationFee) <= marginBalanceUsd);
 
         UD60x18 requiredMaintenanceMarginUsdX18 = ud60x18(requiredMaintenanceMarginUsd);
         SD59x18 marginBalanceUsdX18 = sd59x18(marginBalanceUsd);
+        UD60x18 liquidationFeeUsdX18 = ud60x18(liquidationFee);
 
-        bool isLiquidatable = perpsEngine.exposed_isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18);
+        bool isLiquidatable = perpsEngine.exposed_isLiquidatable(
+            requiredMaintenanceMarginUsdX18, marginBalanceUsdX18, liquidationFeeUsdX18
+        );
 
         // it should return false
         assertEq(isLiquidatable, false, "isLiquidatable should return false");

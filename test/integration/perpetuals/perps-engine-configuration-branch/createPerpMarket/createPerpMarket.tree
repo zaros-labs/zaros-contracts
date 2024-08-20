@@ -34,7 +34,7 @@ CreatePerpMarket_Integration_Test
                                         └── when max funding velocity is not zero
                                             ├── when priceFeedHeartbeatSeconds is zero
                                             │   └── it should revert
-                                            └── when priceFeedHearbeatSeconds is not zero
+                                            └── when priceFeedHeartbeatSeconds is not zero
                                                 ├── it should create perp market
                                                 ├── it should enable perp market
                                                 └── it should emit {LogCreatePerpMarket} event

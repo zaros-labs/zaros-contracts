@@ -318,7 +318,7 @@ function deployAddressHarnesses() returns (address[] memory) {
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](10);
 
-    bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](12);
+    bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](13);
     perpsEngineConfigurationHarnessSelectors[0] =
         PerpsEngineConfigurationHarness.exposed_checkMarketIsEnabled.selector;
     perpsEngineConfigurationHarnessSelectors[1] = PerpsEngineConfigurationHarness.exposed_addMarket.selector;
@@ -340,6 +340,8 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
         PerpsEngineConfigurationHarness.workaround_getSequencerUptimeFeedByChainId.selector;
     perpsEngineConfigurationHarnessSelectors[11] =
         PerpsEngineConfigurationHarness.workaround_getMaxPositionsPerAccount.selector;
+    perpsEngineConfigurationHarnessSelectors[12] =
+        PerpsEngineConfigurationHarness.workaround_getLiquidationFeeUsdX18.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](6);
     marginCollateralConfigurationHarnessSelectors[0] =
@@ -402,7 +404,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     settlementConfigurationHarnessSelectors[5] =
         SettlementConfigurationHarness.exposed_verifyDataStreamsReport.selector;
 
-    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](22);
+    bytes4[] memory tradingAccountHarnessSelectors = new bytes4[](24);
     tradingAccountHarnessSelectors[0] = TradingAccountHarness.exposed_TradingAccount_loadExisting.selector;
     tradingAccountHarnessSelectors[1] = TradingAccountHarness.exposed_loadExistingAccountAndVerifySender.selector;
     tradingAccountHarnessSelectors[2] = TradingAccountHarness.exposed_validatePositionsLimit.selector;
@@ -421,12 +423,14 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     tradingAccountHarnessSelectors[14] = TradingAccountHarness.exposed_withdrawMarginUsd.selector;
     tradingAccountHarnessSelectors[15] = TradingAccountHarness.exposed_deductAccountMargin.selector;
     tradingAccountHarnessSelectors[16] = TradingAccountHarness.exposed_updateActiveMarkets.selector;
-    tradingAccountHarnessSelectors[17] = TradingAccountHarness.workaround_getActiveMarketId.selector;
-    tradingAccountHarnessSelectors[18] = TradingAccountHarness.workaround_getActiveMarketsIdsLength.selector;
-    tradingAccountHarnessSelectors[19] = TradingAccountHarness.workaround_getNonce.selector;
-    tradingAccountHarnessSelectors[20] = TradingAccountHarness.workaround_hasOffchainOrderBeenFilled.selector;
-    tradingAccountHarnessSelectors[21] =
+    tradingAccountHarnessSelectors[17] = TradingAccountHarness.exposed_isMarketWithActivePosition.selector;
+    tradingAccountHarnessSelectors[18] = TradingAccountHarness.workaround_getActiveMarketId.selector;
+    tradingAccountHarnessSelectors[19] = TradingAccountHarness.workaround_getActiveMarketsIdsLength.selector;
+    tradingAccountHarnessSelectors[20] = TradingAccountHarness.workaround_getNonce.selector;
+    tradingAccountHarnessSelectors[21] = TradingAccountHarness.workaround_hasOffchainOrderBeenFilled.selector;
+    tradingAccountHarnessSelectors[22] =
         TradingAccountHarness.workaround_getIfMarginCollateralBalanceX18ContainsTheCollateral.selector;
+    tradingAccountHarnessSelectors[23] = TradingAccountHarness.workaround_getTradingAccountIdAndOwner.selector;
 
     bytes4[] memory referralHarnessSelectors = new bytes4[](2);
     referralHarnessSelectors[0] = ReferralHarness.exposed_Referral_load.selector;
