@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { WithdrawalRequest } from "@zaros/market-making/leaves/WithdrawalRequest.sol";
 
@@ -14,9 +15,35 @@ contract VaultRouterBranch {
 
     /// @notice Returns the data and state of a given vault.
     /// @param vaultId The vault identifier.
-    /// @return vaultData The vault data.
-    function getVaultData(uint256 vaultId) external pure returns (Vault.Data memory) {
-        return Vault.load(vaultId);
+    /// @return totalDeposited The total amount of collateral assets deposited in the vault.
+    /// @return depositCap The maximum amount of collateral assets that can be deposited in the vault.
+    /// @return withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
+    /// @return unsettledDebtUsd The total amount of unsettled debt in USD.
+    /// @return settledDebtUsd The total amount of settled debt in USD.
+    /// @return indexToken The index token address.
+    /// @return collateral The collateral asset data.
+    function getVaultData(uint256 vaultId)
+        external
+        view
+        returns (
+            uint256 totalDeposited,
+            uint256 depositCap,
+            uint256 withdrawalDelay,
+            int256 unsettledDebtUsd,
+            int256 settledDebtUsd,
+            address indexToken,
+            Collateral.Data memory collateral
+        )
+    {
+        Vault.Data storage vault = Vault.load(vaultId);
+
+        totalDeposited = vault.totalDeposited;
+        depositCap = vault.depositCap;
+        withdrawalDelay = vault.withdrawalDelay;
+        unsettledDebtUsd = vault.unsettledDebtUsd;
+        settledDebtUsd = vault.settledDebtUsd;
+        indexToken = vault.indexToken;
+        collateral = vault.collateral;
     }
 
     /// @notice Returns the swap rate from index token to collateral asset for the provided vault.

@@ -19,8 +19,8 @@ library GlobalDebt {
 
     // TODO: pack storage slots
     struct Data {
-        int256 totalUnsettledDebt;
-        int256 totalSettledDebt;
+        int256 totalUnsettledDebtUsd;
+        int256 totalSettledDebtUsd;
         uint256 totalMarketsCreditWeight;
         MinHeapLib.Heap vaultsDebtSettlementPriorityQueue;
         Distribution.Data vaultsDebtDistribution;
