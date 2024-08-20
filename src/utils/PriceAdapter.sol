@@ -38,7 +38,7 @@ contract PriceAdapter is IPriceAdapter {
     uint32 immutable ethUsdPriceFeedHeartbeatSeconds;
 
     /// @notice A flag indicating if the price adapter is to use the custom version.
-    bool immutable useCustomPriceAdapter;
+    bool public immutable useCustomPriceAdapter;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      STRUCTS

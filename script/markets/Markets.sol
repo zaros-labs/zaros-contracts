@@ -29,6 +29,10 @@ import { MaticUsd } from "./MaticUsd.sol";
 import { LtcUsd } from "./LtcUsd.sol";
 import { FtmUsd } from "./FtmUsd.sol";
 
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+
 abstract contract Markets is
     StdCheats,
     StdUtils,
@@ -118,7 +122,18 @@ abstract contract Markets is
             skewScale: ETH_USD_SKEW_SCALE,
             minTradeSize: ETH_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: ETH_USD_PRICE_FEED,
+            priceAdapter: address(
+                new PriceAdapter(
+                    PriceAdapter.ConstructorParams({
+                        perpsEngine: perpsEngine,
+                        priceFeed: ETH_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        priceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useCustomPriceAdapter: false
+                    })
+                )
+            ),
             streamId: ETH_USD_STREAM_ID,
             streamIdString: STRING_ETH_USD_STREAM_ID,
             orderFees: ethUsdOrderFees,
@@ -428,29 +443,68 @@ abstract contract Markets is
             //     ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice)))
             //     : marketsConfig[i].priceAdapter;
 
-            address priceAdapter = isTest
-                ? address(
-                    new PriceAdapter(
-                        PriceAdapter.ConstructorParams({
-                            perpsEngine: address(perpsEngine),
-                            priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
-                            ethUsdPriceFeed: address(0),
-                            priceFeedHeartbeatSeconds: 86_400,
-                            ethUsdPriceFeedHeartbeatSeconds: 0,
-                            useCustomPriceAdapter: false
-                        })
-                    )
-                )
-                : marketsConfig[i].priceAdapter;
+            // address priceAdapter;
 
-            marketsConfig[i].priceAdapter = priceAdapter;
+            if (isTest) {
+                if (i % 2 == 0) {
+                    UD60x18 mockEthUsdPrice = ud60x18(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice);
+                    UD60x18 mockSelectedMarketUsdPrice = ud60x18(marketsConfig[i].mockUsdPrice);
+
+                    int256 mockQuantityInEth = int256(mockSelectedMarketUsdPrice.div(mockEthUsdPrice).intoUint256());
+
+                    marketsConfig[i].priceAdapter = address(
+                        new PriceAdapter(
+                            PriceAdapter.ConstructorParams({
+                                perpsEngine: address(perpsEngine),
+                                priceFeed: address(new MockPriceFeed(18, mockQuantityInEth)),
+                                ethUsdPriceFeed: address(
+                                    new MockPriceFeed(18, int256(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice))
+                                ),
+                                priceFeedHeartbeatSeconds: 86_400,
+                                ethUsdPriceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                                useCustomPriceAdapter: true
+                            })
+                        )
+                    );
+                } else {
+                    marketsConfig[i].priceAdapter = address(
+                        new PriceAdapter(
+                            PriceAdapter.ConstructorParams({
+                                perpsEngine: address(perpsEngine),
+                                priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
+                                ethUsdPriceFeed: address(0),
+                                priceFeedHeartbeatSeconds: 86_400,
+                                ethUsdPriceFeedHeartbeatSeconds: 0,
+                                useCustomPriceAdapter: false
+                            })
+                        )
+                    );
+                }
+            }
+
+            // address priceAdapter = isTest
+            //     ? address(
+            //         new PriceAdapter(
+            //             PriceAdapter.ConstructorParams({
+            //                 perpsEngine: address(perpsEngine),
+            //                 priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
+            //                 ethUsdPriceFeed: address(0),
+            //                 priceFeedHeartbeatSeconds: 86_400,
+            //                 ethUsdPriceFeedHeartbeatSeconds: 0,
+            //                 useCustomPriceAdapter: false
+            //             })
+            //         )
+            //     )
+            //     : marketsConfig[i].priceAdapter;
+
+            // marketsConfig[i].priceAdapter = priceAdapter;
 
             perpsEngine.createPerpMarket(
                 PerpsEngineConfigurationBranch.CreatePerpMarketParams({
                     marketId: marketsConfig[i].marketId,
                     name: marketsConfig[i].marketName,
                     symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: priceAdapter,
+                    priceAdapter: marketsConfig[i].priceAdapter,
                     initialMarginRateX18: marketsConfig[i].imr,
                     maintenanceMarginRateX18: marketsConfig[i].mmr,
                     maxOpenInterest: marketsConfig[i].maxOi,

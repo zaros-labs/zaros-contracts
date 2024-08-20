@@ -476,7 +476,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function updateMockPriceFeed(uint128 marketId, uint256 newPrice) internal {
         MockPriceFeed priceFeed = MockPriceFeed(PriceAdapter(marketsConfig[marketId].priceAdapter).priceFeed());
-        priceFeed.updateMockPrice(newPrice);
+        bool useCustomPriceAdapter = PriceAdapter(marketsConfig[marketId].priceAdapter).useCustomPriceAdapter();
+
+        if (useCustomPriceAdapter) {
+            UD60x18 mockEthUsdPrice = ud60x18(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice);
+            UD60x18 mockSelectedMarketUsdPrice = ud60x18(newPrice);
+
+            uint256 mockQuantityInEth = mockSelectedMarketUsdPrice.div(mockEthUsdPrice).intoUint256();
+
+            priceFeed.updateMockPrice(mockQuantityInEth);
+        } else {
+            priceFeed.updateMockPrice(newPrice);
+        }
     }
 
     struct FuzzOrderSizeDeltaParams {
