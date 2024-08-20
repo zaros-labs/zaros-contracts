@@ -10,6 +10,8 @@ contract CreditDelegationBranch {
 
     /// @dev Called by the perps engine to send margin collateral deducted from a trader's account during a negative
     /// pnl settlement or a liquidation event.
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function receiveMarginCollateral(address collateralType, uint256 amount) external { }
 
     /// @dev Should settle vault's unsettled debt by converting the balance of different margin collateral types to
@@ -26,15 +28,21 @@ contract CreditDelegationBranch {
     /// @dev In order to determine the logic above, it should be taken into account a vault's participation in the
     /// global debt or credit. E.g if the protocol is in a given state and a new ZLP vault is added, this new vault is
     /// neutral compared to the others that may be in credit or debt state.
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function settleVaultsDebt() external { }
 
     /// @dev Must be called whenever the perps trading engine needs to know a market's skew and OI caps.
     /// @dev It takes into accounts all vault's credit delegated to each available markets. N Vaults may delegate
     /// credit to N markets, configured by the protocol admin.
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function updateCreditDelegation() public { }
 
     /// @dev Called by the perps trading engine to update the credit delegation and return the credit for a given
     /// market id
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
         external
         returns (uint256 openInterestCap, uint256 skewCap)

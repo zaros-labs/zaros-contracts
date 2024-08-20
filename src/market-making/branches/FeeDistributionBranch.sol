@@ -5,13 +5,23 @@ pragma solidity 0.8.25;
 contract FeeDistributionBranch {
     function getEarnedFees(uint256 vaultId, address staker) external view returns (uint256) { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function receiveOrderFee(address collateral, uint256 amount) external { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function convertAccumulatedFeesToWeth() external { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function sendWethToFeeDistributor() external { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function sendWethToFeeRecipients() external { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function claimFees(uint256 vaultId) external { }
 }

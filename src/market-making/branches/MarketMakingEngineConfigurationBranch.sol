@@ -30,13 +30,23 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
     /// @return referrer The address of the referrer.
     function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function configureSystemParameters() external onlyOwner { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function configureSequencerUptimeFeed() external onlyOwner { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function createCustomReferralCode() external onlyOwner { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function createVault() external onlyOwner { }
 
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     function updateVaultConfiguration() external onlyOwner { }
 }

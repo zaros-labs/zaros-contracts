@@ -52,6 +52,8 @@ contract VaultRouterBranch {
     function getIndexTokenSwapRate(uint256 vaultId) external view returns (uint256 price) { }
 
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
@@ -69,6 +71,8 @@ contract VaultRouterBranch {
 
     /// @notice Stakes a given amount of index tokens in the contract.
     /// @dev Index token holders must stake in order to earn fees distributions from the market making engine.
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to stake, in 18 decimals.
     /// @param referralCode The referral code to use.
@@ -76,12 +80,16 @@ contract VaultRouterBranch {
     function stake(uint256 vaultId, uint256 shares, bytes memory referralCode, bool isCustomReferralCode) external { }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
     function initiateWithdrawal(uint256 vaultId, uint256 shares) external { }
 
     /// @notice Redeems a given amount of index tokens in exchange for collateral assets from the provided vault,
     /// after the withdrawal delay period has elapsed.
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     /// @param vaultId The vault identifier.
     /// @param withdrawalRequestId The previously initiated withdrawal request id.
     /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
@@ -104,6 +112,8 @@ contract VaultRouterBranch {
 
     /// @notice Unstakes a given amount of index tokens from the contract.
     /// @dev Unstaked tokens don't participate in fees distributions.
+    /// @dev Invariants involved in the call:
+    /// TODO: add invariants
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to unstake, in 18 decimals.
     function unstake(uint256 vaultId, uint256 shares) external { }
