@@ -61,16 +61,8 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         uint128 tradingAccountId = createAccountAndDeposit(usdcMarginValueUsd, address(usdc));
         perpsEngine.depositMargin(tradingAccountId, address(wstEth), wstEthMarginValueUsd);
 
-        // UD60x18 usdcEquityUsd =
-        // getPrice(MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)).mul(
-        //     convertTokenAmountToUd60x18(address(usdc), usdcMarginValueUsd)
-        // );
-
         UD60x18 usdcEquityUsd = IPriceAdapter(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter).getPrice()
             .mul(convertTokenAmountToUd60x18(address(usdc), usdcMarginValueUsd));
-
-        // UD60x18 wstEthEquityUsd = getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed))
-        //     .mul(convertTokenAmountToUd60x18(address(wstEth), wstEthMarginValueUsd));
 
         UD60x18 wstEthEquityUsd = IPriceAdapter((marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter))
             .getPrice().mul(convertTokenAmountToUd60x18(address(wstEth), wstEthMarginValueUsd));
@@ -148,14 +140,6 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
 
         SD59x18 accountTotalUnrealizedPnl = perpsEngine.getAccountTotalUnrealizedPnl(tradingAccountId);
-
-        // UD60x18 marginCollateralValue = getPrice(
-        //     MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)
-        // ).mul(ud60x18(wstEthmarginValueUsd)).add(
-        //     getPrice(MockPriceFeed(marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceFeed)).mul(
-        //         ud60x18(weEthmarginValueUsd)
-        //     )
-        // );
 
         UD60x18 marginCollateralValue = IPriceAdapter((marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter))
             .getPrice().mul(ud60x18(wstEthmarginValueUsd)).add(
