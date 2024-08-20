@@ -438,13 +438,6 @@ abstract contract Markets is
                 data: abi.encode(settlementConfigurationData)
             });
 
-            // update stored price adapter at tests
-            // address priceAdapter = isTest
-            //     ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice)))
-            //     : marketsConfig[i].priceAdapter;
-
-            // address priceAdapter;
-
             if (isTest) {
                 if (i % 2 == 0) {
                     UD60x18 mockEthUsdPrice = ud60x18(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice);
@@ -481,23 +474,6 @@ abstract contract Markets is
                     );
                 }
             }
-
-            // address priceAdapter = isTest
-            //     ? address(
-            //         new PriceAdapter(
-            //             PriceAdapter.ConstructorParams({
-            //                 perpsEngine: address(perpsEngine),
-            //                 priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
-            //                 ethUsdPriceFeed: address(0),
-            //                 priceFeedHeartbeatSeconds: 86_400,
-            //                 ethUsdPriceFeedHeartbeatSeconds: 0,
-            //                 useCustomPriceAdapter: false
-            //             })
-            //         )
-            //     )
-            //     : marketsConfig[i].priceAdapter;
-
-            // marketsConfig[i].priceAdapter = priceAdapter;
 
             perpsEngine.createPerpMarket(
                 PerpsEngineConfigurationBranch.CreatePerpMarketParams({
