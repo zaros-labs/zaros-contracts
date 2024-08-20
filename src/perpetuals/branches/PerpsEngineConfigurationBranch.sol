@@ -86,7 +86,7 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
     );
 
     /// @notice Emitted when a new perps market is created.
-    /// @param sender The address that configured the price feed.
+    /// @param sender The address that configured the price adapter.
     /// @param marketId The perps market id.
     event LogCreatePerpMarket(address indexed sender, uint128 marketId);
 
