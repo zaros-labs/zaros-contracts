@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 library MarketCredit {
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_CREDIT_LOCATION =
-        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Swap")) - 1));
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketCredit")) - 1));
 
     // TODO: pack storage slots
     // TODO: add heap of in range and out range Vaults that provide credit to this market.
@@ -26,10 +26,11 @@ library MarketCredit {
     }
 
     /// @notice Loads a {MarketCredit} namespace.
+    /// @param vaultId The id of a vault that provides credit to the market.
     /// @param marketId The perp market id.
     /// @return marketCredit The loaded market credit storage pointer.
-    function load(uint256 marketId) internal pure returns (Data storage marketCredit) {
-        bytes32 slot = keccak256(abi.encode(MARKET_CREDIT_LOCATION, marketId));
+    function load(uint256 vaultId, uint256 marketId) internal pure returns (Data storage marketCredit) {
+        bytes32 slot = keccak256(abi.encode(MARKET_CREDIT_LOCATION, vaultId, marketId));
         assembly {
             marketCredit.slot := slot
         }

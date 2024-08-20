@@ -21,7 +21,6 @@ library GlobalDebt {
     struct Data {
         int256 totalUnsettledDebtUsd;
         int256 totalSettledDebtUsd;
-        uint256 totalMarketsCreditWeight;
         MinHeapLib.Heap vaultsDebtSettlementPriorityQueue;
         Distribution.Data vaultsDebtDistribution;
     }
