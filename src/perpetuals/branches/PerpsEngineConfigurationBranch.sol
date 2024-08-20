@@ -611,6 +611,10 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
         }
     }
 
+    /// @notice Returns the sequencer uptime feed by the chain id
+    /// @dev If the chain id is not found, it will return address(0).
+    /// @param chainId The chain id.
+    /// @return sequencerUptimeFeed The sequencer uptime feed address.
     function getSequencerUptimeFeedByChainId(uint256 chainId) external view returns (address) {
         GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         return globalConfiguration.sequencerUptimeFeedByChainId[chainId];
