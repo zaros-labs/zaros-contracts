@@ -19,8 +19,8 @@ library Vault {
     /// @param settledDebtUsd The total amount of settled debt in USD.
     /// @param indexToken The index token address.
     /// @param collateral The collateral asset data.
-    /// @param feeDistribution `actor`: Stakers, `shares`: Staked index tokens, `valuePerShare`: WETH fee earned per
-    /// share.
+    /// @param stakingFeeDistribution `actor`: Stakers, `shares`: Staked index tokens, `valuePerShare`: WETH fee
+    /// earned per share.
     struct Data {
         uint256 vaultId;
         uint256 totalDeposited;
@@ -30,7 +30,7 @@ library Vault {
         int256 settledDebtUsd;
         address indexToken;
         Collateral.Data collateral;
-        Distribution.Data feeDistribution;
+        Distribution.Data stakingFeeDistribution;
     }
 
     /// @notice Loads a {Vault} namespace.
