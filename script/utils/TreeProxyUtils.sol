@@ -5,15 +5,15 @@ pragma solidity 0.8.25;
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { UpgradeBranch } from "@zaros/tree-proxy/branches/UpgradeBranch.sol";
 import { LookupBranch } from "@zaros/tree-proxy/branches/LookupBranch.sol";
-import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
+import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
-import { GlobalConfigurationBranchTestnet } from "testnet/branches/GlobalConfigurationBranchTestnet.sol";
+import { PerpsEngineConfigurationBranchTestnet } from "testnet/branches/PerpsEngineConfigurationBranchTestnet.sol";
 import { TradingAccountBranchTestnet } from "testnet/branches/TradingAccountBranchTestnet.sol";
-import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
+import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";
 import { MarketConfigurationHarness } from "test/harnesses/perpetuals/leaves/MarketConfigurationHarness.sol";
@@ -53,21 +53,21 @@ function deployBranches(bool isTestnet) returns (address[] memory) {
     address settlementBranch = address(new SettlementBranch());
     console.log("SettlementBranch: ", settlementBranch);
 
-    address globalConfigurationBranch;
+    address perpsEngineConfigurationBranch;
     address tradingAccountBranch;
     if (isTestnet) {
-        globalConfigurationBranch = address(new GlobalConfigurationBranchTestnet());
+        perpsEngineConfigurationBranch = address(new PerpsEngineConfigurationBranchTestnet());
         tradingAccountBranch = address(new TradingAccountBranchTestnet());
     } else {
-        globalConfigurationBranch = address(new GlobalConfigurationBranch());
+        perpsEngineConfigurationBranch = address(new PerpsEngineConfigurationBranch());
         tradingAccountBranch = address(new TradingAccountBranch());
     }
-    console.log("GlobalConfigurationBranch: ", globalConfigurationBranch);
+    console.log("PerpsEngineConfigurationBranch: ", perpsEngineConfigurationBranch);
     console.log("TradingAccountBranch: ", tradingAccountBranch);
 
     branches[0] = upgradeBranch;
     branches[1] = lookupBranch;
-    branches[2] = globalConfigurationBranch;
+    branches[2] = perpsEngineConfigurationBranch;
     branches[3] = liquidationBranch;
     branches[4] = orderBranch;
     branches[5] = perpMarketBranch;
@@ -91,27 +91,34 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory globalConfigurationBranchSelectors = new bytes4[](isTestnet ? 17 : 16);
+    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](isTestnet ? 17 : 16);
 
-    globalConfigurationBranchSelectors[0] = GlobalConfigurationBranch.getAccountsWithActivePositions.selector;
-    globalConfigurationBranchSelectors[1] = GlobalConfigurationBranch.getMarginCollateralConfiguration.selector;
-    globalConfigurationBranchSelectors[2] = GlobalConfigurationBranch.setTradingAccountToken.selector;
-    globalConfigurationBranchSelectors[3] = GlobalConfigurationBranch.configureCollateralLiquidationPriority.selector;
-    globalConfigurationBranchSelectors[4] = GlobalConfigurationBranch.configureLiquidators.selector;
-    globalConfigurationBranchSelectors[5] = GlobalConfigurationBranch.configureMarginCollateral.selector;
-    globalConfigurationBranchSelectors[6] = GlobalConfigurationBranch.removeCollateralFromLiquidationPriority.selector;
-    globalConfigurationBranchSelectors[7] = GlobalConfigurationBranch.configureSystemParameters.selector;
-    globalConfigurationBranchSelectors[8] = GlobalConfigurationBranch.createPerpMarket.selector;
-    globalConfigurationBranchSelectors[9] = GlobalConfigurationBranch.updatePerpMarketConfiguration.selector;
-    globalConfigurationBranchSelectors[10] = GlobalConfigurationBranch.updatePerpMarketStatus.selector;
-    globalConfigurationBranchSelectors[11] = GlobalConfigurationBranch.updateSettlementConfiguration.selector;
-    globalConfigurationBranchSelectors[12] = GlobalConfigurationBranch.setUsdToken.selector;
-    globalConfigurationBranchSelectors[13] = GlobalConfigurationBranch.configureSequencerUptimeFeedByChainId.selector;
-    globalConfigurationBranchSelectors[14] = GlobalConfigurationBranch.getCustomReferralCodeReferrer.selector;
-    globalConfigurationBranchSelectors[15] = GlobalConfigurationBranch.createCustomReferralCode.selector;
+    perpsEngineConfigurationBranchSelectors[0] =
+        PerpsEngineConfigurationBranch.getAccountsWithActivePositions.selector;
+    perpsEngineConfigurationBranchSelectors[1] =
+        PerpsEngineConfigurationBranch.getMarginCollateralConfiguration.selector;
+    perpsEngineConfigurationBranchSelectors[2] = PerpsEngineConfigurationBranch.setTradingAccountToken.selector;
+    perpsEngineConfigurationBranchSelectors[3] =
+        PerpsEngineConfigurationBranch.configureCollateralLiquidationPriority.selector;
+    perpsEngineConfigurationBranchSelectors[4] = PerpsEngineConfigurationBranch.configureLiquidators.selector;
+    perpsEngineConfigurationBranchSelectors[5] = PerpsEngineConfigurationBranch.configureMarginCollateral.selector;
+    perpsEngineConfigurationBranchSelectors[6] =
+        PerpsEngineConfigurationBranch.removeCollateralFromLiquidationPriority.selector;
+    perpsEngineConfigurationBranchSelectors[7] = PerpsEngineConfigurationBranch.configureSystemParameters.selector;
+    perpsEngineConfigurationBranchSelectors[8] = PerpsEngineConfigurationBranch.createPerpMarket.selector;
+    perpsEngineConfigurationBranchSelectors[9] = PerpsEngineConfigurationBranch.updatePerpMarketConfiguration.selector;
+    perpsEngineConfigurationBranchSelectors[10] = PerpsEngineConfigurationBranch.updatePerpMarketStatus.selector;
+    perpsEngineConfigurationBranchSelectors[11] =
+        PerpsEngineConfigurationBranch.updateSettlementConfiguration.selector;
+    perpsEngineConfigurationBranchSelectors[12] = PerpsEngineConfigurationBranch.setUsdToken.selector;
+    perpsEngineConfigurationBranchSelectors[13] =
+        PerpsEngineConfigurationBranch.configureSequencerUptimeFeedByChainId.selector;
+    perpsEngineConfigurationBranchSelectors[14] =
+        PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
+    perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
 
     if (isTestnet) {
-        globalConfigurationBranchSelectors[16] = GlobalConfigurationBranchTestnet.setUserPoints.selector;
+        perpsEngineConfigurationBranchSelectors[16] = PerpsEngineConfigurationBranchTestnet.setUserPoints.selector;
     }
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
@@ -172,7 +179,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = lookupBranchSelectors;
-    selectors[2] = globalConfigurationBranchSelectors;
+    selectors[2] = perpsEngineConfigurationBranchSelectors;
     selectors[3] = liquidationBranchSelectors;
     selectors[4] = orderBranchSelectors;
     selectors[5] = perpMarketBranchSelectors;
@@ -206,10 +213,10 @@ function getInitializables(address[] memory branches) pure returns (address[] me
     address[] memory initializables = new address[](2);
 
     address upgradeBranch = branches[0];
-    address globalConfigurationBranch = branches[2];
+    address perpsEngineConfigurationBranch = branches[2];
 
     initializables[0] = upgradeBranch;
-    initializables[1] = globalConfigurationBranch;
+    initializables[1] = perpsEngineConfigurationBranch;
 
     return initializables;
 }
@@ -226,7 +233,7 @@ function getInitializePayloads(
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
     bytes memory perpsEngineInitializeData =
-        abi.encodeWithSelector(GlobalConfigurationBranch.initialize.selector, tradingAccountToken, usdToken);
+        abi.encodeWithSelector(PerpsEngineConfigurationBranch.initialize.selector, tradingAccountToken, usdToken);
 
     initializePayloads = new bytes[](2);
 
@@ -263,8 +270,8 @@ function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
 function deployAddressHarnesses() returns (address[] memory) {
     address[] memory addressHarnesses = new address[](10);
 
-    address globalConfigurationHarness = address(new GlobalConfigurationHarness());
-    console.log("GlobalConfigurationHarness: ", globalConfigurationHarness);
+    address perpsEngineConfigurationHarness = address(new PerpsEngineConfigurationHarness());
+    console.log("PerpsEngineConfigurationHarness: ", perpsEngineConfigurationHarness);
 
     address marginCollateralConfigurationHarness = address(new MarginCollateralConfigurationHarness());
     console.log("MarginCollateralConfigurationHarness: ", marginCollateralConfigurationHarness);
@@ -287,13 +294,14 @@ function deployAddressHarnesses() returns (address[] memory) {
     address tradingAccountHarness = address(new TradingAccountHarness());
     console.log("TradingAccountHarness: ", tradingAccountHarness);
 
+    addressHarnesses[0] = perpsEngineConfigurationHarness;
     address referralHarness = address(new ReferralHarness());
     console.log("ReferralHarness: ", referralHarness);
 
     address customReferralConfigurationHarness = address(new CustomReferralConfigurationHarness());
     console.log("CustomReferralConfiguration: ", customReferralConfigurationHarness);
 
-    addressHarnesses[0] = globalConfigurationHarness;
+    addressHarnesses[0] = perpsEngineConfigurationHarness;
     addressHarnesses[1] = marginCollateralConfigurationHarness;
     addressHarnesses[2] = marketConfigurationHarness;
     addressHarnesses[3] = marketOrderHarness;
@@ -310,26 +318,30 @@ function deployAddressHarnesses() returns (address[] memory) {
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](10);
 
-    bytes4[] memory globalConfigurationHarnessSelectors = new bytes4[](13);
-    globalConfigurationHarnessSelectors[0] = GlobalConfigurationHarness.exposed_checkMarketIsEnabled.selector;
-    globalConfigurationHarnessSelectors[1] = GlobalConfigurationHarness.exposed_addMarket.selector;
-    globalConfigurationHarnessSelectors[2] = GlobalConfigurationHarness.exposed_removeMarket.selector;
-    globalConfigurationHarnessSelectors[3] =
-        GlobalConfigurationHarness.exposed_configureCollateralLiquidationPriority.selector;
-    globalConfigurationHarnessSelectors[4] =
-        GlobalConfigurationHarness.exposed_removeCollateralFromLiquidationPriority.selector;
-    globalConfigurationHarnessSelectors[5] =
-        GlobalConfigurationHarness.workaround_getAccountIdWithActivePositions.selector;
-    globalConfigurationHarnessSelectors[6] =
-        GlobalConfigurationHarness.workaround_getAccountsIdsWithActivePositionsLength.selector;
-    globalConfigurationHarnessSelectors[7] = GlobalConfigurationHarness.workaround_getTradingAccountToken.selector;
-    globalConfigurationHarnessSelectors[8] = GlobalConfigurationHarness.workaround_getUsdToken.selector;
-    globalConfigurationHarnessSelectors[9] =
-        GlobalConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
-    globalConfigurationHarnessSelectors[10] =
-        GlobalConfigurationHarness.workaround_getSequencerUptimeFeedByChainId.selector;
-    globalConfigurationHarnessSelectors[11] = GlobalConfigurationHarness.workaround_getMaxPositionsPerAccount.selector;
-    globalConfigurationHarnessSelectors[12] = GlobalConfigurationHarness.workaround_getLiquidationFeeUsdX18.selector;
+    bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](13);
+    perpsEngineConfigurationHarnessSelectors[0] =
+        PerpsEngineConfigurationHarness.exposed_checkMarketIsEnabled.selector;
+    perpsEngineConfigurationHarnessSelectors[1] = PerpsEngineConfigurationHarness.exposed_addMarket.selector;
+    perpsEngineConfigurationHarnessSelectors[2] = PerpsEngineConfigurationHarness.exposed_removeMarket.selector;
+    perpsEngineConfigurationHarnessSelectors[3] =
+        PerpsEngineConfigurationHarness.exposed_configureCollateralLiquidationPriority.selector;
+    perpsEngineConfigurationHarnessSelectors[4] =
+        PerpsEngineConfigurationHarness.exposed_removeCollateralFromLiquidationPriority.selector;
+    perpsEngineConfigurationHarnessSelectors[5] =
+        PerpsEngineConfigurationHarness.workaround_getAccountIdWithActivePositions.selector;
+    perpsEngineConfigurationHarnessSelectors[6] =
+        PerpsEngineConfigurationHarness.workaround_getAccountsIdsWithActivePositionsLength.selector;
+    perpsEngineConfigurationHarnessSelectors[7] =
+        PerpsEngineConfigurationHarness.workaround_getTradingAccountToken.selector;
+    perpsEngineConfigurationHarnessSelectors[8] = PerpsEngineConfigurationHarness.workaround_getUsdToken.selector;
+    perpsEngineConfigurationHarnessSelectors[9] =
+        PerpsEngineConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
+    perpsEngineConfigurationHarnessSelectors[10] =
+        PerpsEngineConfigurationHarness.workaround_getSequencerUptimeFeedByChainId.selector;
+    perpsEngineConfigurationHarnessSelectors[11] =
+        PerpsEngineConfigurationHarness.workaround_getMaxPositionsPerAccount.selector;
+    perpsEngineConfigurationHarnessSelectors[12] =
+        PerpsEngineConfigurationHarness.workaround_getLiquidationFeeUsdX18.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](6);
     marginCollateralConfigurationHarnessSelectors[0] =
@@ -428,7 +440,7 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     customReferralConfigurationHarnessSelectors[0] =
         CustomReferralConfigurationHarness.exposed_CustomReferralConfiguration_load.selector;
 
-    selectors[0] = globalConfigurationHarnessSelectors;
+    selectors[0] = perpsEngineConfigurationHarnessSelectors;
     selectors[1] = marginCollateralConfigurationHarnessSelectors;
     selectors[2] = marketConfigurationHarnessSelectors;
     selectors[3] = marketOrderHarnessSelectors;

@@ -3,10 +3,10 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { GlobalConfiguration } from "./GlobalConfiguration.sol";
+import { PerpsEngineConfiguration } from "./PerpsEngineConfiguration.sol";
 
 library MarketOrder {
-    using GlobalConfiguration for GlobalConfiguration.Data;
+    using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_ORDER_LOCATION =
@@ -53,8 +53,8 @@ library MarketOrder {
     }
 
     function checkPendingOrder(Data storage self) internal view {
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
-        uint128 marketOrderMinLifetime = globalConfiguration.marketOrderMinLifetime;
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+        uint128 marketOrderMinLifetime = perpsEngineConfiguration.marketOrderMinLifetime;
 
         if (
             self.timestamp != 0 && marketOrderMinLifetime != 0

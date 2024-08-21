@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
-import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
+import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
@@ -20,7 +20,7 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 contract LiquidationBranch {
     using EnumerableSet for EnumerableSet.UintSet;
-    using GlobalConfiguration for GlobalConfiguration.Data;
+    using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
     using TradingAccount for TradingAccount.Data;
     using PerpMarket for PerpMarket.Data;
     using Position for Position.Data;
@@ -56,12 +56,12 @@ contract LiquidationBranch {
         // prepare output array size
         liquidatableAccountsIds = new uint128[]((upperBound - lowerBound) + 1);
 
-        // fetch storage slot for global config
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        // fetch storage slot for perps engine configuration
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // cache active account ids length
         uint256 cachedAccountsIdsWithActivePositionsLength =
-            globalConfiguration.accountsIdsWithActivePositions.length();
+            perpsEngineConfiguration.accountsIdsWithActivePositions.length();
 
         // iterate over active accounts within given bounds
         for (uint256 i; i <= upperBound - lowerBound; i++) {
@@ -70,7 +70,7 @@ contract LiquidationBranch {
 
             // get the `tradingAccountId` of the current active account
             uint128 tradingAccountId =
-                uint128(globalConfiguration.accountsIdsWithActivePositions.at((lowerBound + i) - 1));
+                uint128(perpsEngineConfiguration.accountsIdsWithActivePositions.at((lowerBound + i) - 1));
 
             // load that account's leaf (data + functions)
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
@@ -87,7 +87,7 @@ contract LiquidationBranch {
                 TradingAccount.isLiquidatable(
                     requiredMaintenanceMarginUsdX18,
                     marginBalanceUsdX18,
-                    ud60x18(globalConfiguration.liquidationFeeUsdX18)
+                    ud60x18(perpsEngineConfiguration.liquidationFeeUsdX18)
                 )
             ) {
                 liquidatableAccountsIds[i] = tradingAccountId;
@@ -118,21 +118,21 @@ contract LiquidationBranch {
         // return if no input accounts to process
         if (accountsIds.length == 0) return;
 
-        // fetch storage slot for global config
-        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        // fetch storage slot for perps engine configuration
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // only authorized liquidators are able to liquidate
-        if (!globalConfiguration.isLiquidatorEnabled[msg.sender]) {
+        if (!perpsEngineConfiguration.isLiquidatorEnabled[msg.sender]) {
             revert Errors.LiquidatorNotRegistered(msg.sender);
         }
 
         // working data
         LiquidationContext memory ctx;
 
-        // load liquidation fee from global config; will be passed in as `settlementFeeUsdX18`
+        // load liquidation fee from perps engine config; will be passed in as `settlementFeeUsdX18`
         // to `TradingAccount::deductAccountMargin`. The user being liquidated has to pay
         // this liquidation fee as a "settlement fee"
-        ctx.liquidationFeeUsdX18 = ud60x18(globalConfiguration.liquidationFeeUsdX18);
+        ctx.liquidationFeeUsdX18 = ud60x18(perpsEngineConfiguration.liquidationFeeUsdX18);
 
         // iterate over every account being liquidated; intentionally not caching
         // length as reading from calldata is faster
@@ -167,9 +167,9 @@ contract LiquidationBranch {
             // settlementFee = liquidationFee
             ctx.liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
                 feeRecipients: FeeRecipients.Data({
-                    marginCollateralRecipient: globalConfiguration.marginCollateralRecipient,
+                    marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
                     orderFeeRecipient: address(0),
-                    settlementFeeRecipient: globalConfiguration.liquidationFeeRecipient
+                    settlementFeeRecipient: perpsEngineConfiguration.liquidationFeeRecipient
                 }),
                 pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18(),
                 orderFeeUsdX18: UD60x18_ZERO,
