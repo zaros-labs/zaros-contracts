@@ -35,20 +35,20 @@ contract UpgradeBranches is BaseScript {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
-        TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
-        // LiquidationBranch liquidationBranch = new LiquidationBranch();
+        // TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
+        LiquidationBranch liquidationBranch = new LiquidationBranch();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
         // GlobalConfigurationBranchTestnet globalConfigurationBranchTestnet = new GlobalConfigurationBranchTestnet();
         // SettlementBranch settlementBranch = new SettlementBranch();
         // OrderBranch orderBranch = new OrderBranch();
 
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
-        bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory globalConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory liquidationBranchSelectorsAdded = new bytes4[](1);
-        // bytes4[] memory liquidationBranchSelectorsUpdated = new bytes4[](1);
+        bytes4[] memory liquidationBranchSelectorsUpdated = new bytes4[](1);
 
         // RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](4);
 
@@ -92,18 +92,18 @@ contract UpgradeBranches is BaseScript {
         // orderBranchTestnetSelectorsUpdated[0] = OrderBranch.createMarketOrder.selector;
 
         // liquidationBranchSelectorsAdded[0] = LiquidationBranch.liquidateAccounts.selector;
-        // liquidationBranchSelectorsUpdated[0] = LiquidationBranch.checkLiquidatableAccounts.selector;
+        liquidationBranchSelectorsUpdated[0] = LiquidationBranch.liquidateAccounts.selector;
 
         // globalConfigurationBranchTestnetSelectorsAdded[0] =
         //     GlobalConfigurationBranch.configureSystemParameters.selector;
 
-        tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranch.depositMargin.selector;
+        // tradingAccountBranchTestnetSelectorsUpdated[0] = TradingAccountBranch.depositMargin.selector;
 
         branchUpgrades[0] = (
             RootProxy.BranchUpgrade({
-                branch: address(tradingAccountBranchTestnet),
+                branch: address(liquidationBranch),
                 action: RootProxy.BranchUpgradeAction.Replace,
-                selectors: tradingAccountBranchTestnetSelectorsUpdated
+                selectors: liquidationBranchSelectorsUpdated
             })
         );
 

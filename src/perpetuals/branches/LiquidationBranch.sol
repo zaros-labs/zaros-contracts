@@ -161,7 +161,9 @@ contract LiquidationBranch {
                     orderFeeRecipient: address(0),
                     settlementFeeRecipient: globalConfiguration.liquidationFeeRecipient
                 }),
-                pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18(),
+                pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().add(
+                    ctx.requiredMaintenanceMarginUsdX18
+                ),
                 orderFeeUsdX18: UD60x18_ZERO,
                 settlementFeeUsdX18: ctx.liquidationFeeUsdX18
             });
