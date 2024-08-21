@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-// Zaros dependencies
-import { Distribution } from "./Distribution.sol";
-
 // Solady dependencies
 import { MinHeapLib } from "@solady/Milady.sol";
 
@@ -22,7 +19,6 @@ library SystemDebt {
         int256 totalUnsettledDebtUsd;
         int256 totalSettledDebtUsd;
         MinHeapLib.Heap vaultsDebtSettlementPriorityQueue;
-        Distribution.Data vaultsDebtDistribution;
     }
 
     /// @notice Loads the {SystemDebt} namespace.
