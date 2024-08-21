@@ -56,7 +56,7 @@ contract LiquidationBranch {
         // prepare output array size
         liquidatableAccountsIds = new uint128[]((upperBound - lowerBound) + 1);
 
-        // fetch storage slot for global config
+        // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // cache active account ids length
@@ -118,7 +118,7 @@ contract LiquidationBranch {
         // return if no input accounts to process
         if (accountsIds.length == 0) return;
 
-        // fetch storage slot for global config
+        // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // only authorized liquidators are able to liquidate
@@ -129,7 +129,7 @@ contract LiquidationBranch {
         // working data
         LiquidationContext memory ctx;
 
-        // load liquidation fee from global config; will be passed in as `settlementFeeUsdX18`
+        // load liquidation fee from perps engine config; will be passed in as `settlementFeeUsdX18`
         // to `TradingAccount::deductAccountMargin`. The user being liquidated has to pay
         // this liquidation fee as a "settlement fee"
         ctx.liquidationFeeUsdX18 = ud60x18(perpsEngineConfiguration.liquidationFeeUsdX18);

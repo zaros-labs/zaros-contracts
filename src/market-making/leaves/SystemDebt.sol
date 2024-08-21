@@ -26,6 +26,7 @@ library SystemDebt {
     }
 
     /// @notice Loads the {SystemDebt} namespace.
+    /// @return systemDebt The loaded system debt storage pointer.
     function load() internal pure returns (Data storage systemDebt) {
         bytes32 slot = keccak256(abi.encode(GLOBAL_DEBT_LOCATION));
         assembly {

@@ -10,7 +10,7 @@ library Collateral {
     struct Data {
         uint256 creditRatio;
         uint32 priceFeedHeartbeatSeconds;
-        address priceFeed;
+        address priceAdapter;
         address asset;
     }
 

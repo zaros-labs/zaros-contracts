@@ -242,7 +242,7 @@ contract TradingAccountBranch {
         virtual
         returns (uint128 tradingAccountId)
     {
-        // fetch storage slot for global config
+        // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // increment next account id & output

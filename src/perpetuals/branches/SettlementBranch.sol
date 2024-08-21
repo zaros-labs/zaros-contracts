@@ -130,7 +130,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
-        // fetch storage slot for global config
+        // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // verifies provided price data following the configured settlement strategy
@@ -201,7 +201,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
-        // fetch storage slot for global config
+        // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // verifies provided price data following the configured settlement strategy
@@ -353,7 +353,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // working data
         FillOrderContext memory ctx;
 
-        // fetch storage slot for global config
+        // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // fetch storage slot for perp market's settlement config
@@ -461,7 +461,7 @@ contract SettlementBranch is EIP712Upgradeable {
         perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
 
         // update active markets for this account; may also trigger update
-        // to global config set of active accounts
+        // to perps engine config set of active accounts
         tradingAccount.updateActiveMarkets(marketId, ctx.oldPositionSizeX18, ctx.newPositionSizeX18);
 
         // if the position is being closed, clear old position data
