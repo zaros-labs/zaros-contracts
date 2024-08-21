@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { Distribution } from "./Distribution.sol";
+
 // Solady dependencies
 import { MinHeapLib } from "@solady/Milady.sol";
 
@@ -25,6 +28,9 @@ library MarketCredit {
         uint256 autoDeleveragingThreshold;
         uint256 autoDeleveragingFactor;
         uint256 autoDeleveragingScale;
+        int256 settledDebtUsd;
+        MinHeapLib.Heap inRangeVaults;
+        MinHeapLib.Heap outRangeVaults;
         Distribution.Data vaultsDebtDistribution;
     }
 

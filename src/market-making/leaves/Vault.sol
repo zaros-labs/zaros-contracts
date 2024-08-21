@@ -5,6 +5,9 @@ pragma solidity 0.8.25;
 import { Collateral } from "./Collateral.sol";
 import { Distribution } from "./Distribution.sol";
 
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+
 library Vault {
     /// @notice ERC7201 storage location.
     bytes32 internal constant VAULT_LOCATION =
@@ -31,6 +34,7 @@ library Vault {
         address indexToken;
         Collateral.Data collateral;
         Distribution.Data stakingFeeDistribution;
+        EnumerableSet.UintSet[] connectedMarkets;
     }
 
     /// @notice Loads a {Vault} namespace.
