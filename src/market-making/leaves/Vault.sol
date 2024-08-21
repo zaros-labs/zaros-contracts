@@ -27,6 +27,7 @@ library Vault {
     struct Data {
         uint256 vaultId;
         uint256 totalDeposited;
+        uint256 totalCreditDelegationWeight;
         uint256 depositCap;
         uint256 withdrawalDelay;
         int256 unsettledDebtUsd;

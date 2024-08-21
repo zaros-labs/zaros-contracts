@@ -17,17 +17,17 @@ library MarketCredit {
     // TODO: add heap of in range and out range Vaults that provide credit to this market.
     /// @param marketId The perps engine's linked market id.
     /// @param creditShare The market's share of the protocol total credit.
-    /// @param autoDeleveragingFactor A decimal rate which determines how much should the market cut of the position's
+    /// @param autoDeleverageFactor A decimal rate which determines how much should the market cut of the position's
     /// positive pnl. Goes from 0 to 1.
-    /// @param autoDeleveragingThreshold An admin configurable decimal rate which determines when the market should
-    /// enter the auto deleveraging state. Goes from 0 to 1.
-    /// @param autoDeleveragingScale An admin configurable value which determines how much should the auto
-    /// deleveraging factor be.
+    /// @param autoDeleverageThreshold An admin configurable decimal rate which determines when the market should
+    /// enter the auto deleverage state. Goes from 0 to 1.
+    /// @param autoDeleverageScale An admin configurable value which determines how much should the auto
+    /// deleverage factor be.
     struct Data {
         uint256 marketId;
-        uint256 autoDeleveragingThreshold;
-        uint256 autoDeleveragingFactor;
-        uint256 autoDeleveragingScale;
+        uint256 autoDeleverageThreshold;
+        uint256 autoDeleverageFactor;
+        uint256 autoDeleverageScale;
         int256 settledDebtUsd;
         MinHeapLib.Heap inRangeVaults;
         MinHeapLib.Heap outRangeVaults;
