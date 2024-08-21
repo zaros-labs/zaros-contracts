@@ -102,7 +102,7 @@ contract OrderBranch {
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(params.marketId, params.settlementConfigurationId);
 
-        // fetch storage slot for global config
+        // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // working data
@@ -259,7 +259,7 @@ contract OrderBranch {
         // int128 -> SD59x18
         ctx.sizeDeltaX18 = sd59x18(params.sizeDelta);
 
-        // fetch storage slot for global config
+        // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // fetch storage slot for perp market's settlement config

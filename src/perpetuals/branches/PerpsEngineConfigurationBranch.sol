@@ -18,7 +18,7 @@ import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
-/// @title Global Configuration Branch.
+/// @title Perps Engine Configuration Branch.
 /// @notice This  is used by the protocol controller to configure the perps
 /// exchange system.
 contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {

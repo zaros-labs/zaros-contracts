@@ -502,7 +502,7 @@ library TradingAccount {
         // working data
         DeductAccountMarginContext memory ctx;
 
-        // fetch storage slot for global config
+        // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // cache collateral liquidation priority length
@@ -601,7 +601,7 @@ library TradingAccount {
         if (oldPositionSize.isZero() && !newPositionSize.isZero()) {
             // if this account has no other active positions
             if (!perpsEngineConfiguration.accountsIdsWithActivePositions.contains(self.id)) {
-                // then record it into global config as an account having active positions
+                // then record it into perps engine config as an account having active positions
                 perpsEngineConfiguration.accountsIdsWithActivePositions.add(self.id);
             }
 
@@ -615,7 +615,7 @@ library TradingAccount {
 
             // if the account has no more active markets
             if (self.activeMarketsIds.length() == 0) {
-                // then remove the account from active accounts in global config
+                // then remove the account from active accounts in perps engine config
                 perpsEngineConfiguration.accountsIdsWithActivePositions.remove(self.id);
             }
         }
