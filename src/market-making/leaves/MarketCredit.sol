@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Solady dependencies
+import { MinHeapLib } from "@solady/Milady.sol";
+
 /// @dev A perp market won't be abl
 library MarketCredit {
     /// @notice ERC7201 storage location.
@@ -19,10 +22,10 @@ library MarketCredit {
     /// deleveraging factor be.
     struct Data {
         uint256 marketId;
-        uint256 creditShare;
         uint256 autoDeleveragingThreshold;
         uint256 autoDeleveragingFactor;
         uint256 autoDeleveragingScale;
+        Distribution.Data vaultsDebtDistribution;
     }
 
     /// @notice Loads a {MarketCredit} namespace.
