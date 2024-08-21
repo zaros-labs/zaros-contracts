@@ -6,7 +6,7 @@ import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
-import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -69,8 +69,8 @@ library MarginCollateralConfiguration {
         address priceFeed = self.priceFeed;
         uint32 priceFeedHeartbeatSeconds = self.priceFeedHeartbeatSeconds;
 
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
-        address sequencerUptimeFeed = perpsEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeedByChainId[block.chainid];
 
         if (priceFeed == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();

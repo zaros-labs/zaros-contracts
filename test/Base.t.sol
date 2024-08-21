@@ -10,7 +10,7 @@ import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEng
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
-import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
@@ -23,7 +23,7 @@ import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { Storage } from "test/utils/Storage.sol";
 import { Users, User } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
-import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
+import { GlobalConfigurationHarness } from "test/harnesses/perpetuals/leaves/GlobalConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";
 import { MarketConfigurationHarness } from "test/harnesses/perpetuals/leaves/MarketConfigurationHarness.sol";
@@ -67,7 +67,7 @@ import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
 abstract contract IPerpsEngine is
     IPerpsEngineBranches,
-    PerpsEngineConfigurationHarness,
+    GlobalConfigurationHarness,
     MarginCollateralConfigurationHarness,
     MarketConfigurationHarness,
     MarketOrderHarness,
@@ -417,8 +417,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function updatePerpMarketMarginRequirements(uint128 marketId, UD60x18 newImr, UD60x18 newMmr) internal {
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -437,8 +437,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function updatePerpMarketMaxOi(uint128 marketId, UD60x18 newMaxOi) internal {
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
@@ -457,8 +457,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function updatePerpMarketMaxSkew(uint128 marketId, UD60x18 newMaxSkew) internal {
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),

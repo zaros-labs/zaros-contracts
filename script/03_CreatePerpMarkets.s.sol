@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
@@ -74,7 +74,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
             });
 
             perpsEngine.createPerpMarket({
-                params: PerpsEngineConfigurationBranch.CreatePerpMarketParams({
+                params: GlobalConfigurationBranch.CreatePerpMarketParams({
                     marketId: filteredMarketsConfig[i].marketId,
                     name: filteredMarketsConfig[i].marketName,
                     symbol: filteredMarketsConfig[i].marketSymbol,

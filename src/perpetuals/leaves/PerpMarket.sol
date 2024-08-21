@@ -10,7 +10,7 @@ import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { MarketConfiguration } from "@zaros/perpetuals/leaves/MarketConfiguration.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -73,8 +73,8 @@ library PerpMarket {
         address priceAdapter = self.configuration.priceAdapter;
         uint32 priceFeedHeartbeatSeconds = self.configuration.priceFeedHeartbeatSeconds;
 
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
-        address sequencerUptimeFeed = perpsEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
+        address sequencerUptimeFeed = globalConfiguration.sequencerUptimeFeedByChainId[block.chainid];
 
         if (priceAdapter == address(0)) {
             revert Errors.PriceAdapterNotDefined(self.id);

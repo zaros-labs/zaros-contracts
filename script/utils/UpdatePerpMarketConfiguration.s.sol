@@ -7,7 +7,7 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { BaseScript } from "script/Base.s.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
-import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 
 contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
@@ -27,8 +27,8 @@ contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
 
         setupMarketsConfig();
 
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
+        GlobalConfigurationBranch.UpdatePerpMarketConfigurationParams memory params = GlobalConfigurationBranch
+            .UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
             priceAdapter: marketsConfig[marketId].priceAdapter,

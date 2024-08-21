@@ -188,7 +188,7 @@ contract UpdateActiveMarkets_Unit_Test is Base_Test {
         // create trading account
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
 
-        // it should remove the account from active accounts in perps engine config
+        // it should remove the account from active accounts in global config
         perpsEngine.exposed_updateActiveMarkets(
             tradingAccountId, fuzzMarketConfig.marketId, oldPositionSizeSD59x18, SD59x18_ZERO
         );

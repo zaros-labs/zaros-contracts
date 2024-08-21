@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { UpgradeBranch } from "@zaros/tree-proxy/branches/UpgradeBranch.sol";
 import { LookupBranch } from "@zaros/tree-proxy/branches/LookupBranch.sol";
-import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
+import { GlobalConfigurationBranch } from "@zaros/perpetuals/branches/GlobalConfigurationBranch.sol";
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
@@ -15,7 +15,7 @@ import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountB
 abstract contract IPerpsEngine is
     UpgradeBranch,
     LookupBranch,
-    PerpsEngineConfigurationBranch,
+    GlobalConfigurationBranch,
     LiquidationBranch,
     OrderBranch,
     PerpMarketBranch,

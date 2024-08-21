@@ -5,11 +5,11 @@ pragma solidity 0.8.25;
 import { ITradingAccountNFT } from "@zaros/trading-account-nft/interfaces/ITradingAccountNFT.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
-import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
+import { GlobalConfiguration } from "@zaros/perpetuals/leaves/GlobalConfiguration.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
-import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
+import { CustomReferralConfiguration } from "@zaros/perpetuals/leaves/CustomReferralConfiguration.sol";
 import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 
 // Open Zeppelin dependencies
@@ -33,7 +33,7 @@ contract TradingAccountBranch {
     using Position for Position.Data;
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
-    using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
+    using GlobalConfiguration for GlobalConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
     using Referral for Referral.Data;
 
@@ -77,7 +77,7 @@ contract TradingAccountBranch {
     /// @notice Gets the contract address of the trading accounts NFTs.
     /// @return tradingAccountToken The account token address.
     function getTradingAccountToken() public view returns (address) {
-        return PerpsEngineConfiguration.load().tradingAccountToken;
+        return GlobalConfiguration.load().tradingAccountToken;
     }
 
     /// @notice Returns the account's margin amount of the given collateral type.
@@ -231,8 +231,6 @@ contract TradingAccountBranch {
     }
 
     /// @notice Creates a new trading account and mints its NFT
-    /// @param referralCode The referral code to use.
-    /// @param isCustomReferralCode True if the referral code is a custom referral code.
     /// @return tradingAccountId The trading account id.
     function createTradingAccount(
         bytes memory referralCode,
@@ -242,14 +240,14 @@ contract TradingAccountBranch {
         virtual
         returns (uint128 tradingAccountId)
     {
-        // fetch storage slot for perps engine configuration
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+        // fetch storage slot for global config
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
 
         // increment next account id & output
-        tradingAccountId = ++perpsEngineConfiguration.nextAccountId;
+        tradingAccountId = ++globalConfiguration.nextAccountId;
 
         // get refrence to account nft token
-        ITradingAccountNFT tradingAccountToken = ITradingAccountNFT(perpsEngineConfiguration.tradingAccountToken);
+        ITradingAccountNFT tradingAccountToken = ITradingAccountNFT(globalConfiguration.tradingAccountToken);
 
         // create account record
         TradingAccount.create(tradingAccountId, msg.sender);
@@ -291,8 +289,6 @@ contract TradingAccountBranch {
 
     /// @notice Creates a new trading account and multicalls using the provided data payload.
     /// @param data The data payload to be multicalled.
-    /// @param referralCode The referral code to use.
-    /// @param isCustomReferralCode True if the referral code is a custom referral code.
     /// @return results The array of results of the multicall.
     function createTradingAccountAndMulticall(
         bytes[] calldata data,
@@ -455,9 +451,9 @@ contract TradingAccountBranch {
 
     /// @notice Reverts if the given collateral type is not in the liquidation priority list.
     function _requireCollateralLiquidationPriorityDefined(address collateralType) internal view {
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+        GlobalConfiguration.Data storage globalConfiguration = GlobalConfiguration.load();
         bool isInCollateralLiquidationPriority =
-            perpsEngineConfiguration.collateralLiquidationPriority.contains(collateralType);
+            globalConfiguration.collateralLiquidationPriority.contains(collateralType);
 
         if (!isInCollateralLiquidationPriority) revert Errors.CollateralLiquidationPriorityNotDefined(collateralType);
     }

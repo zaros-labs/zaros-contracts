@@ -74,6 +74,7 @@ contract GetAccountLeverage_Unit_Test is Base_Test {
         uint256[2] memory marketsIdsRange;
 
         for (uint256 i = 1; i <= numOfActiveMarkets; i++) {
+
             marketsIdsRange[0] = i;
             marketsIdsRange[1] = i;
 
@@ -106,8 +107,6 @@ contract GetAccountLeverage_Unit_Test is Base_Test {
             totalPositionsNotionalValue.intoSD59x18().div(marginBalanceUsdX18).intoUD60x18();
 
         // it should continue execution and return the current leverage of trading account account
-        assertAlmostEq(
-            accountLeverage.intoUint256(), expectedAccountLeverage.intoUint256(), 15 * 10 ** 10, "account leverage"
-        );
+        assertAlmostEq(accountLeverage.intoUint256(), expectedAccountLeverage.intoUint256(), 15*10**10, "account leverage");
     }
 }

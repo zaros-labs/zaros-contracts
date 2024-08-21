@@ -81,7 +81,7 @@ library Errors {
     /// @notice Thrown when the provided referral code is invalid.
     error InvalidReferralCode();
 
-    /// @notice PerpsEngine.PerpsEngineConfigurationBranch
+    /// @notice PerpsEngine.GlobalConfigurationBranch
 
     /// @notice Thrown when the provided `sequencerUptimeFeed` is the zero address.
     error SequencerUptimeFeedNotDefined();
@@ -119,7 +119,7 @@ library Errors {
 
     /// @notice PerpsEngine.PerpMarketBranch errors.
 
-    /// @notice PerpsEngine.PerpsEngineConfiguration errors.
+    /// @notice PerpsEngine.GlobalConfiguration errors.
 
     /// @notice Thrown when the provided `marketId` doesn't exist or is currently disabled.
     error PerpMarketDisabled(uint128 marketId);
@@ -166,9 +166,4 @@ library Errors {
     /// @notice Thrown when the provided report's `reportStreamId` doesn't match the settlement configuration's
     /// one.
     error InvalidDataStreamReport(bytes32 streamId, bytes32 reportStreamId);
-
-    /// @notice MarketMakingEngine.Distribution errors.
-
-    /// @notice Thrown when trying to distribute value to an empty distribution.
-    error EmptyDistribution();
 }
