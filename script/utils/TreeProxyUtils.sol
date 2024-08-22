@@ -116,7 +116,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpsEngineConfigurationBranchSelectors[14] =
         PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
-    perpsEngineConfigurationBranch[16] = PerpsEngineConfigurationBranch.getSequencerUptimeFeedByChainId.selector;
+    perpsEngineConfigurationBranchSelectors[16] = PerpsEngineConfigurationBranch.getSequencerUptimeFeedByChainId.selector;
 
     if (isTestnet) {
         perpsEngineConfigurationBranchSelectors[17] = PerpsEngineConfigurationBranchTestnet.setUserPoints.selector;
