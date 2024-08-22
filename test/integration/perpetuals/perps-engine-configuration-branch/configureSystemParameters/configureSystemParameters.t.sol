@@ -35,6 +35,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
+            address(marketMakingEngine),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -65,6 +66,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
+            address(marketMakingEngine),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -98,6 +100,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
+            address(marketMakingEngine),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -132,6 +135,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             address(0),
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
+            address(marketMakingEngine),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -167,6 +171,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.orderFeeRecipient,
             address(0),
             users.liquidationFeeRecipient.account,
+            address(marketMakingEngine),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -203,6 +208,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
             address(0),
+            address(marketMakingEngine),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -240,6 +246,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
+            address(marketMakingEngine),
             0
         );
     }
@@ -276,6 +283,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.orderFeeRecipient,
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
+            address(marketMakingEngine),
             MAX_VERIFICATION_DELAY
         );
     }
