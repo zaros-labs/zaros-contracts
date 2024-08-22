@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ChainlinkAutomationUtils } from "./utils/ChainlinkAutomationUtils.sol";
@@ -26,10 +27,12 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     address internal link;
     address internal automationRegistrar;
     IPerpsEngine internal perpsEngine;
+    IMarketMakingEngine internal marketMakingEngine;
 
     function run(uint256 initialMarginCollateralId, uint256 finalMarginCollateralId) public broadcaster {
         tradingAccountToken = TradingAccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
+        marketMakingEngine = IMarketMakingEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
         link = vm.envAddress("LINK");
         automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
         keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
@@ -52,6 +55,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             orderFeeRecipient: MSIG_ADDRESS,
             settlementFeeRecipient: MSIG_ADDRESS,
             liquidationFeeRecipient: MSIG_ADDRESS,
+            marketMakingEngine: address(marketMakingEngine),
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
 

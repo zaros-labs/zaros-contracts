@@ -7,6 +7,7 @@ import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
+import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
@@ -111,6 +112,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
 
+    IMarketMakingEngine internal marketMakingEngine;
+    IMarketMakingEngine internal marketMakingEngineImplementation;
+
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
@@ -155,6 +159,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             initializePayloads: initializePayloads
         });
 
+        // TODO: deploy MM engine
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
 
         configureSequencerUptimeFeeds(perpsEngine);
@@ -280,6 +285,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
             liquidationFeeRecipient: users.liquidationFeeRecipient.account,
+            marketMakingEngine: address(marketMakingEngine),
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
     }

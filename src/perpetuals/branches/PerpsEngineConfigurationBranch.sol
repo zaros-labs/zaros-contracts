@@ -14,7 +14,7 @@ import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralC
 
 // Open Zeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+import { ERC20, IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
@@ -293,6 +293,7 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
         address orderFeeRecipient,
         address settlementFeeRecipient,
         address liquidationFeeRecipient,
+        address marketMakingEngine,
         uint256 maxVerificationDelay
     )
         external
@@ -322,6 +323,10 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
             revert Errors.ZeroInput("liquidationFeeRecipient");
         }
 
+        if (marketMakingEngine == address(0)) {
+            revert Errors.ZeroInput("marketMakingEngine");
+        }
+
         if (maxVerificationDelay == 0) {
             revert Errors.ZeroInput("maxVerificationDelay");
         }
@@ -335,6 +340,7 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
         perpsEngineConfiguration.orderFeeRecipient = orderFeeRecipient;
         perpsEngineConfiguration.settlementFeeRecipient = settlementFeeRecipient;
         perpsEngineConfiguration.liquidationFeeRecipient = liquidationFeeRecipient;
+        perpsEngineConfiguration.marketMakingEngine = marketMakingEngine;
         perpsEngineConfiguration.maxVerificationDelay = maxVerificationDelay;
 
         emit LogConfigureSystemParameters(
