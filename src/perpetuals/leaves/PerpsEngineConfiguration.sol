@@ -45,6 +45,7 @@ library PerpsEngineConfiguration {
         address orderFeeRecipient;
         address settlementFeeRecipient;
         address liquidationFeeRecipient;
+        address marketMakingEngine;
         address usdToken;
         address tradingAccountToken;
         uint256 maxVerificationDelay;

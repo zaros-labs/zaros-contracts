@@ -635,4 +635,31 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
 
         emit LogCreateCustomReferralCode(referrer, customReferralCode);
     }
+
+    /// @notice Updates the allowance of the market making engine to spend the provided tokens.
+    /// @param tokens The array of ERC20 token addresses.
+    /// @param allowances The array of ERC20 token allowances.
+    function setMarketMakingEngineAllowance(
+        IERC20[] calldata tokens,
+        uint256[] calldata allowances
+    )
+        external
+        onlyOwner
+    {
+        if (tokens.length == 0) {
+            revert Errors.ZeroInput("tokens");
+        }
+
+        if (tokens.length != allowances.length) {
+            revert Errors.ArrayLengthMismatch(tokens.length, allowances.length);
+        }
+
+        // loads the perps engine configuration
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+
+        // approves the market making engine to spend each provided token
+        for (uint256 i; i < tokens.length; i++) {
+            tokens[i].approve(perpsEngineConfiguration.marketMakingEngine, allowances[i]);
+        }
+    }
 }
