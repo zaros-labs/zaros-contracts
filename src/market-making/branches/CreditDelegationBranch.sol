@@ -1,15 +1,33 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { CreditDelegation } from "@zaros/market-making/leaves/CreditDelegation.sol";
+import { MarketCredit } from "@zaros/market-making/leaves/MarketCredit.sol";
+import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+
+// PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
+    using MarketCredit for MarketCredit.Data;
+
     /// @notice Returns the OI and skew caps for the given market id.
     /// @dev `CreditDelegationBranch::updateCreditDelegation` must be called before calling this function in order to
     /// retrieve the latest state.
     /// @param marketId The perps engine's market id.
-    /// @return openInterestCap The market's open interest cap.
-    /// @return skewCap The market's skew cap.
-    function getCreditForMarketId(uint128 marketId) public view returns (uint256 openInterestCap, uint256 skewCap) { }
+    /// @return openInterestCapX18 The market's open interest cap.
+    /// @return skewCapX18 The market's skew cap.
+    function getCreditForMarketId(uint128 marketId)
+        public
+        view
+        returns (UD60x18 openInterestCapX18, UD60x18 skewCapX18)
+    {
+        MarketCredit.Data storage marketCredit = MarketCredit.load(marketId);
+
+        (openInterestCapX18, skewCapX18) = marketCredit.getMarketCaps();
+    }
 
     /// @notice Receives margin collateral from a trader's account.
     /// @dev Called by the perps engine to send margin collateral deducted from a trader's account during a negative
@@ -49,10 +67,12 @@ contract CreditDelegationBranch {
     /// market id
     /// @dev Invariants involved in the call:
     /// @param marketId The perps engine's market id.
+    /// @return openInterestCapX18 The market's open interest cap.
+    /// @return skewCapX18 The market's skew cap.
     /// TODO: add invariants
     function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
         external
-        returns (uint256 openInterestCap, uint256 skewCap)
+        returns (UD60x18 openInterestCapX18, UD60x18 skewCapX18)
     {
         updateCreditDelegation();
         return getCreditForMarketId(marketId);
