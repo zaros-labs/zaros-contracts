@@ -50,7 +50,9 @@ contract CreditDelegationBranch {
     /// @dev Invariants involved in the call:
     /// @param marketId The perps engine's market id.
     /// TODO: add invariants
-    function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
+    function updateCreditDelegationAndReturnCreditForMarketId(
+        uint128 marketId
+    )
         external
         returns (uint256 openInterestCap, uint256 skewCap)
     {
