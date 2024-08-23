@@ -5,13 +5,28 @@ pragma solidity 0.8.25;
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { WithdrawalRequest } from "@zaros/market-making/leaves/WithdrawalRequest.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
+import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
+import { Referral } from "@zaros/market-making/leaves/Referral.sol";
+import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 // TODO: think about referrals
 contract VaultRouterBranch {
+    // Notes: Index tokens are shares
     using SafeERC20 for IERC20;
+    using Distribution for Distribution.Data;
+
+    /// @notice Counter for withdraw requiest ids
+    uint256 private withdrawalRequestIdCounter;
+
+    // TODO events go here
 
     /// @notice Returns the data and state of a given vault.
     /// @param vaultId The vault identifier.
@@ -49,7 +64,12 @@ contract VaultRouterBranch {
     /// @notice Returns the swap rate from index token to collateral asset for the provided vault.
     /// @param vaultId The vault identifier.
     /// @return price The swap price from index token to collateral asset.
-    function getIndexTokenSwapRate(uint128 vaultId) external view returns (uint256 price) { }
+    function getIndexTokenSwapRate(uint256 vaultId) external view returns (uint256 price) {
+        Vault.Data storage vault = Vault.load(vaultId);
+
+        return IERC4626(vault.indexToken).previewRedeem(1 * 10 ** IERC4626(vault.collateral.asset).decimals());
+        // @note Q In how many decimals ? Do we need amount here or just pass 1*tokendecimals amount?
+     }
 
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
     /// @dev Invariants involved in the call:
@@ -57,16 +77,19 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
-    function deposit(uint128 vaultId, uint256 assets, uint256 minShares) external {
-        // TODO: implement
-
+    function deposit(uint256 vaultId, uint256 assets, uint256 minShares) external {
         Vault.Data storage vault = Vault.load(vaultId);
+        vault.totalDeposited += assets;
+
+        if (vault.totalDeposited > vault.depositCap) revert Errors.DepositCapReached();
 
         IERC20(vault.collateral.asset).safeTransferFrom(msg.sender, address(this), assets);
+        IERC20(vault.collateral.asset).approve(address(vault.indexToken), assets);
         uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
 
-        // TODO: add custom error
-        if (shares < minShares) revert();
+        if (shares < minShares) revert Errors.SlippageCheckFailed(vaultId, vault.totalDeposited, vault.depositCap);
+
+        // TODO emit Event
     }
 
     /// @notice Stakes a given amount of index tokens in the contract.
@@ -77,14 +100,48 @@ contract VaultRouterBranch {
     /// @param shares The amount of index tokens to stake, in 18 decimals.
     /// @param referralCode The referral code to use.
     /// @param isCustomReferralCode True if the referral code is a custom referral code.
-    function stake(uint128 vaultId, uint256 shares, bytes memory referralCode, bool isCustomReferralCode) external { }
+    function stake(uint256 vaultId, uint256 shares, bytes memory referralCode, bool isCustomReferralCode) external {
+        Vault.Data storage vault = Vault.load(vaultId);
+        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
+        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
+
+        Distribution.Actor memory actor = distributionData.actor[actorId];
+        UD60x18 updatedActorShares = ud60x18(actor.shares + SafeCast.toUint128(shares));
+
+        distributionData.setActorShares(actorId, updatedActorShares);
+
+        SafeERC20.safeTransferFrom(IERC20(vault.indexToken), msg.sender, address(this), shares);
+        // TODO emit Event
+
+        if (referralCode.length != 0) {
+            // @note Q unsure what to do hre since the referral logic will be unified. Do we just register the referral here same as in TradingAccountBranch?
+            if (isCustomReferralCode) {
+                // logic
+            } else {
+                // logic
+            }
+            // TODO emit Event
+        }
+    }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
-    function initiateWithdrawal(uint128 vaultId, uint256 shares) external { }
+    function initiateWithdrawal(uint256 vaultId, uint256 shares) external {
+        Vault.Data storage vault = Vault.load(vaultId);
+        WithdrawalRequest.Data storage withdrawalRequest = WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestIdCounter);
+
+        if (IERC4626(vault.indexToken).balanceOf(msg.sender) < shares) revert Errors.NotEnoughShares();
+
+        withdrawalRequest.timestamp = block.timestamp;
+        withdrawalRequest.shares = shares;
+
+        withdrawalRequestIdCounter += withdrawalRequestIdCounter + 1;
+
+        // TODO emit Event
+     }
 
     /// @notice Redeems a given amount of index tokens in exchange for collateral assets from the provided vault,
     /// after the withdrawal delay period has elapsed.
@@ -98,16 +155,17 @@ contract VaultRouterBranch {
         WithdrawalRequest.Data storage withdrawalRequest =
             WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestId);
 
-        // TODO: add custom error
-        if (withdrawalRequest.fulfilled) revert();
+        if (withdrawalRequest.fulfilled) revert Errors.NotFulfilled();
 
         uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, address(this), msg.sender);
 
-        // TODO: add custom error
-        if (withdrawalRequest.timestamp + vault.withdrawalDelay < block.timestamp) revert();
+        if (withdrawalRequest.timestamp + vault.withdrawalDelay < block.timestamp) {
+            revert Errors.WithdrawDelayNotPassed();
+        }
 
-        // TODO: add custom error
-        if (assets < minAssets) revert();
+        if (assets < minAssets) revert Errors.SlippageCheckFailed();
+
+        // TODO emit Event
     }
 
     /// @notice Unstakes a given amount of index tokens from the contract.
@@ -116,5 +174,19 @@ contract VaultRouterBranch {
     /// TODO: add invariants
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to unstake, in 18 decimals.
-    function unstake(uint128 vaultId, uint256 shares) external { }
+    function unstake(uint256 vaultId, uint256 shares) external {
+        Vault.Data storage vault = Vault.load(vaultId);
+        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
+        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
+
+        UD60x18 actorShares = distributionData.getActorShares(actorId);
+        if (actorShares.lt(ud60x18(shares))) revert Errors.NotEnoughShares();
+
+        // Accumulate shares before unstake
+        distributionData.accumulateActor(actorId);
+        distributionData.setActorShares(actorId, actorShares.sub(ud60x18(shares)));
+
+        IERC20(vault.indexToken).safeTransfer(msg.sender, shares);
+        // TODO emit Event
+    }
 }

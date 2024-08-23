@@ -185,4 +185,17 @@ library Errors {
 
     /// @notice Thrown when trying to distribute value to an empty distribution.
     error EmptyDistribution();
+
+    /// @notice MarketMakingEngine.VaultRouterBranch errors
+
+    /// @notice todo
+    error DepositCapReached();
+
+    error SlippageCheckFailed(uint256 vaultId, uint256 totalDeposited, uint256 depositCap);
+
+    error NotEnoughShares();
+
+    error WithdrawDelayNotPassed();
+
+    error NotFulfilled();
 }
