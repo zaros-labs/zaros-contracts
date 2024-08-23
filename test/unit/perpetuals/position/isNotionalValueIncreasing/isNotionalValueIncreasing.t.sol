@@ -227,4 +227,12 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
         // it should assert false
         assertEq(isIncreased, false);
     }
+
+    function test_WhenPositionSizeIsPositiveAndPositionSizePlusSizeDeltaIsNegative() external {
+        // it should return true
+    }
+
+    function test_WhenPositionSizeIsNegativeAndPositionSizePlusSizeDeltaIsPositive() external {
+        // it should return true
+    }
 }
