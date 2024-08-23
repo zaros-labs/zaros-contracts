@@ -22,6 +22,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // TODO: think about referrals
 contract VaultRouterBranch {
+    // Notes: Index tokens are shares
     using SafeERC20 for IERC20;
     using Collateral for Collateral.Data;
     using Distribution for Distribution.Data;
