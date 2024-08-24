@@ -188,14 +188,21 @@ library Errors {
 
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
-    /// @notice todo
-    error DepositCapReached();
+    /// @notice Thrown when the vault's deposit cap is reached.
+    /// @param vaultId The ID of the vault where the deposit cap was reached.
+    /// @param totalDeposited The total amount deposited in the vault.
+    /// @param depositCap The maximum deposit cap allowed for the vault.
+    error DepositCapReached(uint256 vaultId, uint256 totalDeposited, uint256 depositCap);
 
-    error SlippageCheckFailed(uint256 vaultId, uint256 totalDeposited, uint256 depositCap);
+    /// @notice Thrown when a slippage check fails.
+    error SlippageCheckFailed();
 
+    /// @notice Thrown when a user does not have enought shares.
     error NotEnoughShares();
 
+    /// @notice Thrown when a withdrawal is attempted before the required delay has passed.
     error WithdrawDelayNotPassed();
 
+    /// @notice Thrown when a withdraw request is not yet fulfiled.
     error NotFulfilled();
 }

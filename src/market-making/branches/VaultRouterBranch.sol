@@ -19,14 +19,29 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 // TODO: think about referrals
 contract VaultRouterBranch {
-    // Notes: Index tokens are shares
     using SafeERC20 for IERC20;
     using Distribution for Distribution.Data;
 
     /// @notice Counter for withdraw requiest ids
     uint256 private withdrawalRequestIdCounter;
 
-    // TODO events go here
+    /// @notice Emitted when a user stakes shares.
+    /// @param vaultId The ID of the vault which shares are staked.
+    /// @param user The address of the user who staked the shares.
+    /// @param shares The amount of shares staked by the user.
+    event LogStake(uint256 indexed vaultId, address indexed user, uint256 shares);
+
+    /// @notice Emitted when a user initiates a withdrawal from a vault.
+    /// @param vaultId The ID of the vault from which the shares are being withdrawn.
+    /// @param user The address of the user who initiated the withdrawal.
+    /// @param shares The amount of shares to be withdrawn by the user.
+    event LogInitiateWithdraw(uint256 indexed vaultId, address indexed user, uint256 shares);
+
+    /// @notice Emitted when a user unstakes shares.
+    /// @param vaultId The ID of the vault which shares are unstaked.
+    /// @param user The address of the user who unstaked the shares.
+    /// @param shares The amount of shares unstaked by the user.
+    event LogUnstake(uint256 indexed vaultId, address indexed user, uint256 shares);
 
     /// @notice Returns the data and state of a given vault.
     /// @param vaultId The vault identifier.
@@ -81,15 +96,13 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.load(vaultId);
         vault.totalDeposited += assets;
 
-        if (vault.totalDeposited > vault.depositCap) revert Errors.DepositCapReached();
+        if (vault.totalDeposited > vault.depositCap) revert Errors.DepositCapReached(vaultId, vault.totalDeposited, vault.depositCap);
 
         IERC20(vault.collateral.asset).safeTransferFrom(msg.sender, address(this), assets);
         IERC20(vault.collateral.asset).approve(address(vault.indexToken), assets);
         uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
 
-        if (shares < minShares) revert Errors.SlippageCheckFailed(vaultId, vault.totalDeposited, vault.depositCap);
-
-        // TODO emit Event
+        if (shares < minShares) revert Errors.SlippageCheckFailed();
     }
 
     /// @notice Stakes a given amount of index tokens in the contract.
@@ -111,7 +124,8 @@ contract VaultRouterBranch {
         distributionData.setActorShares(actorId, updatedActorShares);
 
         SafeERC20.safeTransferFrom(IERC20(vault.indexToken), msg.sender, address(this), shares);
-        // TODO emit Event
+
+        emit LogStake(vaultId, msg.sender, shares);
 
         if (referralCode.length != 0) {
             // @note Q unsure what to do hre since the referral logic will be unified. Do we just register the referral here same as in TradingAccountBranch?
@@ -140,8 +154,8 @@ contract VaultRouterBranch {
 
         withdrawalRequestIdCounter += withdrawalRequestIdCounter + 1;
 
-        // TODO emit Event
-     }
+        emit LogInitiateWithdraw(vaultId, msg.sender, shares);
+    }
 
     /// @notice Redeems a given amount of index tokens in exchange for collateral assets from the provided vault,
     /// after the withdrawal delay period has elapsed.
@@ -164,8 +178,6 @@ contract VaultRouterBranch {
         }
 
         if (assets < minAssets) revert Errors.SlippageCheckFailed();
-
-        // TODO emit Event
     }
 
     /// @notice Unstakes a given amount of index tokens from the contract.
@@ -187,6 +199,7 @@ contract VaultRouterBranch {
         distributionData.setActorShares(actorId, actorShares.sub(ud60x18(shares)));
 
         IERC20(vault.indexToken).safeTransfer(msg.sender, shares);
-        // TODO emit Event
+
+        emit LogUnstake(vaultId, msg.sender, shares);
     }
 }
