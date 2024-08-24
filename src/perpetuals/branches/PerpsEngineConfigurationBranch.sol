@@ -488,7 +488,7 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @dev See {UpdatePerpMarketConfigurationParams}.
     function updatePerpMarketConfiguration(
         uint128 marketId,
-        UpdatePerpMarketConfigurationParams calldata params
+        UpdatePerpMarketConfigurationParams calldata params // @note Q Why not use MarketConfiguration.Data type and not have to declare UpdatePerpMarketConfigurationParams ?
     )
         external
         onlyOwner
