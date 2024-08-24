@@ -44,6 +44,21 @@ library Vault {
         EnumerableSet.UintSet[] connectedMarkets;
     }
 
+    struct CreateParams {
+        uint256 vaultId;
+        uint256 depositCap;
+        uint256 withdrawalDelay;
+        address indexToken;
+        Collateral.Data collateral;
+    }
+
+    struct UpdateParams {
+        uint256 vaultId;
+        uint256 depositCap;
+        uint256 withdrawalDelay;
+        Collateral.Data collateral;
+    }
+
     /// @notice Loads a {Vault} namespace.
     /// @param vaultId The vault identifier.
     /// @return vault The loaded vault storage pointer.
@@ -61,4 +76,31 @@ library Vault {
 
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
     function updateVaultsUnsettledDebt(uint256[] memory vaultsIds, SD59x18 realizedDebtChangeUsdX18) internal { }
+    function update(UpdateParams memory params) internal {
+        // @note Q Do we want other fields to be updatable ? - Do we want them to be in a separate config structure ? 
+        Data storage self = load(params.vaultId);
+
+        if (self.vaultId == 0) {
+            revert(); // TODO Add custom error
+        }
+
+        self.depositCap = params.depositCap;
+        self.withdrawalDelay = params.withdrawalDelay;
+        self.collateral = params.collateral;
+    }
+
+
+    function create(CreateParams memory params) internal {
+        Data storage self = load(params.vaultId);
+
+        if (self.vaultId != 0) {
+            revert(); // TODO Add custom error 
+        }
+
+        self.vaultId = params.vaultId;
+        self.depositCap = params.depositCap;
+        self.withdrawalDelay = params.withdrawalDelay;
+        self.indexToken = params.indexToken;
+        self.collateral = params.collateral;
+    }
 }

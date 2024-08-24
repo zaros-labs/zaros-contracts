@@ -17,7 +17,9 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
-
+import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
+import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
+import { MarketMakingEngineConfigurationBranch } from "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
@@ -47,7 +49,11 @@ import {
     getBranchUpgrades,
     getInitializables,
     getInitializePayloads,
-    deployHarnesses
+    deployHarnesses,
+    getMarketMakingEngineInitializables,
+    getMarketMakingEngineBranches,
+    getmmEngineInitPayloads,
+    getMarketMakerBranchesSelectors
 } from "script/utils/TreeProxyUtils.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
@@ -208,6 +214,23 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
         vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
         vm.label({ account: OFFCHAIN_ORDERS_KEEPER_ADDRESS, newLabel: "Offchain Orders Keeper" });
+
+        // Market Making Engine
+
+        address[] memory mmBranches = getMarketMakingEngineBranches();
+        address[] memory initializableBranches = getMarketMakingEngineInitializables(mmBranches);
+        bytes[] memory mmInitPayloads = getmmEngineInitPayloads(address(perpsEngine), address(usdz));
+
+        bytes4[][] memory mmBranchesSelectors = getMarketMakerBranchesSelectors();
+        RootProxy.BranchUpgrade[] memory mmBranchUpgrades = getBranchUpgrades(mmBranches, mmBranchesSelectors, RootProxy.BranchUpgradeAction.Add);
+
+        RootProxy.InitParams memory mmEngineInitParams = RootProxy.InitParams({
+            initBranches: mmBranchUpgrades,
+            initializables: initializableBranches,
+            initializePayloads: mmInitPayloads
+        });
+
+        marketMakingEngine = IMarketMakingEngine(address(new MarketMakingEngine(mmEngineInitParams)));
     }
 
     /*//////////////////////////////////////////////////////////////////////////

@@ -3,6 +3,9 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
+import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
+import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
@@ -44,9 +47,15 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function createVault() external onlyOwner { }
+    function createVault(Vault.CreateParams calldata params) external onlyOwner {
+        // TODO: add checks
+        Vault.create(params);
+    }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function updateVaultConfiguration() external onlyOwner { }
+    function updateVaultConfiguration(Vault.UpdateParams calldata params) external onlyOwner {
+        // TODO add checks
+        Vault.update(params);
+     }
 }

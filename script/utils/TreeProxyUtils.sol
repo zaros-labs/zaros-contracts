@@ -25,6 +25,9 @@ import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingA
 import { ReferralHarness } from "test/harnesses/perpetuals/leaves/ReferralHarness.sol";
 import { CustomReferralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
+import { MarketMakingEngineConfigurationBranch } from "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
+import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
+
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
@@ -450,6 +453,69 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     selectors[7] = tradingAccountHarnessSelectors;
     selectors[8] = referralHarnessSelectors;
     selectors[9] = customReferralConfigurationHarnessSelectors;
+
+    return selectors;
+}
+
+function getMarketMakingEngineBranches() returns (address[] memory) {
+    address[] memory branches = new address[](2);
+
+    address marketMakingEnginConfigBranch = address(new MarketMakingEngineConfigurationBranch());
+    console.log("MarketMakingEnginConfigBranch: ", marketMakingEnginConfigBranch);
+
+    address vaultRouterBranch = address(new VaultRouterBranch());
+    console.log("VaultRouterBranch: ", vaultRouterBranch);
+
+    branches[0] = marketMakingEnginConfigBranch;
+    branches[1] = vaultRouterBranch;
+
+    return branches;
+}
+
+function getMarketMakingEngineInitializables(address[] memory branches) pure returns (address[] memory) {
+    address[] memory initializables = new address[](1);
+
+    address marketMakingEnginConfigBranch = branches[0];
+
+    initializables[0] = marketMakingEnginConfigBranch;
+
+    return initializables;
+}
+
+function getmmEngineInitPayloads(address perpsEngine, address usdzToken) pure returns (bytes[] memory) {
+    bytes[] memory initializePayloads = new bytes[](1);
+
+    bytes memory marketMakingEngineInitializeData =
+        abi.encodeWithSelector(MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, perpsEngine);
+
+    initializePayloads[0] = marketMakingEngineInitializeData;
+
+    return initializePayloads;
+}
+
+function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
+    bytes4[][] memory selectors = new bytes4[][](2);
+
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](7);
+    marketMakingEngineConfigBranchSelectors[0] = MarketMakingEngineConfigurationBranch.configureSequencerUptimeFeed.selector;
+    marketMakingEngineConfigBranchSelectors[1] = MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
+    marketMakingEngineConfigBranchSelectors[2] = MarketMakingEngineConfigurationBranch.createCustomReferralCode.selector;
+    marketMakingEngineConfigBranchSelectors[3] = MarketMakingEngineConfigurationBranch.createVault.selector;
+    marketMakingEngineConfigBranchSelectors[4] = MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
+    marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.initialize.selector;
+    marketMakingEngineConfigBranchSelectors[6] = MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
+
+    bytes4[] memory vaultRouterBranchSelectors = new bytes4[](4);
+    vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
+    vaultRouterBranchSelectors[1] = VaultRouterBranch.getIndexTokenSwapRate.selector;
+    vaultRouterBranchSelectors[2] = VaultRouterBranch.getVaultData.selector;
+    vaultRouterBranchSelectors[3] = VaultRouterBranch.initiateWithdrawal.selector;
+    vaultRouterBranchSelectors[4] = VaultRouterBranch.redeem.selector;
+    vaultRouterBranchSelectors[5] = VaultRouterBranch.stake.selector;
+    vaultRouterBranchSelectors[6] = VaultRouterBranch.unstake.selector;
+
+    selectors[0] = marketMakingEngineConfigBranchSelectors;
+    selectors[1] = vaultRouterBranchSelectors;
 
     return selectors;
 }
