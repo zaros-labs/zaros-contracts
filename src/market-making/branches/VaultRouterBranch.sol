@@ -22,15 +22,15 @@ contract VaultRouterBranch {
     /// @return settledDebtUsd The total amount of settled debt in USD.
     /// @return indexToken The index token address.
     /// @return collateral The collateral asset data.
-    function getVaultData(uint256 vaultId)
+    function getVaultData(uint128 vaultId)
         external
         view
         returns (
-            uint256 totalDeposited,
-            uint256 depositCap,
-            uint256 withdrawalDelay,
-            int256 unsettledDebtUsd,
-            int256 settledDebtUsd,
+            uint128 totalDeposited,
+            uint128 depositCap,
+            uint128 withdrawalDelay,
+            int128 unsettledDebtUsd,
+            int128 settledDebtUsd,
             address indexToken,
             Collateral.Data memory collateral
         )
@@ -49,7 +49,7 @@ contract VaultRouterBranch {
     /// @notice Returns the swap rate from index token to collateral asset for the provided vault.
     /// @param vaultId The vault identifier.
     /// @return price The swap price from index token to collateral asset.
-    function getIndexTokenSwapRate(uint256 vaultId) external view returns (uint256 price) { }
+    function getIndexTokenSwapRate(uint128 vaultId) external view returns (uint256 price) { }
 
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
     /// @dev Invariants involved in the call:
@@ -57,7 +57,7 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
-    function deposit(uint256 vaultId, uint256 assets, uint256 minShares) external {
+    function deposit(uint128 vaultId, uint256 assets, uint256 minShares) external {
         // TODO: implement
 
         Vault.Data storage vault = Vault.load(vaultId);
@@ -77,14 +77,14 @@ contract VaultRouterBranch {
     /// @param shares The amount of index tokens to stake, in 18 decimals.
     /// @param referralCode The referral code to use.
     /// @param isCustomReferralCode True if the referral code is a custom referral code.
-    function stake(uint256 vaultId, uint256 shares, bytes memory referralCode, bool isCustomReferralCode) external { }
+    function stake(uint128 vaultId, uint256 shares, bytes memory referralCode, bool isCustomReferralCode) external { }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
-    function initiateWithdrawal(uint256 vaultId, uint256 shares) external { }
+    function initiateWithdrawal(uint128 vaultId, uint256 shares) external { }
 
     /// @notice Redeems a given amount of index tokens in exchange for collateral assets from the provided vault,
     /// after the withdrawal delay period has elapsed.
@@ -93,7 +93,7 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param withdrawalRequestId The previously initiated withdrawal request id.
     /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
-    function redeem(uint256 vaultId, uint256 withdrawalRequestId, uint256 minAssets) external {
+    function redeem(uint128 vaultId, uint128 withdrawalRequestId, uint256 minAssets) external {
         Vault.Data storage vault = Vault.load(vaultId);
         WithdrawalRequest.Data storage withdrawalRequest =
             WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestId);
@@ -116,5 +116,5 @@ contract VaultRouterBranch {
     /// TODO: add invariants
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to unstake, in 18 decimals.
-    function unstake(uint256 vaultId, uint256 shares) external { }
+    function unstake(uint128 vaultId, uint256 shares) external { }
 }

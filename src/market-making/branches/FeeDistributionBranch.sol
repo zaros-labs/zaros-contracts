@@ -7,7 +7,7 @@ contract FeeDistributionBranch {
     /// @param vaultId The vault id to claim fees from.
     /// @param staker The staker address.
     /// @return The amount of WETH fees claimable.
-    function getEarnedFees(uint256 vaultId, address staker) external view returns (uint256) { }
+    function getEarnedFees(uint128 vaultId, address staker) external view returns (uint256) { }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
@@ -30,5 +30,5 @@ contract FeeDistributionBranch {
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
     /// @param vaultId The vault id to claim fees from.
-    function claimFees(uint256 vaultId) external { }
+    function claimFees(uint128 vaultId) external { }
 }
