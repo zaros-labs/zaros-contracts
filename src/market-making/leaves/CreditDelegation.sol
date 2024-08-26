@@ -17,7 +17,7 @@ library CreditDelegation {
     /// @param vaultId the Vault providing a share of its credit to the market.
     /// @param marketId the perp market receiving the credit.
     /// @return creditDelegation The loaded credit delegation storage pointer.
-    function load(uint256 vaultId, uint256 marketId) internal pure returns (Data storage creditDelegation) {
+    function load(uint128 vaultId, uint256 marketId) internal pure returns (Data storage creditDelegation) {
         bytes32 slot = keccak256(abi.encode(CREDIT_DELEGATION_LOCATION, vaultId, marketId));
         assembly {
             creditDelegation.slot := slot
