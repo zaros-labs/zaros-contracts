@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { MinHeapLib } from "@solady/Milady.sol";
 
 library SystemDebt {
-    bytes32 internal constant GLOBAL_DEBT_LOCATION =
+    bytes32 internal constant SYSTEM_DEBT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.SystemDebt")) - 1));
 
     // TODO: work on encoding nodes into the priority queue
@@ -24,7 +24,7 @@ library SystemDebt {
     /// @notice Loads the {SystemDebt} namespace.
     /// @return systemDebt The loaded system debt storage pointer.
     function load() internal pure returns (Data storage systemDebt) {
-        bytes32 slot = keccak256(abi.encode(GLOBAL_DEBT_LOCATION));
+        bytes32 slot = keccak256(abi.encode(SYSTEM_DEBT_LOCATION));
         assembly {
             systemDebt.slot := slot
         }
