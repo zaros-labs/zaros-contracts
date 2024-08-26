@@ -13,8 +13,6 @@ library Vault {
     bytes32 internal constant VAULT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Vault")) - 1));
 
-    // TODO: pack storage slots
-    // TODO: add list of markets that this Vault provides credit to.
     /// @param totalDeposited The total amount of collateral assets deposited in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
@@ -24,14 +22,16 @@ library Vault {
     /// @param collateral The collateral asset data.
     /// @param stakingFeeDistribution `actor`: Stakers, `shares`: Staked index tokens, `valuePerShare`: WETH fee
     /// earned per share.
+    /// @param connectedMarkets The list of connected market ids. Whenever there's an update, a new
+    /// `EnumerableSet.UintSet` is created.
     struct Data {
-        uint256 vaultId;
-        uint256 totalDeposited;
-        uint256 totalCreditDelegationWeight;
-        uint256 depositCap;
-        uint256 withdrawalDelay;
-        int256 unsettledDebtUsd;
-        int256 settledDebtUsd;
+        uint128 vaultId;
+        uint128 totalDeposited;
+        uint128 totalCreditDelegationWeight;
+        uint128 depositCap;
+        uint128 withdrawalDelay;
+        int128 unsettledDebtUsd;
+        int128 settledDebtUsd;
         address indexToken;
         Collateral.Data collateral;
         Distribution.Data stakingFeeDistribution;

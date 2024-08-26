@@ -158,8 +158,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             initializePayloads: initializePayloads
         });
 
-        // TODO: deploy MM engine
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
+        // TODO: deploy MM engine
+        marketMakingEngine = IMarketMakingEngine(address(bytes20(bytes("MarketMakingEngine"))));
 
         configureSequencerUptimeFeeds(perpsEngine);
 

@@ -18,8 +18,6 @@ library MarketCredit {
     bytes32 internal constant MARKET_CREDIT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketCredit")) - 1));
 
-    // TODO: pack storage slots
-    // TODO: add heap of in range and out range Vaults that provide credit to this market.
     /// @param marketId The perps engine's linked market id.
     /// @param autoDeleverageThreshold An admin configurable decimal rate which determines when the market should
     /// enter the auto deleverage state. Goes from 0 to 1.
@@ -36,12 +34,12 @@ library MarketCredit {
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
     /// USD denominated debt per share.
     struct Data {
-        uint256 marketId;
-        uint256 autoDeleverageThreshold;
-        uint256 autoDeleverageScale;
-        uint256 openInterestCapScale;
-        uint256 skewCapScale;
-        int256 realizedDebtUsd;
+        uint128 marketId;
+        uint128 autoDeleverageThreshold;
+        uint128 autoDeleverageScale;
+        uint128 openInterestCapScale;
+        uint128 skewCapScale;
+        int128 realizedDebtUsd;
         MinHeapLib.Heap inRangeVaults;
         MinHeapLib.Heap outRangeVaults;
         Distribution.Data vaultsDebtDistribution;
