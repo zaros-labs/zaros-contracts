@@ -169,6 +169,7 @@ library Position {
         // For a positive position, sizeDelta should be positive to increase, and for a negative position, sizeDelta
         // should be negative to increase.
         // This also implicitly covers the case where if it's a new position (size is 0), it's considered an increase.
-        return self.size == 0 || (self.size > 0 && sizeDelta > 0) || (self.size < 0 && sizeDelta < 0);
+        return self.size == 0 || (self.size > 0 && (sizeDelta > 0 || self.size + sizeDelta < 0))
+            || (self.size < 0 && (sizeDelta < 0 || self.size + sizeDelta > 0));
     }
 }

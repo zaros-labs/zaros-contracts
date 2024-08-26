@@ -4,6 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
+import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -228,11 +229,89 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
         assertEq(isIncreased, false);
     }
 
-    function test_WhenPositionSizeIsPositiveAndPositionSizePlusSizeDeltaIsNegative() external {
+    function testFuzz_WhenPositionSizeIsPositiveAndPositionSizePlusSizeDeltaIsNegative(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        uint256 marketId
+    )
+        external
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
+
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+
+        openPosition({
+            fuzzMarketConfig: fuzzMarketConfig,
+            tradingAccountId: tradingAccountId,
+            initialMarginRate: initialMarginRate,
+            marginValueUsd: marginValueUsd,
+            isLong: true
+        });
+
+        Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
+
+        int128 sizeDelta = int128(-position.size) - 1;
+
+        assertEq(position.size > 0, true, "position.size should be greater than zero");
+        assertEq(sizeDelta < 0, true, "sizeDelta should be less than zero");
+
+        bool isIncreased =
+            perpsEngine.exposed_isNotionalValueIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
+
         // it should return true
+        assertEq(isIncreased, true);
     }
 
-    function test_WhenPositionSizeIsNegativeAndPositionSizePlusSizeDeltaIsPositive() external {
+    function test_WhenPositionSizeIsNegativeAndPositionSizePlusSizeDeltaIsPositive(
+        uint256 initialMarginRate,
+        uint256 marginValueUsd,
+        uint256 marketId
+    )
+        external
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        initialMarginRate = bound({ x: initialMarginRate, min: fuzzMarketConfig.imr, max: MAX_MARGIN_REQUIREMENTS });
+
+        marginValueUsd = bound({
+            x: marginValueUsd,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
+
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+
+        openPosition({
+            fuzzMarketConfig: fuzzMarketConfig,
+            tradingAccountId: tradingAccountId,
+            initialMarginRate: initialMarginRate,
+            marginValueUsd: marginValueUsd,
+            isLong: false
+        });
+
+        Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
+
+        int128 sizeDelta = int128(-position.size) + 1;
+
+        assertEq(position.size < 0, true, "position.size should be less than zero");
+        assertEq(sizeDelta > 0, true, "sizeDelta should be greater than zero");
+
+        bool isIncreased =
+            perpsEngine.exposed_isNotionalValueIncreasing(tradingAccountId, fuzzMarketConfig.marketId, sizeDelta);
+
         // it should return true
+        assertEq(isIncreased, true);
     }
 }
