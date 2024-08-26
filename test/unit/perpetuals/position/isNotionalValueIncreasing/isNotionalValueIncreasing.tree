@@ -1,4 +1,4 @@
-Position_IsIncreasing_Unit_Test
+Position_IsNotionalValueIncreasing_Test
 ├── when a new position is being created
 │   └── it should return true
 ├── when sizeDelta is positive and position size is positive
