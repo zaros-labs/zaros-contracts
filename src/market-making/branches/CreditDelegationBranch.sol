@@ -2,9 +2,14 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { CreditDelegation } from "@zaros/market-making/leaves/CreditDelegation.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
+// import { CreditDelegation } from "@zaros/market-making/leaves/CreditDelegation.sol";
 import { MarketCredit } from "@zaros/market-making/leaves/MarketCredit.sol";
-import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
+// import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+
+// Open Zeppelin dependencies
+import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -12,6 +17,8 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
     using MarketCredit for MarketCredit.Data;
+    using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+    using SafeERC20 for IERC20;
 
     /// @notice Returns the OI and skew caps for the given market id.
     /// @dev `CreditDelegationBranch::updateCreditDelegation` must be called before calling this function in order to
@@ -36,7 +43,18 @@ contract CreditDelegationBranch {
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of collateral to receive.
     /// TODO: add invariants
-    function receiveMarginCollateral(address collateralType, uint256 amount) external { }
+    function receiveMarginCollateral(address collateralType, uint256 amount) external {
+        // load market making engine configuration and the perps engine address
+        MarketMakingEngineConfiguration storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+        address perpsEngine = marketMakingEngineConfiguration.perpsEngine;
+
+        if (msg.sender != perpsEngine) {
+            revert Errors.Unauthorized();
+        }
+
+        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
+    }
 
     /// @dev Should settle vault's unsettled debt by converting the balance of different margin collateral types to
     /// USDC, stored and used to cover future USDz swaps, and settle credit by converting the collected margin
@@ -44,13 +62,13 @@ contract CreditDelegationBranch {
     /// @dev Settlement Priority:
     /// 1. highest to lowest debt.
     /// 2. highest to lowest credit.
-    /// @dev The protocol should also take into account the global debt state. E.g: if the protocol is in credit state
+    /// @dev The protocol should also take into account the system debt state. E.g: if the protocol is in credit state
     /// but a given vault is in net debt due to swaps, other vaults' exceeding credit (i.e exceeding assets) can be
     /// converted to the in debt vault's underlying assets. If the protocol is in debt state but there's a vault with
     /// net credit due to swaps, the protocol can rebalance other vaults by distributing exceeding assets from that
     /// vault.
     /// @dev In order to determine the logic above, it should be taken into account a vault's participation in the
-    /// global debt or credit. E.g if the protocol is in a given state and a new ZLP vault is added, this new vault is
+    /// system debt or credit. E.g if the protocol is in a given state and a new ZLP vault is added, this new vault is
     /// neutral compared to the others that may be in credit or debt state.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
