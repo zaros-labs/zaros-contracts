@@ -151,8 +151,7 @@ library Position {
     /// @param marketId The market identifier where the position is held.
     /// @param sizeDelta The change in position size; positive for an increase, negative for a decrease.
     /// @return isNotionalValueIncreasing Returns true if the position is being opened (size is 0) or increased
-    /// (sizeDelta
-    /// direction matches position size), otherwise false.
+    /// (sizeDelta direction matches position size or change the direction), otherwise false.
     function isNotionalValueIncreasing(
         uint128 tradingAccountId,
         uint128 marketId,
