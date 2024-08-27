@@ -172,6 +172,9 @@ library Errors {
     /// @notice Thrown when updating the debt state of a market with no delegated credit.
     error NoDelegatedCredit(uint128 marketId);
 
+    /// @notice MarketMakingEngine.Collateral errors.
+    error CollateralDisabled(address collateralType);
+
     /// @notice MarketMakingEngine.Distribution errors.
 
     /// @notice Thrown when trying to distribute value to an empty distribution.
