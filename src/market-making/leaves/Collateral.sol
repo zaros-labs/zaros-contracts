@@ -14,6 +14,7 @@ library Collateral {
         uint256 creditRatio;
         uint32 priceFeedHeartbeatSeconds;
         bool isEnabled;
+        uint8 decimals;
         address priceAdapter;
         address asset;
     }

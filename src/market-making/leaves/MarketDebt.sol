@@ -82,4 +82,6 @@ library MarketDebt {
         openInterestCapX18 = ud60x18(self.openInterestCapScale).mul(totalDelegatedCredit);
         skewCapX18 = ud60x18(self.skewCapScale).mul(totalDelegatedCredit);
     }
+
+    function addMarginCollateral(Data storage self, address collateralType, UD60x18 amountX18) internal { }
 }
