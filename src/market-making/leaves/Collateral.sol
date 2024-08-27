@@ -55,6 +55,7 @@ library Collateral {
     /// @param self The collateral type storage pointer.
     /// @param amountX18 The 18 decimals normalized amount.
     /// @return amount The denormalized amount using the ERC20 token's decimals.
+<<<<<<< HEAD
     function convertUd60x18ToTokenAmount(
         Data storage self,
         UD60x18 amountX18
@@ -75,4 +76,9 @@ library Collateral {
 
         priceX18 = IPriceAdapter(priceAdapter).getPrice();
     }
+=======
+    function convertUd60x18ToTokenAmount(Data storage self, UD60x18 amountX18) internal view returns (uint256) {
+        return Math.convertUd60x18ToTokenAmount(self.decimals, amountX18);
+    }
+>>>>>>> 92b30862 (chore: refactor decimal conversion at PerpsEngine.MarginCollateral and add logic to MarketMakingEngine.Collateral)
 }
