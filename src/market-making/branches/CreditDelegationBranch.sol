@@ -72,10 +72,17 @@ contract CreditDelegationBranch {
     /// @notice Receives margin collateral from a trader's account.
     /// @dev Called by the perps engine to send margin collateral deducted from a trader's account during a negative
     /// pnl settlement or a liquidation event.
-    /// @dev Invariants involved in the call:
+    /// @dev The system must enforce that if a market is live in the perps engine, it must have delegated credit. In
+    /// order to delist a market and allow withdrawing all delegated credit, it first must be disabled at the perps
+    /// engine.
     /// @param collateralType The margin collateral address.
-    /// @param amount The token amount of collateral to receive.t
-    /// TODO: add invariants
+    /// @param amount The token amount of collateral to receive.
+    /// @dev Invariants involved in the call:
+    ///      * marketDebt.getDelegatedCredit() > 0
+    ///     * ERC20(collateralType).allowance(perpsEngine, marketMakingEngine) >= amount
+    ///     * ERC20(collateralType).balanceOf(perpsEngine) >= amount
+    ///     * marketDebt.collectedMarginCollateral.get(collateralType) ==  ∑convertTokenAmountToUd60x18(amount)
+    ///     * ERC20(collateralType).balanceOf(marketMakingEngine) == ∑amount
     function receiveMarginCollateral(
         uint128 marketId,
         address collateralType,
@@ -93,6 +100,8 @@ contract CreditDelegationBranch {
         // loads the market's debt data storage pointer
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
+        // enforces that the market has delegated credit, if it' a listed market it must always have delegated credit,
+        // see Vault.lockedCreditRatio
         if (marketDebt.getDelegatedCredit().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
