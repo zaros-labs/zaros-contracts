@@ -3,6 +3,10 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
+import { Math } from "@zaros/utils/Math.sol";
+
+// PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 library Collateral {
     /// @notice ERC7201 storage location.
@@ -35,5 +39,23 @@ library Collateral {
         if (!self.isEnabled) {
             revert Errors.CollateralDisabled(self.asset);
         }
+    }
+
+    /// @notice Converts the provided denormalized amount of collateral to UD60x18.
+    /// @dev We can assume self.decimals is always <= SYSTEM_DECIMALS, since it's a requirement at `setDecimals`.
+    /// @param self The collateral type storage pointer.
+    /// @param amount The amount of collateral to convert.
+    /// @return amountX18 The converted amount of collateral to the system's decimals.
+    function convertTokenAmountToUd60x18(Data storage self, uint256 amount) internal view returns (UD60x18) {
+        return Math.convertTokenAmountToUd60x18(self.decimals, amount);
+    }
+
+    /// @notice Converts the provided 18 decimals normalized amount to the collateral's decimals amount.
+    /// @dev We can assume self.decimals is always <= SYSTEM_DECIMALS, since it's a requirement at `setDecimals`.
+    /// @param self The collateral type storage pointer.
+    /// @param amountX18 The 18 decimals normalized amount.
+    /// @return amount The denormalized amount using the ERC20 token's decimals.
+    function convertUd60x18ToTokenAmount(Data storage self, UD60x18 amountX18) internal view returns (uint256) {
+        return Math.convertUd60x18ToTokenAmount(self.decimals, amountX18);
     }
 }
