@@ -97,9 +97,15 @@ contract CreditDelegationBranch {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
-        // IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
+        UD60x18 amountX18;
 
-        // UD60x18 amountX18 = UD60x18(amount);
+        // adds the collected margin collateral to the market's debt data storage, to be settled later
+        marketDebt.addMarginCollateral(collateralType, amountX18);
+
+        // transfers the margin collateral asset from the perps engine to the market making engine
+        // NOTE: The perps engine must approve the market making engine to transfer the margin collateral asset, see
+        // PerpsEngineConfigurationBranch::setMarketMakingEngineAllowance
+        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
     }
 
     /// @notice Mints the requested amount of USDz to the perps engine and updates the market's debt state.
