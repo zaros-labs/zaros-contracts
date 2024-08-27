@@ -97,7 +97,8 @@ contract CreditDelegationBranch {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
-        UD60x18 amountX18;
+        // scale the provided amount's decimals if needed and convert it to UD60x18
+        UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
         // adds the collected margin collateral to the market's debt data storage, to be settled later
         marketDebt.addMarginCollateral(collateralType, amountX18);
