@@ -78,7 +78,7 @@ contract CreditDelegationBranch {
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of collateral to receive.
     /// @dev Invariants involved in the call:
-    ///      * marketDebt.getDelegatedCredit() > 0
+    ///     * marketDebt.getDelegatedCredit() > 0
     ///     * ERC20(collateralType).allowance(perpsEngine, marketMakingEngine) >= amount
     ///     * ERC20(collateralType).balanceOf(perpsEngine) >= amount
     ///     * marketDebt.collectedMarginCollateral.get(collateralType) ==  ∑convertTokenAmountToUd60x18(amount)
