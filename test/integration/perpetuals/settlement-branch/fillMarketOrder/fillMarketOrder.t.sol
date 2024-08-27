@@ -531,8 +531,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             })
         );
 
-        UD60x18 newImrX18 = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.2e18));
-        UD60x18 newMmrX18 = ud60x18(fuzzMarketConfig.mmr).mul(ud60x18(1.2e18));
+        UD60x18 newImrX18 = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(1.1e18));
+        UD60x18 newMmrX18 = ud60x18(fuzzMarketConfig.mmr).mul(ud60x18(1.1e18));
 
         changePrank({ msgSender: users.owner.account });
         updatePerpMarketMarginRequirements(fuzzMarketConfig.marketId, newImrX18, newMmrX18);
