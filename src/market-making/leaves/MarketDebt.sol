@@ -11,12 +11,12 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { MinHeapLib } from "@solady/Milady.sol";
 
 /// @dev A perp market won't be abl
-library MarketCredit {
+library MarketDebt {
     using Distribution for Distribution.Data;
 
     /// @notice ERC7201 storage location.
-    bytes32 internal constant MARKET_CREDIT_LOCATION =
-        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketCredit")) - 1));
+    bytes32 internal constant MARKET_DEBT_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketDebt")) - 1));
 
     /// @param marketId The perps engine's linked market id.
     /// @param autoDeleverageThreshold An admin configurable decimal rate which determines when the market should
@@ -28,7 +28,7 @@ library MarketCredit {
     /// @param skewCapScale An admin configurable value which determines the market's skew cap, according to the total
     /// delegated credit.
     /// @param realizedDebtUsd The net delta of USDz minted by the market and margin collateral collected from
-    /// traders.
+    /// traders and converted to USDC or ZLP Vaults assets.
     /// @param inRangeVaults A heap of vaults that are actively delegating credit to this market.
     /// @param outRangeVaults A heap of vaults that have stopped delegating credit to this market.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
@@ -45,22 +45,26 @@ library MarketCredit {
         Distribution.Data vaultsDebtDistribution;
     }
 
-    /// @notice Loads a {MarketCredit} namespace.
+    /// @notice Loads a {MarketDebt} namespace.
     /// @param marketId The perp market id.
-    /// @return marketCredit The loaded market credit storage pointer.
-    function load(uint256 marketId) internal pure returns (Data storage marketCredit) {
-        bytes32 slot = keccak256(abi.encode(MARKET_CREDIT_LOCATION, marketId));
+    /// @return marketDebt The loaded market debt storage pointer.
+    function load(uint256 marketId) internal pure returns (Data storage marketDebt) {
+        bytes32 slot = keccak256(abi.encode(MARKET_DEBT_LOCATION, marketId));
         assembly {
-            marketCredit.slot := slot
+            marketDebt.slot := slot
         }
     }
 
     /// @notice Computes the auto delevarage factor of the market according to its debt state and configured
     /// parameters.
-    /// @param self The market credit storage pointer.
+    /// @param self The market debt storage pointer.
     /// @return autoDeleverageFactor A decimal rate which determines how much should the market cut of the position's
     /// positive pnl. Goes from 0 to 1.
     function getAutoDeleverageFactor(Data storage self) internal view returns (UD60x18 autoDeleverageFactor) { }
+
+    function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCredit) {
+        return ud60x18(self.vaultsDebtDistribution.totalShares);
+    }
 
     function getMarketCaps(Data storage self)
         internal

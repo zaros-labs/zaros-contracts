@@ -4,10 +4,10 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 // import { CreditDelegation } from "@zaros/market-making/leaves/CreditDelegation.sol";
-import { MarketCredit } from "@zaros/market-making/leaves/MarketCredit.sol";
+import { MarketDebt } from "@zaros/market-making/leaves/MarketDebt.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { SystemDebt } from "@zaros/market-making/leaves/SystemDebt.sol";
-// import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
@@ -17,18 +17,18 @@ import { UD60x18, SD59x18 } from "@prb-math/UD60x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
-    using MarketCredit for MarketCredit.Data;
+    using MarketDebt for MarketDebt.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeERC20 for IERC20;
 
     modifier onlyPerpsEngine() {
         // load market making engine configuration and the perps engine address
-        MarketMakingEngineConfiguration storage marketMakingEngineConfiguration =
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
         address perpsEngine = marketMakingEngineConfiguration.perpsEngine;
 
         if (msg.sender != perpsEngine) {
-            revert Errors.Unauthorized();
+            revert Errors.Unauthorized(msg.sender);
         }
 
         // continue execution
@@ -50,9 +50,9 @@ contract CreditDelegationBranch {
         view
         returns (UD60x18 openInterestCapX18, UD60x18 skewCapX18)
     {
-        MarketCredit.Data storage marketCredit = MarketCredit.load(marketId);
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        (openInterestCapX18, skewCapX18) = marketCredit.getMarketCaps();
+        (openInterestCapX18, skewCapX18) = marketDebt.getMarketCaps();
     }
 
     /// @notice Returns the adjusted pnl of an active position at the given market id, considering the market's ADL
@@ -72,15 +72,22 @@ contract CreditDelegationBranch {
     /// pnl settlement or a liquidation event.
     /// @dev Invariants involved in the call:
     /// @param collateralType The margin collateral address.
-    /// @param amount The token amount of collateral to receive.
+    /// @param amount The token amount of collateral to receive.t
     /// TODO: add invariants
-    function receiveMarginCollateral(address collateralType, uint256 amount) external onlyPerpsEngine {
-        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
+    function receiveMarginCollateral(
+        uint128 marketId,
+        address collateralType,
+        uint256 amount
+    )
+        external
+        onlyPerpsEngine
+    {
+        // loads the market's debt data storage pointer
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        UD60x18 amountX18 = UD60x18(amount);
+        // IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 
-        // SystemDebt.Data storage systemDebt = SystemDebt.load();
-        // systemDebt.updateSettled
+        // UD60x18 amountX18 = UD60x18(amount);
     }
 
     /// @notice Mints the requested amount of USDz to the perps engine and updates the market's debt state.

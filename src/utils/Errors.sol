@@ -167,6 +167,11 @@ library Errors {
     /// one.
     error InvalidDataStreamReport(bytes32 streamId, bytes32 reportStreamId);
 
+    /// @notice MarketMakingEngine.CreditDelegationBranch errors.
+
+    /// @notice Thrown when updating the debt state of a market with no delegated credit.
+    error NoDelegatedCredit(uint128 marketId);
+
     /// @notice MarketMakingEngine.Distribution errors.
 
     /// @notice Thrown when trying to distribute value to an empty distribution.
