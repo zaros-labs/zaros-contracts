@@ -4,6 +4,9 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Distribution } from "./Distribution.sol";
 
+// Open Zeppelin dependencies
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
@@ -29,6 +32,8 @@ library MarketDebt {
     /// delegated credit.
     /// @param realizedDebtUsd The net delta of USDz minted by the market and margin collateral collected from
     /// traders and converted to USDC or ZLP Vaults assets.
+    /// @param collectedMarginCollateral An enumerable map that stores the amount of each margin collateral asset
+    /// collected from perps traders at a market.
     /// @param inRangeVaults A heap of vaults that are actively delegating credit to this market.
     /// @param outRangeVaults A heap of vaults that have stopped delegating credit to this market.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
@@ -40,6 +45,7 @@ library MarketDebt {
         uint128 openInterestCapScale;
         uint128 skewCapScale;
         int128 realizedDebtUsd;
+        EnumerableMap.AddressToUintMap collectedMarginCollateral;
         MinHeapLib.Heap inRangeVaults;
         MinHeapLib.Heap outRangeVaults;
         Distribution.Data vaultsDebtDistribution;
