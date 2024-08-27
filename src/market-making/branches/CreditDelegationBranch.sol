@@ -4,6 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 // import { CreditDelegation } from "@zaros/market-making/leaves/CreditDelegation.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { MarketDebt } from "@zaros/market-making/leaves/MarketDebt.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { SystemDebt } from "@zaros/market-making/leaves/SystemDebt.sol";
@@ -17,6 +18,7 @@ import { UD60x18, SD59x18 } from "@prb-math/UD60x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
+    using Collateral for Collateral.Data;
     using MarketDebt for MarketDebt.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeERC20 for IERC20;
@@ -82,8 +84,18 @@ contract CreditDelegationBranch {
         external
         onlyPerpsEngine
     {
+        // loads the collateral's data storage pointer
+        Collateral.Data storage collateral = Collateral.load(collateralType);
+
+        // reverts if collateral isn't supported
+        collateral.verifyIsEnabled();
+
         // loads the market's debt data storage pointer
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+
+        if (marketDebt.getDelegatedCredit().isZero()) {
+            revert Errors.NoDelegatedCredit(marketId);
+        }
 
         // IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 

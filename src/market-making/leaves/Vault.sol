@@ -16,6 +16,8 @@ library Vault {
     /// @param totalDeposited The total amount of collateral assets deposited in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
+    /// @param lockedCreditRatio The configured ratio that determines how much of the vault's total assets can't be
+    /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
     /// @param unsettledDebtUsd The total amount of unsettled debt in USD.
     /// @param settledDebtUsd The total amount of settled debt in USD.
     /// @param indexToken The index token address.
@@ -30,6 +32,7 @@ library Vault {
         uint128 totalCreditDelegationWeight;
         uint128 depositCap;
         uint128 withdrawalDelay;
+        uint128 lockedCreditRatio;
         int128 unsettledDebtUsd;
         int128 settledDebtUsd;
         address indexToken;

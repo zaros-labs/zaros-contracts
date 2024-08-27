@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
+
 library Collateral {
     /// @notice ERC7201 storage location.
     bytes32 internal constant COLLATERAL_LOCATION =
@@ -10,6 +13,7 @@ library Collateral {
     struct Data {
         uint256 creditRatio;
         uint32 priceFeedHeartbeatSeconds;
+        bool isEnabled;
         address priceAdapter;
         address asset;
     }
@@ -21,6 +25,14 @@ library Collateral {
         bytes32 slot = keccak256(abi.encode(COLLATERAL_LOCATION, asset));
         assembly {
             collateral.slot := slot
+        }
+    }
+
+    /// @notice Reverts if the provided {Collateral} isn't enabled by the system.
+    /// @param self The {Collateral} storage pointer.
+    function verifyIsEnabled(Data storage self) internal view {
+        if (!self.isEnabled) {
+            revert Errors.CollateralDisabled(self.asset);
         }
     }
 }
