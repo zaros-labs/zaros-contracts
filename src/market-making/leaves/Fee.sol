@@ -22,7 +22,6 @@ library Fee {
     /// @param feeAmounts total fee amount collected per collateral
     struct Data {
         address[] orderFeeCollaterals;
-        uint256 accumulatedWeth;
         uint256 recipientsFeeUnsettled;
         uint256 feeDistributorUnsettled;
         mapping(address collateralType => uint256 amount) feeAmounts;
