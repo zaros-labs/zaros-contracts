@@ -85,6 +85,7 @@ contract CreditDelegationBranch {
     /// @dev The system must enforce that if a market is live in the perps engine, it must have delegated credit. In
     /// order to delist a market and allow withdrawing all delegated credit, it first must be disabled at the perps
     /// engine.
+    /// @dev This function assumes the perps engine won't call it with a zero amount.
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of collateral to receive.
     /// @dev Invariants involved in the call:
@@ -127,28 +128,53 @@ contract CreditDelegationBranch {
         // PerpsEngineConfigurationBranch::setMarketMakingEngineAllowance
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
 
+        // emit an event
         emit LogReceiveMarginCollateral(marketId, collateralType, amount);
     }
 
     /// @notice Mints the requested amount of USDz to the perps engine and updates the market's debt state.
     /// @dev Called by the perps engine to mint USDz to profitable traders.
-    /// @dev Association with a trading account happens at the perps engine.
+    /// @dev USDz association with a trading account happens at the perps engine.
+    /// @dev This function assumes the perps engine won't call it with a zero amount.
     /// @param marketId The perps engine's market id requesting USDz.
     /// @param amount The amount of USDz to mint.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function requestUsdzForMarketId(uint128 marketId, uint256 amount) external onlyPerpsEngine { }
+    function requestUsdzForMarketId(uint128 marketId, uint256 amount) external onlyPerpsEngine {
+        // loads the market's debt data storage pointer
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+
+        // enforces that the market has delegated credit, if it' a listed market it must always have delegated credit,
+        // see Vault.lockedCreditRatio
+        if (marketDebt.getDelegatedCredit().isZero()) {
+            revert Errors.NoDelegatedCredit(marketId);
+        }
+
+        // loads the market making engine configuration storage pointer
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+        // cache the USDz address
+        address usdz = marketMakingEngineConfiguration.usdz;
+
+        // searches in range vaults and return them for updating the debt distribution chain
+
+        // update the market's vaults debt distribution and its realized debt
+
+        // mints USDz to the perps engine
+
+        // emit an event
+    }
 
     /*//////////////////////////////////////////////////////////////////////////
                                    UNPROTECTED FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Should settle vault's unsettled debt by converting the balance of different margin collateral types to
-    /// USDC, stored and used to cover future USDz swaps, and settle credit by converting the collected margin
-    /// collateral balance to the vaults' underlying assets.
-    /// @dev Settlement Priority:
-    /// 1. highest to lowest debt.
-    /// 2. highest to lowest credit.
+    /// @dev Converts ZLP Vaults unsettled debt to settled debt by:
+    ///     - Swapping the balance of collected margin collateral to USDC, if available.
+    ///     - Swapping the ZLP Vaults assets to USDC, according to the state of
+    /// `SystemDebt.vaultsDebtSettlementPriorityQueue`.
+    /// @dev USDC acquired from onchain markets is stored and used to cover future USDz swaps.
+    /// @dev The Settlement Priority Queue is stored as a MinHeap, ordering vaults with the highest debt first.
     /// @dev The protocol should also take into account the system debt state. E.g: if the protocol is in credit state
     /// but a given vault is in net debt due to swaps, other vaults' exceeding credit (i.e exceeding assets) can be
     /// converted to the in debt vault's underlying assets. If the protocol is in debt state but there's a vault with
