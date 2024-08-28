@@ -23,6 +23,16 @@ contract CreditDelegationBranch {
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeERC20 for IERC20;
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                  EVENTS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    /// @notice Emitted when the market making engine receives margin collateral from the perps engine.
+    /// @param marketId The perps engine's market id.
+    /// @param collateralType The margin collateral address.
+    /// @param amount The token amount of collateral received.
+    event LogReceiveMarginCollateral(uint128 indexed marketId, address collateralType, uint256 amount);
+
     modifier onlyPerpsEngine() {
         // load market making engine configuration and the perps engine address
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
@@ -116,6 +126,8 @@ contract CreditDelegationBranch {
         // NOTE: The perps engine must approve the market making engine to transfer the margin collateral asset, see
         // PerpsEngineConfigurationBranch::setMarketMakingEngineAllowance
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
+
+        emit LogReceiveMarginCollateral(marketId, collateralType, amount);
     }
 
     /// @notice Mints the requested amount of USDz to the perps engine and updates the market's debt state.
