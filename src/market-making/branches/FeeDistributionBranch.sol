@@ -9,6 +9,8 @@ import { FeeRecipient } from "../leaves/FeeRecipient.sol";
 import { Vault } from "../leaves/Vault.sol";
 import { MarketMakingEngineConfiguration } from "../leaves/MarketMakingEngineConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
+import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 
 // UniSwap dependecies
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
@@ -18,7 +20,7 @@ import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
 
 // Open Zeppelin dependencies
-import { IERC20, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
+import { IERC20, IERC20Metadata, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
 contract FeeDistributionBranch {
@@ -29,8 +31,13 @@ contract FeeDistributionBranch {
     using Vault for Vault.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
 
-    modifier onlyAuthorized {
-        if(msg.sender != MarketMakingEngineConfiguration.load().perpsEngine){
+
+    modifier onlyPerpsEngine() {
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+        address perpsEngine = marketMakingEngineConfiguration.perpsEngine;
+
+        if (msg.sender != perpsEngine) {
             revert Errors.Unauthorized(msg.sender);
         }
         _;
@@ -41,11 +48,11 @@ contract FeeDistributionBranch {
     uint24 public constant POOL_FEE = 3000;
 
     /// @notice Emit when order fee is received
-    /// @param collateral the address of collateral type
+    /// @param asset the address of collateral type
     /// @param amount the received fee amount
-    event OrderFeeReceived(address indexed collateral, uint256 amount);
+    event OrderFeeReceived(address indexed asset, uint256 amount);
 
-    event FeesConvertedToWETH(address indexed collateral, uint256 amount, uint256 totalWETH);
+    event FeesConvertedToWETH(address indexed asset, uint256 amount, uint256 totalWETH);
 
     event TransferCompleted(address indexed recipient, uint256 amount);
 
@@ -57,88 +64,84 @@ contract FeeDistributionBranch {
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    /// @param collateral The margin collateral address.
+    /// @param asset The margin collateral address.
     /// @param amount The token amount of collateral to receive as fee.
 
-    function receiveOrderFee(address collateral, uint256 amount) external onlyAuthorized {
+    function receiveOrderFee(address asset, uint256 amount) external onlyPerpsEngine {
         // fetch collateral asset address
-        address collateralAssetAddress = Collateral.load(collateral).asset;
+        address assetAddress = Collateral.load(asset).asset;
 
         // revert if collateral asset not supported
-        if (collateralAssetAddress == address(0)) revert Errors.UnsupportedCollateralType();
-    
-
-        if (IERC20(collateral).balanceOf(msg.sender) < amount) revert Errors.NotEnoughCollateralBalance(IERC20(collateral).balanceOf(msg.sender));
+        if (assetAddress == address(0)) revert Errors.UnsupportedCollateralType();
 
         // fetch storage slot for fee data
         Fee.Data storage fee = Fee.load();
 
-        // store in array if new collateral
-        if (fee.feeAmounts[collateral] == 0) {
-            fee.orderFeeCollaterals.push(collateral);
+        // store in array if new collateral asset
+        if (fee.feeAmounts[asset] == 0) {
+            fee.feeAssets.push(asset);
         }
 
         // increment fee amount
-        fee.feeAmounts[collateral] += amount;
+        fee.feeAmounts[asset] += amount;
 
         // transfer fee amount
-        IERC20(collateral).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
-        emit OrderFeeReceived(collateral, amount);
+        emit OrderFeeReceived(asset, amount);
     }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function convertAccumulatedFeesToWeth() external onlyAuthorized {
+    function convertAccumulatedFeesToWeth() external onlyPerpsEngine {
         // fetch storage slot for fee data
         Fee.Data storage feeData = Fee.load();
+
+        address weth = MarketMakingEngineConfiguration.load().weth;
 
         uint256 _accumulatedWeth;
 
         // Iterate over collaterals from which fees have been collected
-        for (uint256 i = 0; i < feeData.orderFeeCollaterals.length; i++) {
-            // Retrieve collateral address
-            address collateral = feeData.orderFeeCollaterals[i];
+        for (uint256 i = 0; i < feeData.feeAssets.length; i++) {
+            address assets = feeData.feeAssets[i];
 
-            // Fetch and reset the collected fee amount for the collateral
-            uint256 amount = feeData.feeAmounts[feeData.orderFeeCollaterals[i]];
-            feeData.feeAmounts[feeData.orderFeeCollaterals[i]] = 0;
+            uint256 amount = feeData.feeAmounts[feeData.feeAssets[i]];
+            feeData.feeAmounts[feeData.feeAssets[i]] = 0;
 
             // Swap collected collateral fee amount for WETH and store the obtained amount
-            _accumulatedWeth += _swapCollateralForWeth(collateral, amount);
+            uint256 tokensSwapped = _swapExactTokensForWeth(assets, amount, weth);
+            _accumulatedWeth += tokensSwapped;
 
-            // Emit an event for each conversion
-            emit FeesConvertedToWETH(collateral, amount, _swapCollateralForWeth(collateral, amount));
+            emit FeesConvertedToWETH(assets, amount, tokensSwapped);
         }
 
-        // Clear the list of fee collaterals after processing
-        delete feeData.orderFeeCollaterals;
+        delete feeData.feeAssets;
 
         // Calculate and distribute shares of the converted fees
         uint256 feeDistributorShares = FeeRecipient.load(MarketMakingEngineConfiguration.load().feeDistributor).share;
         uint256 feeAmountToDistributor = _calculateFees(feeDistributorShares, _accumulatedWeth, Fee.TOTAL_FEE_SHARES);
-        feeData.feeDistributorUnsettled = feeAmountToDistributor;
-        feeData.recipientsFeeUnsettled = _accumulatedWeth - feeData.feeDistributorUnsettled;
+        feeData.rewardDistributorUnsettled = feeAmountToDistributor;
+        feeData.recipientsFeeUnsettled = _accumulatedWeth - feeData.rewardDistributorUnsettled;
     }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function sendWethToFeeDistributor() external onlyAuthorized {
+    function sendWethToFeeDistributor() external onlyPerpsEngine {
 
         address feeDistributor = MarketMakingEngineConfiguration.load().feeDistributor;
 
         address wethAddr = MarketMakingEngineConfiguration.load().weth;
 
         Fee.Data storage feeData = Fee.load();
-        uint256 amountToSend = feeData.feeDistributorUnsettled;
-        feeData.feeDistributorUnsettled = 0;
-        // send fee amount to feeDistributor
+        uint256 amountToSend = feeData.rewardDistributorUnsettled;
+        feeData.rewardDistributorUnsettled = 0;
+
         IERC20(wethAddr).safeTransfer(feeDistributor, amountToSend);
     }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function sendWethToFeeRecipients(uint256 configuration) external onlyAuthorized {
+    function sendWethToFeeRecipients(uint256 configuration) external onlyPerpsEngine {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
             MarketMakingEngineConfiguration.load();
 
@@ -181,35 +184,86 @@ contract FeeDistributionBranch {
         uint256 totalShares
     )
         internal
-        view
+        pure
         returns (uint256 amount)
     {
         amount = (shares * accumulatedAmount) / totalShares;
     }
 
-    function _swapCollateralForWeth(address tokenIn, uint256 amountIn) internal returns (uint256 amountOut) {
-
-        address weth = MarketMakingEngineConfiguration.load().weth;
+    function _swapExactTokensForWeth(address tokenIn, uint256 amountIn, address _weth) internal returns (uint256 amountOut) {
         
         // Approve the router to spend DAI.
         TransferHelper.safeApprove(tokenIn, address(SWAP_ROUTER), amountIn);
 
-        // Naively set amountOutMinimum to 0. In production, use an oracle or other data source to choose a safer value for amountOutMinimum.
-        // We also set the sqrtPriceLimitx96 to be 0 to ensure we swap our exact input amount.
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: tokenIn,
-                tokenOut: weth,
+                tokenOut: _weth,
                 fee: POOL_FEE,
                 recipient: address(this),
                 deadline: block.timestamp,
                 amountIn: amountIn,
-                /// TODO: Oracle
-                amountOutMinimum: 0,
+                amountOutMinimum: _calculateAmountOutMinimum(tokenIn, _weth, amountIn),
                 sqrtPriceLimitX96: 0
             });
 
         // The call to `exactInputSingle` executes the swap.
         amountOut = SWAP_ROUTER.exactInputSingle(params);
+    }
+
+    function _calculateAmountOutMinimum(address tokenIn, address tokenOut, uint256 amount) internal view returns (uint256 amountOutMinimum) {
+        uint256 BPS_DENOMINATOR = 10_000;
+        // this value should be in bps (e.g 1% = 100bps)
+        uint256 slippage = 100;
+
+        // Load collateral data for both input and output tokens
+        Collateral.Data memory tokenInData = Collateral.load(tokenIn);
+        Collateral.Data memory tokenOutCollateralData = Collateral.load(tokenOut);
+
+        // Fetch price adapters and heartbeats
+        address tokenInPriceAdapter = tokenInData.priceAdapter;
+        uint32 tokenInPriceFeedHeartbeatSeconds = tokenInData.priceFeedHeartbeatSeconds;
+        address tokenOutPriceAdapter = tokenOutCollateralData.priceAdapter;
+        uint32 tokenOutPriceFeedHeartbeatSeconds = tokenOutCollateralData.priceFeedHeartbeatSeconds;
+
+        // Check if price adapters are defined
+        if (tokenInPriceAdapter == address(0) || tokenOutPriceAdapter == address(0)) {
+            revert Errors.PriceAdapterUndefined();
+        }
+
+        // Load sequencer uptime feed based on chain ID
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration = MarketMakingEngineConfiguration.load();
+        address sequencerUptimeFeed = marketMakingEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
+
+        // Get prices for tokens
+        UD60x18 tokeInUSDPrice = ChainlinkUtil.getPrice(IAggregatorV3(tokenInPriceAdapter), tokenInPriceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed));
+        UD60x18 tokenOutUSDPrice = ChainlinkUtil.getPrice(IAggregatorV3(tokenOutPriceAdapter), tokenOutPriceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed));
+
+        // tokenIn / tokenOut price ratio
+        UD60x18 priceRatio = tokeInUSDPrice.div(tokenOutUSDPrice);
+
+        // Adjust for token decimals
+        uint8 decimalsTokenIn = IERC20Metadata(tokenIn).decimals();
+        uint8 decimalsTokenOut = IERC20Metadata(tokenOut).decimals();
+        if (decimalsTokenIn != decimalsTokenOut) {
+            uint256 decimalFactor;
+            if (decimalsTokenIn > decimalsTokenOut) {
+                decimalFactor = 10 ** uint256(decimalsTokenIn - decimalsTokenOut);
+                amount = amount / decimalFactor;
+            } else {
+                decimalFactor = 10 ** uint256(decimalsTokenOut - decimalsTokenIn);
+                amount = amount * decimalFactor;
+            }
+        }
+
+        // Calculate adjusted amount to receive based on price ratio
+        UD60x18 fullAmountToReceive = ud60x18(amount).mul(priceRatio);
+
+        // The minimum percentage from the full amount to receive 
+        // (e.g. if slippage is 100 BPS, the minAmountToReceiveInBPS will be 9900 BPS )
+        UD60x18 minAmountToReceiveInBPS = (ud60x18(BPS_DENOMINATOR).sub(ud60x18(slippage)));
+
+        // Adjust for slippage and convert to uint256
+        amountOutMinimum = fullAmountToReceive.mul(minAmountToReceiveInBPS).div(ud60x18(BPS_DENOMINATOR)).intoUint256();
     }
 }

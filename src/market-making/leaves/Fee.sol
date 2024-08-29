@@ -15,15 +15,15 @@ library Fee {
 
     uint256 internal constant TOTAL_FEE_SHARES = 10_000;
 
-    /// @param orderFeeCollaterals collection of collateral addresses where fee is taken from
-    /// @param accumulatedWeth total collected fee from collaterals in WETH
+    /// @param feeAssets collection of token addresses for the received fees
+    /// @param accumulatedWeth total collected fee from tokens in WETH
     /// @param recipientsFeeUnsettled total fees available for fee recipients
-    /// @param feeDistributorUnsettled total fees available for fee distributor contract
+    /// @param rewardDistributorUnsettled total fees available for fee distributor contract
     /// @param feeAmounts total fee amount collected per collateral
     struct Data {
-        address[] orderFeeCollaterals;
+        address[] feeAssets;
         uint256 recipientsFeeUnsettled;
-        uint256 feeDistributorUnsettled;
+        uint256 rewardDistributorUnsettled;
         mapping(address collateralType => uint256 amount) feeAmounts;
     }
 
