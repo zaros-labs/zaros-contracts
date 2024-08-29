@@ -26,6 +26,7 @@ import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { Storage } from "test/utils/Storage.sol";
 import { Users, User } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
+import { ZLPVault } from "@zaros/zlp/ZlpVault.sol";
 import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";
@@ -113,6 +114,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     MockERC20 internal weEth;
     MockERC20 internal wEth;
     MockERC20 internal wBtc;
+    ZLPVault internal zlpVault;
 
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
@@ -231,6 +233,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
 
         marketMakingEngine = IMarketMakingEngine(address(new MarketMakingEngine(mmEngineInitParams)));
+
+        zlpVault = new ZLPVault();
+        zlpVault.initialize(address(marketMakingEngine), wEth.decimals(), users.owner.account, wEth);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

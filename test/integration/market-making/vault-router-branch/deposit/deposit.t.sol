@@ -3,22 +3,13 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-import { USDToken } from "@zaros/usd/USDToken.sol";
-import { ZLPVault } from "@zaros/zlp/ZlpVault.sol";
-import { MarketMakingEngineConfigurationBranch } from
-    "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
-import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
-contract VaultRouterBranch_Depist_Test is Base_Test {
-    ZLPVault zlpVault;
+contract VaultRouterBranch_Deposit_Test is Base_Test {
 
     function setUp() public virtual override {
         Base_Test.setUp();
-        zlpVault = new ZLPVault();
-
-        zlpVault.initialize(address(marketMakingEngine), 18, users.owner.account, wEth);
 
         Collateral.Data memory collateralData = Collateral.Data({
             creditRatio: 1.5e18 ,
