@@ -18,6 +18,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 contract LiquidationBranch {
     using EnumerableSet for EnumerableSet.UintSet;
     using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
@@ -171,7 +173,9 @@ contract LiquidationBranch {
                     orderFeeRecipient: address(0),
                     settlementFeeRecipient: perpsEngineConfiguration.liquidationFeeRecipient
                 }),
-                pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18(),
+                pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().add(
+                    ctx.requiredMaintenanceMarginUsdX18
+                ),
                 orderFeeUsdX18: UD60x18_ZERO,
                 settlementFeeUsdX18: ctx.liquidationFeeUsdX18
             });
