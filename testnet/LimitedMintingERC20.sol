@@ -14,12 +14,14 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     error LimitedMintingERC20_AmountExceedsLimit();
     error LimitedMintingERC20_UserIsNotActive();
 
-    function getAmountMintedPerAddress(address user) external view returns (uint256) {
+    uint256 private constant AMOUNT_TO_MINT_USDC = 100_000 * 10 ** 18;
+
+    function getAmountMintedPerAddress(address user) public view returns (uint256) {
         return amountMintedPerAddress[user];
     }
 
     function initialize(address owner, string memory name, string memory symbol) external initializer {
-        maxAmountToMintPerAddress = 100_000e18;
+        maxAmountToMintPerAddress = 100_000 * 10 ** 18;
 
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
@@ -39,15 +41,14 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         return true;
     }
 
-    function mint(address to, uint256 amount) external {
-        if (msg.sender != owner()) {
-            _requireAmountNotZero(amount);
-            _requireAmountLessThanMaxAmountMint(amount);
-        }
-
-        amountMintedPerAddress[msg.sender] += amount;
-
+    function mint(address to, uint256 amount) external onlyOwner {
         _mint(to, amount);
+    }
+
+    function mint() external {
+        amountMintedPerAddress[msg.sender] += AMOUNT_TO_MINT_USDC;
+
+        _mint(msg.sender, AMOUNT_TO_MINT_USDC);
     }
 
     function burn(address from, uint256 amount) external {
