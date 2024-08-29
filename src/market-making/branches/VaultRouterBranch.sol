@@ -21,6 +21,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 contract VaultRouterBranch {
     using SafeERC20 for IERC20;
     using Distribution for Distribution.Data;
+    using Referral for Referral.Data;
 
     /// @notice Counter for withdraw requiest ids
     uint256 private withdrawalRequestIdCounter;
@@ -42,6 +43,18 @@ contract VaultRouterBranch {
     /// @param user The address of the user who unstaked the shares.
     /// @param shares The amount of shares unstaked by the user.
     event LogUnstake(uint256 indexed vaultId, address indexed user, uint256 shares);
+
+    /// @notice Emitted when a referral code is set.
+    /// @param stakingUser The user address that stakes.
+    /// @param referrer The referrer address.
+    /// @param referralCode The referral code.
+    /// @param isCustomReferralCode A boolean indicating if the referral code is custom.
+    event LogReferralSet(
+        address indexed stakingUser,
+        address indexed referrer,
+        bytes referralCode,
+        bool isCustomReferralCode
+    );
 
     /// @notice Returns the data and state of a given vault.
     /// @param vaultId The vault identifier.
@@ -83,7 +96,6 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.load(vaultId);
 
         return IERC4626(vault.indexToken).previewRedeem(1 * 10 ** IERC4626(vault.collateral.asset).decimals());
-        // @note Q In how many decimals ? Do we need amount here or just pass 1*tokendecimals amount?
      }
 
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
@@ -125,17 +137,35 @@ contract VaultRouterBranch {
 
         SafeERC20.safeTransferFrom(IERC20(vault.indexToken), msg.sender, address(this), shares);
 
-        emit LogStake(vaultId, msg.sender, shares);
+        Referral.Data storage referral = Referral.load(msg.sender);
 
         if (referralCode.length != 0) {
-            // @note Q unsure what to do hre since the referral logic will be unified. Do we just register the referral here same as in TradingAccountBranch?
             if (isCustomReferralCode) {
-                // logic
+                CustomReferralConfiguration.Data storage customReferral =
+                    CustomReferralConfiguration.load(string(referralCode));
+
+                if (customReferral.referrer == address(0)) {
+                    revert Errors.InvalidReferralCode();
+                }
+
+                referral.referralCode = referralCode;
+                referral.isCustomReferralCode = true;
             } else {
-                // logic
+                address referrer = abi.decode(referralCode, (address));
+
+                if (referrer == msg.sender) {
+                    revert Errors.InvalidReferralCode();
+                }
+
+                referral.referralCode = referralCode;
+                referral.isCustomReferralCode = false;
             }
-            // TODO emit Event
+            emit LogReferralSet(
+                msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode
+            );
         }
+
+        emit LogStake(vaultId, msg.sender, shares);
     }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.

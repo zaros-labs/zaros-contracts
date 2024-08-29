@@ -12,16 +12,11 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
 contract VaultRouterBranch_Depist_Test is Base_Test {
-    USDToken token;
     ZLPVault zlpVault;
-    // MarketMakingEngineConfigurationBranch mmEngineConfigBranch;
-
 
     function setUp() public virtual override {
         Base_Test.setUp();
-        token = new USDToken(users.owner.account);
         zlpVault = new ZLPVault();
-        // MarketMakingEngine mmEngine = new MarketMakingEngine(); // TODO this whole logic needs to go in Base_Test
 
         zlpVault.initialize(address(marketMakingEngine), 18, users.owner.account, wEth);
 
