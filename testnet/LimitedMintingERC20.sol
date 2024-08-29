@@ -26,6 +26,19 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         __Ownable_init(owner);
     }
 
+    function transfer(address to, uint256 value) public virtual override onlyOwner returns (bool) {
+        address owner = _msgSender();
+        _transfer(owner, to, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 value) public virtual override onlyOwner returns (bool) {
+        address spender = _msgSender();
+        _spendAllowance(from, spender, value);
+        _transfer(from, to, value);
+        return true;
+    }
+
     function mint(address to, uint256 amount) external {
         if (msg.sender != owner()) {
             _requireAmountNotZero(amount);
