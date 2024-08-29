@@ -189,6 +189,8 @@ library Errors {
     error UnsupportedCollateralType();
     /// @notice Thrown when not enough balance
     error NotEnoughCollateralBalance(uint256 balance);
+    /// @notice THrown when PriceAdapter not defined
+    error PriceAdapterUndefined();
 
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
