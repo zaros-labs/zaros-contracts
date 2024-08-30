@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
+import { USDToken } from "@zaros/usd/USDToken.sol";
 // import { CreditDelegation } from "@zaros/market-making/leaves/CreditDelegation.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { MarketDebt } from "@zaros/market-making/leaves/MarketDebt.sol";
@@ -11,16 +12,19 @@ import { SystemDebt } from "@zaros/market-making/leaves/SystemDebt.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
 // Open Zeppelin dependencies
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
-import { UD60x18, SD59x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
     using Collateral for Collateral.Data;
     using MarketDebt for MarketDebt.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+    using SafeCast for uint256;
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -32,6 +36,11 @@ contract CreditDelegationBranch {
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of collateral received.
     event LogReceiveMarginCollateral(uint128 indexed marketId, address collateralType, uint256 amount);
+
+    /// @notice Emitted when the perps engine requests USDz to be minted by the market making engine.
+    /// @param marketId The perps engine's market id.
+    /// @param amount The amount of USDz to mint.
+    event LogRequestUsdzForMarketId(uint128 indexed marketId, uint256 amount);
 
     modifier onlyPerpsEngine() {
         // load market making engine configuration and the perps engine address
@@ -154,15 +163,19 @@ contract CreditDelegationBranch {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
         // cache the USDz address
-        address usdz = marketMakingEngineConfiguration.usdz;
-
-        // searches in range vaults and return them for updating the debt distribution chain
+        USDToken usdz = USDToken(marketMakingEngineConfiguration.usdz);
 
         // update the market's vaults debt distribution and its realized debt
+        marketDebt.distributeDebtToVaults(sd59x18(amount.toInt256()));
+        // searches in range vaults and return them for updating the debt distribution chain
+        uint128[] memory inRangeVaultsIds = marketDebt.getInRangeVaultsIds();
+        Vault.updateVaultsUnsettledDebt(inRangeVaultsIds, marketId);
 
         // mints USDz to the perps engine
+        usdz.mint(msg.sender, amount);
 
         // emit an event
+        emit LogRequestUsdzForMarketId(marketId, amount);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
