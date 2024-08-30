@@ -4,6 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Collateral } from "./Collateral.sol";
 import { Distribution } from "./Distribution.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -81,7 +82,7 @@ library Vault {
         Data storage self = load(params.vaultId);
 
         if (self.vaultId == 0) {
-            revert(); // TODO Add custom error
+            revert Errors.ZeroInput("vaultId");
         }
 
         self.depositCap = params.depositCap;
@@ -94,7 +95,7 @@ library Vault {
         Data storage self = load(params.vaultId);
 
         if (self.vaultId != 0) {
-            revert(); // TODO Add custom error 
+            revert Errors.ZeroInput("vaultId");
         }
 
         self.vaultId = params.vaultId;

@@ -6,6 +6,7 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
@@ -20,7 +21,8 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
 
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {MarketMakingEngineConfigurationBranch} UUPS initializer.
-    function initialize(address usdz, address perpsEngine) external initializer {
+    function initialize(address usdToken, address perpsEngine, address owner) external initializer {
+        __Ownable_init(owner);
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
@@ -48,14 +50,40 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
     function createVault(Vault.CreateParams calldata params) external onlyOwner {
-        // TODO: add checks
+        if (params.indexToken == address(0)) {
+            revert Errors.ZeroInput("indexToken");
+        }
+
+        if (params.depositCap == 0) {
+            revert Errors.ZeroInput("depositCap");
+        }
+
+        if (params.withdrawalDelay == 0) {
+            revert Errors.ZeroInput("withdrawDelay");
+        }
+
+        if (params.vaultId == 0) {
+            revert Errors.ZeroInput("vaultId");
+        }
+
         Vault.create(params);
     }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
     function updateVaultConfiguration(Vault.UpdateParams calldata params) external onlyOwner {
-        // TODO add checks
+        if (params.depositCap == 0) {
+            revert Errors.ZeroInput("depositCap");
+        }
+
+        if (params.withdrawalDelay == 0) {
+            revert Errors.ZeroInput("withdrawDelay");
+        }
+
+        if (params.vaultId == 0) {
+            revert Errors.ZeroInput("vaultId");
+        }
+
         Vault.update(params);
-     }
+    }
 }
