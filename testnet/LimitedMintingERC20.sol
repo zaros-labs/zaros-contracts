@@ -13,8 +13,11 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     error LimitedMintingERC20_ZeroAmount();
     error LimitedMintingERC20_AmountExceedsLimit();
     error LimitedMintingERC20_UserIsNotActive();
+    error LimitedMintingERC20_UserIsNotPermitted();
 
     uint256 private constant AMOUNT_TO_MINT_USDC = 100_000 * 10 ** 18;
+
+    address public perpsEngine = 0x6B57b4c5812B8716df0c3682A903CcEfc94b21ad;
 
     function getAmountMintedPerAddress(address user) public view returns (uint256) {
         return amountMintedPerAddress[user];
@@ -28,17 +31,20 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         __Ownable_init(owner);
     }
 
-    function transfer(address to, uint256 value) public virtual override onlyOwner returns (bool) {
-        address owner = _msgSender();
-        _transfer(owner, to, value);
-        return true;
+    function transfer(address to, uint256 value) public virtual override returns (bool) {
+        if(msg.sender != perpsEngine) {
+            revert LimitedMintingERC20_UserIsNotPermitted();
+        }
+
+        return super.transfer(to, value);
     }
 
-    function transferFrom(address from, address to, uint256 value) public virtual override onlyOwner returns (bool) {
-        address spender = _msgSender();
-        _spendAllowance(from, spender, value);
-        _transfer(from, to, value);
-        return true;
+    function transferFrom(address from, address to, uint256 value) public virtual override returns (bool) {
+        if(msg.sender != perpsEngine) {
+            revert LimitedMintingERC20_UserIsNotPermitted();
+        }
+
+        return super.transferFrom(from, to, value);
     }
 
     function mint(address to, uint256 amount) external onlyOwner {
