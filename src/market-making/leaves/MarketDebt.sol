@@ -72,6 +72,8 @@ library MarketDebt {
         return ud60x18(self.vaultsDebtDistribution.totalShares);
     }
 
+    function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
+
     function getMarketCaps(Data storage self)
         internal
         view
