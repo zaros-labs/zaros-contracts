@@ -70,7 +70,7 @@ library Distribution {
         return ud60x18(self.actor[actorId].shares);
     }
 
-    function getValuePerShare(Data storage self) internal view returns (SD59x18) {
+    function getValuePerShare(Data storage self) internal view returns ("") {
         return sd59x18(self.valuePerShare);
     }
 

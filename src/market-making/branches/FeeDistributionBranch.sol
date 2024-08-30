@@ -13,11 +13,12 @@ import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 
 // UniSwap dependecies
-import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
-import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
+import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, IERC20Metadata, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
@@ -30,7 +31,6 @@ contract FeeDistributionBranch {
     using Collateral for Collateral.Data;
     using Vault for Vault.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
-
 
     modifier onlyPerpsEngine() {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
@@ -60,7 +60,20 @@ contract FeeDistributionBranch {
     /// @param vaultId The vault id to claim fees from.
     /// @param staker The staker address.
     /// @return The amount of WETH fees claimable.
-    function getEarnedFees(uint128 vaultId, address staker) external view returns (uint256) { }
+    function getEarnedFees(uint256 vaultId, address staker) external view returns (uint256) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
+
+        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
+
+        UD60x18 actorShares = distributionData.getActorShares(actorId);
+
+        SD59x18 valuePerShare = distributionData.getValuePerShare();
+
+        UD69x18 claimableAmount = ud69x18(valuePerShare).mul(actorShares);
+
+        return claimableAmount.intoUint256();
+    }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
@@ -81,7 +94,7 @@ contract FeeDistributionBranch {
         if (fee.feeAmounts[asset] == 0) {
             fee.feeAssets.push(asset);
         }
-
+        
         // increment fee amount
         fee.feeAmounts[asset] += amount;
 
@@ -127,7 +140,6 @@ contract FeeDistributionBranch {
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
     function sendWethToFeeDistributor() external onlyPerpsEngine {
-
         address feeDistributor = MarketMakingEngineConfiguration.load().feeDistributor;
 
         address wethAddr = MarketMakingEngineConfiguration.load().weth;
@@ -157,11 +169,11 @@ contract FeeDistributionBranch {
 
         uint256 feeDistributorShares = FeeRecipient.load(marketMakingEngineConfigurationData.feeDistributor).share;
         uint256 totalShares = Fee.TOTAL_FEE_SHARES - feeDistributorShares;
-        
+
         for (uint256 i; i < recipientsList.length; ++i) {
             if (recipientsList[i] == marketMakingEngineConfigurationData.feeDistributor) {
-            continue; // Skip the fee distributor address
-        }
+                continue; // Skip the fee distributor address
+            }
             FeeRecipient.Data storage feeRecipientData = FeeRecipient.load(recipientsList[i]);
             uint256 amountToSend = _calculateFees(feeRecipientData.share, feeData.recipientsFeeUnsettled, totalShares);
 
@@ -190,28 +202,41 @@ contract FeeDistributionBranch {
         amount = (shares * accumulatedAmount) / totalShares;
     }
 
-    function _swapExactTokensForWeth(address tokenIn, uint256 amountIn, address _weth) internal returns (uint256 amountOut) {
-        
+    function _swapExactTokensForWeth(
+        address tokenIn,
+        uint256 amountIn,
+        address _weth
+    )
+        internal
+        returns (uint256 amountOut)
+    {
         // Approve the router to spend DAI.
         TransferHelper.safeApprove(tokenIn, address(SWAP_ROUTER), amountIn);
 
-        ISwapRouter.ExactInputSingleParams memory params =
-            ISwapRouter.ExactInputSingleParams({
-                tokenIn: tokenIn,
-                tokenOut: _weth,
-                fee: POOL_FEE,
-                recipient: address(this),
-                deadline: block.timestamp,
-                amountIn: amountIn,
-                amountOutMinimum: _calculateAmountOutMinimum(tokenIn, _weth, amountIn),
-                sqrtPriceLimitX96: 0
-            });
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: tokenIn,
+            tokenOut: _weth,
+            fee: POOL_FEE,
+            recipient: address(this),
+            deadline: block.timestamp,
+            amountIn: amountIn,
+            amountOutMinimum: _calculateAmountOutMinimum(tokenIn, _weth, amountIn),
+            sqrtPriceLimitX96: 0
+        });
 
         // The call to `exactInputSingle` executes the swap.
         amountOut = SWAP_ROUTER.exactInputSingle(params);
     }
 
-    function _calculateAmountOutMinimum(address tokenIn, address tokenOut, uint256 amount) internal view returns (uint256 amountOutMinimum) {
+    function _calculateAmountOutMinimum(
+        address tokenIn,
+        address tokenOut,
+        uint256 amount
+    )
+        internal
+        view
+        returns (uint256 amountOutMinimum)
+    {
         uint256 BPS_DENOMINATOR = 10_000;
         // this value should be in bps (e.g 1% = 100bps)
         uint256 slippage = 100;
@@ -220,24 +245,26 @@ contract FeeDistributionBranch {
         Collateral.Data memory tokenInData = Collateral.load(tokenIn);
         Collateral.Data memory tokenOutCollateralData = Collateral.load(tokenOut);
 
-        // Fetch price adapters and heartbeats
-        address tokenInPriceAdapter = tokenInData.priceAdapter;
-        uint32 tokenInPriceFeedHeartbeatSeconds = tokenInData.priceFeedHeartbeatSeconds;
-        address tokenOutPriceAdapter = tokenOutCollateralData.priceAdapter;
-        uint32 tokenOutPriceFeedHeartbeatSeconds = tokenOutCollateralData.priceFeedHeartbeatSeconds;
-
         // Check if price adapters are defined
-        if (tokenInPriceAdapter == address(0) || tokenOutPriceAdapter == address(0)) {
+        if (tokenInData.priceAdapter == address(0) || tokenOutCollateralData.priceAdapter == address(0)) {
             revert Errors.PriceAdapterUndefined();
         }
 
         // Load sequencer uptime feed based on chain ID
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration = MarketMakingEngineConfiguration.load();
-        address sequencerUptimeFeed = marketMakingEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
+        address sequencerUptimeFeed =
+            MarketMakingEngineConfiguration.load().sequencerUptimeFeedByChainId[block.chainid];
 
         // Get prices for tokens
-        UD60x18 tokeInUSDPrice = ChainlinkUtil.getPrice(IAggregatorV3(tokenInPriceAdapter), tokenInPriceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed));
-        UD60x18 tokenOutUSDPrice = ChainlinkUtil.getPrice(IAggregatorV3(tokenOutPriceAdapter), tokenOutPriceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed));
+        UD60x18 tokeInUSDPrice = ChainlinkUtil.getPrice(
+            IAggregatorV3(tokenInData.priceAdapter),
+            tokenInData.priceFeedHeartbeatSeconds,
+            IAggregatorV3(sequencerUptimeFeed)
+        );
+        UD60x18 tokenOutUSDPrice = ChainlinkUtil.getPrice(
+            IAggregatorV3(tokenOutCollateralData.priceAdapter),
+            tokenOutCollateralData.priceFeedHeartbeatSeconds,
+            IAggregatorV3(sequencerUptimeFeed)
+        );
 
         // tokenIn / tokenOut price ratio
         UD60x18 priceRatio = tokeInUSDPrice.div(tokenOutUSDPrice);
@@ -259,11 +286,12 @@ contract FeeDistributionBranch {
         // Calculate adjusted amount to receive based on price ratio
         UD60x18 fullAmountToReceive = ud60x18(amount).mul(priceRatio);
 
-        // The minimum percentage from the full amount to receive 
+        // The minimum percentage from the full amount to receive
         // (e.g. if slippage is 100 BPS, the minAmountToReceiveInBPS will be 9900 BPS )
         UD60x18 minAmountToReceiveInBPS = (ud60x18(BPS_DENOMINATOR).sub(ud60x18(slippage)));
 
         // Adjust for slippage and convert to uint256
-        amountOutMinimum = fullAmountToReceive.mul(minAmountToReceiveInBPS).div(ud60x18(BPS_DENOMINATOR)).intoUint256();
+        amountOutMinimum =
+            fullAmountToReceive.mul(minAmountToReceiveInBPS).div(ud60x18(BPS_DENOMINATOR)).intoUint256();
     }
 }
