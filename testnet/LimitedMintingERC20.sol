@@ -17,7 +17,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
 
     uint256 private constant AMOUNT_TO_MINT_USDC = 100_000 * 10 ** 18;
 
-    address public perpsEngine = 0x6B57b4c5812B8716df0c3682A903CcEfc94b21ad;
+    address public constant perpsEngine = 0x6B57b4c5812B8716df0c3682A903CcEfc94b21ad;
 
     function getAmountMintedPerAddress(address user) public view returns (uint256) {
         return amountMintedPerAddress[user];
