@@ -18,7 +18,7 @@ import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
-import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
+import { IMarketMakingEngine as IMarketMakingEngineBranches } from "@zaros/market-making/MarketMakingEngine.sol";
 import { MarketMakingEngineConfigurationBranch } from "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -85,6 +85,10 @@ abstract contract IPerpsEngine is
     TradingAccountHarness,
     ReferralHarness,
     CustomReferralConfigurationHarness
+{ }
+
+abstract contract IMarketMakingEngine is
+    IMarketMakingEngineBranches
 { }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
@@ -199,9 +203,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.label({ account: address(tradingAccountToken), newLabel: "Trading Account NFT" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
-        approveContracts();
-        changePrank({ msgSender: users.naruto.account });
-
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
         feeRecipients = FeeRecipients.Data({
@@ -221,7 +222,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         address[] memory mmBranches = getMarketMakingEngineBranches();
         address[] memory initializableBranches = getMarketMakingEngineInitializables(mmBranches);
-        bytes[] memory mmInitPayloads = getmmEngineInitPayloads(address(perpsEngine), address(usdz));
+        bytes[] memory mmInitPayloads = getmmEngineInitPayloads(address(perpsEngine), address(usdz), users.owner.account);
 
         bytes4[][] memory mmBranchesSelectors = getMarketMakerBranchesSelectors();
         RootProxy.BranchUpgrade[] memory mmBranchUpgrades = getBranchUpgrades(mmBranches, mmBranchesSelectors, RootProxy.BranchUpgradeAction.Add);
@@ -236,6 +237,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         zlpVault = new ZLPVault();
         zlpVault.initialize(address(marketMakingEngine), wEth.decimals(), users.owner.account, wEth);
+
+        approveContracts();
+        changePrank({ msgSender: users.naruto.account });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -258,10 +262,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
+                value: uMAX_UD60x18
+            });
 
             changePrank({ msgSender: users.sasuke.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
                 spender: address(perpsEngine),
+                value: uMAX_UD60x18
+            });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
                 value: uMAX_UD60x18
             });
 
@@ -270,12 +282,21 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
+                value: uMAX_UD60x18
+            });
 
             changePrank({ msgSender: users.madara.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
+                value: uMAX_UD60x18
+            });
+
         }
 
         changePrank({ msgSender: users.owner.account });
