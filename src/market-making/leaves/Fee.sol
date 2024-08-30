@@ -4,9 +4,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { FeeRecipient } from "../leaves/FeeRecipient.sol";
 
-// PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
-
 library Fee {
     /// @notice ERC7201 storage location.
     bytes32 internal constant FEE_LOCATION =
