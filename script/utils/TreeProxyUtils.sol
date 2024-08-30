@@ -482,11 +482,11 @@ function getMarketMakingEngineInitializables(address[] memory branches) pure ret
     return initializables;
 }
 
-function getmmEngineInitPayloads(address perpsEngine, address usdzToken) pure returns (bytes[] memory) {
+function getmmEngineInitPayloads(address perpsEngine, address usdzToken, address owner) pure returns (bytes[] memory) {
     bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory marketMakingEngineInitializeData =
-        abi.encodeWithSelector(MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, perpsEngine);
+        abi.encodeWithSelector(MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, perpsEngine, owner);
 
     initializePayloads[0] = marketMakingEngineInitializeData;
 
@@ -505,7 +505,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.initialize.selector;
     marketMakingEngineConfigBranchSelectors[6] = MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
 
-    bytes4[] memory vaultRouterBranchSelectors = new bytes4[](4);
+    bytes4[] memory vaultRouterBranchSelectors = new bytes4[](7);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
     vaultRouterBranchSelectors[1] = VaultRouterBranch.getIndexTokenSwapRate.selector;
     vaultRouterBranchSelectors[2] = VaultRouterBranch.getVaultData.selector;
