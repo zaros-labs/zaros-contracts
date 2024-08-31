@@ -3,8 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
-import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
-import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
