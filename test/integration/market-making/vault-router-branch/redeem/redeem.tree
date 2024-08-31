@@ -1,0 +1,10 @@
+MarketMaking_redeem_Test
+└── when redeem is called
+    ├── when delay has passed
+    │   └── it should transfer assets to user
+    ├── when delay has not passed
+    │   └── it should revert
+    ├── when assets are less then min amount
+    │   └── it should revert
+    └── when requiest is not fulfulled
+        └── it should revert

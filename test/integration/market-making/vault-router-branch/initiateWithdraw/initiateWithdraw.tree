@@ -1,0 +1,10 @@
+MarketMaking_initiateWithdraw_Test
+└── when initiateWithdraw is called
+    ├── when amount is zero
+    │   └── it should revert
+    ├── when vaultId is invalid
+    │   └── it should revert
+    ├── when shares amount is gt user balance
+    │   └── it should revert
+    └── when user has shares balance
+        └── it should create withdraw request

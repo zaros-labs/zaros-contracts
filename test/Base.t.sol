@@ -357,7 +357,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function createVault() internal {
         Collateral.Data memory collateralData = Collateral.Data({
-            creditRatio: 1.5e18 ,
+            creditRatio: 1.5e18,
             priceFeedHeartbeatSeconds: 120,
             priceAdapter: address(0),
             asset: address(wEth)

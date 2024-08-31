@@ -1,0 +1,10 @@
+MarketMaking_deposit_Test
+└── given a user deposits
+    ├── when the deposit cap is reached
+    │   └── it should revert
+    ├── when user has enough assets
+    │   └── it should mint shares to the user
+    ├── when shares minted are less than min amount
+    │   └── it should revert
+    └── when vault does not exist
+        └── it should revert
