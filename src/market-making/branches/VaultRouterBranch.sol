@@ -50,11 +50,20 @@ contract VaultRouterBranch {
     /// @param referralCode The referral code.
     /// @param isCustomReferralCode A boolean indicating if the referral code is custom.
     event LogReferralSet(
-        address indexed stakingUser,
-        address indexed referrer,
-        bytes referralCode,
-        bool isCustomReferralCode
+        address indexed stakingUser, address indexed referrer, bytes referralCode, bool isCustomReferralCode
     );
+
+    /// @notice Emited when a user deposist assets.
+    /// @param vaultId The ID of the vault which assets are deposited.
+    /// @param user The user that deposits the assets.
+    /// @param assets The assets amount.
+    event LogDeposit(uint256 indexed vaultId, address indexed user, uint256 assets);
+
+    /// @notice Emited when a user deposist assets.
+    /// @param vaultId The ID of the vault which assets are deposited.
+    /// @param user The user that deposits the assets.
+    /// @param shares The shares amount being redeemed.
+    event LogRedeem(uint256 indexed vaultId, address indexed user, uint256 shares);
 
     /// @notice Returns the data and state of a given vault.
     /// @param vaultId The vault identifier.
@@ -96,7 +105,7 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.load(vaultId);
 
         return IERC4626(vault.indexToken).previewRedeem(1 * 10 ** IERC4626(vault.collateral.asset).decimals());
-     }
+    }
 
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
     /// @dev Invariants involved in the call:
@@ -108,13 +117,17 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.load(vaultId);
         vault.totalDeposited += assets;
 
-        if (vault.totalDeposited > vault.depositCap) revert Errors.DepositCapReached(vaultId, vault.totalDeposited, vault.depositCap);
+        if (vault.totalDeposited > vault.depositCap) {
+            revert Errors.DepositCapReached(vaultId, vault.totalDeposited, vault.depositCap);
+        }
 
         IERC20(vault.collateral.asset).safeTransferFrom(msg.sender, address(this), assets);
         IERC20(vault.collateral.asset).approve(address(vault.indexToken), assets);
         uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
 
         if (shares < minShares) revert Errors.SlippageCheckFailed();
+
+        emit LogDeposit(vaultId, msg.sender, assets);
     }
 
     /// @notice Stakes a given amount of index tokens in the contract.
@@ -135,7 +148,7 @@ contract VaultRouterBranch {
 
         distributionData.setActorShares(actorId, updatedActorShares);
 
-        SafeERC20.safeTransferFrom(IERC20(vault.indexToken), msg.sender, address(this), shares);
+        IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
 
         Referral.Data storage referral = Referral.load(msg.sender);
 
@@ -160,9 +173,7 @@ contract VaultRouterBranch {
                 referral.referralCode = referralCode;
                 referral.isCustomReferralCode = false;
             }
-            emit LogReferralSet(
-                msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode
-            );
+            emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
         }
 
         emit LogStake(vaultId, msg.sender, shares);
@@ -174,8 +185,13 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
     function initiateWithdrawal(uint256 vaultId, uint256 shares) external {
+        if (shares == 0) {
+            revert Errors.ZeroInput("sharesAmount");
+        }
+
         Vault.Data storage vault = Vault.load(vaultId);
-        WithdrawalRequest.Data storage withdrawalRequest = WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestIdCounter);
+        WithdrawalRequest.Data storage withdrawalRequest =
+            WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestIdCounter);
 
         if (IERC4626(vault.indexToken).balanceOf(msg.sender) < shares) revert Errors.NotEnoughShares();
 
@@ -208,6 +224,8 @@ contract VaultRouterBranch {
         }
 
         if (assets < minAssets) revert Errors.SlippageCheckFailed();
+
+        emit LogRedeem(vaultId, msg.sender, assets);
     }
 
     /// @notice Unstakes a given amount of index tokens from the contract.

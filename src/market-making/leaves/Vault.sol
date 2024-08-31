@@ -78,7 +78,6 @@ library Vault {
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
     function updateVaultsUnsettledDebt(uint256[] memory vaultsIds, SD59x18 realizedDebtChangeUsdX18) internal { }
     function update(UpdateParams memory params) internal {
-        // @note Q Do we want other fields to be updatable ? - Do we want them to be in a separate config structure ? 
         Data storage self = load(params.vaultId);
 
         if (self.vaultId == 0) {
@@ -89,7 +88,6 @@ library Vault {
         self.withdrawalDelay = params.withdrawalDelay;
         self.collateral = params.collateral;
     }
-
 
     function create(CreateParams memory params) internal {
         Data storage self = load(params.vaultId);
