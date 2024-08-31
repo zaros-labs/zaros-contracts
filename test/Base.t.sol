@@ -19,7 +19,9 @@ import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { IMarketMakingEngine as IMarketMakingEngineBranches } from "@zaros/market-making/MarketMakingEngine.sol";
-import { MarketMakingEngineConfigurationBranch } from "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
+import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
@@ -87,9 +89,7 @@ abstract contract IPerpsEngine is
     CustomReferralConfigurationHarness
 { }
 
-abstract contract IMarketMakingEngine is
-    IMarketMakingEngineBranches
-{ }
+abstract contract IMarketMakingEngine is IMarketMakingEngineBranches { }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     using Math for UD60x18;
@@ -222,10 +222,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         address[] memory mmBranches = getMarketMakingEngineBranches();
         address[] memory initializableBranches = getMarketMakingEngineInitializables(mmBranches);
-        bytes[] memory mmInitPayloads = getmmEngineInitPayloads(address(perpsEngine), address(usdz), users.owner.account);
+        bytes[] memory mmInitPayloads =
+            getmmEngineInitPayloads(address(perpsEngine), address(usdz), users.owner.account);
 
         bytes4[][] memory mmBranchesSelectors = getMarketMakerBranchesSelectors();
-        RootProxy.BranchUpgrade[] memory mmBranchUpgrades = getBranchUpgrades(mmBranches, mmBranchesSelectors, RootProxy.BranchUpgradeAction.Add);
+        RootProxy.BranchUpgrade[] memory mmBranchUpgrades =
+            getBranchUpgrades(mmBranches, mmBranchesSelectors, RootProxy.BranchUpgradeAction.Add);
 
         RootProxy.InitParams memory mmEngineInitParams = RootProxy.InitParams({
             initBranches: mmBranchUpgrades,
@@ -296,7 +298,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 spender: address(marketMakingEngine),
                 value: uMAX_UD60x18
             });
-
         }
 
         changePrank({ msgSender: users.owner.account });
@@ -352,6 +353,26 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         for (uint256 i = INITIAL_MARKET_ID; i <= FINAL_MARKET_ID; i++) {
             vm.label({ account: marketOrderKeepers[i], newLabel: "Market Order Keeper" });
         }
+    }
+
+    function createVault() internal {
+        Collateral.Data memory collateralData = Collateral.Data({
+            creditRatio: 1.5e18 ,
+            priceFeedHeartbeatSeconds: 120,
+            priceAdapter: address(0),
+            asset: address(wEth)
+        });
+
+        Vault.CreateParams memory params = Vault.CreateParams({
+            vaultId: VAULT_ID,
+            depositCap: VAULT_DEPOSIT_CAP,
+            withdrawalDelay: VAULT_WITHDRAW_DELAY,
+            indexToken: address(zlpVault),
+            collateral: collateralData
+        });
+
+        changePrank({ msgSender: users.owner.account });
+        marketMakingEngine.createVault(params);
     }
 
     function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {
