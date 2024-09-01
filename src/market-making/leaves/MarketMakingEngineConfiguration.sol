@@ -17,7 +17,6 @@ library MarketMakingEngineConfiguration {
         address perpsEngine;
         address feeDistributor;
         address[][] feeRecipients;
-        // FeeRecipient.Data[][] feeRecipients;
         mapping(uint256 chainId => address sequencerUptimeFeed) sequencerUptimeFeedByChainId;
         // TODO: define roles
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;

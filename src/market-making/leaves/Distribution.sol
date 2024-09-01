@@ -22,6 +22,10 @@ library Distribution {
     struct Data {
         uint128 totalShares;
         int128 valuePerShare;
+        uint256 recipientsFeeUnsettled;
+        uint256 rewardDistributorUnsettled;
+        address[] feeAssets;
+        mapping(address collateralType => uint256 amount) feeAmounts;
         mapping(bytes32 actorId => Actor) actor;
     }
 
@@ -70,7 +74,18 @@ library Distribution {
         return ud60x18(self.actor[actorId].shares);
     }
 
-    function getValuePerShare(Data storage self) internal view returns ("") {
+    function getLastValuePerShare(
+        Data storage self,
+        bytes32 actorId
+    )
+        internal
+        view
+        returns (SD59x18 lastValuePerShare)
+    {
+        return sd59x18(self.actor[actorId].lastValuePerShare);
+    }
+
+    function getValuePerShare(Data storage self) internal view returns (SD59x18) {
         return sd59x18(self.valuePerShare);
     }
 
