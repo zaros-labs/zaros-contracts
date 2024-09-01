@@ -47,6 +47,7 @@ import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol"
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
 import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
+import { DistributionHarness } from "test/harnesses/market-making-engine/leaves/DistributionHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 
 // Zaros dependencies script
@@ -97,8 +98,10 @@ abstract contract IMarketMakingEngine is
     IMarketMakingEngineBranches,
     VaultHarness,
     WithdrawalRequestHarness,
-    CollateralHarness
+    CollateralHarness,
+    DistributionHarness
 { }
+
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     using Math for UD60x18;

@@ -3,10 +3,10 @@ pragma solidity 0.8.25;
 pragma abicoder v2;
 
 // Zaros dependencies
-import { Fee } from "../leaves/Fee.sol";
 import { Collateral } from "../leaves/Collateral.sol";
 import { FeeRecipient } from "../leaves/FeeRecipient.sol";
 import { Vault } from "../leaves/Vault.sol";
+import { Distribution } from "../leaves/Distribution.sol";
 import { MarketMakingEngineConfiguration } from "../leaves/MarketMakingEngineConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
@@ -16,7 +16,7 @@ import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
-// PRB Math dependencies
+// PRB Math dependencies SD21x18
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
@@ -26,11 +26,24 @@ import { IERC20, IERC20Metadata, IERC4626, SafeERC20 } from "@openzeppelin/token
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
 contract FeeDistributionBranch {
     using SafeERC20 for IERC20;
-    using Fee for Fee.Data;
     using FeeRecipient for FeeRecipient.Data;
     using Collateral for Collateral.Data;
     using Vault for Vault.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+    using Distribution for Distribution.Data;
+
+    ISwapRouter public constant SWAP_ROUTER = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
+    // Uniswap pool fee at 0.3%
+    uint24 public constant POOL_FEE = 3000;
+
+    /// @notice Emit when order fee is received
+    /// @param asset the address of collateral type
+    /// @param amount the received fee amount
+    event OrderFeeReceived(address indexed asset, uint256 amount);
+
+    event FeesConvertedToWETH(address indexed asset, uint256 amount, uint256 totalWETH);
+
+    event TransferCompleted(address indexed recipient, uint256 amount);
 
     modifier onlyPerpsEngine() {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
@@ -43,34 +56,24 @@ contract FeeDistributionBranch {
         _;
     }
 
-    ISwapRouter public constant SWAP_ROUTER = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    // For this example, we will set the pool fee to 0.3%.
-    uint24 public constant POOL_FEE = 3000;
-
-    /// @notice Emit when order fee is received
-    /// @param asset the address of collateral type
-    /// @param amount the received fee amount
-    event OrderFeeReceived(address indexed asset, uint256 amount);
-
-    event FeesConvertedToWETH(address indexed asset, uint256 amount, uint256 totalWETH);
-
-    event TransferCompleted(address indexed recipient, uint256 amount);
-
     /// @notice Returns the claimable amount of WETH fees for the given staker at a given vault.
     /// @param vaultId The vault id to claim fees from.
     /// @param staker The staker address.
     /// @return The amount of WETH fees claimable.
     function getEarnedFees(uint256 vaultId, address staker) external view returns (uint256) {
         Vault.Data storage vaultData = Vault.load(vaultId);
-        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
 
-        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
+        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
+
+        bytes32 actorId = bytes32(uint256(uint160(staker)));
 
         UD60x18 actorShares = distributionData.getActorShares(actorId);
 
-        SD59x18 valuePerShare = distributionData.getValuePerShare();
+        SD59x18 lastValuePerShare = distributionData.getLastValuePerShare(actorId);
 
-        UD69x18 claimableAmount = ud69x18(valuePerShare).mul(actorShares);
+        UD60x18 unsignedValuePerShare = ud60x18(uint256(lastValuePerShare.unwrap()));
+
+        UD60x18 claimableAmount = unsignedValuePerShare.mul(actorShares);
 
         return claimableAmount.intoUint256();
     }
@@ -80,23 +83,21 @@ contract FeeDistributionBranch {
     /// @param asset The margin collateral address.
     /// @param amount The token amount of collateral to receive as fee.
 
-    function receiveOrderFee(address asset, uint256 amount) external onlyPerpsEngine {
-        // fetch collateral asset address
+    function receiveOrderFee(uint256 vaultId, address asset, uint256 amount) external onlyPerpsEngine {
         address assetAddress = Collateral.load(asset).asset;
 
-        // revert if collateral asset not supported
         if (assetAddress == address(0)) revert Errors.UnsupportedCollateralType();
 
-        // fetch storage slot for fee data
-        Fee.Data storage fee = Fee.load();
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
 
-        // store in array if new collateral asset
-        if (fee.feeAmounts[asset] == 0) {
-            fee.feeAssets.push(asset);
+        // store in array if new collateral assets
+        if (distributionData.feeAmounts[asset] == 0) {
+            distributionData.feeAssets.push(asset);
         }
-        
+
         // increment fee amount
-        fee.feeAmounts[asset] += amount;
+        distributionData.feeAmounts[asset] += amount;
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
@@ -106,20 +107,20 @@ contract FeeDistributionBranch {
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function convertAccumulatedFeesToWeth() external onlyPerpsEngine {
-        // fetch storage slot for fee data
-        Fee.Data storage feeData = Fee.load();
+    function convertAccumulatedFeesToWeth(uint256 vaultId) external onlyPerpsEngine {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
 
         address weth = MarketMakingEngineConfiguration.load().weth;
 
         uint256 _accumulatedWeth;
 
-        // Iterate over collaterals from which fees have been collected
-        for (uint256 i = 0; i < feeData.feeAssets.length; i++) {
-            address assets = feeData.feeAssets[i];
+        // Iterate over collaterals from which fees have been collected and swap
+        for (uint256 i = 0; i < distributionData.feeAssets.length; i++) {
+            address assets = distributionData.feeAssets[i];
 
-            uint256 amount = feeData.feeAmounts[feeData.feeAssets[i]];
-            feeData.feeAmounts[feeData.feeAssets[i]] = 0;
+            uint256 amount = distributionData.feeAmounts[distributionData.feeAssets[i]];
+            distributionData.feeAmounts[distributionData.feeAssets[i]] = 0;
 
             // Swap collected collateral fee amount for WETH and store the obtained amount
             uint256 tokensSwapped = _swapExactTokensForWeth(assets, amount, weth);
@@ -128,36 +129,39 @@ contract FeeDistributionBranch {
             emit FeesConvertedToWETH(assets, amount, tokensSwapped);
         }
 
-        delete feeData.feeAssets;
+        delete distributionData.feeAssets;
 
         // Calculate and distribute shares of the converted fees
         uint256 feeDistributorShares = FeeRecipient.load(MarketMakingEngineConfiguration.load().feeDistributor).share;
-        uint256 feeAmountToDistributor = _calculateFees(feeDistributorShares, _accumulatedWeth, Fee.TOTAL_FEE_SHARES);
-        feeData.rewardDistributorUnsettled = feeAmountToDistributor;
-        feeData.recipientsFeeUnsettled = _accumulatedWeth - feeData.rewardDistributorUnsettled;
+        uint256 feeAmountToDistributor =
+            _calculateFees(feeDistributorShares, _accumulatedWeth, Vault.TOTAL_FEE_SHARES);
+        distributionData.rewardDistributorUnsettled = feeAmountToDistributor;
+        distributionData.recipientsFeeUnsettled = _accumulatedWeth - distributionDatas.rewardDistributorUnsettled;
     }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function sendWethToFeeDistributor() external onlyPerpsEngine {
+    function sendWethToFeeDistributor(uint256 vaultId) external onlyPerpsEngine {
         address feeDistributor = MarketMakingEngineConfiguration.load().feeDistributor;
 
         address wethAddr = MarketMakingEngineConfiguration.load().weth;
 
-        Fee.Data storage feeData = Fee.load();
-        uint256 amountToSend = feeData.rewardDistributorUnsettled;
-        feeData.rewardDistributorUnsettled = 0;
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
+
+        uint256 amountToSend = distributionData.rewardDistributorUnsettled;
+        distributionData.rewardDistributorUnsettled = 0;
 
         IERC20(wethAddr).safeTransfer(feeDistributor, amountToSend);
     }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function sendWethToFeeRecipients(uint256 configuration) external onlyPerpsEngine {
+    function sendWethToFeeRecipients(uint256 vaultId, uint256 configuration) external onlyPerpsEngine {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
             MarketMakingEngineConfiguration.load();
 
-        Fee.Data storage feeData = Fee.load();
+        Vault.Data storage vaultData = Vault.load(vaultId);
 
         /// TODO: make error for check
         // if (feeData.recipientsFeeUnsettled == 0){
@@ -168,14 +172,15 @@ contract FeeDistributionBranch {
         address wethAddr = marketMakingEngineConfigurationData.weth;
 
         uint256 feeDistributorShares = FeeRecipient.load(marketMakingEngineConfigurationData.feeDistributor).share;
-        uint256 totalShares = Fee.TOTAL_FEE_SHARES - feeDistributorShares;
+        uint256 totalShares = Vault.TOTAL_FEE_SHARES - feeDistributorShares;
 
         for (uint256 i; i < recipientsList.length; ++i) {
             if (recipientsList[i] == marketMakingEngineConfigurationData.feeDistributor) {
                 continue; // Skip the fee distributor address
             }
             FeeRecipient.Data storage feeRecipientData = FeeRecipient.load(recipientsList[i]);
-            uint256 amountToSend = _calculateFees(feeRecipientData.share, feeData.recipientsFeeUnsettled, totalShares);
+            uint256 amountToSend =
+                _calculateFees(feeRecipientData.share, vaultData.recipientsFeeUnsettled, totalShares);
 
             address recipientAddress = recipientsList[i];
 

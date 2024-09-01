@@ -29,6 +29,7 @@ import { MarketMakingEngineConfigurationBranch } from
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
 import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
+import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 
 // Open Zeppelin Upgradeable dependencies
@@ -428,7 +429,7 @@ function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
 // Market Making Engine
 
 function deployMarketMakingEngineBranches() returns (address[] memory) {
-    address[] memory branches = new address[](2);
+    address[] memory branches = new address[](3);
 
     address marketMakingEnginConfigBranch = address(new MarketMakingEngineConfigurationBranch());
     console.log("MarketMakingEnginConfigBranch: ", marketMakingEnginConfigBranch);
@@ -436,14 +437,18 @@ function deployMarketMakingEngineBranches() returns (address[] memory) {
     address vaultRouterBranch = address(new VaultRouterBranch());
     console.log("VaultRouterBranch: ", vaultRouterBranch);
 
+    address feeDistributionBranch = address(new FeeDistributionBranch());
+    console.log("FeeDistributionBranch: ", feeDistributionBranch);
+
     branches[0] = marketMakingEnginConfigBranch;
     branches[1] = vaultRouterBranch;
+    branches[2] = feeDistributionBranch;
 
     return branches;
 }
 
 function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](2);
+    bytes4[][] memory selectors = new bytes4[][](3);
 
     bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](5);
     marketMakingEngineConfigBranchSelectors[0] =
@@ -466,8 +471,12 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     vaultRouterBranchSelectors[6] = VaultRouterBranch.unstake.selector;
     vaultRouterBranchSelectors[7] = VaultRouterBranch.getVaultAssetSwapRate.selector;
 
+    bytes4[] memory feeDistributionBranchSelectors = new bytes4[](1);
+    feeDistributionBranchSelectors[0] = FeeDistributionBranch.getEarnedFees.selector;
+
     selectors[0] = marketMakingEngineConfigBranchSelectors;
     selectors[1] = vaultRouterBranchSelectors;
+    selectors[2] = feeDistributionBranchSelectors;
 
     return selectors;
 }
