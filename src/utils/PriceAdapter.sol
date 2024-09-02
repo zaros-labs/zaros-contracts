@@ -47,7 +47,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                                      STRUCTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice The constructor parameters.
+    /// @notice The initialization parameters.
     /// @param name The name of the Price Adapter.
     /// @param symbol The symbol of the Price Adapter.
     /// @param owner The owner of the contract.
@@ -57,7 +57,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /// @param priceFeedHeartbeatSeconds The number of seconds between price feed updates.
     /// @param ethUsdPriceFeedHeartbeatSeconds The number of seconds between ETH/USD price feed updates.
     /// @param useEthPriceFeed A flag indicating if the price adapter is to use the custom version.
-    struct PriceAdapterInitializeData {
+    struct InitializeParams {
         string name;
         string symbol;
         address owner;
@@ -73,7 +73,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                                      INITIALIZE
     //////////////////////////////////////////////////////////////////////////*/
 
-    function initialize(PriceAdapterInitializeData memory params) external initializer {
+    function initialize(InitializeParams memory params) external initializer {
         __Ownable_init(params.owner);
 
         name = params.name;
@@ -90,7 +90,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                                      FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Gets the price of the token.
+    /// @notice Returns the USD price of the configured asset.
     /// @return priceUsdX18 The USD quote of the token.
     function getPrice() external view returns (UD60x18 priceUsdX18) {
         if (useEthPriceFeed) {

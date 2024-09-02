@@ -61,7 +61,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             Constants.SYSTEM_DECIMALS,
             address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WSTETH_PRICE_ADAPTER_NAME,
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
@@ -111,7 +111,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             Constants.SYSTEM_DECIMALS,
             address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WSTETH_PRICE_ADAPTER_NAME,
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
@@ -159,7 +159,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             Constants.SYSTEM_DECIMALS,
             address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WSTETH_PRICE_ADAPTER_NAME,
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
@@ -213,7 +213,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             Constants.SYSTEM_DECIMALS,
             address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WSTETH_PRICE_ADAPTER_NAME,
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
@@ -252,7 +252,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             Constants.SYSTEM_DECIMALS,
             address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WSTETH_PRICE_ADAPTER_NAME,
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
@@ -294,7 +294,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             Constants.SYSTEM_DECIMALS,
             address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WSTETH_PRICE_ADAPTER_NAME,
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,

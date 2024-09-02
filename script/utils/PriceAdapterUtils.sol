@@ -9,13 +9,13 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 library PriceAdapterUtils {
     function deployPriceAdapter(
-        PriceAdapter.PriceAdapterInitializeData memory params
+        PriceAdapter.InitializeParams memory params
     )
         internal
         returns (address priceAdapter)
     {
         address priceAdapterImplementation = address(new PriceAdapter());
-        bytes memory priceAdapterInitializeData = abi.encodeWithSelector(PriceAdapter.initialize.selector, params);
-        priceAdapter = address(new ERC1967Proxy(priceAdapterImplementation, priceAdapterInitializeData));
+        bytes memory InitializeParams = abi.encodeWithSelector(PriceAdapter.initialize.selector, params);
+        priceAdapter = address(new ERC1967Proxy(priceAdapterImplementation, InitializeParams));
     }
 }

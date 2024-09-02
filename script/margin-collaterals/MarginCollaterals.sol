@@ -50,7 +50,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: USDC_ADDRESS,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: USDC_PRICE_ADAPTER_NAME,
                         symbol: USDC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -79,7 +79,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: USDZ_ADDRESS,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: USDZ_PRICE_ADAPTER_NAME,
                         symbol: USDZ_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -108,7 +108,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: WETH_ADDRESS,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WETH_PRICE_ADAPTER_NAME,
                         symbol: WETH_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -137,7 +137,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: WEETH_ADDRESS,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WEETH_PRICE_ADAPTER_NAME,
                         symbol: WEETH_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -166,7 +166,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: WBTC_ADDRESS,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WBTC_PRICE_ADAPTER_NAME,
                         symbol: WBTC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -195,7 +195,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             marginCollateralAddress: WSTETH_ADDRESS,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.PriceAdapterInitializeData({
+                    PriceAdapter.InitializeParams({
                         name: WSTETH_PRICE_ADAPTER_NAME,
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -283,7 +283,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
                 priceAdapter = address(
                     PriceAdapterUtils.deployPriceAdapter(
-                        PriceAdapter.PriceAdapterInitializeData({
+                        PriceAdapter.InitializeParams({
                             name: filteredMarginCollateralsConfig[i].name,
                             symbol: filteredMarginCollateralsConfig[i].symbol,
                             owner: address(0x123),
