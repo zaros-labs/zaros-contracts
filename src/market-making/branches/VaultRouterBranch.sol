@@ -150,9 +150,9 @@ contract VaultRouterBranch {
 
         IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
 
-        Referral.Data storage referral = Referral.load(msg.sender);
-
         if (referralCode.length != 0) {
+            Referral.Data storage referral = Referral.load(msg.sender);
+
             if (isCustomReferralCode) {
                 CustomReferralConfiguration.Data storage customReferral =
                     CustomReferralConfiguration.load(string(referralCode));
@@ -215,15 +215,17 @@ contract VaultRouterBranch {
         WithdrawalRequest.Data storage withdrawalRequest =
             WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestId);
 
-        if (withdrawalRequest.fulfilled) revert Errors.NotFulfilled();
+        if (withdrawalRequest.fulfilled) revert Errors.WithdrawalRequestAlreadyFullfilled();
 
-        uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, address(this), msg.sender);
-
-        if (withdrawalRequest.timestamp + vault.withdrawalDelay < block.timestamp) {
+        if (withdrawalRequest.timestamp + vault.withdrawalDelay > block.timestamp) {
             revert Errors.WithdrawDelayNotPassed();
         }
 
+        uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, address(this), msg.sender);
+
         if (assets < minAssets) revert Errors.SlippageCheckFailed();
+
+        withdrawalRequest.fulfilled = true;
 
         emit LogRedeem(vaultId, msg.sender, assets);
     }

@@ -34,10 +34,15 @@ contract MarketMaking_deposit_Test is Base_Test {
         vm.expectEmit();
         emit VaultRouterBranch.LogDeposit(VAULT_ID, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, 0);
+        assertGt(zlpVault.balanceOf(users.naruto.account), 0);
     }
 
     function test_RevertWhen_SharesMintedAreLessThanMinAmount() external givenAUserDeposits {
-        // it should revert
+        uint256 assetsToDeposit = 1e18;
+        deal(address(wEth), users.naruto.account, assetsToDeposit);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector));
+        marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, type(uint256).max);
     }
 
     function test_RevertWhen_VaultDoesNotExist() external givenAUserDeposits {

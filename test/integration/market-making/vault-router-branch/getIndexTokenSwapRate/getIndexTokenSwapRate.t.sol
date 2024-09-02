@@ -13,6 +13,10 @@ contract MarketMaking_getIndexTokenSwapRate_Test is Base_Test {
     }
 
     function test_WhenGetIndexTokenSwapRateIsCalled() external {
-        // it should return the swap rate
+        uint256 assetsToDeposit = 1e18;
+        depositInVault(assetsToDeposit);
+        uint256 swapRate = marketMakingEngine.getIndexTokenSwapRate(VAULT_ID);
+
+        assertAlmostEq(zlpVault.previewRedeem(assetsToDeposit), swapRate, 1e17);
     }
 }

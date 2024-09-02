@@ -4,6 +4,12 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
 
+// Zaros dependencies source
+import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
+
+// Open Zeppelin dependencies
+import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
+
 contract MarketMaking_stake_Test is Base_Test {
 
     function setUp() public virtual override {
@@ -13,11 +19,30 @@ contract MarketMaking_stake_Test is Base_Test {
     }
 
     function test_RevertWhen_VaultIsInvalid() external {
-        // it should revert
+        uint256 sharesToStake = 1e18;
+        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
+        deal(address(indexToken), users.naruto.account, sharesToStake);
+
+        IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
+
+        vm.expectRevert();
+        marketMakingEngine.stake(0, sharesToStake, "", false);
     }
 
     function test_WhenUserHasShares() external {
-        // it should update staked shares
+        uint256 sharesToStake = 1e18;
+        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
+        deal(address(indexToken), users.naruto.account, sharesToStake);
+
+        IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
+
+        vm.expectEmit();
+        emit VaultRouterBranch.LogStake(VAULT_ID, users.naruto.account, sharesToStake);
+        marketMakingEngine.stake(VAULT_ID, sharesToStake, "", false);
+
+        bytes32 actorId = bytes32(uint256(uint160(address(users.naruto.account))));
+        uint256 userStakedShares = marketMakingEngine.workaround_Vault_getActorStakedShares(VAULT_ID, actorId);
+        assertEq(sharesToStake, userStakedShares);
     }
 
     modifier whenTheUserHasAReferralCode() {

@@ -203,6 +203,6 @@ library Errors {
     /// @notice Thrown when a withdrawal is attempted before the required delay has passed.
     error WithdrawDelayNotPassed();
 
-    /// @notice Thrown when a withdraw request is not yet fulfiled.
-    error NotFulfilled();
+    /// @notice Thrown when a withdraw request is fulfiled.
+    error WithdrawalRequestAlreadyFullfilled();
 }

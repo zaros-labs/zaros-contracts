@@ -560,8 +560,10 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](2);
 
-    bytes4[] memory vaultHarnessSelectors = new bytes4[](1);
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](3);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
+    vaultHarnessSelectors[1] = VaultHarness.workaround_Vault_getActorStakedShares.selector;
+    vaultHarnessSelectors[2] = VaultHarness.workaround_Vault_getTotalStakedShares.selector;
 
     bytes4[] memory withdrawalRequestHarnessSelectors = new bytes4[](1);
     withdrawalRequestHarnessSelectors[0] = WithdrawalRequestHarness.exposed_WithdrawalRequest_load.selector;
