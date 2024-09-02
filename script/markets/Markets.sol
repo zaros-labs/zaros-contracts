@@ -99,6 +99,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: BTC_PRICE_ADAPTER_NAME,
+                        symbol: BTC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: BTC_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -130,6 +132,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: ETH_PRICE_ADAPTER_NAME,
+                        symbol: ETH_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: ETH_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -161,6 +165,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: LINK_PRICE_ADAPTER_NAME,
+                        symbol: LINK_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: LINK_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -192,6 +198,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: ARB_PRICE_ADAPTER_NAME,
+                        symbol: ARB_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: ARB_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -223,6 +231,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: BNB_PRICE_ADAPTER_NAME,
+                        symbol: BNB_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: BNB_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -254,6 +264,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: DOGE_PRICE_ADAPTER_NAME,
+                        symbol: DOGE_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: DOGE_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -285,6 +297,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: SOL_PRICE_ADAPTER_NAME,
+                        symbol: SOL_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: SOL_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -316,6 +330,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: MATIC_PRICE_ADAPTER_NAME,
+                        symbol: MATIC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: MATIC_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -347,6 +363,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: LTC_PRICE_ADAPTER_NAME,
+                        symbol: LTC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: LTC_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -378,6 +396,8 @@ abstract contract Markets is
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: FTM_PRICE_ADAPTER_NAME,
+                        symbol: FTM_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
                         priceFeed: FTM_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
@@ -464,6 +484,8 @@ abstract contract Markets is
                     marketsConfig[i].priceAdapter = address(
                         PriceAdapterUtils.deployPriceAdapter(
                             PriceAdapter.ConstructorParams({
+                                name: marketsConfig[i].marketName,
+                                symbol: marketsConfig[i].marketSymbol,
                                 owner: address(0x123),
                                 priceFeed: address(new MockPriceFeed(18, mockQuantityInEth)),
                                 ethUsdPriceFeed: address(
@@ -480,6 +502,8 @@ abstract contract Markets is
                     marketsConfig[i].priceAdapter = address(
                         PriceAdapterUtils.deployPriceAdapter(
                             PriceAdapter.ConstructorParams({
+                                name: marketsConfig[i].marketName,
+                                symbol: marketsConfig[i].marketSymbol,
                                 owner: address(0x123),
                                 priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
                                 ethUsdPriceFeed: address(0),

@@ -10,6 +10,8 @@ abstract contract LtcUsd {
     uint128 internal constant LTC_USD_MARKET_ID = 9;
     string internal constant LTC_USD_MARKET_NAME = "LTCUSD Perpetual";
     string internal constant LTC_USD_MARKET_SYMBOL = "LTCUSD-PERP";
+    string internal constant LTC_PRICE_ADAPTER_NAME = "LTC/USD Zaros Price Adapter";
+    string internal constant LTC_PRICE_ADAPTER_SYMBOL = "LTC/USD";
     uint128 internal constant LTC_USD_IMR = 0.1e18;
     uint128 internal constant LTC_USD_MMR = 0.05e18;
     uint128 internal constant LTC_USD_MARGIN_REQUIREMENTS = LTC_USD_IMR + LTC_USD_MMR;

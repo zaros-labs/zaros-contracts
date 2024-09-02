@@ -10,6 +10,8 @@ abstract contract BnbUsd {
     uint128 internal constant BNB_USD_MARKET_ID = 5;
     string internal constant BNB_USD_MARKET_NAME = "BNBUSD Perpetual";
     string internal constant BNB_USD_MARKET_SYMBOL = "BNBUSD-PERP";
+    string internal constant BNB_PRICE_ADAPTER_NAME = "BNB/USD Zaros Price Adapter";
+    string internal constant BNB_PRICE_ADAPTER_SYMBOL = "BNB/USD";
     uint128 internal constant BNB_USD_IMR = 0.1e18;
     uint128 internal constant BNB_USD_MMR = 0.05e18;
     uint128 internal constant BNB_USD_MARGIN_REQUIREMENTS = BNB_USD_IMR + BNB_USD_MMR;

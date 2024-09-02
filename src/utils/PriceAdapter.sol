@@ -19,6 +19,12 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice The name of the Price Adapter.
+    string public name;
+
+    /// @notice The symbol of the Price Adapter.
+    string public symbol;
+
     /// @notice The Chainlink Price Feed address.
     address public priceFeed;
 
@@ -42,6 +48,8 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice The constructor parameters.
+    /// @param name The name of the Price Adapter.
+    /// @param symbol The symbol of the Price Adapter.
     /// @param owner The owner of the contract.
     /// @param _priceFeed The Chainlink Price Feed address.
     /// @param _ethUsdPriceFeed The Chainlink ETH/USD Price Feed address.
@@ -50,6 +58,8 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /// @param _ethUsdPriceFeedHeartbeatSeconds The number of seconds between ETH/USD price feed updates.
     /// @param _useEthPriceFeed A flag indicating if the price adapter is to use the custom version.
     struct ConstructorParams {
+        string name;
+        string symbol;
         address owner;
         address priceFeed;
         address ethUsdPriceFeed;
@@ -66,6 +76,8 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     function initialize(ConstructorParams memory params) external initializer {
         __Ownable_init(params.owner);
 
+        name = params.name;
+        symbol = params.symbol;
         priceFeed = params.priceFeed;
         ethUsdPriceFeed = params.ethUsdPriceFeed;
         sequencerUptimeFeed = params.sequencerUptimeFeed;

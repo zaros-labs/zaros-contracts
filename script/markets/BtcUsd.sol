@@ -10,6 +10,8 @@ abstract contract BtcUsd {
     uint128 internal constant BTC_USD_MARKET_ID = 1;
     string internal constant BTC_USD_MARKET_NAME = "BTCUSD Perpetual Futures";
     string internal constant BTC_USD_MARKET_SYMBOL = "BTCUSD-PERP";
+    string internal constant BTC_PRICE_ADAPTER_NAME = "BTC/USD Zaros Price Adapter";
+    string internal constant BTC_PRICE_ADAPTER_SYMBOL = "BTC/USD";
     uint128 internal constant BTC_USD_IMR = 0.01e18;
     uint128 internal constant BTC_USD_MMR = 0.005e18;
     uint128 internal constant BTC_USD_MARGIN_REQUIREMENTS = BTC_USD_IMR + BTC_USD_MMR;

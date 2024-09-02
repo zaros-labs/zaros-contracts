@@ -10,6 +10,8 @@ abstract contract FtmUsd {
     uint128 internal constant FTM_USD_MARKET_ID = 10;
     string internal constant FTM_USD_MARKET_NAME = "FTMUSD Perpetual";
     string internal constant FTM_USD_MARKET_SYMBOL = "FTMUSD-PERP";
+    string internal constant FTM_PRICE_ADAPTER_NAME = "FTM/USD Zaros Price Adapter";
+    string internal constant FTM_PRICE_ADAPTER_SYMBOL = "FTM/USD";
     uint128 internal constant FTM_USD_IMR = 0.1e18;
     uint128 internal constant FTM_USD_MMR = 0.05e18;
     uint128 internal constant FTM_USD_MARGIN_REQUIREMENTS = FTM_USD_IMR + FTM_USD_MMR;

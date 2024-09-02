@@ -10,6 +10,8 @@ abstract contract SolUsd {
     uint128 internal constant SOL_USD_MARKET_ID = 7;
     string internal constant SOL_USD_MARKET_NAME = "SOLUSD Perpetual";
     string internal constant SOL_USD_MARKET_SYMBOL = "SOLUSD-PERP";
+    string internal constant SOL_PRICE_ADAPTER_NAME = "SOL/USD Zaros Price Adapter";
+    string internal constant SOL_PRICE_ADAPTER_SYMBOL = "SOL/USD";
     uint128 internal constant SOL_USD_IMR = 0.1e18;
     uint128 internal constant SOL_USD_MMR = 0.05e18;
     uint128 internal constant SOL_USD_MARGIN_REQUIREMENTS = SOL_USD_IMR + SOL_USD_MMR;

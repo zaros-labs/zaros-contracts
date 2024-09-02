@@ -10,6 +10,8 @@ abstract contract EthUsd {
     uint128 internal constant ETH_USD_MARKET_ID = 2;
     string internal constant ETH_USD_MARKET_NAME = "ETHUSD Perpetual Futures";
     string internal constant ETH_USD_MARKET_SYMBOL = "ETHUSD-PERP";
+    string internal constant ETH_PRICE_ADAPTER_NAME = "ETH/USD Zaros Price Adapter";
+    string internal constant ETH_PRICE_ADAPTER_SYMBOL = "ETH/USD";
     uint128 internal constant ETH_USD_IMR = 0.01e18;
     uint128 internal constant ETH_USD_MMR = 0.005e18;
     uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR;

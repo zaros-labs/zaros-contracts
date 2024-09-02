@@ -62,7 +62,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        owner: address(0x123),
+                        name: WSTETH_PRICE_ADAPTER_NAME,
+                        symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
+                        owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
@@ -110,6 +112,8 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: WSTETH_PRICE_ADAPTER_NAME,
+                        symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
@@ -156,6 +160,8 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: WSTETH_PRICE_ADAPTER_NAME,
+                        symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
@@ -208,6 +214,8 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: WSTETH_PRICE_ADAPTER_NAME,
+                        symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
@@ -245,6 +253,8 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: WSTETH_PRICE_ADAPTER_NAME,
+                        symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeedWithInvalidReturn),
                         ethUsdPriceFeed: address(0),
@@ -285,6 +295,8 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        name: WSTETH_PRICE_ADAPTER_NAME,
+                        symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeedOldUpdatedAt),
                         ethUsdPriceFeed: address(0),

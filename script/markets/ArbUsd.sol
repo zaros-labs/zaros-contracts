@@ -10,6 +10,8 @@ abstract contract ArbUsd {
     uint128 internal constant ARB_USD_MARKET_ID = 4;
     string internal constant ARB_USD_MARKET_NAME = "ARBUSD Perpetual";
     string internal constant ARB_USD_MARKET_SYMBOL = "ARBUSD-PERP";
+    string internal constant ARB_PRICE_ADAPTER_NAME = "ARB/USD Zaros Price Adapter";
+    string internal constant ARB_PRICE_ADAPTER_SYMBOL = "ARB/USD";
     uint128 internal constant ARB_USD_IMR = 0.1e18;
     uint128 internal constant ARB_USD_MMR = 0.05e18;
     uint128 internal constant ARB_USD_MARGIN_REQUIREMENTS = ARB_USD_IMR + ARB_USD_MMR;

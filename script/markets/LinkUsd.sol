@@ -10,6 +10,8 @@ abstract contract LinkUsd {
     uint128 internal constant LINK_USD_MARKET_ID = 3;
     string internal constant LINK_USD_MARKET_NAME = "LINKUSD Perpetual";
     string internal constant LINK_USD_MARKET_SYMBOL = "LINKUSD-PERP";
+    string internal constant LINK_PRICE_ADAPTER_NAME = "LINK/USD Zaros Price Adapter";
+    string internal constant LINK_PRICE_ADAPTER_SYMBOL = "LINK/USD";
     uint128 internal constant LINK_USD_IMR = 0.05e18;
     uint128 internal constant LINK_USD_MMR = 0.025e18;
     uint128 internal constant LINK_USD_MARGIN_REQUIREMENTS = LINK_USD_IMR + LINK_USD_MMR;
