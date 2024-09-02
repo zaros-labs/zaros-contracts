@@ -82,7 +82,8 @@ abstract contract Markets is
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
     function setupMarketsConfig(address perpsEngine, address priceAdapterOwner) internal {
-        address sequencerUptimeFeed = address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
+        address sequencerUptimeFeed =
+            address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
 
         marketsConfig[BTC_USD_MARKET_ID] = MarketConfig({
             marketId: BTC_USD_MARKET_ID,

@@ -36,7 +36,8 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     mapping(uint256 marginCollateralId => MarginCollateral marginCollateral) internal marginCollaterals;
 
     function setupMarginCollaterals(address perpsEngine, address priceAdapterOwner) internal {
-        address sequencerUptimeFeed = address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
+        address sequencerUptimeFeed =
+            address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
 
         MarginCollateral memory usdcConfig = MarginCollateral({
             name: USDC_NAME,
