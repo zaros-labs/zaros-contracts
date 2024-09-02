@@ -43,6 +43,8 @@ import { CustomReferralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
+import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
+import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
 
 // Zaros dependencies script
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -55,8 +57,9 @@ import {
     deployHarnesses,
     getMarketMakingEngineInitializables,
     getMarketMakingEngineBranches,
-    getmmEngineInitPayloads,
-    getMarketMakerBranchesSelectors
+    getMarketMakingEngineInitPayloads,
+    getMarketMakerBranchesSelectors,
+    deployMarketMakingHarnesses
 } from "script/utils/TreeProxyUtils.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
@@ -89,7 +92,11 @@ abstract contract IPerpsEngine is
     CustomReferralConfigurationHarness
 { }
 
-abstract contract IMarketMakingEngine is IMarketMakingEngineBranches { }
+abstract contract IMarketMakingEngine is
+    IMarketMakingEngineBranches,
+    VaultHarness,
+    WithdrawalRequestHarness
+{ }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     using Math for UD60x18;
@@ -223,11 +230,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         address[] memory mmBranches = getMarketMakingEngineBranches();
         address[] memory initializableBranches = getMarketMakingEngineInitializables(mmBranches);
         bytes[] memory mmInitPayloads =
-            getmmEngineInitPayloads(address(perpsEngine), address(usdz), users.owner.account);
+            getMarketMakingEngineInitPayloads(address(perpsEngine), address(usdz), users.owner.account);
 
         bytes4[][] memory mmBranchesSelectors = getMarketMakerBranchesSelectors();
         RootProxy.BranchUpgrade[] memory mmBranchUpgrades =
             getBranchUpgrades(mmBranches, mmBranchesSelectors, RootProxy.BranchUpgradeAction.Add);
+
+        mmBranchUpgrades = deployMarketMakingHarnesses(mmBranchUpgrades);
 
         RootProxy.InitParams memory mmEngineInitParams = RootProxy.InitParams({
             initBranches: mmBranchUpgrades,
@@ -373,6 +382,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         changePrank({ msgSender: users.owner.account });
         marketMakingEngine.createVault(params);
+    }
+
+    function depositInVault(uint256 assetsToDeposit) internal {
+        deal(address(wEth), users.naruto.account, assetsToDeposit);
+
+        marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, 0);
     }
 
     function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {

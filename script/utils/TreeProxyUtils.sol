@@ -27,7 +27,8 @@ import { CustomReferralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 import { MarketMakingEngineConfigurationBranch } from "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
-
+import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
+import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
@@ -205,7 +206,6 @@ function getBranchUpgrades(
 
     for (uint256 i; i < branches.length; i++) {
         bytes4[] memory selectors = branchesSelectors[i];
-
         branchUpgrades[i] = RootProxy.BranchUpgrade({ branch: branches[i], action: action, selectors: selectors });
     }
 
@@ -482,7 +482,7 @@ function getMarketMakingEngineInitializables(address[] memory branches) pure ret
     return initializables;
 }
 
-function getmmEngineInitPayloads(address perpsEngine, address usdzToken, address owner) pure returns (bytes[] memory) {
+function getMarketMakingEngineInitPayloads(address perpsEngine, address usdzToken, address owner) pure returns (bytes[] memory) {
     bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory marketMakingEngineInitializeData =
@@ -516,6 +516,58 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
 
     selectors[0] = marketMakingEngineConfigBranchSelectors;
     selectors[1] = vaultRouterBranchSelectors;
+
+    return selectors;
+}
+
+function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+    returns (RootProxy.BranchUpgrade[] memory) {
+    address[] memory harnesses = deployMarketMakingAddressHarnesses();
+
+    bytes4[][] memory harnessesSelectors = getMarketMakingHarnessSelectors();
+
+    RootProxy.BranchUpgrade[] memory harnessesUpgrades =
+        getBranchUpgrades(harnesses, harnessesSelectors, RootProxy.BranchUpgradeAction.Add);
+
+    uint256 cachedBranchUpgradesLength = branchUpgrades.length;
+    uint256 maxLength = cachedBranchUpgradesLength + harnessesUpgrades.length;
+
+    RootProxy.BranchUpgrade[] memory brancheAndHarnessesUpgrades = new RootProxy.BranchUpgrade[](maxLength);
+
+    for (uint256 i; i < maxLength; i++) {
+        brancheAndHarnessesUpgrades[i] =
+            i < cachedBranchUpgradesLength ? branchUpgrades[i] : harnessesUpgrades[i - cachedBranchUpgradesLength];
+    }
+
+    return brancheAndHarnessesUpgrades;
+}
+
+function deployMarketMakingAddressHarnesses() returns (address[] memory) {
+    address[] memory addressHarnesses = new address[](2);
+
+    address vaultHarness = address(new VaultHarness());
+    console.log("VaultHarness: ", vaultHarness);
+
+    address withdrawalRequestHarness = address(new WithdrawalRequestHarness());
+    console.log("WithdrawalRequestHarness: ", withdrawalRequestHarness);
+
+    addressHarnesses[0] = vaultHarness;
+    addressHarnesses[1] = withdrawalRequestHarness;
+
+    return addressHarnesses;
+}
+
+function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
+    bytes4[][] memory selectors = new bytes4[][](2);
+
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](1);
+    vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
+
+    bytes4[] memory withdrawalRequestHarnessSelectors = new bytes4[](1);
+    withdrawalRequestHarnessSelectors[0] = WithdrawalRequestHarness.exposed_WithdrawalRequest_load.selector;
+
+    selectors[0] = vaultHarnessSelectors;
+    selectors[1] = withdrawalRequestHarnessSelectors;
 
     return selectors;
 }
