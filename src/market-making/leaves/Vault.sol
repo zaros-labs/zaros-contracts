@@ -8,6 +8,9 @@ import { Distribution } from "./Distribution.sol";
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
+// PRB Math dependencies
+import { SD59x18 } from "@prb-math/SD59x18.sol";
+
 library Vault {
     /// @notice ERC7201 storage location.
     bytes32 internal constant VAULT_LOCATION =
@@ -50,4 +53,12 @@ library Vault {
             vault.slot := slot
         }
     }
+
+    // TODO: see if we need market id here or if we return the updated credit delegations to update the `MarketDebt`
+    // state.
+    /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
+    function updateVaultsCreditDelegation(uint256[] memory vaultsIds, uint128 marketId) internal { }
+
+    /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
+    function updateVaultsUnsettledDebt(uint256[] memory vaultsIds, SD59x18 realizedDebtChangeUsdX18) internal { }
 }
