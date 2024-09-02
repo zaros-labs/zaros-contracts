@@ -7,16 +7,18 @@ import { Distribution } from "./Distribution.sol";
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @dev A perp market won't be abl
 library MarketDebt {
     using Distribution for Distribution.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
+    using SafeCast for int256;
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_DEBT_LOCATION =
@@ -46,6 +48,7 @@ library MarketDebt {
         uint128 openInterestCapScale;
         uint128 skewCapScale;
         int128 realizedDebtUsd;
+        int128 lastDistributedTotalDebtUsdX18;
         EnumerableMap.AddressToUintMap collectedMarginCollateral;
         EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
@@ -97,12 +100,31 @@ library MarketDebt {
 
     function addMarginCollateral(Data storage self, address collateralType, UD60x18 amountX18) internal { }
 
+    // TODO: see how to return the unsettled debt change
     function distributeDebtToVaults(
         Data storage self,
         SD59x18 newTotalDebtUsdX18,
-        SD59x18 realizedDebtUsdX18
+        SD59x18 debtToRealizeUsdX18
     )
         internal
-        returns (SD59x18 realizedDebtChangeUsdX18)
-    { }
+        returns (SD59x18 unsettledDebtChangeUsdX18)
+    {
+        // loads the vaults debt distribution storage pointer
+        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
+        // int128 -> SD59x18
+        SD59x18 lastDistributedTotalDebtUsdX18 = sd59x18(self.lastDistributedTotalDebtUsdX18);
+
+        /// distributes the delta between the last distributed total debt and the new total debt to the vaults and
+        /// cache the unsettled debt change in the distribution.
+        // NOTE: this unsettled debt value will be further distributed to the vaults in the next iteration at the
+        // parent context, which is then settled for USDC by the protocol when applicable.
+
+        vaultsDebtDistribution.distributeValue(lastDistributedTotalDebtUsdX18.sub(newTotalDebtUsdX18));
+
+        // adds the minted usdz into the stored realized debt
+        self.realizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
+
+        // update the last distributed total debt
+        self.lastDistributedTotalDebtUsdX18 = newTotalDebtUsdX18.intoInt256().toInt128();
+    }
 }
