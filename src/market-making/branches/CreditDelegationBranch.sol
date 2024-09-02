@@ -145,6 +145,8 @@ contract CreditDelegationBranch {
     /// @dev Called by the perps engine to mint USDz to profitable traders.
     /// @dev USDz association with a trading account happens at the perps engine.
     /// @dev This function assumes the perps engine won't call it with a zero amount.
+    /// @dev Effects must be applied at the perps engine before calling this function, otherwise it will assume an
+    /// incorrect total debt value.
     /// @param marketId The perps engine's market id requesting USDz.
     /// @param amount The amount of USDz to mint.
     /// @dev Invariants involved in the call:
@@ -168,16 +170,18 @@ contract CreditDelegationBranch {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
+        // TODO: do we update the vaults credit delegation before distributing debt to them?
+        // TODO: is the unsettled debt distributed before or after recalculating the vaults credit delegation?
         // syncs the connected vaults' credit delegation to this market before updating the debt distribution chain
         Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
 
-        // update the market's vaults debt distribution and its realized debt, returning the realized debt change
-        SD59x18 realizedDebtChangeUsdX18 =
+        // update the market's vaults debt distribution and its realized debt, returning the unsettled debt change
+        SD59x18 unsettledDebtChangeUsdX18 =
             marketDebt.distributeDebtToVaults(marketDebt.getTotalDebt(), sd59x18(amount.toInt256()));
 
         // updates the unsettled debt values of each vault delegating credit to this market, according to the realized
         // debt change of this market
-        Vault.updateVaultsUnsettledDebt(connectedVaultsIds, realizedDebtChangeUsdX18);
+        Vault.updateVaultsUnsettledDebt(connectedVaultsIds, unsettledDebtChangeUsdX18);
 
         // loads the market making engine configuration storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
@@ -189,6 +193,7 @@ contract CreditDelegationBranch {
         usdz.mint(msg.sender, amount);
 
         // emit an event
+        // TODO: add parameters
         emit LogRequestUsdzForMarketId(marketId, amount);
     }
 
