@@ -59,8 +59,8 @@ contract FeeDistributionBranch {
     /// @notice Returns the claimable amount of WETH fees for the given staker at a given vault.
     /// @param vaultId The vault id to claim fees from.
     /// @param staker The staker address.
-    /// @return The amount of WETH fees claimable.
-    function getEarnedFees(uint256 vaultId, address staker) external view returns (uint256) {
+    /// @return earnedFees The amount of WETH fees claimable.
+    function getEarnedFees(uint256 vaultId, address staker) external view returns (uint256 earnedFees) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
         Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
@@ -75,7 +75,7 @@ contract FeeDistributionBranch {
 
         UD60x18 claimableAmount = unsignedValuePerShare.mul(actorShares);
 
-        return claimableAmount.intoUint256();
+        earnedFees = claimableAmount.intoUint256();
     }
 
     /// @dev Invariants involved in the call:
@@ -134,9 +134,9 @@ contract FeeDistributionBranch {
         // Calculate and distribute shares of the converted fees
         uint256 feeDistributorShares = FeeRecipient.load(MarketMakingEngineConfiguration.load().feeDistributor).share;
         uint256 feeAmountToDistributor =
-            _calculateFees(feeDistributorShares, _accumulatedWeth, Vault.TOTAL_FEE_SHARES);
+            _calculateFees(feeDistributorShares, _accumulatedWeth, Distribution.TOTAL_FEE_SHARES);
         distributionData.rewardDistributorUnsettled = feeAmountToDistributor;
-        distributionData.recipientsFeeUnsettled = _accumulatedWeth - distributionDatas.rewardDistributorUnsettled;
+        distributionData.recipientsFeeUnsettled = _accumulatedWeth - distributionData.rewardDistributorUnsettled;
     }
 
     /// @dev Invariants involved in the call:
@@ -162,6 +162,7 @@ contract FeeDistributionBranch {
             MarketMakingEngineConfiguration.load();
 
         Vault.Data storage vaultData = Vault.load(vaultId);
+        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
 
         /// TODO: make error for check
         // if (feeData.recipientsFeeUnsettled == 0){
@@ -172,7 +173,7 @@ contract FeeDistributionBranch {
         address wethAddr = marketMakingEngineConfigurationData.weth;
 
         uint256 feeDistributorShares = FeeRecipient.load(marketMakingEngineConfigurationData.feeDistributor).share;
-        uint256 totalShares = Vault.TOTAL_FEE_SHARES - feeDistributorShares;
+        uint256 totalShares = Distribution.TOTAL_FEE_SHARES - feeDistributorShares;
 
         for (uint256 i; i < recipientsList.length; ++i) {
             if (recipientsList[i] == marketMakingEngineConfigurationData.feeDistributor) {
@@ -180,7 +181,7 @@ contract FeeDistributionBranch {
             }
             FeeRecipient.Data storage feeRecipientData = FeeRecipient.load(recipientsList[i]);
             uint256 amountToSend =
-                _calculateFees(feeRecipientData.share, vaultData.recipientsFeeUnsettled, totalShares);
+                _calculateFees(feeRecipientData.share, distributionData.recipientsFeeUnsettled, totalShares);
 
             address recipientAddress = recipientsList[i];
 

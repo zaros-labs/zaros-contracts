@@ -14,6 +14,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 library Distribution {
     using SafeCast for int256;
 
+    uint256 internal constant TOTAL_FEE_SHARES = 10_000;
+
     struct Actor {
         uint128 shares;
         int128 lastValuePerShare;
