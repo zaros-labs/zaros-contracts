@@ -14,7 +14,7 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 interface IPriceAdapter {
     /// @notice Gets the price of the token.
     /// @return priceUsdX18 The USD quote of the token.
-    function getPrice() external view returns (UD60x18 price);
+    function getPrice() external view returns (UD60x18 priceUsdX18);
 }
 
 contract PriceAdapter is IPriceAdapter {
@@ -79,7 +79,7 @@ contract PriceAdapter is IPriceAdapter {
 
     /// @notice Gets the price of the token.
     /// @return priceUsdX18 The USD quote of the token.
-    function getPrice() external view returns (UD60x18 price) {
+    function getPrice() external view returns (UD60x18 priceUsdX18) {
         address sequencerUptimeFeed = IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid);
 
         if (useCustomPriceAdapter) {
@@ -99,9 +99,9 @@ contract PriceAdapter is IPriceAdapter {
                 })
             );
 
-            price = quantityTokenInEth.mul(ethUsdPrice);
+            priceUsdX18 = quantityTokenInEth.mul(ethUsdPrice);
         } else {
-            price = ChainlinkUtil.getPrice(
+            priceUsdX18 = ChainlinkUtil.getPrice(
                 ChainlinkUtil.GetPriceParams({
                     priceFeed: IAggregatorV3(priceFeed),
                     priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
