@@ -51,13 +51,13 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /// @param name The name of the Price Adapter.
     /// @param symbol The symbol of the Price Adapter.
     /// @param owner The owner of the contract.
-    /// @param _priceFeed The Chainlink Price Feed address.
-    /// @param _ethUsdPriceFeed The Chainlink ETH/USD Price Feed address.
-    /// @param _sequencerUptimeFeed The Sequencer Uptime Feed address.
-    /// @param _priceFeedHeartbeatSeconds The number of seconds between price feed updates.
-    /// @param _ethUsdPriceFeedHeartbeatSeconds The number of seconds between ETH/USD price feed updates.
-    /// @param _useEthPriceFeed A flag indicating if the price adapter is to use the custom version.
-    struct ConstructorParams {
+    /// @param priceFeed The Chainlink Price Feed address.
+    /// @param ethUsdPriceFeed The Chainlink ETH/USD Price Feed address.
+    /// @param sequencerUptimeFeed The Sequencer Uptime Feed address.
+    /// @param priceFeedHeartbeatSeconds The number of seconds between price feed updates.
+    /// @param ethUsdPriceFeedHeartbeatSeconds The number of seconds between ETH/USD price feed updates.
+    /// @param useEthPriceFeed A flag indicating if the price adapter is to use the custom version.
+    struct PriceAdapterInitializeData {
         string name;
         string symbol;
         address owner;
@@ -73,7 +73,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                                      INITIALIZE
     //////////////////////////////////////////////////////////////////////////*/
 
-    function initialize(ConstructorParams memory params) external initializer {
+    function initialize(PriceAdapterInitializeData memory params) external initializer {
         __Ownable_init(params.owner);
 
         name = params.name;

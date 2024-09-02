@@ -98,7 +98,7 @@ abstract contract Markets is
             maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: BTC_PRICE_ADAPTER_NAME,
                         symbol: BTC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -131,7 +131,7 @@ abstract contract Markets is
             maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: ETH_PRICE_ADAPTER_NAME,
                         symbol: ETH_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -164,7 +164,7 @@ abstract contract Markets is
             maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: LINK_PRICE_ADAPTER_NAME,
                         symbol: LINK_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -197,7 +197,7 @@ abstract contract Markets is
             maxFundingVelocity: ARB_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: ARB_PRICE_ADAPTER_NAME,
                         symbol: ARB_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -230,7 +230,7 @@ abstract contract Markets is
             maxFundingVelocity: BNB_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: BNB_PRICE_ADAPTER_NAME,
                         symbol: BNB_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -263,7 +263,7 @@ abstract contract Markets is
             maxFundingVelocity: DOGE_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: DOGE_PRICE_ADAPTER_NAME,
                         symbol: DOGE_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -296,7 +296,7 @@ abstract contract Markets is
             maxFundingVelocity: SOL_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: SOL_PRICE_ADAPTER_NAME,
                         symbol: SOL_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -329,7 +329,7 @@ abstract contract Markets is
             maxFundingVelocity: MATIC_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: MATIC_PRICE_ADAPTER_NAME,
                         symbol: MATIC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -362,7 +362,7 @@ abstract contract Markets is
             maxFundingVelocity: LTC_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: LTC_PRICE_ADAPTER_NAME,
                         symbol: LTC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -395,7 +395,7 @@ abstract contract Markets is
             maxFundingVelocity: FTM_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
-                    PriceAdapter.ConstructorParams({
+                    PriceAdapter.PriceAdapterInitializeData({
                         name: FTM_PRICE_ADAPTER_NAME,
                         symbol: FTM_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
@@ -483,7 +483,7 @@ abstract contract Markets is
 
                     marketsConfig[i].priceAdapter = address(
                         PriceAdapterUtils.deployPriceAdapter(
-                            PriceAdapter.ConstructorParams({
+                            PriceAdapter.PriceAdapterInitializeData({
                                 name: marketsConfig[i].marketName,
                                 symbol: marketsConfig[i].marketSymbol,
                                 owner: address(0x123),
@@ -501,7 +501,7 @@ abstract contract Markets is
                 } else {
                     marketsConfig[i].priceAdapter = address(
                         PriceAdapterUtils.deployPriceAdapter(
-                            PriceAdapter.ConstructorParams({
+                            PriceAdapter.PriceAdapterInitializeData({
                                 name: marketsConfig[i].marketName,
                                 symbol: marketsConfig[i].marketSymbol,
                                 owner: address(0x123),
