@@ -13,6 +13,7 @@ import { MockSequencerUptimeFeedWithInvalidReturn } from "test/mocks/MockSequenc
 import { MockSequencerUptimeFeedDown } from "test/mocks/MockSequencerUptimeFeedDown.sol";
 import { MockSequencerUptimeFeedGracePeriodNotOver } from "test/mocks/MockSequencerUptimeFeedGracePeriodNotOver.sol";
 import { IPriceAdapter, PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -60,9 +61,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: address(perpsEngine),
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -97,13 +98,26 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         MockSequencerUptimeFeedWithInvalidReturn mockSequencerUptimeFeedWithInvalidReturn =
             new MockSequencerUptimeFeedWithInvalidReturn();
 
-        uint256[] memory chainIds = new uint256[](1);
-        chainIds[0] = block.chainid;
+        MockPriceFeed mockPriceFeed = new MockPriceFeed(Constants.SYSTEM_DECIMALS, int256(MOCK_WEETH_USD_PRICE));
 
-        address[] memory sequencerUptimeFeeds = new address[](1);
-        sequencerUptimeFeeds[0] = address(mockSequencerUptimeFeedWithInvalidReturn);
-
-        perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
+        perpsEngine.exposed_configure(
+            collateral,
+            WSTETH_DEPOSIT_CAP_X18.intoUint128(),
+            WSTETH_LOAN_TO_VALUE,
+            Constants.SYSTEM_DECIMALS,
+            address(
+                new PriceAdapter(
+                    PriceAdapter.ConstructorParams({
+                        priceFeed: address(mockPriceFeed),
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: address(mockSequencerUptimeFeedWithInvalidReturn),
+                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useCustomPriceAdapter: false
+                    })
+                )
+            )
+        );
 
         changePrank({ msgSender: users.naruto.account });
 
@@ -128,13 +142,27 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
         changePrank({ msgSender: users.owner.account });
         MockSequencerUptimeFeedDown mockSequencerUptimeFeedDown = new MockSequencerUptimeFeedDown();
-        uint256[] memory chainIds = new uint256[](1);
-        chainIds[0] = block.chainid;
 
-        address[] memory sequencerUptimeFeeds = new address[](1);
-        sequencerUptimeFeeds[0] = address(mockSequencerUptimeFeedDown);
+        MockPriceFeed mockPriceFeed = new MockPriceFeed(Constants.SYSTEM_DECIMALS, int256(MOCK_WEETH_USD_PRICE));
 
-        perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
+        perpsEngine.exposed_configure(
+            collateral,
+            WSTETH_DEPOSIT_CAP_X18.intoUint128(),
+            WSTETH_LOAN_TO_VALUE,
+            Constants.SYSTEM_DECIMALS,
+            address(
+                new PriceAdapter(
+                    PriceAdapter.ConstructorParams({
+                        priceFeed: address(mockPriceFeed),
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: address(mockSequencerUptimeFeedDown),
+                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useCustomPriceAdapter: false
+                    })
+                )
+            )
+        );
 
         changePrank({ msgSender: users.naruto.account });
 
@@ -165,13 +193,27 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         changePrank({ msgSender: users.owner.account });
         MockSequencerUptimeFeedGracePeriodNotOver mockSequencerUptimeFeedGracePeriodNotOver =
             new MockSequencerUptimeFeedGracePeriodNotOver();
-        uint256[] memory chainIds = new uint256[](1);
-        chainIds[0] = block.chainid;
 
-        address[] memory sequencerUptimeFeeds = new address[](1);
-        sequencerUptimeFeeds[0] = address(mockSequencerUptimeFeedGracePeriodNotOver);
+        MockPriceFeed mockPriceFeed = new MockPriceFeed(Constants.SYSTEM_DECIMALS, int256(MOCK_WEETH_USD_PRICE));
 
-        perpsEngine.configureSequencerUptimeFeedByChainId(chainIds, sequencerUptimeFeeds);
+        perpsEngine.exposed_configure(
+            collateral,
+            WSTETH_DEPOSIT_CAP_X18.intoUint128(),
+            WSTETH_LOAN_TO_VALUE,
+            Constants.SYSTEM_DECIMALS,
+            address(
+                new PriceAdapter(
+                    PriceAdapter.ConstructorParams({
+                        priceFeed: address(mockPriceFeed),
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: address(mockSequencerUptimeFeedGracePeriodNotOver),
+                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useCustomPriceAdapter: false
+                    })
+                )
+            )
+        );
 
         changePrank({ msgSender: users.naruto.account });
 
@@ -198,9 +240,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: address(perpsEngine),
                         priceFeed: address(mockPriceFeedWithInvalidReturn),
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -237,9 +279,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: address(perpsEngine),
                         priceFeed: address(mockPriceFeedOldUpdatedAt),
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false

@@ -8,7 +8,6 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // Zaros dependencies
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 
 /// @notice The interface for the price adapter.
 interface IPriceAdapter {
@@ -22,14 +21,14 @@ contract PriceAdapter is IPriceAdapter {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice The Zaros Perpetuals Engine.
-    address perpsEngine;
-
     /// @notice The Chainlink Price Feed address.
     address public immutable priceFeed;
 
     /// @notice The Chainlink ETH/USD Price Feed address.
     address immutable ethUsdPriceFeed;
+
+    /// @notice The Sequencer Uptime Feed address.
+    address immutable sequencerUptimeFeed;
 
     /// @notice The number of seconds between price feed updates.
     uint32 immutable priceFeedHeartbeatSeconds;
@@ -45,16 +44,16 @@ contract PriceAdapter is IPriceAdapter {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice The constructor parameters.
-    /// @param _perpsEngine The Zaros Perpetuals Engine.
     /// @param _priceFeed The Chainlink Price Feed address.
     /// @param _ethUsdPriceFeed The Chainlink ETH/USD Price Feed address.
+    /// @param _sequencerUptimeFeed The Sequencer Uptime Feed address.
     /// @param _priceFeedHeartbeatSeconds The number of seconds between price feed updates.
     /// @param _ethUsdPriceFeedHeartbeatSeconds The number of seconds between ETH/USD price feed updates.
     /// @param _useCustomPriceAdapter A flag indicating if the price adapter is to use the custom version.
     struct ConstructorParams {
-        address perpsEngine;
         address priceFeed;
         address ethUsdPriceFeed;
+        address sequencerUptimeFeed;
         uint32 priceFeedHeartbeatSeconds;
         uint32 ethUsdPriceFeedHeartbeatSeconds;
         bool useCustomPriceAdapter;
@@ -65,9 +64,9 @@ contract PriceAdapter is IPriceAdapter {
     //////////////////////////////////////////////////////////////////////////*/
 
     constructor(ConstructorParams memory params) {
-        perpsEngine = params.perpsEngine;
         priceFeed = params.priceFeed;
         ethUsdPriceFeed = params.ethUsdPriceFeed;
+        sequencerUptimeFeed = params.sequencerUptimeFeed;
         priceFeedHeartbeatSeconds = params.priceFeedHeartbeatSeconds;
         ethUsdPriceFeedHeartbeatSeconds = params.ethUsdPriceFeedHeartbeatSeconds;
         useCustomPriceAdapter = params.useCustomPriceAdapter;
@@ -80,8 +79,6 @@ contract PriceAdapter is IPriceAdapter {
     /// @notice Gets the price of the token.
     /// @return priceUsdX18 The USD quote of the token.
     function getPrice() external view returns (UD60x18 priceUsdX18) {
-        address sequencerUptimeFeed = IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid);
-
         if (useCustomPriceAdapter) {
             UD60x18 quantityTokenInEth = ChainlinkUtil.getPrice(
                 ChainlinkUtil.GetPriceParams({

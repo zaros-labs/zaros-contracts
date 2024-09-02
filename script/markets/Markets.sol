@@ -10,6 +10,7 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -80,6 +81,8 @@ abstract contract Markets is
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
     function setupMarketsConfig(address perpsEngine) internal {
+        address sequencerUptimeFeed = address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
+
         marketsConfig[BTC_USD_MARKET_ID] = MarketConfig({
             marketId: BTC_USD_MARKET_ID,
             marketName: BTC_USD_MARKET_NAME,
@@ -95,9 +98,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: BTC_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -125,9 +128,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: ETH_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -155,9 +158,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: LINK_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: LINK_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -185,9 +188,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: ARB_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: ARB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -215,9 +218,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: BNB_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -245,9 +248,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: DOGE_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -275,9 +278,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: SOL_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -305,9 +308,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: MATIC_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -335,9 +338,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: LTC_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -365,9 +368,9 @@ abstract contract Markets is
             priceAdapter: address(
                 new PriceAdapter(
                     PriceAdapter.ConstructorParams({
-                        perpsEngine: perpsEngine,
                         priceFeed: FTM_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useCustomPriceAdapter: false
@@ -439,6 +442,8 @@ abstract contract Markets is
             });
 
             if (isTest) {
+                address mockSequencerUptimeFeed = address(new MockSequencerUptimeFeed(0));
+
                 if (i % 2 == 0) {
                     UD60x18 mockEthUsdPrice = ud60x18(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice);
                     UD60x18 mockSelectedMarketUsdPrice = ud60x18(marketsConfig[i].mockUsdPrice);
@@ -448,11 +453,11 @@ abstract contract Markets is
                     marketsConfig[i].priceAdapter = address(
                         new PriceAdapter(
                             PriceAdapter.ConstructorParams({
-                                perpsEngine: address(perpsEngine),
                                 priceFeed: address(new MockPriceFeed(18, mockQuantityInEth)),
                                 ethUsdPriceFeed: address(
                                     new MockPriceFeed(18, int256(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice))
                                 ),
+                                sequencerUptimeFeed: mockSequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
                                 ethUsdPriceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                                 useCustomPriceAdapter: true
@@ -463,9 +468,9 @@ abstract contract Markets is
                     marketsConfig[i].priceAdapter = address(
                         new PriceAdapter(
                             PriceAdapter.ConstructorParams({
-                                perpsEngine: address(perpsEngine),
                                 priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
                                 ethUsdPriceFeed: address(0),
+                                sequencerUptimeFeed: mockSequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
                                 ethUsdPriceFeedHeartbeatSeconds: 0,
                                 useCustomPriceAdapter: false
