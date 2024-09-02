@@ -13,7 +13,7 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 /// @notice The interface for the price adapter.
 interface IPriceAdapter {
     /// @notice Gets the price of the token.
-    /// @return price The price of the token.
+    /// @return priceUsdX18 The USD quote of the token.
     function getPrice() external view returns (UD60x18 price);
 }
 
@@ -78,7 +78,7 @@ contract PriceAdapter is IPriceAdapter {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Gets the price of the token.
-    /// @return price The price of the token.
+    /// @return priceUsdX18 The USD quote of the token.
     function getPrice() external view returns (UD60x18 price) {
         address sequencerUptimeFeed = IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid);
 
