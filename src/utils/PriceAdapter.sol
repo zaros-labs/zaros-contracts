@@ -41,7 +41,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     uint32 public ethUsdPriceFeedHeartbeatSeconds;
 
     /// @notice A flag indicating if the price adapter is to use the custom version.
-    bool public useCustomPriceAdapter;
+    bool public useEthPriceFeed;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      STRUCTS
@@ -54,7 +54,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /// @param _sequencerUptimeFeed The Sequencer Uptime Feed address.
     /// @param _priceFeedHeartbeatSeconds The number of seconds between price feed updates.
     /// @param _ethUsdPriceFeedHeartbeatSeconds The number of seconds between ETH/USD price feed updates.
-    /// @param _useCustomPriceAdapter A flag indicating if the price adapter is to use the custom version.
+    /// @param _useEthPriceFeed A flag indicating if the price adapter is to use the custom version.
     struct ConstructorParams {
         address owner;
         address priceFeed;
@@ -62,7 +62,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
         address sequencerUptimeFeed;
         uint32 priceFeedHeartbeatSeconds;
         uint32 ethUsdPriceFeedHeartbeatSeconds;
-        bool useCustomPriceAdapter;
+        bool useEthPriceFeed;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -77,7 +77,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
         sequencerUptimeFeed = params.sequencerUptimeFeed;
         priceFeedHeartbeatSeconds = params.priceFeedHeartbeatSeconds;
         ethUsdPriceFeedHeartbeatSeconds = params.ethUsdPriceFeedHeartbeatSeconds;
-        useCustomPriceAdapter = params.useCustomPriceAdapter;
+        useEthPriceFeed = params.useEthPriceFeed;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Gets the price of the token.
     /// @return priceUsdX18 The USD quote of the token.
     function getPrice() external view returns (UD60x18 priceUsdX18) {
-        if (useCustomPriceAdapter) {
+        if (useEthPriceFeed) {
             UD60x18 quantityTokenInEth = ChainlinkUtil.getPrice(
                 ChainlinkUtil.GetPriceParams({
                     priceFeed: IAggregatorV3(priceFeed),

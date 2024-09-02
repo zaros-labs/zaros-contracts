@@ -105,7 +105,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -136,7 +136,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -167,7 +167,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: LINK_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -198,7 +198,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: ARB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -229,7 +229,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -260,7 +260,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -291,7 +291,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -322,7 +322,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -353,7 +353,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -384,7 +384,7 @@ abstract contract Markets is
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -472,7 +472,7 @@ abstract contract Markets is
                                 sequencerUptimeFeed: mockSequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
                                 ethUsdPriceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
-                                useCustomPriceAdapter: true
+                                useEthPriceFeed: true
                             })
                         )
                     );
@@ -486,7 +486,7 @@ abstract contract Markets is
                                 sequencerUptimeFeed: mockSequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
                                 ethUsdPriceFeedHeartbeatSeconds: 0,
-                                useCustomPriceAdapter: false
+                                useEthPriceFeed: false
                             })
                         )
                     );

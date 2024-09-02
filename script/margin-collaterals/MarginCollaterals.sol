@@ -56,7 +56,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: USDC_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -83,7 +83,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: USDZ_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -110,7 +110,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: WETH_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -137,7 +137,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: WEETH_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -164,7 +164,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: WBTC_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -191,7 +191,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: WSTETH_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             ),
@@ -277,7 +277,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                             sequencerUptimeFeed: mockSequencerUptimeFeed,
                             priceFeedHeartbeatSeconds: 86_400,
                             ethUsdPriceFeedHeartbeatSeconds: 0,
-                            useCustomPriceAdapter: false
+                            useEthPriceFeed: false
                         })
                     )
                 );

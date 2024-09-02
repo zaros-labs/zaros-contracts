@@ -21,7 +21,7 @@ library MarginCollateralConfiguration {
     /// @param decimals The decimals of the given margin collateral type's ERC20 token.
     /// @param priceAdapter The price adapter address of the given margin collateral type.
     /// @param totalDeposited The total amount of margin collateral deposited normalized to 18 decimals.
-    /// @param useCustomPriceAdapter A flag indicating if the margin collateral type uses a custom price adapter.
+    /// @param useEthPriceFeed A flag indicating if the margin collateral type uses a custom price adapter.
     struct Data {
         uint128 depositCap;
         uint120 loanToValue;

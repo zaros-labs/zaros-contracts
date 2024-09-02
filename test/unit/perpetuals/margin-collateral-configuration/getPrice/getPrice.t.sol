@@ -68,7 +68,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             )
@@ -116,7 +116,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedWithInvalidReturn),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             )
@@ -162,7 +162,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedDown),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             )
@@ -214,7 +214,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedGracePeriodNotOver),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             )
@@ -251,7 +251,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             )
@@ -291,7 +291,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useCustomPriceAdapter: false
+                        useEthPriceFeed: false
                     })
                 )
             )

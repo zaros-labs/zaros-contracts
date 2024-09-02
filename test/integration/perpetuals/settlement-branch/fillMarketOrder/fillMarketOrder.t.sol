@@ -852,7 +852,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         updateMockPriceFeed(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice);
 
         // to prevent rounded numbers
-        if (PriceAdapter(ctx.fuzzMarketConfig.priceAdapter).useCustomPriceAdapter()) {
+        if (PriceAdapter(ctx.fuzzMarketConfig.priceAdapter).useEthPriceFeed()) {
             ctx.newIndexPrice = IPriceAdapter(ctx.fuzzMarketConfig.priceAdapter).getPrice().intoUint256();
         }
 
@@ -1182,7 +1182,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         updateMockPriceFeed(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice);
 
         // to prevent rounded numbers
-        if (PriceAdapter(ctx.fuzzMarketConfig.priceAdapter).useCustomPriceAdapter()) {
+        if (PriceAdapter(ctx.fuzzMarketConfig.priceAdapter).useEthPriceFeed()) {
             ctx.newIndexPrice = IPriceAdapter(ctx.fuzzMarketConfig.priceAdapter).getPrice().intoUint256();
         }
 
