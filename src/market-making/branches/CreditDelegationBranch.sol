@@ -153,23 +153,37 @@ contract CreditDelegationBranch {
         // loads the market's debt data storage pointer
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
+        // get the vault ids delegating credit to this market
+        uint256[] memory connectedVaultsIds = marketDebt.getConnectedVaultsIds();
+
+        // if the market has delegated credit, this scenario should never happen, but we double check and consider
+        // it a panic state
+        if (connectedVaultsIds.length == 0) {
+            revert Errors.NoConnectedVaults(marketId);
+        }
+
         // enforces that the market has delegated credit, if it' a listed market it must always have delegated credit,
-        // see Vault.lockedCreditRatio
+        // see Vault.Data.lockedCreditRatio
         if (marketDebt.getDelegatedCredit().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
+
+        // syncs the connected vaults' credit delegation to this market before updating the debt distribution chain
+        Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
+
+        // update the market's vaults debt distribution and its realized debt, returning the realized debt change
+        SD59x18 realizedDebtChangeUsdX18 =
+            marketDebt.distributeDebtToVaults(marketDebt.getTotalDebt(), sd59x18(amount.toInt256()));
+
+        // updates the unsettled debt values of each vault delegating credit to this market, according to the realized
+        // debt change of this market
+        Vault.updateVaultsUnsettledDebt(connectedVaultsIds, realizedDebtChangeUsdX18);
 
         // loads the market making engine configuration storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
         // cache the USDz address
         USDToken usdz = USDToken(marketMakingEngineConfiguration.usdz);
-
-        // update the market's vaults debt distribution and its realized debt
-        marketDebt.distributeDebtToVaults(sd59x18(amount.toInt256()));
-        // searches in range vaults and return them for updating the debt distribution chain
-        uint128[] memory inRangeVaultsIds = marketDebt.getInRangeVaultsIds();
-        Vault.updateVaultsUnsettledDebt(inRangeVaultsIds, marketId);
 
         // mints USDz to the perps engine
         usdz.mint(msg.sender, amount);

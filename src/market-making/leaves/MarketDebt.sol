@@ -6,16 +6,17 @@ import { Distribution } from "./Distribution.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-
-// Solady dependencies
-import { MinHeapLib } from "@solady/Milady.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @dev A perp market won't be abl
 library MarketDebt {
     using Distribution for Distribution.Data;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_DEBT_LOCATION =
@@ -34,8 +35,8 @@ library MarketDebt {
     /// traders and converted to USDC or ZLP Vaults assets.
     /// @param collectedMarginCollateral An enumerable map that stores the amount of each margin collateral asset
     /// collected from perps traders at a market.
-    /// @param inRangeVaults A heap of vaults that are actively delegating credit to this market.
-    /// @param outRangeVaults A heap of vaults that have stopped delegating credit to this market.
+    /// @param connectedVaultsIds The list of vaults ids delegating credit to this market. Whenever there's an update,
+    /// a new `EnumerableSet.UintSet` is created.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
     /// USD denominated debt per share.
     struct Data {
@@ -46,8 +47,7 @@ library MarketDebt {
         uint128 skewCapScale;
         int128 realizedDebtUsd;
         EnumerableMap.AddressToUintMap collectedMarginCollateral;
-        MinHeapLib.Heap inRangeVaults;
-        MinHeapLib.Heap outRangeVaults;
+        EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
     }
 
@@ -68,6 +68,14 @@ library MarketDebt {
     /// positive pnl. Goes from 0 to 1.
     function getAutoDeleverageFactor(Data storage self) internal view returns (UD60x18 autoDeleverageFactor) { }
 
+    function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaultsIds) {
+        if (self.connectedVaultsIds.length == 0) {
+            return connectedVaultsIds;
+        }
+
+        connectedVaultsIds = self.connectedVaultsIds[self.connectedVaultsIds.length].values();
+    }
+
     function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCredit) {
         return ud60x18(self.vaultsDebtDistribution.totalShares);
     }
@@ -85,5 +93,16 @@ library MarketDebt {
         skewCapX18 = ud60x18(self.skewCapScale).mul(totalDelegatedCredit);
     }
 
+    function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) { }
+
     function addMarginCollateral(Data storage self, address collateralType, UD60x18 amountX18) internal { }
+
+    function distributeDebtToVaults(
+        Data storage self,
+        SD59x18 newTotalDebtUsdX18,
+        SD59x18 realizedDebtUsdX18
+    )
+        internal
+        returns (SD59x18 realizedDebtChangeUsdX18)
+    { }
 }
