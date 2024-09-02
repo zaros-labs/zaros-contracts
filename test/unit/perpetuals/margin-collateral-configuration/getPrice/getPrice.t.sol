@@ -14,6 +14,7 @@ import { MockSequencerUptimeFeedDown } from "test/mocks/MockSequencerUptimeFeedD
 import { MockSequencerUptimeFeedGracePeriodNotOver } from "test/mocks/MockSequencerUptimeFeedGracePeriodNotOver.sol";
 import { IPriceAdapter, PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
+import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -59,8 +60,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
             address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: address(0x123),
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
@@ -106,8 +108,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
             address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedWithInvalidReturn),
@@ -151,8 +154,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
             address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedDown),
@@ -202,8 +206,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
             address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedGracePeriodNotOver),
@@ -238,8 +243,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
             address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: users.owner.account,
                         priceFeed: address(mockPriceFeedWithInvalidReturn),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
@@ -277,8 +283,9 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
             WSTETH_LOAN_TO_VALUE,
             Constants.SYSTEM_DECIMALS,
             address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: users.owner.account,
                         priceFeed: address(mockPriceFeedOldUpdatedAt),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),

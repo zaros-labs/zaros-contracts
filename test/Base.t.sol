@@ -197,7 +197,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             settlementFeeRecipient: users.settlementFeeRecipient.account
         });
 
-        setupMarketsConfig(address(perpsEngine));
+        setupMarketsConfig(address(perpsEngine), users.owner.account);
         configureLiquidationKeepers();
 
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });

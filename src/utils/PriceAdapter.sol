@@ -9,6 +9,10 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 
+// Open Zeppelin dependencies
+import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
+import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 /// @notice The interface for the price adapter.
 interface IPriceAdapter {
     /// @notice Gets the price of the token.
@@ -16,34 +20,35 @@ interface IPriceAdapter {
     function getPrice() external view returns (UD60x18 priceUsdX18);
 }
 
-contract PriceAdapter is IPriceAdapter {
+contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice The Chainlink Price Feed address.
-    address public immutable priceFeed;
+    address public priceFeed;
 
     /// @notice The Chainlink ETH/USD Price Feed address.
-    address immutable ethUsdPriceFeed;
+    address public ethUsdPriceFeed;
 
     /// @notice The Sequencer Uptime Feed address.
-    address immutable sequencerUptimeFeed;
+    address public sequencerUptimeFeed;
 
     /// @notice The number of seconds between price feed updates.
-    uint32 immutable priceFeedHeartbeatSeconds;
+    uint32 public priceFeedHeartbeatSeconds;
 
     /// @notice The number of seconds between ETH/USD price feed updates.
-    uint32 immutable ethUsdPriceFeedHeartbeatSeconds;
+    uint32 public ethUsdPriceFeedHeartbeatSeconds;
 
     /// @notice A flag indicating if the price adapter is to use the custom version.
-    bool public immutable useCustomPriceAdapter;
+    bool public useCustomPriceAdapter;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      STRUCTS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice The constructor parameters.
+    /// @param owner The owner of the contract.
     /// @param _priceFeed The Chainlink Price Feed address.
     /// @param _ethUsdPriceFeed The Chainlink ETH/USD Price Feed address.
     /// @param _sequencerUptimeFeed The Sequencer Uptime Feed address.
@@ -51,6 +56,7 @@ contract PriceAdapter is IPriceAdapter {
     /// @param _ethUsdPriceFeedHeartbeatSeconds The number of seconds between ETH/USD price feed updates.
     /// @param _useCustomPriceAdapter A flag indicating if the price adapter is to use the custom version.
     struct ConstructorParams {
+        address owner;
         address priceFeed;
         address ethUsdPriceFeed;
         address sequencerUptimeFeed;
@@ -63,7 +69,9 @@ contract PriceAdapter is IPriceAdapter {
                                      INITIALIZE
     //////////////////////////////////////////////////////////////////////////*/
 
-    constructor(ConstructorParams memory params) {
+    function initialize(ConstructorParams memory params) external initializer {
+        __Ownable_init(params.owner);
+
         priceFeed = params.priceFeed;
         ethUsdPriceFeed = params.ethUsdPriceFeed;
         sequencerUptimeFeed = params.sequencerUptimeFeed;
@@ -107,4 +115,6 @@ contract PriceAdapter is IPriceAdapter {
             );
         }
     }
+
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyOwner { }
 }

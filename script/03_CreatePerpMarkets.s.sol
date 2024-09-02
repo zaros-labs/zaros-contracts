@@ -35,7 +35,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
         marketsIdsRange[0] = initialMarketId;
         marketsIdsRange[1] = finalMarketId;
 
-        setupMarketsConfig(address(perpsEngine));
+        setupMarketsConfig(address(perpsEngine), deployer);
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 

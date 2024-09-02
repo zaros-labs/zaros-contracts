@@ -11,6 +11,7 @@ import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierPr
 import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
+import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -80,7 +81,7 @@ abstract contract Markets is
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
-    function setupMarketsConfig(address perpsEngine) internal {
+    function setupMarketsConfig(address perpsEngine, address priceAdapterOwner) internal {
         address sequencerUptimeFeed = address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
 
         marketsConfig[BTC_USD_MARKET_ID] = MarketConfig({
@@ -96,8 +97,9 @@ abstract contract Markets is
             minTradeSize: BTC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: BTC_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -126,8 +128,9 @@ abstract contract Markets is
             minTradeSize: ETH_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: ETH_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -156,8 +159,9 @@ abstract contract Markets is
             minTradeSize: LINK_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: LINK_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -186,8 +190,9 @@ abstract contract Markets is
             minTradeSize: ARB_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: ARB_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: ARB_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -216,8 +221,9 @@ abstract contract Markets is
             minTradeSize: BNB_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: BNB_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: BNB_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -246,8 +252,9 @@ abstract contract Markets is
             minTradeSize: DOGE_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: DOGE_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: DOGE_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -276,8 +283,9 @@ abstract contract Markets is
             minTradeSize: SOL_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: SOL_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: SOL_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -306,8 +314,9 @@ abstract contract Markets is
             minTradeSize: MATIC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: MATIC_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: MATIC_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -336,8 +345,9 @@ abstract contract Markets is
             minTradeSize: LTC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: LTC_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: LTC_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -366,8 +376,9 @@ abstract contract Markets is
             minTradeSize: FTM_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: FTM_USD_MAX_FUNDING_VELOCITY,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: FTM_USD_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -451,8 +462,9 @@ abstract contract Markets is
                     int256 mockQuantityInEth = int256(mockSelectedMarketUsdPrice.div(mockEthUsdPrice).intoUint256());
 
                     marketsConfig[i].priceAdapter = address(
-                        new PriceAdapter(
+                        PriceAdapterUtils.deployPriceAdapter(
                             PriceAdapter.ConstructorParams({
+                                owner: address(0x123),
                                 priceFeed: address(new MockPriceFeed(18, mockQuantityInEth)),
                                 ethUsdPriceFeed: address(
                                     new MockPriceFeed(18, int256(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice))
@@ -466,8 +478,9 @@ abstract contract Markets is
                     );
                 } else {
                     marketsConfig[i].priceAdapter = address(
-                        new PriceAdapter(
+                        PriceAdapterUtils.deployPriceAdapter(
                             PriceAdapter.ConstructorParams({
+                                owner: address(0x123),
                                 priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
                                 ethUsdPriceFeed: address(0),
                                 sequencerUptimeFeed: mockSequencerUptimeFeed,

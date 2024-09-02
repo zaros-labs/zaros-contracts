@@ -16,6 +16,7 @@ import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
+import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
 abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     struct MarginCollateral {
@@ -34,7 +35,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
     mapping(uint256 marginCollateralId => MarginCollateral marginCollateral) internal marginCollaterals;
 
-    function setupMarginCollaterals(address perpsEngine) internal {
+    function setupMarginCollaterals(address perpsEngine, address priceAdapterOwner) internal {
         address sequencerUptimeFeed = address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
 
         MarginCollateral memory usdcConfig = MarginCollateral({
@@ -47,8 +48,9 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_USDC_USD_PRICE,
             marginCollateralAddress: USDC_ADDRESS,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: USDC_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -73,8 +75,9 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_USDZ_USD_PRICE,
             marginCollateralAddress: USDZ_ADDRESS,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: USDZ_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -99,8 +102,9 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_WETH_USD_PRICE,
             marginCollateralAddress: WETH_ADDRESS,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: WETH_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -125,8 +129,9 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_WEETH_USD_PRICE,
             marginCollateralAddress: WEETH_ADDRESS,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: WEETH_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -151,8 +156,9 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_WBTC_USD_PRICE,
             marginCollateralAddress: WBTC_ADDRESS,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: WBTC_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -177,8 +183,9 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             mockUsdPrice: MOCK_WSTETH_USD_PRICE,
             marginCollateralAddress: WSTETH_ADDRESS,
             priceAdapter: address(
-                new PriceAdapter(
+                PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.ConstructorParams({
+                        owner: priceAdapterOwner,
                         priceFeed: WSTETH_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
@@ -224,7 +231,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     )
         internal
     {
-        setupMarginCollaterals(address(perpsEngine));
+        setupMarginCollaterals(address(perpsEngine), owner);
 
         MarginCollateral[] memory filteredMarginCollateralsConfig =
             getFilteredMarginCollateralsConfig(marginCollateralIdsRange);
@@ -262,8 +269,9 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                 address mockSequencerUptimeFeed = address(new MockSequencerUptimeFeed(0));
 
                 priceAdapter = address(
-                    new PriceAdapter(
+                    PriceAdapterUtils.deployPriceAdapter(
                         PriceAdapter.ConstructorParams({
+                            owner: address(0x123),
                             priceFeed: address(mockPriceFeed),
                             ethUsdPriceFeed: address(0),
                             sequencerUptimeFeed: mockSequencerUptimeFeed,
