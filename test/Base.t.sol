@@ -92,11 +92,7 @@ abstract contract IPerpsEngine is
     CustomReferralConfigurationHarness
 { }
 
-abstract contract IMarketMakingEngine is
-    IMarketMakingEngineBranches,
-    VaultHarness,
-    WithdrawalRequestHarness
-{ }
+abstract contract IMarketMakingEngine is IMarketMakingEngineBranches, VaultHarness, WithdrawalRequestHarness { }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     using Math for UD60x18;

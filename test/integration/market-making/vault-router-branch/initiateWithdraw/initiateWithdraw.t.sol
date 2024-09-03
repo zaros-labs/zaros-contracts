@@ -12,7 +12,6 @@ import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBran
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 
 contract MarketMaking_initiateWithdraw_Test is Base_Test {
-
     function setUp() public virtual override {
         Base_Test.setUp();
         createVault();
@@ -25,6 +24,7 @@ contract MarketMaking_initiateWithdraw_Test is Base_Test {
     }
 
     function test_RevertWhen_AmountIsZero() external whenInitiateWithdrawIsCalled {
+        // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.ZeroInput.selector, "sharesAmount"));
         marketMakingEngine.initiateWithdrawal(VAULT_ID, 0);
     }
@@ -32,6 +32,8 @@ contract MarketMaking_initiateWithdraw_Test is Base_Test {
     function test_RevertWhen_VaultIdIsInvalid() external whenInitiateWithdrawIsCalled {
         uint256 invalidVaultId = 0;
         uint256 sharesToWithdraw = 1e18;
+
+        // it should revert
         vm.expectRevert();
         marketMakingEngine.initiateWithdrawal(invalidVaultId, sharesToWithdraw);
     }
@@ -40,6 +42,7 @@ contract MarketMaking_initiateWithdraw_Test is Base_Test {
         address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
         uint256 sharesToWithdraw = IERC20(indexToken).balanceOf(users.naruto.account) + 1;
 
+        // it should revert
         vm.expectRevert(Errors.NotEnoughShares.selector);
         marketMakingEngine.initiateWithdrawal(VAULT_ID, sharesToWithdraw);
     }
@@ -48,6 +51,7 @@ contract MarketMaking_initiateWithdraw_Test is Base_Test {
         address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
         uint256 sharesToWithdraw = IERC20(indexToken).balanceOf(users.naruto.account);
 
+        //it should create withdraw request
         vm.expectEmit();
         emit VaultRouterBranch.LogInitiateWithdraw(VAULT_ID, users.naruto.account, sharesToWithdraw);
         marketMakingEngine.initiateWithdrawal(VAULT_ID, sharesToWithdraw);

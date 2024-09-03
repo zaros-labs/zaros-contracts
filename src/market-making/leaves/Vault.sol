@@ -45,6 +45,12 @@ library Vault {
         EnumerableSet.UintSet[] connectedMarkets;
     }
 
+    /// @notice Parameters required to create a new vault.
+    /// @param vaultId The unique identifier for the vault to be created.
+    /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
+    /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
+    /// @param indexToken The address of the index token used in the vault.
+    /// @param collateral The collateral asset data associated with the vault.
     struct CreateParams {
         uint256 vaultId;
         uint256 depositCap;
@@ -53,6 +59,11 @@ library Vault {
         Collateral.Data collateral;
     }
 
+    /// @notice Parameters required to update an existing vault.
+    /// @param vaultId The unique identifier for the vault to be updated.
+    /// @param depositCap The new maximum amount of collateral assets that can be deposited in the vault.
+    /// @param withdrawalDelay The new delay period, in seconds, before a withdrawal request can be fulfilled.
+    /// @param collateral The updated collateral asset data associated with the vault.
     struct UpdateParams {
         uint256 vaultId;
         uint256 depositCap;
@@ -77,6 +88,10 @@ library Vault {
 
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
     function updateVaultsUnsettledDebt(uint256[] memory vaultsIds, SD59x18 realizedDebtChangeUsdX18) internal { }
+
+    /// @notice Updates an existing vault with the specified parameters.
+    /// @dev Modifies the vault's settings. Reverts if the vault does not exist.
+    /// @param params The struct containing the parameters required to update the vault.
     function update(UpdateParams memory params) internal {
         Data storage self = load(params.vaultId);
 
@@ -89,6 +104,9 @@ library Vault {
         self.collateral = params.collateral;
     }
 
+    /// @notice Creates a new vault with the specified parameters.
+    /// @dev Initializes the vault with the provided parameters. Reverts if the vault already exists.
+    /// @param params The struct containing the parameters required to create the vault.
     function create(CreateParams memory params) internal {
         Data storage self = load(params.vaultId);
 

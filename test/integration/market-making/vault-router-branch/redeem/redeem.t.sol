@@ -13,7 +13,6 @@ import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBran
 import { IERC20, IERC4626 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
 contract MarketMaking_redeem_Test is Base_Test {
-
     uint256 constant WITHDRAW_REQUEST_ID = 0;
 
     function setUp() public virtual override {
@@ -47,10 +46,13 @@ contract MarketMaking_redeem_Test is Base_Test {
             marketMakingEngine.exposed_WithdrawalRequest_load(VAULT_ID, users.naruto.account, 0);
 
         assertEq(withdrawalRequest.fulfilled, true);
+
+        // it should transfer assets to user
         assertEq(IERC20(indexToken).balanceOf(users.naruto.account), 0);
     }
 
     function test_RevertWhen_DelayHasNotPassed() external whenRedeemIsCalled {
+        // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.WithdrawDelayNotPassed.selector));
         marketMakingEngine.redeem(VAULT_ID, WITHDRAW_REQUEST_ID, 0);
     }
@@ -64,6 +66,7 @@ contract MarketMaking_redeem_Test is Base_Test {
 
         IERC20(indexToken).approve(address(marketMakingEngine), userBalance);
 
+        // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector));
         marketMakingEngine.redeem(VAULT_ID, WITHDRAW_REQUEST_ID, minAssetsOut);
     }
@@ -79,7 +82,7 @@ contract MarketMaking_redeem_Test is Base_Test {
         IERC20(indexToken).approve(address(marketMakingEngine), userBalance);
 
         marketMakingEngine.redeem(VAULT_ID, WITHDRAW_REQUEST_ID, minAssetsOut);
-
+        // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.WithdrawalRequestAlreadyFullfilled.selector));
         marketMakingEngine.redeem(VAULT_ID, WITHDRAW_REQUEST_ID, minAssetsOut);
     }

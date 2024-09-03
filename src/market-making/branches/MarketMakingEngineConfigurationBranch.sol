@@ -46,7 +46,7 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
     function createCustomReferralCode() external onlyOwner { }
 
     /// @dev Invariants involved in the call:
-    /// TODO: add invariants
+    /// Must NOT be able to create a vault with id set to 0
     function createVault(Vault.CreateParams calldata params) external onlyOwner {
         if (params.indexToken == address(0)) {
             revert Errors.ZeroInput("indexToken");
@@ -68,7 +68,7 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
     }
 
     /// @dev Invariants involved in the call:
-    /// TODO: add invariants
+    /// Must NOT be able to update vault with id set to 0
     function updateVaultConfiguration(Vault.UpdateParams calldata params) external onlyOwner {
         if (params.depositCap == 0) {
             revert Errors.ZeroInput("depositCap");

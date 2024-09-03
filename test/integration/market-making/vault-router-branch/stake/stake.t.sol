@@ -11,7 +11,6 @@ import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBran
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 
 contract MarketMaking_stake_Test is Base_Test {
-
     function setUp() public virtual override {
         Base_Test.setUp();
         createVault();
@@ -25,6 +24,7 @@ contract MarketMaking_stake_Test is Base_Test {
 
         IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
 
+        // it should revert
         vm.expectRevert();
         marketMakingEngine.stake(0, sharesToStake, "", false);
     }
@@ -42,6 +42,8 @@ contract MarketMaking_stake_Test is Base_Test {
 
         bytes32 actorId = bytes32(uint256(uint160(address(users.naruto.account))));
         uint256 userStakedShares = marketMakingEngine.workaround_Vault_getActorStakedShares(VAULT_ID, actorId);
+
+        // it should update staked shares
         assertEq(sharesToStake, userStakedShares);
     }
 

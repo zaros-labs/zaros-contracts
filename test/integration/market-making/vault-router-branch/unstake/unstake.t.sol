@@ -12,7 +12,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 
 contract MarketMaking_unstake_Test is Base_Test {
-
     function setUp() public virtual override {
         Base_Test.setUp();
         createVault();
@@ -29,6 +28,7 @@ contract MarketMaking_unstake_Test is Base_Test {
 
         uint256 sharesToUnstake = sharesToStake + 1;
 
+        // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.NotEnoughShares.selector));
         marketMakingEngine.unstake(VAULT_ID, sharesToUnstake);
     }
@@ -43,6 +43,7 @@ contract MarketMaking_unstake_Test is Base_Test {
 
         uint256 sharesToUnstake = sharesToStake;
 
+        // it should log unstake event
         vm.expectEmit();
         emit VaultRouterBranch.LogUnstake(VAULT_ID, users.naruto.account, sharesToUnstake);
         marketMakingEngine.unstake(VAULT_ID, sharesToUnstake);

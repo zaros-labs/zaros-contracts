@@ -25,7 +25,8 @@ import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingA
 import { ReferralHarness } from "test/harnesses/perpetuals/leaves/ReferralHarness.sol";
 import { CustomReferralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
-import { MarketMakingEngineConfigurationBranch } from "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
+import { MarketMakingEngineConfigurationBranch } from
+    "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
 import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
@@ -482,11 +483,19 @@ function getMarketMakingEngineInitializables(address[] memory branches) pure ret
     return initializables;
 }
 
-function getMarketMakingEngineInitPayloads(address perpsEngine, address usdzToken, address owner) pure returns (bytes[] memory) {
+function getMarketMakingEngineInitPayloads(
+    address perpsEngine,
+    address usdzToken,
+    address owner
+)
+    pure
+    returns (bytes[] memory)
+{
     bytes[] memory initializePayloads = new bytes[](1);
 
-    bytes memory marketMakingEngineInitializeData =
-        abi.encodeWithSelector(MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, perpsEngine, owner);
+    bytes memory marketMakingEngineInitializeData = abi.encodeWithSelector(
+        MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, perpsEngine, owner
+    );
 
     initializePayloads[0] = marketMakingEngineInitializeData;
 
@@ -497,13 +506,18 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](2);
 
     bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](7);
-    marketMakingEngineConfigBranchSelectors[0] = MarketMakingEngineConfigurationBranch.configureSequencerUptimeFeed.selector;
-    marketMakingEngineConfigBranchSelectors[1] = MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
-    marketMakingEngineConfigBranchSelectors[2] = MarketMakingEngineConfigurationBranch.createCustomReferralCode.selector;
+    marketMakingEngineConfigBranchSelectors[0] =
+        MarketMakingEngineConfigurationBranch.configureSequencerUptimeFeed.selector;
+    marketMakingEngineConfigBranchSelectors[1] =
+        MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
+    marketMakingEngineConfigBranchSelectors[2] =
+        MarketMakingEngineConfigurationBranch.createCustomReferralCode.selector;
     marketMakingEngineConfigBranchSelectors[3] = MarketMakingEngineConfigurationBranch.createVault.selector;
-    marketMakingEngineConfigBranchSelectors[4] = MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
+    marketMakingEngineConfigBranchSelectors[4] =
+        MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.initialize.selector;
-    marketMakingEngineConfigBranchSelectors[6] = MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
+    marketMakingEngineConfigBranchSelectors[6] =
+        MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](7);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -521,7 +535,8 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
 }
 
 function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
-    returns (RootProxy.BranchUpgrade[] memory) {
+    returns (RootProxy.BranchUpgrade[] memory)
+{
     address[] memory harnesses = deployMarketMakingAddressHarnesses();
 
     bytes4[][] memory harnessesSelectors = getMarketMakingHarnessSelectors();

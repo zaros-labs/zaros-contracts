@@ -109,7 +109,8 @@ contract VaultRouterBranch {
 
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
     /// @dev Invariants involved in the call:
-    /// TODO: add invariants
+    /// The total deposits MUST not exceed the vault after the deposit.
+    /// The number of received shares MUST be greater than or equal to minShares.
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
@@ -133,7 +134,7 @@ contract VaultRouterBranch {
     /// @notice Stakes a given amount of index tokens in the contract.
     /// @dev Index token holders must stake in order to earn fees distributions from the market making engine.
     /// @dev Invariants involved in the call:
-    /// TODO: add invariants
+    /// The sum of all staked assets SHOULD always equal the total stake value
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to stake, in 18 decimals.
     /// @param referralCode The referral code to use.
@@ -181,7 +182,8 @@ contract VaultRouterBranch {
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
     /// @dev Invariants involved in the call:
-    /// TODO: add invariants
+    /// The shares to withdraw MUST be greater than zero.
+    /// The user MUST have enough shares in their balance to initiate the withdrawal.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
     function initiateWithdrawal(uint256 vaultId, uint256 shares) external {
@@ -206,7 +208,9 @@ contract VaultRouterBranch {
     /// @notice Redeems a given amount of index tokens in exchange for collateral assets from the provided vault,
     /// after the withdrawal delay period has elapsed.
     /// @dev Invariants involved in the call:
-    /// TODO: add invariants
+    /// The withdrawalRequest MUST NOT be already fulfilled.
+    /// The withdrawal delay period MUST have elapsed.
+    /// Redeemed assets MUST meet or exceed minAssets
     /// @param vaultId The vault identifier.
     /// @param withdrawalRequestId The previously initiated withdrawal request id.
     /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
@@ -233,7 +237,7 @@ contract VaultRouterBranch {
     /// @notice Unstakes a given amount of index tokens from the contract.
     /// @dev Unstaked tokens don't participate in fees distributions.
     /// @dev Invariants involved in the call:
-    /// TODO: add invariants
+    /// The user MUST have enough shares staked to perform the unstake.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to unstake, in 18 decimals.
     function unstake(uint256 vaultId, uint256 shares) external {

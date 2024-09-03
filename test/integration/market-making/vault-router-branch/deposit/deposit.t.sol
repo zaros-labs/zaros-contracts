@@ -23,7 +23,10 @@ contract MarketMaking_deposit_Test is Base_Test {
         uint256 assetsToDeposit = VAULT_DEPOSIT_CAP + 1;
         deal(address(wEth), users.naruto.account, assetsToDeposit);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.DepositCapReached.selector, VAULT_ID, assetsToDeposit, VAULT_DEPOSIT_CAP));
+        // it should revert
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.DepositCapReached.selector, VAULT_ID, assetsToDeposit, VAULT_DEPOSIT_CAP)
+        );
         marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, 0);
     }
 
@@ -34,6 +37,8 @@ contract MarketMaking_deposit_Test is Base_Test {
         vm.expectEmit();
         emit VaultRouterBranch.LogDeposit(VAULT_ID, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, 0);
+
+        // it should mint shares to the user
         assertGt(zlpVault.balanceOf(users.naruto.account), 0);
     }
 
@@ -41,6 +46,7 @@ contract MarketMaking_deposit_Test is Base_Test {
         uint256 assetsToDeposit = 1e18;
         deal(address(wEth), users.naruto.account, assetsToDeposit);
 
+        // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector));
         marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, type(uint256).max);
     }
@@ -50,6 +56,7 @@ contract MarketMaking_deposit_Test is Base_Test {
         uint256 amount = 1e18;
         uint256 minSharesOut = 0;
 
+        // it should revert
         vm.expectRevert();
         marketMakingEngine.deposit(invalidVaultId, amount, minSharesOut);
     }
