@@ -514,6 +514,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function fuzzOrderSizeDelta(FuzzOrderSizeDeltaParams memory params) internal view returns (int128 sizeDelta) {
         FuzzOrderSizeDeltaContext memory ctx;
 
+        if (params.marginValueUsd.gt(ud60x18(LIQUIDATION_FEE_USD))) {
+            params.marginValueUsd = params.marginValueUsd.sub(ud60x18(LIQUIDATION_FEE_USD));
+        }
+
         ctx.fuzzedSizeDeltaAbs = params.marginValueUsd.div(params.initialMarginRate).div(params.price);
         ctx.sizeDeltaAbs = Math.min(Math.max(ctx.fuzzedSizeDeltaAbs, params.minTradeSize), params.maxSkew).intoSD59x18(
         ).intoInt256().toInt128();
@@ -606,7 +610,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function setAccountsAsLiquidatable(MarketConfig memory fuzzMarketConfig, bool isLong) internal {
-        uint256 priceShiftBps = ud60x18(fuzzMarketConfig.mmr).mul(ud60x18(1.2e18)).intoUint256();
+        uint256 priceShiftBps = ud60x18(fuzzMarketConfig.mmr).mul(ud60x18(1.25e18)).intoUint256();
         uint256 newIndexPrice = isLong
             ? ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).sub(ud60x18(priceShiftBps))).intoUint256()
             : ud60x18(fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).add(ud60x18(priceShiftBps))).intoUint256();
