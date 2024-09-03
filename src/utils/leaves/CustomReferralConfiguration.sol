@@ -20,11 +20,11 @@ library CustomReferralConfiguration {
     )
         internal
         pure
-        returns (Data storage customReferralConfigurationTestnet)
+        returns (Data storage customReferralConfiguration)
     {
         bytes32 slot = keccak256(abi.encode(CUSTOM_REFERRAL_CONFIGURATION_LOCATION, customReferralCode));
         assembly {
-            customReferralConfigurationTestnet.slot := slot
+            customReferralConfiguration.slot := slot
         }
     }
 }
