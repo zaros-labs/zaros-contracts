@@ -14,6 +14,9 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
+import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
 abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     struct MarginCollateral {
@@ -25,15 +28,17 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         uint256 minDepositMargin;
         uint256 mockUsdPrice;
         address marginCollateralAddress;
-        address priceFeed;
+        address priceAdapter;
         uint256 liquidationPriority;
         uint8 tokenDecimals;
-        uint32 priceFeedHeartbeatSeconds;
     }
 
     mapping(uint256 marginCollateralId => MarginCollateral marginCollateral) internal marginCollaterals;
 
-    function setupMarginCollaterals() internal {
+    function setupMarginCollaterals(address perpsEngine, address priceAdapterOwner) internal {
+        address sequencerUptimeFeed =
+            address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
+
         MarginCollateral memory usdcConfig = MarginCollateral({
             name: USDC_NAME,
             symbol: USDC_SYMBOL,
@@ -43,10 +48,23 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             minDepositMargin: USDC_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_USDC_USD_PRICE,
             marginCollateralAddress: USDC_ADDRESS,
-            priceFeed: USDC_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: USDC_PRICE_ADAPTER_NAME,
+                        symbol: USDC_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: USDC_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: USDC_PRICE_FEED_HEARBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             liquidationPriority: USDC_LIQUIDATION_PRIORITY,
-            tokenDecimals: USDC_DECIMALS,
-            priceFeedHeartbeatSeconds: USDC_PRICE_FEED_HEARBEAT_SECONDS
+            tokenDecimals: USDC_DECIMALS
         });
         marginCollaterals[USDC_MARGIN_COLLATERAL_ID] = usdcConfig;
 
@@ -59,10 +77,23 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             minDepositMargin: USDZ_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_USDZ_USD_PRICE,
             marginCollateralAddress: USDZ_ADDRESS,
-            priceFeed: USDZ_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: USDZ_PRICE_ADAPTER_NAME,
+                        symbol: USDZ_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: USDZ_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: USDZ_PRICE_FEED_HEARBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             liquidationPriority: USDZ_LIQUIDATION_PRIORITY,
-            tokenDecimals: USDZ_DECIMALS,
-            priceFeedHeartbeatSeconds: USDZ_PRICE_FEED_HEARBEAT_SECONDS
+            tokenDecimals: USDZ_DECIMALS
         });
         marginCollaterals[USDZ_MARGIN_COLLATERAL_ID] = usdzConfig;
 
@@ -75,10 +106,23 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             minDepositMargin: WETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WETH_USD_PRICE,
             marginCollateralAddress: WETH_ADDRESS,
-            priceFeed: WETH_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: WETH_PRICE_ADAPTER_NAME,
+                        symbol: WETH_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: WETH_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: WETH_PRICE_FEED_HEARBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             liquidationPriority: WETH_LIQUIDATION_PRIORITY,
-            tokenDecimals: WETH_DECIMALS,
-            priceFeedHeartbeatSeconds: WETH_PRICE_FEED_HEARBEAT_SECONDS
+            tokenDecimals: WETH_DECIMALS
         });
         marginCollaterals[WETH_MARGIN_COLLATERAL_ID] = wEth;
 
@@ -91,10 +135,23 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             minDepositMargin: WEETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WEETH_USD_PRICE,
             marginCollateralAddress: WEETH_ADDRESS,
-            priceFeed: WEETH_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: WEETH_PRICE_ADAPTER_NAME,
+                        symbol: WEETH_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: WEETH_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: WEETH_PRICE_FEED_HEARBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             liquidationPriority: WEETH_LIQUIDATION_PRIORITY,
-            tokenDecimals: WEETH_DECIMALS,
-            priceFeedHeartbeatSeconds: WEETH_PRICE_FEED_HEARBEAT_SECONDS
+            tokenDecimals: WEETH_DECIMALS
         });
         marginCollaterals[WEETH_MARGIN_COLLATERAL_ID] = weEth;
 
@@ -107,10 +164,23 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             minDepositMargin: WBTC_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WBTC_USD_PRICE,
             marginCollateralAddress: WBTC_ADDRESS,
-            priceFeed: WBTC_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: WBTC_PRICE_ADAPTER_NAME,
+                        symbol: WBTC_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: WBTC_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: WBTC_PRICE_FEED_HEARBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             liquidationPriority: WBTC_LIQUIDATION_PRIORITY,
-            tokenDecimals: WBTC_DECIMALS,
-            priceFeedHeartbeatSeconds: WBTC_PRICE_FEED_HEARBEAT_SECONDS
+            tokenDecimals: WBTC_DECIMALS
         });
         marginCollaterals[WBTC_MARGIN_COLLATERAL_ID] = wBtc;
 
@@ -123,15 +193,30 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             minDepositMargin: WSTETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WSTETH_USD_PRICE,
             marginCollateralAddress: WSTETH_ADDRESS,
-            priceFeed: WSTETH_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: WSTETH_PRICE_ADAPTER_NAME,
+                        symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: WSTETH_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: WSTETH_PRICE_FEED_HEARBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             liquidationPriority: WSTETH_LIQUIDATION_PRIORITY,
-            tokenDecimals: WSTETH_DECIMALS,
-            priceFeedHeartbeatSeconds: WSTETH_PRICE_FEED_HEARBEAT_SECONDS
+            tokenDecimals: WSTETH_DECIMALS
         });
         marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID] = wstEth;
     }
 
-    function getFilteredMarginCollateralsConfig(uint256[2] memory marginCollateralIdsRange)
+    function getFilteredMarginCollateralsConfig(
+        uint256[2] memory marginCollateralIdsRange
+    )
         internal
         view
         returns (MarginCollateral[] memory)
@@ -159,7 +244,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     )
         internal
     {
-        setupMarginCollaterals();
+        setupMarginCollaterals(address(perpsEngine), owner);
 
         MarginCollateral[] memory filteredMarginCollateralsConfig =
             getFilteredMarginCollateralsConfig(marginCollateralIdsRange);
@@ -170,7 +255,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             uint256 indexLiquidationPriority = filteredMarginCollateralsConfig[i].liquidationPriority - 1;
 
             address marginCollateralAddress;
-            address priceFeed;
+            address priceAdapter;
             address mockERC20;
 
             if (isTestnet) {
@@ -194,14 +279,30 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                     int256(filteredMarginCollateralsConfig[i].mockUsdPrice)
                 );
 
-                priceFeed = address(mockPriceFeed);
+                address mockSequencerUptimeFeed = address(new MockSequencerUptimeFeed(0));
+
+                priceAdapter = address(
+                    PriceAdapterUtils.deployPriceAdapter(
+                        PriceAdapter.InitializeParams({
+                            name: filteredMarginCollateralsConfig[i].name,
+                            symbol: filteredMarginCollateralsConfig[i].symbol,
+                            owner: address(0x123),
+                            priceFeed: address(mockPriceFeed),
+                            ethUsdPriceFeed: address(0),
+                            sequencerUptimeFeed: mockSequencerUptimeFeed,
+                            priceFeedHeartbeatSeconds: 86_400,
+                            ethUsdPriceFeedHeartbeatSeconds: 0,
+                            useEthPriceFeed: false
+                        })
+                    )
+                );
 
                 marginCollaterals[filteredMarginCollateralsConfig[i].marginCollateralId].marginCollateralAddress =
                     marginCollateralAddress;
                 filteredMarginCollateralsConfig[i].marginCollateralAddress = marginCollateralAddress;
 
-                marginCollaterals[filteredMarginCollateralsConfig[i].marginCollateralId].priceFeed = priceFeed;
-                filteredMarginCollateralsConfig[i].priceFeed = priceFeed;
+                marginCollaterals[filteredMarginCollateralsConfig[i].marginCollateralId].priceAdapter = priceAdapter;
+                filteredMarginCollateralsConfig[i].priceAdapter = priceAdapter;
             }
 
             collateralLiquidationPriority[indexLiquidationPriority] =
@@ -211,8 +312,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                 filteredMarginCollateralsConfig[i].marginCollateralAddress,
                 filteredMarginCollateralsConfig[i].depositCap,
                 filteredMarginCollateralsConfig[i].loanToValue,
-                filteredMarginCollateralsConfig[i].priceFeed,
-                filteredMarginCollateralsConfig[i].priceFeedHeartbeatSeconds
+                filteredMarginCollateralsConfig[i].priceAdapter
             );
         }
 

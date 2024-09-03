@@ -58,16 +58,14 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param depositCap The maximum amount of collateral that can be deposited.
     /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
     /// @param decimals The amount of decimals of the collateral type's ERC20 token.
-    /// @param priceFeed The price oracle address.
-    /// @param priceFeedHeartbeatSeconds The time in seconds between price feed updates.
+    /// @param priceAdapter The price oracle address.
     event LogConfigureMarginCollateral(
         address indexed sender,
         address indexed collateralType,
         uint128 depositCap,
         uint120 loanToValue,
         uint8 decimals,
-        address priceFeed,
-        uint32 priceFeedHeartbeatSeconds
+        address priceAdapter
     );
 
     /// @notice Emitted when a collateral type is removed from the collateral priority.
@@ -88,7 +86,7 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
     );
 
     /// @notice Emitted when a new perps market is created.
-    /// @param sender The address that configured the price feed.
+    /// @param sender The address that configured the price adapter.
     /// @param marketId The perps market id.
     event LogCreatePerpMarket(address indexed sender, uint128 marketId);
 
@@ -171,7 +169,9 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
     /// collateral type.
     /// @param collateralType The address of the collateral type.
     /// @return marginCollateralConfiguration The configuration parameters of the given collateral type.
-    function getMarginCollateralConfiguration(address collateralType)
+    function getMarginCollateralConfiguration(
+        address collateralType
+    )
         external
         pure
         returns (MarginCollateralConfiguration.Data memory)
@@ -246,31 +246,27 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param collateralType The address of the collateral type.
     /// @param depositCap The maximum amount of collateral that can be deposited.
     /// @param loanToValue The value used to calculate the effective margin balance of a given collateral type.
-    /// @param priceFeed The price oracle address.
-    /// @param priceFeedHeartbeatSeconds The time in seconds between price feed updates.
+    /// @param priceAdapter The price adapter contract, which handles the market's index price.
     function configureMarginCollateral(
         address collateralType,
         uint128 depositCap,
         uint120 loanToValue,
-        address priceFeed,
-        uint32 priceFeedHeartbeatSeconds
+        address priceAdapter
     )
         external
         onlyOwner
     {
         try ERC20(collateralType).decimals() returns (uint8 decimals) {
-            if (decimals > Constants.SYSTEM_DECIMALS || priceFeed == address(0) || decimals == 0) {
-                revert Errors.InvalidMarginCollateralConfiguration(collateralType, decimals, priceFeed);
+            if (decimals > Constants.SYSTEM_DECIMALS || priceAdapter == address(0) || decimals == 0) {
+                revert Errors.InvalidMarginCollateralConfiguration(collateralType, decimals, priceAdapter);
             }
-            MarginCollateralConfiguration.configure(
-                collateralType, depositCap, loanToValue, decimals, priceFeed, priceFeedHeartbeatSeconds
-            );
+            MarginCollateralConfiguration.configure(collateralType, depositCap, loanToValue, decimals, priceAdapter);
 
             emit LogConfigureMarginCollateral(
-                msg.sender, collateralType, depositCap, loanToValue, decimals, priceFeed, priceFeedHeartbeatSeconds
+                msg.sender, collateralType, depositCap, loanToValue, decimals, priceAdapter
             );
         } catch {
-            revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceFeed);
+            revert Errors.InvalidMarginCollateralConfiguration(collateralType, 0, priceAdapter);
         }
     }
 
@@ -369,7 +365,6 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param marketOrderConfiguration The market order settlement configuration of the given perp market.
     /// @param offchainOrdersConfiguration The offchain orders settlement configuration of the given perp market.
     /// @param orderFees The perps market maker and taker fees.
-    /// @param priceFeedHeartbeatSeconds The number of seconds between CL price feed updates.
     struct CreatePerpMarketParams {
         uint128 marketId;
         string name;
@@ -385,7 +380,6 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
         SettlementConfiguration.Data marketOrderConfiguration;
         SettlementConfiguration.Data offchainOrdersConfiguration;
         OrderFees.Data orderFees;
-        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Creates a new market with the requested market id.
@@ -424,9 +418,6 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maxFundingVelocity == 0) {
             revert Errors.ZeroInput("maxFundingVelocity");
         }
-        if (params.priceFeedHeartbeatSeconds == 0) {
-            revert Errors.ZeroInput("priceFeedHeartbeatSeconds");
-        }
 
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
@@ -445,8 +436,7 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
                 skewScale: params.skewScale,
                 marketOrderConfiguration: params.marketOrderConfiguration,
                 offchainOrdersConfiguration: params.offchainOrdersConfiguration,
-                orderFees: params.orderFees,
-                priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
+                orderFees: params.orderFees
             })
         );
         perpsEngineConfiguration.addMarket(params.marketId);
@@ -466,7 +456,6 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
     /// @param orderFees The perp market maker and taker fees.
-    /// @param priceFeedHeartbeatSeconds The number of seconds between price feed updates.
     struct UpdatePerpMarketConfigurationParams {
         string name;
         string symbol;
@@ -479,7 +468,6 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
         uint128 maxFundingVelocity;
         uint256 skewScale;
         OrderFees.Data orderFees;
-        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Updates the configuration variables of the given perp market id.
@@ -530,9 +518,6 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
         if (params.maxFundingVelocity == 0) {
             revert Errors.ZeroInput("maxFundingVelocity");
         }
-        if (params.priceFeedHeartbeatSeconds == 0) {
-            revert Errors.ZeroInput("priceFeedHeartbeatSeconds");
-        }
 
         perpMarketConfiguration.update(
             MarketConfiguration.Data({
@@ -546,8 +531,7 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
                 maxFundingVelocity: params.maxFundingVelocity,
                 minTradeSizeX18: params.minTradeSizeX18,
                 skewScale: params.skewScale,
-                orderFees: params.orderFees,
-                priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
+                orderFees: params.orderFees
             })
         );
 
@@ -631,6 +615,15 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
 
             emit LogSetSequencerUptimeFeed(msg.sender, chainIds[i], sequencerUptimeFeedAddresses[i]);
         }
+    }
+
+    /// @notice Returns the sequencer uptime feed by the chain id
+    /// @dev If the chain id is not found, it will return address(0).
+    /// @param chainId The chain id.
+    /// @return sequencerUptimeFeed The sequencer uptime feed address.
+    function getSequencerUptimeFeedByChainId(uint256 chainId) external view returns (address) {
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+        return perpsEngineConfiguration.sequencerUptimeFeedByChainId[chainId];
     }
 
     /// @notice Creates a custom referral code.

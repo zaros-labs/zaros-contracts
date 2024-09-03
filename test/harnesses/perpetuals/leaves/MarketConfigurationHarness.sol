@@ -23,8 +23,7 @@ contract MarketConfigurationHarness {
                 maxFundingVelocity: params.maxFundingVelocity,
                 minTradeSizeX18: params.minTradeSizeX18,
                 skewScale: params.skewScale,
-                orderFees: params.orderFees,
-                priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
+                orderFees: params.orderFees
             })
         );
     }

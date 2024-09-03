@@ -34,8 +34,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
             skewScale: fuzzMarketConfig.skewScale,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -66,8 +65,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -81,7 +79,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_LengthOfSymbolIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_LengthOfSymbolIsZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -100,8 +100,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -115,7 +114,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_PriceAdapterIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_PriceAdapterIsZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -135,8 +136,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -150,7 +150,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MaintenanceMarginRateIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_MaintenanceMarginRateIsZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -171,8 +173,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -186,7 +187,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MaxOpenInterestIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_MaxOpenInterestIsZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -208,8 +211,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -223,7 +225,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MaxSkewIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_MaxSkewIsZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -246,8 +250,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -261,7 +264,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_InitialMarginRateIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_InitialMarginRateIsZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -285,8 +290,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -300,7 +304,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_InitialMarginRateIsLessOrEqualToMaintenanceMargin(uint256 marketId)
+    function testFuzz_RevertWhen_InitialMarginRateIsLessOrEqualToMaintenanceMargin(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -324,8 +330,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -341,7 +346,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_SkewScaleIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_SkewScaleIsZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -366,8 +373,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: 0,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -381,7 +387,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MinTradeSizeIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_MinTradeSizeIsZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -407,8 +415,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: 0,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -422,7 +429,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MaxFundingVelocityIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_MaxFundingVelocityIsZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -449,8 +458,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: 0,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: fuzzMarketConfig.priceFeedHeartbeatSeconds
+            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 })
         });
 
         // it should revert
@@ -460,50 +468,9 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
     }
 
-    modifier whenMaxFundingVelocityIsNotZero() {
-        _;
-    }
-
-    function testFuzz_RevertWhen_PriceFeedHeartbeatSecondsIsZero(uint256 marketId)
-        external
-        whenMarketIsInitialized
-        whenLengthOfNameIsNotZero
-        whenLengthOfSymbolIsNotZero
-        whenPriceAdapterIsNotZero
-        whenMaintenanceMarginRateIsNotZero
-        whenMaxOpenInterestIsNotZero
-        whenMaxSkewIsNotZero
-        whenInitialMarginIsNotLessOrEqualToMaintenanceMargin
-        whenSkewScaleIsNotZero
-        whenMinTradeSizeIsNotZero
-        whenMaxFundingVelocityIsNotZero
-    {
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
-        PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
-            name: fuzzMarketConfig.marketName,
-            symbol: fuzzMarketConfig.marketSymbol,
-            priceAdapter: fuzzMarketConfig.priceAdapter,
-            initialMarginRateX18: fuzzMarketConfig.imr,
-            maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
-            maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
-            skewScale: fuzzMarketConfig.skewScale,
-            minTradeSizeX18: fuzzMarketConfig.minTradeSize,
-            orderFees: OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 }),
-            priceFeedHeartbeatSeconds: 0
-        });
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "priceFeedHeartbeatSeconds") });
-
-        changePrank({ msgSender: users.owner.account });
-        perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
-    }
-
-    function test_WhenPriceFeedHeartbeatSecondsIsNotZero(uint256 marketId)
+    function testFuzz_WhenMaxFundingVelocityIsNotZero(
+        uint256 marketId
+    )
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -532,8 +499,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             maxFundingVelocity: 5,
             skewScale: 6,
             minTradeSizeX18: 8,
-            orderFees: OrderFees.Data({ makerFee: 0.0009e18, takerFee: 0.0001e18 }),
-            priceFeedHeartbeatSeconds: 10
+            orderFees: OrderFees.Data({ makerFee: 0.0009e18, takerFee: 0.0001e18 })
         });
 
         // it should emit {LogUpdatePerpMarketConfiguration} event
@@ -578,11 +544,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         );
         assertEq(
             perpMarket.configuration.orderFees.takerFee, newParams.orderFees.takerFee, "TakerFee should be updated"
-        );
-        assertEq(
-            perpMarket.configuration.priceFeedHeartbeatSeconds,
-            newParams.priceFeedHeartbeatSeconds,
-            "PriceFeedHeartbeatSeconds should be updated"
         );
     }
 }

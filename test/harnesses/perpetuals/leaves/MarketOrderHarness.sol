@@ -9,7 +9,9 @@ contract MarketOrderHarness {
         return MarketOrder.load(tradingAccountId);
     }
 
-    function exposed_MarketOrder_loadExisting(uint128 tradingAccountId)
+    function exposed_MarketOrder_loadExisting(
+        uint128 tradingAccountId
+    )
         external
         view
         returns (MarketOrder.Data memory)

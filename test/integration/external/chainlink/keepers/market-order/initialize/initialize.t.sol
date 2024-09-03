@@ -25,7 +25,9 @@ contract MarketOrderKeeper_Initialize_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_AddressOfPerpsEngineIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_AddressOfPerpsEngineIsZero(
+        uint256 marketId
+    )
         external
         givenInitializeContractWithSomeWrongInformation
     {
@@ -65,7 +67,9 @@ contract MarketOrderKeeper_Initialize_Integration_Test is Base_Test {
         );
     }
 
-    function testFuzz_RevertWhen_StreamIdIsZero(uint256 marketId)
+    function testFuzz_RevertWhen_StreamIdIsZero(
+        uint256 marketId
+    )
         external
         givenInitializeContractWithSomeWrongInformation
     {

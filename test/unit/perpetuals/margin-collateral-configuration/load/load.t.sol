@@ -27,11 +27,11 @@ contract MarginCollateralConfiguration_Load_Unit_Test is Base_Test {
         // it should return the decimals
         assertEq(marginCollateralConfiguration.decimals, USDC_DECIMALS, "invalid decimals");
 
-        // it should return the price feed
+        // it should return the price adapter
         assertEq(
-            marginCollateralConfiguration.priceFeed,
-            address(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed),
-            "invalid price feed"
+            marginCollateralConfiguration.priceAdapter,
+            address(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter),
+            "invalid price adapter"
         );
     }
 }

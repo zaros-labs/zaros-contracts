@@ -16,10 +16,14 @@ import { IPriceAdapter, PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
+// Open Zeppelin dependencies
+import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { Ownable } from "@openzeppelin/access/Ownable.sol";
+
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
+contract PriceAdapter_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
@@ -28,7 +32,70 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_RevertWhen_PriceFeedIsZero(
+    modifier givenTheUserTryToUpdateTheContract() {
+        _;
+    }
+
+    function testFuzz_RevertGiven_TheSenderIsNotTheOwner(
+        uint256 marketId
+    )
+        external
+        givenTheUserTryToUpdateTheContract
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        changePrank({ msgSender: users.naruto.account });
+
+        address newPriceAdapterImplementation = address(0);
+
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto.account)
+        });
+
+        // it should revert
+        UUPSUpgradeable(address(fuzzMarketConfig.priceAdapter)).upgradeToAndCall(
+            newPriceAdapterImplementation, bytes("")
+        );
+    }
+
+    function test_GivenTheSenderIsTheOwner(bool useEthPriceFeed) external givenTheUserTryToUpdateTheContract {
+        address collateral = address(wstEth);
+
+        MockPriceFeed mockPriceFeed = new MockPriceFeed(Constants.SYSTEM_DECIMALS, int256(MOCK_USDC_USD_PRICE));
+
+        address priceAdapter = address(
+            PriceAdapterUtils.deployPriceAdapter(
+                PriceAdapter.InitializeParams({
+                    name: WSTETH_PRICE_ADAPTER_NAME,
+                    symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
+                    owner: users.owner.account,
+                    priceFeed: address(mockPriceFeed),
+                    ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
+                    sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
+                    priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                    ethUsdPriceFeedHeartbeatSeconds: 0,
+                    useEthPriceFeed: useEthPriceFeed
+                })
+            )
+        );
+
+        address newPriceAdapterImplementation = address(new PriceAdapter());
+
+        perpsEngine.exposed_configure(
+            collateral,
+            WSTETH_DEPOSIT_CAP_X18.intoUint128(),
+            WSTETH_LOAN_TO_VALUE,
+            Constants.SYSTEM_DECIMALS,
+            priceAdapter
+        );
+
+        changePrank({ msgSender: users.owner.account });
+
+        // it should update the contract
+        UUPSUpgradeable(priceAdapter).upgradeToAndCall(newPriceAdapterImplementation, bytes(""));
+    }
+
+    function testFuzz_RevertWhen_PriceAdapterIsZero(
         uint128 newDepositCap,
         uint120 newLoanToValue,
         uint8 newDecimals
@@ -45,14 +112,21 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(address(usdc));
     }
 
-    modifier whenPriceFeedIsNotZero() {
+    modifier whenPriceAdapterIsNotZero() {
         _;
     }
 
-    function test_RevertWhen_PriceFeedDecimalsIsGreaterThanTheSystemDecimals() external whenPriceFeedIsNotZero {
+    function testFuzz_RevertWhen_PriceFeedDecimalsIsGreaterThanTheSystemDecimals(
+        bool useEthPriceFeed
+    )
+        external
+        whenPriceAdapterIsNotZero
+    {
         address collateral = address(wstEth);
 
-        MockPriceFeed mockPriceFeed = new MockPriceFeed(Constants.SYSTEM_DECIMALS + 1, int256(MOCK_USDC_USD_PRICE));
+        MockPriceFeed mockPriceFeed = new MockPriceFeed(Constants.SYSTEM_DECIMALS, int256(MOCK_USDC_USD_PRICE));
+        MockPriceFeed mockPriceFeedWithIncorrectDecimals =
+            new MockPriceFeed(Constants.SYSTEM_DECIMALS + 1, int256(MOCK_USDC_USD_PRICE));
 
         perpsEngine.exposed_configure(
             collateral,
@@ -65,12 +139,12 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         name: WSTETH_PRICE_ADAPTER_NAME,
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
-                        priceFeed: address(mockPriceFeed),
-                        ethUsdPriceFeed: address(0),
+                        priceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(mockPriceFeedWithIncorrectDecimals),
+                        ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeedWithIncorrectDecimals) : address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: useEthPriceFeed
                     })
                 )
             )
@@ -90,9 +164,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_SequencerUptimeFeedReturnsAInvalidValue()
+    function testFuzz_RevertWhen_SequencerUptimeFeedReturnsAInvalidValue(
+        bool useEthPriceFeed
+    )
         external
-        whenPriceFeedIsNotZero
+        whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
         whenSequencerUptimeFeedIsNotZero
     {
@@ -116,11 +192,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
-                        ethUsdPriceFeed: address(0),
+                        ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedWithInvalidReturn),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: useEthPriceFeed
                     })
                 )
             )
@@ -138,9 +214,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_SequencerUptimeFeedIsDown()
+    function testFuzz_RevertWhen_SequencerUptimeFeedIsDown(
+        bool useEthPriceFeed
+    )
         external
-        whenPriceFeedIsNotZero
+        whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
         whenSequencerUptimeFeedIsNotZero
         whenSequencerUptimeFeedReturnsAValidValue
@@ -164,11 +242,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
-                        ethUsdPriceFeed: address(0),
+                        ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedDown),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: useEthPriceFeed
                     })
                 )
             )
@@ -190,9 +268,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_GracePeriodNotOver()
+    function testFuzz_RevertWhen_GracePeriodNotOver(
+        bool useEthPriceFeed
+    )
         external
-        whenPriceFeedIsNotZero
+        whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
         whenSequencerUptimeFeedIsNotZero
         whenSequencerUptimeFeedReturnsAValidValue
@@ -218,11 +298,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeed),
-                        ethUsdPriceFeed: address(0),
+                        ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedGracePeriodNotOver),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: useEthPriceFeed
                     })
                 )
             )
@@ -236,9 +316,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         perpsEngine.exposed_getPrice(collateral);
     }
 
-    function test_RevertWhen_PriceFeedReturnsAInvalidValueFromLatestRoundData()
+    function testFuzz_RevertWhen_PriceFeedReturnsAInvalidValueFromLatestRoundData(
+        bool useEthPriceFeed
+    )
         external
-        whenPriceFeedIsNotZero
+        whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
     {
         address collateral = address(wstEth);
@@ -257,11 +339,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeedWithInvalidReturn),
-                        ethUsdPriceFeed: address(0),
+                        ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeedWithInvalidReturn) : address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: useEthPriceFeed
                     })
                 )
             )
@@ -277,9 +359,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheDifferenceOfBlockTimestampMinusUpdateAtIsGreaterThanThePriceFeedHeartbetSeconds()
+    function testFuzz_RevertWhen_TheDifferenceOfBlockTimestampMinusUpdateAtIsGreaterThanThePriceFeedHeartbetSeconds(
+        bool useEthPriceFeed
+    )
         external
-        whenPriceFeedIsNotZero
+        whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
         whenPriceFeedReturnsAValidValueFromLatestRoundData
     {
@@ -299,11 +383,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: users.owner.account,
                         priceFeed: address(mockPriceFeedOldUpdatedAt),
-                        ethUsdPriceFeed: address(0),
+                        ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeedOldUpdatedAt) : address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
                         priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: useEthPriceFeed
                     })
                 )
             )
@@ -325,7 +409,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
     function test_RevertWhen_TheAnswerIsEqualOrLessThanTheMinAnswer()
         external
-        whenPriceFeedIsNotZero
+        whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
         whenPriceFeedReturnsAValidValueFromLatestRoundData
         whenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds
@@ -372,7 +456,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
     function test_RevertWhen_TheAnswerIsEqualOrGreaterThanTheMaxAnswer()
         external
-        whenPriceFeedIsNotZero
+        whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
         whenPriceFeedReturnsAValidValueFromLatestRoundData
         whenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds
@@ -419,7 +503,7 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
 
     function test_WhenTheAnswerIsGreaterThanThanTheMinAnswerAndLessThanTheMaxAnswer()
         external
-        whenPriceFeedIsNotZero
+        whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
         whenPriceFeedReturnsAValidValueFromLatestRoundData
         whenTheDifferenceOfBlockTimestampMinusUpdateAtIsLessThanOrEqualThanThePriceFeedHeartbetSeconds

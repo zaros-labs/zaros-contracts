@@ -42,7 +42,9 @@ contract TradingAccountHarness {
         return self.activeMarketsIds.length();
     }
 
-    function workaround_getTradingAccountIdAndOwner(uint128 tradingAccountId)
+    function workaround_getTradingAccountIdAndOwner(
+        uint128 tradingAccountId
+    )
         external
         view
         returns (uint128, address)

@@ -229,7 +229,9 @@ contract CreditDelegationBranch {
     /// @return openInterestCapX18 The market's open interest cap.
     /// @return skewCapX18 The market's skew cap.
     /// TODO: add invariants
-    function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
+    function updateCreditDelegationAndReturnCreditForMarketId(
+        uint128 marketId
+    )
         external
         returns (UD60x18 openInterestCapX18, UD60x18 skewCapX18)
     {

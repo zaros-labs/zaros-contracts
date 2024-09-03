@@ -17,6 +17,7 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { MarketMakingEngineConfigurationBranch } from "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
@@ -236,7 +237,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             settlementFeeRecipient: users.settlementFeeRecipient.account
         });
 
-        setupMarketsConfig();
+        setupMarketsConfig(address(perpsEngine), users.owner.account);
         configureLiquidationKeepers();
 
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
@@ -538,7 +539,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
-            priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
+            priceAdapter: marketsConfig[marketId].priceAdapter,
             initialMarginRateX18: newImr.intoUint128(),
             maintenanceMarginRateX18: newMmr.intoUint128(),
             maxOpenInterest: marketsConfig[marketId].maxOi,
@@ -546,8 +547,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
             skewScale: marketsConfig[marketId].skewScale,
-            orderFees: marketsConfig[marketId].orderFees,
-            priceFeedHeartbeatSeconds: marketsConfig[marketId].priceFeedHeartbeatSeconds
+            orderFees: marketsConfig[marketId].orderFees
         });
 
         perpsEngine.updatePerpMarketConfiguration(marketId, params);
@@ -558,7 +558,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
             symbol: marketsConfig[marketId].marketSymbol,
-            priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
+            priceAdapter: marketsConfig[marketId].priceAdapter,
             initialMarginRateX18: marketsConfig[marketId].imr,
             maintenanceMarginRateX18: marketsConfig[marketId].mmr,
             maxOpenInterest: newMaxOi.intoUint128(),
@@ -566,8 +566,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             skewScale: marketsConfig[marketId].skewScale,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
-            orderFees: marketsConfig[marketId].orderFees,
-            priceFeedHeartbeatSeconds: marketsConfig[marketId].priceFeedHeartbeatSeconds
+            orderFees: marketsConfig[marketId].orderFees
         });
 
         perpsEngine.updatePerpMarketConfiguration(marketId, params);
@@ -586,16 +585,26 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             skewScale: marketsConfig[marketId].skewScale,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
-            orderFees: marketsConfig[marketId].orderFees,
-            priceFeedHeartbeatSeconds: marketsConfig[marketId].priceFeedHeartbeatSeconds
+            orderFees: marketsConfig[marketId].orderFees
         });
 
         perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
     function updateMockPriceFeed(uint128 marketId, uint256 newPrice) internal {
-        MockPriceFeed priceFeed = MockPriceFeed(marketsConfig[marketId].priceAdapter);
-        priceFeed.updateMockPrice(newPrice);
+        MockPriceFeed priceFeed = MockPriceFeed(PriceAdapter(marketsConfig[marketId].priceAdapter).priceFeed());
+        bool useEthPriceFeed = PriceAdapter(marketsConfig[marketId].priceAdapter).useEthPriceFeed();
+
+        if (useEthPriceFeed) {
+            UD60x18 mockEthUsdPrice = ud60x18(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice);
+            UD60x18 mockSelectedMarketUsdPrice = ud60x18(newPrice);
+
+            uint256 mockQuantityInEth = mockSelectedMarketUsdPrice.div(mockEthUsdPrice).intoUint256();
+
+            priceFeed.updateMockPrice(mockQuantityInEth);
+        } else {
+            priceFeed.updateMockPrice(newPrice);
+        }
     }
 
     struct FuzzOrderSizeDeltaParams {
