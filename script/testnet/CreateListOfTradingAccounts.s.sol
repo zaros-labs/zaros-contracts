@@ -19,7 +19,7 @@ struct IListOfTradingAccounts {
     ITradingAccountData[] data;
 }
 
-/// @dev This script creates a list of custom referral codes for a list of referrers
+/// @dev This script creates a list of trading accounts.
 contract CreateListOfTradingAccounts is BaseScript {
     IPerpsEngineTestnet internal perpsEngine;
 
