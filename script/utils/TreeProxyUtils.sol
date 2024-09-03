@@ -11,7 +11,6 @@ import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
-import { PerpsEngineConfigurationBranchTestnet } from "testnet/branches/PerpsEngineConfigurationBranchTestnet.sol";
 import { TradingAccountBranchTestnet } from "testnet/branches/TradingAccountBranchTestnet.sol";
 import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
@@ -71,11 +70,12 @@ function deployPerpsEngineBranches(bool isTestnet) returns (address[] memory) {
 
     address perpsEngineConfigurationBranch;
     address tradingAccountBranch;
+
+    perpsEngineConfigurationBranch = address(new PerpsEngineConfigurationBranch());
+
     if (isTestnet) {
-        perpsEngineConfigurationBranch = address(new PerpsEngineConfigurationBranchTestnet());
         tradingAccountBranch = address(new TradingAccountBranchTestnet());
     } else {
-        perpsEngineConfigurationBranch = address(new PerpsEngineConfigurationBranch());
         tradingAccountBranch = address(new TradingAccountBranch());
     }
     console.log("PerpsEngineConfigurationBranch: ", perpsEngineConfigurationBranch);
@@ -107,7 +107,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](isTestnet ? 18 : 17);
+    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](17);
 
     perpsEngineConfigurationBranchSelectors[0] =
         PerpsEngineConfigurationBranch.getAccountsWithActivePositions.selector;
@@ -134,10 +134,6 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
     perpsEngineConfigurationBranchSelectors[16] =
         PerpsEngineConfigurationBranch.getSequencerUptimeFeedByChainId.selector;
-
-    if (isTestnet) {
-        perpsEngineConfigurationBranchSelectors[17] = PerpsEngineConfigurationBranchTestnet.setUserPoints.selector;
-    }
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
 
@@ -168,7 +164,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     perpMarketBranchSelectors[9] = PerpMarketBranch.getFundingVelocity.selector;
     perpMarketBranchSelectors[10] = PerpMarketBranch.getPerpMarketConfiguration.selector;
 
-    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 14 : 13);
+    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 15 : 13);
 
     tradingAccountBranchSelectors[0] = TradingAccountBranch.getTradingAccountToken.selector;
     tradingAccountBranchSelectors[1] = TradingAccountBranch.getAccountMarginCollateralBalance.selector;
@@ -186,6 +182,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
 
     if (isTestnet) {
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
+        tradingAccountBranchSelectors[14] = TradingAccountBranchTestnet.createTradingAccountWithSender.selector;
     }
 
     bytes4[] memory settlementBranchSelectors = new bytes4[](4);
