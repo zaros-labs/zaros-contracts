@@ -42,23 +42,4 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
 
         return tradingAccountId;
     }
-
-    function depositMargin(
-        uint128 tradingAccountId,
-        address collateralType,
-        uint256 amount
-    )
-        public
-        virtual
-        override
-    {
-        super.depositMargin(tradingAccountId, collateralType, amount);
-
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
-        UD60x18 marginCollateralBalance = tradingAccount.getMarginCollateralBalance(collateralType);
-
-        if (marginCollateralBalance > ud60x18(100_000e18)) {
-            revert FaucetAlreadyDeposited();
-        }
-    }
 }
