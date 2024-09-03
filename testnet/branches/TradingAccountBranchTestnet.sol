@@ -5,11 +5,9 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
-import { CustomReferralConfigurationTestnet } from "../leaves/CustomReferralConfigurationTestnet.sol";
-import { ReferralTestnet } from "../leaves/ReferralTestnet.sol";
+import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 
 // Open Zeppelin dependencies
-import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
@@ -18,7 +16,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, OwnableUpgradeable {
     using TradingAccount for TradingAccount.Data;
-    using ReferralTestnet for ReferralTestnet.Data;
+    using Referral for Referral.Data;
 
     mapping(address user => bool accountCreated) internal isAccountCreated;
 
