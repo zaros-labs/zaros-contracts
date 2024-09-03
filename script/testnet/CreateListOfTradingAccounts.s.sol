@@ -34,7 +34,7 @@ contract CreateListOfTradingAccounts is BaseScript {
         ListOfTradingAccounts memory listOfTradingAccounts = abi.decode(data, (ListOfTradingAccounts));
 
         for (uint256 i; i < listOfTradingAccounts.data.length; i++) {
-            perpsEngine.createTradingAccountWithTheSender(
+            perpsEngine.createTradingAccountWithSender(
                 listOfTradingAccounts.data[i].sender,
                 listOfTradingAccounts.data[i].referralCode,
                 listOfTradingAccounts.data[i].isCustomReferralCode
