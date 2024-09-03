@@ -4,7 +4,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
-import { PerpsEngineConfigurationBranchTestnet } from "testnet/branches/PerpsEngineConfigurationBranchTestnet.sol";
 import { TradingAccountBranchTestnet } from "testnet/branches/TradingAccountBranchTestnet.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
