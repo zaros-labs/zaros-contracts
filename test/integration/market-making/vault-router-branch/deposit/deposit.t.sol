@@ -20,7 +20,7 @@ contract MarketMaking_deposit_Test is Base_Test {
     }
 
     function test_RevertWhen_TheDepositCapIsReached() external givenAUserDeposits {
-        uint256 assetsToDeposit = VAULT_DEPOSIT_CAP + 1;
+        uint128 assetsToDeposit = VAULT_DEPOSIT_CAP + 1;
         deal(address(wEth), users.naruto.account, assetsToDeposit);
 
         // it should revert
@@ -31,7 +31,7 @@ contract MarketMaking_deposit_Test is Base_Test {
     }
 
     function test_WhenUserHasEnoughAssets() external givenAUserDeposits {
-        uint256 assetsToDeposit = 1e18;
+        uint128 assetsToDeposit = 1e18;
         deal(address(wEth), users.naruto.account, assetsToDeposit);
 
         vm.expectEmit();
@@ -43,18 +43,18 @@ contract MarketMaking_deposit_Test is Base_Test {
     }
 
     function test_RevertWhen_SharesMintedAreLessThanMinAmount() external givenAUserDeposits {
-        uint256 assetsToDeposit = 1e18;
+        uint128 assetsToDeposit = 1e18;
         deal(address(wEth), users.naruto.account, assetsToDeposit);
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector));
-        marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, type(uint256).max);
+        marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, type(uint128).max);
     }
 
     function test_RevertWhen_VaultDoesNotExist() external givenAUserDeposits {
-        uint256 invalidVaultId = 0;
-        uint256 amount = 1e18;
-        uint256 minSharesOut = 0;
+        uint128 invalidVaultId = 0;
+        uint128 amount = 1e18;
+        uint128 minSharesOut = 0;
 
         // it should revert
         vm.expectRevert();

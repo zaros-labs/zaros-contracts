@@ -19,14 +19,14 @@ contract MarketMaking_unstake_Test is Base_Test {
     }
 
     function test_RevertWhen_UserDoesNotHaveEnoguhtStakedShares() external {
-        uint256 sharesToStake = 1e18;
+        uint128 sharesToStake = 1e18;
         address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
         deal(address(indexToken), users.naruto.account, sharesToStake);
 
         IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
         marketMakingEngine.stake(VAULT_ID, sharesToStake, "", false);
 
-        uint256 sharesToUnstake = sharesToStake + 1;
+        uint128 sharesToUnstake = sharesToStake + 1;
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.NotEnoughShares.selector));
@@ -34,7 +34,7 @@ contract MarketMaking_unstake_Test is Base_Test {
     }
 
     function test_WhenUserHasStakedShares() external {
-        uint256 sharesToStake = 1e18;
+        uint128 sharesToStake = 1e18;
         address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
         deal(address(indexToken), users.naruto.account, sharesToStake);
 

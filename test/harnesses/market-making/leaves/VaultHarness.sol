@@ -6,19 +6,19 @@ import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 
 contract VaultHarness {
-    function workaround_Vault_getIndexToken(uint256 vaultId) external view returns (address) {
+    function workaround_Vault_getIndexToken(uint128 vaultId) external view returns (address) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
         return vaultData.indexToken;
     }
 
     function workaround_Vault_getActorStakedShares(
-        uint256 vaultId,
+        uint128 vaultId,
         bytes32 actorId
     )
         external
         view
-        returns (uint256)
+        returns (uint128)
     {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
@@ -27,7 +27,7 @@ contract VaultHarness {
         return stakingData.actor[actorId].shares;
     }
 
-    function workaround_Vault_getTotalStakedShares(uint256 vaultId) external view returns (uint256) {
+    function workaround_Vault_getTotalStakedShares(uint128 vaultId) external view returns (uint128) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
         Distribution.Data storage stakingData = vaultData.stakingFeeDistribution;

@@ -380,7 +380,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketMakingEngine.createVault(params);
     }
 
-    function depositInVault(uint256 assetsToDeposit) internal {
+    function depositInVault(uint128 assetsToDeposit) internal {
         deal(address(wEth), users.naruto.account, assetsToDeposit);
 
         marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, 0);

@@ -18,7 +18,7 @@ contract MarketMaking_stake_Test is Base_Test {
     }
 
     function test_RevertWhen_VaultIsInvalid() external {
-        uint256 sharesToStake = 1e18;
+        uint128 sharesToStake = 1e18;
         address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
         deal(address(indexToken), users.naruto.account, sharesToStake);
 
@@ -30,7 +30,7 @@ contract MarketMaking_stake_Test is Base_Test {
     }
 
     function test_WhenUserHasShares() external {
-        uint256 sharesToStake = 1e18;
+        uint128 sharesToStake = 1e18;
         address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
         deal(address(indexToken), users.naruto.account, sharesToStake);
 

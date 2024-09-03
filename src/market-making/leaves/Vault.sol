@@ -52,9 +52,9 @@ library Vault {
     /// @param indexToken The address of the index token used in the vault.
     /// @param collateral The collateral asset data associated with the vault.
     struct CreateParams {
-        uint256 vaultId;
-        uint256 depositCap;
-        uint256 withdrawalDelay;
+        uint128 vaultId;
+        uint128 depositCap;
+        uint128 withdrawalDelay;
         address indexToken;
         Collateral.Data collateral;
     }
@@ -65,9 +65,9 @@ library Vault {
     /// @param withdrawalDelay The new delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @param collateral The updated collateral asset data associated with the vault.
     struct UpdateParams {
-        uint256 vaultId;
-        uint256 depositCap;
-        uint256 withdrawalDelay;
+        uint128 vaultId;
+        uint128 depositCap;
+        uint128 withdrawalDelay;
         Collateral.Data collateral;
     }
 

@@ -12,7 +12,7 @@ contract MarketMaking_getIndexTokenSwapRate_Test is Base_Test {
     }
 
     function test_WhenGetIndexTokenSwapRateIsCalled() external {
-        uint256 assetsToDeposit = 1e18;
+        uint128 assetsToDeposit = 1e18;
         depositInVault(assetsToDeposit);
         uint256 swapRate = marketMakingEngine.getIndexTokenSwapRate(VAULT_ID);
 

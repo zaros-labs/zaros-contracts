@@ -30,8 +30,8 @@ contract MarketMaking_initiateWithdraw_Test is Base_Test {
     }
 
     function test_RevertWhen_VaultIdIsInvalid() external whenInitiateWithdrawIsCalled {
-        uint256 invalidVaultId = 0;
-        uint256 sharesToWithdraw = 1e18;
+        uint128 invalidVaultId = 0;
+        uint128 sharesToWithdraw = 1e18;
 
         // it should revert
         vm.expectRevert();

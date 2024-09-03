@@ -17,6 +17,16 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
         _disableInitializers();
     }
 
+    /// @notice Emitted when a new vault is created.
+    /// @param sender The address that created the vault.
+    /// @param vaultId The vault id.
+    event LogCreateVault(address indexed sender, uint128 vaultId);
+
+    /// @notice Emitted when a vault is updated.
+    /// @param sender The address that updated the vault.
+    /// @param vaultId The vault id.
+    event LogUpdateVaultConfiguration(address indexed sender, uint128 vaultId);
+
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {MarketMakingEngineConfigurationBranch} UUPS initializer.
     function initialize(address usdToken, address perpsEngine, address owner) external initializer {
@@ -65,6 +75,11 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
         }
 
         Vault.create(params);
+
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfig = MarketMakingEngineConfiguration.load();
+        marketMakingEngineConfig.addVault(params.vaultId);
+
+        emit LogCreateVault(msg.sender, params.vaultId);
     }
 
     /// @dev Invariants involved in the call:
@@ -83,5 +98,7 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
         }
 
         Vault.update(params);
+
+        emit LogUpdateVaultConfiguration(msg.sender, params.vaultId);
     }
 }

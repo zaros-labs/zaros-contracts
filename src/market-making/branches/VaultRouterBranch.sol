@@ -101,7 +101,7 @@ contract VaultRouterBranch {
     /// @notice Returns the swap rate from index token to collateral asset for the provided vault.
     /// @param vaultId The vault identifier.
     /// @return price The swap price from index token to collateral asset.
-    function getIndexTokenSwapRate(uint256 vaultId) external view returns (uint256 price) {
+    function getIndexTokenSwapRate(uint128 vaultId) external view returns (uint256 price) {
         Vault.Data storage vault = Vault.load(vaultId);
 
         return IERC4626(vault.indexToken).previewRedeem(1 * 10 ** IERC4626(vault.collateral.asset).decimals());
@@ -114,7 +114,7 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
-    function deposit(uint256 vaultId, uint256 assets, uint256 minShares) external {
+    function deposit(uint128 vaultId, uint128 assets, uint128 minShares) external {
         Vault.Data storage vault = Vault.load(vaultId);
         vault.totalDeposited += assets;
 
@@ -139,7 +139,7 @@ contract VaultRouterBranch {
     /// @param shares The amount of index tokens to stake, in 18 decimals.
     /// @param referralCode The referral code to use.
     /// @param isCustomReferralCode True if the referral code is a custom referral code.
-    function stake(uint256 vaultId, uint256 shares, bytes memory referralCode, bool isCustomReferralCode) external {
+    function stake(uint128 vaultId, uint128 shares, bytes memory referralCode, bool isCustomReferralCode) external {
         Vault.Data storage vault = Vault.load(vaultId);
         Distribution.Data storage distributionData = vault.stakingFeeDistribution;
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
@@ -186,7 +186,7 @@ contract VaultRouterBranch {
     /// The user MUST have enough shares in their balance to initiate the withdrawal.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
-    function initiateWithdrawal(uint256 vaultId, uint256 shares) external {
+    function initiateWithdrawal(uint128 vaultId, uint256 shares) external {
         if (shares == 0) {
             revert Errors.ZeroInput("sharesAmount");
         }
@@ -240,7 +240,7 @@ contract VaultRouterBranch {
     /// The user MUST have enough shares staked to perform the unstake.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to unstake, in 18 decimals.
-    function unstake(uint256 vaultId, uint256 shares) external {
+    function unstake(uint128 vaultId, uint256 shares) external {
         Vault.Data storage vault = Vault.load(vaultId);
         Distribution.Data storage distributionData = vault.stakingFeeDistribution;
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
