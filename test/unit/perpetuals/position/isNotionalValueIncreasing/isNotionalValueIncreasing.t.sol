@@ -232,7 +232,8 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
     function test_WhenPositionSizeIsPositiveAndPositionSizePlusSizeDeltaAbsoluteIsGreaterThanThePositionSizeAbsolute(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
-        uint256 marketId
+        uint256 marketId,
+        uint256 sizeDeltaAbs
     )
         external
     {
@@ -260,7 +261,10 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
 
         Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
 
-        int128 sizeDelta = int128(-position.size) * 2 - 1;
+        sizeDeltaAbs =
+            bound({ x: sizeDeltaAbs, min: uint256(position.size * 2 + 1), max: uint256(position.size * 10_000) });
+
+        int128 sizeDelta = -int128(int256(sizeDeltaAbs));
 
         assertEq(position.size > 0, true, "position.size should be greater than zero");
         assertEq(sizeDelta < 0, true, "sizeDelta should be less than zero");
@@ -275,7 +279,8 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
     function test_WhenPositionSizeIsNegativeAndPositionSizePlusSizeDeltaAbsoluteIsGreaterThanThePositionSizeAbsolute(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
-        uint256 marketId
+        uint256 marketId,
+        uint256 sizeDeltaAbs
     )
         external
     {
@@ -303,7 +308,10 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
 
         Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
 
-        int128 sizeDelta = int128(-position.size) * 2 + 1;
+        sizeDeltaAbs =
+            bound({ x: sizeDeltaAbs, min: uint256(-position.size * 2 + 1), max: uint256(-position.size * 10_000) });
+
+        int128 sizeDelta = int128(int256(sizeDeltaAbs));
 
         assertEq(position.size < 0, true, "position.size should be less than zero");
         assertEq(sizeDelta > 0, true, "sizeDelta should be greater than zero");
