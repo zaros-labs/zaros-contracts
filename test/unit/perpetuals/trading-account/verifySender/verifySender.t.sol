@@ -13,7 +13,9 @@ contract VerifySender_Unit_Test is Base_Test {
         createPerpMarkets();
     }
 
-    function testFuzz_RevertWhen_TheTradingAccountOwnerIsDifferentFromTheMsgSender(uint256 amountToDeposit)
+    function testFuzz_RevertWhen_TheTradingAccountOwnerIsDifferentFromTheMsgSender(
+        uint256 amountToDeposit
+    )
         external
     {
         amountToDeposit = bound({

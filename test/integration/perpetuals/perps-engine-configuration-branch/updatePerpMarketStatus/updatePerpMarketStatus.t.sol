@@ -31,7 +31,9 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_PerpMarketIsEnabledAndNewEnableStatusIsTrue(uint256 marketId)
+    function testFuzz_RevertWhen_PerpMarketIsEnabledAndNewEnableStatusIsTrue(
+        uint256 marketId
+    )
         external
         givenPerpMarketIsInitialized
     {
@@ -46,7 +48,9 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, true);
     }
 
-    function testFuzz_WhenPerpMarketIsEnabledAndNewEnableStatusIsFalse(uint256 marketId)
+    function testFuzz_WhenPerpMarketIsEnabledAndNewEnableStatusIsFalse(
+        uint256 marketId
+    )
         external
         givenPerpMarketIsInitialized
     {
@@ -62,7 +66,9 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, false);
     }
 
-    function testFuzz_WhenPerpMarketIsNotEnabledAndNewEnableStatusIsTrue(uint256 marketId)
+    function testFuzz_WhenPerpMarketIsNotEnabledAndNewEnableStatusIsTrue(
+        uint256 marketId
+    )
         external
         givenPerpMarketIsInitialized
     {
@@ -80,7 +86,9 @@ contract UpdatePerpMarketStatus_Integration_Test is Base_Test {
         perpsEngine.updatePerpMarketStatus(fuzzMarketConfig.marketId, true);
     }
 
-    function testFuzz_RevertWhen_PerpMarketIsNotEnabledAndNewEnableStatusIsFalse(uint256 marketId)
+    function testFuzz_RevertWhen_PerpMarketIsNotEnabledAndNewEnableStatusIsFalse(
+        uint256 marketId
+    )
         external
         givenPerpMarketIsInitialized
     {

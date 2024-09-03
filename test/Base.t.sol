@@ -16,6 +16,7 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { MarketMakingEngineConfigurationBranch } from "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
@@ -50,7 +51,7 @@ import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/Wi
 import { DistributionHarness } from "test/harnesses/market-making/leaves/DistributionHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { MarketDebtHarness } from "test/harnesses/market-making/leaves/MarketDebtHarness.sol";
-import { MarketMakingEngineConfigurationHarness } from 
+import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
 import { FeeHarness } from "test/harnesses/market-making/leaves/FeeHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";

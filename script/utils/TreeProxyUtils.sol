@@ -33,7 +33,7 @@ import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistribu
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { DistributionHarness } from "test/harnesses/market-making/leaves/DistributionHarness.sol";
 import { MarketDebtHarness } from "test/harnesses/market-making/leaves/MarketDebtHarness.sol";
-import { MarketMakingEngineConfigurationHarness } from 
+import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
 import { FeeHarness } from "test/harnesses/market-making/leaves/FeeHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
@@ -538,7 +538,7 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 
     address marketMakingEngineConfigurationHarness = address(new MarketMakingEngineConfigurationHarness());
     console.log("MarketMakingEngineConfigurationHarness: ", marketMakingEngineConfigurationHarness);
-    
+
     address feeHarness = address(new FeeHarness());
     console.log("FeeHarness: ", feeHarness);
 
@@ -594,9 +594,9 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](3);
     marketMakingEngineConfigurationSelectors[0] = MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
-    marketMakingEngineConfigurationSelectors[1] = 
+    marketMakingEngineConfigurationSelectors[1] =
         MarketMakingEngineConfigurationHarness.workaround_setPerpsEngineAddress.selector;
-    marketMakingEngineConfigurationSelectors[2] = 
+    marketMakingEngineConfigurationSelectors[2] =
         MarketMakingEngineConfigurationHarness.workaround_setFeeRecipients.selector;
 
     bytes4[] memory feeHarnessSelectors = new bytes4[](3);

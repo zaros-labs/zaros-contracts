@@ -54,7 +54,9 @@ contract PerpMarketBranch {
     /// @return longsOpenInterest The open interest in long positions.
     /// @return shortsOpenInterest The open interest in short positions.
     /// @return totalOpenInterest The sum of longsOpenInterest and shortsOpenInterest.
-    function getOpenInterest(uint128 marketId)
+    function getOpenInterest(
+        uint128 marketId
+    )
         external
         view
         returns (UD60x18 longsOpenInterest, UD60x18 shortsOpenInterest, UD60x18 totalOpenInterest)
@@ -129,7 +131,9 @@ contract PerpMarketBranch {
     /// @return minTradeSizeX18 The minimum trade size of the market.
     /// @return skewScale The configured skew scale of the market.
     /// @return orderFees The configured maker and taker order fees of the market.
-    function getPerpMarketConfiguration(uint128 marketId)
+    function getPerpMarketConfiguration(
+        uint128 marketId
+    )
         external
         view
         returns (

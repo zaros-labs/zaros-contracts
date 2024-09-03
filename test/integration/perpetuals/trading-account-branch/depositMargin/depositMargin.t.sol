@@ -27,7 +27,9 @@ contract DepositMargin_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertGiven_TheCollateralTypeHasInsufficientDepositCap(uint256 amountToDeposit)
+    function testFuzz_RevertGiven_TheCollateralTypeHasInsufficientDepositCap(
+        uint256 amountToDeposit
+    )
         external
         whenTheAmountIsNotZero
     {
@@ -117,7 +119,9 @@ contract DepositMargin_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertGiven_TheCollateralTypeIsNotInTheLiquidationPriority(uint256 amountToDeposit)
+    function testFuzz_RevertGiven_TheCollateralTypeIsNotInTheLiquidationPriority(
+        uint256 amountToDeposit
+    )
         external
         whenTheAmountIsNotZero
         givenTheCollateralTypeHasSufficientDepositCap
@@ -174,7 +178,9 @@ contract DepositMargin_Integration_Test is Base_Test {
         perpsEngine.depositMargin(userTradingAccountId, address(usdc), amountToDeposit);
     }
 
-    function testFuzz_GivenTheTradingAccountExists(uint256 amountToDeposit)
+    function testFuzz_GivenTheTradingAccountExists(
+        uint256 amountToDeposit
+    )
         external
         whenTheAmountIsNotZero
         givenTheCollateralTypeHasSufficientDepositCap

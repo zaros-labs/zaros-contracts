@@ -80,7 +80,9 @@ contract OrderBranch {
     /// @return orderFeeUsdX18 The order fee in USD.
     /// @return settlementFeeUsdX18 The settlement fee in USD.
     /// @return fillPriceX18 The fill price quote.
-    function simulateTrade(SimulateTradeParams memory params)
+    function simulateTrade(
+        SimulateTradeParams memory params
+    )
         public
         view
         returns (
@@ -214,7 +216,9 @@ contract OrderBranch {
     }
 
     /// @param tradingAccountId The trading account id to get the active market
-    function getActiveMarketOrder(uint128 tradingAccountId)
+    function getActiveMarketOrder(
+        uint128 tradingAccountId
+    )
         external
         pure
         returns (MarketOrder.Data memory marketOrder)
