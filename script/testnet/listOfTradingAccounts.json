@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "tradingAccountId": "1",
+      "sender": "0x912ewqajoaolindao",
+      "referralCode": "0x91e8ajkskaio28ejswkj1",
+      "isCustomReferralCode": false
+    },
+    {
+      "tradingAccountId": "2",
+      "sender": "0xaisdnwkwmeicorinthia",
+      "referralCode": "BOB-ESPONJA",
+      "isCustomReferralCode": true
+    },
+    {
+      "tradingAccountId": "3",
+      "sender": "0x2183828brasil",
+      "referralCode": "",
+      "isCustomReferralCode": false
+    }
+  ]
+}

@@ -32,6 +32,5 @@ contract CreateListOfCustomReferrals is BaseScript {
         }
 
         console.log("Custom referral codes created successfully");
-
     }
 }

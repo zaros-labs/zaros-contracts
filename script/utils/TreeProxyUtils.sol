@@ -148,7 +148,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpMarketBranchSelectors[9] = PerpMarketBranch.getFundingVelocity.selector;
     perpMarketBranchSelectors[10] = PerpMarketBranch.getPerpMarketConfiguration.selector;
 
-    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 14 : 13);
+    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 15 : 13);
 
     tradingAccountBranchSelectors[0] = TradingAccountBranch.getTradingAccountToken.selector;
     tradingAccountBranchSelectors[1] = TradingAccountBranch.getAccountMarginCollateralBalance.selector;
@@ -166,6 +166,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     if (isTestnet) {
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
+        tradingAccountBranchSelectors[14] = TradingAccountBranchTestnet.createTradingAccount.selector;
     }
 
     bytes4[] memory settlementBranchSelectors = new bytes4[](4);
