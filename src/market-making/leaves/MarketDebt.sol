@@ -13,7 +13,9 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-/// @dev A perp market won't be abl
+/// @dev NOTE: realized debt -> unsettled debt -> settled debt
+/// TODO: do we only send realized debt as unsettled debt to the vaults? should it be considered settled debt? or do
+/// we send the entire reported debt as unsettled debt?
 library MarketDebt {
     using Distribution for Distribution.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -35,6 +37,10 @@ library MarketDebt {
     /// delegated credit.
     /// @param realizedDebtUsd The net delta of USDz minted by the market and margin collateral collected from
     /// traders and converted to USDC or ZLP Vaults assets.
+    /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
+    /// vaults.
+    /// @param lastDistributedTotalDebtUsd The last total debt in USD distributed as `value` to the vaults debt
+    /// distribution.
     /// @param collectedMarginCollateral An enumerable map that stores the amount of each margin collateral asset
     /// collected from perps traders at a market.
     /// @param connectedVaultsIds The list of vaults ids delegating credit to this market. Whenever there's an update,
@@ -48,7 +54,8 @@ library MarketDebt {
         uint128 openInterestCapScale;
         uint128 skewCapScale;
         int128 realizedDebtUsd;
-        int128 lastDistributedTotalDebtUsdX18;
+        int128 lastDistributedRealizedDebtUsd;
+        int128 lastDistributedTotalDebtUsd;
         EnumerableMap.AddressToUintMap collectedMarginCollateral;
         EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
@@ -79,8 +86,13 @@ library MarketDebt {
         connectedVaultsIds = self.connectedVaultsIds[self.connectedVaultsIds.length].values();
     }
 
-    function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCredit) {
-        return ud60x18(self.vaultsDebtDistribution.totalShares);
+    function getCreditCapacity(Data storage self) internal view returns (SD59x18 creditCapacityUsdX18) {
+        creditCapacityUsdX18 =
+            ud60x18(self.vaultsDebtDistribution.totalShares).intoSD59x18().add(sd59x18(self.realizedDebtUsd));
+    }
+
+    function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCreditUsdX18) {
+        totalDelegatedCreditUsdX18 = ud60x18(self.vaultsDebtDistribution.totalShares);
     }
 
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
@@ -98,7 +110,7 @@ library MarketDebt {
 
     function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) { }
 
-    function addMarginCollateral(Data storage self, address collateralType, UD60x18 amountX18) internal { }
+    function addMarginCollateral(Data storage self, address collateralType, uint256 amount) internal { }
 
     // TODO: see how to return the unsettled debt change
     function distributeDebtToVaults(
@@ -112,7 +124,7 @@ library MarketDebt {
         // loads the vaults debt distribution storage pointer
         Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
         // int128 -> SD59x18
-        SD59x18 lastDistributedTotalDebtUsdX18 = sd59x18(self.lastDistributedTotalDebtUsdX18);
+        SD59x18 lastDistributedTotalDebtUsdX18 = sd59x18(self.lastDistributedTotalDebtUsd);
 
         /// distributes the delta between the last distributed total debt and the new total debt to the vaults and
         /// cache the unsettled debt change in the distribution.
@@ -125,6 +137,6 @@ library MarketDebt {
         self.realizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
 
         // update the last distributed total debt
-        self.lastDistributedTotalDebtUsdX18 = newTotalDebtUsdX18.intoInt256().toInt128();
+        self.lastDistributedTotalDebtUsd = newTotalDebtUsdX18.intoInt256().toInt128();
     }
 }
