@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { UpgradeBranch } from "@zaros/tree-proxy/branches/UpgradeBranch.sol";
 import { LookupBranch } from "@zaros/tree-proxy/branches/LookupBranch.sol";
-import { PerpsEngineConfigurationBranchTestnet } from "./branches/PerpsEngineConfigurationBranchTestnet.sol";
+import { PerpsEngineConfigurationBranch } from "./branches/PerpsEngineConfigurationBranch.sol";
 import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
@@ -14,7 +14,7 @@ import { TradingAccountBranchTestnet } from "./branches/TradingAccountBranchTest
 abstract contract IPerpsEngineTestnet is
     UpgradeBranch,
     LookupBranch,
-    PerpsEngineConfigurationBranchTestnet,
+    PerpsEngineConfigurationBranch,
     LiquidationBranch,
     OrderBranch,
     PerpMarketBranch,
