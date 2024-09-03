@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+
 // Open zeppelin upgradeable dependencies
 import { ERC20PermitUpgradeable } from "@openzeppelin-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -10,31 +13,6 @@ import { IERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensio
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
-
-/// @notice Interface for the Perpetuals Engine contract.
-interface IPerpsEngine {
-    /// @notice Get the trading account token.
-    /// @return The address of the trading account token.
-    function getTradingAccountToken() external view returns (address);
-
-    /// @notice Get the account margin breakdown.
-    /// @param tradingAccountId The trading account id.
-    /// @return marginBalanceUsdX18 The account's total margin balance.
-    /// @return initialMarginUsdX18 The account's initial margin in positions.
-    /// @return maintenanceMarginUsdX18 The account's maintenance margin.
-    /// @return availableMarginUsdX18 The account's withdrawable margin balance.
-    function getAccountMarginBreakdown(
-        uint128 tradingAccountId
-    )
-        external
-        view
-        returns (
-            SD59x18 marginBalanceUsdX18,
-            UD60x18 initialMarginUsdX18,
-            UD60x18 maintenanceMarginUsdX18,
-            SD59x18 availableMarginUsdX18
-        );
-}
 
 /// @notice LimitedMintingERC20 is an ERC20 token with limited minting capabilities used in testnet.
 contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, OwnableUpgradeable {
@@ -51,7 +29,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     uint256 public constant MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT = 10_000 * 10 ** 18;
 
     /// @notice Start time for minting.
-    uint256 public constant START_TIME_MINTING = 1_725_380_400; // 03st Sep 2024 16:20:00 UTC
+    uint256 public startTimeMinting;
 
     /// @notice Mapping of the amount minted per address.
     mapping(address user => uint256 amount) public amountMintedPerAddress;
@@ -76,7 +54,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     error LimitedMintingERC20_UserAlreadyMintedThisWeek(address user, uint256 lastMintedTime);
 
     /// @notice Error emitted when the user has more than the maximum amount.
-    error LimitedMintingERC20_UserHaveMoreThanMaxAmount(address user, uint256 amount, uint256 maxAmount);
+    error LimitedMintingERC20_UserHasMoreThanMaxAmount(address user, uint256 amount, uint256 maxAmount);
 
     /*//////////////////////////////////////////////////////////////////////////
                                     INITIALIZE FUNCTIONS
@@ -112,18 +90,22 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
                                     EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    function setStartTimeMinting(uint256 _startTimeMinting) external onlyOwner {
+        startTimeMinting = _startTimeMinting;
+    }
+
     function mint(address to, uint256 amount) external onlyOwner {
         _mint(to, amount);
     }
 
     function mint(uint256 tokenIndex) external {
-        if (block.timestamp < START_TIME_MINTING) {
-            revert LimitedMintingERC20_MintingIsNotStarted(START_TIME_MINTING);
+        if (block.timestamp < startTimeMinting) {
+            revert LimitedMintingERC20_MintingIsNotStarted(startTimeMinting);
         }
 
-        uint256 numberOfWeeks = (block.timestamp - START_TIME_MINTING) / 7 days;
+        uint256 numberOfWeeks = (block.timestamp - startTimeMinting) / 7 days;
 
-        if (userLastMintedTime[msg.sender] >= START_TIME_MINTING + numberOfWeeks * 7 days) {
+        if (userLastMintedTime[msg.sender] >= startTimeMinting + numberOfWeeks * 7 days) {
             revert LimitedMintingERC20_UserAlreadyMintedThisWeek(msg.sender, userLastMintedTime[msg.sender]);
         }
 
@@ -135,7 +117,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         uint256 userBalance = balanceOf(msg.sender) + uint256(marginBalanceUsdX18.intoInt256());
 
         if (userLastMintedTime[msg.sender] > 0 && userBalance > MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT) {
-            revert LimitedMintingERC20_UserHaveMoreThanMaxAmount(
+            revert LimitedMintingERC20_UserHasMoreThanMaxAmount(
                 msg.sender, userBalance, MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT
             );
         }
