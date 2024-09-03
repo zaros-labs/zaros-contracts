@@ -17,7 +17,7 @@ import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
@@ -126,11 +126,12 @@ contract CreditDelegationBranch {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
-        // scale the provided amount's decimals if needed and convert it to UD60x18
-        UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
+        if (marketDebt.getCreditCapacity().lt(SD59x18_ZERO)) {
+            revert Errors.NoCreditCapacity(marketId);
+        }
 
         // adds the collected margin collateral to the market's debt data storage, to be settled later
-        marketDebt.addMarginCollateral(collateralType, amountX18);
+        marketDebt.addMarginCollateral(collateralType, amount);
 
         // transfers the margin collateral asset from the perps engine to the market making engine
         // NOTE: The perps engine must approve the market making engine to transfer the margin collateral asset, see
@@ -169,11 +170,6 @@ contract CreditDelegationBranch {
         if (marketDebt.getDelegatedCredit().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
-
-        // TODO: do we update the vaults credit delegation before distributing debt to them?
-        // TODO: is the unsettled debt distributed before or after recalculating the vaults credit delegation?
-        // syncs the connected vaults' credit delegation to this market before updating the debt distribution chain
-        Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
 
         // update the market's vaults debt distribution and its realized debt, returning the unsettled debt change
         SD59x18 unsettledDebtChangeUsdX18 =
