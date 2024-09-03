@@ -30,7 +30,7 @@ contract MarginCollateralConfiguration_ConvertTokenAmountToUd60x18_Test is Base_
         uint128 newDepositCap,
         uint120 newLoanToValue,
         uint8 newDecimals,
-        address newPriceFeed
+        address newPriceAdapter
     )
         external
     {
@@ -38,9 +38,7 @@ contract MarginCollateralConfiguration_ConvertTokenAmountToUd60x18_Test is Base_
 
         vm.assume(newDecimals < Constants.SYSTEM_DECIMALS && newDecimals > 0);
 
-        perpsEngine.exposed_configure(
-            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
-        );
+        perpsEngine.exposed_configure(address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceAdapter);
 
         UD60x18 expectedValue = ud60x18(amount * 10 ** (Constants.SYSTEM_DECIMALS - newDecimals));
 

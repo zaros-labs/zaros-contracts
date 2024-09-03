@@ -91,7 +91,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](isTestnet ? 17 : 16);
+    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](isTestnet ? 18 : 17);
 
     perpsEngineConfigurationBranchSelectors[0] =
         PerpsEngineConfigurationBranch.getAccountsWithActivePositions.selector;
@@ -116,9 +116,11 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpsEngineConfigurationBranchSelectors[14] =
         PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
+    perpsEngineConfigurationBranchSelectors[16] =
+        PerpsEngineConfigurationBranch.getSequencerUptimeFeedByChainId.selector;
 
     if (isTestnet) {
-        perpsEngineConfigurationBranchSelectors[16] = PerpsEngineConfigurationBranchTestnet.setUserPoints.selector;
+        perpsEngineConfigurationBranchSelectors[17] = PerpsEngineConfigurationBranchTestnet.setUserPoints.selector;
     }
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
@@ -243,7 +245,9 @@ function getInitializePayloads(
     return initializePayloads;
 }
 
-function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+function deployHarnesses(
+    RootProxy.BranchUpgrade[] memory branchUpgrades
+)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployAddressHarnesses();

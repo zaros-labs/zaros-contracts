@@ -6,7 +6,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
-import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { ud60x18, UD60x18 } from "@prb-math/UD60x18.sol";
@@ -60,12 +60,11 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
         uint128 tradingAccountId = createAccountAndDeposit(usdcMarginValueUsd, address(usdc));
         perpsEngine.depositMargin(tradingAccountId, address(wstEth), wstEthMarginValueUsd);
 
-        UD60x18 usdcEquityUsd = getPrice(MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)).mul(
-            convertTokenAmountToUd60x18(address(usdc), usdcMarginValueUsd)
-        );
+        UD60x18 usdcEquityUsd = IPriceAdapter(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter).getPrice()
+            .mul(convertTokenAmountToUd60x18(address(usdc), usdcMarginValueUsd));
 
-        UD60x18 wstEthEquityUsd = getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed))
-            .mul(convertTokenAmountToUd60x18(address(wstEth), wstEthMarginValueUsd));
+        UD60x18 wstEthEquityUsd = IPriceAdapter((marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter))
+            .getPrice().mul(convertTokenAmountToUd60x18(address(wstEth), wstEthMarginValueUsd));
 
         UD60x18 marginCollateralValue = usdcEquityUsd.add(wstEthEquityUsd);
 
@@ -141,10 +140,9 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
 
         SD59x18 accountTotalUnrealizedPnl = perpsEngine.getAccountTotalUnrealizedPnl(tradingAccountId);
 
-        UD60x18 marginCollateralValue = getPrice(
-            MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed)
-        ).mul(ud60x18(wstEthmarginValueUsd)).add(
-            getPrice(MockPriceFeed(marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceFeed)).mul(
+        UD60x18 marginCollateralValue = IPriceAdapter((marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter))
+            .getPrice().mul(ud60x18(wstEthmarginValueUsd)).add(
+            IPriceAdapter((marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceAdapter)).getPrice().mul(
                 ud60x18(weEthmarginValueUsd)
             )
         );

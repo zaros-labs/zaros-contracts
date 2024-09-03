@@ -19,32 +19,32 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 library ChainlinkUtil {
     using SafeCast for int256;
 
-    /// @notice Queries the provided Chainlink Price Feed for the margin collateral oracle price.
     /// @param priceFeed The Chainlink Price Feed address.
     /// @param priceFeedHeartbeatSeconds The number of seconds between price feed updates.
-    /// @return price The price of the given margin collateral type.
-    function getPrice(
-        IAggregatorV3 priceFeed,
-        uint32 priceFeedHeartbeatSeconds,
-        IAggregatorV3 sequencerUptimeFeed
-    )
-        internal
-        view
-        returns (UD60x18 price)
-    {
-        uint8 priceDecimals = priceFeed.decimals();
+    /// @param sequencerUptimeFeed The Chainlink Price Feed address.
+    struct GetPriceParams {
+        IAggregatorV3 priceFeed;
+        uint32 priceFeedHeartbeatSeconds;
+        IAggregatorV3 sequencerUptimeFeed;
+    }
+
+    /// @notice Queries the provided Chainlink Price Feed for the margin collateral oracle price.
+    /// @param params The GetPriceParams struct.
+    function getPrice(GetPriceParams memory params) internal view returns (UD60x18 price) {
+        uint8 priceDecimals = params.priceFeed.decimals();
+
         // should revert if priceDecimals > 18
         if (priceDecimals > Constants.SYSTEM_DECIMALS) {
             revert Errors.InvalidOracleReturn();
         }
 
-        if (address(sequencerUptimeFeed) != address(0)) {
-            try sequencerUptimeFeed.latestRoundData() returns (
+        if (address(params.sequencerUptimeFeed) != address(0)) {
+            try params.sequencerUptimeFeed.latestRoundData() returns (
                 uint80, int256 answer, uint256 startedAt, uint256, uint80
             ) {
                 bool isSequencerUp = answer == 0;
                 if (!isSequencerUp) {
-                    revert Errors.OracleSequencerUptimeFeedIsDown(address(sequencerUptimeFeed));
+                    revert Errors.OracleSequencerUptimeFeedIsDown(address(params.sequencerUptimeFeed));
                 }
 
                 uint256 timeSinceUp = block.timestamp - startedAt;
@@ -56,17 +56,17 @@ library ChainlinkUtil {
             }
         }
 
-        try priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
-            if (block.timestamp - updatedAt > priceFeedHeartbeatSeconds) {
-                revert Errors.OraclePriceFeedHeartbeat(address(priceFeed));
+        try params.priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
+            if (block.timestamp - updatedAt > params.priceFeedHeartbeatSeconds) {
+                revert Errors.OraclePriceFeedHeartbeat(address(params.priceFeed));
             }
 
-            IOffchainAggregator aggregator = IOffchainAggregator(priceFeed.aggregator());
+            IOffchainAggregator aggregator = IOffchainAggregator(params.priceFeed.aggregator());
             int192 minAnswer = aggregator.minAnswer();
             int192 maxAnswer = aggregator.maxAnswer();
 
             if (answer <= minAnswer || answer >= maxAnswer) {
-                revert Errors.OraclePriceFeedOutOfRange(address(priceFeed));
+                revert Errors.OraclePriceFeedOutOfRange(address(params.priceFeed));
             }
 
             price = ud60x18(answer.toUint256() * 10 ** (Constants.SYSTEM_DECIMALS - priceDecimals));

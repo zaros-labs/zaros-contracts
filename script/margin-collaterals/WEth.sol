@@ -8,6 +8,8 @@ abstract contract WEth {
     /// @notice Margin collateral configuration parameters.
     string internal constant WETH_NAME = "Wrapped Ether";
     string internal constant WETH_SYMBOL = "WETH";
+    string internal constant WETH_PRICE_ADAPTER_NAME = "WETH/USD Zaros Price Adapter";
+    string internal constant WETH_PRICE_ADAPTER_SYMBOL = "WETH/USD";
     uint256 internal constant WETH_MARGIN_COLLATERAL_ID = 3;
     UD60x18 internal WETH_DEPOSIT_CAP_X18 = ud60x18(1_000_000e18);
     uint120 internal constant WETH_LOAN_TO_VALUE = 0.85e18;

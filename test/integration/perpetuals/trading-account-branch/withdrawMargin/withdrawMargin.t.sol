@@ -66,7 +66,9 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheAmountIsZero(uint256 amountToDeposit)
+    function testFuzz_RevertWhen_TheAmountIsZero(
+        uint256 amountToDeposit
+    )
         external
         givenTheAccountExists
         givenTheSenderIsAuthorized

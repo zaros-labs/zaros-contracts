@@ -13,6 +13,7 @@ import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { Base_Test } from "test/Base.t.sol";
+import { IPriceAdapter, PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -785,6 +786,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             pnl: ctx.firstOrderExpectedPnl,
             fundingFeePerUnit: ctx.expectedLastFundingFeePerUnit
         });
+
         // fill first order and open position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
         // it should update the funding values
@@ -848,6 +850,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             ? ud60x18(ctx.fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).sub(ud60x18(ctx.priceShiftBps))).intoUint256()
             : ud60x18(ctx.fuzzMarketConfig.mockUsdPrice).mul(ud60x18(1e18).add(ud60x18(ctx.priceShiftBps))).intoUint256();
         updateMockPriceFeed(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice);
+
+        // to prevent rounded numbers
+        if (PriceAdapter(ctx.fuzzMarketConfig.priceAdapter).useEthPriceFeed()) {
+            ctx.newIndexPrice = IPriceAdapter(ctx.fuzzMarketConfig.priceAdapter).getPrice().intoUint256();
+        }
 
         ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
 
@@ -1173,6 +1180,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             ? ud60x18(ctx.fuzzMarketConfig.mockUsdPrice).mul(ud60x18(priceShift)).intoUint256()
             : ud60x18(ctx.fuzzMarketConfig.mockUsdPrice).div(ud60x18(priceShift)).intoUint256();
         updateMockPriceFeed(ctx.fuzzMarketConfig.marketId, ctx.newIndexPrice);
+
+        // to prevent rounded numbers
+        if (PriceAdapter(ctx.fuzzMarketConfig.priceAdapter).useEthPriceFeed()) {
+            ctx.newIndexPrice = IPriceAdapter(ctx.fuzzMarketConfig.priceAdapter).getPrice().intoUint256();
+        }
 
         ctx.secondOrderSizeDelta = -ctx.firstOrderSizeDelta;
 
