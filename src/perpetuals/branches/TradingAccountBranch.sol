@@ -304,7 +304,6 @@ contract TradingAccountBranch {
         bool isCustomReferralCode
     )
         external
-        payable
         virtual
         returns (bytes[] memory results)
     {
