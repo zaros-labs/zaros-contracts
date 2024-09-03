@@ -36,7 +36,16 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
         return isAccountCreated[user];
     }
 
-    function createTradingAccount(address sender, bytes memory referralCode, bool isCustomReferralCode) public onlyOwner returns (uint128 tradingAccountId) {
+    function createTradingAccount(bytes memory referralCode, bool isCustomReferralCode) public override returns (uint128) {
+        bool userHasAccount = isAccountCreated[msg.sender];
+        if (userHasAccount) {
+            revert UserAlreadyHasAccount();
+        }
+
+        return super.createTradingAccount(referralCode, isCustomReferralCode);
+    }
+
+    function createTradingAccountWithTheSender(address sender, bytes memory referralCode, bool isCustomReferralCode) public onlyOwner returns (uint128 tradingAccountId) {
         bool userHasAccount = isAccountCreated[sender];
         if (userHasAccount) {
             revert UserAlreadyHasAccount();

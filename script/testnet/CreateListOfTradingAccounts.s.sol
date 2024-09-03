@@ -15,7 +15,7 @@ struct TradingAccountData {
     bool isCustomReferralCode;
 }
 
-struct IListOfTradingAccounts {
+struct ListOfTradingAccounts {
     TradingAccountData[] data;
 }
 
@@ -31,10 +31,10 @@ contract CreateListOfTradingAccounts is BaseScript {
         string memory json = vm.readFile(path);
         bytes memory data = vm.parseJson(json);
 
-        IListOfTradingAccounts memory listOfTradingAccounts = abi.decode(data, (IListOfTradingAccounts));
+        ListOfTradingAccounts memory listOfTradingAccounts = abi.decode(data, (ListOfTradingAccounts));
 
         for (uint256 i; i < listOfTradingAccounts.data.length; i++) {
-            perpsEngine.createTradingAccount(
+            perpsEngine.createTradingAccountWithTheSender(
                 listOfTradingAccounts.data[i].sender,
                 listOfTradingAccounts.data[i].referralCode,
                 listOfTradingAccounts.data[i].isCustomReferralCode

@@ -166,7 +166,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
 
     if (isTestnet) {
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
-        tradingAccountBranchSelectors[14] = TradingAccountBranchTestnet.createTradingAccount.selector;
+        tradingAccountBranchSelectors[14] = TradingAccountBranchTestnet.createTradingAccountWithTheSender.selector;
     }
 
     bytes4[] memory settlementBranchSelectors = new bytes4[](4);
