@@ -229,7 +229,7 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
         assertEq(isIncreased, false);
     }
 
-    function testFuzz_WhenPositionSizeIsPositiveAndPositionSizePlusSizeDeltaIsNegative(
+    function test_WhenPositionSizeIsPositiveAndPositionSizePlusSizeDeltaAbsoluteIsGreaterThanThePositionSizeAbsolute(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
@@ -260,7 +260,7 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
 
         Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
 
-        int128 sizeDelta = int128(-position.size) - 1;
+        int128 sizeDelta = int128(-position.size) * 2 - 1;
 
         assertEq(position.size > 0, true, "position.size should be greater than zero");
         assertEq(sizeDelta < 0, true, "sizeDelta should be less than zero");
@@ -272,7 +272,7 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
         assertEq(isIncreased, true);
     }
 
-    function test_WhenPositionSizeIsNegativeAndPositionSizePlusSizeDeltaIsPositive(
+    function test_WhenPositionSizeIsNegativeAndPositionSizePlusSizeDeltaAbsoluteIsGreaterThanThePositionSizeAbsolute(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         uint256 marketId
@@ -303,7 +303,7 @@ contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
 
         Position.Data memory position = perpsEngine.exposed_Position_load(tradingAccountId, fuzzMarketConfig.marketId);
 
-        int128 sizeDelta = int128(-position.size) + 1;
+        int128 sizeDelta = int128(-position.size) * 2 + 1;
 
         assertEq(position.size < 0, true, "position.size should be less than zero");
         assertEq(sizeDelta > 0, true, "sizeDelta should be greater than zero");

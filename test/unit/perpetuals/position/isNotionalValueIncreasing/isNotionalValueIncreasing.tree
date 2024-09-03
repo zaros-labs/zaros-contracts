@@ -9,7 +9,7 @@ Position_IsNotionalValueIncreasing_Test
 │   └── it should return false
 ├── when sizeDelta is negative and position size is positive
 │   └── it should return false
-├── when position size is positive and position size plus sizeDelta is negative
+├── when position size is positive and position size plus sizeDelta absolute is greater than the position size absolute
 │   └── it should return true
-└── when position size is negative and position size plus sizeDelta is positive
+└── when position size is negative and position size plus sizeDelta absolute is greater than the position size absolute
     └── it should return true
