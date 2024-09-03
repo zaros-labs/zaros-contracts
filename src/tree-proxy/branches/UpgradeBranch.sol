@@ -12,6 +12,10 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 contract UpgradeBranch is Initializable, OwnableUpgradeable {
     using RootUpgrade for RootUpgrade.Data;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(address owner) external initializer {
         __Ownable_init(owner);
     }
