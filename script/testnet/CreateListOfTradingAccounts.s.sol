@@ -8,7 +8,7 @@ import { IPerpsEngineTestnet } from "testnet/PerpsEngineTestnet.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-struct ITradingAccountData {
+struct TradingAccountData {
     uint128 id;
     address sender;
     bytes referralCode;
@@ -16,7 +16,7 @@ struct ITradingAccountData {
 }
 
 struct IListOfTradingAccounts {
-    ITradingAccountData[] data;
+    TradingAccountData[] data;
 }
 
 /// @dev This script creates a list of trading accounts.
