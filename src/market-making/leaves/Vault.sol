@@ -75,21 +75,6 @@ library Vault {
         Collateral.Data collateral;
     }
 
-    struct CreateParams {
-        uint256 vaultId;
-        uint256 depositCap;
-        uint256 withdrawalDelay;
-        address indexToken;
-        Collateral.Data collateral;
-    }
-
-    struct UpdateParams {
-        uint256 vaultId;
-        uint256 depositCap;
-        uint256 withdrawalDelay;
-        Collateral.Data collateral;
-    }
-
     /// @notice Loads a {Vault} namespace.
     /// @param vaultId The vault identifier.
     /// @return vault The loaded vault storage pointer.
