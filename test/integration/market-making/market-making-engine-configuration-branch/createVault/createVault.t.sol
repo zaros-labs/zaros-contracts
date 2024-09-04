@@ -16,7 +16,9 @@ contract MarketMakingEngineConfigurationBranch_createVault_Test is Base_Test {
         creditRatio: 1.5e18,
         priceFeedHeartbeatSeconds: 120,
         priceAdapter: address(0),
-        asset: address(wEth)
+        asset: address(wEth),
+        isEnabled: true,
+        decimals: 8
     });
 
     function setUp() public virtual override {

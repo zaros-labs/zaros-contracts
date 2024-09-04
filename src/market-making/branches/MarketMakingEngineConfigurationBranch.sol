@@ -29,7 +29,7 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
 
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {MarketMakingEngineConfigurationBranch} UUPS initializer.
-    function initialize(address usdToken, address perpsEngine, address owner) external initializer {
+    function initialize(address usdz, address perpsEngine, address owner) external initializer {
         __Ownable_init(owner);
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();

@@ -24,7 +24,7 @@ contract VaultRouterBranch {
     using Referral for Referral.Data;
 
     /// @notice Counter for withdraw requiest ids
-    uint256 private withdrawalRequestIdCounter;
+    uint128 private withdrawalRequestIdCounter;
 
     /// @notice Emitted when a user stakes shares.
     /// @param vaultId The ID of the vault which shares are staked.

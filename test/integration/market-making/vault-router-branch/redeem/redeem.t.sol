@@ -13,7 +13,7 @@ import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBran
 import { IERC20, IERC4626 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
 contract MarketMaking_redeem_Test is Base_Test {
-    uint256 constant WITHDRAW_REQUEST_ID = 0;
+    uint128 constant WITHDRAW_REQUEST_ID = 0;
 
     function setUp() public virtual override {
         Base_Test.setUp();

@@ -6,9 +6,9 @@ import { WithdrawalRequest } from "@zaros/market-making/leaves/WithdrawalRequest
 
 contract WithdrawalRequestHarness {
     function exposed_WithdrawalRequest_load(
-        uint256 vaultId,
+        uint128 vaultId,
         address account,
-        uint256 withdrawalRequestId
+        uint128 withdrawalRequestId
     )
         external
         pure

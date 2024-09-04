@@ -7,7 +7,7 @@ import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
-import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
+// import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
@@ -365,7 +365,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             creditRatio: 1.5e18,
             priceFeedHeartbeatSeconds: 120,
             priceAdapter: address(0),
-            asset: address(wEth)
+            asset: address(wEth),
+            isEnabled: true,
+            decimals: 8
         });
 
         Vault.CreateParams memory params = Vault.CreateParams({
