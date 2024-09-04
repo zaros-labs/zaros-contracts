@@ -57,7 +57,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         _;
     }
 
-    function test_GivenTheAccountHasAMarginBalanceDifferentFrom0(
+    function test_GivenTheAccountHasAMarginBalanceOfZero(
         uint256 marginValueUsd,
         uint256 feeAmount,
         uint256 randomFeeAmount1,
@@ -66,7 +66,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         external
         whenThereIsCollateralLiquidationPriority
     {
-        // it should break the for loop
+        // it should continue to the next collateral
 
         marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
 
@@ -106,7 +106,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         });
     }
 
-    modifier givenTheAccountHasAMarginBalanceOf0() {
+    modifier givenTheAccountHasAMarginBalanceDifferentFromZero() {
         _;
     }
 
@@ -117,8 +117,8 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         uint256 randomFeeAmount2
     )
         external
-        givenTheAccountHasAMarginBalanceOf0
         whenThereIsCollateralLiquidationPriority
+        givenTheAccountHasAMarginBalanceDifferentFromZero
     {
         // it should skip the settlementFeeUsdX18 check
         marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap });
@@ -159,8 +159,8 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         uint256 randomFeeAmount2
     )
         external
-        givenTheAccountHasAMarginBalanceOf0
         whenThereIsCollateralLiquidationPriority
+        givenTheAccountHasAMarginBalanceDifferentFromZero
     {
         // it should deduct the settlement fee from the account's margin balance
         // it should return isMissingMargin a boolean indicating whether there was insufficient margin to cover the
@@ -204,8 +204,8 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         uint256 randomFeeAmount2
     )
         external
-        givenTheAccountHasAMarginBalanceOf0
         whenThereIsCollateralLiquidationPriority
+        givenTheAccountHasAMarginBalanceDifferentFromZero
     {
         // it should skip the orderFeeUsdX18 check
 
@@ -247,8 +247,8 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         uint256 randomFeeAmount2
     )
         external
-        givenTheAccountHasAMarginBalanceOf0
         whenThereIsCollateralLiquidationPriority
+        givenTheAccountHasAMarginBalanceDifferentFromZero
     {
         // it should deduct the order fee from the account's margin balance
         // it should return isMissingMargin a boolean indicating whether there was insufficient margin to cover the
@@ -292,8 +292,8 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         uint256 randomFeeAmount2
     )
         external
-        givenTheAccountHasAMarginBalanceOf0
         whenThereIsCollateralLiquidationPriority
+        givenTheAccountHasAMarginBalanceDifferentFromZero
     {
         // it should skip the pnlUsdX18 check
 
@@ -335,8 +335,8 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         uint256 randomFeeAmount2
     )
         external
-        givenTheAccountHasAMarginBalanceOf0
         whenThereIsCollateralLiquidationPriority
+        givenTheAccountHasAMarginBalanceDifferentFromZero
     {
         // it should deduct the PnL from the account's margin balance
         // it should return isMissingMargin a boolean indicating whether there was insufficient margin to cover the
@@ -371,6 +371,54 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             orderFeeUsdX18: orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18
         });
+    }
+
+    function test_WhenTheMarginCollateralBalanceIsZeroAfterDeductingOneOfTheFees(
+        uint256 marginValueUsd
+    )
+        external
+        whenThereIsCollateralLiquidationPriority
+        givenTheAccountHasAMarginBalanceDifferentFromZero
+    {
+        marginValueUsd = bound({ x: marginValueUsd, min: USDC_MIN_DEPOSIT_MARGIN, max: usdcDepositCap / 3 });
+
+        changePrank({ msgSender: users.naruto.account });
+        deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
+        uint128 narutoTradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
+
+        changePrank({ msgSender: users.sakura.account });
+        deal({ token: address(usdc), to: users.sakura.account, give: marginValueUsd });
+        createAccountAndDeposit(marginValueUsd, address(usdc));
+
+        changePrank({ msgSender: users.madara.account });
+        deal({ token: address(usdc), to: users.madara.account, give: marginValueUsd });
+        createAccountAndDeposit(marginValueUsd, address(usdc));
+
+        changePrank({ msgSender: users.naruto.account });
+
+        UD60x18 marginValueUsdX18 = convertTokenAmountToUd60x18(address(usdc), marginValueUsd);
+
+        uint256 marginDeductedUsd = perpsEngine.exposed_deductAccountMargin({
+            tradingAccountId: narutoTradingAccountId,
+            feeRecipients: FeeRecipients.Data({
+                marginCollateralRecipient: MSIG_ADDRESS,
+                orderFeeRecipient: MSIG_ADDRESS,
+                settlementFeeRecipient: MSIG_ADDRESS
+            }),
+            pnlUsdX18: marginValueUsdX18,
+            orderFeeUsdX18: marginValueUsdX18,
+            settlementFeeUsdX18: marginValueUsdX18
+        }).intoUint256();
+
+        uint256 totalDepositedOfUsdc = perpsEngine.workaround_getTotalDeposited(address(usdc));
+        uint256 expectedTotalDepositedOfUsdc =
+            convertTokenAmountToUd60x18(address(usdc), marginValueUsd * 2).intoUint256();
+
+        uint256 expectedMarginDeductedUsd = marginValueUsdX18.intoUint256();
+
+        // it should not update the totalDeposit when the margin collateral balance of user is zero
+        assertEq(marginDeductedUsd, expectedMarginDeductedUsd, "margin deducted is not correct");
+        assertEq(totalDepositedOfUsdc, expectedTotalDepositedOfUsdc, "total deposited is not correct");
     }
 
     function testFuzz_WhenThereIsNotCollateralLiquidationPriority(
