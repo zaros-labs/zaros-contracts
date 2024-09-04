@@ -34,4 +34,24 @@ contract VaultHarness {
 
         return stakingData.totalShares;
     }
+
+    function workaround_Vault_getWithdrawDelay(uint128 vaultId) external view returns (uint128) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+
+        return vaultData.withdrawalDelay;
+    }
+
+    function workaround_Vault_getDepositCap(uint128 vaultId) external view returns (uint128) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+
+        return vaultData.depositCap;
+    }
+
+    function exposed_Vault_create(Vault.CreateParams memory params) external {
+        Vault.create(params);
+    }
+
+    function exposed_Vault_update(Vault.UpdateParams memory params) external {
+        Vault.update(params);
+    }
 }

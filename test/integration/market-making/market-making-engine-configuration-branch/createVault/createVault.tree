@@ -1,0 +1,15 @@
+MarketMakingEngineConfigurationBranch_createVault_Test
+└── given a vault is to be created
+    ├── when the deposit index token address zero
+    │   └── it should revert
+    ├── when the deposit cap is zero
+    │   └── it should revert
+    ├── when withdrawalDelay is zero
+    │   └── it should revert
+    ├── when vault id is zero
+    │   └── it should revert
+    ├── when vault with that id already exists
+    │   └── it should revert
+    └── when vault does not exist
+        ├── it should create vault
+        └── it should emit event

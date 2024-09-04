@@ -111,7 +111,7 @@ library Vault {
         Data storage self = load(params.vaultId);
 
         if (self.vaultId != 0) {
-            revert Errors.ZeroInput("vaultId");
+            revert Errors.VaulttAlreadyEnabled(params.vaultId);
         }
 
         self.vaultId = params.vaultId;

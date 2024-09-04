@@ -76,9 +76,6 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
 
         Vault.create(params);
 
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfig = MarketMakingEngineConfiguration.load();
-        marketMakingEngineConfig.addVault(params.vaultId);
-
         emit LogCreateVault(msg.sender, params.vaultId);
     }
 
