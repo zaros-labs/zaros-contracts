@@ -1,4 +1,4 @@
-// npm run ethers dotenv
+// npm install ethers dotenv
 
 const { ethers } = require("ethers");
 const fs = require("fs");
