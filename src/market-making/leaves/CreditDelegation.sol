@@ -9,7 +9,7 @@ library CreditDelegation {
     struct Data {
         uint128 vaultId;
         uint128 marketId;
-        uint128 creditWeight;
+        uint128 weight;
         uint128 maxDebtPerShare;
     }
 

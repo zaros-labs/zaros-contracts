@@ -57,7 +57,15 @@ library Vault {
     // TODO: see if we need market id here or if we return the updated credit delegations to update the `MarketDebt`
     // state.
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
-    function updateVaultsCreditDelegation(uint256[] memory vaultsIds, uint128 marketId) internal { }
+    function updateVaultsCreditDelegation(uint256[] memory vaultsIds, uint128 marketId) internal {
+        for (uint256 i; i < vaultsIds.length; i++) {
+            Data storage self = load(uint128(vaultsIds[i]));
+            CreditDelegation.Data storage creditDelegation = CreditDelegation.load(self.vaultId, marketId);
+
+            UD60x18 creditDelegationShareX18 =
+                ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
+        }
+    }
 
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
     function updateVaultsUnsettledDebt(uint256[] memory vaultsIds, SD59x18 realizedDebtChangeUsdX18) internal { }
