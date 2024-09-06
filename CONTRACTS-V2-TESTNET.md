@@ -86,10 +86,12 @@ forge script script/03_CreatePerpMarkets.s.sol --sig "run(uint256,uint256)" 1 10
 forge script script/testnet/CreateListOfCustomReferrals.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
 
+```bash
 == Logs ==
   Custom referral codes created successfully
-
+```
 ————————————————————————————————————————————————————
+<br/>
 You can run in 50 by 50 with solidity script:
 ```bash
 forge script script/testnet/CreateListOfTradingAccounts.s.sol --sig "run(uint256,uint256)" 0 50 --rpc-url arbitrum_sepolia --broadcast --legacy -vvvv
@@ -101,6 +103,7 @@ node createListOfTradingAccounts.js
 ```
 
 ————————————————————————————————————————————————————
+<br/>
 Market order keepers in the Chalink Automation:
 
 ```bash
