@@ -5,6 +5,7 @@ Contracts V2 Testnet
 forge script script/01_DeployPerpsEngine.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
 
+```bash
 == Logs ==
   Trading Account NFT Implementation:  0x6EBF081791E5759F333f68AFC361d9BBeAd4221A
   Trading Account NFT Proxy:  0x5aB9775a775b00b122dc85aEb8C869456b13b5E1
@@ -17,6 +18,7 @@ forge script script/01_DeployPerpsEngine.s.sol --rpc-url arbitrum_sepolia --broa
   PerpsEngineConfigurationBranch:  0x9a9e18b79b7877FEBF6bEEA14A9ee60eb5Ab40E9
   TradingAccountBranch:  0x05a9ebfaA03fdB8Dc82DE21EE31B24A0e1C97ac8
   Perps Engine:  0x6f7b7e54a643E1285004AaCA95f3B2e6F5bcC1f3
+```
 
 
 - Update `TRADING_ACCOUNT_NFT` environment variable in the `.env` file
@@ -29,10 +31,12 @@ forge script script/01_DeployPerpsEngine.s.sol --rpc-url arbitrum_sepolia --broa
 forge script script/testnet/DeployTestnetTokens.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
 
+```bash
 == Logs ==
   Limited Minting ERC20 Implementation:  0x5D3EDD497625B4A83874Ac784324328753193cA5
   USDC Proxy:  0x95011b96c11A4cc96CD8351165645E00F68632a3
   USDz Proxy:  0x8648d10fE74dD9b4B454B4db9B63b03998c087Ba
+```
 
 - Update `USDC_ADDRESS` in the `Usdc.sol`
 - Update `USDZ_ADDRESS`in the `Usdz.sol`
@@ -42,22 +46,27 @@ forge script script/testnet/DeployTestnetTokens.s.sol --rpc-url arbitrum_sepolia
 forge script script/testnet/SetStartTimeMinting.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
 
+```bash
 == Logs ==
   Start time minting set to: 1725380400
+```
 
 ————————————————————————————————————————————————————
 ```bash
 forge script script/02_ConfigurePerpsEngine.s.sol --sig "run(uint256,uint256)" 1 2 --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
 
+```bash
 == Logs ==
   Liquidation Keeper:  0xa16D95d24C2eB9515A1C2cB2Ef5D6079A606f249
+```
 
 ————————————————————————————————————————————————————
 ```bash
 forge script script/03_CreatePerpMarkets.s.sol --sig "run(uint256,uint256)" 1 10 --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
 
+```bash
 == Logs ==
   MarketOrderKeeper Implementation:  0xF3E763C7Fca6f215e2291F4082bC5C37818ee18C
   Market Order Keeper Deployed: Market ID:  1  Keeper Address:  0x5402cD031cDd4be6EBC1e87c83F2CbF74910B8C0
@@ -70,7 +79,7 @@ forge script script/03_CreatePerpMarkets.s.sol --sig "run(uint256,uint256)" 1 10
   Market Order Keeper Deployed: Market ID:  8  Keeper Address:  0x28821973e91727a30637bf2897f99dD176815877
   Market Order Keeper Deployed: Market ID:  9  Keeper Address:  0x3ABCCc08a0c46D167C216D45ff659c7a38b5122b
   Market Order Keeper Deployed: Market ID:  10  Keeper Address:  0x55bBDcA16e61c92Bbfb3EeC6E6a4945733712f5C
-
+```
 
 ————————————————————————————————————————————————————
 ```bash
@@ -89,4 +98,29 @@ forge script script/testnet/CreateListOfTradingAccounts.s.sol --sig "run(uint256
 Or use the js script to run all at once:
 ```bash
 node createListOfTradingAccounts.js
+```
+
+————————————————————————————————————————————————————
+Market order keepers in the Chalink Automation:
+
+```bash
+BTC-USD Market ID: 1: https://automation.chain.link/arbitrum-sepolia/90288828766752025420065681979340487832907615164954474878130858312114572802820
+
+ETH-USD Market ID: 2: https://automation.chain.link/arbitrum-sepolia/22724859653427040038333265196992261532600691781038222874262656527374323591436
+
+LINK-USD Market ID: 3: https://automation.chain.link/arbitrum-sepolia/71280062757094415063577176279764411083044785898586669699989754562255680645047
+
+ARB-USD Market ID: 4: https://automation.chain.link/arbitrum-sepolia/52421709066767344843019016708061370815671179932347678584237148917104442131304
+
+BNB-USD Market ID: 5: https://automation.chain.link/arbitrum-sepolia/109549509299905944702164110313233113535309560685321601450478694536609972147182
+
+DOGE-USD Market ID: 6: https://automation.chain.link/arbitrum-sepolia/104654517578662551959531702300175355227488660496497810788334776721028354514947
+
+SOL-USD Market ID: 7: https://automation.chain.link/arbitrum-sepolia/35621757010058026145014009818377710677272340625864424800924593996152817697230
+
+MATIC-USD Market ID: 8: https://automation.chain.link/arbitrum-sepolia/30214420403468262678569815066631317573545403301451271178037657656521827838679
+
+LTC-USD Market ID: 9: https://automation.chain.link/arbitrum-sepolia/101208860049589550361438360855108562231942372946435897962569807109826448078229
+
+FTM-USD Market ID: 10: https://automation.chain.link/arbitrum-sepolia/11886920437632908777712314774151618776394941799843815047975461379531670939078
 ```
