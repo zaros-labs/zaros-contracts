@@ -110,6 +110,8 @@ library MarketDebt {
 
     function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) { }
 
+    function isAutoDeleverageTriggered(Data storage self, SD59x18 totalDebtUsdX18) internal view returns (bool) { }
+
     function addMarginCollateral(Data storage self, address collateralType, uint256 amount) internal { }
 
     // TODO: see how to return the unsettled debt change
@@ -138,8 +140,8 @@ library MarketDebt {
 
     /// @notice Adds the minted usdz or the margin collateral collected from traders into the stored realized debt.
     /// @param self The market debt storage pointer.
-    /// @param debtToRealize The amount of debt to realize in USD.
-    function realizeDebt(Data storage self, int128 debtToRealizeUsd) internal {
-        self.realizedDebtUsd += debtToRealizeUsd;
+    /// @param debtToRealizeUsdX18 The amount of debt to realize in USD.
+    function realizeDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
+        self.realizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
     }
 }

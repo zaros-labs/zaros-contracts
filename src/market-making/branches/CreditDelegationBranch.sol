@@ -16,8 +16,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
@@ -25,7 +25,6 @@ contract CreditDelegationBranch {
     using MarketDebt for MarketDebt.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeCast for uint256;
-    using SafeCast for int256;
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -40,8 +39,10 @@ contract CreditDelegationBranch {
 
     /// @notice Emitted when the perps engine requests USDz to be minted by the market making engine.
     /// @param marketId The perps engine's market id.
-    /// @param amount The amount of USDz to mint.
-    event LogRequestUsdzForMarketId(uint128 indexed marketId, uint256 amount);
+    /// @param requestedUsdzAmount The requested amount of USDz to minted.
+    /// @param mintedUsdzAmount The actual amount of USDz minted, potentially factored by the market's auto deleverage
+    /// system.
+    event LogRequestUsdzForMarketId(uint128 indexed marketId, uint256 requestedUsdzAmount, uint256 mintedUsdzAmount);
 
     modifier onlyPerpsEngine() {
         // load market making engine configuration and the perps engine address
@@ -49,6 +50,7 @@ contract CreditDelegationBranch {
             MarketMakingEngineConfiguration.load();
         address perpsEngine = marketMakingEngineConfiguration.perpsEngine;
 
+        // if `msg.sender` is not the perps engine, revert
         if (msg.sender != perpsEngine) {
             revert Errors.Unauthorized(msg.sender);
         }
@@ -86,7 +88,7 @@ contract CreditDelegationBranch {
     /// @return adjustedProfitUsdX18 The adjusted profit in USDz, according to the market's state.
     function getAdjustedProfitForMarketId(
         uint128 marketId,
-        int256 pnl
+        uint256 profitUsd
     )
         public
         view
@@ -154,6 +156,8 @@ contract CreditDelegationBranch {
     /// @dev Called by the perps engine to mint USDz to profitable traders.
     /// @dev USDz association with a trading account happens at the perps engine.
     /// @dev This function assumes the perps engine won't call it with a zero amount.
+    /// @dev Effects must be performed at the perps engine beforehand, otherwise this function will assume an invalid
+    /// total debt value.
     /// @param marketId The perps engine's market id requesting USDz.
     /// @param amount The amount of USDz to mint.
     /// @dev Invariants involved in the call:
@@ -162,31 +166,29 @@ contract CreditDelegationBranch {
         // loads the market's debt data storage pointer
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        // get the vault ids delegating credit to this market
-        uint256[] memory connectedVaultsIds = marketDebt.getConnectedVaultsIds();
-
-        // if the market has delegated credit, this scenario should never happen, but we double check and consider
-        // it a panic state
-        if (connectedVaultsIds.length == 0) {
-            revert Errors.NoConnectedVaults(marketId);
-        }
-
         // enforces that the market has delegated credit, if it' a listed market it must always have delegated credit,
         // see Vault.Data.lockedCreditRatio
         if (marketDebt.getDelegatedCredit().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
-        // // update the market's vaults debt distribution and its realized debt, returning the unsettled debt change
-        // SD59x18 unsettledDebtChangeUsdX18 = marketDebt.distributeDebtToVaults(marketDebt.getTotalDebt());
+        // uint256 -> UD60x18
+        UD60x18 amountX18 = ud60x18(amount);
+        uint256 amountToMint;
 
-        // realizes the minted USDz as added debt
-        marketDebt.realizedDebt(amount.toInt256().toInt128());
-
-        // // updates the unsettled debt values of each vault delegating credit to this market, according to the
-        // realized
-        // // debt change of this market
-        // Vault.updateVaultsUnsettledDebt(connectedVaultsIds, unsettledDebtChangeUsdX18);
+        // now we realize the added usd debt of the market
+        // note: USDz is assumed to be 1:1 with the system's usd accounting
+        if (marketDebt.isAutoDeleverageTriggered(marketDebt.getTotalDebt().add(amountX18.intoSD59x18()))) {
+            // if the market is in the ADL state, it reduces the requested USDz amount by multiplying it by the ADL
+            // factor, which must be < 1
+            UD60x18 adjustedUsdzToMintX18 = marketDebt.getAutoDeleverageFactor().mul(amountX18);
+            amountToMint = adjustedUsdzToMintX18.intoUint256();
+            marketDebt.realizeDebt(adjustedUsdzToMintX18.intoSD59x18());
+        } else {
+            // if the market is not in the ADL state, it realizes the full requested USDz amount
+            amountToMint = amountX18.intoUint256();
+            marketDebt.realizeDebt(amountX18.intoSD59x18());
+        }
 
         // loads the market making engine configuration storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
@@ -195,11 +197,10 @@ contract CreditDelegationBranch {
         USDToken usdz = USDToken(marketMakingEngineConfiguration.usdz);
 
         // mints USDz to the perps engine
-        usdz.mint(msg.sender, amount);
+        usdz.mint(msg.sender, amountToMint);
 
         // emit an event
-        // TODO: add parameters
-        emit LogRequestUsdzForMarketId(marketId, amount);
+        emit LogRequestUsdzForMarketId(marketId, amount, amountToMint);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
