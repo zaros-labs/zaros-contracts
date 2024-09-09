@@ -115,8 +115,7 @@ library MarketDebt {
     // TODO: see how to return the unsettled debt change
     function distributeDebtToVaults(
         Data storage self,
-        SD59x18 newTotalDebtUsdX18,
-        SD59x18 debtToRealizeUsdX18
+        SD59x18 newTotalDebtUsdX18
     )
         internal
         returns (SD59x18 unsettledDebtChangeUsdX18)
@@ -133,10 +132,14 @@ library MarketDebt {
 
         vaultsDebtDistribution.distributeValue(lastDistributedTotalDebtUsdX18.sub(newTotalDebtUsdX18));
 
-        // adds the minted usdz into the stored realized debt
-        self.realizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
-
         // update the last distributed total debt
         self.lastDistributedTotalDebtUsd = newTotalDebtUsdX18.intoInt256().toInt128();
+    }
+
+    /// @notice Adds the minted usdz or the margin collateral collected from traders into the stored realized debt.
+    /// @param self The market debt storage pointer.
+    /// @param debtToRealize The amount of debt to realize in USD.
+    function realizeDebt(Data storage self, int128 debtToRealizeUsd) internal {
+        self.realizedDebtUsd += debtToRealizeUsd;
     }
 }
