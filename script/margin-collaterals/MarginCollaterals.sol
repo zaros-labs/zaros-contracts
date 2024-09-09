@@ -15,7 +15,6 @@ import { MockERC20 } from "test/mocks/MockERC20.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
-import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
 abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
@@ -35,10 +34,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
 
     mapping(uint256 marginCollateralId => MarginCollateral marginCollateral) internal marginCollaterals;
 
-    function setupMarginCollaterals(address perpsEngine, address priceAdapterOwner) internal {
-        address sequencerUptimeFeed =
-            address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
-
+    function setupMarginCollaterals(address sequencerUptimeFeed, address priceAdapterOwner) internal {
         MarginCollateral memory usdcConfig = MarginCollateral({
             name: USDC_NAME,
             symbol: USDC_SYMBOL,
@@ -237,12 +233,13 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
     function configureMarginCollaterals(
         IPerpsEngine perpsEngine,
         uint256[2] memory marginCollateralIdsRange,
-        bool isTestnet,
+        bool isTest,
+        address sequencerUptimeFeed,
         address owner
     )
         internal
     {
-        setupMarginCollaterals(address(perpsEngine), owner);
+        setupMarginCollaterals(sequencerUptimeFeed, owner);
 
         MarginCollateral[] memory filteredMarginCollateralsConfig =
             getFilteredMarginCollateralsConfig(marginCollateralIdsRange);
@@ -256,7 +253,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             address priceAdapter;
             address mockERC20;
 
-            if (isTestnet) {
+            if (isTest) {
                 if (filteredMarginCollateralsConfig[i].marginCollateralId == USDZ_MARGIN_COLLATERAL_ID) {
                     mockERC20 = address(new MockUSDToken({ owner: owner, deployerBalance: 100_000_000e18 }));
                 } else {
@@ -277,8 +274,6 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                     int256(filteredMarginCollateralsConfig[i].mockUsdPrice)
                 );
 
-                address mockSequencerUptimeFeed = address(new MockSequencerUptimeFeed(0));
-
                 priceAdapter = address(
                     PriceAdapterUtils.deployPriceAdapter(
                         PriceAdapter.InitializeParams({
@@ -287,7 +282,7 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
                             owner: address(0x123),
                             priceFeed: address(mockPriceFeed),
                             ethUsdPriceFeed: address(0),
-                            sequencerUptimeFeed: mockSequencerUptimeFeed,
+                            sequencerUptimeFeed: sequencerUptimeFeed,
                             priceFeedHeartbeatSeconds: 86_400,
                             ethUsdPriceFeedHeartbeatSeconds: 0,
                             useEthPriceFeed: false

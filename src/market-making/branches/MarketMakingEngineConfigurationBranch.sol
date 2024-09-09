@@ -36,10 +36,6 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function configureSequencerUptimeFeed() external onlyOwner { }
-
-    /// @dev Invariants involved in the call:
-    /// TODO: add invariants
     function createCustomReferralCode() external onlyOwner { }
 
     /// @dev Invariants involved in the call:

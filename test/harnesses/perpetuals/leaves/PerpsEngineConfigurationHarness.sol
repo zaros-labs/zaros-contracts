@@ -23,12 +23,6 @@ contract PerpsEngineConfigurationHarness {
         return self.maxPositionsPerAccount;
     }
 
-    function workaround_getSequencerUptimeFeedByChainId(uint256 chainId) external view returns (address) {
-        PerpsEngineConfiguration.Data storage self = PerpsEngineConfiguration.load();
-
-        return self.sequencerUptimeFeedByChainId[chainId];
-    }
-
     function workaround_getCollateralLiquidationPriority() external view returns (address[] memory) {
         PerpsEngineConfiguration.Data storage self = PerpsEngineConfiguration.load();
         uint256 length = self.collateralLiquidationPriority.length();
