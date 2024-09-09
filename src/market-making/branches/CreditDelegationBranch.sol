@@ -25,6 +25,7 @@ contract CreditDelegationBranch {
     using MarketDebt for MarketDebt.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeCast for uint256;
+    using SafeCast for int256;
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -76,14 +77,21 @@ contract CreditDelegationBranch {
         (openInterestCapX18, skewCapX18) = marketDebt.getMarketCaps();
     }
 
-    /// @notice Returns the adjusted pnl of an active position at the given market id, considering the market's ADL
+    /// @notice Returns the adjusted profit of an active position at the given market id, considering the market's ADL
     /// state.
-    /// @dev If the market is in its default state, it will simply return the provided pnl. Otherwise, it will adjust
-    /// based on the configured ADL parameters and state.
+    /// @dev If the market is in its default state, it will simply return the provided profit. Otherwise, it will
+    /// adjust based on the configured ADL parameters.
     /// @param marketId The perps engine's market id.
-    /// @param pnl The position's pnl.
-    /// @return adjustedPnlX18 The adjusted pnl, according to the market state.
-    function getAdjustedPnlForMarketId(uint128 marketId, int256 pnl) public view returns (SD59x18 adjustedPnlX18) { }
+    /// @param profitUsd The position's profit in USD.
+    /// @return adjustedProfitUsdX18 The adjusted profit in USDz, according to the market's state.
+    function getAdjustedProfitForMarketId(
+        uint128 marketId,
+        int256 pnl
+    )
+        public
+        view
+        returns (SD59x18 adjustedProfitUsdX18)
+    { }
 
     /*//////////////////////////////////////////////////////////////////////////
                                   PERPS ENGINE ONLY PROTECTED FUNCTIONS
@@ -146,8 +154,6 @@ contract CreditDelegationBranch {
     /// @dev Called by the perps engine to mint USDz to profitable traders.
     /// @dev USDz association with a trading account happens at the perps engine.
     /// @dev This function assumes the perps engine won't call it with a zero amount.
-    /// @dev Effects must be applied at the perps engine before calling this function, otherwise it will assume an
-    /// incorrect total debt value.
     /// @param marketId The perps engine's market id requesting USDz.
     /// @param amount The amount of USDz to mint.
     /// @dev Invariants involved in the call:
@@ -171,13 +177,16 @@ contract CreditDelegationBranch {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
-        // update the market's vaults debt distribution and its realized debt, returning the unsettled debt change
-        SD59x18 unsettledDebtChangeUsdX18 =
-            marketDebt.distributeDebtToVaults(marketDebt.getTotalDebt(), sd59x18(amount.toInt256()));
+        // // update the market's vaults debt distribution and its realized debt, returning the unsettled debt change
+        // SD59x18 unsettledDebtChangeUsdX18 = marketDebt.distributeDebtToVaults(marketDebt.getTotalDebt());
 
-        // updates the unsettled debt values of each vault delegating credit to this market, according to the realized
-        // debt change of this market
-        Vault.updateVaultsUnsettledDebt(connectedVaultsIds, unsettledDebtChangeUsdX18);
+        // realizes the minted USDz as added debt
+        marketDebt.realizedDebt(amount.toInt256().toInt128());
+
+        // // updates the unsettled debt values of each vault delegating credit to this market, according to the
+        // realized
+        // // debt change of this market
+        // Vault.updateVaultsUnsettledDebt(connectedVaultsIds, unsettledDebtChangeUsdX18);
 
         // loads the market making engine configuration storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
