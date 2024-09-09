@@ -152,13 +152,6 @@ contract FeeDistributionBranch {
         marketDebtData.collectedFees.collectedMarketFees = marketShare;
     }
 
-    // /// @dev Invariants involved in the call:
-    // /// TODO: add invariants
-    function sendWethToVaults(uint128 marketId) external onlyAuthorized {
-        // MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
-        // IERC20(wethAddr).safeTransfer(feeDistributor, amountToSend);
-    }
-
     /// @notice Sends allocated Weth amount to fee recipients.
     /// @dev onlyAuthorized address can call this function.
     /// @param marketId The market to which fee recipients contribute.
