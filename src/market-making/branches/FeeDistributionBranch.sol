@@ -2,6 +2,8 @@
 pragma solidity 0.8.25;
 pragma abicoder v2;
 
+import "forge-std/console.sol";
+
 // Zaros dependencies
 import { Collateral } from "../leaves/Collateral.sol";
 import { FeeRecipient } from "../leaves/FeeRecipient.sol";
@@ -9,8 +11,10 @@ import { Vault } from "../leaves/Vault.sol";
 import { Distribution } from "../leaves/Distribution.sol";
 import { MarketMakingEngineConfiguration } from "../leaves/MarketMakingEngineConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
+import { Fee } from "src/market-making/leaves/Fee.sol";
 
 // UniSwap dependecies
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
@@ -22,19 +26,20 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, IERC20Metadata, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
 contract FeeDistributionBranch {
     using SafeERC20 for IERC20;
+    using Fee for Fee.Data;
+    using Fee for Fee.Uniswap;
     using FeeRecipient for FeeRecipient.Data;
     using Collateral for Collateral.Data;
     using Vault for Vault.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using Distribution for Distribution.Data;
-
-    ISwapRouter public constant SWAP_ROUTER = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    // Uniswap pool fee at 0.3%
-    uint24 public constant POOL_FEE = 3000;
+    using MarketDebt for MarketDebt.Data;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
 
     /// @notice Emit when order fee is received
     /// @param asset the address of collateral type
@@ -45,7 +50,7 @@ contract FeeDistributionBranch {
 
     event TransferCompleted(address indexed recipient, uint256 amount);
 
-    modifier onlyPerpsEngine() {
+    modifier onlyAuthorized() {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
         address perpsEngine = marketMakingEngineConfiguration.perpsEngine;
@@ -60,16 +65,14 @@ contract FeeDistributionBranch {
     /// @param vaultId The vault id to claim fees from.
     /// @param staker The staker address.
     /// @return earnedFees The amount of WETH fees claimable.
-    function getEarnedFees(uint256 vaultId, address staker) external view returns (uint256 earnedFees) {
+    function getEarnedFees(uint128 vaultId, address staker) external view returns (uint256 earnedFees) {
         Vault.Data storage vaultData = Vault.load(vaultId);
-
-        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
 
         bytes32 actorId = bytes32(uint256(uint160(staker)));
 
-        UD60x18 actorShares = distributionData.getActorShares(actorId);
+        UD60x18 actorShares = vaultData.stakingFeeDistribution.getActorShares(actorId);
 
-        SD59x18 lastValuePerShare = distributionData.getLastValuePerShare(actorId);
+        SD59x18 lastValuePerShare = vaultData.stakingFeeDistribution.getLastValuePerShare(actorId);
 
         UD60x18 unsignedValuePerShare = ud60x18(uint256(lastValuePerShare.unwrap()));
 
@@ -78,26 +81,18 @@ contract FeeDistributionBranch {
         earnedFees = claimableAmount.intoUint256();
     }
 
-    /// @dev Invariants involved in the call:
-    /// TODO: add invariants
+    /// @notice Receives collateral as a fee for processing, 
+    /// this fee later will be converted to Weth and sent to beneficiaries.
+    /// @dev onlyAuthorized address can call this function.
+    /// @param marketId The market receiving the fees.
     /// @param asset The margin collateral address.
     /// @param amount The token amount of collateral to receive as fee.
-
-    function receiveOrderFee(uint256 vaultId, address asset, uint256 amount) external onlyPerpsEngine {
-        address assetAddress = Collateral.load(asset).asset;
-
-        if (assetAddress == address(0)) revert Errors.UnsupportedCollateralType();
-
-        Vault.Data storage vaultData = Vault.load(vaultId);
-        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
-
-        // store in array if new collateral assets
-        if (distributionData.feeAmounts[asset] == 0) {
-            distributionData.feeAssets.push(asset);
-        }
+    function receiveOrderFee(uint128 marketId, address asset, uint256 amount) external onlyAuthorized {
+        MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
+        if (amount == 0) revert Errors.ZeroInput("amount");
 
         // increment fee amount
-        distributionData.feeAmounts[asset] += amount;
+        marketDebtData.collectedFees.receivedOrderFees.set(asset, amount);
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
@@ -105,107 +100,118 @@ contract FeeDistributionBranch {
         emit OrderFeeReceived(asset, amount);
     }
 
-    /// @dev Invariants involved in the call:
-    /// TODO: add invariants
-    function convertAccumulatedFeesToWeth(uint256 vaultId) external onlyPerpsEngine {
-        Vault.Data storage vaultData = Vault.load(vaultId);
-        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
+    /// @notice Converts collected collateral amount to Weth
+    /// @dev onlyAuthorized address can call this function.
+    /// @param marketId The market who's fees will be converted.
+    /// @param asset The asset to be swapped for wEth
+    function convertAccumulatedFeesToWeth(uint128 marketId, address asset) external onlyAuthorized {
+        MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
+
+        if(marketDebtData.marketId == 0) revert Errors.UnrecognisedMarket();
+        if(!marketDebtData.collectedFees.receivedOrderFees.contains(asset)) revert Errors.InvalidAsset();
 
         address weth = MarketMakingEngineConfiguration.load().weth;
 
-        uint256 _accumulatedWeth;
+        UD60x18 _accumulatedWeth;
 
-        // Iterate over collaterals from which fees have been collected and swap
-        for (uint256 i = 0; i < distributionData.feeAssets.length; i++) {
-            address assets = distributionData.feeAssets[i];
+        uint256 assetAmount = marketDebtData.collectedFees.receivedOrderFees.get(asset);
 
-            uint256 amount = distributionData.feeAmounts[distributionData.feeAssets[i]];
-            distributionData.feeAmounts[distributionData.feeAssets[i]] = 0;
+        if(asset == weth){
 
+            _accumulatedWeth = _accumulatedWeth.add(ud60x18(assetAmount));  
+
+            marketDebtData.collectedFees.receivedOrderFees.remove(asset);
+
+            emit FeesConvertedToWETH(
+                asset,
+                assetAmount, 
+                assetAmount
+            );
+        } else {
+            marketDebtData.collectedFees.receivedOrderFees.remove(asset);
             // Swap collected collateral fee amount for WETH and store the obtained amount
-            uint256 tokensSwapped = _swapExactTokensForWeth(assets, amount, weth);
-            _accumulatedWeth += tokensSwapped;
+            uint256 tokensSwapped = _swapExactTokensForWeth(asset, assetAmount, weth);
+            _accumulatedWeth = _accumulatedWeth.add(ud60x18(tokensSwapped));
 
-            emit FeesConvertedToWETH(assets, amount, tokensSwapped);
+            emit FeesConvertedToWETH(asset, assetAmount, tokensSwapped);
         }
 
-        delete distributionData.feeAssets;
+        // Calculate and distribute shares of the converted fees 
+        uint256 marketShare = _calculateFees(
+                    _accumulatedWeth, 
+                    ud60x18(marketDebtData.collectedFees.marketPercentage), 
+                    ud60x18(Fee.BPS_DENOMINATOR)
+                );
+        uint256 feeRecipientsShare = _calculateFees(
+                    _accumulatedWeth, 
+                    ud60x18(marketDebtData.collectedFees.feeRecipientsPercentage), 
+                    ud60x18(Fee.BPS_DENOMINATOR)
+                );
 
-        // Calculate and distribute shares of the converted fees
-        uint256 feeDistributorShares = FeeRecipient.load(MarketMakingEngineConfiguration.load().feeDistributor).share;
-        uint256 feeAmountToDistributor =
-            _calculateFees(feeDistributorShares, _accumulatedWeth, Distribution.TOTAL_FEE_SHARES);
-        distributionData.rewardDistributorUnsettled = feeAmountToDistributor;
-        distributionData.recipientsFeeUnsettled = _accumulatedWeth - distributionData.rewardDistributorUnsettled;
+        marketDebtData.collectedFees.collectedFeeRecipientsFees = feeRecipientsShare;
+        marketDebtData.collectedFees.collectedMarketFees = marketShare;
     }
 
-    /// @dev Invariants involved in the call:
-    /// TODO: add invariants
-    function sendWethToFeeDistributor(uint256 vaultId) external onlyPerpsEngine {
-        address feeDistributor = MarketMakingEngineConfiguration.load().feeDistributor;
-
-        address wethAddr = MarketMakingEngineConfiguration.load().weth;
-
-        Vault.Data storage vaultData = Vault.load(vaultId);
-        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
-
-        uint256 amountToSend = distributionData.rewardDistributorUnsettled;
-        distributionData.rewardDistributorUnsettled = 0;
-
-        IERC20(wethAddr).safeTransfer(feeDistributor, amountToSend);
+    // /// @dev Invariants involved in the call:
+    // /// TODO: add invariants
+    function sendWethToVaults(uint128 marketId) external onlyAuthorized {
+        // MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
+        // IERC20(wethAddr).safeTransfer(feeDistributor, amountToSend);
     }
 
-    /// @dev Invariants involved in the call:
-    /// TODO: add invariants
-    function sendWethToFeeRecipients(uint256 vaultId, uint256 configuration) external onlyPerpsEngine {
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
-            MarketMakingEngineConfiguration.load();
-
-        Vault.Data storage vaultData = Vault.load(vaultId);
-        Distribution.Data storage distributionData = vaultData.stakingFeeDistribution;
-
-        /// TODO: make error for check
-        // if (feeData.recipientsFeeUnsettled == 0){
-        //     revert Error.;
-        // }
-
-        address[] storage recipientsList = marketMakingEngineConfigurationData.feeRecipients[configuration];
-        address wethAddr = marketMakingEngineConfigurationData.weth;
-
-        uint256 feeDistributorShares = FeeRecipient.load(marketMakingEngineConfigurationData.feeDistributor).share;
-        uint256 totalShares = Distribution.TOTAL_FEE_SHARES - feeDistributorShares;
-
-        for (uint256 i; i < recipientsList.length; ++i) {
-            if (recipientsList[i] == marketMakingEngineConfigurationData.feeDistributor) {
-                continue; // Skip the fee distributor address
-            }
-            FeeRecipient.Data storage feeRecipientData = FeeRecipient.load(recipientsList[i]);
-            uint256 amountToSend =
-                _calculateFees(feeRecipientData.share, distributionData.recipientsFeeUnsettled, totalShares);
-
-            address recipientAddress = recipientsList[i];
-
-            IERC20(wethAddr).safeTransfer(recipientAddress, amountToSend);
-
-            emit TransferCompleted(recipientsList[i], amountToSend);
-        }
+    /// @notice Sends allocated Weth amount to fee recipients.
+    /// @dev onlyAuthorized address can call this function.
+    /// @param marketId The market to which fee recipients contribute.
+    /// @param configuration The configuration of which fee recipients are part of.
+    function sendWethToFeeRecipients(uint128 marketId, uint256 configuration) external onlyAuthorized {
     }
 
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
     /// @param vaultId The vault id to claim fees from.
-    function claimFees(uint128 vaultId) external { }
+    function claimFees(uint128 vaultId) external { 
+    }
+
+    function setPercentageRatio(
+        uint128 marketId, 
+        uint128 feeRecipientsPercentage, 
+        uint128 marketPercentage
+    ) 
+        external 
+        onlyAuthorized 
+    {
+        if(feeRecipientsPercentage + marketPercentage != Fee.BPS_DENOMINATOR) revert Errors.PercentageValidationFailed();
+
+        MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
+
+        marketDebtData.collectedFees.feeRecipientsPercentage = feeRecipientsPercentage;
+        marketDebtData.collectedFees.marketPercentage = marketPercentage;
+    }
+
+    function getPercentageRatio(
+        uint128 marketId
+    ) 
+        external 
+        view 
+        onlyAuthorized
+        returns (uint128 feeRecipientsPercentage, uint128 marketPercentage)
+    {
+        MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);                 
+       
+        return (marketDebtData.collectedFees.feeRecipientsPercentage, marketDebtData.collectedFees.marketPercentage);
+    }
 
     function _calculateFees(
-        uint256 shares,
-        uint256 accumulatedAmount,
-        uint256 totalShares
+        UD60x18 shares,
+        UD60x18 accumulatedAmount,
+        UD60x18 totalShares
     )
         internal
         pure
         returns (uint256 amount)
     {
-        amount = (shares * accumulatedAmount) / totalShares;
+        UD60x18 accumulatedShareValue = shares.mul(accumulatedAmount);
+        amount = accumulatedShareValue.div(totalShares).intoUint256();
     }
 
     function _swapExactTokensForWeth(
@@ -216,37 +222,39 @@ contract FeeDistributionBranch {
         internal
         returns (uint256 amountOut)
     {
+        Fee.Uniswap storage uniswapData = Fee.load_Uniswap();
+
+        // Check if Uniswap Address is set
+        if(uniswapData.swapRouter == ISwapRouter(address(0))) revert Errors.SwapRouterAddressUndefined();
+
         // Approve the router to spend DAI.
-        TransferHelper.safeApprove(tokenIn, address(SWAP_ROUTER), amountIn);
+        TransferHelper.safeApprove(tokenIn, address(uniswapData.swapRouter), amountIn);
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: tokenIn,
             tokenOut: _weth,
-            fee: POOL_FEE,
+            fee: uniswapData.poolFee,
             recipient: address(this),
             deadline: block.timestamp,
             amountIn: amountIn,
-            amountOutMinimum: _calculateAmountOutMinimum(tokenIn, _weth, amountIn),
+            amountOutMinimum: _calculateAmountOutMinimum(tokenIn, _weth, amountIn, uniswapData.slippage),
             sqrtPriceLimitX96: 0
         });
 
         // The call to `exactInputSingle` executes the swap.
-        amountOut = SWAP_ROUTER.exactInputSingle(params);
+        amountOut = uniswapData.swapRouter.exactInputSingle(params);
     }
 
     function _calculateAmountOutMinimum(
         address tokenIn,
         address tokenOut,
-        uint256 amount
+        uint256 amount,
+        uint256 slippage
     )
         internal
         view
         returns (uint256 amountOutMinimum)
-    {
-        uint256 BPS_DENOMINATOR = 10_000;
-        // this value should be in bps (e.g 1% = 100bps)
-        uint256 slippage = 100;
-
+    {   
         // Load collateral data for both input and output tokens
         Collateral.Data memory tokenInData = Collateral.load(tokenIn);
         Collateral.Data memory tokenOutCollateralData = Collateral.load(tokenOut);
@@ -294,10 +302,10 @@ contract FeeDistributionBranch {
 
         // The minimum percentage from the full amount to receive
         // (e.g. if slippage is 100 BPS, the minAmountToReceiveInBPS will be 9900 BPS )
-        UD60x18 minAmountToReceiveInBPS = (ud60x18(BPS_DENOMINATOR).sub(ud60x18(slippage)));
+        UD60x18 minAmountToReceiveInBPS = (ud60x18(Fee.BPS_DENOMINATOR).sub(ud60x18(slippage)));
 
         // Adjust for slippage and convert to uint256
         amountOutMinimum =
-            fullAmountToReceive.mul(minAmountToReceiveInBPS).div(ud60x18(BPS_DENOMINATOR)).intoUint256();
+            fullAmountToReceive.mul(minAmountToReceiveInBPS).div(ud60x18(Fee.BPS_DENOMINATOR)).intoUint256();
     }
 }

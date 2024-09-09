@@ -239,4 +239,22 @@ library Errors {
 
     /// @notice MarketMakingEngine.Vault errors.
     error NoMarketsConnectedToVault(uint128 vaultId);
+    /// @notice Thrown when sum of percentages does not total 10_000 (e.g. 100%)
+    error PercentageValidationFailed();
+
+    /// @notice Thrown when market does not exist
+    error UnrecognisedMarket();
+
+    /// @notice Thrown when fees have not been collected from selected asset
+    error InvalidAsset();
+
+    /// @notice Thrown when Uniswap router address is not defined
+    error SwapRouterAddressUndefined();
+
+    /// @notice Thrown when Uniswap pool fee set to zero
+    error InvalidPoolFee();
+
+    /// @notice Thrown when slippage set to less than 100 (e.g. 0.1%)
+    error InvalidSlippage();
 }
+

@@ -1,0 +1,5 @@
+Fee_Uniswap_SetSlippage_Unit_Test
+    ├── when slippage is passed zero value
+    │   └── it should revert
+    └── when slippage is passed valid value
+        └── it should set slippage

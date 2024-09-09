@@ -1,0 +1,5 @@
+MarketMaking_FeeDistribution_getEarnedFees
+    ├── given the user has staked
+    │   └── it should return fee amount
+    └── given the user has not staked
+        └── it should return 0
