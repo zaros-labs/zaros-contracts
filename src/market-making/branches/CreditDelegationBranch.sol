@@ -17,7 +17,7 @@ import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
@@ -140,8 +140,16 @@ contract CreditDelegationBranch {
             revert Errors.NoCreditCapacity(marketId);
         }
 
+        // uint256 -> UD60x18 and scale decimals to 18
+        UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
         // adds the collected margin collateral to the market's debt data storage, to be settled later
         marketDebt.addMarginCollateral(collateralType, amount);
+
+        // calculates the usd value of margin collateral received
+        UD60x18 receivedValueUsdX18 = collateral.getPrice().mul(amountX18);
+
+        // realizes the received margin collateral usd value as added credit
+        marketDebt.realizeDebt(unary(receivedValueUsdX18.intoSD59x18()));
 
         // transfers the margin collateral asset from the perps engine to the market making engine
         // NOTE: The perps engine must approve the market making engine to transfer the margin collateral asset, see

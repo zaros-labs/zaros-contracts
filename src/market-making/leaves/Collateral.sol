@@ -2,8 +2,11 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
+import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
+import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -55,7 +58,32 @@ library Collateral {
     /// @param self The collateral type storage pointer.
     /// @param amountX18 The 18 decimals normalized amount.
     /// @return amount The denormalized amount using the ERC20 token's decimals.
-    function convertUd60x18ToTokenAmount(Data storage self, UD60x18 amountX18) internal view returns (uint256) {
+    function convertUd60x18ToTokenAmount(
+        Data storage self,
+        UD60x18 amountX18
+    )
+        internal
+        view
+        returns (uint256 amount)
+    {
         return Math.convertUd60x18ToTokenAmount(self.decimals, amountX18);
+    }
+
+    function getPrice(Data storage self) internal view returns (UD60x18 priceX18) {
+        address priceAdapter = self.priceAdapter;
+        uint32 priceFeedHeartbeatSeconds = self.priceFeedHeartbeatSeconds;
+
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+        address sequencerUptimeFeed = marketMakingEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
+
+        if (priceAdapter == address(0)) {
+            revert Errors.CollateralPriceFeedNotDefined();
+        }
+
+        // TODO: switch to priceAdapter
+        priceX18 = ChainlinkUtil.getPrice(
+            IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
+        );
     }
 }
