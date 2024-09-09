@@ -17,8 +17,11 @@ PriceAdapter_Integration_Test
         │       ├── when sequencer uptime feed is down
         │       │   └── it should revert
         │       └── when sequencer uptime feed is online
-        │           └── when grace period not over
-        │               └── it should revert
+        │           ├── when sequencer uptime feed is not started
+        │           │   └── it should revert
+        │           └── when sequencer uptime feed is started
+        │               └── when grace period not over
+        │                   └── it should revert
         ├── when price feed returns a invalid value from latestRoundData
         │   └── it should revert
         └── when price feed returns a valid value from latestRoundData
