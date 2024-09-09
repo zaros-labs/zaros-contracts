@@ -2,15 +2,13 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
-import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { MarketConfiguration } from "@zaros/perpetuals/leaves/MarketConfiguration.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
-import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -71,18 +69,12 @@ library PerpMarket {
     /// @param self The PerpMarket storage pointer.
     function getIndexPrice(Data storage self) internal view returns (UD60x18 indexPrice) {
         address priceAdapter = self.configuration.priceAdapter;
-        uint32 priceFeedHeartbeatSeconds = self.configuration.priceFeedHeartbeatSeconds;
-
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
-        address sequencerUptimeFeed = perpsEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
 
         if (priceAdapter == address(0)) {
             revert Errors.PriceAdapterNotDefined(self.id);
         }
 
-        indexPrice = ChainlinkUtil.getPrice(
-            IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
-        );
+        indexPrice = IPriceAdapter(priceAdapter).getPrice();
     }
 
     /// @notice Returns the given market's mark price.
@@ -368,7 +360,6 @@ library PerpMarket {
     /// @param marketOrderConfiguration The market order settlement configuration of the given perp market.
     /// @param offchainOrdersConfiguration The offchain orders settlement configuration of the given perp market.
     /// @param orderFees The configured maker and taker order fee tiers.
-    /// @param priceFeedHeartbeatSeconds The price feed heartbeats in seconds.
     struct CreateParams {
         uint128 marketId;
         string name;
@@ -384,7 +375,6 @@ library PerpMarket {
         SettlementConfiguration.Data marketOrderConfiguration;
         SettlementConfiguration.Data offchainOrdersConfiguration;
         OrderFees.Data orderFees;
-        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Creates a new PerpMarket.
@@ -410,8 +400,7 @@ library PerpMarket {
                 maxFundingVelocity: params.maxFundingVelocity,
                 minTradeSizeX18: params.minTradeSizeX18,
                 skewScale: params.skewScale,
-                orderFees: params.orderFees,
-                priceFeedHeartbeatSeconds: params.priceFeedHeartbeatSeconds
+                orderFees: params.orderFees
             })
         );
         SettlementConfiguration.update(

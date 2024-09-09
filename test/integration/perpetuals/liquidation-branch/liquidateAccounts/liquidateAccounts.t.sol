@@ -254,20 +254,11 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
             );
 
             // it should deduct unrealized pnl from the margin balance
-            uint128 liquidationFeeUsdX18 = perpsEngine.workaround_getLiquidationFeeUsdX18();
             SD59x18 marginBalanceUsdX18 = perpsEngine.exposed_getMarginBalanceUsd(ctx.accountsIds[i], sd59x18(0));
-            SD59x18 expectedMarginBalanceUsdX18 = ctx.accountsMarginBalanceInitial[i].add(
-                ctx.accountsUnrealizedPnl[i]
-            ).sub(sd59x18(int128(liquidationFeeUsdX18)));
+            SD59x18 expectedMarginBalanceUsdX18 = sd59x18(0);
 
-            if (expectedMarginBalanceUsdX18.lt(sd59x18(0))) {
-                expectedMarginBalanceUsdX18 = sd59x18(0);
-            }
-
-            // using `<=` instead of `==` because of the price impact (new skew) after liquidation of the trading
-            // accounts
             assertEq(
-                marginBalanceUsdX18.intoInt256() <= expectedMarginBalanceUsdX18.intoInt256(), true, "margin balance"
+                marginBalanceUsdX18.intoInt256() == expectedMarginBalanceUsdX18.intoInt256(), true, "margin balance"
             );
         }
     }

@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -22,9 +22,9 @@ contract getAccountEquityUsd_Integration_Test is Base_Test {
         });
         deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
 
-        uint256 expectedMarginCollateralValue = getPrice(
-            MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)
-        ).mul(convertTokenAmountToUd60x18(address(usdc), amountToDeposit)).intoUint256();
+        uint256 expectedMarginCollateralValue = IPriceAdapter(
+            (marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter)
+        ).getPrice().mul(convertTokenAmountToUd60x18(address(usdc), amountToDeposit)).intoUint256();
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 
@@ -54,12 +54,11 @@ contract getAccountEquityUsd_Integration_Test is Base_Test {
         deal({ token: address(usdc), to: users.naruto.account, give: amountToDepositUsdc });
         deal({ token: address(wstEth), to: users.naruto.account, give: amountToDepositWstEth });
 
-        UD60x18 usdcEquityUsd = getPrice(MockPriceFeed(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed)).mul(
-            convertTokenAmountToUd60x18(address(usdc), amountToDepositUsdc)
-        );
+        UD60x18 usdcEquityUsd = IPriceAdapter((marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter)).getPrice()
+            .mul(convertTokenAmountToUd60x18(address(usdc), amountToDepositUsdc));
 
-        UD60x18 wstEthEquityUsd = getPrice(MockPriceFeed(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed))
-            .mul(convertTokenAmountToUd60x18(address(wstEth), amountToDepositWstEth));
+        UD60x18 wstEthEquityUsd = IPriceAdapter((marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter))
+            .getPrice().mul(convertTokenAmountToUd60x18(address(wstEth), amountToDepositWstEth));
 
         uint256 expectedMarginCollateralValue = usdcEquityUsd.add(wstEthEquityUsd).intoUint256();
 

@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-// Zaros dependencies
-import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
-
 struct Users {
     // Default owner for all Zaros contracts.
     User owner;
@@ -30,12 +27,4 @@ struct Users {
 struct User {
     address payable account;
     uint256 privateKey;
-}
-
-struct MockPriceAdapters {
-    MockPriceFeed mockBtcUsdPriceAdapter;
-    MockPriceFeed mockEthUsdPriceAdapter;
-    MockPriceFeed mockLinkUsdPriceAdapter;
-    MockPriceFeed mockUsdcUsdPriceAdapter;
-    MockPriceFeed mockWstEthUsdPriceAdapter;
 }

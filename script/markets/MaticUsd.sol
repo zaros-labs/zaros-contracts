@@ -2,7 +2,6 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Constants } from "@zaros/utils/Constants.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 
 abstract contract MaticUsd {
@@ -10,6 +9,8 @@ abstract contract MaticUsd {
     uint128 internal constant MATIC_USD_MARKET_ID = 8;
     string internal constant MATIC_USD_MARKET_NAME = "MATICUSD Perpetual";
     string internal constant MATIC_USD_MARKET_SYMBOL = "MATICUSD-PERP";
+    string internal constant MATIC_PRICE_ADAPTER_NAME = "MATIC/USD Zaros Price Adapter";
+    string internal constant MATIC_PRICE_ADAPTER_SYMBOL = "MATIC/USD";
     uint128 internal constant MATIC_USD_IMR = 0.1e18;
     uint128 internal constant MATIC_USD_MMR = 0.05e18;
     uint128 internal constant MATIC_USD_MARGIN_REQUIREMENTS = MATIC_USD_IMR + MATIC_USD_MMR;
@@ -27,6 +28,7 @@ abstract contract MaticUsd {
     // TODO: Update address value
     address internal constant MATIC_USD_PRICE_FEED = address(0x44a502d94c47f47aC6D65ebdFDf4c39500e72491);
     uint32 internal constant MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    bool internal constant MATIC_USD_USE_CUSTOM_PRICE_ADAPTER = false;
 
     // TODO: Update stream id value
     bytes32 internal constant MATIC_USD_STREAM_ID = 0x0003fd6ff25e1a28ddd55c85882279987be478a66a75abdf05a468beb5b8b467;

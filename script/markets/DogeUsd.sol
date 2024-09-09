@@ -10,6 +10,8 @@ abstract contract DogeUsd {
     uint128 internal constant DOGE_USD_MARKET_ID = 6;
     string internal constant DOGE_USD_MARKET_NAME = "DOGEUSD Perpetual";
     string internal constant DOGE_USD_MARKET_SYMBOL = "DOGEUSD-PERP";
+    string internal constant DOGE_PRICE_ADAPTER_NAME = "DOGE/USD Zaros Price Adapter";
+    string internal constant DOGE_PRICE_ADAPTER_SYMBOL = "DOGE/USD";
     uint128 internal constant DOGE_USD_IMR = 0.1e18;
     uint128 internal constant DOGE_USD_MMR = 0.05e18;
     uint128 internal constant DOGE_USD_MARGIN_REQUIREMENTS = DOGE_USD_IMR + DOGE_USD_MMR;
@@ -27,6 +29,7 @@ abstract contract DogeUsd {
     // TODO: Update address value
     address internal constant DOGE_USD_PRICE_FEED = address(0x46C81F11b0e49F909eD80760b342B24C46a273D3);
     uint32 internal constant DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    bool internal constant DOGE_USD_USE_CUSTOM_PRICE_ADAPTER = false;
 
     // TODO: Update stream id value
     bytes32 internal constant DOGE_USD_STREAM_ID = 0x00032057c7f224d0266b4311a81cdc3e38145e36442713350d3300fb12e85c99;

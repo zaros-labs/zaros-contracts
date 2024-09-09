@@ -60,11 +60,7 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.owner.account });
         perpsEngine.configureMarginCollateral(
-            address(wstEth),
-            0,
-            WSTETH_LOAN_TO_VALUE,
-            marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed,
-            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+            address(wstEth), 0, WSTETH_LOAN_TO_VALUE, marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter
         );
         changePrank({ msgSender: users.naruto.account });
 
@@ -103,11 +99,7 @@ contract DepositMargin_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.owner.account });
         perpsEngine.configureMarginCollateral(
-            address(usdc),
-            0,
-            USDC_LOAN_TO_VALUE,
-            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed,
-            MOCK_PRICE_FEED_HEARTBEAT_SECONDS
+            address(usdc), 0, USDC_LOAN_TO_VALUE, marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter
         );
         changePrank({ msgSender: users.naruto.account });
 

@@ -2,10 +2,9 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
-import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 
 // PRB Math dependencies
@@ -19,7 +18,6 @@ library Collateral {
     // TODO: pack storage slots
     struct Data {
         uint256 creditRatio;
-        uint32 priceFeedHeartbeatSeconds;
         bool isEnabled;
         uint8 decimals;
         address priceAdapter;
@@ -71,19 +69,11 @@ library Collateral {
 
     function getPrice(Data storage self) internal view returns (UD60x18 priceX18) {
         address priceAdapter = self.priceAdapter;
-        uint32 priceFeedHeartbeatSeconds = self.priceFeedHeartbeatSeconds;
-
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-        address sequencerUptimeFeed = marketMakingEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
 
         if (priceAdapter == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-        // TODO: switch to priceAdapter
-        priceX18 = ChainlinkUtil.getPrice(
-            IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
-        );
+        priceX18 = IPriceAdapter(priceAdapter).getPrice();
     }
 }

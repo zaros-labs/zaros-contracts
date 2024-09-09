@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "tradingAccountId": "1",
+      "sender": "0x123",
+      "referralCode": "0x456",
+      "isCustomReferralCode": false
+    },
+    {
+      "tradingAccountId": "2",
+      "sender": "0x789",
+      "referralCode": "custom-referral-code",
+      "isCustomReferralCode": true
+    },
+    {
+      "tradingAccountId": "3",
+      "sender": "0x101112",
+      "referralCode": "",
+      "isCustomReferralCode": false
+    }
+  ]
+}
