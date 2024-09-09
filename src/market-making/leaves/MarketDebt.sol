@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Distribution } from "./Distribution.sol";
+import { Fee } from "./Fee.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -18,6 +19,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 /// we send the entire reported debt as unsettled debt?
 library MarketDebt {
     using Distribution for Distribution.Data;
+    using Fee for Fee.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
@@ -59,6 +61,7 @@ library MarketDebt {
         EnumerableMap.AddressToUintMap collectedMarginCollateral;
         EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
+        Fee.Data collectedFees;
     }
 
     /// @notice Loads a {MarketDebt} namespace.

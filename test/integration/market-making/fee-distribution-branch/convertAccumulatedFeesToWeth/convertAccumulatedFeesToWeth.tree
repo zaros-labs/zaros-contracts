@@ -1,0 +1,21 @@
+MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth
+    ├── given the caller is not Perps Engine
+    │   └── it should revert
+    └── given the caller is Perp Engine
+        ├── when market does not exist
+        │   └── it should revert
+        └── when market exist
+            ├── given the amount is zero
+            │   └── it should revert
+            └── given the amount is not zero  
+                └── when the asset exists
+                    ├── given the asset is Weth
+                    │   └── it should divide amount between market and fee recipients
+                    └── given the asset is not Weth
+                        ├── when price adapter address is not set
+                        │   └── it should revert
+                        └── when price adapter address is set
+                            ├── given the uniswap address is not set
+                            │   └── it should revert
+                            └── given the uniswap address is set
+                                └── it should convert amount and update
