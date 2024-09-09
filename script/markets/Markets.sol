@@ -10,7 +10,6 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
-import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
 // Open Zeppelin dependencies
@@ -81,10 +80,9 @@ abstract contract Markets is
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
-    function setupMarketsConfig(address perpsEngine, address priceAdapterOwner) internal {
-        address sequencerUptimeFeed =
-            address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
-
+    // TODO: Log deployed price adapters
+    // TODO: add heartbeat parameter into a `Markets` object
+    function setupMarketsConfig(address sequencerUptimeFeed, address priceAdapterOwner) internal {
         marketsConfig[BTC_USD_MARKET_ID] = MarketConfig({
             marketId: BTC_USD_MARKET_ID,
             marketName: BTC_USD_MARKET_NAME,
@@ -439,6 +437,7 @@ abstract contract Markets is
     function createPerpMarkets(
         address deployer,
         IPerpsEngine perpsEngine,
+        address sequencerUptimeFeed,
         uint256 initialMarketId,
         uint256 finalMarketId,
         IVerifierProxy chainlinkVerifier,
@@ -472,8 +471,6 @@ abstract contract Markets is
             });
 
             if (isTest) {
-                address mockSequencerUptimeFeed = address(new MockSequencerUptimeFeed(0));
-
                 if (i % 2 == 0) {
                     UD60x18 mockEthUsdPrice = ud60x18(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice);
                     UD60x18 mockSelectedMarketUsdPrice = ud60x18(marketsConfig[i].mockUsdPrice);
@@ -490,7 +487,7 @@ abstract contract Markets is
                                 ethUsdPriceFeed: address(
                                     new MockPriceFeed(18, int256(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice))
                                 ),
-                                sequencerUptimeFeed: mockSequencerUptimeFeed,
+                                sequencerUptimeFeed: sequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
                                 ethUsdPriceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                                 useEthPriceFeed: true
@@ -506,7 +503,7 @@ abstract contract Markets is
                                 owner: address(0x123),
                                 priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
                                 ethUsdPriceFeed: address(0),
-                                sequencerUptimeFeed: mockSequencerUptimeFeed,
+                                sequencerUptimeFeed: sequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
                                 ethUsdPriceFeedHeartbeatSeconds: 0,
                                 useEthPriceFeed: false

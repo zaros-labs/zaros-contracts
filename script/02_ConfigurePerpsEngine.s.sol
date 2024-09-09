@@ -45,8 +45,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
-        configureSequencerUptimeFeeds(perpsEngine);
-
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMinLifetime: MARKET_ORDER_MIN_LIFETIME,
@@ -59,11 +57,15 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
 
+        setupSequencerUptimeFeeds();
+
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = initialMarginCollateralId;
         marginCollateralIdsRange[1] = finalMarginCollateralId;
 
-        configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, false, deployer);
+        configureMarginCollaterals(
+            perpsEngine, marginCollateralIdsRange, false, sequencerUptimeFeedByChainId[block.chainid], deployer
+        );
 
         address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine));
         console.log("Liquidation Keeper: ", liquidationKeeper);

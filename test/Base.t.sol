@@ -21,6 +21,7 @@ import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
 import { Storage } from "test/utils/Storage.sol";
 import { Users, User } from "test/utils/Types.sol";
@@ -92,6 +93,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     Users internal users;
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
+    address internal mockSequencerUptimeFeed;
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
     uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
@@ -163,13 +165,16 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         // TODO: deploy MM engine
         marketMakingEngine = IMarketMakingEngine(address(bytes20(bytes("MarketMakingEngine"))));
 
-        configureSequencerUptimeFeeds(perpsEngine);
-
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;
         marginCollateralIdsRange[1] = FINAL_MARGIN_COLLATERAL_ID;
 
-        configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, true, users.owner.account);
+        mockSequencerUptimeFeed =
+            address(new MockSequencerUptimeFeed(int256(uint256(MOCK_PRICE_FEED_HEARTBEAT_SECONDS))));
+
+        configureMarginCollaterals(
+            perpsEngine, marginCollateralIdsRange, true, mockSequencerUptimeFeed, users.owner.account
+        );
 
         usdc = MockERC20(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         usdz = MockUSDToken(marginCollaterals[USDZ_MARGIN_COLLATERAL_ID].marginCollateralAddress);
@@ -203,7 +208,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             settlementFeeRecipient: users.settlementFeeRecipient.account
         });
 
-        setupMarketsConfig(address(perpsEngine), users.owner.account);
+        setupMarketsConfig(mockSequencerUptimeFeed, users.owner.account);
         configureLiquidationKeepers();
 
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
@@ -295,6 +300,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         createPerpMarkets(
             users.owner.account,
             perpsEngine,
+            mockSequencerUptimeFeed,
             INITIAL_MARKET_ID,
             FINAL_MARKET_ID,
             IVerifierProxy(mockChainlinkVerifier),
