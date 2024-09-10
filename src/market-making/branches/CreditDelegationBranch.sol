@@ -69,7 +69,9 @@ contract CreditDelegationBranch {
     /// @param marketId The perps engine's market id.
     /// @return openInterestCapX18 The market's open interest cap.
     /// @return skewCapX18 The market's skew cap.
-    function getCreditForMarketId(uint128 marketId)
+    function getCreditForMarketId(
+        uint128 marketId
+    )
         public
         view
         returns (UD60x18 openInterestCapX18, UD60x18 skewCapX18)

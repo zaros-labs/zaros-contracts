@@ -97,7 +97,9 @@ library MarketDebt {
 
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
 
-    function getMarketCaps(Data storage self)
+    function getMarketCaps(
+        Data storage self
+    )
         internal
         view
         returns (UD60x18 openInterestCapX18, UD60x18 skewCapX18)

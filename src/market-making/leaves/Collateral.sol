@@ -75,7 +75,8 @@ library Collateral {
 
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
-        address sequencerUptimeFeed = marketMakingEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
+        // TODO: get sequencer uptime feed
+        // address sequencerUptimeFeed = marketMakingEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
 
         if (priceAdapter == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
@@ -83,7 +84,11 @@ library Collateral {
 
         // TODO: switch to priceAdapter
         priceX18 = ChainlinkUtil.getPrice(
-            IAggregatorV3(priceAdapter), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
+            ChainlinkUtil.GetPriceParams({
+                priceFeed: IAggregatorV3(priceAdapter),
+                priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
+                sequencerUptimeFeed: IAggregatorV3(address(0))
+            })
         );
     }
 }

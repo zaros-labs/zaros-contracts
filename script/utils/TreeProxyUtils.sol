@@ -113,9 +113,9 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     perpsEngineConfigurationBranchSelectors[11] =
         PerpsEngineConfigurationBranch.updateSettlementConfiguration.selector;
     perpsEngineConfigurationBranchSelectors[12] = PerpsEngineConfigurationBranch.setUsdToken.selector;
-    perpsEngineConfigurationBranchSelectors[14] =
+    perpsEngineConfigurationBranchSelectors[13] =
         PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
-    perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
+    perpsEngineConfigurationBranchSelectors[14] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
 
@@ -333,9 +333,9 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     perpsEngineConfigurationHarnessSelectors[8] = PerpsEngineConfigurationHarness.workaround_getUsdToken.selector;
     perpsEngineConfigurationHarnessSelectors[9] =
         PerpsEngineConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
-    perpsEngineConfigurationHarnessSelectors[11] =
+    perpsEngineConfigurationHarnessSelectors[10] =
         PerpsEngineConfigurationHarness.workaround_getMaxPositionsPerAccount.selector;
-    perpsEngineConfigurationHarnessSelectors[12] =
+    perpsEngineConfigurationHarnessSelectors[11] =
         PerpsEngineConfigurationHarness.workaround_getLiquidationFeeUsdX18.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](6);
