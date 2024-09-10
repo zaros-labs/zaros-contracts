@@ -25,6 +25,8 @@ contract MarketMaking_FeeDistribution_receiveOrderFee is Base_Test {
         changePrank({ msgSender: users.owner.account });
         createVault();
         changePrank({ msgSender: address(perpsEngine) });
+
+        marketMakingEngine.workaround_setPerpsEngineAddress(address(perpsEngine));
     }
 
     function test_RevertGiven_TheCallerIsNotPerpsEngine() external {

@@ -17,5 +17,7 @@ MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth
                         └── when price adapter address is set
                             ├── given the uniswap address is not set
                             │   └── it should revert
-                            └── given the uniswap address is set
+                            ├── given the uniswap address is set and decimals are less than 18
+                            │   └── it should convert amount and update
+                            └── given the uniswap address is set and decimals are 18
                                 └── it should convert amount and update
