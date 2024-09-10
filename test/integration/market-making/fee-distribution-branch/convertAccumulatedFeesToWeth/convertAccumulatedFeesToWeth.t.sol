@@ -30,6 +30,8 @@ contract MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth is Base_Test 
         createVault();
         changePrank({ msgSender: address(perpsEngine) });
 
+        marketMakingEngine.workaround_setPerpsEngineAddress(address(perpsEngine));
+
         // set vault collateral types
         Vault.Data storage vault = Vault.load(1);
         Collateral.Data storage collateral = vault.collateral;
@@ -46,6 +48,7 @@ contract MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth is Base_Test 
 
         // Set percentage ratio for market and fee recipients
         marketMakingEngine.setPercentageRatio(1, 3500, 6500);
+        marketMakingEngine.getPercentageRatio(1);
 
         // set contract with initial wEth fees
         deal(address(wEth), address(perpsEngine), 10e18);
