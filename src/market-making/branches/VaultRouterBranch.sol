@@ -35,7 +35,7 @@ contract VaultRouterBranch {
             Collateral.Data memory collateral
         )
     {
-        Vault.Data storage vault = Vault.load(vaultId);
+        Vault.Data storage vault = Vault.load(uint128(vaultId));
 
         totalDeposited = vault.totalDeposited;
         depositCap = vault.depositCap;
