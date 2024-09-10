@@ -90,7 +90,6 @@ abstract contract Markets is
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
-    // TODO: Log deployed price adapters
     // TODO: add heartbeat parameter into a `Markets` object
     function setupMarketsConfig(address sequencerUptimeFeed, address priceAdapterOwner) internal {
         marketsConfig[BTC_USD_MARKET_ID] = MarketConfig({
