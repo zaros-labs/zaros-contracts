@@ -27,10 +27,12 @@ library MarketDebt {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketDebt")) - 1));
 
     /// @param marketId The perps engine's linked market id.
-    /// @param autoDeleverageThreshold An admin configurable decimal rate which determines when the market should
-    /// enter the auto deleverage state. Goes from 0 to 1.
-    /// @param autoDeleverageScale An admin configurable value which determines how much should the auto
-    /// deleverage factor be.
+    /// @param autoDeleverageStartThreshold An admin configurable decimal rate which defines the starting point of
+    /// the auto deleverage curve, ranging from 0 to 1.
+    /// @param autoDeleverageEndThreshold An admin configurable decimal rate which defines the ending point of the
+    /// auto deleverage curve, ranging from 0 to 1.
+    /// @param autoDeleverageLogScale An admin configurable log scale which determines the market's auto deleverage
+    /// factor, according to the current state of the market's ADL curve.
     /// @param openInterestCapScale An admin configurable value which determines the market's open interest cap,
     /// according to the total delegated credit.
     /// @param skewCapScale An admin configurable value which determines the market's skew cap, according to the total
@@ -71,12 +73,20 @@ library MarketDebt {
         }
     }
 
-    /// @notice Computes the auto delevarage factor of the market according to its debt state and configured
-    /// parameters.
+    /// @notice Computes the auto delevarage factor of the market based on the market's credit capacity, total debt
+    /// and its configured ADL parameters.
     /// @param self The market debt storage pointer.
     /// @return autoDeleverageFactor A decimal rate which determines how much should the market cut of the position's
     /// positive pnl. Goes from 0 to 1.
-    function getAutoDeleverageFactor(Data storage self) internal view returns (UD60x18 autoDeleverageFactor) { }
+    function getAutoDeleverageFactor(
+        Data storage self,
+        UD60x18 creditCapacityUsdX18,
+        SD59x18 totalDebtUsdX18
+    )
+        internal
+        view
+        returns (UD60x18 autoDeleverageFactor)
+    { }
 
     function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaultsIds) {
         if (self.connectedVaultsIds.length == 0) {
@@ -86,9 +96,15 @@ library MarketDebt {
         connectedVaultsIds = self.connectedVaultsIds[self.connectedVaultsIds.length].values();
     }
 
-    function getCreditCapacity(Data storage self) internal view returns (SD59x18 creditCapacityUsdX18) {
-        creditCapacityUsdX18 =
-            ud60x18(self.vaultsDebtDistribution.totalShares).intoSD59x18().add(sd59x18(self.realizedDebtUsd));
+    function getCreditCapacity(
+        Data storage self,
+        UD60x18 delegatedCreditUsdX18
+    )
+        internal
+        view
+        returns (SD59x18 creditCapacityUsdX18)
+    {
+        creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(sd59x18(self.realizedDebtUsd));
     }
 
     function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCreditUsdX18) {
