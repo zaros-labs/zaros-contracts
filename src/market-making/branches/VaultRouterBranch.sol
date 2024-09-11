@@ -53,13 +53,13 @@ contract VaultRouterBranch {
         address indexed stakingUser, address indexed referrer, bytes referralCode, bool isCustomReferralCode
     );
 
-    /// @notice Emited when a user deposist assets.
+    /// @notice Emitted when a user deposist assets.
     /// @param vaultId The ID of the vault which assets are deposited.
     /// @param user The user that deposits the assets.
     /// @param assets The assets amount.
     event LogDeposit(uint256 indexed vaultId, address indexed user, uint256 assets);
 
-    /// @notice Emited when a user deposist assets.
+    /// @notice Emitted when a user deposist assets.
     /// @param vaultId The ID of the vault which assets are deposited.
     /// @param user The user that deposits the assets.
     /// @param shares The shares amount being redeemed.
