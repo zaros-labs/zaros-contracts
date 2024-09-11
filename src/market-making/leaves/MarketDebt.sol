@@ -16,6 +16,13 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 /// @dev NOTE: realized debt -> unsettled debt -> settled debt
 /// TODO: do we only send realized debt as unsettled debt to the vaults? should it be considered settled debt? or do
 /// we send the entire reported debt as unsettled debt?
+// TODO: finalize this
+/// marketDebtRatio = totalDebt / creditCapacity
+/// autoDeleverageFactor = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
+/// (autoDeleverageEndThreshold -
+/// autoDeleverageStartThreshold)
+/// autoDeleverageFactor = x
+
 library MarketDebt {
     using Distribution for Distribution.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
