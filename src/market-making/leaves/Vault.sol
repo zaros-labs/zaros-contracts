@@ -17,7 +17,9 @@ library Vault {
     bytes32 internal constant VAULT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Vault")) - 1));
 
+    /// @param vaultId The unique identifier for the vault.
     /// @param totalDeposited The total amount of collateral assets deposited in the vault.
+    /// @param totalCreditDelegationWeight The total amount of credit delegation weight in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @param lockedCreditRatio The configured ratio that determines how much of the vault's total assets can't be
