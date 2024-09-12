@@ -49,6 +49,7 @@ library MarketDebt {
     /// a new `EnumerableSet.UintSet` is created.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
     /// USD denominated debt per share.
+    /// @param collectedFees The fees collected in wEth for vaults and fee recipients of this market
     struct Data {
         uint128 marketId;
         uint128 autoDeleverageStartThreshold;

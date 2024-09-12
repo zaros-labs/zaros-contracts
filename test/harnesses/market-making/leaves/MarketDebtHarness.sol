@@ -10,7 +10,7 @@ import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 contract MarketDebtHarness {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     
-    function workaround_getMarketId(uint128 marketId) external returns (uint128) {
+    function workaround_getMarketId(uint128 marketId) external view returns (uint128) {
         MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
         return marketDebtData.marketId;
     }

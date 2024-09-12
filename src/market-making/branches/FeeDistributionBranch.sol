@@ -46,8 +46,13 @@ contract FeeDistributionBranch {
     /// @param amount the received fee amount
     event OrderFeeReceived(address indexed asset, uint256 amount);
 
+    /// @notice Emit when asset has been converted to wEth
+    /// @param asset the collateral to be converted
+    /// @param amount the amount to be converted
+    /// @param totalWETH the wEth received once converted
     event FeesConvertedToWETH(address indexed asset, uint256 amount, uint256 totalWETH);
 
+    /// @notice Emit when 
     event TransferCompleted(address indexed recipient, uint256 amount);
 
     modifier onlyAuthorized() {
@@ -150,6 +155,7 @@ contract FeeDistributionBranch {
 
         marketDebtData.collectedFees.collectedFeeRecipientsFees = feeRecipientsShare;
         marketDebtData.collectedFees.collectedMarketFees = marketShare;
+
     }
 
     /// @notice Sends allocated Weth amount to fee recipients.
@@ -157,6 +163,37 @@ contract FeeDistributionBranch {
     /// @param marketId The market to which fee recipients contribute.
     /// @param configuration The configuration of which fee recipients are part of.
     function sendWethToFeeRecipients(uint128 marketId, uint256 configuration) external onlyAuthorized {
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
+            MarketMakingEngineConfiguration.load();
+
+        address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipients[configuration];
+
+        address wethAddr = marketMakingEngineConfigurationData.weth;
+
+        Fee.Data storage feeData = Fee.load(marketId);
+
+        UD60x18 collectedFees = ud60x18(feeData.collectedFeeRecipientsFees);
+
+        UD60x18 totalShares;
+
+        uint256 recepientListLength = recipientsList.length;
+        
+        for(uint i; i < recepientListLength; ++i){
+            totalShares = totalShares.add(ud60x18(FeeRecipient.load(recipientsList[i]).share));    
+        }
+    
+        for(uint i; i < recepientListLength; ++i){
+            address feeRecipient = recipientsList[i];
+
+            uint256 amountToSend =
+                _calculateFees(ud60x18(FeeRecipient.load(feeRecipient).share), collectedFees, totalShares);
+
+            feeData.collectedFeeRecipientsFees = ud60x18(feeData.collectedFeeRecipientsFees).sub(ud60x18(amountToSend)).intoUint256();
+
+            IERC20(wethAddr).safeTransfer(feeRecipient, amountToSend);
+
+            emit TransferCompleted(feeRecipient, amountToSend);
+        }
     }
 
     /// @dev Invariants involved in the call:
@@ -165,6 +202,13 @@ contract FeeDistributionBranch {
     function claimFees(uint128 vaultId) external { 
     }
 
+    /// @notice Sets the percentage ratio between fee recipients and market
+    /// @dev Percentage is represented in BPS, requires the sum to equal 10_000 (100%)
+    /// @param marketId The market where percentage ratio will be set
+    /// @param feeRecipientsPercentage The percentage that will be received by fee recipients
+    /// from the total accumulated wEth
+    /// @param marketPercentage The percentage that will be received by the market
+    /// from the total accumulated wEth
     function setPercentageRatio(
         uint128 marketId, 
         uint128 feeRecipientsPercentage, 
@@ -181,6 +225,11 @@ contract FeeDistributionBranch {
         marketDebtData.collectedFees.marketPercentage = marketPercentage;
     }
 
+    /// @notice Returns set percentages 
+    /// @dev Returns tuple
+    /// @param marketId The market where percentage ratio has been set
+    /// @return feeRecipientsPercentage The percentage allocated for fee recipients
+    /// @return marketPercentage The percentage allocated for the market
     function getPercentageRatio(
         uint128 marketId
     ) 
@@ -194,23 +243,32 @@ contract FeeDistributionBranch {
         return (marketDebtData.collectedFees.feeRecipientsPercentage, marketDebtData.collectedFees.marketPercentage);
     }
 
+    /// @notice Support function to calculate the accumulated wEth allocated for the beneficiary
+    /// @param accumulatedAmount The total accumulated wEth
+    /// @param percentagePortion The percentage to be received from total accumulated wEth
+    /// @param totalPercentage The total percentage (e.g 100%)
     function _calculateFees(
-        UD60x18 shares,
         UD60x18 accumulatedAmount,
-        UD60x18 totalShares
+        UD60x18 percentagePortion,
+        UD60x18 totalPercentage
     )
         internal
         pure
         returns (uint256 amount)
     {
-        UD60x18 accumulatedShareValue = shares.mul(accumulatedAmount);
-        amount = accumulatedShareValue.div(totalShares).intoUint256();
+        UD60x18 accumulatedShareValue = accumulatedAmount.mul(percentagePortion);
+        amount = accumulatedShareValue.div(totalPercentage).intoUint256();
     }
 
+    /// @notice Support function to swap tokens using UniswapV3
+    /// @param tokenIn the token to be swapped
+    /// @param amountIn the amount of the tokenIn to be swapped
+    /// @param tokenOut the token to be received
+    /// @return amountOut the amount to be received
     function _swapExactTokensForWeth(
         address tokenIn,
         uint256 amountIn,
-        address _weth
+        address tokenOut
     )
         internal
         returns (uint256 amountOut)
@@ -225,12 +283,12 @@ contract FeeDistributionBranch {
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: tokenIn,
-            tokenOut: _weth,
+            tokenOut: tokenOut,
             fee: uniswapData.poolFee,
             recipient: address(this),
             deadline: block.timestamp,
             amountIn: amountIn,
-            amountOutMinimum: _calculateAmountOutMinimum(tokenIn, _weth, amountIn, uniswapData.slippage),
+            amountOutMinimum: _calculateAmountOutMinimum(tokenIn, amountIn, tokenOut, uniswapData.slippage),
             sqrtPriceLimitX96: 0
         });
 
@@ -238,10 +296,16 @@ contract FeeDistributionBranch {
         amountOut = uniswapData.swapRouter.exactInputSingle(params);
     }
 
+    /// @notice Support function to calculate the minimum amount of tokens to be received
+    /// @param tokenIn The token to be swapped
+    /// @param amount The amount of the tokenIn be swapped
+    /// @param tokenOut The token to be received
+    /// @param slippage The maximum amount that can be lost in a trade
+    /// @param amountOutMinimum The minimum amount to be received in a trade
     function _calculateAmountOutMinimum(
         address tokenIn,
-        address tokenOut,
         uint256 amount,
+        address tokenOut,
         uint256 slippage
     )
         internal
