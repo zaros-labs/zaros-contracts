@@ -86,6 +86,45 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         return super.transferFrom(from, to, value);
     }
 
+    function verifyIfUserIsEnableToMint(uint256 tokenIndex, bool shouldRevert) public returns (bool isEnable) {
+        if (block.timestamp < startTimeMinting) {
+            if (shouldRevert) {
+                revert LimitedMintingERC20_MintingIsNotStarted(startTimeMinting);
+            } else {
+                return isEnable;
+            }
+        }
+
+        uint256 numberOfWeeks = (block.timestamp - startTimeMinting) / 7 days;
+
+        if (userLastMintedTime[msg.sender] >= startTimeMinting + numberOfWeeks * 7 days) {
+            if (shouldRevert) {
+                revert LimitedMintingERC20_UserAlreadyMintedThisWeek(msg.sender, userLastMintedTime[msg.sender]);
+            } else {
+                return isEnable;
+            }
+        }
+
+        address tradingAccountToken = IPerpsEngine(PERPS_ENGINE).getTradingAccountToken();
+        uint128 tradingAccountId = uint128(IERC721Enumerable(tradingAccountToken).tokenOfOwnerByIndex(msg.sender, tokenIndex));
+
+        (SD59x18 marginBalanceUsdX18,,,) = IPerpsEngine(PERPS_ENGINE).getAccountMarginBreakdown(tradingAccountId);
+
+        uint256 userBalance = balanceOf(msg.sender) + uint256(marginBalanceUsdX18.intoInt256());
+
+        if (userLastMintedTime[msg.sender] > 0 && userBalance > MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT) {
+            if (shouldRevert) {
+                revert LimitedMintingERC20_UserHasMoreThanMaxAmount(
+                msg.sender, userBalance, MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT
+            );
+            } else {
+                return isEnable;
+            }
+        }
+
+        isEnable = true;
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                     EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
@@ -99,28 +138,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     }
 
     function mint(uint256 tokenIndex) external {
-        if (block.timestamp < startTimeMinting) {
-            revert LimitedMintingERC20_MintingIsNotStarted(startTimeMinting);
-        }
-
-        uint256 numberOfWeeks = (block.timestamp - startTimeMinting) / 7 days;
-
-        if (userLastMintedTime[msg.sender] >= startTimeMinting + numberOfWeeks * 7 days) {
-            revert LimitedMintingERC20_UserAlreadyMintedThisWeek(msg.sender, userLastMintedTime[msg.sender]);
-        }
-
-        address tradingAccountToken = IPerpsEngine(PERPS_ENGINE).getTradingAccountToken();
-        uint128 tradingAccountId = uint128(IERC721Enumerable(tradingAccountToken).tokenOfOwnerByIndex(msg.sender, tokenIndex));
-
-        (SD59x18 marginBalanceUsdX18,,,) = IPerpsEngine(PERPS_ENGINE).getAccountMarginBreakdown(tradingAccountId);
-
-        uint256 userBalance = balanceOf(msg.sender) + uint256(marginBalanceUsdX18.intoInt256());
-
-        if (userLastMintedTime[msg.sender] > 0 && userBalance > MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT) {
-            revert LimitedMintingERC20_UserHasMoreThanMaxAmount(
-                msg.sender, userBalance, MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT
-            );
-        }
+        verifyIfUserIsEnableToMint(tokenIndex, true);
 
         userLastMintedTime[msg.sender] = block.timestamp;
         amountMintedPerAddress[msg.sender] = AMOUNT_TO_MINT_USDC;
