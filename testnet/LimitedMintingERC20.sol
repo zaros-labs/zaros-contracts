@@ -86,7 +86,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         return super.transferFrom(from, to, value);
     }
 
-    function verifyIfUserIsEnableToMint(uint256 tokenIndex, bool shouldRevert) public returns (bool isEnable) {
+    function verifyIfUserIsEnableToMint(uint256 tokenIndex, bool shouldRevert) public view returns (bool isEnable) {
         if (block.timestamp < startTimeMinting) {
             if (shouldRevert) {
                 revert LimitedMintingERC20_MintingIsNotStarted(startTimeMinting);
