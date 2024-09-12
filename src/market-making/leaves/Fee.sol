@@ -21,6 +21,11 @@ library Fee {
 
     uint256 internal constant BPS_DENOMINATOR = 10_000;
 
+    /// @param feeRecipientsPercentage The percentage of total accumulated wEth to be allocated to fee recipients
+    /// @param marketPercentage The percentage of total accumulated wEth to be accolated to the market
+    /// @param collectedMarketFees The collected fees in wEth set for market
+    /// @param collectedFeeRecipientsFees the collected fees in wEth set for fee recipients
+    /// @param receivedOrderFees An enumerable map that stores the amounts collected from each collateral type
     struct Data {
         uint128 feeRecipientsPercentage;
         uint128 marketPercentage;
@@ -47,23 +52,32 @@ library Fee {
         }
     }
 
-    function load_Uniswap() internal pure returns (Uniswap storage data){
+    /// @notice Loads an { Uniswap } namespace.
+    /// @return uniswap The loaded uniswap storage pointer.
+    function load_Uniswap() internal pure returns (Uniswap storage uniswap){
         bytes32 slot = keccak256(abi.encode(UNISWAP_LOCATION));
         assembly {
-            data.slot := slot
+            uniswap.slot := slot
         }
     }
 
+    /// @notice Sets Uniswap Rounter address required for swapping tokens
+    /// @return bool returns true if succesfully set
     function setUniswapRouterAddress(Uniswap storage self, address routerAddress) internal returns(bool) {
         if(routerAddress == address(0)) revert Errors.SwapRouterAddressUndefined();
         self.swapRouter = ISwapRouter(routerAddress);
+
+        return true;
     }
 
+    /// @notice Sets the pool fee
+    /// @dev the minimum is 1000 (e.g. 0.1%)
     function setPoolFee(Uniswap storage self, uint24 newFee) internal {
         if(newFee < 1000) revert Errors.InvalidPoolFee();
         self.poolFee = newFee;
     }
-
+    /// @notice Sets the slippage
+    /// @dev the minimum is 100 (e.g. 1%)
     function setSlippage(Uniswap storage self, uint256 newSlippage) internal {
         if(newSlippage < 100) revert Errors.InvalidSlippage();
         self.slippage = newSlippage;

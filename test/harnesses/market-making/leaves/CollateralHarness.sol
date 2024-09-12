@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 
 contract CollateralHarness {
-    function exposed_Collateral_load(address asset) external view returns(Collateral.Data memory){
+    function exposed_Collateral_load(address asset) external pure returns(Collateral.Data memory){
         Collateral.Data storage self = Collateral.load(asset);
         return self;
     }
