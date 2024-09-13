@@ -47,12 +47,16 @@ library ChainlinkUtil {
                     revert Errors.OracleSequencerUptimeFeedIsDown(address(params.sequencerUptimeFeed));
                 }
 
+                if (startedAt == 0) {
+                    revert Errors.OracleSequencerUptimeFeedNotStarted(address(params.sequencerUptimeFeed));
+                }
+
                 uint256 timeSinceUp = block.timestamp - startedAt;
                 if (timeSinceUp <= Constants.SEQUENCER_GRACE_PERIOD_TIME) {
-                    revert Errors.GracePeriodNotOver();
+                    revert Errors.GracePeriodNotOver(address(params.sequencerUptimeFeed));
                 }
             } catch {
-                revert Errors.InvalidSequencerUptimeFeedReturn();
+                revert Errors.InvalidSequencerUptimeFeedReturn(address(params.sequencerUptimeFeed));
             }
         }
 
