@@ -9,6 +9,7 @@ import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { Fee } from "@zaros/market-making/leaves/Fee.sol";
 import "forge-std/console.sol";
 
 // Openzeppelin dependencies
@@ -48,7 +49,6 @@ contract MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth is Base_Test 
 
         // Set percentage ratio for market and fee recipients
         marketMakingEngine.setPercentageRatio(1, 3500, 6500);
-        marketMakingEngine.getPercentageRatio(1);
 
         // set contract with initial wEth fees
         deal(address(wEth), address(perpsEngine), 10e18);
@@ -187,12 +187,13 @@ contract MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth is Base_Test 
         uint256 marketFees = marketMakingEngine.workaround_getMarketFees(1);
         uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(1);
 
+        (uint128 feeRecipientsPercentage, uint128 marketPercentage) = marketMakingEngine.getPercentageRatio(1);
         // it should divide amount between market and fee recipients
-        assertEq(marketFees, (20e18 * 6500) / 10000);
-        assertEq(feeRecipientsFees, (20e18 * 3500) / 10000);  
+        assertEq(marketFees, (20e18 * marketPercentage) / Fee.BPS_DENOMINATOR);
+        assertEq(feeRecipientsFees, (20e18 * feeRecipientsPercentage) / Fee.BPS_DENOMINATOR);  
     }
 
-    function test_GivenTheUniswapAddressAndDecimalsAre18()
+    function test_GivenTheUniswapAddressAndDecimalsAreAbove18()
         external
         givenTheCallerIsPerpEngine
         whenMarketExist
@@ -208,7 +209,7 @@ contract MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth is Base_Test 
 
         // Deploy MockPriceAdapter with an initial price
         MockPriceFeed wethMockPriceFeed = new MockPriceFeed(18, 2e18);
-        MockPriceFeed usdzMockPriceFeed = new MockPriceFeed(18, 1e18);
+        MockPriceFeed usdzMockPriceFeed = new MockPriceFeed(20, 1e18);
 
         // Set collateral types params
         marketMakingEngine.workaround_Collateral_setParams(address(wEth), 2e18, 120, true, 18, address(wethMockPriceFeed));

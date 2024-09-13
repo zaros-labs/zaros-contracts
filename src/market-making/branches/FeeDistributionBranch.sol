@@ -2,8 +2,6 @@
 pragma solidity 0.8.25;
 pragma abicoder v2;
 
-import "forge-std/console.sol";
-
 // Zaros dependencies
 import { Collateral } from "../leaves/Collateral.sol";
 import { FeeRecipient } from "../leaves/FeeRecipient.sol";
@@ -52,7 +50,9 @@ contract FeeDistributionBranch {
     /// @param totalWETH the wEth received once converted
     event FeesConvertedToWETH(address indexed asset, uint256 amount, uint256 totalWETH);
 
-    /// @notice Emit when 
+    /// @notice Emit when end user/ fee recipient receives their wEth fees
+    /// @param recipient the account receiving the fees
+    /// @param amount the amount received
     event TransferCompleted(address indexed recipient, uint256 amount);
 
     modifier onlyAuthorized() {
@@ -166,13 +166,16 @@ contract FeeDistributionBranch {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
             MarketMakingEngineConfiguration.load();
 
+        MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
+
+        if(marketDebtData.marketId == 0) revert Errors.UnrecognisedMarket();
+        if(marketDebtData.collectedFees.collectedFeeRecipientsFees == 0) revert Errors.NoWethFeesCollected();
+
         address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipients[configuration];
 
         address wethAddr = marketMakingEngineConfigurationData.weth;
 
-        Fee.Data storage feeData = Fee.load(marketId);
-
-        UD60x18 collectedFees = ud60x18(feeData.collectedFeeRecipientsFees);
+        UD60x18 collectedFees = ud60x18(marketDebtData.collectedFees.collectedFeeRecipientsFees);
 
         UD60x18 totalShares;
 
@@ -181,14 +184,15 @@ contract FeeDistributionBranch {
         for(uint i; i < recepientListLength; ++i){
             totalShares = totalShares.add(ud60x18(FeeRecipient.load(recipientsList[i]).share));    
         }
-    
+
         for(uint i; i < recepientListLength; ++i){
             address feeRecipient = recipientsList[i];
 
             uint256 amountToSend =
                 _calculateFees(ud60x18(FeeRecipient.load(feeRecipient).share), collectedFees, totalShares);
 
-            feeData.collectedFeeRecipientsFees = ud60x18(feeData.collectedFeeRecipientsFees).sub(ud60x18(amountToSend)).intoUint256();
+            marketDebtData.collectedFees.collectedFeeRecipientsFees = 
+                ud60x18(marketDebtData.collectedFees.collectedFeeRecipientsFees).sub(ud60x18(amountToSend)).intoUint256();
 
             IERC20(wethAddr).safeTransfer(feeRecipient, amountToSend);
 
@@ -244,20 +248,20 @@ contract FeeDistributionBranch {
     }
 
     /// @notice Support function to calculate the accumulated wEth allocated for the beneficiary
-    /// @param accumulatedAmount The total accumulated wEth
-    /// @param percentagePortion The percentage to be received from total accumulated wEth
-    /// @param totalPercentage The total percentage (e.g 100%)
+    /// @param totalAmount The total amount or value to be distributed
+    /// @param portion The portion or share that needs to be calculated
+    /// @param denominator The denominator representing the total divisions or base value
     function _calculateFees(
-        UD60x18 accumulatedAmount,
-        UD60x18 percentagePortion,
-        UD60x18 totalPercentage
+        UD60x18 totalAmount,
+        UD60x18 portion,
+        UD60x18 denominator
     )
         internal
         pure
         returns (uint256 amount)
     {
-        UD60x18 accumulatedShareValue = accumulatedAmount.mul(percentagePortion);
-        amount = accumulatedShareValue.div(totalPercentage).intoUint256();
+        UD60x18 accumulatedShareValue = totalAmount.mul(portion);
+        amount = accumulatedShareValue.div(denominator).intoUint256();
     }
 
     /// @notice Support function to swap tokens using UniswapV3

@@ -185,12 +185,39 @@ library Errors {
 
     /// @notice Thrown when trying to distribute value to an empty distribution.
     error EmptyDistribution();
+
     /// @notice Thrown when collateral type not supported
     error UnsupportedCollateralType();
+
     /// @notice Thrown when not enough balance
     error NotEnoughCollateralBalance(uint256 balance);
-    /// @notice THrown when PriceAdapter not defined
+
+    /// @notice Thrown when PriceAdapter not defined
     error PriceAdapterUndefined();
+
+    /// @notice Thrown when sum of percentages does not total 10_000 (e.g. 100%)
+    error PercentageValidationFailed();
+
+    /// @notice Thrown when market does not exist
+    error UnrecognisedMarket();
+
+    /// @notice Thrown when fees have not been collected from selected asset
+    error InvalidAsset();
+
+    /// @notice Thrown when Uniswap router address is not defined
+    error SwapRouterAddressUndefined();
+
+    /// @notice Thrown when Uniswap pool fee set to zero
+    error InvalidPoolFee();
+
+    /// @notice Thrown when slippage set to less than 100 (e.g. 0.1%)
+    error InvalidSlippage();
+
+    /// @notice Thrown when configuration does not exist
+    error UnrecognisedConfiguration();
+
+    /// @notice Thrown when there are no available wEth fees to be collected
+    error NoWethFeesCollected();
 
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 

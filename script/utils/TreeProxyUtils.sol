@@ -38,6 +38,7 @@ import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
 import { FeeHarness } from "test/harnesses/market-making/leaves/FeeHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
+import { FeeRecipientHarness } from "test/harnesses/market-making/leaves/FeeRecipientHarness.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
@@ -566,7 +567,7 @@ function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgr
 }
 
 function deployMarketMakingAddressHarnesses() returns (address[] memory) {
-    address[] memory addressHarnesses = new address[](7);
+    address[] memory addressHarnesses = new address[](8);
 
     address vaultHarness = address(new VaultHarness());
     console.log("VaultHarness: ", vaultHarness);
@@ -590,6 +591,9 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     console.log("FeeHarness: ", feeHarness);
 
 
+    address feeRecipientHarness = address(new FeeRecipientHarness());
+    console.log("FeeRecipientHarness: ", feeRecipientHarness);
+
     addressHarnesses[0] = vaultHarness;
     addressHarnesses[1] = withdrawalRequestHarness;
     addressHarnesses[2] = collateralHarness;
@@ -597,12 +601,13 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     addressHarnesses[4] = marketDebtHarness;
     addressHarnesses[5] = marketMakingEngineConfigurationHarness;
     addressHarnesses[6] = feeHarness;
+    addressHarnesses[7] = feeRecipientHarness;
 
     return addressHarnesses;
 }
 
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](7);
+    bytes4[][] memory selectors = new bytes4[][](8);
 
     bytes4[] memory vaultHarnessSelectors = new bytes4[](8);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
@@ -626,17 +631,20 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     distributionHarnessSelectors[1] = DistributionHarness.exposed_distributeValue.selector;
     distributionHarnessSelectors[2] = DistributionHarness.exposed_accumulateActor.selector;
 
-    bytes4[] memory marketDebtHarnessSelectors = new bytes4[](5);
+    bytes4[] memory marketDebtHarnessSelectors = new bytes4[](6);
     marketDebtHarnessSelectors[0] = MarketDebtHarness.workaround_getMarketId.selector;
     marketDebtHarnessSelectors[1] = MarketDebtHarness.workaround_setMarketId.selector;
     marketDebtHarnessSelectors[2] = MarketDebtHarness.workaround_getMarketFees.selector;
     marketDebtHarnessSelectors[3] = MarketDebtHarness.workaround_getFeeRecipientsFees.selector;
     marketDebtHarnessSelectors[4] = MarketDebtHarness.workaround_getReceivedOrderFees.selector;
+    marketDebtHarnessSelectors[5] = MarketDebtHarness.workaround_setFeeRecipientsFees.selector;
 
-    bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](2);
+    bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](3);
     marketMakingEngineConfigurationSelectors[0] = MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
     marketMakingEngineConfigurationSelectors[1] = 
         MarketMakingEngineConfigurationHarness.workaround_setPerpsEngineAddress.selector;
+    marketMakingEngineConfigurationSelectors[2] = 
+        MarketMakingEngineConfigurationHarness.workaround_setFeeRecipients.selector;
 
     bytes4[] memory feeHarnessSelectors = new bytes4[](3);
     feeHarnessSelectors[0] = FeeHarness.exposed_setUniswapRouterAddress.selector;
@@ -647,6 +655,10 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;
     collateralHarnessSelectors[1] = CollateralHarness.workaround_Collateral_setParams.selector;
 
+    bytes4[] memory feeRecipientHarnessSelectors = new bytes4[](2);
+    feeRecipientHarnessSelectors[0] = FeeRecipientHarness.exposed_FeeRecipient_load.selector;
+    feeRecipientHarnessSelectors[1] = FeeRecipientHarness.workaround_setFeeRecipientShares.selector;
+
     selectors[0] = vaultHarnessSelectors;
     selectors[1] = withdrawalRequestHarnessSelectors;
     selectors[2] = collateralHarnessSelectors;
@@ -654,6 +666,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     selectors[4] = marketDebtHarnessSelectors;
     selectors[5] = marketMakingEngineConfigurationSelectors;
     selectors[6] = feeHarnessSelectors;
+    selectors[7] = feeRecipientHarnessSelectors;
 
     return selectors;
 }
