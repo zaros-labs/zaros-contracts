@@ -45,8 +45,8 @@ library Fee {
 
     /// @notice Loads a {Fee} namespace.
     /// @return fee The loaded fee storage pointer.
-    function load(uint128 marketId) internal pure returns (Data storage fee) {
-        bytes32 slot = keccak256(abi.encode(FEE_LOCATION, marketId));
+    function load() internal pure returns (Data storage fee) {
+        bytes32 slot = keccak256(abi.encode(FEE_LOCATION));
         assembly {
             fee.slot := slot
         }

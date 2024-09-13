@@ -16,4 +16,10 @@ contract MarketMakingEngineConfigurationHarness {
         data.perpsEngine = perpsEngineAddr;
         return data.perpsEngine;
     }
+
+    function workaround_setFeeRecipients(address[] calldata feeRecipients) external {
+        MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
+
+        data.feeRecipients.push(feeRecipients);
+    }
 }

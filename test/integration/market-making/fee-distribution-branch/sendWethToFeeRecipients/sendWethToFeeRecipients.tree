@@ -1,0 +1,11 @@
+MarketMaking_FeeDistribution_sendWethToFeeRecipients
+    ├── given the caller is not Perps Engine
+    │   └── it should revert
+    └── given the caller is Perps Engine
+        ├── given the market does not exist
+        │   └── it should revert
+        └── given the market exist
+            ├── given there is no available weth
+            │   └── it should revert
+            └── given there is weth available 
+                └── it should distribute weth to fee recipients

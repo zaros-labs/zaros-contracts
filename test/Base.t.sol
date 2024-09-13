@@ -53,6 +53,8 @@ import { MarketDebtHarness } from "test/harnesses/market-making/leaves/MarketDeb
 import { MarketMakingEngineConfigurationHarness } from 
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
 import { FeeHarness } from "test/harnesses/market-making/leaves/FeeHarness.sol";
+import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
+import { FeeRecipientHarness } from "test/harnesses/market-making/leaves/FeeRecipientHarness.sol";
 
 // Zaros dependencies script
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -106,7 +108,9 @@ abstract contract IMarketMakingEngine is
     DistributionHarness,
     MarketDebtHarness,
     MarketMakingEngineConfigurationHarness,
-    FeeHarness
+    FeeHarness,
+    CollateralHarness,
+    FeeRecipientHarness
 { }
 
 

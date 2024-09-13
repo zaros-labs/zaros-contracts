@@ -187,11 +187,14 @@ library Errors {
 
     /// @notice Thrown when trying to distribute value to an empty distribution.
     error EmptyDistribution();
+
     /// @notice Thrown when collateral type not supported
     error UnsupportedCollateralType();
+
     /// @notice Thrown when not enough balance
     error NotEnoughCollateralBalance(uint256 balance);
-    /// @notice THrown when PriceAdapter not defined
+
+    /// @notice Thrown when PriceAdapter not defined
     error PriceAdapterUndefined();
 
     /// @notice MarketMakingEngine.Market errors.
