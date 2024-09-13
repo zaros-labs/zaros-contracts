@@ -23,7 +23,7 @@ contract MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth is Base_Test 
     using EnumerableSet for EnumerableSet.UintSet;
 
     // contract address
-    address thisContractAddr = 0xD30116ac9525d7335D7C731a9FBf4624975e9b20;
+    address thisContractAddr = 0x763d32e23401eAD917023881999Dbd38Aa76C25F;
 
     function setUp() public virtual override {
         Base_Test.setUp();
@@ -193,7 +193,7 @@ contract MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth is Base_Test 
         assertEq(feeRecipientsFees, (20e18 * feeRecipientsPercentage) / Fee.BPS_DENOMINATOR);  
     }
 
-    function test_GivenTheUniswapAddressAndDecimalsAreAbove18()
+    function test_GivenTheUniswapAddressAndDecimalsAre18()
         external
         givenTheCallerIsPerpEngine
         whenMarketExist
@@ -209,7 +209,7 @@ contract MarketMaking_FeeDistribution_convertAccumulatedFeesToWeth is Base_Test 
 
         // Deploy MockPriceAdapter with an initial price
         MockPriceFeed wethMockPriceFeed = new MockPriceFeed(18, 2e18);
-        MockPriceFeed usdzMockPriceFeed = new MockPriceFeed(20, 1e18);
+        MockPriceFeed usdzMockPriceFeed = new MockPriceFeed(18, 1e18);
 
         // Set collateral types params
         marketMakingEngine.workaround_Collateral_setParams(address(wEth), 2e18, 120, true, 18, address(wethMockPriceFeed));

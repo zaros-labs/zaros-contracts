@@ -50,7 +50,7 @@ contract MarketMaking_FeeDistribution_receiveOrderFee is Base_Test {
     }
 
     function test_GivenTheAmountIsNotZero() external givenTheCallerIsPerpEngine  {
-        address thisContractAddr = 0xD30116ac9525d7335D7C731a9FBf4624975e9b20;
+        address thisContractAddr = 0x763d32e23401eAD917023881999Dbd38Aa76C25F;
         
         deal(address(wEth), address(perpsEngine), 20e18);
 
