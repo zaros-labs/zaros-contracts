@@ -61,6 +61,10 @@ forge script script/02_ConfigurePerpsEngine.s.sol --sig "run(uint256,uint256)" 1
   Liquidation Keeper:  0xa16D95d24C2eB9515A1C2cB2Ef5D6079A606f249
 ```
 
+**IMPORTANT**
+
+Add the backend address to the liquidators list.
+
 ————————————————————————————————————————————————————
 ```bash
 forge script script/03_CreatePerpMarkets.s.sol --sig "run(uint256,uint256)" 1 10 --rpc-url arbitrum_sepolia --broadcast -vvvv
