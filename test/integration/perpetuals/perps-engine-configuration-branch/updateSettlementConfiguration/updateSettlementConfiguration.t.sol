@@ -85,9 +85,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function test_WhenUpdatingTheMarketOrderConfiguration(
-        uint256 marketId
-    )
+    function test_WhenUpdatingTheMarketOrderConfiguration(uint256 marketId)
         external
         givenTheSenderIsTheOwner
         whenPerpMarketIsInitialized
@@ -123,9 +121,7 @@ contract UpdateSettlementConfiguration_Integration_Test is Base_Test {
         );
     }
 
-    function test_WhenUpdatingTheOffChainOrdersConfiguration(
-        uint256 marketId
-    )
+    function test_WhenUpdatingTheOffChainOrdersConfiguration(uint256 marketId)
         external
         givenTheSenderIsTheOwner
         whenPerpMarketIsInitialized

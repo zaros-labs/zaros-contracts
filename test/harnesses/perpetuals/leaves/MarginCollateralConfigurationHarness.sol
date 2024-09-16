@@ -12,9 +12,7 @@ contract MarginCollateralConfigurationHarness {
         return MarginCollateralConfiguration.load(collateralType).totalDeposited;
     }
 
-    function exposed_MarginCollateral_load(
-        address collateralType
-    )
+    function exposed_MarginCollateral_load(address collateralType)
         external
         pure
         returns (MarginCollateralConfiguration.Data memory)

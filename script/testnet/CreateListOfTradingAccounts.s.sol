@@ -22,7 +22,8 @@ interface IPerpsEngineTestnet {
         address sender,
         bytes memory referralCode,
         bool isCustomReferralCode
-    ) external;
+    )
+        external;
 }
 
 /// @dev This script creates a list of trading accounts.
@@ -42,13 +43,12 @@ contract CreateListOfTradingAccounts is BaseScript {
         uint256 limit = (finalIndex - initialIndex) + initialIndex;
 
         for (uint256 i = initialIndex; i < limit; i++) {
-
             address userSender;
             address referrer;
 
             bytes memory referralCode;
 
-            if(listOfTradingAccounts.data[i].shouldUseReferrerField == true) {
+            if (listOfTradingAccounts.data[i].shouldUseReferrerField == true) {
                 userSender = listOfTradingAccounts.data[i].referrer;
                 referrer = (listOfTradingAccounts.data[i].sender);
 
@@ -60,11 +60,7 @@ contract CreateListOfTradingAccounts is BaseScript {
                 referralCode = bytes("");
             }
 
-            perpsEngine.createTradingAccountWithSender(
-                userSender,
-                referralCode,
-                false
-            );
+            perpsEngine.createTradingAccountWithSender(userSender, referralCode, false);
         }
 
         console.log("List of trading accounts created");

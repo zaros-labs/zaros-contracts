@@ -242,9 +242,7 @@ function getInitializePayloads(
     return initializePayloads;
 }
 
-function deployHarnesses(
-    RootProxy.BranchUpgrade[] memory branchUpgrades
-)
+function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployAddressHarnesses();

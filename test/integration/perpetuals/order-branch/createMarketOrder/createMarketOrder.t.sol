@@ -94,9 +94,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheSizeDeltaIsZero(
-        uint256 marketId
-    )
+    function test_RevertWhen_TheSizeDeltaIsZero(uint256 marketId)
         external
         givenTheAccountIdExists
         givenTheSenderIsAuthorized
