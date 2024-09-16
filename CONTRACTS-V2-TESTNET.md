@@ -26,6 +26,10 @@ forge script script/01_DeployPerpsEngine.s.sol --rpc-url arbitrum_sepolia --broa
 - Update `PERPS_ENGINE` variable in the `LimitedMintingERC20.sol`
 - Update `PERPS_ENGINE` variable in the `createListOfTradingAccounts.js`
 
+**IMPORTANT**
+
+- Add `Perps Engine` address to the allowlist of Chainlink or send some ETHs to the contract.
+
 ————————————————————————————————————————————————————
 ```bash
 forge script script/testnet/DeployTestnetTokens.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv
@@ -64,6 +68,12 @@ forge script script/02_ConfigurePerpsEngine.s.sol --sig "run(uint256,uint256)" 1
 **IMPORTANT**
 
 Add the backend address to the liquidators list.
+
+Backend address:
+
+```bash
+0x3eDe0C869bAdEa7cE520b8f166D83882d2f812e7
+```
 
 ————————————————————————————————————————————————————
 ```bash
