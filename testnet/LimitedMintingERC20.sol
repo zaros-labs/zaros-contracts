@@ -105,12 +105,16 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
             }
         }
 
+        uint256 userBalance = balanceOf(msg.sender);
         address tradingAccountToken = IPerpsEngine(PERPS_ENGINE).getTradingAccountToken();
-        uint128 tradingAccountId = uint128(IERC721Enumerable(tradingAccountToken).tokenOfOwnerByIndex(msg.sender, tokenIndex));
+        bool userHasTradingAccount = IERC721Enumerable(tradingAccountToken).balanceOf(msg.sender) > 0;
 
-        (SD59x18 marginBalanceUsdX18,,,) = IPerpsEngine(PERPS_ENGINE).getAccountMarginBreakdown(tradingAccountId);
+        if (userHasTradingAccount) {
+            uint128 tradingAccountId = uint128(IERC721Enumerable(tradingAccountToken).tokenOfOwnerByIndex(msg.sender, tokenIndex));
+            (SD59x18 marginBalanceUsdX18,,,) = IPerpsEngine(PERPS_ENGINE).getAccountMarginBreakdown(tradingAccountId);
 
-        uint256 userBalance = balanceOf(msg.sender) + uint256(marginBalanceUsdX18.intoInt256());
+            userBalance += uint256(marginBalanceUsdX18.intoInt256());
+        }
 
         if (userLastMintedTime[msg.sender] > 0 && userBalance > MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT) {
             if (shouldRevert) {
