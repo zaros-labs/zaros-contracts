@@ -22,6 +22,7 @@ contract VaultRouterBranch {
     using SafeERC20 for IERC20;
     using Distribution for Distribution.Data;
     using Referral for Referral.Data;
+    using Collateral for Collateral.Data;
 
     /// @notice Counter for withdraw requiest ids
     uint128 private withdrawalRequestIdCounter;
@@ -116,14 +117,22 @@ contract VaultRouterBranch {
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
     function deposit(uint128 vaultId, uint128 assets, uint128 minShares) external {
         Vault.Data storage vault = Vault.load(vaultId);
-        vault.totalDeposited += assets;
 
-        if (vault.totalDeposited > vault.depositCap) {
-            revert Errors.DepositCapReached(vaultId, vault.totalDeposited, vault.depositCap);
-        }
+        address vaultAsset = vault.collateral.asset;
+        Collateral.Data storage collateralData = Collateral.load(vaultAsset);
 
-        IERC20(vault.collateral.asset).safeTransferFrom(msg.sender, address(this), assets);
-        IERC20(vault.collateral.asset).approve(address(vault.indexToken), assets);
+        // convert uint256 -> UD60x18; scales input to 18 decimals
+        UD60x18 amountX18 = collateralData.convertTokenAmountToUd60x18(assets);
+
+        UD60x18 depositCapX18 = collateralData.convertTokenAmountToUd60x18(vault.depositCap);
+        UD60x18 totalCollateralDepositedX18 = collateralData.convertTokenAmountToUd60x18(vault.totalDeposited);
+
+        _requireEnoughDepositCap(vaultAsset, amountX18, depositCapX18, totalCollateralDepositedX18);
+
+        vault.totalDeposited += amountX18.intoUint128();
+
+        IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assets);
+        IERC20(vaultAsset).approve(address(vault.indexToken), assets);
         uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
 
         if (shares < minShares) revert Errors.SlippageCheckFailed();
@@ -255,5 +264,24 @@ contract VaultRouterBranch {
         IERC20(vault.indexToken).safeTransfer(msg.sender, shares);
 
         emit LogUnstake(vaultId, msg.sender, shares);
+    }
+
+    /// @notice Reverts if the deposit cap is exceeded.
+    /// @param assetType The address of the asset
+    /// @param amount The amount to deposit
+    /// @param depositCap The deposit max deposit cap
+    /// @param totalDeposited The total deposited amount so far
+    function _requireEnoughDepositCap(
+        address assetType,
+        UD60x18 amount,
+        UD60x18 depositCap,
+        UD60x18 totalDeposited
+    )
+        internal
+        pure
+    {
+        if (amount.add(totalDeposited).gt(depositCap)) {
+            revert Errors.DepositCap(assetType, amount.intoUint256(), depositCap.intoUint256());
+        }
     }
 }

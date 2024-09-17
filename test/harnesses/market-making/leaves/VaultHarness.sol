@@ -47,6 +47,12 @@ contract VaultHarness {
         return vaultData.depositCap;
     }
 
+    function workaround_Vault_getVaultAsset(uint128 vaultId) external view returns (address) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+
+        return vaultData.collateral.asset;
+    }
+
     function exposed_Vault_create(Vault.CreateParams memory params) external {
         Vault.create(params);
     }

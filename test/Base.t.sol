@@ -45,6 +45,7 @@ import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol"
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
 import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
+import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 
 // Zaros dependencies script
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -92,7 +93,12 @@ abstract contract IPerpsEngine is
     CustomReferralConfigurationHarness
 { }
 
-abstract contract IMarketMakingEngine is IMarketMakingEngineBranches, VaultHarness, WithdrawalRequestHarness { }
+abstract contract IMarketMakingEngine is
+    IMarketMakingEngineBranches,
+    VaultHarness,
+    WithdrawalRequestHarness,
+    CollateralHarness
+{ }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     using Math for UD60x18;
@@ -361,14 +367,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function createVault() internal {
-        Collateral.Data memory collateralData = Collateral.Data({
-            creditRatio: 1.5e18,
-            priceFeedHeartbeatSeconds: 120,
-            priceAdapter: address(0),
-            asset: address(wEth),
-            isEnabled: true,
-            decimals: 8
-        });
+        MockPriceFeed wethMockPriceFeed = new MockPriceFeed(18, 2e18);
+
+        marketMakingEngine.workaround_Collateral_setParams(
+            address(wEth), 2e18, 120, true, 18, address(wethMockPriceFeed)
+        );
+
+        Collateral.Data memory collateralData = marketMakingEngine.exposed_Collateral_load(address(wEth));
 
         Vault.CreateParams memory params = Vault.CreateParams({
             vaultId: VAULT_ID,

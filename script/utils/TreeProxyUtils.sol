@@ -30,6 +30,7 @@ import { MarketMakingEngineConfigurationBranch } from
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
 import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
+import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
@@ -558,7 +559,7 @@ function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgr
 }
 
 function deployMarketMakingAddressHarnesses() returns (address[] memory) {
-    address[] memory addressHarnesses = new address[](2);
+    address[] memory addressHarnesses = new address[](3);
 
     address vaultHarness = address(new VaultHarness());
     console.log("VaultHarness: ", vaultHarness);
@@ -566,16 +567,20 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     address withdrawalRequestHarness = address(new WithdrawalRequestHarness());
     console.log("WithdrawalRequestHarness: ", withdrawalRequestHarness);
 
+    address collateralHarness = address(new CollateralHarness());
+    console.log("CollateralHarness: ", collateralHarness);
+
     addressHarnesses[0] = vaultHarness;
     addressHarnesses[1] = withdrawalRequestHarness;
+    addressHarnesses[2] = collateralHarness;
 
     return addressHarnesses;
 }
 
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](2);
+    bytes4[][] memory selectors = new bytes4[][](3);
 
-    bytes4[] memory vaultHarnessSelectors = new bytes4[](7);
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](8);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
     vaultHarnessSelectors[1] = VaultHarness.workaround_Vault_getActorStakedShares.selector;
     vaultHarnessSelectors[2] = VaultHarness.workaround_Vault_getTotalStakedShares.selector;
@@ -583,12 +588,18 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     vaultHarnessSelectors[4] = VaultHarness.workaround_Vault_getDepositCap.selector;
     vaultHarnessSelectors[5] = VaultHarness.exposed_Vault_create.selector;
     vaultHarnessSelectors[6] = VaultHarness.exposed_Vault_update.selector;
+    vaultHarnessSelectors[7] = VaultHarness.workaround_Vault_getVaultAsset.selector;
+
+    bytes4[] memory collateralHarnessSelectors = new bytes4[](2);
+    collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;
+    collateralHarnessSelectors[1] = CollateralHarness.workaround_Collateral_setParams.selector;
 
     bytes4[] memory withdrawalRequestHarnessSelectors = new bytes4[](1);
     withdrawalRequestHarnessSelectors[0] = WithdrawalRequestHarness.exposed_WithdrawalRequest_load.selector;
 
     selectors[0] = vaultHarnessSelectors;
     selectors[1] = withdrawalRequestHarnessSelectors;
+    selectors[2] = collateralHarnessSelectors;
 
     return selectors;
 }

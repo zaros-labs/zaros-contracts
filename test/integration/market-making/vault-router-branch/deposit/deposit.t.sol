@@ -21,11 +21,19 @@ contract MarketMaking_deposit_Test is Base_Test {
 
     function test_RevertWhen_TheDepositCapIsReached() external givenAUserDeposits {
         uint128 assetsToDeposit = VAULT_DEPOSIT_CAP + 1;
-        deal(address(wEth), users.naruto.account, assetsToDeposit);
+
+        address collateral = marketMakingEngine.workaround_Vault_getVaultAsset(VAULT_ID);
+
+        deal(address(collateral), users.naruto.account, assetsToDeposit);
 
         // it should revert
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.DepositCapReached.selector, VAULT_ID, assetsToDeposit, VAULT_DEPOSIT_CAP)
+            abi.encodeWithSelector(
+                Errors.DepositCap.selector,
+                address(collateral),
+                convertTokenAmountToUd60x18(address(collateral), assetsToDeposit),
+                VAULT_DEPOSIT_CAP
+            )
         );
         marketMakingEngine.deposit(VAULT_ID, assetsToDeposit, 0);
     }
