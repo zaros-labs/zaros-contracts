@@ -41,9 +41,7 @@ contract LiquidationKeeper is IAutomationCompatible, BaseKeeper {
         perpsEngine = address(self.perpsEngine);
     }
 
-    function checkUpkeep(
-        bytes calldata checkData
-    )
+    function checkUpkeep(bytes calldata checkData)
         external
         view
         returns (bool upkeepNeeded, bytes memory performData)

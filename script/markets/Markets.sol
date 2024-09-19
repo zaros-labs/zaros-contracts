@@ -416,9 +416,7 @@ abstract contract Markets is
         });
     }
 
-    function getFilteredMarketsConfig(
-        uint256[2] memory marketsIdsRange
-    )
+    function getFilteredMarketsConfig(uint256[2] memory marketsIdsRange)
         internal
         view
         returns (MarketConfig[] memory)

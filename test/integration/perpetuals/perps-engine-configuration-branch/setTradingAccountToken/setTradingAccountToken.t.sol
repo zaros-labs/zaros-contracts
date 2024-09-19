@@ -40,9 +40,7 @@ contract SetTradingAccountToken_Integration_Test is Base_Test {
         perpsEngine.setTradingAccountToken(address(0));
     }
 
-    function test_WhenTheTradingAccountTokenIsNotAZero(
-        address tradingAccountToken
-    )
+    function test_WhenTheTradingAccountTokenIsNotAZero(address tradingAccountToken)
         external
         givenTheSenderIsTheOwner
     {

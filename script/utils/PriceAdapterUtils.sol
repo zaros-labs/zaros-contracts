@@ -8,9 +8,7 @@ import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 library PriceAdapterUtils {
-    function deployPriceAdapter(
-        PriceAdapter.InitializeParams memory params
-    )
+    function deployPriceAdapter(PriceAdapter.InitializeParams memory params)
         internal
         returns (address priceAdapter)
     {

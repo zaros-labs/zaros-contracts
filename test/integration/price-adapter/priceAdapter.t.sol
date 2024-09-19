@@ -37,9 +37,7 @@ contract PriceAdapter_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertGiven_TheSenderIsNotTheOwner(
-        uint256 marketId
-    )
+    function testFuzz_RevertGiven_TheSenderIsNotTheOwner(uint256 marketId)
         external
         givenTheUserTryToUpdateTheContract
     {
@@ -117,9 +115,7 @@ contract PriceAdapter_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_PriceFeedDecimalsIsGreaterThanTheSystemDecimals(
-        bool useEthPriceFeed
-    )
+    function testFuzz_RevertWhen_PriceFeedDecimalsIsGreaterThanTheSystemDecimals(bool useEthPriceFeed)
         external
         whenPriceAdapterIsNotZero
     {
@@ -165,9 +161,7 @@ contract PriceAdapter_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_SequencerUptimeFeedReturnsAInvalidValue(
-        bool useEthPriceFeed
-    )
+    function testFuzz_RevertWhen_SequencerUptimeFeedReturnsAInvalidValue(bool useEthPriceFeed)
         external
         whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
@@ -219,9 +213,7 @@ contract PriceAdapter_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_SequencerUptimeFeedIsDown(
-        bool useEthPriceFeed
-    )
+    function testFuzz_RevertWhen_SequencerUptimeFeedIsDown(bool useEthPriceFeed)
         external
         whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
@@ -382,9 +374,7 @@ contract PriceAdapter_Integration_Test is Base_Test {
         perpsEngine.exposed_getPrice(collateral);
     }
 
-    function testFuzz_RevertWhen_PriceFeedReturnsAInvalidValueFromLatestRoundData(
-        bool useEthPriceFeed
-    )
+    function testFuzz_RevertWhen_PriceFeedReturnsAInvalidValueFromLatestRoundData(bool useEthPriceFeed)
         external
         whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals

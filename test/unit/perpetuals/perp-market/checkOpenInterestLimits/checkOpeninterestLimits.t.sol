@@ -22,9 +22,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         _;
     }
 
-    function test_WhenTheNewOpenInterestAndNewSkewAreGreaterThanTheMax(
-        uint256 marketId
-    )
+    function test_WhenTheNewOpenInterestAndNewSkewAreGreaterThanTheMax(uint256 marketId)
         external
         whenShouldNotCheckTheMaxOpenInterestAndTheMaxSkew
     {
@@ -110,9 +108,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         );
     }
 
-    function test_WhenIsReducingOpenInterest(
-        uint256 marketId
-    )
+    function test_WhenIsReducingOpenInterest(uint256 marketId)
         external
         whenShouldCheckTheMaxOpenInterestAndTheMaxSkew
         whenTheNewOpenInterestIsGreaterThanTheMaxOpenInterest
@@ -147,9 +143,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_IsNotReducingSkew(
-        uint256 marketId
-    )
+    function test_RevertWhen_IsNotReducingSkew(uint256 marketId)
         external
         whenShouldCheckTheMaxOpenInterestAndTheMaxSkew
         whenTheNewSkewIsGreaterThanTheMaxSkew
@@ -183,9 +177,7 @@ contract PerpMarket_CheckOpenInterestLimits_Unit_Test is Base_Test {
         );
     }
 
-    function test_WhenIsReducingSkew(
-        uint256 marketId
-    )
+    function test_WhenIsReducingSkew(uint256 marketId)
         external
         whenShouldCheckTheMaxOpenInterestAndTheMaxSkew
         whenTheNewSkewIsGreaterThanTheMaxSkew

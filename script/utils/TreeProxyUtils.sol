@@ -27,6 +27,7 @@ import { CustomReferralConfigurationHarness } from
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -80,9 +81,10 @@ function deployBranches(bool isTestnet) returns (address[] memory) {
 function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory upgradeBranchSelectors = new bytes4[](1);
+    bytes4[] memory upgradeBranchSelectors = new bytes4[](2);
 
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
+    upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
     bytes4[] memory lookupBranchSelectors = new bytes4[](4);
 
@@ -242,9 +244,7 @@ function getInitializePayloads(
     return initializePayloads;
 }
 
-function deployHarnesses(
-    RootProxy.BranchUpgrade[] memory branchUpgrades
-)
+function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployAddressHarnesses();
