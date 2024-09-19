@@ -16,13 +16,6 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 /// @dev NOTE: realized debt -> unsettled debt -> settled debt
 /// TODO: do we only send realized debt as unsettled debt to the vaults? should it be considered settled debt? or do
 /// we send the entire reported debt as unsettled debt?
-// TODO: finalize this
-/// marketDebtRatio = totalDebt / creditCapacity
-/// autoDeleverageFactor = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
-/// (autoDeleverageEndThreshold -
-/// autoDeleverageStartThreshold)
-/// autoDeleverageFactor = x
-
 library MarketDebt {
     using Distribution for Distribution.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -34,12 +27,12 @@ library MarketDebt {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketDebt")) - 1));
 
     /// @param marketId The perps engine's linked market id.
-    /// @param autoDeleverageStartThreshold An admin configurable decimal rate which defines the starting point of
-    /// the auto deleverage curve, ranging from 0 to 1.
-    /// @param autoDeleverageEndThreshold An admin configurable decimal rate which defines the ending point of the
-    /// auto deleverage curve, ranging from 0 to 1.
-    /// @param autoDeleverageLogScale An admin configurable log scale which determines the market's auto deleverage
-    /// factor, according to the current state of the market's ADL curve.
+    /// @param autoDeleverageStartThreshold An admin configurable decimal rate used to determine the starting
+    /// threshold of the ADL polynomial regression curve, ranging from 0 to 1.
+    /// @param autoDeleverageEndThreshold An admin configurable decimal rate used to determine the ending threshold of
+    /// the ADL polynomial regression curve, ranging from 0 to 1.
+    /// @param autoDeleveragePowerScale An admin configurable power scale, used to determine the acceleration of the
+    /// ADL polynomial regression curve.
     /// @param openInterestCapScale An admin configurable value which determines the market's open interest cap,
     /// according to the total delegated credit.
     /// @param skewCapScale An admin configurable value which determines the market's skew cap, according to the total
@@ -58,8 +51,9 @@ library MarketDebt {
     /// USD denominated debt per share.
     struct Data {
         uint128 marketId;
-        uint128 autoDeleverageThreshold;
-        uint128 autoDeleverageScale;
+        uint128 autoDeleverageStartThreshold;
+        uint128 autoDeleverageEndThreshold;
+        uint128 autoDeleveragePowerScale;
         uint128 openInterestCapScale;
         uint128 skewCapScale;
         int128 realizedDebtUsd;
@@ -81,7 +75,15 @@ library MarketDebt {
     }
 
     /// @notice Computes the auto delevarage factor of the market based on the market's credit capacity, total debt
-    /// and its configured ADL parameters.
+    /// and its configured ADL parameters.]
+    /// @dev The auto deleverage factor is the `y` coordinate of the following polynomial regression curve:
+    //// X and Y in [0, 1]
+    /// y = x^z
+    /// z = MarketDebt.Data.autoDeleveragePowerScale
+    /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
+    /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
+    /// where:
+    /// marketDebtRatio = MarketDebt::getTotalDebt / MarketDebt::getCreditCapacity
     /// @param self The market debt storage pointer.
     /// @return autoDeleverageFactor A decimal rate which determines how much should the market cut of the position's
     /// positive pnl. Goes from 0 to 1.
