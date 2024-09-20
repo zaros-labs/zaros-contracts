@@ -75,7 +75,7 @@ library MarketDebt {
     }
 
     /// @notice Computes the auto delevarage factor of the market based on the market's credit capacity, total debt
-    /// and its configured ADL parameters.]
+    /// and its configured ADL parameters.
     /// @dev The auto deleverage factor is the `y` coordinate of the following polynomial regression curve:
     //// X and Y in [0, 1]
     /// y = x^z
@@ -86,7 +86,7 @@ library MarketDebt {
     /// marketDebtRatio = MarketDebt::getTotalDebt / MarketDebt::getCreditCapacity
     /// @param self The market debt storage pointer.
     /// @return autoDeleverageFactor A decimal rate which determines how much should the market cut of the position's
-    /// positive pnl. Goes from 0 to 1.
+    /// profit. Goes from 0 to 1.
     function getAutoDeleverageFactor(
         Data storage self,
         UD60x18 creditCapacityUsdX18,
