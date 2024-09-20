@@ -11,7 +11,6 @@ import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgra
 import { IERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
 // PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 /// @notice LimitedMintingERC20 is an ERC20 token with limited minting capabilities used in testnet.
@@ -110,7 +109,8 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         bool userHasTradingAccount = IERC721Enumerable(tradingAccountToken).balanceOf(msg.sender) > 0;
 
         if (userHasTradingAccount) {
-            uint128 tradingAccountId = uint128(IERC721Enumerable(tradingAccountToken).tokenOfOwnerByIndex(msg.sender, tokenIndex));
+            uint128 tradingAccountId =
+                uint128(IERC721Enumerable(tradingAccountToken).tokenOfOwnerByIndex(msg.sender, tokenIndex));
             (SD59x18 marginBalanceUsdX18,,,) = IPerpsEngine(PERPS_ENGINE).getAccountMarginBreakdown(tradingAccountId);
 
             userBalance += uint256(marginBalanceUsdX18.intoInt256());
@@ -119,8 +119,8 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         if (userLastMintedTime[msg.sender] > 0 && userBalance > MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT) {
             if (shouldRevert) {
                 revert LimitedMintingERC20_UserHasMoreThanMaxAmount(
-                msg.sender, userBalance, MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT
-            );
+                    msg.sender, userBalance, MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT
+                );
             } else {
                 return isEnable;
             }
