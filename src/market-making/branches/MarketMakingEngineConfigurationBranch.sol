@@ -5,7 +5,9 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";

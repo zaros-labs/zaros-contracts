@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { FeeRecipient } from "@zaros/market-making/leaves/FeeRecipient.sol";
 
 contract FeeRecipientHarness {
-    function exposed_FeeRecipient_load(address recipient) external view returns (FeeRecipient.Data memory) {
+    function exposed_FeeRecipient_load(address recipient) external pure returns (FeeRecipient.Data memory) {
         FeeRecipient.Data memory feeRecipientData = FeeRecipient.load(recipient);
         return feeRecipientData;
     }

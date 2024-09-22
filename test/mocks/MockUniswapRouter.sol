@@ -8,6 +8,6 @@ contract MockUniswapRouter {
         external pure
         returns (uint256 amountOut)
     {
-        amountOut = params.amountIn * 2; 
+        amountOut = params.amountIn; 
     }
 }
