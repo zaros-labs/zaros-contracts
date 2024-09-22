@@ -1,4 +1,4 @@
-MarketMaking_stake_Test
+Stake_Integration_Test
 ├── when vault is invalid
 │   └── it should revert
 ├── when user has shares

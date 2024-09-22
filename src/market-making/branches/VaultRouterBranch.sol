@@ -23,9 +23,7 @@ contract VaultRouterBranch {
     using Distribution for Distribution.Data;
     using Referral for Referral.Data;
     using Collateral for Collateral.Data;
-
-    /// @notice Counter for withdraw requiest ids
-    uint128 private withdrawalRequestIdCounter;
+    using SafeCast for uint256;
 
     /// @notice Emitted when a user stakes shares.
     /// @param vaultId The ID of the vault which shares are staked.
@@ -37,7 +35,7 @@ contract VaultRouterBranch {
     /// @param vaultId The ID of the vault from which the shares are being withdrawn.
     /// @param user The address of the user who initiated the withdrawal.
     /// @param shares The amount of shares to be withdrawn by the user.
-    event LogInitiateWithdraw(uint256 indexed vaultId, address indexed user, uint256 shares);
+    event LogInitiateWithdrawal(uint256 indexed vaultId, address indexed user, uint128 shares);
 
     /// @notice Emitted when a user unstakes shares.
     /// @param vaultId The ID of the vault which shares are unstaked.
@@ -102,10 +100,11 @@ contract VaultRouterBranch {
     /// @notice Returns the swap rate from index token to collateral asset for the provided vault.
     /// @param vaultId The vault identifier.
     /// @return price The swap price from index token to collateral asset.
-    function getIndexTokenSwapRate(uint128 vaultId) external view returns (uint256 price) {
+    function getIndexTokenSwapRate(uint128 vaultId) external view returns (int256 price) {
         Vault.Data storage vault = Vault.load(vaultId);
 
-        return IERC4626(vault.indexToken).previewRedeem(1 * 10 ** IERC4626(vault.collateral.asset).decimals());
+        uint256 swapRate = IERC4626(vault.indexToken).previewRedeem(1 * 10 ** IERC4626(vault.collateral.asset).decimals());
+        return swapRate.toInt256() + vault.unsettledDebtUsd + vault.settledDebtUsd ;
     }
 
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
@@ -115,10 +114,12 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
-    function deposit(uint128 vaultId, uint128 assets, uint128 minShares) external {
+    function deposit(uint128 vaultId, uint128 assets, uint128 minShares) external { // todo add inline comments
         Vault.Data storage vault = Vault.load(vaultId);
 
         address vaultAsset = vault.collateral.asset;
+        if (vaultAsset == address(0)) revert Errors.VaultDoesNotExist();
+
         Collateral.Data storage collateralData = Collateral.load(vaultAsset);
 
         // convert uint256 -> UD60x18; scales input to 18 decimals
@@ -153,12 +154,10 @@ contract VaultRouterBranch {
         Distribution.Data storage distributionData = vault.stakingFeeDistribution;
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
-        Distribution.Actor memory actor = distributionData.actor[actorId];
-        UD60x18 updatedActorShares = ud60x18(actor.shares + SafeCast.toUint128(shares));
+        Distribution.Actor storage actor = distributionData.actor[actorId];
+        UD60x18 updatedActorShares = ud60x18(actor.shares).add(ud60x18(shares));
 
         distributionData.setActorShares(actorId, updatedActorShares);
-
-        IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
 
         if (referralCode.length != 0) {
             Referral.Data storage referral = Referral.load(msg.sender);
@@ -186,6 +185,8 @@ contract VaultRouterBranch {
             emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
         }
 
+        IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
+
         emit LogStake(vaultId, msg.sender, shares);
     }
 
@@ -195,23 +196,25 @@ contract VaultRouterBranch {
     /// The user MUST have enough shares in their balance to initiate the withdrawal.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
-    function initiateWithdrawal(uint128 vaultId, uint256 shares) external {
+    function initiateWithdrawal(uint128 vaultId, uint128 shares) external {
         if (shares == 0) {
             revert Errors.ZeroInput("sharesAmount");
         }
 
         Vault.Data storage vault = Vault.load(vaultId);
+
+        if (vault.collateral.asset == address(0)) revert Errors.VaultDoesNotExist();
+        uint128 withdrawalRequestId = ++vault.withdrawalRequestIdCounter[msg.sender];
+
         WithdrawalRequest.Data storage withdrawalRequest =
-            WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestIdCounter);
+            WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestId);
 
         if (IERC4626(vault.indexToken).balanceOf(msg.sender) < shares) revert Errors.NotEnoughShares();
 
-        withdrawalRequest.timestamp = block.timestamp;
+        withdrawalRequest.timestamp = block.timestamp.toUint128();
         withdrawalRequest.shares = shares;
 
-        withdrawalRequestIdCounter += withdrawalRequestIdCounter + 1;
-
-        emit LogInitiateWithdraw(vaultId, msg.sender, shares);
+        emit LogInitiateWithdrawal(vaultId, msg.sender, shares);
     }
 
     /// @notice Redeems a given amount of index tokens in exchange for collateral assets from the provided vault,
@@ -234,7 +237,7 @@ contract VaultRouterBranch {
             revert Errors.WithdrawDelayNotPassed();
         }
 
-        uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, address(this), msg.sender);
+        uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, msg.sender);
 
         if (assets < minAssets) revert Errors.SlippageCheckFailed();
 

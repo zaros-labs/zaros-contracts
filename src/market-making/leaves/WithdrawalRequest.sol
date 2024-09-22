@@ -8,8 +8,8 @@ library WithdrawalRequest {
 
     // TODO: pack storage slots
     struct Data {
-        uint256 timestamp;
-        uint256 shares;
+        uint128 timestamp;
+        uint128 shares;
         bool fulfilled;
     }
 

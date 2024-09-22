@@ -10,50 +10,64 @@ import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBran
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-contract MarketMaking_initiateWithdraw_Test is Base_Test {
+contract InitiateWithdraw_Integration_Test is Base_Test {
+    using SafeCast for uint256;
+
     function setUp() public virtual override {
         Base_Test.setUp();
-        createVault();
+        changePrank({ msgSender: users.owner.account });
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         changePrank({ msgSender: users.naruto.account });
-        depositInVault(1e18);
     }
 
-    modifier whenInitiateWithdrawIsCalled() {
-        _;
-    }
+    function testFuzz_RevertWhen_AmountIsZero(uint256 vaultId, uint256 assetsToDeposit) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
 
-    function test_RevertWhen_AmountIsZero() external whenInitiateWithdrawIsCalled {
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        depositInVault(fuzzVaultConfig.vaultId, uint128(assetsToDeposit));
+
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.ZeroInput.selector, "sharesAmount"));
-        marketMakingEngine.initiateWithdrawal(VAULT_ID, 0);
+        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, 0);
     }
 
-    function test_RevertWhen_VaultIdIsInvalid() external whenInitiateWithdrawIsCalled {
-        uint128 invalidVaultId = 0;
-        uint128 sharesToWithdraw = 1e18;
+    function testFuzz_RevertWhen_VaultIdIsInvalid(uint256 sharesToWithdraw) external {
+        sharesToWithdraw = bound({ x: sharesToWithdraw, min: 1, max: type(uint128).max });
 
         // it should revert
-        vm.expectRevert();
-        marketMakingEngine.initiateWithdrawal(invalidVaultId, sharesToWithdraw);
+        vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector));
+        marketMakingEngine.initiateWithdrawal(INVALID_VAULT_ID, uint128(sharesToWithdraw));
     }
 
-    function test_RevertWhen_SharesAmountIsGtUserBalance() external whenInitiateWithdrawIsCalled {
-        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
-        uint256 sharesToWithdraw = IERC20(indexToken).balanceOf(users.naruto.account) + 1;
+    function testFuzz_RevertWhen_SharesAmountIsGtUserBalance(uint256 vaultId, uint256 assetsToDeposit) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        depositInVault(fuzzVaultConfig.vaultId, uint128(assetsToDeposit));
+
+        uint128 sharesToWithdraw = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account).toUint128() + 1;
 
         // it should revert
         vm.expectRevert(Errors.NotEnoughShares.selector);
-        marketMakingEngine.initiateWithdrawal(VAULT_ID, sharesToWithdraw);
+        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, sharesToWithdraw);
     }
 
-    function test_WhenUserHasSharesBalance() external whenInitiateWithdrawIsCalled {
-        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
-        uint256 sharesToWithdraw = IERC20(indexToken).balanceOf(users.naruto.account);
+    function testFuzz_WhenUserHasSharesBalance(uint256 vaultId, uint256 assetsToDeposit) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        depositInVault(fuzzVaultConfig.vaultId, uint128(assetsToDeposit));
+
+        uint128 sharesToWithdraw = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account).toUint128();
 
         //it should create withdraw request
         vm.expectEmit();
-        emit VaultRouterBranch.LogInitiateWithdraw(VAULT_ID, users.naruto.account, sharesToWithdraw);
-        marketMakingEngine.initiateWithdrawal(VAULT_ID, sharesToWithdraw);
+        emit VaultRouterBranch.LogInitiateWithdrawal(fuzzVaultConfig.vaultId, users.naruto.account, sharesToWithdraw);
+        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, sharesToWithdraw);
     }
 }

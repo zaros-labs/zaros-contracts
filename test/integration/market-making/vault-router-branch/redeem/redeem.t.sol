@@ -12,78 +12,129 @@ import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBran
 // Open Zeppelin dependencies
 import { IERC20, IERC4626 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
-contract MarketMaking_redeem_Test is Base_Test {
-    uint128 constant WITHDRAW_REQUEST_ID = 0;
+contract Redeem_Integration_Test is Base_Test {
+    uint128 constant WITHDRAW_REQUEST_ID = 1;
 
     function setUp() public virtual override {
         Base_Test.setUp();
-        createVault();
+        changePrank({ msgSender: users.owner.account });
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         changePrank({ msgSender: users.naruto.account });
-        depositInVault(1e18);
-        marketMakingEngine.initiateWithdrawal(VAULT_ID, 1e18);
     }
 
-    modifier whenRedeemIsCalled() {
-        _;
-    }
+    function testFuzz_WhenDelayHasPassed(
+        uint256 vaultId,
+        uint256 assetsToDeposit,
+        uint256 assetsToWithdraw
+    )
+        external
+    {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-    function test_WhenDelayHasPassed() external whenRedeemIsCalled {
-        // fast forward block.timestamp to after withdraw delay has passed
-        skip(VAULT_WITHDRAW_DELAY + 1);
+        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
-        uint256 minAssetsOut = 0;
-
-        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
+        address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
+        assetsToWithdraw =  bound({ x: assetsToDeposit, min: 0, max: userBalance });
+        IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
 
-        IERC20(indexToken).approve(address(marketMakingEngine), userBalance);
+        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
+
+        // fast forward block.timestamp to after withdraw delay has passed
+        skip(fuzzVaultConfig.withdrawalDelay + 1);
 
         vm.expectEmit();
-        emit VaultRouterBranch.LogRedeem(VAULT_ID, users.naruto.account, userBalance);
-        marketMakingEngine.redeem(VAULT_ID, WITHDRAW_REQUEST_ID, minAssetsOut);
+        emit VaultRouterBranch.LogRedeem(fuzzVaultConfig.vaultId, users.naruto.account, userBalance);
+        marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
 
-        WithdrawalRequest.Data memory withdrawalRequest =
-            marketMakingEngine.exposed_WithdrawalRequest_load(VAULT_ID, users.naruto.account, 0);
+        WithdrawalRequest.Data memory withdrawalRequest = marketMakingEngine.exposed_WithdrawalRequest_load(
+            fuzzVaultConfig.vaultId, users.naruto.account, WITHDRAW_REQUEST_ID
+        );
 
         assertEq(withdrawalRequest.fulfilled, true);
 
         // it should transfer assets to user
         assertEq(IERC20(indexToken).balanceOf(users.naruto.account), 0);
+        assertGt(IERC20(fuzzVaultConfig.asset).balanceOf(users.naruto.account), 0);
     }
 
-    function test_RevertWhen_DelayHasNotPassed() external whenRedeemIsCalled {
+    function testFuzz_RevertWhen_DelayHasNotPassed(
+        uint256 vaultId,
+        uint256 assetsToDeposit,
+        uint256 assetsToWithdraw
+    ) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+
+        address indexToken = fuzzVaultConfig.indexToken;
+        uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
+        assetsToWithdraw =  bound({ x: assetsToDeposit, min: 0, max: userBalance });
+        IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
+
+        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
+
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.WithdrawDelayNotPassed.selector));
-        marketMakingEngine.redeem(VAULT_ID, WITHDRAW_REQUEST_ID, 0);
+        marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
     }
 
-    function test_RevertWhen_AssetsAreLessThenMinAmount() external whenRedeemIsCalled {
-        skip(VAULT_WITHDRAW_DELAY + 1);
-        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
-        uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
+    function testFuzz_RevertWhen_AssetsAreLessThenMinAmount(
+        uint256 vaultId,
+        uint256 assetsToDeposit,
+        uint256 assetsToWithdraw
+    ) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
+        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+
+        address indexToken = fuzzVaultConfig.indexToken;
+        uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
+        assetsToWithdraw =  bound({ x: assetsToDeposit, min: 0, max: userBalance });
+        IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
+
+        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
+
+        skip(fuzzVaultConfig.withdrawalDelay + 1);
         uint256 minAssetsOut = IERC4626(indexToken).previewRedeem(userBalance) + 1;
 
         IERC20(indexToken).approve(address(marketMakingEngine), userBalance);
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector));
-        marketMakingEngine.redeem(VAULT_ID, WITHDRAW_REQUEST_ID, minAssetsOut);
+        marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, minAssetsOut);
     }
 
-    function test_RevertWhen_RequiestIsFulfulled() external whenRedeemIsCalled {
-        skip(VAULT_WITHDRAW_DELAY + 1);
+    function testFuzz_RevertWhen_RequiestIsFulfulled(
+        uint256 vaultId,
+        uint256 assetsToDeposit,
+        uint256 assetsToWithdraw
+    ) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        uint256 minAssetsOut = 0;
+        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
-        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
+        address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
+        assetsToWithdraw =  bound({ x: assetsToDeposit, min: 0, max: userBalance });
+        IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
 
-        IERC20(indexToken).approve(address(marketMakingEngine), userBalance);
+        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
 
-        marketMakingEngine.redeem(VAULT_ID, WITHDRAW_REQUEST_ID, minAssetsOut);
+        // fast forward block.timestamp to after withdraw delay has passed
+        skip(fuzzVaultConfig.withdrawalDelay + 1);
+
+        marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.WithdrawalRequestAlreadyFullfilled.selector));
-        marketMakingEngine.redeem(VAULT_ID, WITHDRAW_REQUEST_ID, minAssetsOut);
+        marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
     }
 }

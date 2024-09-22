@@ -4,6 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Markets } from "script/markets/Markets.sol";
+import { Vaults } from "script/vaults/Vaults.sol";
 import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.sol";
 import { SequencerUptimeFeeds } from "script/sequencer-uptime-feeds/SequencerUptimeFeeds.sol";
 
@@ -11,7 +12,7 @@ import { SequencerUptimeFeeds } from "script/sequencer-uptime-feeds/SequencerUpt
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } from "@prb-math/SD59x18.sol";
 
-abstract contract ProtocolConfiguration is Markets, MarginCollaterals, SequencerUptimeFeeds {
+abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Vaults, SequencerUptimeFeeds {
     /// @notice Admin addresses.
 
     // TODO: Update to actual multisig address
@@ -49,10 +50,9 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Sequencer
     uint256 internal constant FINAL_MARGIN_COLLATERAL_ID = 6;
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
-    uint128 internal constant VAULT_ID = 1;
-    uint128 internal constant VAULT_DEPOSIT_CAP = 2e18;
-    uint128 internal constant VAULT_WITHDRAW_DELAY = 1 days;
-
+    uint128 internal constant INITIAL_VAULT_ID = 1;
+    uint128 internal constant FINAL_VAULT_ID = 15;
+    uint128 internal constant INVALID_VAULT_ID = 0;
 
     /// @notice The maximum delay allowed for the off chain price verification.
     uint256 internal constant MAX_VERIFICATION_DELAY = 10 seconds;

@@ -11,31 +11,29 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketMakingEngineConfigurationBranch } from
     "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 
-contract MarketMakingEngineConfigurationBranch_updateVault_Test is Base_Test {
-    Collateral.Data collateralData = Collateral.Data({
-        creditRatio: 1.5e18,
-        priceFeedHeartbeatSeconds: 120,
-        priceAdapter: address(0),
-        asset: address(wEth),
-        isEnabled: true,
-        decimals: 8
-    });
-
+contract UpdateVaultConfiguration_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        createVault();
         changePrank({ msgSender: users.owner.account });
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
     }
 
-    modifier givenAVaultIsToBeUpdate() {
-        _;
-    }
+    function testFuzz_RevertWhen_TheDepositCapIsZero(uint256 vaultId) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-    function test_RevertWhen_TheDepositCapIsZero() external givenAVaultIsToBeUpdate {
+        Collateral.Data memory collateralData = Collateral.Data({
+            creditRatio: fuzzVaultConfig.creditRatio,
+            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
+            priceAdapter: fuzzVaultConfig.priceAdapter,
+            asset: fuzzVaultConfig.asset,
+            isEnabled: fuzzVaultConfig.isEnabled,
+            decimals: fuzzVaultConfig.decimals
+        });
+
         Vault.UpdateParams memory params = Vault.UpdateParams({
-            vaultId: VAULT_ID,
+            vaultId: fuzzVaultConfig.vaultId,
             depositCap: 0,
-            withdrawalDelay: VAULT_WITHDRAW_DELAY,
+            withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             collateral: collateralData
         });
 
@@ -44,10 +42,21 @@ contract MarketMakingEngineConfigurationBranch_updateVault_Test is Base_Test {
         marketMakingEngine.updateVaultConfiguration(params);
     }
 
-    function test_RevertWhen_WithdrawalDelayIsZero() external givenAVaultIsToBeUpdate {
+    function testFuzz_RevertWhen_WithdrawalDelayIsZero(uint256 vaultId) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        Collateral.Data memory collateralData = Collateral.Data({
+            creditRatio: fuzzVaultConfig.creditRatio,
+            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
+            priceAdapter: fuzzVaultConfig.priceAdapter,
+            asset: fuzzVaultConfig.asset,
+            isEnabled: fuzzVaultConfig.isEnabled,
+            decimals: fuzzVaultConfig.decimals
+        });
+
         Vault.UpdateParams memory params = Vault.UpdateParams({
-            vaultId: VAULT_ID,
-            depositCap: VAULT_DEPOSIT_CAP,
+            vaultId: fuzzVaultConfig.vaultId,
+            depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: 0,
             collateral: collateralData
         });
@@ -57,11 +66,25 @@ contract MarketMakingEngineConfigurationBranch_updateVault_Test is Base_Test {
         marketMakingEngine.updateVaultConfiguration(params);
     }
 
-    function test_RevertWhen_VaultIdIsZero() external givenAVaultIsToBeUpdate {
+    function testFuzz_RevertWhen_VaultIdIsZero(uint256 vaultId, uint256 depositCap, uint256 withdrawDelay) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        Collateral.Data memory collateralData = Collateral.Data({
+            creditRatio: fuzzVaultConfig.creditRatio,
+            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
+            priceAdapter: fuzzVaultConfig.priceAdapter,
+            asset: fuzzVaultConfig.asset,
+            isEnabled: fuzzVaultConfig.isEnabled,
+            decimals: fuzzVaultConfig.decimals
+        });
+
+        depositCap = bound({ x: depositCap, min: 1, max: type(uint128).max });
+        withdrawDelay = bound({ x: withdrawDelay, min: 1, max: type(uint128).max });
+
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: 0,
-            depositCap: VAULT_DEPOSIT_CAP,
-            withdrawalDelay: VAULT_WITHDRAW_DELAY,
+            depositCap: uint128(depositCap),
+            withdrawalDelay: uint128(withdrawDelay),
             collateral: collateralData
         });
 
@@ -70,24 +93,43 @@ contract MarketMakingEngineConfigurationBranch_updateVault_Test is Base_Test {
         marketMakingEngine.updateVaultConfiguration(params);
     }
 
-    function test_WhenAreValidParams() external givenAVaultIsToBeUpdate {
-        uint128 updatedDepositCap = VAULT_DEPOSIT_CAP * 2;
-        uint128 updatedWithdrawDelay = VAULT_DEPOSIT_CAP * 2;
+    function testFuzz_WhenAreValidParams(
+        uint256 vaultId,
+        uint256 updatedDepositCap,
+        uint256 updatedWithdrawDelay
+    )
+        external
+    {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        Collateral.Data memory collateralData = Collateral.Data({
+            creditRatio: fuzzVaultConfig.creditRatio,
+            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
+            priceAdapter: fuzzVaultConfig.priceAdapter,
+            asset: fuzzVaultConfig.asset,
+            isEnabled: fuzzVaultConfig.isEnabled,
+            decimals: fuzzVaultConfig.decimals
+        });
+
+        updatedDepositCap = bound({ x: updatedDepositCap, min: 1, max: type(uint128).max });
+        updatedWithdrawDelay = bound({ x: updatedWithdrawDelay, min: 1, max: type(uint128).max });
 
         Vault.UpdateParams memory params = Vault.UpdateParams({
-            vaultId: VAULT_ID,
-            depositCap: updatedDepositCap,
-            withdrawalDelay: updatedWithdrawDelay,
+            vaultId: fuzzVaultConfig.vaultId,
+            depositCap: uint128(updatedDepositCap),
+            withdrawalDelay: uint128(updatedWithdrawDelay),
             collateral: collateralData
         });
 
         // it should emit update event
         vm.expectEmit();
-        emit MarketMakingEngineConfigurationBranch.LogUpdateVaultConfiguration(users.owner.account, VAULT_ID);
+        emit MarketMakingEngineConfigurationBranch.LogUpdateVaultConfiguration(
+            users.owner.account, fuzzVaultConfig.vaultId
+        );
         marketMakingEngine.updateVaultConfiguration(params);
 
         // it should update vault
-        assertEq(updatedDepositCap, marketMakingEngine.workaround_Vault_getDepositCap(VAULT_ID));
-        assertEq(updatedWithdrawDelay, marketMakingEngine.workaround_Vault_getWithdrawDelay(VAULT_ID));
+        assertEq(updatedDepositCap, marketMakingEngine.workaround_Vault_getDepositCap(fuzzVaultConfig.vaultId));
+        assertEq(updatedWithdrawDelay, marketMakingEngine.workaround_Vault_getWithdrawDelay(fuzzVaultConfig.vaultId));
     }
 }

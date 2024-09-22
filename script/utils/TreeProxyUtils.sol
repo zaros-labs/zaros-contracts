@@ -38,7 +38,9 @@ import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-function deployBranches(bool isTestnet) returns (address[] memory) {
+// Perps Engine
+
+function deployPerpsEngineBranches(bool isTestnet) returns (address[] memory) {
     address[] memory branches = new address[](8);
 
     address upgradeBranch = address(new UpgradeBranch());
@@ -83,7 +85,7 @@ function deployBranches(bool isTestnet) returns (address[] memory) {
     return branches;
 }
 
-function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
+function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
     bytes4[] memory upgradeBranchSelectors = new bytes4[](1);
@@ -195,26 +197,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     return selectors;
 }
 
-function getBranchUpgrades(
-    address[] memory branches,
-    bytes4[][] memory branchesSelectors,
-    RootProxy.BranchUpgradeAction action
-)
-    pure
-    returns (RootProxy.BranchUpgrade[] memory)
-{
-    require(branches.length == branchesSelectors.length, "TreeProxyUtils: branchesSelectors length mismatch");
-    RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](branches.length);
-
-    for (uint256 i; i < branches.length; i++) {
-        bytes4[] memory selectors = branchesSelectors[i];
-        branchUpgrades[i] = RootProxy.BranchUpgrade({ branch: branches[i], action: action, selectors: selectors });
-    }
-
-    return branchUpgrades;
-}
-
-function getInitializables(address[] memory branches) pure returns (address[] memory) {
+function getPerpsEngineInitializables(address[] memory branches) pure returns (address[] memory) {
     address[] memory initializables = new address[](2);
 
     address upgradeBranch = branches[0];
@@ -226,7 +209,7 @@ function getInitializables(address[] memory branches) pure returns (address[] me
     return initializables;
 }
 
-function getInitializePayloads(
+function getPerpsEngineInitializePayloads(
     address deployer,
     address tradingAccountToken,
     address usdToken
@@ -248,12 +231,12 @@ function getInitializePayloads(
     return initializePayloads;
 }
 
-function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+function deployPerpsEngineHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     returns (RootProxy.BranchUpgrade[] memory)
 {
-    address[] memory harnesses = deployAddressHarnesses();
+    address[] memory harnesses = deployPerpsEngineAddressHarnesses();
 
-    bytes4[][] memory harnessesSelectors = getHarnessesSelectors();
+    bytes4[][] memory harnessesSelectors = getPerpsEngineHarnessesSelectors();
 
     RootProxy.BranchUpgrade[] memory harnessesUpgrades =
         getBranchUpgrades(harnesses, harnessesSelectors, RootProxy.BranchUpgradeAction.Add);
@@ -272,7 +255,7 @@ function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     return brancheAndHarnessesUpgrades;
 }
 
-function deployAddressHarnesses() returns (address[] memory) {
+function deployPerpsEngineAddressHarnesses() returns (address[] memory) {
     address[] memory addressHarnesses = new address[](10);
 
     address perpsEngineConfigurationHarness = address(new PerpsEngineConfigurationHarness());
@@ -320,7 +303,7 @@ function deployAddressHarnesses() returns (address[] memory) {
     return addressHarnesses;
 }
 
-function getHarnessesSelectors() pure returns (bytes4[][] memory) {
+function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](10);
 
     bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](13);
@@ -459,7 +442,9 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     return selectors;
 }
 
-function getMarketMakingEngineBranches() returns (address[] memory) {
+// Market Making Engine
+
+function deployMarketMakingEngineBranches() returns (address[] memory) {
     address[] memory branches = new address[](2);
 
     address marketMakingEnginConfigBranch = address(new MarketMakingEngineConfigurationBranch());
@@ -602,4 +587,25 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     selectors[2] = collateralHarnessSelectors;
 
     return selectors;
+}
+
+// Shared Utils
+
+function getBranchUpgrades(
+    address[] memory branches,
+    bytes4[][] memory branchesSelectors,
+    RootProxy.BranchUpgradeAction action
+)
+    pure
+    returns (RootProxy.BranchUpgrade[] memory)
+{
+    require(branches.length == branchesSelectors.length, "TreeProxyUtils: branchesSelectors length mismatch");
+    RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](branches.length);
+
+    for (uint256 i; i < branches.length; i++) {
+        bytes4[] memory selectors = branchesSelectors[i];
+        branchUpgrades[i] = RootProxy.BranchUpgrade({ branch: branches[i], action: action, selectors: selectors });
+    }
+
+    return branchUpgrades;
 }

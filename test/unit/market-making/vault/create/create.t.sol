@@ -10,41 +10,55 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
 contract Vault_Create_Unit_Test is Base_Test {
-    Collateral.Data collateralData = Collateral.Data({
-        creditRatio: 1.5e18,
-        priceFeedHeartbeatSeconds: 120,
-        priceAdapter: address(0),
-        asset: address(wEth),
-        isEnabled: true,
-        decimals: 8
-    });
-
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
     }
 
-    function test_RevertWhen_CreateIsPassedExistingMarketId() external {
-        createVault();
+    function testFuzz_RevertWhen_CreateIsPassedExistingVaulttId(uint256 vaultId) external {
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        Collateral.Data memory collateralData = Collateral.Data({
+            creditRatio: fuzzVaultConfig.creditRatio,
+            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
+            priceAdapter: fuzzVaultConfig.priceAdapter,
+            asset: fuzzVaultConfig.asset,
+            isEnabled: fuzzVaultConfig.isEnabled,
+            decimals: fuzzVaultConfig.decimals
+        });
+
         Vault.CreateParams memory params = Vault.CreateParams({
-            vaultId: VAULT_ID,
-            depositCap: VAULT_DEPOSIT_CAP,
-            withdrawalDelay: VAULT_WITHDRAW_DELAY,
-            indexToken: address(zlpVault),
+            vaultId: fuzzVaultConfig.vaultId,
+            depositCap: fuzzVaultConfig.depositCap,
+            withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
+            indexToken: fuzzVaultConfig.indexToken,
             collateral: collateralData
         });
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.VaulttAlreadyEnabled.selector, VAULT_ID));
+        vm.expectRevert(abi.encodeWithSelector(Errors.VaultAlreadyEnabled.selector, fuzzVaultConfig.vaultId));
         marketMakingEngine.exposed_Vault_create(params);
     }
 
-    function test_WhenCreateIsPassedValidVaultId() external {
+    function testFuzz_WhenCreateIsPassedValidVaultId(uint256 vaultId) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        Collateral.Data memory collateralData = Collateral.Data({
+            creditRatio: fuzzVaultConfig.creditRatio,
+            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
+            priceAdapter: fuzzVaultConfig.priceAdapter,
+            asset: fuzzVaultConfig.asset,
+            isEnabled: fuzzVaultConfig.isEnabled,
+            decimals: fuzzVaultConfig.decimals
+        });
+
         Vault.CreateParams memory params = Vault.CreateParams({
-            vaultId: VAULT_ID,
-            depositCap: VAULT_DEPOSIT_CAP,
-            withdrawalDelay: VAULT_WITHDRAW_DELAY,
-            indexToken: address(zlpVault),
+            vaultId: fuzzVaultConfig.vaultId,
+            depositCap: fuzzVaultConfig.depositCap,
+            withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
+            indexToken: fuzzVaultConfig.indexToken,
             collateral: collateralData
         });
 

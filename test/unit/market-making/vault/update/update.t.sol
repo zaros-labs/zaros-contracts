@@ -10,24 +10,25 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
 contract Vault_Update_Unit_Test is Base_Test {
-    Collateral.Data collateralData = Collateral.Data({
-        creditRatio: 1.5e18,
-        priceFeedHeartbeatSeconds: 120,
-        priceAdapter: address(0),
-        asset: address(wEth),
-        isEnabled: true,
-        decimals: 8
-    });
 
     function setUp() public virtual override {
         Base_Test.setUp();
     }
 
     function test_RevertWhen_UpdateIsPassedZeroId() external {
+        Collateral.Data memory collateralData = Collateral.Data({
+            creditRatio: 1.5e18,
+            priceFeedHeartbeatSeconds: 120,
+            priceAdapter: address(0),
+            asset: address(wEth),
+            isEnabled: true,
+            decimals: 8
+        });
+
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: 0,
-            depositCap: VAULT_DEPOSIT_CAP,
-            withdrawalDelay: VAULT_WITHDRAW_DELAY,
+            depositCap: 1,
+            withdrawalDelay: 1,
             collateral: collateralData
         });
 

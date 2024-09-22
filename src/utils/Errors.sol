@@ -202,5 +202,8 @@ library Errors {
 
     /// @notice Thrown when vault with the given id already exists.
     /// @param vaultId The ID of the vault to create.
-    error VaulttAlreadyEnabled(uint256 vaultId);
+    error VaultAlreadyEnabled(uint256 vaultId);
+
+    /// @notice Thrown when vault does NOT exist
+    error VaultDoesNotExist();
 }

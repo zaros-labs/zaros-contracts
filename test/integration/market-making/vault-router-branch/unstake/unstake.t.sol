@@ -11,44 +11,37 @@ import { Errors } from "@zaros/utils/Errors.sol";
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 
-contract MarketMaking_unstake_Test is Base_Test {
+contract Unstake_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        createVault();
+        changePrank({ msgSender: users.owner.account });
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function test_RevertWhen_UserDoesNotHaveEnoguhtStakedShares() external {
-        uint128 sharesToStake = 1e18;
-        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
-        deal(address(indexToken), users.naruto.account, sharesToStake);
+    function testFuzz_RevertWhen_UserDoesNotHaveEnoguhtStakedShares(uint256 vaultId, uint256 depositAmount) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+        depositAmount = bound({ x: depositAmount, min: 1, max: fuzzVaultConfig.depositCap });
 
-        IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
-        marketMakingEngine.stake(VAULT_ID, sharesToStake, "", false);
-
-        uint128 sharesToUnstake = sharesToStake + 1;
+        depositAndStakeInVault(fuzzVaultConfig.vaultId, uint128(depositAmount));
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.NotEnoughShares.selector));
-        marketMakingEngine.unstake(VAULT_ID, sharesToUnstake);
+        marketMakingEngine.unstake(fuzzVaultConfig.vaultId, type(uint128).max);
     }
 
-    function test_WhenUserHasStakedShares() external {
-        uint128 sharesToStake = 1e18;
-        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(VAULT_ID);
-        deal(address(indexToken), users.naruto.account, sharesToStake);
+    function testFuzz_WhenUserHasStakedShares(uint256 vaultId, uint256 depositAmount) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+        depositAmount = bound({ x: depositAmount, min: 1, max: fuzzVaultConfig.depositCap });
 
-        IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
-        marketMakingEngine.stake(VAULT_ID, sharesToStake, "", false);
-
-        uint256 sharesToUnstake = sharesToStake;
+        depositAndStakeInVault(fuzzVaultConfig.vaultId, uint128(depositAmount));
 
         // it should log unstake event
         vm.expectEmit();
-        emit VaultRouterBranch.LogUnstake(VAULT_ID, users.naruto.account, sharesToUnstake);
-        marketMakingEngine.unstake(VAULT_ID, sharesToUnstake);
+        emit VaultRouterBranch.LogUnstake(fuzzVaultConfig.vaultId, users.naruto.account, depositAmount);
+        marketMakingEngine.unstake(fuzzVaultConfig.vaultId, depositAmount);
 
-        uint256 userBalanceAfter = IERC20(indexToken).balanceOf(users.naruto.account);
-        assertEq(userBalanceAfter, sharesToUnstake);
+        uint256 userBalanceAfter = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
+        assertEq(userBalanceAfter, depositAmount);
     }
 }

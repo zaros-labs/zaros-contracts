@@ -10,11 +10,11 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 import {
-    deployBranches,
-    getBranchesSelectors,
+    deployPerpsEngineBranches,
+    getPerpsEngineBranchesSelectors,
     getBranchUpgrades,
-    getInitializables,
-    getInitializePayloads
+    getPerpsEngineInitializables,
+    getPerpsEngineInitializePayloads
 } from "./utils/TreeProxyUtils.sol";
 
 // Forge dependencies
@@ -49,14 +49,14 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
 
         isTestnet = vm.envBool("IS_TESTNET");
 
-        address[] memory branches = deployBranches(isTestnet);
-        bytes4[][] memory branchesSelectors = getBranchesSelectors(isTestnet);
+        address[] memory branches = deployPerpsEngineBranches(isTestnet);
+        bytes4[][] memory branchesSelectors = getPerpsEngineBranchesSelectors(isTestnet);
 
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
-        address[] memory initializables = getInitializables(branches);
+        address[] memory initializables = getPerpsEngineInitializables(branches);
         bytes[] memory initializePayloads =
-            getInitializePayloads(deployer, address(tradingAccountToken), USDZ_ADDRESS);
+            getPerpsEngineInitializePayloads(deployer, address(tradingAccountToken), USDZ_ADDRESS);
 
         RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,

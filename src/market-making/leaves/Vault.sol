@@ -32,6 +32,7 @@ library Vault {
     /// earned per share.
     /// @param connectedMarkets The list of connected market ids. Whenever there's an update, a new
     /// `EnumerableSet.UintSet` is created.
+    /// @param withdrawalRequestIdCounter Counter for user withdraw requiest ids
     struct Data {
         uint128 vaultId;
         uint128 totalDeposited;
@@ -45,6 +46,7 @@ library Vault {
         Collateral.Data collateral;
         Distribution.Data stakingFeeDistribution;
         EnumerableSet.UintSet[] connectedMarkets;
+        mapping(address => uint128) withdrawalRequestIdCounter;
     }
 
     /// @notice Parameters required to create a new vault.
@@ -113,7 +115,7 @@ library Vault {
         Data storage self = load(params.vaultId);
 
         if (self.vaultId != 0) {
-            revert Errors.VaulttAlreadyEnabled(params.vaultId);
+            revert Errors.VaultAlreadyEnabled(params.vaultId);
         }
 
         self.vaultId = params.vaultId;
