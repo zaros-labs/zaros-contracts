@@ -1,8 +1,11 @@
-MarketMaking_FeeDistribution_receiveOrderFee
-    ├── given the caller is not Perps Engine
+ReceiveOrderFee_Integration_Test
+    ├── given the caller is not market making engine
     │   └── it should revert
-    └── given the caller is Perp Engine
-        ├── given the amount is zero
+    └── given the caller is market making engine
+        ├── given market does not exist
         │   └── it should revert
-        └── given the amount is not zero
-            └── it should execute correctly
+        └── given market exist
+            ├── given the amount is zero
+            │   └── it should revert
+            └── given the amount is not zero
+                └── it should execute correctly

@@ -4,16 +4,13 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
-
-import "forge-std/console.sol";
 
 // Openzeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
-contract MarketMaking_FeeDistribution_sendWethToFeeRecipients is Base_Test {
+contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     using EnumerableSet for EnumerableSet.UintSet;
     
     function setUp() public virtual override {
@@ -28,18 +25,18 @@ contract MarketMaking_FeeDistribution_sendWethToFeeRecipients is Base_Test {
         marketMakingEngine.workaround_setWethAddress(address(wEth));
     }
 
-    function test_RevertGiven_TheCallerIsNotPerpsEngine() external {
+    function test_RevertGiven_TheCallerIsNotMarketMakingEngine() external {
         changePrank({ msgSender: users.naruto.account });
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account ) });
         marketMakingEngine.sendWethToFeeRecipients(1, 1);
     }
 
-    modifier givenTheCallerIsPerpsEngine() {
+    modifier givenTheCallerIsMarketMakingEngine() {
         _;
     }
 
-    function test_RevertGiven_TheMarketDoesNotExist() external givenTheCallerIsPerpsEngine {
+    function test_RevertGiven_TheMarketDoesNotExist() external givenTheCallerIsMarketMakingEngine {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
         marketMakingEngine.sendWethToFeeRecipients(2, 1);
@@ -51,13 +48,13 @@ contract MarketMaking_FeeDistribution_sendWethToFeeRecipients is Base_Test {
 
     function test_RevertGiven_ThereIsNoAvailableWeth()
         external
-        givenTheCallerIsPerpsEngine
+        givenTheCallerIsMarketMakingEngine
         givenTheMarketExist
     {
         address[] memory addresses = new address[](3);
-        addresses[0] = address(3);
-        addresses[1] = address(1);
-        addresses[2] = address(2);
+        addresses[0] = address(users.naruto.account);
+        addresses[1] = address(users.sasuke.account);
+        addresses[2] = address(users.sakura.account);
         marketMakingEngine.workaround_setFeeRecipients(addresses);
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoWethFeesCollected.selector) });
@@ -66,36 +63,36 @@ contract MarketMaking_FeeDistribution_sendWethToFeeRecipients is Base_Test {
 
     function test_GivenThereIsWethAvailable()
         external
-        givenTheCallerIsPerpsEngine
+        givenTheCallerIsMarketMakingEngine
         givenTheMarketExist
     {
         marketMakingEngine.workaround_setFeeRecipientsFees(1, 10e18);
 
-        deal(address(wEth), 0x763d32e23401eAD917023881999Dbd38Aa76C25F, 10e18);
+        deal(address(wEth), address(marketMakingEngine), 10e18);
 
         address[] memory addresses = new address[](3);
-        addresses[0] = address(3);
-        addresses[1] = address(1);
-        addresses[2] = address(2);
+        addresses[0] = address(users.naruto.account);
+        addresses[1] = address(users.sasuke.account);
+        addresses[2] = address(users.sakura.account);
         marketMakingEngine.workaround_setFeeRecipients(addresses);
 
-        marketMakingEngine.workaround_setFeeRecipientShares(address(1), 1000);
-        marketMakingEngine.workaround_setFeeRecipientShares(address(2), 500);
-        marketMakingEngine.workaround_setFeeRecipientShares(address(3), 500);
+        marketMakingEngine.workaround_setFeeRecipientShares(address(users.naruto.account), 1000);
+        marketMakingEngine.workaround_setFeeRecipientShares(address(users.sasuke.account), 500);
+        marketMakingEngine.workaround_setFeeRecipientShares(address(users.sakura.account), 500);
 
         // Expect event emitted for fee conversion 
         vm.expectEmit();
-        emit FeeDistributionBranch.TransferCompleted(address(3), 25e17);
+        emit FeeDistributionBranch.LogSendWethToFeeRecipients(address(users.naruto.account), 5e18);
         vm.expectEmit();
-        emit FeeDistributionBranch.TransferCompleted(address(1), 5e18);
+        emit FeeDistributionBranch.LogSendWethToFeeRecipients(address(users.sasuke.account), 25e17);
         vm.expectEmit();
-        emit FeeDistributionBranch.TransferCompleted(address(2), 25e17);
+        emit FeeDistributionBranch.LogSendWethToFeeRecipients(address(users.sakura.account), 25e17);
 
         // it should distribute weth to fee recipients
         marketMakingEngine.sendWethToFeeRecipients(1, 0);
 
-        assertEq(IERC20(address(wEth)).balanceOf(address(2)), 25e17);
-        assertEq(IERC20(address(wEth)).balanceOf(address(1)), 5e18);
-        assertEq(IERC20(address(wEth)).balanceOf(address(3)), 25e17);
+        assertEq(IERC20(address(wEth)).balanceOf(address(users.sasuke.account)), 25e17);
+        assertEq(IERC20(address(wEth)).balanceOf(address(users.naruto.account)), 5e18);
+        assertEq(IERC20(address(wEth)).balanceOf(address(users.sakura.account)), 25e17);
     }
 }

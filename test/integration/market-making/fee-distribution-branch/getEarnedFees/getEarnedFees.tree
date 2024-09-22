@@ -1,4 +1,4 @@
-MarketMaking_FeeDistribution_getEarnedFees
+GetEarnedFees_Integration_Test
     ├── given the user has staked
     │   └── it should return fee amount
     └── given the user has not staked
