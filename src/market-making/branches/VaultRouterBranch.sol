@@ -86,6 +86,7 @@ contract VaultRouterBranch {
             Collateral.Data memory collateral
         )
     {
+        // load vault by id
         Vault.Data storage vault = Vault.load(vaultId);
 
         totalDeposited = vault.totalDeposited;
@@ -101,9 +102,13 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @return price The swap price from index token to collateral asset.
     function getIndexTokenSwapRate(uint128 vaultId) external view returns (int256 price) {
+        // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.load(vaultId);
 
+        // Get index token swap rate for 1 Unit of vault asset
         uint256 swapRate = IERC4626(vault.indexToken).previewRedeem(1 * 10 ** IERC4626(vault.collateral.asset).decimals());
+
+        // return swap rate plus settled and unsettled debt
         return swapRate.toInt256() + vault.unsettledDebtUsd + vault.settledDebtUsd ;
     }
 
@@ -114,30 +119,47 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
-    function deposit(uint128 vaultId, uint128 assets, uint128 minShares) external { // todo add inline comments
+    function deposit(uint128 vaultId, uint128 assets, uint128 minShares) external {
+        // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.load(vaultId);
 
+        // get vault asset
         address vaultAsset = vault.collateral.asset;
-        if (vaultAsset == address(0)) revert Errors.VaultDoesNotExist();
 
+        // verify vault exists
+        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist();
+
+        // fetch collateral data by asset
         Collateral.Data storage collateralData = Collateral.load(vaultAsset);
 
         // convert uint256 -> UD60x18; scales input to 18 decimals
         UD60x18 amountX18 = collateralData.convertTokenAmountToUd60x18(assets);
 
+        // uint128 -> UD60x18
         UD60x18 depositCapX18 = collateralData.convertTokenAmountToUd60x18(vault.depositCap);
+
+        // uint128 -> UD60x18
         UD60x18 totalCollateralDepositedX18 = collateralData.convertTokenAmountToUd60x18(vault.totalDeposited);
 
+        // enforce new deposit + already deposited <= deposit cap
         _requireEnoughDepositCap(vaultAsset, amountX18, depositCapX18, totalCollateralDepositedX18);
 
+        // add deposited amount to total deposited
         vault.totalDeposited += amountX18.intoUint128();
 
+        // get the tokens
         IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assets);
+
+        // increase vault allowance to transfer tokens
         IERC20(vaultAsset).approve(address(vault.indexToken), assets);
+
+        // then perform the acctual deposit
         uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
 
+        // assert min shares minted
         if (shares < minShares) revert Errors.SlippageCheckFailed();
 
+        // emit an event
         emit LogDeposit(vaultId, msg.sender, assets);
     }
 
@@ -150,13 +172,22 @@ contract VaultRouterBranch {
     /// @param referralCode The referral code to use.
     /// @param isCustomReferralCode True if the referral code is a custom referral code.
     function stake(uint128 vaultId, uint128 shares, bytes memory referralCode, bool isCustomReferralCode) external {
+        // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.load(vaultId);
+
+        // load distribution data
         Distribution.Data storage distributionData = vault.stakingFeeDistribution;
+
+        // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
+        // load actor distribution data
         Distribution.Actor storage actor = distributionData.actor[actorId];
+
+        // calculate actor updated shares amount
         UD60x18 updatedActorShares = ud60x18(actor.shares).add(ud60x18(shares));
 
+        // update actor staked shares
         distributionData.setActorShares(actorId, updatedActorShares);
 
         if (referralCode.length != 0) {
@@ -185,8 +216,10 @@ contract VaultRouterBranch {
             emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
         }
 
+        // transfer shares from actor
         IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
 
+        // emit an event
         emit LogStake(vaultId, msg.sender, shares);
     }
 
@@ -201,19 +234,29 @@ contract VaultRouterBranch {
             revert Errors.ZeroInput("sharesAmount");
         }
 
+        // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.load(vaultId);
 
-        if (vault.collateral.asset == address(0)) revert Errors.VaultDoesNotExist();
+        // verify vault exists
+        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist();
+
+        // increment withdrawal request counter and set withdrawal request id
         uint128 withdrawalRequestId = ++vault.withdrawalRequestIdCounter[msg.sender];
 
+        // load storage slot for withdrawal request
         WithdrawalRequest.Data storage withdrawalRequest =
             WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestId);
 
+        // verify user has enought shares
         if (IERC4626(vault.indexToken).balanceOf(msg.sender) < shares) revert Errors.NotEnoughShares();
 
+        // update withdrawal request create time
         withdrawalRequest.timestamp = block.timestamp.toUint128();
+
+        // update withdrawal request shares
         withdrawalRequest.shares = shares;
 
+        // emit an event
         emit LogInitiateWithdrawal(vaultId, msg.sender, shares);
     }
 
@@ -227,22 +270,31 @@ contract VaultRouterBranch {
     /// @param withdrawalRequestId The previously initiated withdrawal request id.
     /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
     function redeem(uint128 vaultId, uint128 withdrawalRequestId, uint256 minAssets) external {
+        // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.load(vaultId);
+
+        // load storage slot for withdrawal request
         WithdrawalRequest.Data storage withdrawalRequest =
             WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestId);
 
+        // revert if withdrawal request already filfilled
         if (withdrawalRequest.fulfilled) revert Errors.WithdrawalRequestAlreadyFullfilled();
 
+        // revert if withdrawl request delay not yes passed
         if (withdrawalRequest.timestamp + vault.withdrawalDelay > block.timestamp) {
             revert Errors.WithdrawDelayNotPassed();
         }
 
+        // redeem actual tokens from vault
         uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, msg.sender);
 
+        // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed();
 
+        // set withdrawl request to fulfilled
         withdrawalRequest.fulfilled = true;
 
+        // emit an event
         emit LogRedeem(vaultId, msg.sender, assets);
     }
 
@@ -253,19 +305,31 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to unstake, in 18 decimals.
     function unstake(uint128 vaultId, uint256 shares) external {
+        // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.load(vaultId);
-        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
-        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
-        UD60x18 actorShares = distributionData.getActorShares(actorId);
-        if (actorShares.lt(ud60x18(shares))) revert Errors.NotEnoughShares();
+        // get vault staking fee distribution data
+        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
+
+        // cast actor address to bytes32
+        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
         // Accumulate shares before unstake
         distributionData.accumulateActor(actorId);
+
+        // get acctor staked shares
+        UD60x18 actorShares = distributionData.getActorShares(actorId);
+
+        // verify actora has shares amount
+        if (actorShares.lt(ud60x18(shares))) revert Errors.NotEnoughShares();
+
+        // update actor shares
         distributionData.setActorShares(actorId, actorShares.sub(ud60x18(shares)));
 
+        // transfer shares to user
         IERC20(vault.indexToken).safeTransfer(msg.sender, shares);
 
+        // emit an event
         emit LogUnstake(vaultId, msg.sender, shares);
     }
 
