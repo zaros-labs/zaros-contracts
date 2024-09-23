@@ -122,7 +122,8 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
         external 
         onlyOwner 
     {
-        if(feeRecipientsPercentage + marketPercentage != SwapStrategy.BPS_DENOMINATOR) revert Errors.PercentageValidationFailed();
+        if(feeRecipientsPercentage + marketPercentage != SwapStrategy.BPS_DENOMINATOR) 
+            revert Errors.PercentageValidationFailed();
 
         MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
 

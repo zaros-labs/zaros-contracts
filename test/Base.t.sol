@@ -112,7 +112,6 @@ abstract contract IMarketMakingEngine is
     MarketDebtHarness,
     MarketMakingEngineConfigurationHarness,
     SwapStrategyHarness,
-    CollateralHarness,
     FeeRecipientHarness
 { }
 

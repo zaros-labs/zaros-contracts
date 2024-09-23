@@ -112,14 +112,15 @@ contract FeeDistributionBranch {
         if (amount == 0) revert Errors.ZeroInput("amount");
 
         MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
-        // increment fee amount
-        marketDebtData.collectedFees.receivedOrderFees.set(asset, amount);
 
         // loads the collateral's data storage pointer
         Collateral.Data storage collateral = Collateral.load(asset);
 
         // reverts if collateral isn't supported
         collateral.verifyIsEnabled();
+
+        // increment fee amount
+        marketDebtData.collectedFees.receivedOrderFees.set(asset, amount);
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);

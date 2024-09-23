@@ -31,7 +31,7 @@ library SwapStrategy {
     struct Data {
         ISwapRouter swapRouter;
         uint24 poolFee;
-        uint256 slippage;
+        uint256 slippageTolerance;
     }
 
     /// @notice Loads a {SwapStrategy}.
@@ -46,7 +46,7 @@ library SwapStrategy {
     /// @notice Sets uniswap router address required for swapping tokens
     /// @return bool returns true if succesfully set
     function setUniswapRouterAddress(Data storage self, address routerAddress) internal returns(bool) {
-        if(routerAddress == address(0)) revert Errors.SwapRouterAddressUndefined();
+        if(routerAddress == address(0)) revert Errors.ZeroInput("swapRouter address");
         self.swapRouter = ISwapRouter(routerAddress);
 
         return true;
@@ -60,9 +60,9 @@ library SwapStrategy {
     }
     /// @notice Sets the slippage tolerance
     /// @dev the minimum is 100 (e.g. 1%)
-    function setSlippageTolerance(Data storage self, uint256 newSlippage) internal {
-        if(newSlippage < MIN_SLIPPAGE_TOLERANCE) revert Errors.InvalidSlippage();
-        self.slippage = newSlippage;
+    function setSlippageTolerance(Data storage self, uint256 newSlippageTolerance) internal {
+        if(newSlippageTolerance < MIN_SLIPPAGE_TOLERANCE) revert Errors.InvalidSlippage();
+        self.slippageTolerance = newSlippageTolerance;
     }
 
     /// @notice Support function to swap tokens using UniswapV3
@@ -81,7 +81,7 @@ library SwapStrategy {
     {
 
         // Check if Uniswap Address is set
-        if(self.swapRouter == ISwapRouter(address(0))) revert Errors.SwapRouterAddressUndefined();
+        if(self.swapRouter == ISwapRouter(address(0))) revert Errors.ZeroInput("swapRouter address");
 
         // Approve the router to spend DAI.
         TransferHelper.safeApprove(tokenIn, address(self.swapRouter), amountIn);
@@ -93,7 +93,8 @@ library SwapStrategy {
             recipient: address(this),
             deadline: block.timestamp,
             amountIn: amountIn,
-            amountOutMinimum: SwapStrategy._calculateAmountOutMinimum(tokenIn, amountIn, tokenOut, self.slippage),
+            amountOutMinimum: 
+                SwapStrategy._calculateAmountOutMinimum(tokenIn, amountIn, tokenOut, self.slippageTolerance),
             sqrtPriceLimitX96: 0
         });
 
@@ -118,7 +119,10 @@ library SwapStrategy {
         returns (uint256 amountOutMinimum)
     {   
         // Check if price adapters are defined
-        if (Collateral.load(tokenIn).priceAdapter == address(0) || Collateral.load(tokenOut).priceAdapter == address(0)) {
+        if (
+            Collateral.load(tokenIn).priceAdapter == address(0) 
+            || Collateral.load(tokenOut).priceAdapter == address(0)
+        ) {
             revert Errors.PriceAdapterUndefined();
         }
 
