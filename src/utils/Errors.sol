@@ -213,6 +213,18 @@ library Errors {
     /// @param withdrawalRequestId The withdrawal request identifier.
     error WithdrawalRequestDoesNotExist(uint128 vaultId, address account, uint128 withdrawalRequestId);
 
+    /// @notice Thrown when Uniswap pool fee set to zero
+    error InvalidPoolFee();
+
+    /// @notice Thrown when slippage set to less than 100 (e.g. 0.1%)
+    error InvalidSlippage();
+
+    /// @notice Thrown when configuration does not exist
+    error UnrecognisedConfiguration();
+
+    /// @notice Thrown when there are no available wEth fees to be collected
+    error NoWethFeesCollected();
+
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
     /// @notice Thrown when a slippage check fails.
@@ -242,6 +254,7 @@ library Errors {
 
     /// @notice MarketMakingEngine.Vault errors.
     error NoMarketsConnectedToVault(uint128 vaultId);
+
     /// @notice Thrown when sum of percentages does not total 10_000 (e.g. 100%)
     error PercentageValidationFailed();
 
@@ -253,11 +266,5 @@ library Errors {
 
     /// @notice Thrown when Uniswap router address is not defined
     error SwapRouterAddressUndefined();
-
-    /// @notice Thrown when Uniswap pool fee set to zero
-    error InvalidPoolFee();
-
-    /// @notice Thrown when slippage set to less than 100 (e.g. 0.1%)
-    error InvalidSlippage();
 }
 

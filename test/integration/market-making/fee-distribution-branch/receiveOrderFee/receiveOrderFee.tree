@@ -2,10 +2,13 @@ ReceiveOrderFee_Integration_Test
     ├── given the caller is not market making engine
     │   └── it should revert
     └── given the caller is market making engine
-        ├── given market does not exist
+        ├── when market does not exist
         │   └── it should revert
-        └── given market exist
-            ├── given the amount is zero
+        └── when market exist
+            ├── given asset is not enabled
             │   └── it should revert
-            └── given the amount is not zero
-                └── it should execute correctly
+            └── given asset is enabled
+                ├── when the amount is zero
+                │   └── it should revert
+                └── when the amount is not zero
+                    └── it should execute correctly

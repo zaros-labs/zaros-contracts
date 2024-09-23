@@ -2,22 +2,25 @@ ConvertAccumulatedFeesToWeth_Integration_Test
     ├── given the caller is not market making engine
     │   └── it should revert
     └── given the caller is market making engine
-        ├── given market does not exist
+        ├── when market does not exist
         │   └── it should revert
-        └── given market exist
-            ├── given the amount is zero
+        └── when market exist
+            ├── when the amount is zero
             │   └── it should revert
-            └── given the amount is not zero  
-                └── given the asset exists
-                    ├── given the asset is weth
+            └── when the amount is not zero  
+                └── when the asset exists
+                    ├── when the asset is weth
                     │   └── it should divide amount between market and fee recipients
-                    └── given the asset is not weth
+                    └── when the asset is not weth
                         ├── given price adapter address is not set
                         │   └── it should revert
                         └── given price adapter address is set
                             ├── given the uniswap address is not set
                             │   └── it should revert
-                            ├── given the uniswap address is set and decimals are less than 18
-                            │   └── it should convert amount and update
-                            └── given the uniswap address is set and decimals are 18
-                                └── it should convert amount and update
+                            └── given the uniswap address is set
+                                ├── given tokenIn decimals are less than 18
+                                │   └── it should convert amount and update
+                                ├── given tokenIn decimals are 18
+                                │   └── it should convert amount and update
+                                └── given tokenIn decimals are more than 18
+                                    └── it should convert amount and update

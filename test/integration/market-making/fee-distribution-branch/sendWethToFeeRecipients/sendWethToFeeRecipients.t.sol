@@ -15,7 +15,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     
     function setUp() public virtual override {
         Base_Test.setUp();
-        createVault();
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         changePrank({ msgSender: address(perpsEngine) });
 
         marketMakingEngine.workaround_setPerpsEngineAddress(address(perpsEngine));
@@ -36,21 +36,17 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertGiven_TheMarketDoesNotExist() external givenTheCallerIsMarketMakingEngine {
+    function test_RevertWhen_TheMarketDoesNotExist() external givenTheCallerIsMarketMakingEngine {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
         marketMakingEngine.sendWethToFeeRecipients(2, 1);
     }
 
-    modifier givenTheMarketExist() {
+    modifier whenTheMarketExist() {
         _;
     }
 
-    function test_RevertGiven_ThereIsNoAvailableWeth()
-        external
-        givenTheCallerIsMarketMakingEngine
-        givenTheMarketExist
-    {
+    function test_RevertGiven_ThereIsNoAvailableWeth() external givenTheCallerIsMarketMakingEngine whenTheMarketExist {
         address[] memory addresses = new address[](3);
         addresses[0] = address(users.naruto.account);
         addresses[1] = address(users.sasuke.account);
@@ -61,11 +57,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         marketMakingEngine.sendWethToFeeRecipients(1, 0);
     }
 
-    function test_GivenThereIsWethAvailable()
-        external
-        givenTheCallerIsMarketMakingEngine
-        givenTheMarketExist
-    {
+    function test_GivenThereIsWethAvailable() external givenTheCallerIsMarketMakingEngine whenTheMarketExist {
         marketMakingEngine.workaround_setFeeRecipientsFees(1, 10e18);
 
         deal(address(wEth), address(marketMakingEngine), 10e18);

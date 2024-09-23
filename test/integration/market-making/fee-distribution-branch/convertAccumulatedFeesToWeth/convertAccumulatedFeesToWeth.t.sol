@@ -24,7 +24,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        createVault();
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         changePrank({ msgSender: address(perpsEngine) });
 
         marketMakingEngine.workaround_setPerpsEngineAddress(address(perpsEngine));
@@ -35,9 +35,30 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         MockPriceFeed usdzMockPriceFeed = new MockPriceFeed(8, 1e18);
 
         // Set collateral types params
-        marketMakingEngine.workaround_Collateral_setParams(address(wBtc), 2e18, 120, true, 8, address(wbtcMockPriceFeed));
-        marketMakingEngine.workaround_Collateral_setParams(address(wEth), 2e18, 120, true, 18, address(wethMockPriceFeed));
-        marketMakingEngine.workaround_Collateral_setParams(address(usdz), 2e18, 120, true, 18, address(usdzMockPriceFeed));
+        marketMakingEngine.workaround_Collateral_setParams(
+            address(wBtc), 
+            2e18, 
+            120, 
+            true, 
+            8, 
+            address(wbtcMockPriceFeed)
+        );
+        marketMakingEngine.workaround_Collateral_setParams(
+            address(wEth), 
+            2e18, 
+            120, 
+            true, 
+            18, 
+            address(wethMockPriceFeed)
+        );
+        marketMakingEngine.workaround_Collateral_setParams(
+            address(usdz), 
+            2e18, 
+            120, 
+            true, 
+            18, 
+            address(usdzMockPriceFeed)
+        );
 
         // set vault collateral types
         Vault.Data storage vault = Vault.load(1);
@@ -81,31 +102,36 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertGiven_MarketDoesNotExist() external givenTheCallerIsMarketMakingEngine {
+    function test_RevertWhen_MarketDoesNotExist() external givenTheCallerIsMarketMakingEngine {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
         marketMakingEngine.convertAccumulatedFeesToWeth(0, address(wBtc));
     }
 
-    modifier givenMarketExist() {
+    modifier whenMarketExist() {
         _;
     }
 
-    function test_RevertGiven_TheAmountIsZero() external givenTheCallerIsMarketMakingEngine givenMarketExist {
+    function test_RevertWhen_TheAmountIsZero() external givenTheCallerIsMarketMakingEngine whenMarketExist {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidAsset.selector) });
         marketMakingEngine.convertAccumulatedFeesToWeth(1, address(usdc));
     }
 
-    modifier givenTheAmountIsNotZero() {
+    modifier whenTheAmountIsNotZero() {
         _;
     }
 
-    function test_GivenTheAssetIsWeth()
+    modifier whenTheAssetExists() {
+        _;
+    }
+
+    function test_WhenTheAssetIsWeth()
         external
         givenTheCallerIsMarketMakingEngine
-        givenMarketExist
-        givenTheAmountIsNotZero
+        whenMarketExist
+        whenTheAmountIsNotZero
+        whenTheAssetExists
     {
         // it should emit event { LogConvertAccumulatedFeesToWeth }
         vm.expectEmit();
@@ -123,16 +149,17 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         assertEq(feeRecipientsFees, 35e17);
     }
 
-    modifier givenTheAssetIsNotWeth() {
+    modifier whenTheAssetIsNotWeth() {
         _;
     }
 
     function test_RevertGiven_PriceAdapterAddressIsNotSet()
         external
         givenTheCallerIsMarketMakingEngine
-        givenMarketExist
-        givenTheAmountIsNotZero
-        givenTheAssetIsNotWeth
+        whenMarketExist
+        whenTheAmountIsNotZero
+        whenTheAssetExists
+        whenTheAssetIsNotWeth
     {
         // Deploy MockUniswapRouter to simulate the swap
         ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
@@ -155,24 +182,31 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     function test_RevertGiven_TheUniswapAddressIsNotSet()
         external
         givenTheCallerIsMarketMakingEngine
-        givenMarketExist
-        givenTheAmountIsNotZero
-        givenTheAssetIsNotWeth
+        whenMarketExist
+        whenTheAmountIsNotZero
+        whenTheAssetExists
+        whenTheAssetIsNotWeth
         givenPriceAdapterAddressIsSet
-    { 
+    {
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.SwapRouterAddressUndefined.selector) });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "uniswap router address") });
         marketMakingEngine.convertAccumulatedFeesToWeth(1, address(wBtc));
     }
 
-    function test_GivenTheUniswapAddressIsSetAndDecimalsAreLessThan18()
+    modifier givenTheUniswapAddressIsSet() {
+        _;
+    }
+
+    function test_GivenTokenInDecimalsAreLessThan18()
         external
         givenTheCallerIsMarketMakingEngine
-        givenMarketExist
-        givenTheAmountIsNotZero
-        givenTheAssetIsNotWeth
+        whenMarketExist
+        whenTheAmountIsNotZero
+        whenTheAssetExists
+        whenTheAssetIsNotWeth
         givenPriceAdapterAddressIsSet
-    {   
+        givenTheUniswapAddressIsSet
+    {
         // Deploy MockUniswapRouter to simulate the swap
         ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
 
@@ -191,24 +225,70 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(1);
 
         (uint128 marketPercentage, uint128 feeRecipientsPercentage) = marketMakingEngine.getPercentageRatio(1);
+
         // it should divide amount between market and fee recipients
         assertEq(marketFees, (10e18 * marketPercentage) / SwapStrategy.BPS_DENOMINATOR);
         assertEq(feeRecipientsFees, (10e18 * feeRecipientsPercentage) / SwapStrategy.BPS_DENOMINATOR);  
     }
 
-    function test_GivenTheUniswapAddressAndDecimalsAre18()
+    function test_GivenTokenInDecimalsAre18()
         external
         givenTheCallerIsMarketMakingEngine
-        givenMarketExist
-        givenTheAmountIsNotZero
-        givenTheAssetIsNotWeth
+        whenMarketExist
+        whenTheAmountIsNotZero
+        whenTheAssetExists
+        whenTheAssetIsNotWeth
         givenPriceAdapterAddressIsSet
-    {   
+        givenTheUniswapAddressIsSet
+    {
         // Deploy MockUniswapRouter to simulate the swap
         ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
 
         // Mock the Uniswap router
         marketMakingEngine.exposed_setUniswapRouterAddress(address(swapRouter)); 
+
+        // Expect event emitted for fee conversion 
+        vm.expectEmit();
+        emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(usdz), 10e18, 10e18); 
+
+        // Call the function to convert accumulated fees to WETH from usdz (token with 18 decimalsa)
+        marketMakingEngine.convertAccumulatedFeesToWeth(1, address(usdz));
+
+        // Check the resulting split of fees between market and fee recipients  
+        uint256 marketFees = marketMakingEngine.workaround_getMarketFees(1);
+        uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(1);
+
+        // it should divide amount between market and fee recipients
+        assertEq(marketFees, (10e18 * 6500) / 10000);
+        assertEq(feeRecipientsFees, (10e18 * 3500) / 10000);  
+    }
+
+    function test_GivenTokenInDecimalsAreMoreThan18()
+        external
+        givenTheCallerIsMarketMakingEngine
+        whenMarketExist
+        whenTheAmountIsNotZero
+        whenTheAssetExists
+        whenTheAssetIsNotWeth
+        givenPriceAdapterAddressIsSet
+        givenTheUniswapAddressIsSet
+    {
+        // Deploy MockUniswapRouter to simulate the swap
+        ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
+
+        // Mock the Uniswap router
+        marketMakingEngine.exposed_setUniswapRouterAddress(address(swapRouter)); 
+        
+        // Set tokenIn decimals > 18
+        MockPriceFeed usdzMockPriceFeed = new MockPriceFeed(8, 1e18);
+        marketMakingEngine.workaround_Collateral_setParams(
+            address(usdz), 
+            2e18, 
+            120, 
+            true, 
+            20, 
+            address(usdzMockPriceFeed)
+        );
 
         // Expect event emitted for fee conversion 
         vm.expectEmit();

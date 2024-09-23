@@ -607,10 +607,6 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     swapStrategyHarnessSelectors[1] = SwapStrategyHarness.exposed_setPoolFee.selector;
     swapStrategyHarnessSelectors[2] = SwapStrategyHarness.exposed_setSlippageTolerance.selector;
 
-    bytes4[] memory collateralHarnessSelectors = new bytes4[](2);
-    collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;
-    collateralHarnessSelectors[1] = CollateralHarness.workaround_Collateral_setParams.selector;
-
     bytes4[] memory feeRecipientHarnessSelectors = new bytes4[](2);
     feeRecipientHarnessSelectors[0] = FeeRecipientHarness.exposed_FeeRecipient_load.selector;
     feeRecipientHarnessSelectors[1] = FeeRecipientHarness.workaround_setFeeRecipientShares.selector;

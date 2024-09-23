@@ -11,7 +11,7 @@ import { sd59x18 } from "@prb-math/SD59x18.sol";
 contract GetEarnedFees_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        createVault();
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         changePrank({ msgSender: users.naruto.account });
     }
 
