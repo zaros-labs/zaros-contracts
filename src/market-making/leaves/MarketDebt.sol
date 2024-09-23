@@ -14,7 +14,8 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-/// @dev NOTE: realized debt -> unsettled debt -> settled debt
+/// @dev NOTE: unrealized debt (from perp market) -> realized debt (market debt) -> unsettled debt (vaults) -> settled
+/// debt (vaults)
 /// TODO: do we only send realized debt as unsettled debt to the vaults? should it be considered settled debt? or do
 /// we send the entire reported debt as unsettled debt?
 library MarketDebt {

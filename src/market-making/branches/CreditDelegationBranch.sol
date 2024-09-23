@@ -86,6 +86,7 @@ contract CreditDelegationBranch {
     /// @param marketId The perps engine's market id.
     /// @param profitUsd The position's profit in USD.
     /// @return adjustedProfitUsdX18 The adjusted profit in USDz, according to the market's state.
+    // TODO: add invariants
     function getAdjustedProfitForMarketId(
         uint128 marketId,
         uint256 profitUsd
@@ -101,6 +102,11 @@ contract CreditDelegationBranch {
         // uint256 -> UD60x18
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
+        SD59x18 creditCapacityUsdX18 = marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit());
+
+        // TODO: is this check needed?
+        if (creditCapacityUsdX18.lte(SD59x18_ZERO)) revert Errors.InsufficientCreditCapacity(marketId, profitUsd);
+
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
         // NOTE: If this if doesn't stop execution, we assume marketTotalDebtUsdX18 is positive
         if (!marketDebt.isAutoDeleverageTriggered(marketTotalDebtUsdX18)) {
@@ -109,11 +115,8 @@ contract CreditDelegationBranch {
             return adjustedProfitUsdX18;
         }
 
-        // if the market is in the ADL state, it reduces the profit by multiplying it by the ADL factor
-        // TODO: check credit capacity > profitUsd or 0
-        UD60x18 creditCapacityUsdX18 = marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit()).intoUD60x18;
         adjustedProfitUsdX18 = marketDebt.getAutoDeleverageFactor(
-            creditCapacityUsdX18, marketTotalDebtUsdX18.intoUD60x18()
+            creditCapacityUsdX18.intoUD60x18(), marketTotalDebtUsdX18.intoUD60x18()
         ).mul(profitUsdX18);
     }
 
@@ -275,6 +278,8 @@ contract CreditDelegationBranch {
     /// credit to `n` markets, configured by the protocol admin.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
+    // TODO: update credit delegation and debt distribution chain
+    // TODO: how to account for collected margin collateral's fluctuation in value?
     function updateCreditDelegation() public { }
 
     /// @dev Called by the perps trading engine to update the credit delegation and return the credit for a given
