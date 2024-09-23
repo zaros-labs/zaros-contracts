@@ -109,19 +109,23 @@ library MarketDebt {
     /// where:
     /// marketDebtRatio = MarketDebt::getTotalDebt / MarketDebt::getCreditCapacity
     /// @param self The market debt storage pointer.
+    /// @param creditCapacityUsdX18 The market's credit capacity in USD.
+    /// @param absoluteTotalDebtUsdX18 The market's total debt in USD in absolute value.
+    /// @dev IMPORTANT: This function assumes the market is in net debt. If the market is in net credit,
+    /// this function must not be called otherwise it will return an incorrect deleverage factor.
     /// @return autoDeleverageFactor A decimal rate which determines how much should the market cut of the position's
     /// profit. Goes from 0 to 1.
     function getAutoDeleverageFactor(
         Data storage self,
         UD60x18 creditCapacityUsdX18,
-        SD59x18 totalDebtUsdX18
+        UD60x18 absoluteTotalDebtUsdX18
     )
         internal
         view
         returns (UD60x18 autoDeleverageFactor)
     {
         // calculates the market debt ratio
-        UD60x18 marketDebtRatio = totalDebtUsdX18.div(creditCapacityUsdX18);
+        UD60x18 marketDebtRatio = absoluteTotalDebtUsdX18.div(creditCapacityUsdX18);
 
         // cache the auto deleverage parameters as UD60x18
         UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
@@ -209,4 +213,6 @@ library MarketDebt {
     function realizeDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
         self.realizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
     }
+
+    function recalculateDelegatedCredit(Data storage self) internal { }
 }

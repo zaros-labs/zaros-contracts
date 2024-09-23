@@ -102,6 +102,7 @@ contract CreditDelegationBranch {
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
+        // NOTE: If this if doesn't stop execution, we assume marketTotalDebtUsdX18 is positive
         if (!marketDebt.isAutoDeleverageTriggered(marketTotalDebtUsdX18)) {
             // if the market is not in the ADL state, it returns the profit as is
             adjustedProfitUsdX18 = profitUsdX18;
@@ -109,7 +110,11 @@ contract CreditDelegationBranch {
         }
 
         // if the market is in the ADL state, it reduces the profit by multiplying it by the ADL factor
-        adjustedProfitUsdX18 = marketDebt.getAutoDeleverageFactor().mul(profitUsdX18);
+        // TODO: check credit capacity > profitUsd or 0
+        UD60x18 creditCapacityUsdX18 = marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit()).intoUD60x18;
+        adjustedProfitUsdX18 = marketDebt.getAutoDeleverageFactor(
+            creditCapacityUsdX18, marketTotalDebtUsdX18.intoUD60x18()
+        ).mul(profitUsdX18);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -147,18 +152,18 @@ contract CreditDelegationBranch {
         // loads the market's debt data storage pointer
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        // enforces that the market has delegated credit, if it' a listed market it must always have delegated credit,
-        // see Vault.lockedCreditRatio
+        // enforces that the market has enough credit capacity, if it' a listed market it must always have some
+        // delegated credit, see Vault.Data.lockedCreditRatio.
+        // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
+        // capacity to cover USDz mint requests. Deleverage happens when the perps engine calls
+        // CreditDelegationBranch::getAdjustedProfitForMarketId
         if (marketDebt.getDelegatedCredit().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
-        if (marketDebt.getCreditCapacity().lt(SD59x18_ZERO)) {
-            revert Errors.NoCreditCapacity(marketId);
-        }
-
         // uint256 -> UD60x18 and scale decimals to 18
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
+
         // adds the collected margin collateral to the market's debt data storage, to be settled later
         marketDebt.addMarginCollateral(collateralType, amount);
 
@@ -194,15 +199,21 @@ contract CreditDelegationBranch {
         // we need to first recalculate the latest credit delegation state
         marketDebt.recalculateDelegatedCredit();
 
-        // enforces that the market has delegated credit, if it' a listed market it must always have delegated credit,
-        // see Vault.Data.lockedCreditRatio
+        // uint256 -> UD60x18
+        // NOTE: we don't need to scale decimals here as it's known that USDz has 18 decimals
+        UD60x18 amountX18 = ud60x18(amount);
+        // cache the market's delegated credit
         UD60x18 delegatedCreditUsdX18 = marketDebt.getDelegatedCredit();
-        if (delegatedCreditUsdX18.isZero()) {
-            revert Errors.NoDelegatedCredit(marketId);
+
+        // enforces that the market has enough credit capacity, if it' a listed market it must always have some
+        // delegated credit, see Vault.Data.lockedCreditRatio.
+        // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
+        // capacity to cover USDz mint requests. Deleverage happens when the perps engine calls
+        // CreditDelegationBranch::getAdjustedProfitForMarketId
+        if (marketDebt.getCreditCapacity(delegatedCreditUsdX18).lt(amountX18.intoSD59x18())) {
+            revert Errors.InsufficientCreditCapacity(marketId, amountX18.intoUint256());
         }
 
-        // uint256 -> UD60x18
-        UD60x18 amountX18 = ud60x18(amount);
         // prepare the amount of usdz that will be minted to the perps engine
         uint256 amountToMint;
         // cache the market's total debt
@@ -214,7 +225,7 @@ contract CreditDelegationBranch {
             // if the market is in the ADL state, it reduces the requested USDz amount by multiplying it by the ADL
             // factor, which must be < 1
             UD60x18 adjustedUsdzToMintX18 = marketDebt.getAutoDeleverageFactor(
-                marketDebt.getCreditCapacity(), marketTotalDebtUsdX18
+                marketDebt.getCreditCapacity(delegatedCreditUsdX18).intoUD60x18(), marketTotalDebtUsdX18.intoUD60x18()
             ).mul(amountX18);
             amountToMint = adjustedUsdzToMintX18.intoUint256();
             marketDebt.realizeDebt(adjustedUsdzToMintX18.intoSD59x18());
