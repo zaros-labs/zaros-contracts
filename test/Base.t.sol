@@ -145,7 +145,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches);
         bytes[] memory initializePayloads =
-            getInitializePayloads(users.owner.account, address(tradingAccountToken), address(0));
+            getInitializePayloads(users.owner.account, address(tradingAccountToken));
 
         branchUpgrades = deployHarnesses(branchUpgrades);
 
@@ -178,8 +178,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.label({ account: address(wstEth), newLabel: marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].symbol });
         vm.label({ account: address(wEth), newLabel: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].symbol });
         vm.label({ account: address(wBtc), newLabel: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].symbol });
-
-        perpsEngine.setUsdToken(address(usdz));
 
         configureContracts();
 
@@ -249,6 +247,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function configureContracts() internal {
+        perpsEngine.setUsdToken(address(usdz));
+
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         // TODO: Temporary, switch to Market Making engine

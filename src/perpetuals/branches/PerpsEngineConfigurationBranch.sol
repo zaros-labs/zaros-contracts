@@ -130,11 +130,10 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
 
     /// @dev The Ownable contract is initialized at the UpgradeBranch.
     /// @dev {PerpsEngineConfigurationBranch} UUPS initializer.
-    function initialize(address tradingAccountToken, address usdToken) external initializer {
+    function initialize(address tradingAccountToken) external initializer {
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         perpsEngineConfiguration.tradingAccountToken = tradingAccountToken;
-        perpsEngineConfiguration.usdToken = usdToken;
     }
 
     /// @param lowerBound The lower bound of the accounts to retrieve.
