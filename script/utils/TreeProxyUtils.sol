@@ -211,34 +211,28 @@ function getBranchUpgrades(
 }
 
 function getInitializables(address[] memory branches) pure returns (address[] memory) {
-    address[] memory initializables = new address[](2);
+    address[] memory initializables = new address[](1);
 
     address upgradeBranch = branches[0];
-    address perpsEngineConfigurationBranch = branches[2];
 
     initializables[0] = upgradeBranch;
-    initializables[1] = perpsEngineConfigurationBranch;
 
     return initializables;
 }
 
 function getInitializePayloads(
-    address deployer,
-    address tradingAccountToken
+    address deployer
 )
     pure
     returns (bytes[] memory)
 {
-    bytes[] memory initializePayloads = new bytes[](2);
+    bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
-    bytes memory perpsEngineInitializeData =
-        abi.encodeWithSelector(PerpsEngineConfigurationBranch.initialize.selector, tradingAccountToken);
 
-    initializePayloads = new bytes[](2);
+    initializePayloads = new bytes[](1);
 
     initializePayloads[0] = rootUpgradeInitializeData;
-    initializePayloads[1] = perpsEngineInitializeData;
 
     return initializePayloads;
 }

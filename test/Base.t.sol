@@ -145,7 +145,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches);
         bytes[] memory initializePayloads =
-            getInitializePayloads(users.owner.account, address(tradingAccountToken));
+            getInitializePayloads(users.owner.account);
 
         branchUpgrades = deployHarnesses(branchUpgrades);
 
@@ -248,6 +248,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function configureContracts() internal {
         perpsEngine.setUsdToken(address(usdz));
+        perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
         tradingAccountToken.transferOwnership(address(perpsEngine));
 

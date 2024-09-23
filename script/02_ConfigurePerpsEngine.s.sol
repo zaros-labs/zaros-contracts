@@ -70,6 +70,8 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
 
         perpsEngine.setUsdToken(usdToken);
 
+        perpsEngine.setTradingAccountToken(address(tradingAccountToken));
+
         LimitedMintingERC20(USDZ_ADDRESS).transferOwnership(address(perpsEngine));
     }
 }

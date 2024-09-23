@@ -44,6 +44,8 @@ forge script script/testnet/DeployTestnetTokens.s.sol --rpc-url arbitrum_sepolia
 
 - Update `USDC_ADDRESS` in the `Usdc.sol`
 - Update `USDZ_ADDRESS`in the `Usdz.sol`
+- Update `USDC` environment variable in the `.env` file
+- Update `USDZ` environment variable in the `.env` file
 
 ————————————————————————————————————————————————————
 ```bash
