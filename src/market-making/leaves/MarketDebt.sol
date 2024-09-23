@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { Math } from "@zaros/utils/Math.sol";
 import { Distribution } from "./Distribution.sol";
 
 // Open Zeppelin dependencies
@@ -74,6 +75,29 @@ library MarketDebt {
         }
     }
 
+    /// @notice Updates the market debt's configuration parameters.
+    /// @dev See {MarketDebt.Data} for parameters description.
+    /// @dev Calls to this function must be protected by an authorization modifier.
+    function configure(
+        uint128 marketId,
+        uint128 autoDeleverageStartThreshold,
+        uint128 autoDeleverageEndThreshold,
+        uint128 autoDeleveragePowerScale,
+        uint128 openInterestCapScale,
+        uint128 skewCapScale
+    )
+        internal
+    {
+        Data storage self = load(marketId);
+
+        self.marketId = marketId;
+        self.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
+        self.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
+        self.autoDeleveragePowerScale = autoDeleveragePowerScale;
+        self.openInterestCapScale = openInterestCapScale;
+        self.skewCapScale = skewCapScale;
+    }
+
     /// @notice Computes the auto delevarage factor of the market based on the market's credit capacity, total debt
     /// and its configured ADL parameters.
     /// @dev The auto deleverage factor is the `y` coordinate of the following polynomial regression curve:
@@ -95,7 +119,23 @@ library MarketDebt {
         internal
         view
         returns (UD60x18 autoDeleverageFactor)
-    { }
+    {
+        // calculates the market debt ratio
+        UD60x18 marketDebtRatio = totalDebtUsdX18.div(creditCapacityUsdX18);
+
+        // cache the auto deleverage parameters as UD60x18
+        UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
+        UD60x18 autoDeleverageEndThresholdX18 = ud60x18(self.autoDeleverageEndThreshold);
+        UD60x18 autoDeleveragePowerScaleX18 = ud60x18(self.autoDeleveragePowerScale);
+
+        // first, calculate the unscaled delevarage factor
+        UD60x18 unscaledDeleverageFactor = Math.min(marketDebtRatio, autoDeleverageEndThresholdX18).sub(
+            autoDeleverageStartThresholdX18
+        ).div(autoDeleverageEndThresholdX18.sub(autoDeleverageStartThresholdX18));
+
+        // finally, raise to the power scale
+        autoDeleverageFactor = unscaledDeleverageFactor.pow(autoDeleveragePowerScaleX18);
+    }
 
     function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaultsIds) {
         if (self.connectedVaultsIds.length == 0) {
