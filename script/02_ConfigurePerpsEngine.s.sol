@@ -17,22 +17,18 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    uint256 internal keeperInitialLinkFunding;
+    address internal usdToken;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     TradingAccountNFT internal tradingAccountToken;
-    address internal link;
-    address internal automationRegistrar;
     IPerpsEngine internal perpsEngine;
 
     function run(uint256 initialMarginCollateralId, uint256 finalMarginCollateralId) public broadcaster {
         tradingAccountToken = TradingAccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
-        link = vm.envAddress("LINK");
-        automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
-        keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
+        usdToken = vm.envAddress("USDZ");
 
         configureContracts(initialMarginCollateralId, finalMarginCollateralId);
     }
@@ -71,6 +67,10 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         liquidatorStatus[0] = true;
 
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
+
+        perpsEngine.setUsdToken(usdToken);
+
+        perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
         LimitedMintingERC20(USDZ_ADDRESS).transferOwnership(address(perpsEngine));
     }

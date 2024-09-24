@@ -15,13 +15,12 @@ import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralC
 // Open Zeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
-import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 /// @title Perps Engine Configuration Branch.
 /// @notice This  is used by the protocol controller to configure the perps
 /// exchange system.
-contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
+contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.UintSet;
     using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
     using PerpMarket for PerpMarket.Data;
@@ -126,15 +125,6 @@ contract PerpsEngineConfigurationBranch is Initializable, OwnableUpgradeable {
         }
 
         _;
-    }
-
-    /// @dev The Ownable contract is initialized at the UpgradeBranch.
-    /// @dev {PerpsEngineConfigurationBranch} UUPS initializer.
-    function initialize(address tradingAccountToken, address usdToken) external initializer {
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
-
-        perpsEngineConfiguration.tradingAccountToken = tradingAccountToken;
-        perpsEngineConfiguration.usdToken = usdToken;
     }
 
     /// @param lowerBound The lower bound of the accounts to retrieve.
