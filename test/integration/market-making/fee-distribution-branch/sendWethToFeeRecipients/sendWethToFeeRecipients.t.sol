@@ -15,31 +15,31 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     
     function setUp() public virtual override {
         Base_Test.setUp();
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         changePrank({ msgSender: address(perpsEngine) });
 
         marketMakingEngine.workaround_setPerpsEngineAddress(address(perpsEngine));
 
         // Set the market ID and WETH address
-        marketMakingEngine.workaround_setMarketId(1, 1);
+        setMarketDebtId(INITIAL_MARKET_DEBT_ID);
         marketMakingEngine.workaround_setWethAddress(address(wEth));
     }
 
-    function test_RevertGiven_TheCallerIsNotMarketMakingEngine() external {
-        changePrank({ msgSender: users.naruto.account });
+    function testFuzz_RevertGiven_TheCallerIsNotMarketMakingEngine(address user) external {
+        changePrank({ msgSender: user });
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account ) });
-        marketMakingEngine.sendWethToFeeRecipients(1, 1);
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, user ) });
+        marketMakingEngine.sendWethToFeeRecipients(INITIAL_MARKET_DEBT_ID, CONFIGURATION_ID);
     }
 
     modifier givenTheCallerIsMarketMakingEngine() {
         _;
     }
 
-    function test_RevertWhen_TheMarketDoesNotExist() external givenTheCallerIsMarketMakingEngine {
+    function testFuzz_RevertWhen_TheMarketDoesNotExist(uint128 marketId) external givenTheCallerIsMarketMakingEngine {
+        vm.assume(marketId != INITIAL_MARKET_DEBT_ID);
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
-        marketMakingEngine.sendWethToFeeRecipients(2, 1);
+        marketMakingEngine.sendWethToFeeRecipients(marketId, CONFIGURATION_ID);
     }
 
     modifier whenTheMarketExist() {
@@ -52,15 +52,26 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         addresses[1] = address(users.sasuke.account);
         addresses[2] = address(users.sakura.account);
         marketMakingEngine.workaround_setFeeRecipients(addresses);
+
+        uint256 configurationPlace = 0;
+
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoWethFeesCollected.selector) });
-        marketMakingEngine.sendWethToFeeRecipients(1, 0);
+        marketMakingEngine.sendWethToFeeRecipients(INITIAL_MARKET_DEBT_ID, configurationPlace);
     }
 
-    function test_GivenThereIsWethAvailable() external givenTheCallerIsMarketMakingEngine whenTheMarketExist {
-        marketMakingEngine.workaround_setFeeRecipientsFees(1, 10e18);
+    function testFuuz_GivenThereIsWethAvailable(
+        uint256 amountToReceive
+    ) 
+        external 
+        givenTheCallerIsMarketMakingEngine 
+        whenTheMarketExist 
+    {
+        amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
 
-        deal(address(wEth), address(marketMakingEngine), 10e18);
+        marketMakingEngine.workaround_setFeeRecipientsFees(INITIAL_MARKET_DEBT_ID, amountToReceive);
+
+        deal(address(wEth), address(marketMakingEngine), amountToReceive);
 
         address[] memory addresses = new address[](3);
         addresses[0] = address(users.naruto.account);
@@ -68,23 +79,37 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         addresses[2] = address(users.sakura.account);
         marketMakingEngine.workaround_setFeeRecipients(addresses);
 
-        marketMakingEngine.workaround_setFeeRecipientShares(address(users.naruto.account), 1000);
-        marketMakingEngine.workaround_setFeeRecipientShares(address(users.sasuke.account), 500);
-        marketMakingEngine.workaround_setFeeRecipientShares(address(users.sakura.account), 500);
+        uint256 userOneShares = 1000;
+        uint256 usersShares = 500;
+        uint256 totalShares = 2000;
+        uint256 configurationPlace = 0;
+
+        // set fee recipients shares 
+        marketMakingEngine.workaround_setFeeRecipientShares(address(users.naruto.account), userOneShares);
+        marketMakingEngine.workaround_setFeeRecipientShares(address(users.sasuke.account), usersShares);
+        marketMakingEngine.workaround_setFeeRecipientShares(address(users.sakura.account), usersShares);
 
         // Expect event emitted for fee conversion 
         vm.expectEmit();
-        emit FeeDistributionBranch.LogSendWethToFeeRecipients(address(users.naruto.account), 5e18);
+        emit FeeDistributionBranch.LogSendWethToFeeRecipients(
+            address(users.naruto.account),
+            (amountToReceive* userOneShares)/totalShares
+        );
         vm.expectEmit();
-        emit FeeDistributionBranch.LogSendWethToFeeRecipients(address(users.sasuke.account), 25e17);
+        emit FeeDistributionBranch.LogSendWethToFeeRecipients(
+            address(users.sasuke.account), 
+            (amountToReceive* usersShares)/totalShares
+        );
         vm.expectEmit();
-        emit FeeDistributionBranch.LogSendWethToFeeRecipients(address(users.sakura.account), 25e17);
+        emit FeeDistributionBranch.LogSendWethToFeeRecipients(
+            address(users.sakura.account), 
+            (amountToReceive* usersShares)/totalShares
+        );
 
         // it should distribute weth to fee recipients
-        marketMakingEngine.sendWethToFeeRecipients(1, 0);
-
-        assertEq(IERC20(address(wEth)).balanceOf(address(users.sasuke.account)), 25e17);
-        assertEq(IERC20(address(wEth)).balanceOf(address(users.naruto.account)), 5e18);
-        assertEq(IERC20(address(wEth)).balanceOf(address(users.sakura.account)), 25e17);
+        marketMakingEngine.sendWethToFeeRecipients(INITIAL_MARKET_DEBT_ID, configurationPlace);
+        assertEq(IERC20(address(wEth)).balanceOf(address(users.naruto.account)), (amountToReceive* userOneShares)/totalShares);
+        assertEq(IERC20(address(wEth)).balanceOf(address(users.sasuke.account)), (amountToReceive* usersShares)/totalShares);
+        assertEq(IERC20(address(wEth)).balanceOf(address(users.sakura.account)), (amountToReceive* usersShares)/totalShares);
     }
 }

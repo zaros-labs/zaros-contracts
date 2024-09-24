@@ -403,6 +403,21 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketMakingEngine.stake(vaultId, sharesToStake, new bytes(0), false);
     }
 
+    function setMarketDebtId(uint128 marketId) internal {
+        marketMakingEngine.workaround_setMarketId(marketId);
+    }
+
+    function receiveOrderFeeInFeeDistribution(
+        address token,
+        uint256 amountToReceive
+    ) 
+        internal 
+    {
+        deal(token, address(perpsEngine), amountToReceive);
+        IERC20(token).approve(address(marketMakingEngine), amountToReceive);
+        marketMakingEngine.receiveOrderFee(INITIAL_MARKET_DEBT_ID, token, amountToReceive);
+    }
+
     function getFuzzVaultConfig(uint256 vaultId) internal view returns (VaultConfig memory) {
         vaultId = bound({ x: vaultId, min: INITIAL_VAULT_ID, max: FINAL_VAULT_ID });
 

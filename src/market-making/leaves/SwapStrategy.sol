@@ -14,7 +14,6 @@ import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { IERC20Metadata } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";

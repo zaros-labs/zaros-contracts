@@ -5,18 +5,23 @@ pragma solidity 0.8.25;
 import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
 
 contract SwapStrategyHarness {
+    function exposed_UniswapRouterAddress_load() external view returns (SwapStrategy.Data memory){
+        SwapStrategy.Data storage swapStrategyData = SwapStrategy.load();
+        return swapStrategyData;
+    }
+
     function exposed_setUniswapRouterAddress(address swapRouter) external {
-        SwapStrategy.Data storage self = SwapStrategy.load();
-        SwapStrategy.setUniswapRouterAddress(self, swapRouter);
+        SwapStrategy.Data storage swapStrategyData = SwapStrategy.load();
+        SwapStrategy.setUniswapRouterAddress(swapStrategyData, swapRouter);
     }
 
     function exposed_setPoolFee(uint24 newFee) external {
-        SwapStrategy.Data storage self = SwapStrategy.load();
-        SwapStrategy.setPoolFee(self, newFee);
+        SwapStrategy.Data storage swapStrategyData = SwapStrategy.load();
+        SwapStrategy.setPoolFee(swapStrategyData, newFee);
     }
 
     function exposed_setSlippageTolerance(uint256 newSlippage) external {
-        SwapStrategy.Data storage self = SwapStrategy.load();
-        SwapStrategy.setSlippageTolerance(self, newSlippage);
+        SwapStrategy.Data storage swapStrategyData = SwapStrategy.load();
+        SwapStrategy.setSlippageTolerance(swapStrategyData, newSlippage);
     }
 }
