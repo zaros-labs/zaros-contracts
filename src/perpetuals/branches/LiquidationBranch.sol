@@ -59,18 +59,15 @@ contract LiquidationBranch {
         // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
-        // cache active account ids length
-        uint256 cachedAccountsIdsWithActivePositionsLength =
-            perpsEngineConfiguration.accountsIdsWithActivePositions.length();
-
         // iterate over active accounts within given bounds
         for (uint256 i; i <= upperBound - lowerBound; i++) {
-            // break if `i` greater then length of active account ids
-            if (i >= cachedAccountsIdsWithActivePositionsLength) break;
+            // skip if the account doesn't have active positions
+            if (!perpsEngineConfiguration.accountsIdsWithActivePositions.contains(lowerBound + i)) {
+                continue;
+            }
 
             // get the `tradingAccountId` of the current active account
-            uint128 tradingAccountId =
-                uint128(perpsEngineConfiguration.accountsIdsWithActivePositions.at((lowerBound + i) - 1));
+            uint128 tradingAccountId = uint128(lowerBound + i);
 
             // load that account's leaf (data + functions)
             TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
