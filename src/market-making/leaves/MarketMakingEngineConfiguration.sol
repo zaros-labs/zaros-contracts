@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-// Zaros dependencies
-import { FeeRecipient } from "@zaros/market-making/leaves/FeeRecipient.sol";
+import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
 
 library MarketMakingEngineConfiguration {
     /// @notice ERC7201 storage location.

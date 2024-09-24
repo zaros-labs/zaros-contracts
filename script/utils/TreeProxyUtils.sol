@@ -602,10 +602,11 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigurationSelectors[2] =
         MarketMakingEngineConfigurationHarness.workaround_setFeeRecipients.selector;
 
-    bytes4[] memory swapStrategyHarnessSelectors = new bytes4[](3);
+    bytes4[] memory swapStrategyHarnessSelectors = new bytes4[](4);
     swapStrategyHarnessSelectors[0] = SwapStrategyHarness.exposed_setUniswapRouterAddress.selector;
     swapStrategyHarnessSelectors[1] = SwapStrategyHarness.exposed_setPoolFee.selector;
     swapStrategyHarnessSelectors[2] = SwapStrategyHarness.exposed_setSlippageTolerance.selector;
+    swapStrategyHarnessSelectors[3] = SwapStrategyHarness.exposed_UniswapRouterAddress_load.selector;
 
     bytes4[] memory feeRecipientHarnessSelectors = new bytes4[](2);
     feeRecipientHarnessSelectors[0] = FeeRecipientHarness.exposed_FeeRecipient_load.selector;

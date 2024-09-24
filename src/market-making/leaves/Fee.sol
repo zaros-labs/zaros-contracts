@@ -5,8 +5,7 @@ pragma solidity 0.8.25;
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import "@prb-math/Common.sol";
 
 library Fee {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -42,15 +41,14 @@ library Fee {
     /// @param portion The portion or share that needs to be calculated
     /// @param denominator The denominator representing the total divisions or base value
     function calculateFees(
-        UD60x18 totalAmount,
-        UD60x18 portion,
-        UD60x18 denominator
+        uint256 totalAmount,
+        uint256 portion,
+        uint256 denominator
     )
         internal
         pure
         returns (uint256 amount)
-    {
-        UD60x18 accumulatedShareValue = totalAmount.mul(portion);
-        amount = accumulatedShareValue.div(denominator).intoUint256();
+    {   
+        amount = mulDiv(totalAmount, portion, denominator);
     }
 }

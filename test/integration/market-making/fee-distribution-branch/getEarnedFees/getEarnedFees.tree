@@ -1,5 +1,8 @@
 GetEarnedFees_Integration_Test
-    ├── given the user has staked
-    │   └── it should return fee amount
-    └── given the user has not staked
-        └── it should return 0
+    ├── when vault does not exist
+    │   └── it should revert
+    └── when vault does exist
+        ├── given the user has staked
+        │   └── it should return fee amount
+        └── given the user has not staked
+            └── it should return 0

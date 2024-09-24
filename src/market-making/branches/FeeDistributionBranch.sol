@@ -15,7 +15,7 @@ import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
@@ -80,6 +80,8 @@ contract FeeDistributionBranch {
     function getEarnedFees(uint128 vaultId, address staker) external view returns (uint256 earnedFees) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
+        if(!vaultData.collateral.isEnabled) revert Errors.VaultDoesNotExist();
+
         bytes32 actorId = bytes32(uint256(uint160(staker)));
 
         UD60x18 actorShares = vaultData.stakingFeeDistribution.getActorShares(actorId);
@@ -88,7 +90,6 @@ contract FeeDistributionBranch {
 
         UD60x18 unsignedValuePerShare = lastValuePerShare.intoUD60x18();
 
-        // Calculates actor::lastValuePerShare * actor::shares
         UD60x18 claimableAmount = unsignedValuePerShare.mul(actorShares);
 
         earnedFees = claimableAmount.intoUint256();
@@ -147,13 +148,13 @@ contract FeeDistributionBranch {
 
         address weth = MarketMakingEngineConfiguration.load().weth;
 
-        UD60x18 _accumulatedWeth;
+        uint256 _accumulatedWeth;
 
         uint256 assetAmount = marketDebtData.collectedFees.receivedOrderFees.get(asset);
 
         if(asset == weth){
 
-            _accumulatedWeth = _accumulatedWeth.add(ud60x18(assetAmount));  
+            _accumulatedWeth = ud60x18(_accumulatedWeth).add(ud60x18(assetAmount)).intoUint256();  
 
             marketDebtData.collectedFees.receivedOrderFees.remove(asset);
 
@@ -167,7 +168,7 @@ contract FeeDistributionBranch {
 
             // Swap collected collateral fee amount for WETH and store the obtained amount
             uint256 tokensSwapped = SwapStrategy.swapExactTokens(swapData, asset, assetAmount, weth);
-            _accumulatedWeth = _accumulatedWeth.add(ud60x18(tokensSwapped));
+            _accumulatedWeth = ud60x18(_accumulatedWeth).add(ud60x18(tokensSwapped)).intoUint256();
 
             emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, tokensSwapped);
         }
@@ -175,13 +176,13 @@ contract FeeDistributionBranch {
         // Calculate and distribute shares of the converted fees 
         uint256 marketShare = Fee.calculateFees(
                     _accumulatedWeth, 
-                    ud60x18(marketDebtData.collectedFees.marketPercentage), 
-                    ud60x18(SwapStrategy.BPS_DENOMINATOR)
+                    marketDebtData.collectedFees.marketPercentage, 
+                    SwapStrategy.BPS_DENOMINATOR
                 );
         uint256 feeRecipientsShare = Fee.calculateFees(
                     _accumulatedWeth, 
-                    ud60x18(marketDebtData.collectedFees.feeRecipientsPercentage), 
-                    ud60x18(SwapStrategy.BPS_DENOMINATOR)
+                    marketDebtData.collectedFees.feeRecipientsPercentage, 
+                    SwapStrategy.BPS_DENOMINATOR
                 );
 
         marketDebtData.collectedFees.collectedFeeRecipientsFees = feeRecipientsShare;
@@ -213,21 +214,21 @@ contract FeeDistributionBranch {
 
         address wethAddr = marketMakingEngineConfigurationData.weth;
 
-        UD60x18 collectedFees = ud60x18(marketDebtData.collectedFees.collectedFeeRecipientsFees);
+        uint256 collectedFees = marketDebtData.collectedFees.collectedFeeRecipientsFees;
 
-        UD60x18 totalShares;
+        uint256 totalShares;
 
         uint256 recepientListLength = recipientsList.length;
         
         for(uint i; i < recepientListLength; ++i){
-            totalShares = totalShares.add(ud60x18(FeeRecipient.load(recipientsList[i]).share));    
+            totalShares = ud60x18(totalShares).add(ud60x18(FeeRecipient.load(recipientsList[i]).share)).intoUint256();    
         }
 
         for(uint i; i < recepientListLength; ++i){
             address feeRecipient = recipientsList[i];
 
             uint256 amountToSend =
-                Fee.calculateFees(ud60x18(FeeRecipient.load(feeRecipient).share), collectedFees, totalShares);
+                Fee.calculateFees(FeeRecipient.load(feeRecipient).share, collectedFees, totalShares);
 
             marketDebtData.collectedFees.collectedFeeRecipientsFees = 
                 ud60x18(marketDebtData.collectedFees.collectedFeeRecipientsFees).sub(ud60x18(amountToSend)).intoUint256();

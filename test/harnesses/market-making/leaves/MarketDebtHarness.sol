@@ -15,9 +15,9 @@ contract MarketDebtHarness {
         return marketDebtData.marketId;
     }
 
-    function workaround_setMarketId(uint128 marketId, uint128 newId) external returns (uint128) {
+    function workaround_setMarketId(uint128 marketId) external returns (uint128) {
         MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
-        marketDebtData.marketId = newId;
+        marketDebtData.marketId = marketId;
         return marketDebtData.marketId;
     }
 
