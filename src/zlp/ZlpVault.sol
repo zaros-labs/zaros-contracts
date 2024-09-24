@@ -17,7 +17,7 @@ contract ZLPVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
     /// @custom:storage-location erc7201:openzeppelin.storage.ZLPVault
     struct ZLPVaultStorage {
         address marketMakingEngine;
-        uint256 decimalsOffset;
+        uint8 decimalsOffset;
     }
 
     /// @notice ERC-7201 namespace storage location.
@@ -35,7 +35,7 @@ contract ZLPVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
 
     function initialize(
         address marketMakingEngine,
-        uint256 decimalsOffset,
+        uint8 decimalsOffset,
         address owner,
         IERC20 asset_
     )
@@ -89,6 +89,14 @@ contract ZLPVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         returns (uint256)
     {
         return super.redeem(shares, receiver, owner);
+    }
+
+    /// @notice Returns the decimals offset for the Vault
+    /// Overridden and used in ERC4626
+    /// @return The decimal offset for the Vault
+    function _decimalsOffset() internal pure override returns (uint8) {
+        ZLPVaultStorage memory zlpVaultStorage = _getZLPVaultStorage();
+        return zlpVaultStorage.decimalsOffset;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner { }
