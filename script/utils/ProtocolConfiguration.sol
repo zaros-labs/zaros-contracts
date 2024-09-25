@@ -51,5 +51,5 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Sequencer
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
 
     /// @notice The maximum delay allowed for the off chain price verification.
-    uint256 internal constant MAX_VERIFICATION_DELAY = 10 seconds;
+    uint256 internal constant MAX_VERIFICATION_DELAY = 60 seconds;
 }
