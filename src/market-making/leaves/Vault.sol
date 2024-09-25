@@ -42,6 +42,7 @@ library Vault {
         uint128 lockedCreditRatio;
         int128 unsettledDebtUsd;
         int128 settledDebtUsd;
+        int128 unsettledFeesWeth;
         address indexToken;
         Collateral.Data collateral;
         Distribution.Data stakingFeeDistribution;

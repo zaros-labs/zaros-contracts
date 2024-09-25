@@ -16,14 +16,12 @@ library Fee {
 
     /// @param feeRecipientsPercentage The percentage of total accumulated weth to be allocated to fee recipients
     /// @param marketPercentage The percentage of total accumulated weth to be accolated to the market
-    /// @param collectedMarketFees The collected fees in weth set for market
     /// @param collectedFeeRecipientsFees the collected fees in weth set for fee recipients
     /// @param receivedOrderFees An enumerable map that stores the amounts collected from each collateral type
     struct Data {
         uint128 feeRecipientsPercentage;
         uint128 marketPercentage;
-        uint256 collectedMarketFees;
-        uint256 collectedFeeRecipientsFees;
+        uint128 collectedFeeRecipientsFees;
         EnumerableMap.AddressToUintMap receivedOrderFees;
     }
 

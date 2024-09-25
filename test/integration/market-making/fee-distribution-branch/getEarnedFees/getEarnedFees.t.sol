@@ -47,9 +47,6 @@ contract GetEarnedFees_Integration_Test is Base_Test {
 
         // distribute fees for claim at
         marketMakingEngine.exposed_distributeValue(FINAL_VAULT_ID, sd59x18(distributedAmount));
-        // accumulate Actors accumulated fee earnings
-        marketMakingEngine.exposed_accumulateActor(FINAL_VAULT_ID, bytes32(uint256(uint160(address(users.naruto.account)))));
-        marketMakingEngine.exposed_accumulateActor(FINAL_VAULT_ID, bytes32(uint256(uint160(address(users.sasuke.account)))));
 
         uint256 actorOneAccumulatedFees = 50e18;
         uint256 actorTwoAccumulatedFees = 150e18;

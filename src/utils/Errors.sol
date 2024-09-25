@@ -216,6 +216,12 @@ library Errors {
     /// @notice Thrown when there are no available wEth fees to be collected
     error NoWethFeesCollected();
 
+    /// @notice Thrown when user does not have fees to claim
+    error NoFeesToClaim();
+
+    /// @notice Thrown when user does not have shares to claim fees
+    error NoSharesAvailable();
+
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
     /// @notice Thrown when a slippage check fails.
