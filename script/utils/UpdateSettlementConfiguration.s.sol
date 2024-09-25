@@ -9,44 +9,48 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { BaseScript } from "script/Base.s.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 
-// Open Zeppelin dependencies
-import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
-import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
-
-// Forge dependencies
-import { console } from "forge-std/console.sol";
-
 contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                     VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    bytes32 internal solUsdStreamId;
+    bytes32 internal maticUsdStreamId;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     IVerifierProxy internal chainlinkVerifier;
-    address internal solUsdMarketOrderKeeper;
+    address internal maticUsdMarketOrderKeeper;
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
+        // get the perps engine
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
-        solUsdStreamId = vm.envBytes32("SOL_USD_STREAM_ID");
-        chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
-        solUsdMarketOrderKeeper = vm.envAddress("SOL_USD_MARKET_ORDER_KEEPER");
 
-        SettlementConfiguration.DataStreamsStrategy memory solUsdMarketOrderConfigurationData =
-        SettlementConfiguration.DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: solUsdStreamId });
-        SettlementConfiguration.Data memory solUsdMarketOrderConfiguration = SettlementConfiguration.Data({
+        // get the matic usd stream id
+        maticUsdStreamId = MATIC_USD_STREAM_ID;
+
+        // get the chainlink verifier
+        chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
+
+        // get the matic usd market order keeper
+        maticUsdMarketOrderKeeper = vm.envAddress("MATIC_USD_MARKET_ORDER_KEEPER");
+
+        // create the matic usd market order configuration data
+        SettlementConfiguration.DataStreamsStrategy memory maticUsdMarketOrderConfigurationData =
+            SettlementConfiguration.DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: maticUsdStreamId });
+
+        // create the matic usd market order configuration
+        SettlementConfiguration.Data memory maticUsdMarketOrderConfiguration = SettlementConfiguration.Data({
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
             isEnabled: true,
             fee: DEFAULT_SETTLEMENT_FEE,
-            keeper: solUsdMarketOrderKeeper,
-            data: abi.encode(solUsdMarketOrderConfigurationData)
+            keeper: maticUsdMarketOrderKeeper,
+            data: abi.encode(maticUsdMarketOrderConfigurationData)
         });
 
+        // update the matic usd market order configuration
         perpsEngine.updateSettlementConfiguration(
-            SOL_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, solUsdMarketOrderConfiguration
+            MATIC_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, maticUsdMarketOrderConfiguration
         );
     }
 }
