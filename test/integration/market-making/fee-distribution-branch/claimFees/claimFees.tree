@@ -1,0 +1,10 @@
+claimFees_Integration_Test
+    ├── when vault does not exist
+    │   └── it should revert
+    └── when vault does exist
+        ├── given the user has already claimed
+        │   └── it should return revert
+        ├── given the user has zero shares
+        │   └── it should return revert
+        └── given the user has fees to claim
+            └── it should send user the claimable amount

@@ -15,11 +15,12 @@ import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
 contract FeeDistributionBranch {
@@ -33,6 +34,7 @@ contract FeeDistributionBranch {
     using Distribution for Distribution.Data;
     using MarketDebt for MarketDebt.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   EVENTS
@@ -54,6 +56,12 @@ contract FeeDistributionBranch {
     /// @param amount the token amount received by recipient
     event LogSendWethToFeeRecipients(address indexed recipient, uint256 amount);
 
+    /// @notice Emitted when a user claims their accumulated fees.
+    /// @param claimer Address of the user who claimed the fees.
+    /// @param vaultId Identifier of the vault from which fees were claimed.
+    /// @param amount Amount of WETH claimed as fees.
+    event LogClaimFees(address indexed claimer, uint128 indexed vaultId, uint256 amount);
+
     modifier onlyMarketMakingEngine() {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
@@ -66,9 +74,9 @@ contract FeeDistributionBranch {
     }
 
     modifier onlyExistingMarket(uint128 marketId) {
-        MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
         
-        if(marketDebtData.marketId == 0) 
+        if(marketDebt.marketId == 0) 
             revert Errors.UnrecognisedMarket();
         _;
     }
@@ -78,21 +86,12 @@ contract FeeDistributionBranch {
     /// @param staker The staker address.
     /// @return earnedFees The amount of weth fees claimable.
     function getEarnedFees(uint128 vaultId, address staker) external view returns (uint256 earnedFees) {
-        Vault.Data storage vaultData = Vault.load(vaultId);
-
-        if(!vaultData.collateral.isEnabled) revert Errors.VaultDoesNotExist();
+        Vault.Data storage vault = Vault.load(vaultId);
+        
+        if(!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist();
 
         bytes32 actorId = bytes32(uint256(uint160(staker)));
-
-        UD60x18 actorShares = vaultData.stakingFeeDistribution.getActorShares(actorId);
-
-        SD59x18 lastValuePerShare = vaultData.stakingFeeDistribution.getLastValuePerShare(actorId);
-
-        UD60x18 unsignedValuePerShare = lastValuePerShare.intoUD60x18();
-
-        UD60x18 claimableAmount = unsignedValuePerShare.mul(actorShares);
-
-        earnedFees = claimableAmount.intoUint256();
+        earnedFees = vault.stakingFeeDistribution.getActorValueChange(actorId).intoUint256();
     }
 
     /// @notice Receives collateral as a fee for processing, 
@@ -112,7 +111,7 @@ contract FeeDistributionBranch {
     {
         if (amount == 0) revert Errors.ZeroInput("amount");
 
-        MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
         // loads the collateral's data storage pointer
         Collateral.Data storage collateral = Collateral.load(asset);
@@ -121,7 +120,7 @@ contract FeeDistributionBranch {
         collateral.verifyIsEnabled();
 
         // increment fee amount
-        marketDebtData.collectedFees.receivedOrderFees.set(asset, amount);
+        marketDebt.collectedFees.receivedOrderFees.set(asset, amount);
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
@@ -131,6 +130,7 @@ contract FeeDistributionBranch {
 
     /// @notice Converts collected collateral amount to Weth
     /// @dev onlyMarketMakingEngine address can call this function.
+    /// accumulated fees are split between market and fee recipients and then market fees are distributed to connected vaults
     /// @param marketId The market who's fees will be converted.
     /// @param asset The asset to be swapped for wEth
     function convertAccumulatedFeesToWeth(
@@ -141,22 +141,21 @@ contract FeeDistributionBranch {
         onlyMarketMakingEngine 
         onlyExistingMarket(marketId)
     {
-        MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
-        SwapStrategy.Data storage swapData = SwapStrategy.load();
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+        SwapStrategy.Data storage swapStrategy = SwapStrategy.load();
         
-        if(!marketDebtData.collectedFees.receivedOrderFees.contains(asset)) revert Errors.InvalidAsset();
-
-        address weth = MarketMakingEngineConfiguration.load().weth;
+        if(!marketDebt.collectedFees.receivedOrderFees.contains(asset)) revert Errors.InvalidAsset();
 
         uint256 _accumulatedWeth;
 
-        uint256 assetAmount = marketDebtData.collectedFees.receivedOrderFees.get(asset);
+        uint256 assetAmount = marketDebt.collectedFees.receivedOrderFees.get(asset);
 
-        if(asset == weth){
+        // if asset is weth directly add to accumulated weth, else swap token for weth
+        if(asset == MarketMakingEngineConfiguration.load().weth){
 
             _accumulatedWeth = ud60x18(_accumulatedWeth).add(ud60x18(assetAmount)).intoUint256();  
 
-            marketDebtData.collectedFees.receivedOrderFees.remove(asset);
+            marketDebt.collectedFees.receivedOrderFees.remove(asset);
 
             emit LogConvertAccumulatedFeesToWeth(
                 asset,
@@ -164,31 +163,57 @@ contract FeeDistributionBranch {
                 assetAmount
             );
         } else {
-            marketDebtData.collectedFees.receivedOrderFees.remove(asset);
+            marketDebt.collectedFees.receivedOrderFees.remove(asset);
 
             // Swap collected collateral fee amount for WETH and store the obtained amount
-            uint256 tokensSwapped = SwapStrategy.swapExactTokens(swapData, asset, assetAmount, weth);
+            uint256 tokensSwapped = 
+                SwapStrategy.swapExactTokens(swapStrategy, asset, assetAmount, MarketMakingEngineConfiguration.load().weth);
             _accumulatedWeth = ud60x18(_accumulatedWeth).add(ud60x18(tokensSwapped)).intoUint256();
 
             emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, tokensSwapped);
         }
 
-        // Calculate and distribute shares of the converted fees 
-        uint256 marketShare = Fee.calculateFees(
+        // Calculate and allocate shares of the converted fees 
+        uint128 marketShare = uint128(Fee.calculateFees(
                     _accumulatedWeth, 
-                    marketDebtData.collectedFees.marketPercentage, 
+                    marketDebt.collectedFees.marketPercentage, 
                     SwapStrategy.BPS_DENOMINATOR
-                );
+                ));
         uint256 feeRecipientsShare = Fee.calculateFees(
                     _accumulatedWeth, 
-                    marketDebtData.collectedFees.feeRecipientsPercentage, 
+                    marketDebt.collectedFees.feeRecipientsPercentage, 
                     SwapStrategy.BPS_DENOMINATOR
                 );
 
-        marketDebtData.collectedFees.collectedFeeRecipientsFees = feeRecipientsShare;
+        marketDebt.collectedFees.collectedFeeRecipientsFees = uint128(feeRecipientsShare);
 
-        marketDebtData.collectedFees.collectedMarketFees = marketShare;
-       //marketDebtData.collectedFees.collectedMarketFees[marketId][asset] = marketShare;
+        // get connected vaults of market
+        uint256[] memory vaultsSet = marketDebt.getConnectedVaultsIds();
+
+        uint256 listSize = vaultsSet.length;
+
+        uint128 totalVaultsShares;
+
+        // calculate the total shares of vaults
+        for(uint i; i < listSize; ++i){
+            Vault.Data storage vault = Vault.load(uint128(vaultsSet[i]));
+            if(vault.collateral.asset == asset){
+                totalVaultsShares = 
+                    ud60x18(totalVaultsShares).add(ud60x18(vault.stakingFeeDistribution.totalShares)).intoUint128();
+            }
+        }
+
+        // distribute the amount between shares and store the amount each share has received
+        for(uint i; i < listSize; ++i){
+            uint256 vaultShares = 
+                Fee.calculateFees(
+                    marketShare, 
+                    Vault.load(uint128(vaultsSet[i])).stakingFeeDistribution.totalShares, 
+                    totalVaultsShares
+                );
+            Vault.load(uint128(vaultsSet[i])).unsettledFeesWeth = int128(int256(vaultShares));
+            Vault.load(uint128(vaultsSet[i])).stakingFeeDistribution.distributeValue(ud60x18(vaultShares).intoSD59x18());
+        }
     }
 
     /// @notice Sends allocated weth amount to fee recipients.
@@ -206,42 +231,63 @@ contract FeeDistributionBranch {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
             MarketMakingEngineConfiguration.load();
 
-        MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        if(marketDebtData.collectedFees.collectedFeeRecipientsFees == 0) revert Errors.NoWethFeesCollected();
+        if(marketDebt.collectedFees.collectedFeeRecipientsFees == 0) revert Errors.NoWethFeesCollected();
 
         address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipients[configuration];
 
-        address wethAddr = marketMakingEngineConfigurationData.weth;
+        address weth = marketMakingEngineConfigurationData.weth;
 
-        uint256 collectedFees = marketDebtData.collectedFees.collectedFeeRecipientsFees;
+        uint256 collectedFees = uint256(marketDebt.collectedFees.collectedFeeRecipientsFees);
 
         uint256 totalShares;
 
         uint256 recepientListLength = recipientsList.length;
         
+        // get total shares of fee recipients
         for(uint i; i < recepientListLength; ++i){
             totalShares = ud60x18(totalShares).add(ud60x18(FeeRecipient.load(recipientsList[i]).share)).intoUint256();    
         }
 
+        // send amount between fee recipients
         for(uint i; i < recepientListLength; ++i){
             address feeRecipient = recipientsList[i];
 
             uint256 amountToSend =
                 Fee.calculateFees(FeeRecipient.load(feeRecipient).share, collectedFees, totalShares);
 
-            marketDebtData.collectedFees.collectedFeeRecipientsFees = 
-                ud60x18(marketDebtData.collectedFees.collectedFeeRecipientsFees).sub(ud60x18(amountToSend)).intoUint256();
+            marketDebt.collectedFees.collectedFeeRecipientsFees = 
+                ud60x18(marketDebt.collectedFees.collectedFeeRecipientsFees).sub(ud60x18(amountToSend)).intoUint128();
 
-            IERC20(wethAddr).safeTransfer(feeRecipient, amountToSend);
+            IERC20(weth).safeTransfer(feeRecipient, amountToSend);
 
             emit LogSendWethToFeeRecipients(feeRecipient, amountToSend);
         }
     }
 
-    /// @dev Invariants involved in the call:
-    /// TODO: add invariants
-    /// @param vaultId The vault id to claim fees from.
+    /// @notice allows user to claim their share of fees
+    /// @param vaultId the vault fees are claimed from
     function claimFees(uint128 vaultId) external { 
+        Vault.Data storage vault = Vault.load(vaultId);
+        if(!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist();
+
+        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
+        uint256 claimableAmount = vault.stakingFeeDistribution.getActorValueChange(actorId).intoUint256();
+
+        if(vault.stakingFeeDistribution.actor[actorId].shares == 0) revert Errors.NoSharesAvailable();
+        if(claimableAmount == 0) revert Errors.NoFeesToClaim();
+
+        vault.stakingFeeDistribution.accumulateActor(actorId);
+
+        SD59x18 amount = ud60x18(claimableAmount).intoSD59x18();
+
+        vault.unsettledFeesWeth = int128(sd59x18(vault.unsettledFeesWeth).sub(amount).intoInt256());
+
+        address weth = MarketMakingEngineConfiguration.load().weth;
+
+        IERC20(weth).safeTransfer(msg.sender, claimableAmount);
+
+        emit LogClaimFees(msg.sender, vaultId, claimableAmount);
     }
 }

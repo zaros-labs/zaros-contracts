@@ -25,9 +25,15 @@ contract DistributionHarness {
         Distribution.accumulateActor(self, actorId);
     }
 
+    function exposed_getActorValueChange(uint128 vaultId, bytes32 actorId) external returns (SD59x18 valueChange) {
+        Distribution.Data storage self = _load_distributionData(vaultId);
+        valueChange = Distribution.getActorValueChange(self, actorId);
+    }
+
     function _load_distributionData(uint128 vaultId) internal view returns(Distribution.Data storage){
         Vault.Data storage vault = Vault.load(vaultId);
         Distribution.Data storage self = vault.stakingFeeDistribution;
         return self;
     }
+
 }

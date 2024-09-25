@@ -19,7 +19,6 @@ contract MarketMakingEngineConfigurationHarness {
 
     function workaround_setFeeRecipients(address[] calldata feeRecipients) external {
         MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
-
         data.feeRecipients.push(feeRecipients);
     }
 }

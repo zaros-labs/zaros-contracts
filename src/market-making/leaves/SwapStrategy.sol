@@ -27,6 +27,9 @@ library SwapStrategy {
     uint256 internal constant MIN_POOL_FEE = 1000;
     uint256 internal constant MIN_SLIPPAGE_TOLERANCE = 100;
 
+    /// @param swapRouter The UniswapV3 ISwapRouter contract address used for executing swaps.
+    /// @param poolFee The fee tier of the Uniswap pool to be used for swaps, measured in basis points.
+    /// @param slippageTolerance The maximum slippage allowed for a swap, expressed in basis points (1% = 100 basis points).
     struct Data {
         ISwapRouter swapRouter;
         uint24 poolFee;

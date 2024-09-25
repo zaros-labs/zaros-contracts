@@ -20,8 +20,17 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
     function setUp() public virtual override {
         Base_Test.setUp();
+        changePrank({ msgSender: users.owner.account });
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+
+        uint128 marketPercentage = 6500;
+        uint128 feeRecipientsPercentage = 3500;
+        // Set percentage ratio for market and fee recipients
+        marketMakingEngine.setPercentageRatio(INITIAL_MARKET_DEBT_ID, marketPercentage, feeRecipientsPercentage);
+
         changePrank({ msgSender: address(perpsEngine) });
 
+        // set perpsEngine address in MarketMakingEngineConfiguration
         marketMakingEngine.workaround_setPerpsEngineAddress(address(perpsEngine));
 
         uint8 priceFeedDecimals = 8;
@@ -61,14 +70,6 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         // Set the market ID and WETH address
         setMarketDebtId(INITIAL_MARKET_DEBT_ID);
         marketMakingEngine.workaround_setWethAddress(address(wEth));
-
-        changePrank({ msgSender: users.owner.account });
-        uint128 marketPercentage = 6500;
-        uint128 feeRecipientsPercentage = 3500;
-        // Set percentage ratio for market and fee recipients
-        marketMakingEngine.setPercentageRatio(INITIAL_MARKET_DEBT_ID, marketPercentage, feeRecipientsPercentage);
-       
-        changePrank({ msgSender: address(perpsEngine) });
     }
 
     function testFuzz_RevertGiven_TheCallerIsNotMarketMakingEngine(address user) external {
@@ -130,13 +131,11 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         
         marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wEth));
 
-        uint256 marketFees = marketMakingEngine.workaround_getMarketFees(INITIAL_MARKET_DEBT_ID);
         uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
 
         (uint128 marketPercentage, uint128 feeRecipientsPercentage) = marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
-
+        
         // it should divide amount between market and fee recipients
-        assertEq(marketFees, (amountToReceive * marketPercentage) / SwapStrategy.BPS_DENOMINATOR);
         assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapStrategy.BPS_DENOMINATOR);  
     }
 
@@ -236,13 +235,11 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc));
 
         // Check the resulting split of fees between market and fee recipients  
-        uint256 marketFees = marketMakingEngine.workaround_getMarketFees(INITIAL_MARKET_DEBT_ID);
         uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
 
         (uint128 marketPercentage, uint128 feeRecipientsPercentage) = marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
         // it should divide amount between market and fee recipients
-        assertEq(marketFees, (amountToReceive * marketPercentage) / SwapStrategy.BPS_DENOMINATOR);
         assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapStrategy.BPS_DENOMINATOR);  
     }
 
@@ -275,13 +272,11 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdc));
 
         // Check the resulting split of fees between market and fee recipients  
-        uint256 marketFees = marketMakingEngine.workaround_getMarketFees(INITIAL_MARKET_DEBT_ID);
         uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
 
         (uint128 marketPercentage, uint128 feeRecipientsPercentage) = marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
         // it should divide amount between market and fee recipients
-        assertEq(marketFees, (amountToReceive * marketPercentage) / SwapStrategy.BPS_DENOMINATOR);
         assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapStrategy.BPS_DENOMINATOR);  
     }
 
@@ -331,13 +326,11 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdz));
 
         // Check the resulting split of fees between market and fee recipients  
-        uint256 marketFees = marketMakingEngine.workaround_getMarketFees(INITIAL_MARKET_DEBT_ID);
         uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
 
         (uint128 marketPercentage, uint128 feeRecipientsPercentage) = marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
         // it should divide amount between market and fee recipients
-        assertEq(marketFees, (amountToReceive * marketPercentage) / SwapStrategy.BPS_DENOMINATOR);
         assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapStrategy.BPS_DENOMINATOR);  
     }
 }

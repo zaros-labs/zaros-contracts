@@ -564,7 +564,7 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory vaultHarnessSelectors = new bytes4[](8);
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](10);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
     vaultHarnessSelectors[1] = VaultHarness.workaround_Vault_getActorStakedShares.selector;
     vaultHarnessSelectors[2] = VaultHarness.workaround_Vault_getTotalStakedShares.selector;
@@ -573,6 +573,8 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     vaultHarnessSelectors[5] = VaultHarness.exposed_Vault_create.selector;
     vaultHarnessSelectors[6] = VaultHarness.exposed_Vault_update.selector;
     vaultHarnessSelectors[7] = VaultHarness.workaround_Vault_getVaultAsset.selector;
+    vaultHarnessSelectors[8] = VaultHarness.workaround_Vault_setTotalStakedShares.selector;
+    vaultHarnessSelectors[9] = VaultHarness.workaround_Vault_getValuePerShare.selector;
 
     bytes4[] memory collateralHarnessSelectors = new bytes4[](2);
     collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;
@@ -582,18 +584,19 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     withdrawalRequestHarnessSelectors[0] = WithdrawalRequestHarness.exposed_WithdrawalRequest_load.selector;
     withdrawalRequestHarnessSelectors[1] = WithdrawalRequestHarness.exposed_WithdrawalRequest_loadExisting.selector;
 
-    bytes4[] memory distributionHarnessSelectors = new bytes4[](3);
+    bytes4[] memory distributionHarnessSelectors = new bytes4[](4);
     distributionHarnessSelectors[0] = DistributionHarness.exposed_setActorShares.selector;
     distributionHarnessSelectors[1] = DistributionHarness.exposed_distributeValue.selector;
     distributionHarnessSelectors[2] = DistributionHarness.exposed_accumulateActor.selector;
+    distributionHarnessSelectors[3] = DistributionHarness.exposed_getActorValueChange.selector;
 
     bytes4[] memory marketDebtHarnessSelectors = new bytes4[](6);
     marketDebtHarnessSelectors[0] = MarketDebtHarness.workaround_getMarketId.selector;
     marketDebtHarnessSelectors[1] = MarketDebtHarness.workaround_setMarketId.selector;
-    marketDebtHarnessSelectors[2] = MarketDebtHarness.workaround_getMarketFees.selector;
-    marketDebtHarnessSelectors[3] = MarketDebtHarness.workaround_getFeeRecipientsFees.selector;
-    marketDebtHarnessSelectors[4] = MarketDebtHarness.workaround_getReceivedOrderFees.selector;
-    marketDebtHarnessSelectors[5] = MarketDebtHarness.workaround_setFeeRecipientsFees.selector;
+    marketDebtHarnessSelectors[2] = MarketDebtHarness.workaround_getFeeRecipientsFees.selector;
+    marketDebtHarnessSelectors[3] = MarketDebtHarness.workaround_getReceivedOrderFees.selector;
+    marketDebtHarnessSelectors[4] = MarketDebtHarness.workaround_setFeeRecipientsFees.selector;
+    marketDebtHarnessSelectors[5] = MarketDebtHarness.workaround_setConnectedVaults.selector;
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](3);
     marketMakingEngineConfigurationSelectors[0] = MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;

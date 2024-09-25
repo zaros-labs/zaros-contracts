@@ -69,7 +69,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     {
         amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
 
-        marketMakingEngine.workaround_setFeeRecipientsFees(INITIAL_MARKET_DEBT_ID, amountToReceive);
+        marketMakingEngine.workaround_setFeeRecipientsFees(INITIAL_MARKET_DEBT_ID, uint128(amountToReceive));
 
         deal(address(wEth), address(marketMakingEngine), amountToReceive);
 

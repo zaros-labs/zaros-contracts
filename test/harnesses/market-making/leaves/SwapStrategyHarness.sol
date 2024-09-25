@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
 
 contract SwapStrategyHarness {
-    function exposed_UniswapRouterAddress_load() external view returns (SwapStrategy.Data memory){
+    function exposed_UniswapRouterAddress_load() external pure returns (SwapStrategy.Data memory){
         SwapStrategy.Data storage swapStrategyData = SwapStrategy.load();
         return swapStrategyData;
     }
