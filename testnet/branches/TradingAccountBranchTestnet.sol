@@ -99,4 +99,21 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
 
         return tradingAccountId;
     }
+
+    function removeUsdz(uint256[] memory tradingAccounts, UD60x18[] memory amount) public onlyOwner {
+        // fetch storage slot for perps engine configuration
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+
+        // get reference to usd token
+        address usdz = perpsEngineConfiguration.usdToken;
+
+        for (uint256 i = 0; i < tradingAccounts.length; i++) {
+            // get reference to trading account
+            TradingAccount.Data storage tradingAccount = TradingAccount.load(uint128(tradingAccounts[i]));
+
+            // withdraw usd from trading account
+            tradingAccount.withdraw(usdz, amount[i]);
+        }
+
+    }
 }
