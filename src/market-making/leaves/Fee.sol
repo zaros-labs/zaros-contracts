@@ -15,7 +15,7 @@ library Fee {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Fee")) - 1));
 
     /// @param feeRecipientsPercentage The percentage of total accumulated weth to be allocated to fee recipients
-    /// @param marketPercentage The percentage of total accumulated weth to be accolated to the market
+    /// @param marketPercentage The percentage of total accumulated weth to be allocated to the market
     /// @param collectedFeeRecipientsFees the collected fees in weth set for fee recipients
     /// @param receivedOrderFees An enumerable map that stores the amounts collected from each collateral type
     struct Data {

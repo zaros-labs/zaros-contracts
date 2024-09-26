@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
-
 library MarketMakingEngineConfiguration {
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION =
@@ -16,7 +14,6 @@ library MarketMakingEngineConfiguration {
         address perpsEngine;
         address feeDistributor;
         address[][] feeRecipients;
-        SwapStrategy.Data swapStrategy;
         mapping(uint256 chainId => address sequencerUptimeFeed) sequencerUptimeFeedByChainId;
         // TODO: define roles
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;

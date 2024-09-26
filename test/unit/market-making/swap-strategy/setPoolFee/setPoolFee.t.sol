@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
-contract SwapStrategy_SetPoolFee_Unit_Test is Base_Test {
+contract SwapRouter_SetPoolFee_Unit_Test is Base_Test {
     function test_RevertWhen_PoolFeeIsPassedValueLessThan1000() external {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidPoolFee.selector) });

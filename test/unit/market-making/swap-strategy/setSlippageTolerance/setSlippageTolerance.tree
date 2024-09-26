@@ -1,4 +1,4 @@
-SwapStrategy_SetSlippageTolerance_Unit_Test
+SwapRouter_SetSlippageTolerance_Unit_Test
     ├── when slippage tolerance is passed zero value
     │   └── it should revert
     └── when slippage tolerance is passed valid value

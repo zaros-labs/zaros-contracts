@@ -7,7 +7,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { MockUniswapRouter } from "test/mocks/MockUniswapRouter.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
-import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
+import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
 
 // Openzeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -73,10 +73,12 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertGiven_TheCallerIsNotMarketMakingEngine(address user) external {
+        vm.assume(user != address(perpsEngine));
+        
         changePrank({ msgSender: user });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, user) });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, user ) });
         marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc));
     }
 
@@ -136,7 +138,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         (uint128 marketPercentage, uint128 feeRecipientsPercentage) = marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
         
         // it should divide amount between market and fee recipients
-        assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapStrategy.BPS_DENOMINATOR);  
+        assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);  
     }
 
     modifier whenTheAssetIsNotWeth() {
@@ -157,7 +159,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         // Deploy MockUniswapRouter to simulate the swap and mock
         ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-        marketMakingEngine.exposed_setUniswapRouterAddress(address(swapRouter)); 
+        marketMakingEngine.exposed_setSwapStrategy(address(swapRouter)); 
 
         // set contract with initial wbtc fees
         receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
@@ -225,7 +227,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         // Deploy MockUniswapRouter to simulate the swap and mock
         ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-        marketMakingEngine.exposed_setUniswapRouterAddress(address(swapRouter)); 
+        marketMakingEngine.exposed_setSwapStrategy(address(swapRouter)); 
 
         // Expect event emitted for fee conversion 
         vm.expectEmit();
@@ -240,7 +242,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         (uint128 marketPercentage, uint128 feeRecipientsPercentage) = marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
         // it should divide amount between market and fee recipients
-        assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapStrategy.BPS_DENOMINATOR);  
+        assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);  
     }
 
     function testFuzz_GivenTokenInDecimalsAre18(
@@ -262,7 +264,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         // Deploy MockUniswapRouter to simulate the swap and mock
         ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-        marketMakingEngine.exposed_setUniswapRouterAddress(address(swapRouter)); 
+        marketMakingEngine.exposed_setSwapStrategy(address(swapRouter)); 
 
         // Expect event emitted for fee conversion 
         vm.expectEmit();
@@ -277,7 +279,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         (uint128 marketPercentage, uint128 feeRecipientsPercentage) = marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
         // it should divide amount between market and fee recipients
-        assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapStrategy.BPS_DENOMINATOR);  
+        assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);  
     }
 
     function testFuzz_GivenTokenInDecimalsAreMoreThan18(
@@ -316,7 +318,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         
         // Deploy MockUniswapRouter to simulate the swap and mock
         ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-        marketMakingEngine.exposed_setUniswapRouterAddress(address(swapRouter)); 
+        marketMakingEngine.exposed_setSwapStrategy(address(swapRouter)); 
 
         // Expect event emitted for fee conversion 
         vm.expectEmit();
@@ -331,6 +333,6 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         (uint128 marketPercentage, uint128 feeRecipientsPercentage) = marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
         // it should divide amount between market and fee recipients
-        assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapStrategy.BPS_DENOMINATOR);  
+        assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);  
     }
 }

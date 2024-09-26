@@ -222,6 +222,12 @@ library Errors {
     /// @notice Thrown when user does not have shares to claim fees
     error NoSharesAvailable();
 
+    /// @notice Thrown when swap execution fails
+    error SwapExecutionFailed();
+
+    /// @notice Thrown when deadline is block.timestamp before current block.timestamp
+    error InvalidDeadline();
+
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
     /// @notice Thrown when a slippage check fails.

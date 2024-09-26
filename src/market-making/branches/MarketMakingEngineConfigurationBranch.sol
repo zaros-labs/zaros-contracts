@@ -6,7 +6,7 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
+import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
@@ -122,7 +122,7 @@ contract MarketMakingEngineConfigurationBranch is Initializable, OwnableUpgradea
         external 
         onlyOwner 
     {
-        if(feeRecipientsPercentage + marketPercentage != SwapStrategy.BPS_DENOMINATOR) 
+        if(feeRecipientsPercentage + marketPercentage != SwapRouter.BPS_DENOMINATOR) 
             revert Errors.PercentageValidationFailed();
 
         MarketDebt.Data storage marketDebtData = MarketDebt.load(marketId);
