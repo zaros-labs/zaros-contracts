@@ -35,7 +35,7 @@ import { DistributionHarness } from "test/harnesses/market-making/leaves/Distrib
 import { MarketDebtHarness } from "test/harnesses/market-making/leaves/MarketDebtHarness.sol";
 import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
-import { SwapStrategyHarness } from "test/harnesses/market-making/leaves/SwapStrategyHarness.sol";
+import { SwapRouterHarness } from "test/harnesses/market-making/leaves/SwapRouterHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { FeeRecipientHarness } from "test/harnesses/market-making/leaves/FeeRecipientHarness.sol";
 
@@ -538,12 +538,18 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 
     address marketMakingEngineConfigurationHarness = address(new MarketMakingEngineConfigurationHarness());
     console.log("MarketMakingEngineConfigurationHarness: ", marketMakingEngineConfigurationHarness);
+<<<<<<< HEAD
 
     address feeHarness = address(new FeeHarness());
     console.log("FeeHarness: ", feeHarness);
 
     address swapStrategyHarness = address(new SwapStrategyHarness());
     console.log("SwapStrategyHarness: ", swapStrategyHarness);
+=======
+    
+    address swapRouterHarness = address(new SwapRouterHarness());
+    console.log("SwapRouterHarness: ", swapRouterHarness);
+>>>>>>> 61537482 (refactured SwapStrategy to SwapRouter and moved Uniswap logic to a script)
 
 
     address feeRecipientHarness = address(new FeeRecipientHarness());
@@ -555,7 +561,7 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     addressHarnesses[3] = distributionHarness;
     addressHarnesses[4] = marketDebtHarness;
     addressHarnesses[5] = marketMakingEngineConfigurationHarness;
-    addressHarnesses[6] = swapStrategyHarness;
+    addressHarnesses[6] = swapRouterHarness;
     addressHarnesses[7] = feeRecipientHarness;
 
     return addressHarnesses;
@@ -605,11 +611,11 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigurationSelectors[2] =
         MarketMakingEngineConfigurationHarness.workaround_setFeeRecipients.selector;
 
-    bytes4[] memory swapStrategyHarnessSelectors = new bytes4[](4);
-    swapStrategyHarnessSelectors[0] = SwapStrategyHarness.exposed_setUniswapRouterAddress.selector;
-    swapStrategyHarnessSelectors[1] = SwapStrategyHarness.exposed_setPoolFee.selector;
-    swapStrategyHarnessSelectors[2] = SwapStrategyHarness.exposed_setSlippageTolerance.selector;
-    swapStrategyHarnessSelectors[3] = SwapStrategyHarness.exposed_UniswapRouterAddress_load.selector;
+    bytes4[] memory swapRouterHarnessSelectors = new bytes4[](4);
+    swapRouterHarnessSelectors[0] = SwapRouterHarness.exposed_setSwapStrategy.selector;
+    swapRouterHarnessSelectors[1] = SwapRouterHarness.exposed_setPoolFee.selector;
+    swapRouterHarnessSelectors[2] = SwapRouterHarness.exposed_setSlippageTolerance.selector;
+    swapRouterHarnessSelectors[3] = SwapRouterHarness.exposed_swapStrategy_load.selector;
 
     bytes4[] memory feeRecipientHarnessSelectors = new bytes4[](2);
     feeRecipientHarnessSelectors[0] = FeeRecipientHarness.exposed_FeeRecipient_load.selector;
@@ -621,7 +627,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     selectors[3] = distributionHarnessSelectors;
     selectors[4] = marketDebtHarnessSelectors;
     selectors[5] = marketMakingEngineConfigurationSelectors;
-    selectors[6] = swapStrategyHarnessSelectors;
+    selectors[6] = swapRouterHarnessSelectors;
     selectors[7] = feeRecipientHarnessSelectors;
 
     return selectors;

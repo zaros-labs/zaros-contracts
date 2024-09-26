@@ -7,7 +7,7 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
+import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -93,6 +93,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogUpdateVaultConfiguration(msg.sender, params.vaultId);
     }
 
+<<<<<<< HEAD
     function updateVaultConnectedMarkets(uint128 vaultId, uint128[] calldata marketsIds) external onlyOwner {
         // if (vaultId == 0) {
         //     revert Errors.ZeroInput("vaultId");

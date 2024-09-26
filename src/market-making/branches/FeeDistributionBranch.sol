@@ -11,7 +11,7 @@ import { MarketMakingEngineConfiguration } from "../leaves/MarketMakingEngineCon
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Fee } from "src/market-making/leaves/Fee.sol"; 
-import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
+import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -26,7 +26,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 contract FeeDistributionBranch {
     using SafeERC20 for IERC20;
     using Fee for Fee.Data;
-    using SwapStrategy for SwapStrategy.Data;
+    using SwapRouter for SwapRouter.Data;
     using FeeRecipient for FeeRecipient.Data;
     using Collateral for Collateral.Data;
     using Vault for Vault.Data;
@@ -142,7 +142,7 @@ contract FeeDistributionBranch {
         onlyExistingMarket(marketId)
     {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
-        SwapStrategy.Data storage swapStrategy = SwapStrategy.load();
+        SwapRouter.Data storage swapRouter = SwapRouter.load();
         
         if(!marketDebt.collectedFees.receivedOrderFees.contains(asset)) revert Errors.InvalidAsset();
 
@@ -164,10 +164,18 @@ contract FeeDistributionBranch {
             );
         } else {
             marketDebt.collectedFees.receivedOrderFees.remove(asset);
-
+            // Prepare the data for executing the swap
+            bytes memory routerCallData = abi.encodeWithSelector(
+                bytes4(keccak256("swapExactTokens(address,uint256,address,uint256,uint256,address)")),
+                asset,
+                assetAmount,
+                MarketMakingEngineConfiguration.load().weth,
+                swapRouter.deadline,
+                address(this)
+            );
             // Swap collected collateral fee amount for WETH and store the obtained amount
             uint256 tokensSwapped = 
-                SwapStrategy.swapExactTokens(swapStrategy, asset, assetAmount, MarketMakingEngineConfiguration.load().weth);
+                swapRouter.executeSwap(routerCallData);
             _accumulatedWeth = ud60x18(_accumulatedWeth).add(ud60x18(tokensSwapped)).intoUint256();
 
             emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, tokensSwapped);
@@ -177,12 +185,12 @@ contract FeeDistributionBranch {
         uint128 marketShare = uint128(Fee.calculateFees(
                     _accumulatedWeth, 
                     marketDebt.collectedFees.marketPercentage, 
-                    SwapStrategy.BPS_DENOMINATOR
+                    SwapRouter.BPS_DENOMINATOR
                 ));
         uint256 feeRecipientsShare = Fee.calculateFees(
                     _accumulatedWeth, 
                     marketDebt.collectedFees.feeRecipientsPercentage, 
-                    SwapStrategy.BPS_DENOMINATOR
+                    SwapRouter.BPS_DENOMINATOR
                 );
 
         marketDebt.collectedFees.collectedFeeRecipientsFees = uint128(feeRecipientsShare);

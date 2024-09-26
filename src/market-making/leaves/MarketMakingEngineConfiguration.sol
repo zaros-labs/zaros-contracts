@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-import { SwapStrategy } from "@zaros/market-making/leaves/SwapStrategy.sol";
-
 library MarketMakingEngineConfiguration {
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION =
