@@ -289,11 +289,19 @@ contract CreditDelegationBranch {
     /// market id
     /// @dev Invariants involved in the call:
     /// @param marketId The engine's market id.
+<<<<<<< HEAD
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
     /// TODO: add invariants
     function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
         external
         returns (SD59x18 creditCapacityUsdX18)
+=======
+    /// @return creditDelegationState The abi encoded credit delegation state of the given market id.
+    /// TODO: add invariants
+    function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
+        external
+        returns (bytes memory creditDelegationState)
+>>>>>>> 764307a4 (chore: abi-encode credit delegation state return value)
     {
         updateCreditDelegation();
         return getCreditCapacityForMarketId(marketId);

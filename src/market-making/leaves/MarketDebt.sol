@@ -155,6 +155,8 @@ library MarketDebt {
         creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(sd59x18(self.realizedDebtUsd));
     }
 
+    function getCreditDelegationState(Data storage self) internal view returns (bytes memory creditDelegationState) { }
+
     function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCreditUsdX18) {
         totalDelegatedCreditUsdX18 = ud60x18(self.vaultsDebtDistribution.totalShares);
     }
