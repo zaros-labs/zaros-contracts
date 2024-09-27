@@ -55,10 +55,9 @@ contract CreditDelegationBranch {
         // load market making engine configuration and the perps engine address
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
-        address perpsEngine = marketMakingEngineConfiguration.perpsEngine;
 
-        // if `msg.sender` is not the perps engine, revert
-        if (msg.sender != perpsEngine) {
+        // if `msg.sender` is not a registered engine, revert
+        if (!marketMakingEngineConfiguration.registeredEngines[msg.sender]) {
             revert Errors.Unauthorized(msg.sender);
         }
 
