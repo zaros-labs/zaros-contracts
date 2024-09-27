@@ -22,13 +22,11 @@ contract Redeem_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_WhenDelayHasPassed(
+    function testFuzz_RevertWhen_RequestIsFulfulled(
         uint256 vaultId,
         uint256 assetsToDeposit,
         uint256 assetsToWithdraw
-    )
-        external
-    {
+    ) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
@@ -45,19 +43,10 @@ contract Redeem_Integration_Test is Base_Test {
         // fast forward block.timestamp to after withdraw delay has passed
         skip(fuzzVaultConfig.withdrawalDelay + 1);
 
-        vm.expectEmit();
-        emit VaultRouterBranch.LogRedeem(fuzzVaultConfig.vaultId, users.naruto.account, userBalance);
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
-
-        WithdrawalRequest.Data memory withdrawalRequest = marketMakingEngine.exposed_WithdrawalRequest_load(
-            fuzzVaultConfig.vaultId, users.naruto.account, WITHDRAW_REQUEST_ID
-        );
-
-        assertEq(withdrawalRequest.fulfilled, true);
-
-        // it should transfer assets to user
-        assertEq(IERC20(indexToken).balanceOf(users.naruto.account), 0);
-        assertGt(IERC20(fuzzVaultConfig.asset).balanceOf(users.naruto.account), 0);
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.WithdrawalRequestAlreadyFullfilled.selector));
+        marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
     }
 
     function testFuzz_RevertWhen_DelayHasNotPassed(
@@ -111,20 +100,23 @@ contract Redeem_Integration_Test is Base_Test {
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, minAssetsOut);
     }
 
-    function testFuzz_RevertWhen_RequiestIsFulfulled(
+    function testFuzz_WhenDelayHasPassed(
         uint256 vaultId,
         uint256 assetsToDeposit,
         uint256 assetsToWithdraw
-    ) external {
+    )
+        external
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        uint256 minAssetsToDeposit = 10 ** (18 - fuzzVaultConfig.decimals);
+        assetsToDeposit = bound({ x: assetsToDeposit, min: minAssetsToDeposit, max: fuzzVaultConfig.depositCap });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
         address indexToken = fuzzVaultConfig.indexToken;
-        uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
-        assetsToWithdraw =  bound({ x: assetsToDeposit, min: 0, max: userBalance });
+        uint256 userBalanceBefore = IERC20(indexToken).balanceOf(users.naruto.account);
+        assetsToWithdraw = bound({ x: assetsToDeposit, min: minAssetsToDeposit, max: userBalanceBefore });
         IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
 
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
@@ -132,9 +124,20 @@ contract Redeem_Integration_Test is Base_Test {
         // fast forward block.timestamp to after withdraw delay has passed
         skip(fuzzVaultConfig.withdrawalDelay + 1);
 
+        // vm.expectEmit(); // todo use previewRedeem here
+        // emit VaultRouterBranch.LogRedeem(fuzzVaultConfig.vaultId, users.naruto.account, userBalance);
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
-        // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.WithdrawalRequestAlreadyFullfilled.selector));
-        marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
+
+        uint256 userBalanceAfter = IERC20(indexToken).balanceOf(users.naruto.account);
+
+        WithdrawalRequest.Data memory withdrawalRequest = marketMakingEngine.exposed_WithdrawalRequest_load(
+            fuzzVaultConfig.vaultId, users.naruto.account, WITHDRAW_REQUEST_ID
+        );
+
+        assertEq(withdrawalRequest.fulfilled, true);
+
+        // it should transfer assets to user
+        assertEq(userBalanceBefore - userBalanceAfter, assetsToWithdraw);
+        assertGt(IERC20(fuzzVaultConfig.asset).balanceOf(users.naruto.account), 0);
     }
 }

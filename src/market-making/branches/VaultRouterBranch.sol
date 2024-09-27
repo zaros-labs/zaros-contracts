@@ -13,9 +13,12 @@ import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralC
 // Open Zeppelin dependencies
 import { IERC20, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // TODO: think about referrals
 contract VaultRouterBranch {
@@ -24,6 +27,7 @@ contract VaultRouterBranch {
     using Referral for Referral.Data;
     using Collateral for Collateral.Data;
     using SafeCast for uint256;
+    using Math for uint256;
 
     /// @notice Emitted when a user stakes shares.
     /// @param vaultId The ID of the vault which shares are staked.
@@ -98,18 +102,89 @@ contract VaultRouterBranch {
         collateral = vault.collateral;
     }
 
+    // TODO: update the debt distribution chain of the Vault and its connected markets in order to retrieve the latest
+    // values
+
     /// @notice Returns the swap rate from index token to collateral asset for the provided vault.
     /// @param vaultId The vault identifier.
-    /// @return price The swap price from index token to collateral asset.
-    function getIndexTokenSwapRate(uint128 vaultId) external view returns (int256 price) {
+    /// @param sharesIn The amount of input shares for which to calculate the swap rate.
+    /// @return assetsOut The swap price from index token to collateral asset.
+    function getIndexTokenSwapRate(uint128 vaultId, uint256 sharesIn) external view returns (UD60x18 assetsOut) {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.load(vaultId);
 
-        // Get index token swap rate for 1 Unit of vault asset
-        uint256 swapRate = IERC4626(vault.indexToken).previewRedeem(1 * 10 ** IERC4626(vault.collateral.asset).decimals());
+        // get the total assets
+        SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
 
-        // return swap rate plus settled and unsettled debt
-        return swapRate.toInt256() + vault.unsettledDebtUsd + vault.settledDebtUsd ;
+        // convert total debt to 18 dec
+        SD59x18 unsettledDebtX18 = sd59x18(vault.unsettledDebtUsd);
+
+        // get decimal offset
+        uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
+
+        // get collateral asset price
+        UD60x18 assetPrice = vault.collateral.getPrice(); // todo see price decimals
+
+        // get amount of assets that are credited
+        SD59x18 assetsCredit = unsettledDebtX18.div(assetPrice.intoSD59x18());
+
+        // calculate the total assets minus the debt
+        SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCredit);
+
+        // sd59x18 -> uint256
+        uint256 totalAssetsMinusDebt = totalAssetsMinusDebtX18.intoUint256();
+
+        // Get the asset amount out for the input amount of shares, taking into account the unsettled debt
+        // See {IERC4626-previewRedeem}
+        uint256 previewAssetsOut = sharesIn.mulDiv(
+            totalAssetsMinusDebt,
+            IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
+            Math.Rounding.Floor
+        );
+
+        // Return the final adjusted amountOut as UD60x18
+        return ud60x18(previewAssetsOut);
+    }
+
+    /// @notice Returns the swap rate from collateral asset to index token for the provided vault.
+    /// @param vaultId The vault identifier.
+    /// @param assetsIn The amount of input assets for which to calculate the swap rate.
+    /// @return sharesOut The swap price from underlying collateral asset to the vault shares.
+    function getVaultAssetSwapRate(uint128 vaultId, uint256 assetsIn) external view returns (UD60x18 sharesOut) {
+        // fetch storage slot for vault by id
+        Vault.Data storage vault = Vault.load(vaultId);
+
+        // get the total assets
+        SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
+
+        // convert total debt to 18 dec
+        SD59x18 unsettledDebtX18 = sd59x18(vault.unsettledDebtUsd);
+
+        // get decimal offset
+        uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
+
+        // get collateral asset price
+        UD60x18 assetPrice = vault.collateral.getPrice(); // todo see price decimals
+
+        // get amount of assets that are credited
+        SD59x18 assetsCredit = unsettledDebtX18.div(assetPrice.intoSD59x18());
+
+        // calculate the total assets minus the debt
+        SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCredit);
+
+        // sd59x18 -> uint256
+        uint256 totalAssetsMinusDebt = totalAssetsMinusDebtX18.intoUint256();
+
+        // Get the shares amount out for the input amount of tokens, taking into account the unsettled debt
+        // See {IERC4626-previewDeposit}.
+        uint256 previewSharesOut = assetsIn.mulDiv(
+            IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
+            totalAssetsMinusDebt,
+            Math.Rounding.Floor
+        );
+
+        // Return the final adjusted amountOut as UD60x18
+        return ud60x18(previewSharesOut);
     }
 
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
@@ -291,7 +366,7 @@ contract VaultRouterBranch {
         // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed();
 
-        // set withdrawl request to fulfilled
+        // set withdrawal request to fulfilled
         withdrawalRequest.fulfilled = true;
 
         // emit an event

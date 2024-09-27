@@ -5,5 +5,5 @@ InitiateWithdraw_Integration_Test
 │   └── it should revert
 ├── when shares amount is gt user balance
 │   └── it should revert
-└── when user has shares balance
+└── given user has shares balance
     └── it should create withdraw request

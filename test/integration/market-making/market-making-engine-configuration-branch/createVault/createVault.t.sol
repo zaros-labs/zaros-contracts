@@ -17,7 +17,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         changePrank({ msgSender: users.owner.account });
     }
 
-    function testFuzz_RevertWhen_TheDepositIndexTokenAddressZero(uint128 vaultId) external {
+    function testFuzz_RevertWhen_TheIndexTokenAddressIsZero(uint128 vaultId) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Collateral.Data memory collateralData = Collateral.Data({
@@ -117,7 +117,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         marketMakingEngine.createVault(params);
     }
 
-    function testFuzz_RevertWhen_VaultWithThatIdAlreadyExists(uint128 vaultId) external {
+    function test_RevertGiven_VaultWithThatIdAlreadyExists(uint128 vaultId) external {
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -144,7 +144,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         marketMakingEngine.createVault(params);
     }
 
-    function testFuzz_WhenVaultDoesNotExist(uint128 vaultId) external {
+    function test_GivenTheVaultDoesNotExist(uint128 vaultId) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Collateral.Data memory collateralData = Collateral.Data({

@@ -3,6 +3,8 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
+import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -12,12 +14,19 @@ import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializab
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { ERC4626Upgradeable } from "@openzeppelin-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract ZLPVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626Upgradeable {
+    using Math for uint256;
+
     /// @custom:storage-location erc7201:openzeppelin.storage.ZLPVault
     struct ZLPVaultStorage {
         address marketMakingEngine;
         uint8 decimalsOffset;
+        uint128 vaultId;
     }
 
     /// @notice ERC-7201 namespace storage location.
@@ -37,7 +46,8 @@ contract ZLPVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         address marketMakingEngine,
         uint8 decimalsOffset,
         address owner,
-        IERC20 asset_
+        IERC20 asset_,
+        uint128 vaultId
     )
         external
         initializer
@@ -48,6 +58,7 @@ contract ZLPVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         ZLPVaultStorage storage zlpVaultStorage = _getZLPVaultStorage();
         zlpVaultStorage.marketMakingEngine = marketMakingEngine;
         zlpVaultStorage.decimalsOffset = decimalsOffset;
+        zlpVaultStorage.vaultId = vaultId;
     }
 
     function _getZLPVaultStorage() private pure returns (ZLPVaultStorage storage zlpVaultStorage) {
@@ -97,6 +108,22 @@ contract ZLPVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
     function _decimalsOffset() internal pure override returns (uint8) {
         ZLPVaultStorage memory zlpVaultStorage = _getZLPVaultStorage();
         return zlpVaultStorage.decimalsOffset;
+    }
+
+    function _convertToAssets(uint256 assets, Math.Rounding /**/) internal view override returns (uint256) {
+        ZLPVaultStorage storage zlpVaultStorage = _getZLPVaultStorage();
+
+        UD60x18 assetsOut = IMarketMakingEngine(zlpVaultStorage.marketMakingEngine).getIndexTokenSwapRate(zlpVaultStorage.vaultId, assets);
+
+        return assetsOut.intoUint256();
+    }
+
+    function _convertToShares(uint256 shares, Math.Rounding /**/) internal view override returns (uint256) {
+        ZLPVaultStorage storage zlpVaultStorage = _getZLPVaultStorage();
+
+        UD60x18 sharesOut = IMarketMakingEngine(zlpVaultStorage.marketMakingEngine).getVaultAssetSwapRate(zlpVaultStorage.vaultId, shares);
+
+        return sharesOut.intoUint256();
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner { }

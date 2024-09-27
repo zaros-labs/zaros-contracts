@@ -6,8 +6,10 @@ library WithdrawalRequest {
     bytes32 internal constant WITHDRAWAL_REQUEST_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.WithdrawalRequest")) - 1));
 
-    // TODO: pack storage slots
-    struct Data {
+    /// @param timestamp The timestamo the request was created.
+    /// @param shares The amount of shares to withdraw.
+    /// @param fulfilled Bool indicating whether the withdraw request was fulfilled.
+        struct Data {
         uint128 timestamp;
         uint128 shares;
         bool fulfilled;

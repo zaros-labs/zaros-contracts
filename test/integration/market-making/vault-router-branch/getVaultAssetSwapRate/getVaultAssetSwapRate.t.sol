@@ -12,7 +12,7 @@ import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-contract GetIndexTokenSwapRate_Integration_Test is Base_Test {
+contract GetVaultAssetSwapRate_Integration_Test is Base_Test {
     using SafeCast for uint256;
 
     function setUp() public virtual override {
@@ -22,14 +22,14 @@ contract GetIndexTokenSwapRate_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_WhenGetIndexTokenSwapRateIsCalled(uint128 vaultId, uint256 amountToSwap) external {
+    function testFuzz_WhenGetVaultAssetSwapRateIsCalled(uint128 vaultId, uint256 amountToSwap) external {
         amountToSwap = bound({x: amountToSwap, min: 0, max: uint256(type(int256).max)});
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         vaultId = fuzzVaultConfig.vaultId;
 
-        UD60x18 swapRate = marketMakingEngine.getIndexTokenSwapRate(vaultId, amountToSwap);
+        UD60x18 swapRate = marketMakingEngine.getVaultAssetSwapRate(vaultId, amountToSwap);
 
         // it should return the swap rate
-        assertAlmostEq(IERC4626(fuzzVaultConfig.indexToken).previewRedeem(amountToSwap), swapRate.intoUint256(), 1e17);
+        assertAlmostEq(IERC4626(fuzzVaultConfig.indexToken).previewDeposit(amountToSwap), swapRate.intoUint256(), 1e17);
     }
 }

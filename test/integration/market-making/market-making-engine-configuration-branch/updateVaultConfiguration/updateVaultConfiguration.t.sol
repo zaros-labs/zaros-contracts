@@ -6,7 +6,6 @@ import { Base_Test } from "test/Base.t.sol";
 
 // Zaros dependencies source
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
-import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketMakingEngineConfigurationBranch } from
     "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
@@ -21,20 +20,10 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
     function testFuzz_RevertWhen_TheDepositCapIsZero(uint256 vaultId) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
-            creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
-            priceAdapter: fuzzVaultConfig.priceAdapter,
-            asset: fuzzVaultConfig.asset,
-            isEnabled: fuzzVaultConfig.isEnabled,
-            decimals: fuzzVaultConfig.decimals
-        });
-
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: fuzzVaultConfig.vaultId,
             depositCap: 0,
-            withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
-            collateral: collateralData
+            withdrawalDelay: fuzzVaultConfig.withdrawalDelay
         });
 
         // it should revert
@@ -45,20 +34,10 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
     function testFuzz_RevertWhen_WithdrawalDelayIsZero(uint256 vaultId) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
-            creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
-            priceAdapter: fuzzVaultConfig.priceAdapter,
-            asset: fuzzVaultConfig.asset,
-            isEnabled: fuzzVaultConfig.isEnabled,
-            decimals: fuzzVaultConfig.decimals
-        });
-
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: fuzzVaultConfig.vaultId,
             depositCap: fuzzVaultConfig.depositCap,
-            withdrawalDelay: 0,
-            collateral: collateralData
+            withdrawalDelay: 0
         });
 
         // it should revert
@@ -66,26 +45,14 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
         marketMakingEngine.updateVaultConfiguration(params);
     }
 
-    function testFuzz_RevertWhen_VaultIdIsZero(uint256 vaultId, uint256 depositCap, uint256 withdrawDelay) external {
-        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-
-        Collateral.Data memory collateralData = Collateral.Data({
-            creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
-            priceAdapter: fuzzVaultConfig.priceAdapter,
-            asset: fuzzVaultConfig.asset,
-            isEnabled: fuzzVaultConfig.isEnabled,
-            decimals: fuzzVaultConfig.decimals
-        });
-
+    function testFuzz_RevertWhen_VaultIdIsZero(uint256 depositCap, uint256 withdrawDelay) external {
         depositCap = bound({ x: depositCap, min: 1, max: type(uint128).max });
         withdrawDelay = bound({ x: withdrawDelay, min: 1, max: type(uint128).max });
 
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: 0,
             depositCap: uint128(depositCap),
-            withdrawalDelay: uint128(withdrawDelay),
-            collateral: collateralData
+            withdrawalDelay: uint128(withdrawDelay)
         });
 
         // it should revert
@@ -102,23 +69,13 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
-            creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
-            priceAdapter: fuzzVaultConfig.priceAdapter,
-            asset: fuzzVaultConfig.asset,
-            isEnabled: fuzzVaultConfig.isEnabled,
-            decimals: fuzzVaultConfig.decimals
-        });
-
         updatedDepositCap = bound({ x: updatedDepositCap, min: 1, max: type(uint128).max });
         updatedWithdrawDelay = bound({ x: updatedWithdrawDelay, min: 1, max: type(uint128).max });
 
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: fuzzVaultConfig.vaultId,
             depositCap: uint128(updatedDepositCap),
-            withdrawalDelay: uint128(updatedWithdrawDelay),
-            collateral: collateralData
+            withdrawalDelay: uint128(updatedWithdrawDelay)
         });
 
         // it should emit update event

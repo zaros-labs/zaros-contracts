@@ -7,7 +7,6 @@ import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
-// import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
@@ -20,7 +19,6 @@ import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.so
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { IMarketMakingEngine as IMarketMakingEngineBranches } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
-import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -248,8 +246,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         marketMakingEngine = IMarketMakingEngine(address(new MarketMakingEngine(mmEngineInitParams)));
 
-        createZLPVaults(address(marketMakingEngine), users.owner.account, marginCollateralIdsRange);
+        uint256[2] memory vaultsIdsRange;
+        vaultsIdsRange[0] = INITIAL_VAULT_ID;
+        vaultsIdsRange[1] = FINAL_VAULT_ID;
+
         setupVaultsConfig();
+        createZLPVaults(address(marketMakingEngine), users.owner.account, vaultsIdsRange);
+        // todo resolve merge conflicts
 
         // Other Set Up
         approveContracts();

@@ -1,9 +1,9 @@
 Redeem_Integration_Test
-├── when delay has passed
-│   └── it should transfer assets to user
+├── when request is fulfulled
+│   └── it should revert
 ├── when delay has not passed
 │   └── it should revert
 ├── when assets are less then min amount
 │   └── it should revert
-└── when requiest is fulfulled
-    └── it should revert
+└── when delay has passed
+    └── it should transfer assets to user

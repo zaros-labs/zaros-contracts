@@ -56,7 +56,7 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, sharesToWithdraw);
     }
 
-    function testFuzz_WhenUserHasSharesBalance(uint256 vaultId, uint256 assetsToDeposit) external {
+    function testFuzz_GivenUserHasSharesBalance(uint256 vaultId, uint256 assetsToDeposit) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
 

@@ -505,7 +505,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigBranchSelectors[6] =
         MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
 
-    bytes4[] memory vaultRouterBranchSelectors = new bytes4[](7);
+    bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
     vaultRouterBranchSelectors[1] = VaultRouterBranch.getIndexTokenSwapRate.selector;
     vaultRouterBranchSelectors[2] = VaultRouterBranch.getVaultData.selector;
@@ -513,6 +513,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     vaultRouterBranchSelectors[4] = VaultRouterBranch.redeem.selector;
     vaultRouterBranchSelectors[5] = VaultRouterBranch.stake.selector;
     vaultRouterBranchSelectors[6] = VaultRouterBranch.unstake.selector;
+    vaultRouterBranchSelectors[7] = VaultRouterBranch.getVaultAssetSwapRate.selector;
 
     selectors[0] = marketMakingEngineConfigBranchSelectors;
     selectors[1] = vaultRouterBranchSelectors;

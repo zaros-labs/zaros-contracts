@@ -67,12 +67,10 @@ library Vault {
     /// @param vaultId The unique identifier for the vault to be updated.
     /// @param depositCap The new maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The new delay period, in seconds, before a withdrawal request can be fulfilled.
-    /// @param collateral The updated collateral asset data associated with the vault.
     struct UpdateParams {
         uint128 vaultId;
         uint128 depositCap;
         uint128 withdrawalDelay;
-        Collateral.Data collateral;
     }
 
     /// @notice Loads a {Vault} namespace.
@@ -105,7 +103,6 @@ library Vault {
 
         self.depositCap = params.depositCap;
         self.withdrawalDelay = params.withdrawalDelay;
-        self.collateral = params.collateral;
     }
 
     /// @notice Creates a new vault with the specified parameters.
