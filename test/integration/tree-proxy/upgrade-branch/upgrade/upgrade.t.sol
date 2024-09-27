@@ -10,6 +10,8 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { Branch } from "@zaros/tree-proxy/leaves/Branch.sol";
+import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
+import { UpgradeBranch } from "@zaros/tree-proxy/branches/UpgradeBranch.sol";
 
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
@@ -20,7 +22,7 @@ contract TestContract {
     }
 }
 
-abstract contract PerpsEngineWithNewTestFunction is IPerpsEngine, TestContract { }
+abstract contract PerpsEngineWithNewTestFunction is IPerpsEngine, TestContract {}
 
 contract NewOrderBranch is OrderBranch {
     function getName(uint128 marketId) external pure returns (string memory) {

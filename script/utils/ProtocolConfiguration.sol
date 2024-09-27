@@ -55,5 +55,5 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Vaults, S
     uint128 internal constant INVALID_VAULT_ID = 0;
 
     /// @notice The maximum delay allowed for the off chain price verification.
-    uint256 internal constant MAX_VERIFICATION_DELAY = 10 seconds;
+    uint256 internal constant MAX_VERIFICATION_DELAY = 60 seconds;
 }

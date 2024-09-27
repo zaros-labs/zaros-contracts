@@ -25,7 +25,7 @@ contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
     function run(uint128 marketId) public broadcaster {
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 
-        setupMarketsConfig();
+        setupMarketsConfig(address(perpsEngine), deployer);
 
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
@@ -39,8 +39,7 @@ contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
             skewScale: marketsConfig[marketId].skewScale,
-            orderFees: marketsConfig[marketId].orderFees,
-            priceFeedHeartbeatSeconds: marketsConfig[marketId].priceFeedHeartbeatSeconds
+            orderFees: marketsConfig[marketId].orderFees
         });
 
         perpsEngine.updatePerpMarketConfiguration(marketId, params);

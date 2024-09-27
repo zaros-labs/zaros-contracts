@@ -33,19 +33,19 @@ library Errors {
     /// @notice Thrown when an oracle aggregator returns an answer out of range of min and max.
     error OraclePriceFeedOutOfRange(address priceFeed);
     /// @notice Thrown when an oracle sequencer uptime feed returns an unexpected, invalid value.
-    error InvalidSequencerUptimeFeedReturn();
+    error InvalidSequencerUptimeFeedReturn(address sequencerUptimeFeedAddress);
     /// @notice Thrown when an oracle sequencer uptime feed returns an unexpected, invalid value.
     error OracleSequencerUptimeFeedIsDown(address sequencerUptimeFeed);
     /// @notice Thrown when an oracle grace period is not over.
-    error GracePeriodNotOver();
+    error GracePeriodNotOver(address sequencerUptimeFeedAddress);
     /// @notice Thrown when an oracle returns an unexpected, invalid value.
     error InvalidOracleReturn();
-    /// @notice Thrown when an oracle price feed is outdated.
-    error OracleSequencerDown(address priceFeed);
     /// @notice Thrown when an oracle price feed is outdated.
     error OraclePriceFeedHeartbeat(address priceFeed);
     /// @notice Thrown when the keeper provided checkData bounds are invalid.
     error InvalidBounds();
+    /// @notice Thrown when an oracle sequencer is not started.
+    error OracleSequencerUptimeFeedNotStarted(address sequencerUptimeFeedAddress);
 
     /// @notice PerpsEngine.OrderBranch errors
 

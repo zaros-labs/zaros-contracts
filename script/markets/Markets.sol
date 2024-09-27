@@ -9,6 +9,9 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
+import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
+import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -27,6 +30,10 @@ import { SolUsd } from "./SolUsd.sol";
 import { MaticUsd } from "./MaticUsd.sol";
 import { LtcUsd } from "./LtcUsd.sol";
 import { FtmUsd } from "./FtmUsd.sol";
+
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 abstract contract Markets is
     StdCheats,
@@ -59,7 +66,6 @@ abstract contract Markets is
         string streamIdString;
         OrderFees.Data orderFees;
         uint256 mockUsdPrice;
-        uint32 priceFeedHeartbeatSeconds;
     }
 
     /// @notice Market configurations mapped by market id.
@@ -75,7 +81,10 @@ abstract contract Markets is
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
-    function setupMarketsConfig() internal {
+    function setupMarketsConfig(address perpsEngine, address priceAdapterOwner) internal {
+        address sequencerUptimeFeed =
+            address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
+
         marketsConfig[BTC_USD_MARKET_ID] = MarketConfig({
             marketId: BTC_USD_MARKET_ID,
             marketName: BTC_USD_MARKET_NAME,
@@ -88,12 +97,25 @@ abstract contract Markets is
             skewScale: BTC_USD_SKEW_SCALE,
             minTradeSize: BTC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: BTC_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: BTC_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: BTC_PRICE_ADAPTER_NAME,
+                        symbol: BTC_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: BTC_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: BTC_USD_STREAM_ID,
             streamIdString: STRING_BTC_USD_STREAM_ID,
             orderFees: btcUsdOrderFees,
-            mockUsdPrice: MOCK_BTC_USD_PRICE,
-            priceFeedHeartbeatSeconds: BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_BTC_USD_PRICE
         });
 
         marketsConfig[ETH_USD_MARKET_ID] = MarketConfig({
@@ -108,12 +130,25 @@ abstract contract Markets is
             skewScale: ETH_USD_SKEW_SCALE,
             minTradeSize: ETH_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: ETH_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: ETH_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: ETH_PRICE_ADAPTER_NAME,
+                        symbol: ETH_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: ETH_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: ETH_USD_STREAM_ID,
             streamIdString: STRING_ETH_USD_STREAM_ID,
             orderFees: ethUsdOrderFees,
-            mockUsdPrice: MOCK_ETH_USD_PRICE,
-            priceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_ETH_USD_PRICE
         });
 
         marketsConfig[LINK_USD_MARKET_ID] = MarketConfig({
@@ -128,12 +163,25 @@ abstract contract Markets is
             skewScale: LINK_USD_SKEW_SCALE,
             minTradeSize: LINK_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: LINK_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: LINK_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: LINK_PRICE_ADAPTER_NAME,
+                        symbol: LINK_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: LINK_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: LINK_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: LINK_USD_STREAM_ID,
             streamIdString: STRING_LINK_USD_STREAM_ID,
             orderFees: linkUsdOrderFees,
-            mockUsdPrice: MOCK_LINK_USD_PRICE,
-            priceFeedHeartbeatSeconds: LINK_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_LINK_USD_PRICE
         });
 
         marketsConfig[ARB_USD_MARKET_ID] = MarketConfig({
@@ -148,12 +196,25 @@ abstract contract Markets is
             skewScale: ARB_USD_SKEW_SCALE,
             minTradeSize: ARB_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: ARB_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: ARB_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: ARB_PRICE_ADAPTER_NAME,
+                        symbol: ARB_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: ARB_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: ARB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: ARB_USD_STREAM_ID,
             streamIdString: STRING_ARB_USD_STREAM_ID,
             orderFees: arbUsdOrderFees,
-            mockUsdPrice: MOCK_ARB_USD_PRICE,
-            priceFeedHeartbeatSeconds: ARB_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_ARB_USD_PRICE
         });
 
         marketsConfig[BNB_USD_MARKET_ID] = MarketConfig({
@@ -168,12 +229,25 @@ abstract contract Markets is
             skewScale: BNB_USD_SKEW_SCALE,
             minTradeSize: BNB_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: BNB_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: BNB_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: BNB_PRICE_ADAPTER_NAME,
+                        symbol: BNB_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: BNB_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: BNB_USD_STREAM_ID,
             streamIdString: STRING_BNB_USD_STREAM_ID,
             orderFees: bnbUsdOrderFees,
-            mockUsdPrice: MOCK_BNB_USD_PRICE,
-            priceFeedHeartbeatSeconds: BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_BNB_USD_PRICE
         });
 
         marketsConfig[DOGE_USD_MARKET_ID] = MarketConfig({
@@ -188,12 +262,25 @@ abstract contract Markets is
             skewScale: DOGE_USD_SKEW_SCALE,
             minTradeSize: DOGE_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: DOGE_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: DOGE_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: DOGE_PRICE_ADAPTER_NAME,
+                        symbol: DOGE_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: DOGE_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: DOGE_USD_STREAM_ID,
             streamIdString: STRING_DOGE_USD_STREAM_ID,
             orderFees: dogeUsdOrderFees,
-            mockUsdPrice: MOCK_DOGE_USD_PRICE,
-            priceFeedHeartbeatSeconds: DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_DOGE_USD_PRICE
         });
 
         marketsConfig[SOL_USD_MARKET_ID] = MarketConfig({
@@ -208,12 +295,25 @@ abstract contract Markets is
             skewScale: SOL_USD_SKEW_SCALE,
             minTradeSize: SOL_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: SOL_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: SOL_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: SOL_PRICE_ADAPTER_NAME,
+                        symbol: SOL_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: SOL_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: SOL_USD_STREAM_ID,
             streamIdString: STRING_SOL_USD_STREAM_ID,
             orderFees: solUsdOrderFees,
-            mockUsdPrice: MOCK_SOL_USD_PRICE,
-            priceFeedHeartbeatSeconds: SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_SOL_USD_PRICE
         });
 
         marketsConfig[MATIC_USD_MARKET_ID] = MarketConfig({
@@ -228,12 +328,25 @@ abstract contract Markets is
             skewScale: MATIC_USD_SKEW_SCALE,
             minTradeSize: MATIC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: MATIC_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: MATIC_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: MATIC_PRICE_ADAPTER_NAME,
+                        symbol: MATIC_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: MATIC_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: MATIC_USD_STREAM_ID,
             streamIdString: STRING_MATIC_USD_STREAM_ID,
             orderFees: maticUsdOrderFees,
-            mockUsdPrice: MOCK_MATIC_USD_PRICE,
-            priceFeedHeartbeatSeconds: MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_MATIC_USD_PRICE
         });
 
         marketsConfig[LTC_USD_MARKET_ID] = MarketConfig({
@@ -248,12 +361,25 @@ abstract contract Markets is
             skewScale: LTC_USD_SKEW_SCALE,
             minTradeSize: LTC_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: LTC_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: LTC_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: LTC_PRICE_ADAPTER_NAME,
+                        symbol: LTC_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: LTC_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: LTC_USD_STREAM_ID,
             streamIdString: STRING_LTC_USD_STREAM_ID,
             orderFees: ltcUsdOrderFees,
-            mockUsdPrice: MOCK_LTC_USD_PRICE,
-            priceFeedHeartbeatSeconds: LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_LTC_USD_PRICE
         });
 
         marketsConfig[FTM_USD_MARKET_ID] = MarketConfig({
@@ -268,12 +394,25 @@ abstract contract Markets is
             skewScale: FTM_USD_SKEW_SCALE,
             minTradeSize: FTM_USD_MIN_TRADE_SIZE,
             maxFundingVelocity: FTM_USD_MAX_FUNDING_VELOCITY,
-            priceAdapter: FTM_USD_PRICE_FEED,
+            priceAdapter: address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: FTM_PRICE_ADAPTER_NAME,
+                        symbol: FTM_PRICE_ADAPTER_SYMBOL,
+                        owner: priceAdapterOwner,
+                        priceFeed: FTM_USD_PRICE_FEED,
+                        ethUsdPriceFeed: address(0),
+                        sequencerUptimeFeed: sequencerUptimeFeed,
+                        priceFeedHeartbeatSeconds: FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: false
+                    })
+                )
+            ),
             streamId: FTM_USD_STREAM_ID,
             streamIdString: STRING_FTM_USD_STREAM_ID,
             orderFees: ftmUsdOrderFees,
-            mockUsdPrice: MOCK_FTM_USD_PRICE,
-            priceFeedHeartbeatSeconds: FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS
+            mockUsdPrice: MOCK_FTM_USD_PRICE
         });
     }
 
@@ -332,19 +471,57 @@ abstract contract Markets is
                 data: abi.encode(settlementConfigurationData)
             });
 
-            // update stored price adapter at tests
-            address priceAdapter = isTest
-                ? address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice)))
-                : marketsConfig[i].priceAdapter;
+            if (isTest) {
+                address mockSequencerUptimeFeed = address(new MockSequencerUptimeFeed(0));
 
-            marketsConfig[i].priceAdapter = priceAdapter;
+                if (i % 2 == 0) {
+                    UD60x18 mockEthUsdPrice = ud60x18(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice);
+                    UD60x18 mockSelectedMarketUsdPrice = ud60x18(marketsConfig[i].mockUsdPrice);
+
+                    int256 mockQuantityInEth = int256(mockSelectedMarketUsdPrice.div(mockEthUsdPrice).intoUint256());
+
+                    marketsConfig[i].priceAdapter = address(
+                        PriceAdapterUtils.deployPriceAdapter(
+                            PriceAdapter.InitializeParams({
+                                name: marketsConfig[i].marketName,
+                                symbol: marketsConfig[i].marketSymbol,
+                                owner: address(0x123),
+                                priceFeed: address(new MockPriceFeed(18, mockQuantityInEth)),
+                                ethUsdPriceFeed: address(
+                                    new MockPriceFeed(18, int256(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice))
+                                ),
+                                sequencerUptimeFeed: mockSequencerUptimeFeed,
+                                priceFeedHeartbeatSeconds: 86_400,
+                                ethUsdPriceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                                useEthPriceFeed: true
+                            })
+                        )
+                    );
+                } else {
+                    marketsConfig[i].priceAdapter = address(
+                        PriceAdapterUtils.deployPriceAdapter(
+                            PriceAdapter.InitializeParams({
+                                name: marketsConfig[i].marketName,
+                                symbol: marketsConfig[i].marketSymbol,
+                                owner: address(0x123),
+                                priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
+                                ethUsdPriceFeed: address(0),
+                                sequencerUptimeFeed: mockSequencerUptimeFeed,
+                                priceFeedHeartbeatSeconds: 86_400,
+                                ethUsdPriceFeedHeartbeatSeconds: 0,
+                                useEthPriceFeed: false
+                            })
+                        )
+                    );
+                }
+            }
 
             perpsEngine.createPerpMarket(
                 PerpsEngineConfigurationBranch.CreatePerpMarketParams({
                     marketId: marketsConfig[i].marketId,
                     name: marketsConfig[i].marketName,
                     symbol: marketsConfig[i].marketSymbol,
-                    priceAdapter: priceAdapter,
+                    priceAdapter: marketsConfig[i].priceAdapter,
                     initialMarginRateX18: marketsConfig[i].imr,
                     maintenanceMarginRateX18: marketsConfig[i].mmr,
                     maxOpenInterest: marketsConfig[i].maxOi,
@@ -354,8 +531,7 @@ abstract contract Markets is
                     skewScale: marketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
                     offchainOrdersConfiguration: offchainOrdersConfiguration,
-                    orderFees: marketsConfig[i].orderFees,
-                    priceFeedHeartbeatSeconds: marketsConfig[i].priceFeedHeartbeatSeconds
+                    orderFees: marketsConfig[i].orderFees
                 })
             );
         }

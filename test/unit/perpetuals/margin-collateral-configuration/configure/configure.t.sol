@@ -18,13 +18,11 @@ contract MarginCollateralConfiguration_Configure_Test is Base_Test {
         uint128 newDepositCap,
         uint120 newLoanToValue,
         uint8 newDecimals,
-        address newPriceFeed
+        address newPriceAdapter
     )
         external
     {
-        perpsEngine.exposed_configure(
-            address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceFeed, MOCK_PRICE_FEED_HEARTBEAT_SECONDS
-        );
+        perpsEngine.exposed_configure(address(usdc), newDepositCap, newLoanToValue, newDecimals, newPriceAdapter);
 
         MarginCollateralConfiguration.Data memory marginCollateralConfiguration =
             perpsEngine.exposed_MarginCollateral_load(address(usdc));
@@ -38,7 +36,7 @@ contract MarginCollateralConfiguration_Configure_Test is Base_Test {
         // it should update the decimals
         assertEq(marginCollateralConfiguration.decimals, newDecimals, "invalid decimals");
 
-        // it should update the price feed
-        assertEq(marginCollateralConfiguration.priceFeed, newPriceFeed, "invalid price feed");
+        // it should update the price adapter
+        assertEq(marginCollateralConfiguration.priceAdapter, newPriceAdapter, "invalid price adapter");
     }
 }

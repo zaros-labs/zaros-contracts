@@ -14,7 +14,7 @@ contract MockSequencerUptimeFeed {
         view
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
-        return (0, _anwser, 0, block.timestamp, 0);
+        return (0, _anwser, 1, block.timestamp, 0);
     }
 
     function updateAnswer(uint256 newPrice) external {

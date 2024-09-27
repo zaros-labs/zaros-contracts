@@ -110,7 +110,7 @@ abstract contract Vaults is
         // Not using the margin collateral address or price feed constants as it is reset in the marginCollaterals mapping
         // when MarginCollaterals::configureMarginCollaterals() is called
         address usdcAddress = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address usdcPriceAdapter = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceFeed;
+        address usdcPriceAdapter = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
         VaultConfig memory usdcCore = VaultConfig({
             vaultId: USDC_CORE_VAULT_ID,
             depositCap: USDC_CORE_VAULT_DEPOSIT_CAP,
@@ -158,7 +158,7 @@ abstract contract Vaults is
 
 
         address wBtcAddress = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address wBtcPriceAdapter = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceFeed;
+        address wBtcPriceAdapter = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter;
         VaultConfig memory wBtcCore = VaultConfig({
             vaultId: WBTC_CORE_VAULT_ID,
             depositCap: WBTC_CORE_VAULT_DEPOSIT_CAP,
@@ -206,7 +206,7 @@ abstract contract Vaults is
 
 
         address weEthAddress = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address weEthPriceAdapter = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceFeed;
+        address weEthPriceAdapter = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceAdapter;
         VaultConfig memory weEthCore = VaultConfig({
             vaultId: WEETH_CORE_VAULT_ID,
             depositCap: WEETH_CORE_VAULT_DEPOSIT_CAP,
@@ -254,7 +254,7 @@ abstract contract Vaults is
 
 
         address wEthAddress = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address wEthPriceAdapter = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceFeed;
+        address wEthPriceAdapter = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter;
         VaultConfig memory wEthCore = VaultConfig({
             vaultId: WETH_CORE_VAULT_ID,
             depositCap: WETH_CORE_VAULT_DEPOSIT_CAP,
@@ -302,7 +302,7 @@ abstract contract Vaults is
 
 
         address wStETHAddress = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address wStEthPriceAdapter = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceFeed;
+        address wStEthPriceAdapter = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter;
         VaultConfig memory wStEthCore = VaultConfig({
             vaultId: WSTETH_CORE_VAULT_ID,
             depositCap: WSTETH_CORE_VAULT_DEPOSIT_CAP,

@@ -434,7 +434,9 @@ contract SettlementBranch is EIP712Upgradeable {
             tradingAccount.validateMarginRequirement(
                 ctx.requiredMarginUsdX18,
                 tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18),
-                ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
+                ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).add(
+                    ud60x18(perpsEngineConfiguration.liquidationFeeUsdX18)
+                )
             );
         }
 

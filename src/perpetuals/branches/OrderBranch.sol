@@ -352,7 +352,11 @@ contract OrderBranch {
 
         // reverts if the trader can't satisfy the appropriate margin requirement
         tradingAccount.validateMarginRequirement(
-            ctx.requiredMarginUsdX18, ctx.marginBalanceUsdX18, ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18)
+            ctx.requiredMarginUsdX18,
+            ctx.marginBalanceUsdX18,
+            ctx.orderFeeUsdX18.add(ctx.settlementFeeUsdX18).add(
+                ud60x18(perpsEngineConfiguration.liquidationFeeUsdX18)
+            )
         );
 
         // reverts if a trader has a pending order and that pending order hasn't

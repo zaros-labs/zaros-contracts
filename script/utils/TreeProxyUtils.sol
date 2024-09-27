@@ -11,7 +11,6 @@ import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpMarketBranch } from "@zaros/perpetuals/branches/PerpMarketBranch.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.sol";
-import { PerpsEngineConfigurationBranchTestnet } from "testnet/branches/PerpsEngineConfigurationBranchTestnet.sol";
 import { TradingAccountBranchTestnet } from "testnet/branches/TradingAccountBranchTestnet.sol";
 import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
@@ -34,6 +33,7 @@ import { CollateralHarness } from "test/harnesses/market-making/leaves/Collatera
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -63,11 +63,12 @@ function deployPerpsEngineBranches(bool isTestnet) returns (address[] memory) {
 
     address perpsEngineConfigurationBranch;
     address tradingAccountBranch;
+
+    perpsEngineConfigurationBranch = address(new PerpsEngineConfigurationBranch());
+
     if (isTestnet) {
-        perpsEngineConfigurationBranch = address(new PerpsEngineConfigurationBranchTestnet());
         tradingAccountBranch = address(new TradingAccountBranchTestnet());
     } else {
-        perpsEngineConfigurationBranch = address(new PerpsEngineConfigurationBranch());
         tradingAccountBranch = address(new TradingAccountBranch());
     }
     console.log("PerpsEngineConfigurationBranch: ", perpsEngineConfigurationBranch);
@@ -88,9 +89,10 @@ function deployPerpsEngineBranches(bool isTestnet) returns (address[] memory) {
 function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory upgradeBranchSelectors = new bytes4[](1);
+    bytes4[] memory upgradeBranchSelectors = new bytes4[](2);
 
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
+    upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
     bytes4[] memory lookupBranchSelectors = new bytes4[](4);
 
@@ -99,7 +101,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](isTestnet ? 17 : 16);
+    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](17);
 
     perpsEngineConfigurationBranchSelectors[0] =
         PerpsEngineConfigurationBranch.getAccountsWithActivePositions.selector;
@@ -124,10 +126,8 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     perpsEngineConfigurationBranchSelectors[14] =
         PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
-
-    if (isTestnet) {
-        perpsEngineConfigurationBranchSelectors[16] = PerpsEngineConfigurationBranchTestnet.setUserPoints.selector;
-    }
+    perpsEngineConfigurationBranchSelectors[16] =
+        PerpsEngineConfigurationBranch.getSequencerUptimeFeedByChainId.selector;
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
 
@@ -158,7 +158,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     perpMarketBranchSelectors[9] = PerpMarketBranch.getFundingVelocity.selector;
     perpMarketBranchSelectors[10] = PerpMarketBranch.getPerpMarketConfiguration.selector;
 
-    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 14 : 13);
+    bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 15 : 13);
 
     tradingAccountBranchSelectors[0] = TradingAccountBranch.getTradingAccountToken.selector;
     tradingAccountBranchSelectors[1] = TradingAccountBranch.getAccountMarginCollateralBalance.selector;
@@ -176,6 +176,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
 
     if (isTestnet) {
         tradingAccountBranchSelectors[13] = TradingAccountBranchTestnet.isUserAccountCreated.selector;
+        tradingAccountBranchSelectors[14] = TradingAccountBranchTestnet.createTradingAccountWithSender.selector;
     }
 
     bytes4[] memory settlementBranchSelectors = new bytes4[](4);
@@ -198,35 +199,28 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
 }
 
 function getPerpsEngineInitializables(address[] memory branches) pure returns (address[] memory) {
-    address[] memory initializables = new address[](2);
+    address[] memory initializables = new address[](1);
 
     address upgradeBranch = branches[0];
-    address perpsEngineConfigurationBranch = branches[2];
 
     initializables[0] = upgradeBranch;
-    initializables[1] = perpsEngineConfigurationBranch;
 
     return initializables;
 }
 
 function getPerpsEngineInitializePayloads(
-    address deployer,
-    address tradingAccountToken,
-    address usdToken
+    address deployer
 )
     pure
     returns (bytes[] memory)
 {
-    bytes[] memory initializePayloads = new bytes[](2);
+    bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
-    bytes memory perpsEngineInitializeData =
-        abi.encodeWithSelector(PerpsEngineConfigurationBranch.initialize.selector, tradingAccountToken, usdToken);
 
-    initializePayloads = new bytes[](2);
+    initializePayloads = new bytes[](1);
 
     initializePayloads[0] = rootUpgradeInitializeData;
-    initializePayloads[1] = perpsEngineInitializeData;
 
     return initializePayloads;
 }

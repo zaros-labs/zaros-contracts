@@ -8,6 +8,8 @@ abstract contract WeEth {
     /// @notice Margin collateral configuration parameters.
     string internal constant WEETH_NAME = "Wrapped eETH";
     string internal constant WEETH_SYMBOL = "weETH";
+    string internal constant WEETH_PRICE_ADAPTER_NAME = "WEETH/USD Zaros Price Adapter";
+    string internal constant WEETH_PRICE_ADAPTER_SYMBOL = "WEETH/USD";
     uint256 internal constant WEETH_MARGIN_COLLATERAL_ID = 6;
     UD60x18 internal WEETH_DEPOSIT_CAP_X18 = ud60x18(1_000_000e18);
     uint120 internal constant WEETH_LOAN_TO_VALUE = 0.7e18;

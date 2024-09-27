@@ -499,7 +499,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 tradingAccountId,
                 marginBalanceUsdX18.intoInt256(),
                 requiredInitialMarginUsdX18,
-                orderFeeUsdX18.add(settlementFeeUsdX18).intoUint256()
+                orderFeeUsdX18.add(settlementFeeUsdX18).add(ud60x18(LIQUIDATION_FEE_USD)).intoUint256()
             )
         });
         perpsEngine.createMarketOrder(

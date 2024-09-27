@@ -35,7 +35,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
         marketsIdsRange[0] = initialMarketId;
         marketsIdsRange[1] = finalMarketId;
 
-        setupMarketsConfig();
+        setupMarketsConfig(address(perpsEngine), deployer);
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 
@@ -88,28 +88,9 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                     skewScale: filteredMarketsConfig[i].skewScale,
                     marketOrderConfiguration: marketOrderConfiguration,
                     offchainOrdersConfiguration: offchainOrdersConfiguration,
-                    orderFees: filteredMarketsConfig[i].orderFees,
-                    priceFeedHeartbeatSeconds: filteredMarketsConfig[i].priceFeedHeartbeatSeconds
+                    orderFees: filteredMarketsConfig[i].orderFees
                 })
             });
         }
-    }
-
-    function deployMarketOrderKeeper(
-        uint128 marketId,
-        string memory streamIdString,
-        address marketOrderKeeperImplementation
-    )
-        internal
-        returns (address marketOrderKeeper)
-    {
-        marketOrderKeeper = address(
-            new ERC1967Proxy(
-                marketOrderKeeperImplementation,
-                abi.encodeWithSelector(
-                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, marketId, streamIdString
-                )
-            )
-        );
     }
 }

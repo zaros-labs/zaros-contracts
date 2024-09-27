@@ -18,14 +18,12 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
-    uint256 internal keeperInitialLinkFunding;
+    address internal usdToken;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     TradingAccountNFT internal tradingAccountToken;
-    address internal link;
-    address internal automationRegistrar;
     IPerpsEngine internal perpsEngine;
     IMarketMakingEngine internal marketMakingEngine;
 
@@ -33,9 +31,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         tradingAccountToken = TradingAccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         marketMakingEngine = IMarketMakingEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
-        link = vm.envAddress("LINK");
-        automationRegistrar = vm.envAddress("CHAINLINK_AUTOMATION_REGISTRAR");
-        keeperInitialLinkFunding = vm.envUint("KEEPER_INITIAL_LINK_FUNDING");
+        usdToken = vm.envAddress("USDZ");
 
         configureContracts(initialMarginCollateralId, finalMarginCollateralId);
     }
@@ -63,7 +59,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         marginCollateralIdsRange[0] = initialMarginCollateralId;
         marginCollateralIdsRange[1] = finalMarginCollateralId;
 
-        configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, false, address(0));
+        configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, false, deployer);
 
         address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine));
         console.log("Liquidation Keeper: ", liquidationKeeper);
@@ -75,6 +71,10 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         liquidatorStatus[0] = true;
 
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
+
+        perpsEngine.setUsdToken(usdToken);
+
+        perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
         LimitedMintingERC20(USDZ_ADDRESS).transferOwnership(address(perpsEngine));
     }

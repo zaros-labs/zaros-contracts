@@ -5,8 +5,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
-import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
-import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
@@ -87,18 +86,12 @@ library Collateral {
     /// @param self The collateral type storage pointer.
     /// @return price The price of the given collateral type.
     function getPrice(Data storage self) internal view returns (UD60x18 price) {
-        address priceFeed = self.priceAdapter;
-        uint32 priceFeedHeartbeatSeconds = self.priceFeedHeartbeatSeconds;
+        address priceAdapter = self.priceAdapter;
 
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration = MarketMakingEngineConfiguration.load();
-        address sequencerUptimeFeed = marketMakingEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
-
-        if (priceFeed == address(0)) {
+        if (priceAdapter == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-        price = ChainlinkUtil.getPrice(
-            IAggregatorV3(priceFeed), priceFeedHeartbeatSeconds, IAggregatorV3(sequencerUptimeFeed)
-        );
+        price = IPriceAdapter(priceAdapter).getPrice();
     }
 }

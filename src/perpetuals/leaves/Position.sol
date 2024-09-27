@@ -151,8 +151,7 @@ library Position {
     /// @param marketId The market identifier where the position is held.
     /// @param sizeDelta The change in position size; positive for an increase, negative for a decrease.
     /// @return isNotionalValueIncreasing Returns true if the position is being opened (size is 0) or increased
-    /// (sizeDelta
-    /// direction matches position size), otherwise false.
+    /// (sizeDelta direction matches position size or change the direction), otherwise false.
     function isNotionalValueIncreasing(
         uint128 tradingAccountId,
         uint128 marketId,
@@ -164,11 +163,14 @@ library Position {
     {
         Data storage self = load(tradingAccountId, marketId);
 
+        SD59x18 sizeDeltaX18 = sd59x18(sizeDelta);
+        SD59x18 sizeX18 = sd59x18(self.size);
+
         // If position is being opened (size is 0) or if position is being increased (sizeDelta direction is same as
         // position size)
         // For a positive position, sizeDelta should be positive to increase, and for a negative position, sizeDelta
         // should be negative to increase.
         // This also implicitly covers the case where if it's a new position (size is 0), it's considered an increase.
-        return self.size == 0 || (self.size > 0 && sizeDelta > 0) || (self.size < 0 && sizeDelta < 0);
+        return sizeX18.isZero() || (sizeDeltaX18.add(sizeX18).abs() > sizeX18.abs());
     }
 }
