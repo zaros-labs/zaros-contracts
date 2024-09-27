@@ -28,7 +28,7 @@ library MarketDebt {
     bytes32 internal constant MARKET_DEBT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketDebt")) - 1));
 
-    /// @param marketId The perps engine's linked market id.
+    /// @param marketId The engine's linked market id.
     /// @param autoDeleverageStartThreshold An admin configurable decimal rate used to determine the starting
     /// threshold of the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleverageEndThreshold An admin configurable decimal rate used to determine the ending threshold of
@@ -160,6 +160,8 @@ library MarketDebt {
     {
         creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(sd59x18(self.realizedDebtUsd));
     }
+
+    function getCreditDelegationState(Data storage self) internal view returns (bytes memory creditDelegationState) { }
 
     function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCreditUsdX18) {
         totalDelegatedCreditUsdX18 = ud60x18(self.vaultsDebtDistribution.totalShares);
