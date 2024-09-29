@@ -11,8 +11,8 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, UNIT as UD60x18_UNIT } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @dev NOTE: unrealized debt (from perp market) -> realized debt (market debt) -> unsettled debt (vaults) -> settled
 /// debt (vaults)
@@ -92,7 +92,7 @@ library MarketDebt {
     /// @notice Computes the auto delevarage factor of the market based on the market's credit capacity, total debt
     /// and its configured ADL parameters.
     /// @dev The auto deleverage factor is the `y` coordinate of the following polynomial regression curve:
-    //// X and Y in [0, 1]
+    //// X and Y in [0, 1] ∈ R
     /// y = x^z
     /// z = MarketDebt.Data.autoDeleveragePowerScale
     /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
@@ -101,22 +101,26 @@ library MarketDebt {
     /// marketDebtRatio = MarketDebt::getTotalDebt / MarketDebt::getCreditCapacity
     /// @param self The market debt storage pointer.
     /// @param creditCapacityUsdX18 The market's credit capacity in USD.
-    /// @param absoluteTotalDebtUsdX18 The market's total debt in USD in absolute value.
+    /// @param totalDebtUsdX18 The market's total debt in USD, assumed to be positive.
     /// @dev IMPORTANT: This function assumes the market is in net debt. If the market is in net credit,
     /// this function must not be called otherwise it will return an incorrect deleverage factor.
-    /// @return autoDeleverageFactor A decimal rate which determines how much should the market cut of the position's
-    /// profit. Goes from 0 to 1.
+    /// @return autoDeleverageFactorX18 A decimal rate which determines how much should the market cut of the
+    /// position's profit. Ranges between 0 and 1.
     function getAutoDeleverageFactor(
         Data storage self,
-        UD60x18 creditCapacityUsdX18,
-        UD60x18 absoluteTotalDebtUsdX18
+        SD59x18 creditCapacityUsdX18,
+        SD59x18 totalDebtUsdX18
     )
         internal
         view
-        returns (UD60x18 autoDeleverageFactor)
+        returns (UD60x18 autoDeleverageFactorX18)
     {
+        if (creditCapacityUsdX18.lte(totalDebtUsdX18) || creditCapacityUsdX18.lte(SD59x18_ZERO)) {
+            autoDeleverageFactorX18 = UD60x18_UNIT;
+            return autoDeleverageFactorX18;
+        }
         // calculates the market debt ratio
-        UD60x18 marketDebtRatio = absoluteTotalDebtUsdX18.div(creditCapacityUsdX18);
+        UD60x18 marketDebtRatio = totalDebtUsdX18.div(creditCapacityUsdX18).intoUD60x18();
 
         // cache the auto deleverage parameters as UD60x18
         UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
@@ -129,7 +133,7 @@ library MarketDebt {
         ).div(autoDeleverageEndThresholdX18.sub(autoDeleverageStartThresholdX18));
 
         // finally, raise to the power scale
-        autoDeleverageFactor = unscaledDeleverageFactor.pow(autoDeleveragePowerScaleX18);
+        autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleveragePowerScaleX18);
     }
 
     function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaultsIds) {

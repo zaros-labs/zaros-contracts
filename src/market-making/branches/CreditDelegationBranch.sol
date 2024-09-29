@@ -105,21 +105,17 @@ contract CreditDelegationBranch {
         // uint256 -> UD60x18
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
-        SD59x18 creditCapacityUsdX18 = marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit());
-
-        // TODO: is this check needed?
-        if (creditCapacityUsdX18.lte(SD59x18_ZERO)) revert Errors.InsufficientCreditCapacity(marketId, profitUsd);
-
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
-        // NOTE: If this if doesn't stop execution, we assume marketTotalDebtUsdX18 is positive
+        // NOTE: If we don't return the adjusted profit in this if branch, we assume marketTotalDebtUsdX18 is positive
         if (!marketDebt.isAutoDeleverageTriggered(marketTotalDebtUsdX18)) {
             // if the market is not in the ADL state, it returns the profit as is
             adjustedProfitUsdX18 = profitUsdX18;
             return adjustedProfitUsdX18;
         }
 
+        // if the market's auto deleverage system is triggered, it assumes marketTotalDebtUsdX18 > 0
         adjustedProfitUsdX18 = marketDebt.getAutoDeleverageFactor(
-            creditCapacityUsdX18.intoUD60x18(), marketTotalDebtUsdX18.intoUD60x18()
+            marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit()), marketTotalDebtUsdX18
         ).mul(profitUsdX18);
     }
 
@@ -235,7 +231,7 @@ contract CreditDelegationBranch {
             // if the market is in the ADL state, it reduces the requested USDz amount by multiplying it by the ADL
             // factor, which must be < 1
             UD60x18 adjustedUsdzToMintX18 = marketDebt.getAutoDeleverageFactor(
-                marketDebt.getCreditCapacity(delegatedCreditUsdX18).intoUD60x18(), marketTotalDebtUsdX18.intoUD60x18()
+                marketDebt.getCreditCapacity(delegatedCreditUsdX18), marketTotalDebtUsdX18
             ).mul(amountX18);
             amountToMint = adjustedUsdzToMintX18.intoUint256();
             marketDebt.realizeDebt(adjustedUsdzToMintX18.intoSD59x18());
