@@ -75,12 +75,11 @@ contract CreditDelegationBranch {
     /// @dev Each engine can implement its own credit schema according to its business logic, thus, this function will
     /// return the credit delegation state as an abi encoded byte array.
     /// @param marketId The engine's market id.
-    /// @return creditDelegationState The abi encoded credit delegation state of the given market id.
-    // TODO: how to encode the credit delegation state?
-    function getCreditForMarketId(uint128 marketId) public view returns (bytes memory creditDelegationState) {
+    /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
+    function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18 creditCapacityUsdX18) {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        return marketDebt.getCreditDelegationState();
+        return marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit());
     }
 
     /// @notice Returns the adjusted profit of an active position at the given market id, considering the market's ADL
@@ -294,13 +293,13 @@ contract CreditDelegationBranch {
     /// market id
     /// @dev Invariants involved in the call:
     /// @param marketId The engine's market id.
-    /// @return creditDelegationState The abi encoded credit delegation state of the given market id.
+    /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
     /// TODO: add invariants
     function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
         external
-        returns (bytes memory creditDelegationState)
+        returns (SD59x18 creditCapacityUsdX18)
     {
         updateCreditDelegation();
-        return getCreditForMarketId(marketId);
+        return getCreditCapacityForMarketId(marketId);
     }
 }

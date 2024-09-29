@@ -35,10 +35,6 @@ library MarketDebt {
     /// the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleveragePowerScale An admin configurable power scale, used to determine the acceleration of the
     /// ADL polynomial regression curve.
-    /// @param openInterestCapScale An admin configurable value which determines the market's open interest cap,
-    /// according to the total delegated credit.
-    /// @param skewCapScale An admin configurable value which determines the market's skew cap, according to the total
-    /// delegated credit.
     /// @param realizedDebtUsd The net delta of USDz minted by the market and margin collateral collected from
     /// traders and converted to USDC or ZLP Vaults assets.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
@@ -56,8 +52,6 @@ library MarketDebt {
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
-        uint128 openInterestCapScale;
-        uint128 skewCapScale;
         int128 realizedDebtUsd;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedTotalDebtUsd;
@@ -83,9 +77,7 @@ library MarketDebt {
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale,
-        uint128 openInterestCapScale,
-        uint128 skewCapScale
+        uint128 autoDeleveragePowerScale
     )
         internal
     {
@@ -95,8 +87,6 @@ library MarketDebt {
         self.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         self.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
         self.autoDeleveragePowerScale = autoDeleveragePowerScale;
-        self.openInterestCapScale = openInterestCapScale;
-        self.skewCapScale = skewCapScale;
     }
 
     /// @notice Computes the auto delevarage factor of the market based on the market's credit capacity, total debt
@@ -161,24 +151,11 @@ library MarketDebt {
         creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(sd59x18(self.realizedDebtUsd));
     }
 
-    function getCreditDelegationState(Data storage self) internal view returns (bytes memory creditDelegationState) { }
-
     function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCreditUsdX18) {
         totalDelegatedCreditUsdX18 = ud60x18(self.vaultsDebtDistribution.totalShares);
     }
 
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
-
-    function getMarketCaps(Data storage self)
-        internal
-        view
-        returns (UD60x18 openInterestCapX18, UD60x18 skewCapX18)
-    {
-        UD60x18 totalDelegatedCredit = ud60x18(self.vaultsDebtDistribution.totalShares);
-
-        openInterestCapX18 = ud60x18(self.openInterestCapScale).mul(totalDelegatedCredit);
-        skewCapX18 = ud60x18(self.skewCapScale).mul(totalDelegatedCredit);
-    }
 
     function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) { }
 
