@@ -22,7 +22,7 @@ contract TestContract {
     }
 }
 
-abstract contract PerpsEngineWithNewTestFunction is IPerpsEngine, TestContract { }
+abstract contract PerpsEngineWithNewTestFunction is IPerpsEngine, TestContract {}
 
 contract NewOrderBranch is OrderBranch {
     function getName(uint128 marketId) external pure returns (string memory) {

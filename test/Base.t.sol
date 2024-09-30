@@ -168,8 +168,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;
         marginCollateralIdsRange[1] = FINAL_MARGIN_COLLATERAL_ID;
 
-        mockSequencerUptimeFeed =
-            address(new MockSequencerUptimeFeed(int256(uint256(MOCK_PRICE_FEED_HEARTBEAT_SECONDS))));
+        mockSequencerUptimeFeed = address(new MockSequencerUptimeFeed(0));
 
         configureMarginCollaterals(
             perpsEngine, marginCollateralIdsRange, true, mockSequencerUptimeFeed, users.owner.account
@@ -298,13 +297,15 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function createPerpMarkets() internal {
         createPerpMarkets(
-            users.owner.account,
-            perpsEngine,
-            mockSequencerUptimeFeed,
-            INITIAL_MARKET_ID,
-            FINAL_MARKET_ID,
-            IVerifierProxy(mockChainlinkVerifier),
-            true
+            CreatePerpMarketsParams({
+                deployer: users.owner.account,
+                perpsEngine: perpsEngine,
+                sequencerUptimeFeed: mockSequencerUptimeFeed,
+                initialMarketId: INITIAL_MARKET_ID,
+                finalMarketId: FINAL_MARKET_ID,
+                chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
+                isTest: true
+            })
         );
 
         for (uint256 i = INITIAL_MARKET_ID; i <= FINAL_MARKET_ID; i++) {
