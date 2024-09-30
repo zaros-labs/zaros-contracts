@@ -93,7 +93,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](17);
+    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](15);
 
     perpsEngineConfigurationBranchSelectors[0] =
         PerpsEngineConfigurationBranch.getAccountsWithActivePositions.selector;
@@ -114,12 +114,8 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
         PerpsEngineConfigurationBranch.updateSettlementConfiguration.selector;
     perpsEngineConfigurationBranchSelectors[12] = PerpsEngineConfigurationBranch.setUsdToken.selector;
     perpsEngineConfigurationBranchSelectors[13] =
-        PerpsEngineConfigurationBranch.configureSequencerUptimeFeedByChainId.selector;
-    perpsEngineConfigurationBranchSelectors[14] =
         PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
-    perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
-    perpsEngineConfigurationBranchSelectors[16] =
-        PerpsEngineConfigurationBranch.getSequencerUptimeFeedByChainId.selector;
+    perpsEngineConfigurationBranchSelectors[14] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
 
@@ -220,12 +216,7 @@ function getInitializables(address[] memory branches) pure returns (address[] me
     return initializables;
 }
 
-function getInitializePayloads(
-    address deployer
-)
-    pure
-    returns (bytes[] memory)
-{
+function getInitializePayloads(address deployer) pure returns (bytes[] memory) {
     bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
@@ -312,7 +303,7 @@ function deployAddressHarnesses() returns (address[] memory) {
 function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](10);
 
-    bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](13);
+    bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](12);
     perpsEngineConfigurationHarnessSelectors[0] =
         PerpsEngineConfigurationHarness.exposed_checkMarketIsEnabled.selector;
     perpsEngineConfigurationHarnessSelectors[1] = PerpsEngineConfigurationHarness.exposed_addMarket.selector;
@@ -331,10 +322,8 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     perpsEngineConfigurationHarnessSelectors[9] =
         PerpsEngineConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
     perpsEngineConfigurationHarnessSelectors[10] =
-        PerpsEngineConfigurationHarness.workaround_getSequencerUptimeFeedByChainId.selector;
-    perpsEngineConfigurationHarnessSelectors[11] =
         PerpsEngineConfigurationHarness.workaround_getMaxPositionsPerAccount.selector;
-    perpsEngineConfigurationHarnessSelectors[12] =
+    perpsEngineConfigurationHarnessSelectors[11] =
         PerpsEngineConfigurationHarness.workaround_getLiquidationFeeUsdX18.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](6);

@@ -167,6 +167,20 @@ library Errors {
     /// one.
     error InvalidDataStreamReport(bytes32 streamId, bytes32 reportStreamId);
 
+    /// @notice MarketMakingEngine.CreditDelegationBranch errors.
+
+    /// @notice Thrown when the given `marketId` has no vaults delegating credit to it. This error must be unreachable
+    /// and treated as a panic state.
+    error NoConnectedVaults(uint128 marketId);
+    /// @notice Thrown when trying to realize debt but the market doesn't have enough credit capacity left. If the ADL
+    /// handling is working properly, this error should be unreachable.
+    error InsufficientCreditCapacity(uint128 marketId, uint256 requestedDebt);
+    /// @notice Thrown when updating the debt state of a market with no delegated credit.
+    error NoDelegatedCredit(uint128 marketId);
+
+    /// @notice MarketMakingEngine.Collateral errors.
+    error CollateralDisabled(address collateralType);
+
     /// @notice MarketMakingEngine.Distribution errors.
 
     /// @notice Thrown when trying to distribute value to an empty distribution.

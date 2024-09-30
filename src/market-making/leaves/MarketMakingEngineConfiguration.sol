@@ -11,13 +11,12 @@ library MarketMakingEngineConfiguration {
 
     // TODO: pack storage slots
     struct Data {
-        address usdToken;
+        address usdz;
         address usdc;
         address weth;
-        address perpsEngine;
         address feeDistributor;
         FeeRecipient.Data[][] feeRecipients;
-        mapping(uint256 chainId => address sequencerUptimeFeed) sequencerUptimeFeedByChainId;
+        mapping(address engine => bool isRegistered) registeredEngines;
         // TODO: define roles
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;
     }

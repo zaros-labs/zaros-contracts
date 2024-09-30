@@ -25,7 +25,9 @@ contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
     function run(uint128 marketId) public broadcaster {
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 
-        setupMarketsConfig(address(perpsEngine), deployer);
+        setupSequencerUptimeFeeds();
+
+        setupMarketsConfig(sequencerUptimeFeedByChainId[block.chainid], deployer);
 
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({

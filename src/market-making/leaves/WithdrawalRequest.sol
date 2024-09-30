@@ -19,9 +19,9 @@ library WithdrawalRequest {
     /// @param withdrawalRequestId The withdrawal request identifier.
     /// @return withdrawalRequest The loaded withdrawal request storage pointer.
     function load(
-        uint256 vaultId,
+        uint128 vaultId,
         address account,
-        uint256 withdrawalRequestId
+        uint128 withdrawalRequestId
     )
         internal
         pure

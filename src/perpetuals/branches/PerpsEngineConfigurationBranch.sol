@@ -14,7 +14,7 @@ import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralC
 
 // Open Zeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+import { ERC20, IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 /// @title Perps Engine Configuration Branch.
@@ -36,9 +36,6 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Emitted when the usd token address is set.
     event LogSetUsdToken(address indexed sender, address indexed usdToken);
-
-    /// @notice Emitted when the sequencerUptimeFeed address is set.
-    event LogSetSequencerUptimeFeed(address indexed sender, uint256 chainId, address indexed sequencerUptimeFeed);
 
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
@@ -283,6 +280,7 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         address orderFeeRecipient,
         address settlementFeeRecipient,
         address liquidationFeeRecipient,
+        address marketMakingEngine,
         uint256 maxVerificationDelay
     )
         external
@@ -312,6 +310,10 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("liquidationFeeRecipient");
         }
 
+        if (marketMakingEngine == address(0)) {
+            revert Errors.ZeroInput("marketMakingEngine");
+        }
+
         if (maxVerificationDelay == 0) {
             revert Errors.ZeroInput("maxVerificationDelay");
         }
@@ -325,6 +327,7 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         perpsEngineConfiguration.orderFeeRecipient = orderFeeRecipient;
         perpsEngineConfiguration.settlementFeeRecipient = settlementFeeRecipient;
         perpsEngineConfiguration.liquidationFeeRecipient = liquidationFeeRecipient;
+        perpsEngineConfiguration.marketMakingEngine = marketMakingEngine;
         perpsEngineConfiguration.maxVerificationDelay = maxVerificationDelay;
 
         emit LogConfigureSystemParameters(
@@ -568,46 +571,6 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         }
     }
 
-    /// @notice Configures the sequencer uptime feed by chain id.
-    /// @param chainIds The array of chain ids.
-    /// @param sequencerUptimeFeedAddresses The array of sequencer uptime feed addresses.
-    function configureSequencerUptimeFeedByChainId(
-        uint256[] memory chainIds,
-        address[] memory sequencerUptimeFeedAddresses
-    )
-        external
-        onlyOwner
-    {
-        if (chainIds.length == 0) {
-            revert Errors.ZeroInput("chainIds");
-        }
-
-        if (sequencerUptimeFeedAddresses.length == 0) {
-            revert Errors.ZeroInput("sequencerUptimeFeedAddresses");
-        }
-
-        if (chainIds.length != sequencerUptimeFeedAddresses.length) {
-            revert Errors.ArrayLengthMismatch(chainIds.length, sequencerUptimeFeedAddresses.length);
-        }
-
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
-
-        for (uint256 i; i < chainIds.length; i++) {
-            perpsEngineConfiguration.sequencerUptimeFeedByChainId[chainIds[i]] = sequencerUptimeFeedAddresses[i];
-
-            emit LogSetSequencerUptimeFeed(msg.sender, chainIds[i], sequencerUptimeFeedAddresses[i]);
-        }
-    }
-
-    /// @notice Returns the sequencer uptime feed by the chain id
-    /// @dev If the chain id is not found, it will return address(0).
-    /// @param chainId The chain id.
-    /// @return sequencerUptimeFeed The sequencer uptime feed address.
-    function getSequencerUptimeFeedByChainId(uint256 chainId) external view returns (address) {
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
-        return perpsEngineConfiguration.sequencerUptimeFeedByChainId[chainId];
-    }
-
     /// @notice Creates a custom referral code.
     /// @param referrer The address of the referrer.
     /// @param customReferralCode The custom referral code.
@@ -615,5 +578,32 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         CustomReferralConfiguration.load(customReferralCode).referrer = referrer;
 
         emit LogCreateCustomReferralCode(referrer, customReferralCode);
+    }
+
+    /// @notice Updates the allowance of the market making engine to spend the provided tokens.
+    /// @param tokens The array of ERC20 token addresses.
+    /// @param allowances The array of ERC20 token allowances.
+    function setMarketMakingEngineAllowance(
+        IERC20[] calldata tokens,
+        uint256[] calldata allowances
+    )
+        external
+        onlyOwner
+    {
+        if (tokens.length == 0) {
+            revert Errors.ZeroInput("tokens");
+        }
+
+        if (tokens.length != allowances.length) {
+            revert Errors.ArrayLengthMismatch(tokens.length, allowances.length);
+        }
+
+        // loads the perps engine configuration
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+
+        // approves the market making engine to spend each provided token
+        for (uint256 i; i < tokens.length; i++) {
+            tokens[i].approve(perpsEngineConfiguration.marketMakingEngine, allowances[i]);
+        }
     }
 }
