@@ -50,12 +50,11 @@ library Collateral {
         return Math.convertTokenAmountToUd60x18(self.decimals, amount);
     }
 
-    /// @notice Converts the provided 18 decimals normalized amount to the collateral's decimals amount.
+        /// @notice Converts the provided 18 decimals normalized amount to the collateral's decimals amount.
     /// @dev We can assume self.decimals is always <= SYSTEM_DECIMALS, since it's a requirement at `setDecimals`.
     /// @param self The collateral type storage pointer.
     /// @param amountX18 The 18 decimals normalized amount.
     /// @return amount The denormalized amount using the ERC20 token's decimals.
-<<<<<<< HEAD
     function convertUd60x18ToTokenAmount(
         Data storage self,
         UD60x18 amountX18
@@ -69,36 +68,11 @@ library Collateral {
 
     function getPrice(Data storage self) internal view returns (UD60x18 priceX18) {
         address priceAdapter = self.priceAdapter;
-<<<<<<< HEAD
-=======
-        uint32 priceFeedHeartbeatSeconds = self.priceFeedHeartbeatSeconds;
-
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-        // TODO: get sequencer uptime feed
-        // address sequencerUptimeFeed = marketMakingEngineConfiguration.sequencerUptimeFeedByChainId[block.chainid];
->>>>>>> b267f497 (fix: rebase conflicts, stack to deep and break tests)
 
         if (priceAdapter == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-<<<<<<< HEAD
         priceX18 = IPriceAdapter(priceAdapter).getPrice();
-=======
-        // TODO: switch to priceAdapter
-        priceX18 = ChainlinkUtil.getPrice(
-            ChainlinkUtil.GetPriceParams({
-                priceFeed: IAggregatorV3(priceAdapter),
-                priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
-                sequencerUptimeFeed: IAggregatorV3(address(0))
-            })
-        );
->>>>>>> b267f497 (fix: rebase conflicts, stack to deep and break tests)
     }
-=======
-    function convertUd60x18ToTokenAmount(Data storage self, UD60x18 amountX18) internal view returns (uint256) {
-        return Math.convertUd60x18ToTokenAmount(self.decimals, amountX18);
-    }
->>>>>>> 92b30862 (chore: refactor decimal conversion at PerpsEngine.MarginCollateral and add logic to MarketMakingEngine.Collateral)
 }
