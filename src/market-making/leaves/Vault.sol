@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { Collateral } from "./Collateral.sol";
 import { CreditDelegation } from "./CreditDelegation.sol";
 import { Distribution } from "./Distribution.sol";
+import { MarketDebt } from "@zaros/market-making/leaves/MarketDebt.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -85,6 +86,10 @@ library Vault {
             // get the latest credit delegation share of the vault's credit capacity
             UD60x18 creditDelegationShareX18 =
                 ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
+
+            UD60x18 newCreditDelegationUsdX18 = getTotalCreditCapacityUsd(self).mul(creditDelegationShareX18);
+
+            MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
         }
     }
 

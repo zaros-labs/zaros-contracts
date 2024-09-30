@@ -195,10 +195,7 @@ contract CreditDelegationBranch {
     /// @notice Mints the requested amount of USDz to the caller and updates the market's
     /// debt state.
     /// @dev Called by a registered engine to mint USDz to profitable traders.
-    /// @dev USDz association with a trading account happens at the engine level.
-    /// @dev This function assumes the perps engine won't call it with a zero amount.
-    /// @dev Effects must be performed at the perps engine beforehand, otherwise this function will assume an invalid
-    /// total debt value.
+    /// @dev USDz association with an engine's user happens at the engine contract level.
     /// @param marketId The engine's market id requesting USDz.
     /// @param amount The amount of USDz to mint.
     /// @dev Invariants involved in the call:
