@@ -50,7 +50,7 @@ library Collateral {
         return Math.convertTokenAmountToUd60x18(self.decimals, amount);
     }
 
-        /// @notice Converts the provided 18 decimals normalized amount to the collateral's decimals amount.
+    /// @notice Converts the provided 18 decimals normalized amount to the collateral's decimals amount.
     /// @dev We can assume self.decimals is always <= SYSTEM_DECIMALS, since it's a requirement at `setDecimals`.
     /// @param self The collateral type storage pointer.
     /// @param amountX18 The 18 decimals normalized amount.
