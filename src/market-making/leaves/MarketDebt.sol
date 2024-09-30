@@ -14,7 +14,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-/// @dev NOTE: unrealized debt (from perp market) -> realized debt (market debt) -> unsettled debt (vaults) -> settled
+/// @dev NOTE: unrealized debt (from market) -> realized debt (market debt) -> unsettled debt (vaults) -> settled
 /// debt (vaults)
 /// TODO: do we only send realized debt as unsettled debt to the vaults? should it be considered settled debt? or do
 /// we send the entire reported debt as unsettled debt?
@@ -28,6 +28,7 @@ library MarketDebt {
     bytes32 internal constant MARKET_DEBT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketDebt")) - 1));
 
+    /// @param engine The engine contract address that operates this market id.
     /// @param marketId The perps engine's linked market id.
     /// @param autoDeleverageStartThreshold An admin configurable decimal rate used to determine the starting
     /// threshold of the ADL polynomial regression curve, ranging from 0 to 1.
@@ -52,6 +53,7 @@ library MarketDebt {
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
     /// USD denominated debt per share.
     struct Data {
+        address engine;
         uint128 marketId;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
@@ -108,7 +110,7 @@ library MarketDebt {
     /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
-    /// marketDebtRatio = MarketDebt::getTotalDebt / MarketDebt::getCreditCapacity
+    /// marketDebtRatio = MarketDebt::getTotalDebt / MarketDebt::getCreditCapacityUsd
     /// @param self The market debt storage pointer.
     /// @param creditCapacityUsdX18 The market's credit capacity in USD.
     /// @param absoluteTotalDebtUsdX18 The market's total debt in USD in absolute value.
@@ -150,7 +152,7 @@ library MarketDebt {
         connectedVaultsIds = self.connectedVaultsIds[self.connectedVaultsIds.length].values();
     }
 
-    function getCreditCapacity(
+    function getCreditCapacityUsd(
         Data storage self,
         UD60x18 delegatedCreditUsdX18
     )

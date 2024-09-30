@@ -56,14 +56,33 @@ library Vault {
         }
     }
 
+    function getLockedCreditCapacityUsd(Data storage self) internal view returns (SD59x18) {
+        return getTotalCreditCapacityUsd(self).mul(ud60x18(self.lockedCreditRatio).intoSD59x18());
+    }
+
+    function getTotalCreditCapacityUsd(Data storage self) internal view returns (SD59x18 vaultCreditCapacityUsdX18) {
+        Collateral.Data storage collateral = self.collateral;
+        // TODO: update self.totalDeposited to ERC4626::totalAssets
+        UD60x18 totalAssetsUsdX18 = collatera.getPrice().mul(ud60x18(self.totalDeposited));
+
+        vaultCreditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledDebtUsd));
+    }
+
+    function recalculateUnsettledDebt(Data storage self) internal { }
+
     // TODO: see if we need market id here or if we return the updated credit delegations to update the `MarketDebt`
     // state.
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
     function updateVaultsCreditDelegation(uint256[] memory vaultsIds, uint128 marketId) internal {
         for (uint256 i; i < vaultsIds.length; i++) {
+            // load the vault storage pointer
             Data storage self = load(uint128(vaultsIds[i]));
+            // we must always recalculate the credit capacity before updating a vault's credit delegation
+            recalculateCreditCapacity(self);
+            // load the credit delegation to the given market id
             CreditDelegation.Data storage creditDelegation = CreditDelegation.load(self.vaultId, marketId);
 
+            // get the latest credit delegation share of the vault's credit capacity
             UD60x18 creditDelegationShareX18 =
                 ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
         }

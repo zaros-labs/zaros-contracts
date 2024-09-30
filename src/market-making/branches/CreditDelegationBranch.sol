@@ -102,7 +102,7 @@ contract CreditDelegationBranch {
         // uint256 -> UD60x18
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
-        SD59x18 creditCapacityUsdX18 = marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit());
+        SD59x18 creditCapacityUsdX18 = marketDebt.getCreditCapacityUsd(marketDebt.getDelegatedCredit());
 
         // TODO: is this check needed?
         if (creditCapacityUsdX18.lte(SD59x18_ZERO)) revert Errors.InsufficientCreditCapacity(marketId, profitUsd);
@@ -199,8 +199,9 @@ contract CreditDelegationBranch {
         // loads the market's debt data storage pointer
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        // we need to first recalculate the latest credit delegation state
-        marketDebt.recalculateDelegatedCredit();
+        uint256[] memory connectedVaultsIds = marketDebt.getConnectedVaultsIds();
+
+        Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
 
         // uint256 -> UD60x18
         // NOTE: we don't need to scale decimals here as it's known that USDz has 18 decimals
@@ -213,7 +214,7 @@ contract CreditDelegationBranch {
         // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
         // capacity to cover USDz mint requests. Deleverage happens when the perps engine calls
         // CreditDelegationBranch::getAdjustedProfitForMarketId
-        if (marketDebt.getCreditCapacity(delegatedCreditUsdX18).lt(amountX18.intoSD59x18())) {
+        if (marketDebt.getCreditCapacityUsd(delegatedCreditUsdX18).lt(amountX18.intoSD59x18())) {
             revert Errors.InsufficientCreditCapacity(marketId, amountX18.intoUint256());
         }
 
@@ -228,7 +229,8 @@ contract CreditDelegationBranch {
             // if the market is in the ADL state, it reduces the requested USDz amount by multiplying it by the ADL
             // factor, which must be < 1
             UD60x18 adjustedUsdzToMintX18 = marketDebt.getAutoDeleverageFactor(
-                marketDebt.getCreditCapacity(delegatedCreditUsdX18).intoUD60x18(), marketTotalDebtUsdX18.intoUD60x18()
+                marketDebt.getCreditCapacityUsd(delegatedCreditUsdX18).intoUD60x18(),
+                marketTotalDebtUsdX18.intoUD60x18()
             ).mul(amountX18);
             amountToMint = adjustedUsdzToMintX18.intoUint256();
             marketDebt.realizeDebt(adjustedUsdzToMintX18.intoSD59x18());
