@@ -285,7 +285,7 @@ contract CreditDelegationBranch {
     /// credit to `n` markets, configured by the protocol admin.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    // TODO: update credit delegation and debt distribution chain
+    // TODO: update credit delegation and debt distribution
     // TODO: how to account for collected margin collateral's fluctuation in value?
     function updateCreditDelegation() public { }
 

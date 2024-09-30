@@ -19,7 +19,7 @@ import { SD59x18 } from "@prb-math/SD59x18.sol";
 ///  unrealized debt + realized debt + unsettled debt + settled debt + requested usdz.
 /// This means if the engine fails to report the unrealized debt properly, its users will unexpectedly be deleveraged.
 /// The MM engine protects LPs by taking into account the requested USDz.
-/// @dev Vault's debt for credit delegation purposes = unsettledDebtUsd (comes from each market's realized debt) + settledDebtUsd + unrealized debt of each market (realized must always be distributed to unsettled following the Debt Distribution Chain)
+/// @dev Vault's debt for credit delegation purposes = unsettledDebtUsd (comes from each market's realized debt) + settledDebtUsd + unrealized debt of each market (realized must always be distributed to unsettled following the Debt Distribution System)
 /// @dev Vault's debt for asset settlement purposes = unsettledDebtUsd + settledDebtUsd
 /// @dev A swap adds `settledDebt` but subtracts `unsettledDebt`. The Vault earns a swap fee for the inconvenience, allocated as additional WETH staking rewards.
 library Vault {
