@@ -27,6 +27,7 @@ import { CustomReferralConfigurationHarness } from
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -80,9 +81,10 @@ function deployBranches(bool isTestnet) returns (address[] memory) {
 function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory upgradeBranchSelectors = new bytes4[](1);
+    bytes4[] memory upgradeBranchSelectors = new bytes4[](2);
 
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
+    upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
     bytes4[] memory lookupBranchSelectors = new bytes4[](4);
 
@@ -205,35 +207,23 @@ function getBranchUpgrades(
 }
 
 function getInitializables(address[] memory branches) pure returns (address[] memory) {
-    address[] memory initializables = new address[](2);
+    address[] memory initializables = new address[](1);
 
     address upgradeBranch = branches[0];
-    address perpsEngineConfigurationBranch = branches[2];
 
     initializables[0] = upgradeBranch;
-    initializables[1] = perpsEngineConfigurationBranch;
 
     return initializables;
 }
 
-function getInitializePayloads(
-    address deployer,
-    address tradingAccountToken,
-    address usdToken
-)
-    pure
-    returns (bytes[] memory)
-{
-    bytes[] memory initializePayloads = new bytes[](2);
+function getInitializePayloads(address deployer) pure returns (bytes[] memory) {
+    bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
-    bytes memory perpsEngineInitializeData =
-        abi.encodeWithSelector(PerpsEngineConfigurationBranch.initialize.selector, tradingAccountToken, usdToken);
 
-    initializePayloads = new bytes[](2);
+    initializePayloads = new bytes[](1);
 
     initializePayloads[0] = rootUpgradeInitializeData;
-    initializePayloads[1] = perpsEngineInitializeData;
 
     return initializePayloads;
 }

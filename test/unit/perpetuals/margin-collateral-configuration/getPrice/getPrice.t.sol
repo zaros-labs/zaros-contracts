@@ -129,7 +129,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidSequencerUptimeFeedReturn.selector) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InvalidSequencerUptimeFeedReturn.selector, address(mockSequencerUptimeFeedWithInvalidReturn)
+            )
+        });
 
         perpsEngine.exposed_getPrice(collateral);
     }
@@ -231,7 +235,11 @@ contract MarginCollateralConfiguration_GetPrice_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.GracePeriodNotOver.selector) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.GracePeriodNotOver.selector, address(mockSequencerUptimeFeedGracePeriodNotOver)
+            )
+        });
 
         perpsEngine.exposed_getPrice(collateral);
     }

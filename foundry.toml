@@ -16,6 +16,9 @@
   solc = "0.8.25"
   src = "src"
   test = "test"
+  fs_permissions = [
+    { access = "read", path = "./script/testnet/listOfTradingAccounts.json" },
+  ]
 
 [profile.ci]
   fuzz = { runs = 10_000 }

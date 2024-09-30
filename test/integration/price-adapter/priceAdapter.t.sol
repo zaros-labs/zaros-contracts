@@ -14,6 +14,7 @@ import { MockSequencerUptimeFeedDown } from "test/mocks/MockSequencerUptimeFeedD
 import { MockSequencerUptimeFeedGracePeriodNotOver } from "test/mocks/MockSequencerUptimeFeedGracePeriodNotOver.sol";
 import { IPriceAdapter, PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
+import { MockSequencerUptimeFeedNotStarted } from "test/mocks/MockSequencerUptimeFeedNotStarted.sol";
 import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
 // Open Zeppelin dependencies
@@ -199,7 +200,11 @@ contract PriceAdapter_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidSequencerUptimeFeedReturn.selector) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InvalidSequencerUptimeFeedReturn.selector, address(mockSequencerUptimeFeedWithInvalidReturn)
+            )
+        });
 
         perpsEngine.exposed_getPrice(collateral);
     }
@@ -260,6 +265,60 @@ contract PriceAdapter_Integration_Test is Base_Test {
         _;
     }
 
+    function testFuzz_RevertWhen_SequencerUptimeFeedIsNotStarted(bool useEthPriceFeed)
+        external
+        whenPriceAdapterIsNotZero
+        whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
+        whenSequencerUptimeFeedIsNotZero
+        whenSequencerUptimeFeedReturnsAValidValue
+        whenSequencerUptimeFeedIsOnline
+    {
+        address collateral = address(wstEth);
+
+        changePrank({ msgSender: users.owner.account });
+        MockSequencerUptimeFeedNotStarted mockSequencerUptimeFeedNotStarted =
+            new MockSequencerUptimeFeedNotStarted(1e18);
+
+        MockPriceFeed mockPriceFeed = new MockPriceFeed(Constants.SYSTEM_DECIMALS, int256(MOCK_WEETH_USD_PRICE));
+
+        perpsEngine.exposed_configure(
+            collateral,
+            WSTETH_DEPOSIT_CAP_X18.intoUint128(),
+            WSTETH_LOAN_TO_VALUE,
+            Constants.SYSTEM_DECIMALS,
+            address(
+                PriceAdapterUtils.deployPriceAdapter(
+                    PriceAdapter.InitializeParams({
+                        name: WSTETH_PRICE_ADAPTER_NAME,
+                        symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
+                        owner: users.owner.account,
+                        priceFeed: address(mockPriceFeed),
+                        ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
+                        sequencerUptimeFeed: address(mockSequencerUptimeFeedNotStarted),
+                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        ethUsdPriceFeedHeartbeatSeconds: 0,
+                        useEthPriceFeed: useEthPriceFeed
+                    })
+                )
+            )
+        );
+
+        changePrank({ msgSender: users.naruto.account });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.OracleSequencerUptimeFeedNotStarted.selector, address(mockSequencerUptimeFeedNotStarted)
+            )
+        });
+
+        perpsEngine.exposed_getPrice(collateral);
+    }
+
+    modifier whenSequencerUptimeFeedIsStarted() {
+        _;
+    }
+
     function testFuzz_RevertWhen_GracePeriodNotOver(bool useEthPriceFeed)
         external
         whenPriceAdapterIsNotZero
@@ -267,6 +326,7 @@ contract PriceAdapter_Integration_Test is Base_Test {
         whenSequencerUptimeFeedIsNotZero
         whenSequencerUptimeFeedReturnsAValidValue
         whenSequencerUptimeFeedIsOnline
+        whenSequencerUptimeFeedIsStarted
     {
         address collateral = address(wstEth);
 
@@ -301,7 +361,11 @@ contract PriceAdapter_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.GracePeriodNotOver.selector) });
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.GracePeriodNotOver.selector, address(mockSequencerUptimeFeedGracePeriodNotOver)
+            )
+        });
 
         perpsEngine.exposed_getPrice(collateral);
     }
