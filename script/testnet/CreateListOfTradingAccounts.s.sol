@@ -3,27 +3,34 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { BaseScript } from "../Base.s.sol";
-import { IPerpsEngineTestnet } from "testnet/PerpsEngineTestnet.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
 struct TradingAccountData {
-    uint128 id;
     address sender;
-    bytes referralCode;
-    bool isCustomReferralCode;
+    address referrer;
+    bool shouldUseReferrerField;
 }
 
 struct ListOfTradingAccounts {
     TradingAccountData[] data;
 }
 
+interface IPerpsEngineTestnet {
+    function createTradingAccountWithSender(
+        address sender,
+        bytes memory referralCode,
+        bool isCustomReferralCode
+    )
+        external;
+}
+
 /// @dev This script creates a list of trading accounts.
 contract CreateListOfTradingAccounts is BaseScript {
     IPerpsEngineTestnet internal perpsEngine;
 
-    function run() public broadcaster {
+    function run(uint256 initialIndex, uint256 finalIndex) public broadcaster {
         perpsEngine = IPerpsEngineTestnet(vm.envAddress("PERPS_ENGINE"));
 
         string memory root = vm.projectRoot();
@@ -33,12 +40,27 @@ contract CreateListOfTradingAccounts is BaseScript {
 
         ListOfTradingAccounts memory listOfTradingAccounts = abi.decode(data, (ListOfTradingAccounts));
 
-        for (uint256 i; i < listOfTradingAccounts.data.length; i++) {
-            perpsEngine.createTradingAccountWithSender(
-                listOfTradingAccounts.data[i].sender,
-                listOfTradingAccounts.data[i].referralCode,
-                listOfTradingAccounts.data[i].isCustomReferralCode
-            );
+        uint256 limit = (finalIndex - initialIndex) + initialIndex;
+
+        for (uint256 i = initialIndex; i < limit; i++) {
+            address userSender;
+            address referrer;
+
+            bytes memory referralCode;
+
+            if (listOfTradingAccounts.data[i].shouldUseReferrerField == true) {
+                userSender = listOfTradingAccounts.data[i].referrer;
+                referrer = (listOfTradingAccounts.data[i].sender);
+
+                referralCode = abi.encode(referrer);
+            } else {
+                userSender = listOfTradingAccounts.data[i].sender;
+                referrer = (listOfTradingAccounts.data[i].referrer);
+
+                referralCode = bytes("");
+            }
+
+            perpsEngine.createTradingAccountWithSender(userSender, referralCode, false);
         }
 
         console.log("List of trading accounts created");

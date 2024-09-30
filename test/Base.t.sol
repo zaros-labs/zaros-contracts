@@ -150,8 +150,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getInitializables(branches);
-        bytes[] memory initializePayloads =
-            getInitializePayloads(users.owner.account, address(tradingAccountToken), address(0));
+        bytes[] memory initializePayloads = getInitializePayloads(users.owner.account);
 
         branchUpgrades = deployHarnesses(branchUpgrades);
 
@@ -169,8 +168,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;
         marginCollateralIdsRange[1] = FINAL_MARGIN_COLLATERAL_ID;
 
-        mockSequencerUptimeFeed =
-            address(new MockSequencerUptimeFeed(int256(uint256(MOCK_PRICE_FEED_HEARTBEAT_SECONDS))));
+        mockSequencerUptimeFeed = address(new MockSequencerUptimeFeed(0));
 
         configureMarginCollaterals(
             perpsEngine, marginCollateralIdsRange, true, mockSequencerUptimeFeed, users.owner.account
@@ -189,8 +187,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.label({ account: address(wstEth), newLabel: marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].symbol });
         vm.label({ account: address(wEth), newLabel: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].symbol });
         vm.label({ account: address(wBtc), newLabel: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].symbol });
-
-        perpsEngine.setUsdToken(address(usdz));
 
         configureContracts();
 
@@ -260,6 +256,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function configureContracts() internal {
+        perpsEngine.setUsdToken(address(usdz));
+        perpsEngine.setTradingAccountToken(address(tradingAccountToken));
+
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         // TODO: Temporary, switch to Market Making engine
@@ -298,13 +297,15 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function createPerpMarkets() internal {
         createPerpMarkets(
-            users.owner.account,
-            perpsEngine,
-            mockSequencerUptimeFeed,
-            INITIAL_MARKET_ID,
-            FINAL_MARKET_ID,
-            IVerifierProxy(mockChainlinkVerifier),
-            true
+            CreatePerpMarketsParams({
+                deployer: users.owner.account,
+                perpsEngine: perpsEngine,
+                sequencerUptimeFeed: mockSequencerUptimeFeed,
+                initialMarketId: INITIAL_MARKET_ID,
+                finalMarketId: FINAL_MARKET_ID,
+                chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
+                isTest: true
+            })
         );
 
         for (uint256 i = INITIAL_MARKET_ID; i <= FINAL_MARKET_ID; i++) {

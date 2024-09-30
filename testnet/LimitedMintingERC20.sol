@@ -21,7 +21,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Address of the Perpetuals Engine contract.
-    address public constant PERPS_ENGINE = 0x6B57b4c5812B8716df0c3682A903CcEfc94b21ad;
+    address public constant PERPS_ENGINE = 0x6f7b7e54a643E1285004AaCA95f3B2e6F5bcC1f3;
 
     /// @notice Amount of tokens minted per address.
     uint256 public constant AMOUNT_TO_MINT_USDC = 100_000 * 10 ** 18;
@@ -86,6 +86,49 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         return super.transferFrom(from, to, value);
     }
 
+    function verifyIfUserIsEnableToMint(uint256 tokenIndex, bool shouldRevert) public view returns (bool isEnable) {
+        if (block.timestamp < startTimeMinting) {
+            if (shouldRevert) {
+                revert LimitedMintingERC20_MintingIsNotStarted(startTimeMinting);
+            } else {
+                return isEnable;
+            }
+        }
+
+        uint256 numberOfWeeks = (block.timestamp - startTimeMinting) / 7 days;
+
+        if (userLastMintedTime[msg.sender] >= startTimeMinting + numberOfWeeks * 7 days) {
+            if (shouldRevert) {
+                revert LimitedMintingERC20_UserAlreadyMintedThisWeek(msg.sender, userLastMintedTime[msg.sender]);
+            } else {
+                return isEnable;
+            }
+        }
+
+        uint256 userBalance = balanceOf(msg.sender);
+        address tradingAccountToken = IPerpsEngine(PERPS_ENGINE).getTradingAccountToken();
+        bool userHasTradingAccount = IERC721Enumerable(tradingAccountToken).balanceOf(msg.sender) > 0;
+
+        if (userHasTradingAccount) {
+            uint128 tradingAccountId = uint128(IERC721Enumerable(tradingAccountToken).tokenOfOwnerByIndex(msg.sender, tokenIndex));
+            (SD59x18 marginBalanceUsdX18,,,) = IPerpsEngine(PERPS_ENGINE).getAccountMarginBreakdown(tradingAccountId);
+
+            userBalance += uint256(marginBalanceUsdX18.intoInt256());
+        }
+
+        if (userLastMintedTime[msg.sender] > 0 && userBalance > MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT) {
+            if (shouldRevert) {
+                revert LimitedMintingERC20_UserHasMoreThanMaxAmount(
+                msg.sender, userBalance, MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT
+            );
+            } else {
+                return isEnable;
+            }
+        }
+
+        isEnable = true;
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                     EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
@@ -99,28 +142,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     }
 
     function mint(uint256 tokenIndex) external {
-        if (block.timestamp < startTimeMinting) {
-            revert LimitedMintingERC20_MintingIsNotStarted(startTimeMinting);
-        }
-
-        uint256 numberOfWeeks = (block.timestamp - startTimeMinting) / 7 days;
-
-        if (userLastMintedTime[msg.sender] >= startTimeMinting + numberOfWeeks * 7 days) {
-            revert LimitedMintingERC20_UserAlreadyMintedThisWeek(msg.sender, userLastMintedTime[msg.sender]);
-        }
-
-        address tradingAccountToken = IPerpsEngine(PERPS_ENGINE).getTradingAccountToken();
-        uint128 tradingAccountId = uint128(IERC721Enumerable(tradingAccountToken).tokenOfOwnerByIndex(msg.sender, tokenIndex));
-
-        (SD59x18 marginBalanceUsdX18,,,) = IPerpsEngine(PERPS_ENGINE).getAccountMarginBreakdown(tradingAccountId);
-
-        uint256 userBalance = balanceOf(msg.sender) + uint256(marginBalanceUsdX18.intoInt256());
-
-        if (userLastMintedTime[msg.sender] > 0 && userBalance > MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT) {
-            revert LimitedMintingERC20_UserHasMoreThanMaxAmount(
-                msg.sender, userBalance, MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT
-            );
-        }
+        verifyIfUserIsEnableToMint(tokenIndex, true);
 
         userLastMintedTime[msg.sender] = block.timestamp;
         amountMintedPerAddress[msg.sender] = AMOUNT_TO_MINT_USDC;

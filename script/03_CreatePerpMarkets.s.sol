@@ -95,22 +95,4 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
             });
         }
     }
-
-    function deployMarketOrderKeeper(
-        uint128 marketId,
-        string memory streamIdString,
-        address marketOrderKeeperImplementation
-    )
-        internal
-        returns (address marketOrderKeeper)
-    {
-        marketOrderKeeper = address(
-            new ERC1967Proxy(
-                marketOrderKeeperImplementation,
-                abi.encodeWithSelector(
-                    MarketOrderKeeper.initialize.selector, deployer, perpsEngine, marketId, streamIdString
-                )
-            )
-        );
-    }
 }
