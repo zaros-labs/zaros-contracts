@@ -4,6 +4,9 @@ pragma solidity 0.8.25;
 // Solady dependencies
 import { MinHeapLib } from "@solady/Milady.sol";
 
+/// @dev Protocol Debt Distribution Chain:
+/// market unrealized debt -> market realized debt (when triggered by engine) -> vault unsettled debt (flushed from
+/// market unrealized debt) -> vault settled debt (flushed from vault unsettled debt, triggered by keeper)
 library SystemDebt {
     bytes32 internal constant SYSTEM_DEBT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.SystemDebt")) - 1));

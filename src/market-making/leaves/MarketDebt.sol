@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Math } from "@zaros/utils/Math.sol";
+import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
 import { Distribution } from "./Distribution.sol";
 
 // Open Zeppelin dependencies
@@ -163,14 +164,17 @@ library MarketDebt {
 
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
 
-    function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) { }
+    function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) {
+        totalDebtUsdX18 =
+            sd59x18(IEngine(self.engine).getUnrealizedDebt(self.marketId)).add(sd59x18(self.realizedDebtUsd));
+    }
 
     function isAutoDeleverageTriggered(Data storage self, SD59x18 totalDebtUsdX18) internal view returns (bool) { }
 
     function addMarginCollateral(Data storage self, address collateralType, uint256 amount) internal { }
 
     // TODO: see how to return the unsettled debt change
-    function distributeDebtToVaults(
+    function distributeTotalDebtToVaults(
         Data storage self,
         SD59x18 newTotalDebtUsdX18
     )
