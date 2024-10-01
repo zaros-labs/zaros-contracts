@@ -173,7 +173,6 @@ library MarketDebt {
 
     function addMarginCollateral(Data storage self, address collateralType, uint256 amount) internal { }
 
-    // TODO: see how to return the unsettled debt change
     function distributeDebtToVaults(
         Data storage self,
         SD59x18 newUnrealizedDebtUsdX18,
@@ -184,19 +183,23 @@ library MarketDebt {
     {
         // int128 -> SD59x18
         SD59x18 lastDistributedUnrealizedDebtUsdX18 = sd59x18(self.lastDistributedUnrealizedDebtUsd);
+        // int128 -> SD59x18
+        SD59x18 lastDistributedRealizedDebtUsdX18 = sd59x18(self.lastDistributedRealizedDebtUsd);
 
         // caches the new realized debt value to be stored
         int128 newRealizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
+
+        // The debt to be distributed takes into account the diff between the last and the new unrealized debt, and
+        // sums with the diff between the last and new realized debt, taking into account the additional debt that is
+        // being realized in the current execution context.
+        distributedDebtUsdX18 = newUnrealizedDebtUsdX18.sub(lastDistributedUnrealizedDebtUsdX18).add(
+            sd59x18(newRealizedDebtUsd).sub(lastDistributedRealizedDebtUsdX18)
+        );
 
         // update storage values
         self.realizedDebtUsd = newRealizedDebtUsd;
         self.lastDistributedRealizedDebtUsd = newRealizedDebtUsd;
         self.lastDistributedUnrealizedDebtUsd = newUnrealizedDebtUsdX18.intoInt256().toInt128();
-
-        // The debt to be distributed takes into account the diff between the last and the new unrealized debt, and
-        // sums with the debt that is being realized in the execution context.
-        distributedDebtUsdX18 =
-            lastDistributedUnrealizedDebtUsdX18.sub(newUnrealizedDebtUsdX18).add(debtToRealizeUsdX18);
 
         // loads the vaults debt distribution storage pointer
         Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
