@@ -79,7 +79,7 @@ contract CreditDelegationBranch {
     function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18 creditCapacityUsdX18) {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        return marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit());
+        return marketDebt.getCreditCapacityUsd(marketDebt.getDelegatedCredit());
     }
 
     /// @notice Returns the adjusted profit of an active position at the given market id, considering the market's ADL
@@ -120,7 +120,7 @@ contract CreditDelegationBranch {
 
         // if the market's auto deleverage system is triggered, it assumes marketTotalDebtUsdX18 > 0
         adjustedProfitUsdX18 = marketDebt.getAutoDeleverageFactor(
-            marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit()), marketTotalDebtUsdX18
+            marketDebt.getCreditCapacityUsd(marketDebt.getDelegatedCredit()), marketTotalDebtUsdX18
         ).mul(profitUsdX18);
     }
 
@@ -234,8 +234,7 @@ contract CreditDelegationBranch {
             // if the market is in the ADL state, it reduces the requested USDz amount by multiplying it by the ADL
             // factor, which must be < 1
             UD60x18 adjustedUsdzToMintX18 = marketDebt.getAutoDeleverageFactor(
-                marketDebt.getCreditCapacityUsd(delegatedCreditUsdX18).intoUD60x18(),
-                marketTotalDebtUsdX18.intoUD60x18()
+                marketDebt.getCreditCapacityUsd(delegatedCreditUsdX18), marketTotalDebtUsdX18
             ).mul(amountX18);
             amountToMint = adjustedUsdzToMintX18.intoUint256();
             marketDebt.realizeDebt(adjustedUsdzToMintX18.intoSD59x18());

@@ -41,7 +41,7 @@ library MarketDebt {
     /// traders and converted to USDC or ZLP Vaults assets.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
     /// vaults.
-    /// @param lastDistributedTotalDebtUsd The last total debt in USD distributed as `value` to the vaults debt
+    /// @param lastDistributedUnrealizedDebtUsd The last total debt in USD distributed as `value` to the vaults debt
     /// distribution.
     /// @param collectedMarginCollateral An enumerable map that stores the amount of each margin collateral asset
     /// collected from perps traders at a market.
@@ -57,7 +57,7 @@ library MarketDebt {
         uint128 autoDeleveragePowerScale;
         int128 realizedDebtUsd;
         int128 lastDistributedRealizedDebtUsd;
-        int128 lastDistributedTotalDebtUsd;
+        int128 lastDistributedUnrealizedDebtUsd;
         EnumerableMap.AddressToUintMap collectedMarginCollateral;
         EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
@@ -174,27 +174,37 @@ library MarketDebt {
     function addMarginCollateral(Data storage self, address collateralType, uint256 amount) internal { }
 
     // TODO: see how to return the unsettled debt change
-    function distributeTotalDebtToVaults(
+    function distributeDebtToVaults(
         Data storage self,
-        SD59x18 newTotalDebtUsdX18
+        SD59x18 newUnrealizedDebtUsdX18,
+        SD59x18 debtToRealizeUsdX18
     )
         internal
-        returns (SD59x18 unsettledRealizedDebtChangeUsdX18)
+        returns (SD59x18 distributedDebtUsdX18)
     {
+        // int128 -> SD59x18
+        SD59x18 lastDistributedUnrealizedDebtUsdX18 = sd59x18(self.lastDistributedUnrealizedDebtUsd);
+
+        // caches the new realized debt value to be stored
+        int128 newRealizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
+
+        // update storage values
+        self.realizedDebtUsd = newRealizedDebtUsd;
+        self.lastDistributedRealizedDebtUsd = newRealizedDebtUsd;
+        self.lastDistributedUnrealizedDebtUsd = newUnrealizedDebtUsdX18.intoInt256().toInt128();
+
+        // The debt to be distributed takes into account the diff between the last and the new unrealized debt, and
+        // sums with the debt that is being realized in the execution context.
+        distributedDebtUsdX18 =
+            lastDistributedUnrealizedDebtUsdX18.sub(newUnrealizedDebtUsdX18).add(debtToRealizeUsdX18);
+
         // loads the vaults debt distribution storage pointer
         Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
-        // int128 -> SD59x18
-        SD59x18 lastDistributedTotalDebtUsdX18 = sd59x18(self.lastDistributedTotalDebtUsd);
 
-        /// distributes the delta between the last distributed total debt and the new total debt to the vaults and
-        /// cache the unsettled debt change in the distribution.
-        // NOTE: this unsettled debt value will be further distributed to the vaults in the next iteration at the
-        // parent context, which is then settled for USDC by the protocol when applicable.
-
-        vaultsDebtDistribution.distributeValue(lastDistributedTotalDebtUsdX18.sub(newTotalDebtUsdX18));
-
-        // update the last distributed total debt
-        self.lastDistributedTotalDebtUsd = newTotalDebtUsdX18.intoInt256().toInt128();
+        // distributes debt as value to the vaults debt distribution
+        // NOTE: distributed debt must be further pushed down the debt distribution system in order to keep the
+        // system accounting valid.
+        vaultsDebtDistribution.distributeValue(distributedDebtUsdX18);
     }
 
     /// @notice Adds the minted usdz or the margin collateral collected from traders into the stored realized debt.
