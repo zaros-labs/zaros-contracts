@@ -34,7 +34,6 @@ library PerpsEngineConfiguration {
     /// @param collateralLiquidationPriority The set of collateral types in order of liquidation priority.
     /// @param enabledMarketsIds The set of enabled perp markets.
     /// @param accountsIdsWithActivePositions The set of trading account ids with active positions
-    /// @param sequencerUptimeFeedByChainId The mapping of chain ids to their sequencer uptime feed.
     struct Data {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMinLifetime;
@@ -54,7 +53,6 @@ library PerpsEngineConfiguration {
         EnumerableSet.AddressSet collateralLiquidationPriority;
         EnumerableSet.UintSet enabledMarketsIds;
         EnumerableSet.UintSet accountsIdsWithActivePositions;
-        mapping(uint256 chainId => address sequencerUptimeFeed) sequencerUptimeFeedByChainId;
     }
 
     /// @notice Loads the {PerpsEngineConfiguration}.

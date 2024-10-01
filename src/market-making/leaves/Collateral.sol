@@ -21,7 +21,6 @@ library Collateral {
     // TODO: pack storage slots
     struct Data {
         uint256 creditRatio;
-        uint32 priceFeedHeartbeatSeconds;
         bool isEnabled;
         uint8 decimals;
         address priceAdapter;
@@ -60,7 +59,14 @@ library Collateral {
     /// @param self The collateral type storage pointer.
     /// @param amountX18 The 18 decimals normalized amount.
     /// @return amount The denormalized amount using the ERC20 token's decimals.
-    function convertUd60x18ToTokenAmount(Data storage self, UD60x18 amountX18) internal view returns (uint256) {
+    function convertUd60x18ToTokenAmount(
+        Data storage self,
+        UD60x18 amountX18
+    )
+        internal
+        view
+        returns (uint256 amount)
+    {
         return Math.convertUd60x18ToTokenAmount(self.decimals, amountX18);
     }
 
@@ -84,14 +90,14 @@ library Collateral {
 
     /// @notice Returns the price of the given collateral type.
     /// @param self The collateral type storage pointer.
-    /// @return price The price of the given collateral type.
-    function getPrice(Data storage self) internal view returns (UD60x18 price) {
+    /// @return priceX18 The price of the given collateral type.
+    function getPrice(Data storage self) internal view returns (UD60x18 priceX18) {
         address priceAdapter = self.priceAdapter;
 
         if (priceAdapter == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
-        price = IPriceAdapter(priceAdapter).getPrice();
+        priceX18 = IPriceAdapter(priceAdapter).getPrice();
     }
 }

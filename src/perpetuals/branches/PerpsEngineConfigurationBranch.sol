@@ -37,9 +37,6 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @notice Emitted when the usd token address is set.
     event LogSetUsdToken(address indexed sender, address indexed usdToken);
 
-    /// @notice Emitted when the sequencerUptimeFeed address is set.
-    event LogSetSequencerUptimeFeed(address indexed sender, uint256 chainId, address indexed sequencerUptimeFeed);
-
     /// @notice Emitted when the collateral priority is configured.
     /// @param sender The address that configured the collateral priority.
     /// @param collateralTypes The array of collateral type addresses, ordered by priority.
@@ -572,46 +569,6 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
 
             emit LogDisablePerpMarket(msg.sender, marketId);
         }
-    }
-
-    /// @notice Configures the sequencer uptime feed by chain id.
-    /// @param chainIds The array of chain ids.
-    /// @param sequencerUptimeFeedAddresses The array of sequencer uptime feed addresses.
-    function configureSequencerUptimeFeedByChainId(
-        uint256[] memory chainIds,
-        address[] memory sequencerUptimeFeedAddresses
-    )
-        external
-        onlyOwner
-    {
-        if (chainIds.length == 0) {
-            revert Errors.ZeroInput("chainIds");
-        }
-
-        if (sequencerUptimeFeedAddresses.length == 0) {
-            revert Errors.ZeroInput("sequencerUptimeFeedAddresses");
-        }
-
-        if (chainIds.length != sequencerUptimeFeedAddresses.length) {
-            revert Errors.ArrayLengthMismatch(chainIds.length, sequencerUptimeFeedAddresses.length);
-        }
-
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
-
-        for (uint256 i; i < chainIds.length; i++) {
-            perpsEngineConfiguration.sequencerUptimeFeedByChainId[chainIds[i]] = sequencerUptimeFeedAddresses[i];
-
-            emit LogSetSequencerUptimeFeed(msg.sender, chainIds[i], sequencerUptimeFeedAddresses[i]);
-        }
-    }
-
-    /// @notice Returns the sequencer uptime feed by the chain id
-    /// @dev If the chain id is not found, it will return address(0).
-    /// @param chainId The chain id.
-    /// @return sequencerUptimeFeed The sequencer uptime feed address.
-    function getSequencerUptimeFeedByChainId(uint256 chainId) external view returns (address) {
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
-        return perpsEngineConfiguration.sequencerUptimeFeedByChainId[chainId];
     }
 
     /// @notice Creates a custom referral code.

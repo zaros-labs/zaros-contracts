@@ -22,7 +22,6 @@ contract Vault_Create_Unit_Test is Base_Test {
 
         Collateral.Data memory collateralData = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
             isEnabled: fuzzVaultConfig.isEnabled,
@@ -47,7 +46,6 @@ contract Vault_Create_Unit_Test is Base_Test {
 
         Collateral.Data memory collateralData = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
             isEnabled: fuzzVaultConfig.isEnabled,

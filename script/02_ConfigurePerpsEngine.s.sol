@@ -8,7 +8,6 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
-import { ChainlinkAutomationUtils } from "./utils/ChainlinkAutomationUtils.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 
 // Forge dependencies
@@ -19,6 +18,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
     address internal usdToken;
+    address internal liquidationKeeper;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
@@ -32,6 +32,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         marketMakingEngine = IMarketMakingEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
         usdToken = vm.envAddress("USDZ");
+        liquidationKeeper = vm.envAddress("LIQUIDATION_KEEPER");
 
         configureContracts(initialMarginCollateralId, finalMarginCollateralId);
     }
@@ -40,8 +41,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
-
-        configureSequencerUptimeFeeds(perpsEngine);
 
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
@@ -55,14 +54,15 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
 
+        setupSequencerUptimeFeeds();
+
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = initialMarginCollateralId;
         marginCollateralIdsRange[1] = finalMarginCollateralId;
 
-        configureMarginCollaterals(perpsEngine, marginCollateralIdsRange, false, deployer);
-
-        address liquidationKeeper = ChainlinkAutomationUtils.deployLiquidationKeeper(deployer, address(perpsEngine));
-        console.log("Liquidation Keeper: ", liquidationKeeper);
+        configureMarginCollaterals(
+            perpsEngine, marginCollateralIdsRange, false, sequencerUptimeFeedByChainId[block.chainid], deployer
+        );
 
         address[] memory liquidators = new address[](1);
         bool[] memory liquidatorStatus = new bool[](1);
@@ -70,12 +70,43 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         liquidators[0] = liquidationKeeper;
         liquidatorStatus[0] = true;
 
+        console.log("**************************");
+        console.log("Configuring liquidators...");
+        console.log("**************************");
+
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
+
+        console.log("Success! Liquidator address:");
+        console.log("\n");
+        console.log(liquidators[0]);
+
+        console.log("**************************");
+        console.log("Configuring USDz token...");
+        console.log("**************************");
 
         perpsEngine.setUsdToken(usdToken);
 
+        console.log("Success! USDz token address:");
+        console.log("\n");
+        console.log(usdToken);
+
+        console.log("**************************");
+        console.log("Configuring trading account token...");
+        console.log("**************************");
+
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
+        console.log("Success! Trading account token address:");
+        console.log("\n");
+        console.log(address(tradingAccountToken));
+
+        console.log("**************************");
+        console.log("Transferring USDz ownership to the market making engine...");
+        console.log("**************************");
+
+        // NOTE: Once the MM engine v1 is deployed, USDz ownership must be transferred to the MM engine.
         LimitedMintingERC20(USDZ_ADDRESS).transferOwnership(address(perpsEngine));
+
+        console.log("Success! USDz token ownership transferred to the market making engine.");
     }
 }

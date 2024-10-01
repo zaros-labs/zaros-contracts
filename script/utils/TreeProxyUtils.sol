@@ -101,7 +101,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](17);
+    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](15);
 
     perpsEngineConfigurationBranchSelectors[0] =
         PerpsEngineConfigurationBranch.getAccountsWithActivePositions.selector;
@@ -122,12 +122,8 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
         PerpsEngineConfigurationBranch.updateSettlementConfiguration.selector;
     perpsEngineConfigurationBranchSelectors[12] = PerpsEngineConfigurationBranch.setUsdToken.selector;
     perpsEngineConfigurationBranchSelectors[13] =
-        PerpsEngineConfigurationBranch.configureSequencerUptimeFeedByChainId.selector;
-    perpsEngineConfigurationBranchSelectors[14] =
         PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
-    perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
-    perpsEngineConfigurationBranchSelectors[16] =
-        PerpsEngineConfigurationBranch.getSequencerUptimeFeedByChainId.selector;
+    perpsEngineConfigurationBranchSelectors[14] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
 
@@ -300,7 +296,7 @@ function deployPerpsEngineAddressHarnesses() returns (address[] memory) {
 function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](10);
 
-    bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](13);
+    bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](12);
     perpsEngineConfigurationHarnessSelectors[0] =
         PerpsEngineConfigurationHarness.exposed_checkMarketIsEnabled.selector;
     perpsEngineConfigurationHarnessSelectors[1] = PerpsEngineConfigurationHarness.exposed_addMarket.selector;
@@ -319,10 +315,8 @@ function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
     perpsEngineConfigurationHarnessSelectors[9] =
         PerpsEngineConfigurationHarness.workaround_getCollateralLiquidationPriority.selector;
     perpsEngineConfigurationHarnessSelectors[10] =
-        PerpsEngineConfigurationHarness.workaround_getSequencerUptimeFeedByChainId.selector;
-    perpsEngineConfigurationHarnessSelectors[11] =
         PerpsEngineConfigurationHarness.workaround_getMaxPositionsPerAccount.selector;
-    perpsEngineConfigurationHarnessSelectors[12] =
+    perpsEngineConfigurationHarnessSelectors[11] =
         PerpsEngineConfigurationHarness.workaround_getLiquidationFeeUsdX18.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](6);
@@ -474,7 +468,7 @@ function getMarketMakingEngineInitPayloads(
     bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory marketMakingEngineInitializeData = abi.encodeWithSelector(
-        MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, perpsEngine, owner
+        MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, owner
     );
 
     initializePayloads[0] = marketMakingEngineInitializeData;
@@ -485,18 +479,16 @@ function getMarketMakingEngineInitPayloads(
 function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](2);
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](7);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](6);
     marketMakingEngineConfigBranchSelectors[0] =
-        MarketMakingEngineConfigurationBranch.configureSequencerUptimeFeed.selector;
-    marketMakingEngineConfigBranchSelectors[1] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
-    marketMakingEngineConfigBranchSelectors[2] =
+    marketMakingEngineConfigBranchSelectors[1] =
         MarketMakingEngineConfigurationBranch.createCustomReferralCode.selector;
-    marketMakingEngineConfigBranchSelectors[3] = MarketMakingEngineConfigurationBranch.createVault.selector;
-    marketMakingEngineConfigBranchSelectors[4] =
+    marketMakingEngineConfigBranchSelectors[2] = MarketMakingEngineConfigurationBranch.createVault.selector;
+    marketMakingEngineConfigBranchSelectors[3] =
         MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
-    marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.initialize.selector;
-    marketMakingEngineConfigBranchSelectors[6] =
+    marketMakingEngineConfigBranchSelectors[4] = MarketMakingEngineConfigurationBranch.initialize.selector;
+    marketMakingEngineConfigBranchSelectors[5] =
         MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);

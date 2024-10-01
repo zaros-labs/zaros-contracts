@@ -359,7 +359,6 @@ abstract contract Vaults is
         for (uint256 i = initialVaultId; i <= finalVaultId; i++) {
             Collateral.Data memory collateralData = Collateral.Data(
                 vaultsConfig[i].creditRatio,
-                vaultsConfig[i].priceFeedHeartbeatSeconds,
                 vaultsConfig[i].isEnabled,
                 vaultsConfig[i].decimals,
                 vaultsConfig[i].priceAdapter,

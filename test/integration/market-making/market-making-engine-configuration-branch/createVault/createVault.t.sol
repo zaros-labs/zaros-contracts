@@ -22,7 +22,6 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
 
         Collateral.Data memory collateralData = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
             isEnabled: fuzzVaultConfig.isEnabled,
@@ -47,7 +46,6 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
 
         Collateral.Data memory collateralData = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
             isEnabled: fuzzVaultConfig.isEnabled,
@@ -72,7 +70,6 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
 
         Collateral.Data memory collateralData = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
             isEnabled: fuzzVaultConfig.isEnabled,
@@ -97,7 +94,6 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
 
         Collateral.Data memory collateralData = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
             isEnabled: fuzzVaultConfig.isEnabled,
@@ -124,7 +120,6 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
 
         Collateral.Data memory collateralData = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
             isEnabled: fuzzVaultConfig.isEnabled,
@@ -149,7 +144,6 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
 
         Collateral.Data memory collateralData = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
-            priceFeedHeartbeatSeconds: fuzzVaultConfig.priceFeedHeartbeatSeconds,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
             isEnabled: fuzzVaultConfig.isEnabled,

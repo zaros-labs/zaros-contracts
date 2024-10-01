@@ -10,7 +10,6 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
-import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
 import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
 // Open Zeppelin dependencies
@@ -68,6 +67,16 @@ abstract contract Markets is
         uint256 mockUsdPrice;
     }
 
+    struct CreatePerpMarketsParams {
+        address deployer;
+        IPerpsEngine perpsEngine;
+        address sequencerUptimeFeed;
+        uint256 initialMarketId;
+        uint256 finalMarketId;
+        IVerifierProxy chainlinkVerifier;
+        bool isTest;
+    }
+
     /// @notice Market configurations mapped by market id.
     mapping(uint256 marketId => MarketConfig marketConfig) internal marketsConfig;
     /// @notice Market order keepers contracts mapped by market id.
@@ -81,10 +90,8 @@ abstract contract Markets is
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";
     uint80 internal constant DEFAULT_SETTLEMENT_FEE = 2e18;
 
-    function setupMarketsConfig(address perpsEngine, address priceAdapterOwner) internal {
-        address sequencerUptimeFeed =
-            address(IPerpsEngine(perpsEngine).getSequencerUptimeFeedByChainId(block.chainid));
-
+    // TODO: add heartbeat parameter into a `Markets` object
+    function setupMarketsConfig(address sequencerUptimeFeed, address priceAdapterOwner) internal {
         marketsConfig[BTC_USD_MARKET_ID] = MarketConfig({
             marketId: BTC_USD_MARKET_ID,
             marketName: BTC_USD_MARKET_NAME,
@@ -436,24 +443,15 @@ abstract contract Markets is
         return filteredMarketsConfig;
     }
 
-    function createPerpMarkets(
-        address deployer,
-        IPerpsEngine perpsEngine,
-        uint256 initialMarketId,
-        uint256 finalMarketId,
-        IVerifierProxy chainlinkVerifier,
-        bool isTest
-    )
-        public
-    {
-        for (uint256 i = initialMarketId; i <= finalMarketId; i++) {
+    function createPerpMarkets(CreatePerpMarketsParams memory params) public {
+        for (uint256 i = params.initialMarketId; i <= params.finalMarketId; i++) {
             address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
             address marketOrderKeeper = deployMarketOrderKeeper(
-                marketsConfig[i].marketId, deployer, perpsEngine, marketOrderKeeperImplementation
+                marketsConfig[i].marketId, params.deployer, params.perpsEngine, marketOrderKeeperImplementation
             );
 
             SettlementConfiguration.DataStreamsStrategy memory settlementConfigurationData = SettlementConfiguration
-                .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: marketsConfig[i].streamId });
+                .DataStreamsStrategy({ chainlinkVerifier: params.chainlinkVerifier, streamId: marketsConfig[i].streamId });
 
             SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
                 strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
@@ -471,9 +469,7 @@ abstract contract Markets is
                 data: abi.encode(settlementConfigurationData)
             });
 
-            if (isTest) {
-                address mockSequencerUptimeFeed = address(new MockSequencerUptimeFeed(0));
-
+            if (params.isTest) {
                 if (i % 2 == 0) {
                     UD60x18 mockEthUsdPrice = ud60x18(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice);
                     UD60x18 mockSelectedMarketUsdPrice = ud60x18(marketsConfig[i].mockUsdPrice);
@@ -490,7 +486,7 @@ abstract contract Markets is
                                 ethUsdPriceFeed: address(
                                     new MockPriceFeed(18, int256(marketsConfig[ETH_USD_MARKET_ID].mockUsdPrice))
                                 ),
-                                sequencerUptimeFeed: mockSequencerUptimeFeed,
+                                sequencerUptimeFeed: params.sequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
                                 ethUsdPriceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
                                 useEthPriceFeed: true
@@ -506,7 +502,7 @@ abstract contract Markets is
                                 owner: address(0x123),
                                 priceFeed: address(new MockPriceFeed(18, int256(marketsConfig[i].mockUsdPrice))),
                                 ethUsdPriceFeed: address(0),
-                                sequencerUptimeFeed: mockSequencerUptimeFeed,
+                                sequencerUptimeFeed: params.sequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
                                 ethUsdPriceFeedHeartbeatSeconds: 0,
                                 useEthPriceFeed: false
@@ -516,7 +512,7 @@ abstract contract Markets is
                 }
             }
 
-            perpsEngine.createPerpMarket(
+            params.perpsEngine.createPerpMarket(
                 PerpsEngineConfigurationBranch.CreatePerpMarketParams({
                     marketId: marketsConfig[i].marketId,
                     name: marketsConfig[i].marketName,

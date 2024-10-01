@@ -25,7 +25,6 @@ contract Deposit_Integration_Test is Base_Test {
         marketMakingEngine.workaround_Collateral_setParams(
             fuzzVaultConfig.asset,
             fuzzVaultConfig.creditRatio,
-            fuzzVaultConfig.priceFeedHeartbeatSeconds,
             fuzzVaultConfig.isEnabled,
             fuzzVaultConfig.decimals,
             fuzzVaultConfig.priceAdapter

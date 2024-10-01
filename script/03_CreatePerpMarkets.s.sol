@@ -31,11 +31,13 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
 
+        setupSequencerUptimeFeeds();
+
         uint256[2] memory marketsIdsRange;
         marketsIdsRange[0] = initialMarketId;
         marketsIdsRange[1] = finalMarketId;
 
-        setupMarketsConfig(address(perpsEngine), deployer);
+        setupMarketsConfig(sequencerUptimeFeedByChainId[block.chainid], deployer);
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 

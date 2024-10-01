@@ -13,7 +13,6 @@ contract CollateralHarness {
     function workaround_Collateral_setParams(
         address asset, 
         uint256 creditRatio, 
-        uint32 priceFeedHeartbeatSeconds, 
         bool isEnabled, 
         uint8 decimals, 
         address priceAdapter
@@ -23,7 +22,6 @@ contract CollateralHarness {
         Collateral.Data storage self = Collateral.load(asset);
         self.asset = asset;
         self.creditRatio = creditRatio;
-        self.priceFeedHeartbeatSeconds = priceFeedHeartbeatSeconds;
         self.isEnabled = isEnabled;
         self.decimals = decimals;
         self.priceAdapter = priceAdapter;
