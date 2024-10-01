@@ -37,6 +37,9 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     /// @notice Mapping of the last minted time per address.
     mapping(address user => uint256 lastMintedTime) public userLastMintedTime;
 
+    /// @notice Mapping of the user already minted free remint.
+    mapping(address user => bool alreadyMinted) public userAlreadyMintedFreeRemint;
+
     /*//////////////////////////////////////////////////////////////////////////
                                     ERRORS FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
@@ -86,13 +89,18 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         return super.transferFrom(from, to, value);
     }
 
-    function verifyIfUserIsEnableToMint(uint256 tokenIndex, bool shouldRevert) public view returns (bool isEnable) {
+    function verifyIfUserIsEnableToMint(uint256 tokenIndex, bool shouldRevert) public view returns (bool isEnabled) {
         if (block.timestamp < startTimeMinting) {
             if (shouldRevert) {
                 revert LimitedMintingERC20_MintingIsNotStarted(startTimeMinting);
             } else {
-                return isEnable;
+                return isEnabled;
             }
+        }
+
+        if (!userAlreadyMintedFreeRemint[msg.sender]) {
+            isEnabled = true;
+            return isEnabled;
         }
 
         uint256 numberOfWeeks = (block.timestamp - startTimeMinting) / 7 days;
@@ -101,7 +109,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
             if (shouldRevert) {
                 revert LimitedMintingERC20_UserAlreadyMintedThisWeek(msg.sender, userLastMintedTime[msg.sender]);
             } else {
-                return isEnable;
+                return isEnabled;
             }
         }
 
@@ -122,11 +130,11 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
                 msg.sender, userBalance, MAX_AMOUNT_USER_SHOULD_HAVE_BEFORE_THE_MINT
             );
             } else {
-                return isEnable;
+                return isEnabled;
             }
         }
 
-        isEnable = true;
+        isEnabled = true;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -146,6 +154,10 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
 
         userLastMintedTime[msg.sender] = block.timestamp;
         amountMintedPerAddress[msg.sender] = AMOUNT_TO_MINT_USDC;
+
+        if(!userAlreadyMintedFreeRemint[msg.sender]) {
+            userAlreadyMintedFreeRemint[msg.sender] = true;
+        }
 
         _mint(msg.sender, AMOUNT_TO_MINT_USDC);
     }
