@@ -15,7 +15,7 @@ contract Vault_Create_Unit_Test is Base_Test {
         changePrank({ msgSender: users.owner.account });
     }
 
-    function testFuzz_RevertWhen_CreateIsPassedExistingVaulttId(uint256 vaultId) external {
+    function testFuzz_RevertWhen_CreateIsPassedExistingVaultId(uint256 vaultId) external {
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);

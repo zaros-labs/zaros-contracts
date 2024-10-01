@@ -41,7 +41,11 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         marketMakingEngine.createVault(params);
     }
 
-    function testFuzz_RevertWhen_TheDepositCapIsZero(uint128 vaultId) external {
+    modifier whenTheIndexTokenAddressIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_TheDepositCapIsZero(uint128 vaultId) external whenTheIndexTokenAddressIsNotZero {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Collateral.Data memory collateralData = Collateral.Data({
@@ -65,7 +69,15 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         marketMakingEngine.createVault(params);
     }
 
-    function testFuzz_RevertWhen_WithdrawalDelayIsZero(uint128 vaultId) external {
+    modifier whenTheDepositCapIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_WithdrawalDelayIsZero(uint128 vaultId)
+        external
+        whenTheIndexTokenAddressIsNotZero
+        whenTheDepositCapIsNotZero
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Collateral.Data memory collateralData = Collateral.Data({
@@ -89,7 +101,16 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         marketMakingEngine.createVault(params);
     }
 
-    function testFuzz_RevertWhen_VaultIdIsZero(uint128 vaultId) external {
+    modifier whenWithdrawalDelayIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_VaultIdIsZero(uint128 vaultId)
+        external
+        whenTheIndexTokenAddressIsNotZero
+        whenTheDepositCapIsNotZero
+        whenWithdrawalDelayIsNotZero
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Collateral.Data memory collateralData = Collateral.Data({
@@ -113,7 +134,17 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         marketMakingEngine.createVault(params);
     }
 
-    function test_RevertGiven_VaultWithThatIdAlreadyExists(uint128 vaultId) external {
+    modifier whenVaultIdIsNotZero() {
+        _;
+    }
+
+    function test_RevertGiven_VaultWithThatIdAlreadyExists(uint128 vaultId)
+        external
+        whenTheIndexTokenAddressIsNotZero
+        whenTheDepositCapIsNotZero
+        whenWithdrawalDelayIsNotZero
+        whenVaultIdIsNotZero
+    {
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -139,7 +170,13 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         marketMakingEngine.createVault(params);
     }
 
-    function test_GivenTheVaultDoesNotExist(uint128 vaultId) external {
+    function test_GivenTheVaultDoesNotExist(uint128 vaultId)
+        external
+        whenTheIndexTokenAddressIsNotZero
+        whenTheDepositCapIsNotZero
+        whenWithdrawalDelayIsNotZero
+        whenVaultIdIsNotZero
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Collateral.Data memory collateralData = Collateral.Data({
@@ -162,6 +199,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         vm.expectEmit();
         emit MarketMakingEngineConfigurationBranch.LogCreateVault(users.owner.account, fuzzVaultConfig.vaultId);
         marketMakingEngine.createVault(params);
+
         // it should create vault
         assertEq(
             fuzzVaultConfig.indexToken, marketMakingEngine.workaround_Vault_getIndexToken(fuzzVaultConfig.vaultId)

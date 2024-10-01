@@ -20,7 +20,25 @@ contract Deposit_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_RevertWhen_TheDepositCapIsReached(uint128 vaultId, uint256 assetsToDeposit) external {
+    function test_RevertWhen_VaultDoesNotExist(uint128 amountToDeposit) external {
+        uint128 minSharesOut = 0;
+
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector));
+        marketMakingEngine.deposit(INVALID_VAULT_ID, amountToDeposit, minSharesOut);
+    }
+
+    modifier whenVaultDoesExist() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_TheDepositCapIsReached(
+        uint128 vaultId,
+        uint256 assetsToDeposit
+    )
+        external
+        whenVaultDoesExist
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         marketMakingEngine.workaround_Collateral_setParams(
             fuzzVaultConfig.asset,
@@ -48,18 +66,8 @@ contract Deposit_Integration_Test is Base_Test {
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
     }
 
-    function testFuzz_WhenUserHasEnoughAssets(uint256 vaultId, uint256 assetsToDeposit) external {
-        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
-        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-
-        vm.expectEmit();
-        emit VaultRouterBranch.LogDeposit(fuzzVaultConfig.vaultId, users.naruto.account, assetsToDeposit);
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
-
-        // it should mint shares to the user
-        assertGt(IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account), 0);
+    modifier whenTheDepositCapIsNotReached() {
+        _;
     }
 
     function testFuzz_RevertWhen_SharesMintedAreLessThanMinAmount(
@@ -67,6 +75,8 @@ contract Deposit_Integration_Test is Base_Test {
         uint256 assetsToDeposit
     )
         external
+        whenVaultDoesExist
+        whenTheDepositCapIsNotReached
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
@@ -78,11 +88,24 @@ contract Deposit_Integration_Test is Base_Test {
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), type(uint128).max);
     }
 
-    function test_RevertWhen_VaultDoesNotExist(uint128 amountToDeposit) external {
-        uint128 minSharesOut = 0;
+    function testFuzz_WhenSharesMintedAreMoreThanMinAmount(
+        uint256 vaultId,
+        uint256 assetsToDeposit
+    )
+        external
+        whenVaultDoesExist
+        whenTheDepositCapIsNotReached
+    {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector));
-        marketMakingEngine.deposit(INVALID_VAULT_ID, amountToDeposit, minSharesOut);
+        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+
+        vm.expectEmit();
+        emit VaultRouterBranch.LogDeposit(fuzzVaultConfig.vaultId, users.naruto.account, assetsToDeposit);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+
+        // it should mint shares to the user
+        assertGt(IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account), 0);
     }
 }

@@ -123,13 +123,13 @@ contract VaultRouterBranch {
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
 
         // get collateral asset price
-        UD60x18 assetPrice = vault.collateral.getPrice(); // todo see price decimals
+        UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
         // get amount of assets that are credited
-        SD59x18 assetsCredit = unsettledDebtX18.div(assetPrice.intoSD59x18());
+        SD59x18 assetsCreditX18 = unsettledDebtX18.div(assetPriceX18.intoSD59x18());
 
         // calculate the total assets minus the debt
-        SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCredit);
+        SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCreditX18);
 
         // sd59x18 -> uint256
         uint256 totalAssetsMinusDebt = totalAssetsMinusDebtX18.intoUint256();
@@ -164,13 +164,13 @@ contract VaultRouterBranch {
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
 
         // get collateral asset price
-        UD60x18 assetPrice = vault.collateral.getPrice(); // todo see price decimals
+        UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
         // get amount of assets that are credited
-        SD59x18 assetsCredit = unsettledDebtX18.div(assetPrice.intoSD59x18());
+        SD59x18 assetsCreditX18 = unsettledDebtX18.div(assetPriceX18.intoSD59x18());
 
         // calculate the total assets minus the debt
-        SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCredit);
+        SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCreditX18);
 
         // sd59x18 -> uint256
         uint256 totalAssetsMinusDebt = totalAssetsMinusDebtX18.intoUint256();

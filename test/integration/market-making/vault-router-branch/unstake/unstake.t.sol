@@ -30,7 +30,7 @@ contract Unstake_Integration_Test is Base_Test {
         marketMakingEngine.unstake(fuzzVaultConfig.vaultId, type(uint128).max);
     }
 
-    function testFuzz_WhenUserHasStakedShares(uint256 vaultId, uint256 depositAmount) external {
+    function testFuzz_WhenUserHasEnoughStakedShares(uint256 vaultId, uint256 depositAmount) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         depositAmount = bound({ x: depositAmount, min: 1, max: fuzzVaultConfig.depositCap });
 

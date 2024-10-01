@@ -19,11 +19,16 @@ contract Stake_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_VaultIsInvalid(uint128 sharesToStake) external {
+        // it should revert
         vm.expectRevert();
         marketMakingEngine.stake(INVALID_VAULT_ID, sharesToStake, "", false);
     }
 
-    function testFuzz_WhenUserHasShares(uint256 vaultId, uint256 sharesToStake) external {
+    modifier whenVaultIdIsValid() {
+        _;
+    }
+
+    function testFuzz_WhenUserHasShares(uint256 vaultId, uint256 sharesToStake) external whenVaultIdIsValid {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         sharesToStake = bound({ x: sharesToStake, min: 1, max: type(uint128).max });
@@ -53,6 +58,7 @@ contract Stake_Integration_Test is Base_Test {
 
     function test_RevertWhen_TheReferralCodeIsInvalid()
         external
+        whenVaultIdIsValid
         whenTheUserHasAReferralCode
         whenTheReferralCodeIsCustom
     {
@@ -69,6 +75,7 @@ contract Stake_Integration_Test is Base_Test {
 
     function test_RevertWhen_TheReferralCodeIsEqualToMsgSender()
         external
+        whenVaultIdIsValid
         whenTheUserHasAReferralCode
         whenTheReferralCodeIsNotCustom
     {
@@ -77,6 +84,7 @@ contract Stake_Integration_Test is Base_Test {
 
     function test_WhenTheReferralCodeIsNotEqualToMsgSender()
         external
+        whenVaultIdIsValid
         whenTheUserHasAReferralCode
         whenTheReferralCodeIsNotCustom
     {

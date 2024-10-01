@@ -26,7 +26,9 @@ contract Redeem_Integration_Test is Base_Test {
         uint256 vaultId,
         uint256 assetsToDeposit,
         uint256 assetsToWithdraw
-    ) external {
+    )
+        external
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
@@ -35,7 +37,7 @@ contract Redeem_Integration_Test is Base_Test {
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
-        assetsToWithdraw =  bound({ x: assetsToDeposit, min: 0, max: userBalance });
+        assetsToWithdraw = bound({ x: assetsToDeposit, min: 0, max: userBalance });
         IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
 
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
@@ -49,11 +51,18 @@ contract Redeem_Integration_Test is Base_Test {
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
     }
 
+    modifier whenRequestIsNotFulfulled() {
+        _;
+    }
+
     function testFuzz_RevertWhen_DelayHasNotPassed(
         uint256 vaultId,
         uint256 assetsToDeposit,
         uint256 assetsToWithdraw
-    ) external {
+    )
+        external
+        whenRequestIsNotFulfulled
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
@@ -62,7 +71,7 @@ contract Redeem_Integration_Test is Base_Test {
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
-        assetsToWithdraw =  bound({ x: assetsToDeposit, min: 0, max: userBalance });
+        assetsToWithdraw = bound({ x: assetsToDeposit, min: 0, max: userBalance });
         IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
 
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
@@ -72,11 +81,19 @@ contract Redeem_Integration_Test is Base_Test {
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
     }
 
+    modifier whenDelayHasPassed() {
+        _;
+    }
+
     function testFuzz_RevertWhen_AssetsAreLessThenMinAmount(
         uint256 vaultId,
         uint256 assetsToDeposit,
         uint256 assetsToWithdraw
-    ) external {
+    )
+        external
+        whenRequestIsNotFulfulled
+        whenDelayHasPassed
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
@@ -85,7 +102,7 @@ contract Redeem_Integration_Test is Base_Test {
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
-        assetsToWithdraw =  bound({ x: assetsToDeposit, min: 0, max: userBalance });
+        assetsToWithdraw = bound({ x: assetsToDeposit, min: 0, max: userBalance });
         IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
 
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
@@ -100,12 +117,14 @@ contract Redeem_Integration_Test is Base_Test {
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, minAssetsOut);
     }
 
-    function testFuzz_WhenDelayHasPassed(
+    function testFuzz_WhenAssetsAreMoreThanMinAmount(
         uint256 vaultId,
         uint256 assetsToDeposit,
         uint256 assetsToWithdraw
     )
         external
+        whenRequestIsNotFulfulled
+        whenDelayHasPassed
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
@@ -124,8 +143,10 @@ contract Redeem_Integration_Test is Base_Test {
         // fast forward block.timestamp to after withdraw delay has passed
         skip(fuzzVaultConfig.withdrawalDelay + 1);
 
-        // vm.expectEmit(); // todo use previewRedeem here
-        // emit VaultRouterBranch.LogRedeem(fuzzVaultConfig.vaultId, users.naruto.account, userBalance);
+        vm.expectEmit();
+        emit VaultRouterBranch.LogRedeem(
+            fuzzVaultConfig.vaultId, users.naruto.account, IERC4626(indexToken).previewRedeem(assetsToWithdraw)
+        );
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
 
         uint256 userBalanceAfter = IERC20(indexToken).balanceOf(users.naruto.account);

@@ -31,7 +31,11 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
         marketMakingEngine.updateVaultConfiguration(params);
     }
 
-    function testFuzz_RevertWhen_WithdrawalDelayIsZero(uint256 vaultId) external {
+    modifier whenTheDepositCapIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_WithdrawalDelayIsZero(uint256 vaultId) external whenTheDepositCapIsNotZero {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Vault.UpdateParams memory params = Vault.UpdateParams({
@@ -45,7 +49,18 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
         marketMakingEngine.updateVaultConfiguration(params);
     }
 
-    function testFuzz_RevertWhen_VaultIdIsZero(uint256 depositCap, uint256 withdrawDelay) external {
+    modifier whenWithdrawalDelayIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_VaultIdIsZero(
+        uint256 depositCap,
+        uint256 withdrawDelay
+    )
+        external
+        whenTheDepositCapIsNotZero
+        whenWithdrawalDelayIsNotZero
+    {
         depositCap = bound({ x: depositCap, min: 1, max: type(uint128).max });
         withdrawDelay = bound({ x: withdrawDelay, min: 1, max: type(uint128).max });
 
@@ -60,12 +75,14 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
         marketMakingEngine.updateVaultConfiguration(params);
     }
 
-    function testFuzz_WhenAreValidParams(
+    function testFuzz_WhenVaultIdIsNotZero(
         uint256 vaultId,
         uint256 updatedDepositCap,
         uint256 updatedWithdrawDelay
     )
         external
+        whenTheDepositCapIsNotZero
+        whenWithdrawalDelayIsNotZero
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 

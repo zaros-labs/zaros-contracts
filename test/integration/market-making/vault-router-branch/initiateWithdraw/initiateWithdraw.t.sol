@@ -34,7 +34,11 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, 0);
     }
 
-    function testFuzz_RevertWhen_VaultIdIsInvalid(uint256 sharesToWithdraw) external {
+    modifier whenAmountIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_VaultIdIsInvalid(uint256 sharesToWithdraw) external whenAmountIsNotZero {
         sharesToWithdraw = bound({ x: sharesToWithdraw, min: 1, max: type(uint128).max });
 
         // it should revert
@@ -42,7 +46,18 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         marketMakingEngine.initiateWithdrawal(INVALID_VAULT_ID, uint128(sharesToWithdraw));
     }
 
-    function testFuzz_RevertWhen_SharesAmountIsGtUserBalance(uint256 vaultId, uint256 assetsToDeposit) external {
+    modifier whenVaultIdIsValid() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_SharesAmountIsGtUserBalance(
+        uint256 vaultId,
+        uint256 assetsToDeposit
+    )
+        external
+        whenAmountIsNotZero
+        whenVaultIdIsValid
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
 
@@ -56,7 +71,19 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, sharesToWithdraw);
     }
 
-    function testFuzz_GivenUserHasSharesBalance(uint256 vaultId, uint256 assetsToDeposit) external {
+    modifier whenSharesAmountIsNotGtUserBalance() {
+        _;
+    }
+
+    function testFuzz_GivenUserHasSharesBalance(
+        uint256 vaultId,
+        uint256 assetsToDeposit
+    )
+        external
+        whenAmountIsNotZero
+        whenVaultIdIsValid
+        whenSharesAmountIsNotGtUserBalance
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
 
@@ -65,7 +92,7 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
 
         uint128 sharesToWithdraw = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account).toUint128();
 
-        //it should create withdraw request
+        // it should create withdraw request
         vm.expectEmit();
         emit VaultRouterBranch.LogInitiateWithdrawal(fuzzVaultConfig.vaultId, users.naruto.account, sharesToWithdraw);
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, sharesToWithdraw);
