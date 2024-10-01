@@ -179,7 +179,7 @@ library MarketDebt {
         SD59x18 newTotalDebtUsdX18
     )
         internal
-        returns (SD59x18 unsettledDebtChangeUsdX18)
+        returns (SD59x18 unsettledRealizedDebtChangeUsdX18)
     {
         // loads the vaults debt distribution storage pointer
         Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;

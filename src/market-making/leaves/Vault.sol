@@ -14,15 +14,21 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-
 /// @dev Vault's debt for ADL determination purposes:
 ///  unrealized debt + realized debt + unsettled debt + settled debt + requested usdz.
-/// This means if the engine fails to report the unrealized debt properly, its users will unexpectedly be deleveraged.
+/// This means if the engine fails to report the unrealized debt properly, its users will unexpectedly and unfairly be
+/// deleveraged.
 /// The MM engine protects LPs by taking into account the requested USDz.
-/// @dev Vault's debt for credit delegation purposes = unsettledDebtUsd (comes from each market's realized debt) + settledDebtUsd + unrealized debt of
-/// each market (realized must always be distributed to unsettled following the Debt Distribution System)
-/// @dev Vault's debt for asset settlement purposes = unsettledDebtUsd + settledDebtUsd
-/// @dev A swap adds `settledDebt` but subtracts `unsettledDebt`. The Vault earns a swap fee for the inconvenience, allocated as additional WETH staking rewards.
+/// @dev Vault's debt for credit delegation purposes = unrealized debt of each market (MarketDebt::getTotalDebt or
+/// marketDebt unrealized debt) +
+/// unsettledRealizedDebtUsd (comes from each market's realized debt) + settledRealizedDebtUsd (realized must always
+/// be
+/// distributed to
+/// unsettled following the Debt Distribution System)
+/// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd + settledRealizedDebtUsd
+/// @dev A swap adds `settledRealizedDebt` but subtracts `unsettledRealizedDebt`. The Vault earns a swap fee for the
+/// inconvenience,
+/// allocated as additional WETH staking rewards.
 library Vault {
     /// @notice ERC7201 storage location.
     bytes32 internal constant VAULT_LOCATION =
@@ -33,8 +39,8 @@ library Vault {
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @param lockedCreditRatio The configured ratio that determines how much of the vault's total assets can't be
     /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
-    /// @param unsettledDebtUsd The total amount of unsettled debt in USD.
-    /// @param settledDebtUsd The total amount of settled debt in USD.
+    /// @param unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
+    /// @param settledRealizedDebtUsd The total amount of settled debt in USD.
     /// @param indexToken The index token address.
     /// @param collateral The collateral asset data.
     /// @param stakingFeeDistribution `actor`: Stakers, `shares`: Staked index tokens, `valuePerShare`: WETH fee
@@ -48,8 +54,8 @@ library Vault {
         uint128 depositCap;
         uint128 withdrawalDelay;
         uint128 lockedCreditRatio;
-        int128 unsettledDebtUsd;
-        int128 settledDebtUsd;
+        int128 unsettledRealizedDebtUsd;
+        int128 settledRealizedDebtUsd;
         address indexToken;
         Collateral.Data collateral;
         Distribution.Data stakingFeeDistribution;
@@ -75,10 +81,10 @@ library Vault {
         // TODO: update self.totalDeposited to ERC4626::totalAssets
         UD60x18 totalAssetsUsdX18 = collateral.getPrice().mul(ud60x18(self.totalDeposited));
 
-        vaultCreditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledDebtUsd));
+        vaultCreditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledRealizedDebtUsd));
     }
 
-    function recalculateUnsettledDebt(Data storage self, uint128 marketIdToSkip) internal { }
+    function recalculateUnsettledRealizedDebt(Data storage self, uint128 marketIdToSkip) internal { }
 
     // TODO: see if we need market id here or if we return the updated credit delegations to update the `MarketDebt`
     // state.
@@ -88,7 +94,7 @@ library Vault {
             // load the vault storage pointer
             Data storage self = load(uint128(vaultsIds[i]));
             // we must always recalculate the credit capacity before updating a vault's credit delegation
-            recalculateUnsettledDebt(self);
+            recalculateUnsettledRealizedDebt(self);
             // load the credit delegation to the given market id
             CreditDelegation.Data storage creditDelegation = CreditDelegation.load(self.vaultId, marketId);
 
@@ -99,11 +105,14 @@ library Vault {
             UD60x18 newCreditDelegationUsdX18 = getTotalCreditCapacityUsd(self).mul(creditDelegationShareX18);
 
             MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
-
-            marketDebt.updateVault
         }
     }
 
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
-    function updateVaultsUnsettledDebt(uint256[] memory vaultsIds, SD59x18 realizedDebtChangeUsdX18) internal { }
+    function updateVaultsUnsettledRealizedDebt(
+        uint256[] memory vaultsIds,
+        SD59x18 realizedDebtChangeUsdX18
+    )
+        internal
+    { }
 }
