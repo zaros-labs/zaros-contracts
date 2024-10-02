@@ -27,6 +27,8 @@ abstract contract UniswapSwapStrategy {
     /// @param tokenIn the token to be swapped
     /// @param amountIn the amount of the tokenIn to be swapped
     /// @param tokenOut the token to be received
+    /// @param deadline the deadline for the swap
+    /// @param recipient the address to receive the tokenOut
     /// @return amountOut the amount to be received
     function swapExactTokens(
         address tokenIn,

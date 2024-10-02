@@ -135,14 +135,15 @@ contract FeeDistributionBranch {
     /// @param asset The asset to be swapped for wEth
     function convertAccumulatedFeesToWeth(
         uint128 marketId, 
-        address asset
+        address asset,
+        uint128 swapRouterId
     ) 
         external 
         onlyMarketMakingEngine 
         onlyExistingMarket(marketId)
     {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
-        SwapRouter.Data storage swapRouter = SwapRouter.load();
+        SwapRouter.Data storage swapRouter = SwapRouter.load(swapRouterId);
         
         if(!marketDebt.collectedFees.receivedOrderFees.contains(asset)) revert Errors.InvalidAsset();
 
@@ -166,7 +167,7 @@ contract FeeDistributionBranch {
             marketDebt.collectedFees.receivedOrderFees.remove(asset);
             // Prepare the data for executing the swap
             bytes memory routerCallData = abi.encodeWithSelector(
-                bytes4(keccak256("swapExactTokens(address,uint256,address,uint256,uint256,address)")),
+                swapRouter.selector,
                 asset,
                 assetAmount,
                 MarketMakingEngineConfiguration.load().weth,
@@ -182,18 +183,18 @@ contract FeeDistributionBranch {
         }
 
         // Calculate and allocate shares of the converted fees 
-        uint128 marketShare = uint128(Fee.calculateFees(
+        uint128 marketShare = Fee.calculateFees(
                     _accumulatedWeth, 
                     marketDebt.collectedFees.marketPercentage, 
                     SwapRouter.BPS_DENOMINATOR
-                ));
-        uint256 feeRecipientsShare = Fee.calculateFees(
+                );
+        uint128 feeRecipientsShare = Fee.calculateFees(
                     _accumulatedWeth, 
                     marketDebt.collectedFees.feeRecipientsPercentage, 
                     SwapRouter.BPS_DENOMINATOR
                 );
 
-        marketDebt.collectedFees.collectedFeeRecipientsFees = uint128(feeRecipientsShare);
+        marketDebt.collectedFees.collectedFeeRecipientsFees = feeRecipientsShare;
 
         // get connected vaults of market
         uint256[] memory vaultsSet = marketDebt.getConnectedVaultsIds();
@@ -211,15 +212,15 @@ contract FeeDistributionBranch {
             }
         }
 
-        // distribute the amount between shares and store the amount each share has received
+        // distribute the amount between shares and store the amount each vault has received
         for(uint i; i < listSize; ++i){
-            uint256 vaultShares = 
+            uint128 vaultShares = 
                 Fee.calculateFees(
                     marketShare, 
                     Vault.load(uint128(vaultsSet[i])).stakingFeeDistribution.totalShares, 
                     totalVaultsShares
                 );
-            Vault.load(uint128(vaultsSet[i])).unsettledFeesWeth = int128(int256(vaultShares));
+            Vault.load(uint128(vaultsSet[i])).unsettledFeesWeth = vaultShares;
             Vault.load(uint128(vaultsSet[i])).stakingFeeDistribution.distributeValue(ud60x18(vaultShares).intoSD59x18());
         }
     }
