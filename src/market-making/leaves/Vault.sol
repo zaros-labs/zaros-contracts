@@ -9,6 +9,7 @@ import { MarketDebt } from "@zaros/market-making/leaves/MarketDebt.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -32,6 +33,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 library Vault {
     using Collateral for Collateral.Data;
     using MarketDebt for MarketDebt.Data;
+    using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant VAULT_LOCATION =
@@ -97,7 +99,11 @@ library Vault {
     function updateVaultsCreditDelegation(uint256[] memory vaultsIds, uint128 marketId) internal {
         for (uint256 i; i < vaultsIds.length; i++) {
             // load the vault storage pointer
-            Data storage self = load(uint128(vaultsIds[i]));
+            Data storage self = load(vaultsIds[i].toUint128());
+
+            // iterate over each connected market id and distribute its debt so we can have the latest credit
+            // delegation of this vault
+
             // we must always recalculate the credit capacity before updating a vault's credit delegation
             // recalculateUnsettledRealizedDebt(self);
             // load the credit delegation to the given market id

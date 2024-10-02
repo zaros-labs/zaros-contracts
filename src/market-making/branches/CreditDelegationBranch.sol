@@ -206,11 +206,18 @@ contract CreditDelegationBranch {
 
         uint256[] memory connectedVaultsIds = marketDebt.getConnectedVaultsIds();
 
-        Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
+        SD59x18 unrealizedDebtUsdX18 = marketDebt.getUnrealizedDebtUsd();
 
         // uint256 -> UD60x18
         // NOTE: we don't need to scale decimals here as it's known that USDz has 18 decimals
         UD60x18 amountX18 = ud60x18(amount);
+
+        // distributes outstanding unrealized debt + the requested usdz amount as debt to be realized to the connected
+        // vaults
+        marketDebt.distributeDebtToVaults(unrealizedDebtUsdX18, amountX18.intoSD59x18());
+
+        Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
+
         // cache the market's delegated credit
         UD60x18 delegatedCreditUsdX18 = marketDebt.getDelegatedCredit();
 

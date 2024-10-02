@@ -101,7 +101,8 @@ library MarketDebt {
     /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
-    /// marketDebtRatio = MarketDebt::getTotalDebt / MarketDebt::getCreditCapacityUsd
+    /// marketDebtRatio = (MarketDebt::getUnrealizedDebtUsdX18 + MarketDebt.Data.realizedDebtUsd) /
+    /// MarketDebt::getCreditCapacityUsd
     /// @param self The market debt storage pointer.
     /// @param creditCapacityUsdX18 The market's credit capacity in USD.
     /// @param totalDebtUsdX18 The market's total debt in USD, assumed to be positive.
@@ -164,9 +165,8 @@ library MarketDebt {
 
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
 
-    function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) {
-        totalDebtUsdX18 =
-            sd59x18(IEngine(self.engine).getUnrealizedDebt(self.marketId)).add(sd59x18(self.realizedDebtUsd));
+    function getUnrealizedDebtUsd(Data storage self) internal view returns (SD59x18 unrealizedDebtUsdX18) {
+        unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.marketId));
     }
 
     function isAutoDeleverageTriggered(Data storage self, SD59x18 totalDebtUsdX18) internal view returns (bool) { }
@@ -179,7 +179,6 @@ library MarketDebt {
         SD59x18 debtToRealizeUsdX18
     )
         internal
-        returns (SD59x18 distributedDebtUsdX18)
     {
         // int128 -> SD59x18
         SD59x18 lastDistributedUnrealizedDebtUsdX18 = sd59x18(self.lastDistributedUnrealizedDebtUsd);
@@ -189,13 +188,6 @@ library MarketDebt {
         // caches the new realized debt value to be stored
         int128 newRealizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
 
-        // The debt to be distributed takes into account the diff between the last and the new unrealized debt, and
-        // sums with the diff between the last and new realized debt, taking into account the additional debt that is
-        // being realized in the current execution context.
-        distributedDebtUsdX18 = newUnrealizedDebtUsdX18.sub(lastDistributedUnrealizedDebtUsdX18).add(
-            sd59x18(newRealizedDebtUsd).sub(lastDistributedRealizedDebtUsdX18)
-        );
-
         // update storage values
         self.realizedDebtUsd = newRealizedDebtUsd;
         self.lastDistributedRealizedDebtUsd = newRealizedDebtUsd;
@@ -203,6 +195,13 @@ library MarketDebt {
 
         // loads the vaults debt distribution storage pointer
         Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
+
+        // The debt to be distributed takes into account the diff between the last and the new unrealized debt, and
+        // sums with the diff between the last and new realized debt, taking into account the additional debt that is
+        // being realized in the current execution context.
+        SD59x18 distributedDebtUsdX18 = newUnrealizedDebtUsdX18.sub(lastDistributedUnrealizedDebtUsdX18).add(
+            sd59x18(newRealizedDebtUsd).sub(lastDistributedRealizedDebtUsdX18)
+        );
 
         // distributes debt as value to the vaults debt distribution
         // NOTE: distributed debt must be further pushed down the debt distribution system in order to keep the
