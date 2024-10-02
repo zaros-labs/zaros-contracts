@@ -45,8 +45,8 @@ library Fee {
     )
         internal
         pure
-        returns (uint256 amount)
+        returns (uint128 amount)
     {   
-        amount = mulDiv(totalAmount, portion, denominator);
+        amount = uint128(mulDiv(totalAmount, portion, denominator));
     }
 }

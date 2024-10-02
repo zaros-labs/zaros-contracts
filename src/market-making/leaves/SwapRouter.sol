@@ -18,6 +18,7 @@ library SwapRouter {
     /// @param slippageTolerance The maximum slippage allowed for a swap, expressed in basis points (1% = 100 basis points).
     struct Data {
         uint128 swapRouterId;
+        bytes4 selector;
         uint24 poolFee;
         address swapStrategy;
         uint256 slippageTolerance;
@@ -26,8 +27,8 @@ library SwapRouter {
 
     /// @notice Loads a {SwapRouter}.
     /// @return swapRouter The loaded swap router storage pointer.
-    function load() internal pure returns (Data storage swapRouter) {
-        bytes32 slot = keccak256(abi.encode(SWAP_ROUTER_LOCATION));
+    function load(uint128 swapRouterId) internal pure returns (Data storage swapRouter) {
+        bytes32 slot = keccak256(abi.encode(SWAP_ROUTER_LOCATION, swapRouterId));
         assembly {
             swapRouter.slot := slot
         }
@@ -37,7 +38,7 @@ library SwapRouter {
     /// @param self The SwapRouter data storage.
     /// @param swapStrategy The address of the swap strategy contract.
     function setSwapStrategy(Data storage self, address swapStrategy) internal {
-        if (swapStrategy == address(0)) revert Errors.ZeroInput("swapRouter address");
+        if (self.swapStrategy == address(0)) revert Errors.ZeroInput("swapRouter address");
         self.swapStrategy = swapStrategy;
     }
 
@@ -52,21 +53,21 @@ library SwapRouter {
         internal 
         returns (uint256)
     {
-        (bool success, bytes memory result) = self.swapStrategy.call(routerCallData);
+        (bool success, bytes memory result) = self.swapStrategy.call(abi.encode(self.selector, routerCallData));
         if (!success) {
             revert Errors.SwapExecutionFailed();
         }
         return abi.decode(result, (uint256));
     }
 
-    /// @notice Sets the pool fee
+    /// @notice Sets pool fee
     /// @dev the minimum is 1000 (e.g. 0.1%)
     function setPoolFee(Data storage self, uint24 newFee) internal {
         if(newFee < MIN_POOL_FEE) revert Errors.InvalidPoolFee();
         self.poolFee = newFee;
     }
 
-    /// @notice Sets the slippage tolerance
+    /// @notice Sets slippage tolerance
     /// @dev the minimum is 100 (e.g. 1%)
     function setSlippageTolerance(Data storage self, uint256 newSlippageTolerance) internal {
         if(newSlippageTolerance < MIN_SLIPPAGE_TOLERANCE) revert Errors.InvalidSlippage();
@@ -78,5 +79,11 @@ library SwapRouter {
     function setDeadline(Data storage self, uint256 newDeadline) internal {
         if(newDeadline < block.timestamp) revert Errors.InvalidDeadline();
         self.deadline = newDeadline;
+    }
+
+    /// @notice Sets function selector
+    /// @param newSelector The new selector
+    function setSelector(Data storage self, bytes4 newSelector) internal {
+        self.selector = newSelector;
     }
 }
