@@ -18,18 +18,19 @@ import { IERC20Metadata } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-abstract contract UniswapSwapStrategy {
+/// @notice Uniswap V3 Swap Strategy contract
+abstract contract UniswapV3SwapStrategy {
     using SwapRouter for SwapRouter.Data;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Uniswap V3 SwapRouter address
-    address internal constant UNISWAP_SWAP_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    /// @notice Uniswap V3 Swap Strategy address
+    address internal constant UNISWAP_V3_SWAP_STRATEGY_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
-    /// @notice Uniswap V3 SwapRouter ID
-    uint128 internal constant UNISWAP_SWAP_ROUTER_ID = 1;
+    /// @notice Uniswap V3 Swap Strategy ID
+    uint128 internal constant UNISWAP_V3_SWAP_STRATEGY_ID = 1;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     FUNCTIONS
@@ -52,24 +53,22 @@ abstract contract UniswapSwapStrategy {
         internal
         returns (uint256 amountOut)
     {
-        SwapRouter.Data storage swapRouter = SwapRouter.load(UNISWAP_SWAP_ROUTER_ID);
+        SwapRouter.Data storage swapRouter = SwapRouter.load(UNISWAP_V3_SWAP_STRATEGY_ID);
 
         // Perform the swap using Uniswap V3 SwapRouter
-        ISwapRouter.ExactInputSingleParams memory params =
-            ISwapRouter.ExactInputSingleParams({
-                tokenIn: tokenIn,
-                tokenOut: tokenOut,
-                fee: swapRouter.poolFee,
-                recipient: recipient,
-                deadline: deadline,
-                amountIn: amountIn,
-                amountOutMinimum:
-                    _calculateAmountOutMinimum(tokenIn, amountIn, tokenOut, swapRouter.slippageTolerance),
-                sqrtPriceLimitX96: 0
-            });
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: tokenIn,
+            tokenOut: tokenOut,
+            fee: swapRouter.poolFee,
+            recipient: recipient,
+            deadline: deadline,
+            amountIn: amountIn,
+            amountOutMinimum: _calculateAmountOutMinimum(tokenIn, amountIn, tokenOut, swapRouter.slippageTolerance),
+            sqrtPriceLimitX96: 0
+        });
 
         // The call to `exactInputSingle` executes the swap.
-        amountOut = ISwapRouter(UNISWAP_SWAP_ROUTER).exactInputSingle(params);
+        amountOut = ISwapRouter(UNISWAP_V3_SWAP_STRATEGY_ROUTER).exactInputSingle(params);
     }
 
     /// @notice Support function to calculate the minimum amount of tokens to be received
@@ -77,7 +76,7 @@ abstract contract UniswapSwapStrategy {
     /// @param amount The amount of the tokenIn be swapped
     /// @param tokenOut The token to be received
     /// @param slippageTolerance The maximum amount that can be lost in a trade
-    /// @param amountOutMinimum The minimum amount to be received in a trade
+    /// @return amountOutMinimum The minimum amount to be received in a trade
     function _calculateAmountOutMinimum(
         address tokenIn,
         uint256 amount,
@@ -91,7 +90,7 @@ abstract contract UniswapSwapStrategy {
         // Check if price adapters are defined
         if (
             Collateral.load(tokenIn).priceAdapter == address(0)
-            || Collateral.load(tokenOut).priceAdapter == address(0)
+                || Collateral.load(tokenOut).priceAdapter == address(0)
         ) {
             revert Errors.PriceAdapterUndefined();
         }
