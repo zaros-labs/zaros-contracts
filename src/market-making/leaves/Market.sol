@@ -29,6 +29,14 @@ library Market {
     bytes32 internal constant MARKET_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Market")) - 1));
 
+    /// @notice Defines the data struct stored at the `Market.Data.depositedCollateral`'s enumerable map.
+    /// @param amount The net amount of collateral deposited to the market.
+    /// @param lastDistributedAmount The last amount of collateral distributed as credit to the connected vaults.
+    struct CollateralDeposit {
+        uint128 amount;
+        uint128 lastDistributedAmount;
+    }
+
     /// @param engine The engine contract address that operates this market id.
     /// @param marketId The engine's linked market id.
     /// @param autoDeleverageStartThreshold An admin configurable decimal rate used to determine the starting
@@ -37,14 +45,15 @@ library Market {
     /// the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleveragePowerScale An admin configurable power scale, used to determine the acceleration of the
     /// ADL polynomial regression curve.
-    /// @param realizedDebtUsd The net delta of USDz minted by the market and margin collateral collected from
-    /// traders and converted to USDC or ZLP Vaults assets.
+    /// @param realizedUsdzDebt The net value of usdz deposited or withdrawn to / from the market. Used to determine
+    /// the total realized debt and the connected vault's unsettled debt.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
     /// vaults.
     /// @param lastDistributedUnrealizedDebtUsd The last total debt in USD distributed as `value` to the vaults debt
     /// distribution.
-    /// @param collectedMarginCollateral An enumerable map that stores the amount of each margin collateral asset
-    /// collected from perps traders at a market.
+    /// @param depositedCollateral Stores collateral deposited as credit by the market's underlying engine. Key:
+    /// collateral address, Value: CollateralDeposit struct. Used to determine the connected vault's unsettled
+    /// realized debt.
     /// @param connectedVaultsIds The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
@@ -55,10 +64,10 @@ library Market {
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
-        int128 realizedDebtUsd;
+        int128 realizedUsdzDebt;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
-        EnumerableMap.AddressToUintMap collectedMarginCollateral;
+        EnumerableMap.Bytes32ToBytes32Map depositedCollateral;
         EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
     }
@@ -101,7 +110,7 @@ library Market {
     /// x = (Math.min(marketRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
-    /// marketRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedDebtUsd) /
+    /// marketRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedUsdzDebt) /
     /// Market::getCreditCapacityUsd
     /// @param self The market storage pointer.
     /// @param creditCapacityUsdX18 The market's credit capacity in USD.
@@ -156,7 +165,7 @@ library Market {
         view
         returns (SD59x18 creditCapacityUsdX18)
     {
-        creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(sd59x18(self.realizedDebtUsd));
+        creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(sd59x18(self.realizedUsdzDebt));
     }
 
     function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCreditUsdX18) {
@@ -165,14 +174,23 @@ library Market {
 
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
 
+    // TODO: iterate over each collateral deposit + realized usdz debt
+    function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) { }
+
     function getUnrealizedDebtUsd(Data storage self) internal view returns (SD59x18 unrealizedDebtUsdX18) {
         unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.marketId));
     }
 
     function isAutoDeleverageTriggered(Data storage self, SD59x18 totalDebtUsdX18) internal view returns (bool) { }
 
-    function addMarginCollateral(Data storage self, address collateralType, uint256 amount) internal { }
+    // TODO: get back to this
+    function depositCollateral(Data storage self, address collateralType, uint256 amount) internal {
+        EnumerableMap.Bytes32ToBytes32Map storage depositedCollateral = self.depositedCollateral;
+        // CollateralDeposit storage collateralDeposit =
+        //     abi.decode(depositedCollateral.get(collateralType), (CollateralDeposit));
+    }
 
+    // TODO: after this function is called we need to update a vault's realized unsettled debt
     function distributeDebtToVaults(
         Data storage self,
         SD59x18 newUnrealizedDebtUsdX18,
@@ -186,10 +204,10 @@ library Market {
         SD59x18 lastDistributedRealizedDebtUsdX18 = sd59x18(self.lastDistributedRealizedDebtUsd);
 
         // caches the new realized debt value to be stored
-        int128 newRealizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
+        int128 newRealizedDebtUsd = sd59x18(self.realizedUsdzDebt).add(debtToRealizeUsdX18).intoInt256().toInt128();
 
         // update storage values
-        self.realizedDebtUsd = newRealizedDebtUsd;
+        self.realizedUsdzDebt = newRealizedDebtUsd;
         self.lastDistributedRealizedDebtUsd = newRealizedDebtUsd;
         self.lastDistributedUnrealizedDebtUsd = newUnrealizedDebtUsdX18.intoInt256().toInt128();
 
@@ -213,7 +231,7 @@ library Market {
     /// @param self The market storage pointer.
     /// @param debtToRealizeUsdX18 The amount of debt to realize in USD.
     function realizeDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
-        self.realizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
+        self.realizedUsdzDebt = sd59x18(self.realizedUsdzDebt).add(debtToRealizeUsdX18).intoInt256().toInt128();
     }
 
     function recalculateDelegatedCredit(Data storage self) internal { }

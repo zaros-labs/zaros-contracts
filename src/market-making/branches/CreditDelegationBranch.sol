@@ -25,6 +25,7 @@ contract CreditDelegationBranch {
     using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeCast for uint256;
+    using SafeCast for int256;
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -46,7 +47,7 @@ contract CreditDelegationBranch {
     /// @param requestedUsdzAmount The requested amount of USDz to minted.
     /// @param mintedUsdzAmount The actual amount of USDz minted, potentially factored by the market's auto deleverage
     /// system.
-    event LogRequestUsdzForMarket(
+    event LogWithdrawUsdzFromMarket(
         address indexed engine, uint128 indexed marketId, uint256 requestedUsdzAmount, uint256 mintedUsdzAmount
     );
 
@@ -100,10 +101,10 @@ contract CreditDelegationBranch {
         view
         returns (UD60x18 adjustedProfitUsdX18)
     {
-        // load the market's debt data storage pointer
+        // load the market's data storage pointer
         Market.Data storage market = Market.load(marketId);
         // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = market.getUnrealizedDebtUsd().add(sd59x18(market.realizedDebtUsd));
+        SD59x18 marketTotalDebtUsdX18 = market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd());
         // uint256 -> UD60x18
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
@@ -161,7 +162,7 @@ contract CreditDelegationBranch {
         // reverts if collateral isn't supported
         collateral.verifyIsEnabled();
 
-        // loads the market's debt data storage pointer
+        // loads the market's data storage pointer
         Market.Data storage market = Market.load(marketId);
 
         // enforces that the market has enough credit capacity, if it' a listed market it must always have some
@@ -176,14 +177,17 @@ contract CreditDelegationBranch {
         // uint256 -> UD60x18 and scale decimals to 18
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
-        // adds the collected margin collateral to the market's debt data storage, to be settled later
-        market.addMarginCollateral(collateralType, amount);
+        // caches the usdz address
+        address usdz = MarketMakingEngineConfiguration.load().usdz;
 
-        // calculates the usd value of margin collateral received
-        UD60x18 receivedValueUsdX18 = collateral.getPrice().mul(amountX18);
-
-        // realizes the received margin collateral usd value as added credit
-        market.realizeDebt(unary(receivedValueUsdX18.intoSD59x18()));
+        if (collateralType == usdz) {
+            // if the deposited collateral is USDz, it reduces the market's realized debt
+            market.realizedUsdzDebt -= amountX18.intoSD59x18().intoInt256().toInt128();
+        } else {
+            // deposits the received collateral to the market to be distributed to vaults, and then settled in the
+            // future
+            market.depositCollateral(collateralType, amount);
+        }
 
         // transfers the margin collateral asset from the perps engine to the market making engine
         // NOTE: The engine must approve the market making engine to transfer the margin collateral asset, see
@@ -202,22 +206,31 @@ contract CreditDelegationBranch {
     /// @param amount The amount of USDz to mint.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function requestUsdzForMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine {
-        // loads the market's debt data storage pointer
+    function withdrawUsdzFromMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine {
+        // loads the market's data storage pointer
         Market.Data storage market = Market.load(marketId);
 
-        uint256[] memory connectedVaultsIds = market.getConnectedVaultsIds();
-
+        // caches the market's unrealized debt
         SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
 
         // uint256 -> UD60x18
         // NOTE: we don't need to scale decimals here as it's known that USDz has 18 decimals
         UD60x18 amountX18 = ud60x18(amount);
 
+        // load the market's connected vaults ids and `mstore` them
+        // TODO: is it more gas efficient if we pass the market id to the next function and load each vault at its
+        // loop?
+        uint256[] memory connectedVaultsIds = market.getConnectedVaultsIds();
+
         // distributes outstanding unrealized debt + the requested usdz amount as debt to be realized to the connected
         // vaults
+        // TODO: we need to update the realized debt and probably switch the data structure to a mapping of assets to
+        // realized debt, as we need to sync the realized debt value in order to know the actual vault's unsettled
+        // realized debt value
         market.distributeDebtToVaults(unrealizedDebtUsdX18, amountX18.intoSD59x18());
 
+        // once the unrealiezd debt is distributed, we need to update the credit delegated by these vaults to the
+        // market
         Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
 
         // cache the market's delegated credit
@@ -235,7 +248,7 @@ contract CreditDelegationBranch {
         // prepare the amount of usdz that will be minted to the perps engine
         uint256 amountToMint;
         // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = market.getUnrealizedDebtUsd().add(sd59x18(market.realizedDebtUsd));
+        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(market.getRealizedDebtUsd());
 
         // now we realize the added usd debt of the market
         // note: USDz is assumed to be 1:1 with the system's usd accounting
@@ -263,7 +276,7 @@ contract CreditDelegationBranch {
         usdz.mint(msg.sender, amountToMint);
 
         // emit an event
-        emit LogRequestUsdzForMarket(msg.sender, marketId, amount, amountToMint);
+        emit LogWithdrawUsdzFromMarket(msg.sender, marketId, amount, amountToMint);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

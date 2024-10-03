@@ -95,6 +95,7 @@ library Vault {
 
     // TODO: see if we need market id here or if we return the updated credit delegations to update the `Market`
     // state.
+    // TODO: we need to update the vault's realized unsettled debt here, as collateral deposits fluctuate in value.
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
     function updateVaultsCreditDelegation(uint256[] memory vaultsIds, uint128 marketId) internal {
         for (uint256 i; i < vaultsIds.length; i++) {
