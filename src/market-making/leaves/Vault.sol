@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Collateral } from "./Collateral.sol";
 import { CreditDelegation } from "./CreditDelegation.sol";
 import { Distribution } from "./Distribution.sol";
-import { MarketDebt } from "@zaros/market-making/leaves/MarketDebt.sol";
+import { Market } from "@zaros/market-making/leaves/Market.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -20,8 +20,8 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 /// This means if the engine fails to report the unrealized debt properly, its users will unexpectedly and unfairly be
 /// deleveraged.
 /// The MM engine protects LPs by taking into account the requested USDz.
-/// @dev Vault's debt for credit delegation purposes = unrealized debt of each market (MarketDebt::getTotalDebt or
-/// marketDebt unrealized debt) +
+/// @dev Vault's debt for credit delegation purposes = unrealized debt of each market (Market::getTotalDebt or
+/// market unrealized debt) +
 /// unsettledRealizedDebtUsd (comes from each market's realized debt) + settledRealizedDebtUsd (realized must always
 /// be
 /// distributed to
@@ -32,7 +32,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 /// allocated as additional WETH staking rewards.
 library Vault {
     using Collateral for Collateral.Data;
-    using MarketDebt for MarketDebt.Data;
+    using Market for Market.Data;
     using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.
@@ -93,7 +93,7 @@ library Vault {
 
     // function recalculateUnsettledRealizedDebt(Data storage self, uint128 marketIdToSkip) internal { }
 
-    // TODO: see if we need market id here or if we return the updated credit delegations to update the `MarketDebt`
+    // TODO: see if we need market id here or if we return the updated credit delegations to update the `Market`
     // state.
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
     function updateVaultsCreditDelegation(uint256[] memory vaultsIds, uint128 marketId) internal {
@@ -116,7 +116,7 @@ library Vault {
             SD59x18 newCreditDelegationUsdX18 =
                 getTotalCreditCapacityUsd(self).mul(creditDelegationShareX18.intoSD59x18());
 
-            MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+            Market.Data storage market = Market.load(marketId);
         }
     }
 

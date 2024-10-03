@@ -15,19 +15,19 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, UNIT as UD60x18_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
-/// @dev NOTE: unrealized debt (from market) -> realized debt (market debt) -> unsettled debt (vaults) -> settled
+/// @dev NOTE: unrealized debt (from market) -> realized debt (market) -> unsettled debt (vaults) -> settled
 /// debt (vaults)
 /// TODO: do we only send realized debt as unsettled debt to the vaults? should it be considered settled debt? or do
 /// we send the entire reported debt as unsettled debt?
-library MarketDebt {
+library Market {
     using Distribution for Distribution.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
 
     /// @notice ERC7201 storage location.
-    bytes32 internal constant MARKET_DEBT_LOCATION =
-        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketDebt")) - 1));
+    bytes32 internal constant MARKET_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Market")) - 1));
 
     /// @param engine The engine contract address that operates this market id.
     /// @param marketId The engine's linked market id.
@@ -63,18 +63,18 @@ library MarketDebt {
         Distribution.Data vaultsDebtDistribution;
     }
 
-    /// @notice Loads a {MarketDebt} namespace.
+    /// @notice Loads a {Market} namespace.
     /// @param marketId The perp market id.
-    /// @return marketDebt The loaded market debt storage pointer.
-    function load(uint256 marketId) internal pure returns (Data storage marketDebt) {
-        bytes32 slot = keccak256(abi.encode(MARKET_DEBT_LOCATION, marketId));
+    /// @return market The loaded market storage pointer.
+    function load(uint256 marketId) internal pure returns (Data storage market) {
+        bytes32 slot = keccak256(abi.encode(MARKET_LOCATION, marketId));
         assembly {
-            marketDebt.slot := slot
+            market.slot := slot
         }
     }
 
-    /// @notice Updates the market debt's configuration parameters.
-    /// @dev See {MarketDebt.Data} for parameters description.
+    /// @notice Updates the market's configuration parameters.
+    /// @dev See {Market.Data} for parameters description.
     /// @dev Calls to this function must be protected by an authorization modifier.
     function configure(
         uint128 marketId,
@@ -97,13 +97,13 @@ library MarketDebt {
     /// @dev The auto deleverage factor is the `y` coordinate of the following polynomial regression curve:
     //// X and Y in [0, 1] ∈ R
     /// y = x^z
-    /// z = MarketDebt.Data.autoDeleveragePowerScale
-    /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
+    /// z = Market.Data.autoDeleveragePowerScale
+    /// x = (Math.min(marketRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
-    /// marketDebtRatio = (MarketDebt::getUnrealizedDebtUsdX18 + MarketDebt.Data.realizedDebtUsd) /
-    /// MarketDebt::getCreditCapacityUsd
-    /// @param self The market debt storage pointer.
+    /// marketRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedDebtUsd) /
+    /// Market::getCreditCapacityUsd
+    /// @param self The market storage pointer.
     /// @param creditCapacityUsdX18 The market's credit capacity in USD.
     /// @param totalDebtUsdX18 The market's total debt in USD, assumed to be positive.
     /// @dev IMPORTANT: This function assumes the market is in net debt. If the market is in net credit,
@@ -123,8 +123,8 @@ library MarketDebt {
             autoDeleverageFactorX18 = UD60x18_UNIT;
             return autoDeleverageFactorX18;
         }
-        // calculates the market debt ratio
-        UD60x18 marketDebtRatio = totalDebtUsdX18.div(creditCapacityUsdX18).intoUD60x18();
+        // calculates the market ratio
+        UD60x18 marketRatio = totalDebtUsdX18.div(creditCapacityUsdX18).intoUD60x18();
 
         // cache the auto deleverage parameters as UD60x18
         UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
@@ -132,7 +132,7 @@ library MarketDebt {
         UD60x18 autoDeleveragePowerScaleX18 = ud60x18(self.autoDeleveragePowerScale);
 
         // first, calculate the unscaled delevarage factor
-        UD60x18 unscaledDeleverageFactor = Math.min(marketDebtRatio, autoDeleverageEndThresholdX18).sub(
+        UD60x18 unscaledDeleverageFactor = Math.min(marketRatio, autoDeleverageEndThresholdX18).sub(
             autoDeleverageStartThresholdX18
         ).div(autoDeleverageEndThresholdX18.sub(autoDeleverageStartThresholdX18));
 
@@ -210,7 +210,7 @@ library MarketDebt {
     }
 
     /// @notice Adds the minted usdz or the margin collateral collected from traders into the stored realized debt.
-    /// @param self The market debt storage pointer.
+    /// @param self The market storage pointer.
     /// @param debtToRealizeUsdX18 The amount of debt to realize in USD.
     function realizeDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
         self.realizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
