@@ -21,7 +21,19 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 abstract contract UniswapSwapStrategy {
     using SwapRouter for SwapRouter.Data;
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                     VARIABLES
+    //////////////////////////////////////////////////////////////////////////*/
+
+    /// @notice Uniswap V3 SwapRouter address
     address internal constant UNISWAP_SWAP_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+
+    /// @notice Uniswap V3 SwapRouter ID
+    uint128 internal constant UNISWAP_SWAP_ROUTER_ID = 1;
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    FUNCTIONS
+    //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Support function to swap tokens using UniswapV3
     /// @param tokenIn the token to be swapped
@@ -40,7 +52,7 @@ abstract contract UniswapSwapStrategy {
         internal
         returns (uint256 amountOut)
     {
-        SwapRouter.Data storage swapRouter = SwapRouter.load();
+        SwapRouter.Data storage swapRouter = SwapRouter.load(UNISWAP_SWAP_ROUTER_ID);
 
         // Perform the swap using Uniswap V3 SwapRouter
         ISwapRouter.ExactInputSingleParams memory params =
@@ -51,7 +63,7 @@ abstract contract UniswapSwapStrategy {
                 recipient: recipient,
                 deadline: deadline,
                 amountIn: amountIn,
-                amountOutMinimum: 
+                amountOutMinimum:
                     _calculateAmountOutMinimum(tokenIn, amountIn, tokenOut, swapRouter.slippageTolerance),
                 sqrtPriceLimitX96: 0
             });
@@ -75,10 +87,10 @@ abstract contract UniswapSwapStrategy {
         internal
         view
         returns (uint256 amountOutMinimum)
-    {   
+    {
         // Check if price adapters are defined
         if (
-            Collateral.load(tokenIn).priceAdapter == address(0) 
+            Collateral.load(tokenIn).priceAdapter == address(0)
             || Collateral.load(tokenOut).priceAdapter == address(0)
         ) {
             revert Errors.PriceAdapterUndefined();
@@ -87,13 +99,13 @@ abstract contract UniswapSwapStrategy {
         // Load sequencer uptime feed based on chain ID
         address sequencerUptimeFeed =
             MarketMakingEngineConfiguration.load().sequencerUptimeFeedByChainId[block.chainid];
-    
+
         ChainlinkUtil.GetPriceParams memory paramsIn = ChainlinkUtil.GetPriceParams({
             priceFeed: IAggregatorV3(Collateral.load(tokenIn).priceAdapter),
             priceFeedHeartbeatSeconds: Collateral.load(tokenIn).priceFeedHeartbeatSeconds,
             sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
         });
-    
+
         ChainlinkUtil.GetPriceParams memory paramsOut = ChainlinkUtil.GetPriceParams({
             priceFeed: IAggregatorV3(Collateral.load(tokenOut).priceAdapter),
             priceFeedHeartbeatSeconds: Collateral.load(tokenOut).priceFeedHeartbeatSeconds,
