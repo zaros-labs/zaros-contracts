@@ -94,8 +94,9 @@ library SettlementConfiguration {
         PremiumReport memory premiumReport = abi.decode(verifiedReportData, (PremiumReport));
 
         if (
-            streamId != premiumReport.feedId
-                || block.timestamp > premiumReport.validFromTimestamp + maxVerificationDelay
+            streamId != premiumReport.feedId || 
+            block.timestamp > premiumReport.validFromTimestamp + maxVerificationDelay ||
+            block.timestamp > premiumReport.expiresAt 
         ) {
             revert Errors.InvalidDataStreamReport(streamId, premiumReport.feedId);
         }
