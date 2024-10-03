@@ -12,6 +12,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Fee } from "src/market-making/leaves/Fee.sol";
 import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
+import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -23,7 +24,7 @@ import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
-contract FeeDistributionBranch {
+contract FeeDistributionBranch is EngineAccessControl {
     using SafeERC20 for IERC20;
     using Fee for Fee.Data;
     using SwapRouter for SwapRouter.Data;
@@ -41,19 +42,20 @@ contract FeeDistributionBranch {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when the market making engine receives collateral type for fee distribution
-    /// @param asset the collateral type address.
-    /// @param amount the token amount of collateral type received.
-    event LogReceiveMarketFee(address indexed asset, uint256 amount);
+    /// @param marketId The market receiving the fees
+    /// @param asset The collateral type address.
+    /// @param amount The token amount of collateral type received.
+    event LogReceiveMarketFee(address indexed asset, uint128 marketId, uint256 amount);
 
     /// @notice Emitted when received collateral type has been converted to weth.
-    /// @param asset the address of collateral type to be converted.
-    /// @param amount the amount of collateral type to be converted.
-    /// @param totalWETH the total amounf of weth received once converted.
+    /// @param asset The address of collateral type to be converted.
+    /// @param amount The amount of collateral type to be converted.
+    /// @param totalWETH The total amounf of weth received once converted.
     event LogConvertAccumulatedFeesToWeth(address indexed asset, uint256 amount, uint256 totalWETH);
 
     /// @notice Emitted when end user/fee recipient receives their weth token fees
-    /// @param recipient the account address receiving the fees
-    /// @param amount the token amount received by recipient
+    /// @param recipient The account address receiving the fees
+    /// @param amount The token amount received by recipient
     event LogSendWethToFeeRecipients(address indexed recipient, uint256 amount);
 
     /// @notice Emitted when a user claims their accumulated fees.
@@ -61,17 +63,6 @@ contract FeeDistributionBranch {
     /// @param vaultId Identifier of the vault from which fees were claimed.
     /// @param amount Amount of WETH claimed as fees.
     event LogClaimFees(address indexed claimer, uint128 indexed vaultId, uint256 amount);
-
-    modifier onlyMarketMakingEngine() {
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-        address perpsEngine = marketMakingEngineConfiguration.perpsEngine;
-
-        if (msg.sender != perpsEngine) {
-            revert Errors.Unauthorized(msg.sender);
-        }
-        _;
-    }
 
     modifier onlyExistingMarket(uint128 marketId) {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
@@ -97,7 +88,7 @@ contract FeeDistributionBranch {
 
     /// @notice Receives collateral as a fee for processing,
     /// this fee later will be converted to Weth and sent to beneficiaries.
-    /// @dev onlyMarketMakingEngine address can call this function.
+    /// @dev onlyRegisteredEngine address can call this function.
     /// @param marketId The market receiving the fees.
     /// @param asset The margin collateral address.
     /// @param amount The token amount of collateral to receive as fee.
@@ -107,7 +98,7 @@ contract FeeDistributionBranch {
         uint256 amount
     )
         external
-        onlyMarketMakingEngine
+        onlyRegisteredEngine
         onlyExistingMarket(marketId)
     {
         if (amount == 0) revert Errors.ZeroInput("amount");
@@ -126,11 +117,11 @@ contract FeeDistributionBranch {
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
-        emit LogReceiveMarketFee(asset, amount);
+        emit LogReceiveMarketFee(asset, marketId, amount);
     }
 
     /// @notice Converts collected collateral amount to Weth
-    /// @dev onlyMarketMakingEngine address can call this function.
+    /// @dev onlyRegisteredEngine address can call this function.
     /// accumulated fees are split between market and fee recipients and then market fees are distributed to connected
     /// vaults
     /// @param marketId The market who's fees will be converted.
@@ -141,7 +132,7 @@ contract FeeDistributionBranch {
         uint128 swapRouterId
     )
         external
-        onlyMarketMakingEngine
+        onlyRegisteredEngine
         onlyExistingMarket(marketId)
     {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
@@ -216,7 +207,7 @@ contract FeeDistributionBranch {
     }
 
     /// @notice Sends allocated weth amount to fee recipients.
-    /// @dev onlyMarketMakingEngine address can call this function.
+    /// @dev onlyRegisteredEngine address can call this function.
     /// @param marketId The market to which fee recipients contribute.
     /// @param configuration The configuration of which fee recipients are part of.
     function sendWethToFeeRecipients(
@@ -224,7 +215,7 @@ contract FeeDistributionBranch {
         uint256 configuration
     )
         external
-        onlyMarketMakingEngine
+        onlyRegisteredEngine
         onlyExistingMarket(marketId)
     {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =

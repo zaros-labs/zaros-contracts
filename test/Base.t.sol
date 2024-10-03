@@ -18,7 +18,8 @@ import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
-import { MarketMakingEngineConfigurationBranch } from "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
+import { MarketMakingEngineConfigurationBranch } from
+    "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { IMarketMakingEngine as IMarketMakingEngineBranches } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
@@ -112,7 +113,6 @@ abstract contract IMarketMakingEngine is
     SwapRouterHarness,
     FeeRecipientHarness
 { }
-
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     using Math for UD60x18;
@@ -415,15 +415,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketMakingEngine.workaround_setMarketId(marketId);
     }
 
-    function receiveOrderFeeInFeeDistribution(
-        address token,
-        uint256 amountToReceive
-    ) 
-        internal 
-    {
+    function receiveOrderFeeInFeeDistribution(address token, uint256 amountToReceive) internal {
         deal(token, address(perpsEngine), amountToReceive);
         IERC20(token).approve(address(marketMakingEngine), amountToReceive);
-        marketMakingEngine.receiveOrderFee(INITIAL_MARKET_DEBT_ID, token, amountToReceive);
+        marketMakingEngine.receiveMarketFee(INITIAL_MARKET_DEBT_ID, token, amountToReceive);
     }
 
     function getFuzzVaultConfig(uint256 vaultId) internal view returns (VaultConfig memory) {
