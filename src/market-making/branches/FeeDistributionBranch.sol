@@ -23,6 +23,8 @@ import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
+// todo: generalize functions and variables name to deal with markets instead of terms specific to the perps domain.
+// e.g receiveOrderFee => receiveMarketFee
 contract FeeDistributionBranch {
     using SafeERC20 for IERC20;
     using Fee for Fee.Data;
@@ -102,7 +104,7 @@ contract FeeDistributionBranch {
     /// @param marketId The market receiving the fees.
     /// @param asset The margin collateral address.
     /// @param amount The token amount of collateral to receive as fee.
-    function receiveOrderFee(
+    function receiveMarketFee(
         uint128 marketId,
         address asset,
         uint256 amount
@@ -122,7 +124,8 @@ contract FeeDistributionBranch {
         collateral.verifyIsEnabled();
 
         // increment fee amount
-        marketDebt.collectedFees.receivedOrderFees.set(asset, amount);
+        // ta errado
+        marketDebt.collectedFees.receivedMarketFees.set(asset, amount);
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);

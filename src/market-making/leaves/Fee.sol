@@ -14,15 +14,16 @@ library Fee {
     bytes32 internal constant FEE_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Fee")) - 1));
 
+    // TODO: use share instead of percentage or portion
     /// @param feeRecipientsPercentage The percentage of total accumulated weth to be allocated to fee recipients
     /// @param marketPercentage The percentage of total accumulated weth to be allocated to the market
-    /// @param collectedFeeRecipientsFees the collected fees in weth set for fee recipients
+    /// @param collectedFees the collected fees in weth set for fee recipients
     /// @param receivedOrderFees An enumerable map that stores the amounts collected from each collateral type
     struct Data {
-        uint128 feeRecipientsPercentage;
-        uint128 marketPercentage;
-        uint128 collectedFeeRecipientsFees;
-        EnumerableMap.AddressToUintMap receivedOrderFees;
+        uint128 feeRecipientsShare;
+        uint128 marketShare;
+        uint128 collectedFees;
+        EnumerableMap.AddressToUintMap receivedMarketFees;
     }
 
     /// @notice Loads a {Fee} namespace.
@@ -50,7 +51,5 @@ library Fee {
         amount = uint128(mulDiv(totalAmount, portion, denominator));
     }
 
-    function increment(Data storage self, address recipient, uint256 amount) internal {
-        self.receivedOrderFees.set(recipient, self.receivedOrderFees.get(recipient) + amount);
-    }
+    function increment(Data storage self, address recipient, uint256 amount) internal { }
 }
