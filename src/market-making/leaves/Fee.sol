@@ -9,7 +9,7 @@ import "@prb-math/Common.sol";
 
 library Fee {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
-    
+
     /// @notice ERC7201 storage location.
     bytes32 internal constant FEE_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Fee")) - 1));
@@ -27,7 +27,7 @@ library Fee {
 
     /// @notice Loads a {Fee} namespace.
     /// @return fee The loaded fee storage pointer.
-    function load() internal pure returns (Data storage fee) {
+    function load(uint128 marketId) internal pure returns (Data storage fee) {
         bytes32 slot = keccak256(abi.encode(FEE_LOCATION));
         assembly {
             fee.slot := slot
@@ -46,7 +46,11 @@ library Fee {
         internal
         pure
         returns (uint128 amount)
-    {   
+    {
         amount = uint128(mulDiv(totalAmount, portion, denominator));
+    }
+
+    function increment(Data storage self, address recipient, uint256 amount) internal {
+        self.receivedOrderFees.set(recipient, self.receivedOrderFees.get(recipient) + amount);
     }
 }
