@@ -40,11 +40,10 @@ contract FeeDistributionBranch {
                                   EVENTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Emitted when the market making engine receives collateral type for fee distribution from the perps
-    /// engine.
+    /// @notice Emitted when the market making engine receives collateral type for fee distribution
     /// @param asset the collateral type address.
     /// @param amount the token amount of collateral type received.
-    event LogReceiveOrderFee(address indexed asset, uint256 amount);
+    event LogReceiveMarketFee(address indexed asset, uint256 amount);
 
     /// @notice Emitted when received collateral type has been converted to weth.
     /// @param asset the address of collateral type to be converted.
@@ -52,7 +51,7 @@ contract FeeDistributionBranch {
     /// @param totalWETH the total amounf of weth received once converted.
     event LogConvertAccumulatedFeesToWeth(address indexed asset, uint256 amount, uint256 totalWETH);
 
-    /// @notice Emitted when end user/ fee recipient receives their weth token fees
+    /// @notice Emitted when end user/fee recipient receives their weth token fees
     /// @param recipient the account address receiving the fees
     /// @param amount the token amount received by recipient
     event LogSendWethToFeeRecipients(address indexed recipient, uint256 amount);
@@ -102,7 +101,7 @@ contract FeeDistributionBranch {
     /// @param marketId The market receiving the fees.
     /// @param asset The margin collateral address.
     /// @param amount The token amount of collateral to receive as fee.
-    function receiveOrderFee(
+    function receiveMarketFee(
         uint128 marketId,
         address asset,
         uint256 amount
@@ -127,7 +126,7 @@ contract FeeDistributionBranch {
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
-        emit LogReceiveOrderFee(asset, amount);
+        emit LogReceiveMarketFee(asset, amount);
     }
 
     /// @notice Converts collected collateral amount to Weth
