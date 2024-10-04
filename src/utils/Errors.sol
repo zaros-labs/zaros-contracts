@@ -46,6 +46,8 @@ library Errors {
     error InvalidBounds();
     /// @notice Thrown when an oracle sequencer is not started.
     error OracleSequencerUptimeFeedNotStarted(address sequencerUptimeFeedAddress);
+    /// @notice Thrown when an oracle price feed is not updated.
+    error OracleStalePriceFeed(uint256 startedAt, uint256 previousStartedAt);
 
     /// @notice PerpsEngine.OrderBranch errors
 

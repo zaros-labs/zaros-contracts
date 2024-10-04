@@ -26,6 +26,7 @@ library ChainlinkUtil {
         IAggregatorV3 priceFeed;
         uint32 priceFeedHeartbeatSeconds;
         IAggregatorV3 sequencerUptimeFeed;
+        uint256 lastStartedAt;
     }
 
     /// @notice Queries the provided Chainlink Price Feed for the margin collateral oracle price.
@@ -60,10 +61,14 @@ library ChainlinkUtil {
             }
         }
 
-        try params.priceFeed.latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
+        try params.priceFeed.latestRoundData() returns (uint80, int256 answer, uint256 startedAt, uint256 updatedAt, uint80) {
             if (block.timestamp - updatedAt > params.priceFeedHeartbeatSeconds) {
                 revert Errors.OraclePriceFeedHeartbeat(address(params.priceFeed));
             }
+            if (startedAt < params.lastStartedAt) {
+                revert Errors.OracleStalePriceFeed(startedAt, params.lastStartedAt);
+            }
+            params.lastStartedAt = startedAt;
 
             IOffchainAggregator aggregator = IOffchainAggregator(params.priceFeed.aggregator());
             int192 minAnswer = aggregator.minAnswer();

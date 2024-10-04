@@ -98,7 +98,8 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                 ChainlinkUtil.GetPriceParams({
                     priceFeed: IAggregatorV3(priceFeed),
                     priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
-                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
+                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed),
+                    lastStartedAt: 0
                 })
             );
 
@@ -106,7 +107,8 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                 ChainlinkUtil.GetPriceParams({
                     priceFeed: IAggregatorV3(ethUsdPriceFeed),
                     priceFeedHeartbeatSeconds: ethUsdPriceFeedHeartbeatSeconds,
-                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
+                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed),
+                    lastStartedAt: 0
                 })
             );
 
@@ -116,7 +118,8 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                 ChainlinkUtil.GetPriceParams({
                     priceFeed: IAggregatorV3(priceFeed),
                     priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
-                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
+                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed),
+                    lastStartedAt: 0
                 })
             );
         }
