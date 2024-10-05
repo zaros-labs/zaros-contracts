@@ -21,7 +21,7 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 /// we send the entire reported debt as unsettled debt?
 library Market {
     using Distribution for Distribution.Data;
-    using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableMap for EnumerableMap.Bytes32ToBytes32Map;
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
 
@@ -183,11 +183,30 @@ library Market {
 
     function isAutoDeleverageTriggered(Data storage self, SD59x18 totalDebtUsdX18) internal view returns (bool) { }
 
-    // TODO: get back to this
-    function depositCollateral(Data storage self, address collateralType, uint256 amount) internal {
+    /// @notice Deposits collateral to the market as credit.
+    /// @dev This function assumes the collateral type address is configured in the protocol and has been previously
+    /// verified.
+    function depositCollateral(Data storage self, address collateralType, UD60x18 amount) internal {
         EnumerableMap.Bytes32ToBytes32Map storage depositedCollateral = self.depositedCollateral;
-        // CollateralDeposit storage collateralDeposit =
-        //     abi.decode(depositedCollateral.get(collateralType), (CollateralDeposit));
+
+        // TODO: we need to store the collateral deposit bytes32 storage slot in the depositedCollateral enumerable
+        // map instead of the abi-encoded struct.
+        // if the collateral type address is alreay a key in the enumerable map, we need to load the current stored
+        // value and add the deposited amount
+        if (depositedCollateral.contains(collateralType)) {
+            CollateralDeposit memory collateralDeposit =
+            // gets the stored value and decodes it into a CollateralDeposit struct
+             abi.decode(depositedCollateral.get(collateralType), (CollateralDeposit));
+            // update the collateral deposit value, notice that the last distributed amount is not updated, as we're
+            // not realizing a distribution here
+            collateralDeposit.amount = ud60x18(collateralDeposit.amount).add(amount).intoUint128();
+            // update the key-value pair
+            depositedCollateral.set(collateralType, abi.encode(collateralDeposit));
+        } else {
+            // if the collateral type address was not a key in the enumerable map, we need to create a new key-value
+            // pair
+            depositedCollateral.set(collateralType, abi.encode(CollateralDeposit(amount.intoUint128(), uint128(0))));
+        }
     }
 
     // TODO: after this function is called we need to update a vault's realized unsettled debt

@@ -128,7 +128,7 @@ contract CreditDelegationBranch {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                  PERPS ENGINE ONLY PROTECTED FUNCTIONS
+                                REGISTERED ENGINE ONLY PROTECTED FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
     /// @notice Adds credit in form of a registered collateral type to the given market id.
     /// @dev Engines call this function to send collateral collected from their users and increase their credit
