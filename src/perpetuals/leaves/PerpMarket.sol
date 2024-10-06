@@ -387,6 +387,7 @@ library PerpMarket {
 
         self.id = params.marketId;
         self.initialized = true;
+        self.lastFundingTime = block.timestamp;
 
         self.configuration.update(
             MarketConfiguration.Data({
