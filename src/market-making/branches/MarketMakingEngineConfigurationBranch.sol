@@ -7,7 +7,7 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
+import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { Fee } from "@zaros/market-making/leaves/Fee.sol";
 
 // Open Zeppelin Upgradeable dependencies

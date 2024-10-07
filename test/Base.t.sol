@@ -54,7 +54,7 @@ import { CollateralHarness } from "test/harnesses/market-making/leaves/Collatera
 import { MarketDebtHarness } from "test/harnesses/market-making/leaves/MarketDebtHarness.sol";
 import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
-import { SwapRouterHarness } from "test/harnesses/market-making/leaves/SwapRouterHarness.sol";
+import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { FeeRecipientHarness } from "test/harnesses/market-making/leaves/FeeRecipientHarness.sol";
 
@@ -110,7 +110,7 @@ abstract contract IMarketMakingEngine is
     DistributionHarness,
     MarketDebtHarness,
     MarketMakingEngineConfigurationHarness,
-    SwapRouterHarness,
+    DexSwapStrategyHarness,
     FeeRecipientHarness
 { }
 

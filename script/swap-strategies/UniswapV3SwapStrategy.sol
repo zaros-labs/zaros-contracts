@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 // Zaros dependencies
-import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
+import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
@@ -20,7 +20,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 /// @notice Uniswap V3 Swap Strategy contract
 abstract contract UniswapV3SwapStrategy {
-    using SwapRouter for SwapRouter.Data;
+    using DexSwapStrategy for DexSwapStrategy.Data;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
@@ -53,17 +53,17 @@ abstract contract UniswapV3SwapStrategy {
         internal
         returns (uint256 amountOut)
     {
-        SwapRouter.Data storage swapRouter = SwapRouter.load(UNISWAP_V3_SWAP_STRATEGY_ID);
+        DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(UNISWAP_V3_SWAP_STRATEGY_ID);
 
         // Perform the swap using Uniswap V3 SwapRouter
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: tokenIn,
             tokenOut: tokenOut,
-            fee: swapRouter.poolFee,
+            fee: 0,
             recipient: recipient,
             deadline: deadline,
             amountIn: amountIn,
-            amountOutMinimum: _calculateAmountOutMinimum(tokenIn, amountIn, tokenOut, swapRouter.slippageTolerance),
+            amountOutMinimum: _calculateAmountOutMinimum(tokenIn, amountIn, tokenOut, 0),
             sqrtPriceLimitX96: 0
         });
 
@@ -137,10 +137,11 @@ abstract contract UniswapV3SwapStrategy {
 
         // The minimum percentage from the full amount to receive
         // (e.g. if slippageTolerance is 100 BPS, the minAmountToReceiveInBPS will be 9900 BPS )
-        UD60x18 minAmountToReceiveInBPS = (ud60x18(SwapRouter.BPS_DENOMINATOR).sub(ud60x18(slippageTolerance)));
+        UD60x18 minAmountToReceiveInBPS = (ud60x18(DexSwapStrategy.BPS_DENOMINATOR).sub(ud60x18(slippageTolerance)));
 
         // Adjust for slippageTolerance and convert to uint256
-        amountOutMinimum =
-            fullAmountToReceive.mul(minAmountToReceiveInBPS).div(ud60x18(SwapRouter.BPS_DENOMINATOR)).intoUint256();
+        amountOutMinimum = fullAmountToReceive.mul(minAmountToReceiveInBPS).div(
+            ud60x18(DexSwapStrategy.BPS_DENOMINATOR)
+        ).intoUint256();
     }
 }

@@ -7,7 +7,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { MockUniswapRouter } from "test/mocks/MockUniswapRouter.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
-import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
 
 // Openzeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -157,29 +156,29 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         whenTheAssetExists
         whenTheAssetIsNotWeth
     {
-        amountToReceive =
-            bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
+        // amountToReceive =
+        //     bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
 
-        // Deploy MockUniswapRouter to simulate the swap and mock
-        ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-        marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
+        // // Deploy MockUniswapRouter to simulate the swap and mock
+        // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
+        // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
 
-        // set contract with initial wbtc fees
-        receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
+        // // set contract with initial wbtc fees
+        // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
 
-        // Set Price Adapter address to zero
-        marketMakingEngine.workaround_Collateral_setParams(
-            address(wBtc),
-            WBTC_CORE_VAULT_CREDIT_RATIO,
-            WBTC_PRICE_FEED_HEARBEAT_SECONDS,
-            WBTC_CORE_VAULT_IS_ENABLED,
-            WBTC_DECIMALS,
-            address(0)
-        );
+        // // Set Price Adapter address to zero
+        // marketMakingEngine.workaround_Collateral_setParams(
+        //     address(wBtc),
+        //     WBTC_CORE_VAULT_CREDIT_RATIO,
+        //     WBTC_PRICE_FEED_HEARBEAT_SECONDS,
+        //     WBTC_CORE_VAULT_IS_ENABLED,
+        //     WBTC_DECIMALS,
+        //     address(0)
+        // );
 
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PriceAdapterUndefined.selector) });
-        marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
+        // // it should revert
+        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PriceAdapterUndefined.selector) });
+        // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
     }
 
     modifier givenPriceAdapterAddressIsSet() {

@@ -35,7 +35,7 @@ import { DistributionHarness } from "test/harnesses/market-making/leaves/Distrib
 import { MarketDebtHarness } from "test/harnesses/market-making/leaves/MarketDebtHarness.sol";
 import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
-import { SwapRouterHarness } from "test/harnesses/market-making/leaves/SwapRouterHarness.sol";
+import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { FeeRecipientHarness } from "test/harnesses/market-making/leaves/FeeRecipientHarness.sol";
 
@@ -541,22 +541,15 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 
     address marketMakingEngineConfigurationHarness = address(new MarketMakingEngineConfigurationHarness());
     console.log("MarketMakingEngineConfigurationHarness: ", marketMakingEngineConfigurationHarness);
-<<<<<<< HEAD
-<<<<<<< HEAD
 
     address feeHarness = address(new FeeHarness());
     console.log("FeeHarness: ", feeHarness);
 
     address swapStrategyHarness = address(new SwapStrategyHarness());
     console.log("SwapStrategyHarness: ", swapStrategyHarness);
-=======
-    
-=======
 
->>>>>>> c3ac9938 (refactor: FeeDistributionBranch.sol and create an EngineAccessControl.sol)
-    address swapRouterHarness = address(new SwapRouterHarness());
-    console.log("SwapRouterHarness: ", swapRouterHarness);
->>>>>>> 61537482 (refactured SwapStrategy to SwapRouter and moved Uniswap logic to a script)
+    address dexSwapStrategyHarness = address(new DexSwapStrategyHarness());
+    console.log("DexSwapStrategyHarness: ", dexSwapStrategyHarness);
 
     address feeRecipientHarness = address(new FeeRecipientHarness());
     console.log("FeeRecipientHarness: ", feeRecipientHarness);
@@ -567,7 +560,7 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     addressHarnesses[3] = distributionHarness;
     addressHarnesses[4] = marketDebtHarness;
     addressHarnesses[5] = marketMakingEngineConfigurationHarness;
-    addressHarnesses[6] = swapRouterHarness;
+    addressHarnesses[6] = dexSwapStrategyHarness;
     addressHarnesses[7] = feeRecipientHarness;
 
     return addressHarnesses;
@@ -608,22 +601,14 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketDebtHarnessSelectors[2] = MarketDebtHarness.workaround_setConnectedVaults.selector;
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](3);
-<<<<<<< HEAD
     marketMakingEngineConfigurationSelectors[0] = MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
-=======
-    marketMakingEngineConfigurationSelectors[0] =
-        MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
->>>>>>> c3ac9938 (refactor: FeeDistributionBranch.sol and create an EngineAccessControl.sol)
     marketMakingEngineConfigurationSelectors[1] =
         MarketMakingEngineConfigurationHarness.workaround_setPerpsEngineAddress.selector;
     marketMakingEngineConfigurationSelectors[2] =
         MarketMakingEngineConfigurationHarness.workaround_setFeeRecipients.selector;
 
-    bytes4[] memory swapRouterHarnessSelectors = new bytes4[](4);
-    swapRouterHarnessSelectors[0] = SwapRouterHarness.exposed_setSwapStrategy.selector;
-    swapRouterHarnessSelectors[1] = SwapRouterHarness.exposed_setPoolFee.selector;
-    swapRouterHarnessSelectors[2] = SwapRouterHarness.exposed_setSlippageTolerance.selector;
-    swapRouterHarnessSelectors[3] = SwapRouterHarness.exposed_swapStrategy_load.selector;
+    bytes4[] memory swapRouterHarnessSelectors = new bytes4[](1);
+    swapRouterHarnessSelectors[3] = DexSwapStrategyHarness.exposed_dexSwapStrategy_load.selector;
 
     bytes4[] memory feeRecipientHarnessSelectors = new bytes4[](2);
     feeRecipientHarnessSelectors[0] = FeeRecipientHarness.exposed_FeeRecipient_load.selector;

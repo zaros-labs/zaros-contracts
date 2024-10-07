@@ -11,9 +11,10 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Fee } from "src/market-making/leaves/Fee.sol";
-import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
+import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 import { Fee } from "@zaros/market-making/leaves/Fee.sol";
+import { SwapCallData } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -28,7 +29,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 contract FeeDistributionBranch is EngineAccessControl {
     using SafeERC20 for IERC20;
     using Fee for Fee.Data;
-    using SwapRouter for SwapRouter.Data;
+    using DexSwapStrategy for DexSwapStrategy.Data;
     using FeeRecipient for FeeRecipient.Data;
     using Collateral for Collateral.Data;
     using Vault for Vault.Data;
@@ -135,11 +136,11 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// vaults
     /// @param marketId The market who's fees will be converted.
     /// @param asset The asset to be swapped for wEth
-    /// @param swapRouterId The swap router id to be used for swapping
+    /// @param dexSwapStrategyId The dex swap strategy id to be used for swapping
     function convertAccumulatedFeesToWeth(
         uint128 marketId,
         address asset,
-        uint128 swapRouterId
+        uint128 dexSwapStrategyId
     )
         external
         onlyRegisteredEngine
@@ -154,8 +155,8 @@ contract FeeDistributionBranch is EngineAccessControl {
         // loads the market data storage pointer
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        // loads the swap router data storage pointer
-        SwapRouter.Data storage swapRouter = SwapRouter.load(swapRouterId);
+        // loads the dex swap strategy data storage pointer
+        DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
 
         // declare variable to store accumulated weth
         UD60x18 accumulatedWethX18;
@@ -169,17 +170,17 @@ contract FeeDistributionBranch is EngineAccessControl {
             accumulatedWethX18 = assetAmountX18;
         } else {
             // prepare the data for executing the swap
-            bytes memory routerCallData = abi.encodeWithSelector(
-                swapRouter.selector,
-                asset,
-                assetAmountX18.intoUint256(),
-                MarketMakingEngineConfiguration.load().weth,
-                swapRouter.deadline,
-                address(this)
-            );
+            SwapCallData memory swapCallData = SwapCallData({
+                tokenIn: asset,
+                tokenOut: MarketMakingEngineConfiguration.load().weth,
+                amountIn: assetAmountX18.intoUint256(),
+                amountOutMin: 0,
+                deadline: 3600,
+                recipient: address(this)
+            });
 
             // Swap collected collateral fee amount for WETH and store the obtained amount
-            uint256 tokensSwapped = swapRouter.executeSwap(routerCallData);
+            uint256 tokensSwapped = dexSwapStrategy.executeSwap(swapCallData);
 
             // store the amount of weth received from swap
             accumulatedWethX18 = ud60x18(tokensSwapped);
@@ -187,11 +188,11 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         // calculate the fee amount for the market
         UD60x18 marketFeesX18 =
-            Fee.calculateFees(accumulatedWethX18, ud60x18(fee.marketShare), ud60x18(SwapRouter.BPS_DENOMINATOR));
+            Fee.calculateFees(accumulatedWethX18, ud60x18(fee.marketShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR));
 
         // calculate the fee amount for the fee recipients
         UD60x18 collectedFeesX18 = Fee.calculateFees(
-            accumulatedWethX18, ud60x18(fee.feeRecipientsShare), ud60x18(SwapRouter.BPS_DENOMINATOR)
+            accumulatedWethX18, ud60x18(fee.feeRecipientsShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR)
         );
 
         // increment the collected fees
