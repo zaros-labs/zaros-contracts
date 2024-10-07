@@ -71,4 +71,13 @@ library Fee {
 
         self.collectedFees = newAmount.intoUint256();
     }
+
+    /// @notice Support function to decrease the collected fees
+    /// @param self The fee storage pointer
+    /// @param amountX18 The amount to be incremented
+    function decrementCollectedFees(Data storage self, UD60x18 amountX18) internal {
+        UD60x18 newAmount = amountX18.sub(ud60x18(self.collectedFees));
+
+        self.collectedFees = newAmount.intoUint256();
+    }
 }

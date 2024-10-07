@@ -251,44 +251,61 @@ contract FeeDistributionBranch is EngineAccessControl {
         onlyRegisteredEngine
         onlyExistingMarket(marketId)
     {
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
-            MarketMakingEngineConfiguration.load();
-
         // loads the fee data storage pointer
         Fee.Data storage fee = Fee.load(marketId);
 
-        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
-
+        // reverts if no fees have been collected
         if (fee.collectedFees == 0) revert Errors.NoWethFeesCollected();
 
+        // loads the market making engine configuration data storage pointer
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
+            MarketMakingEngineConfiguration.load();
+
+        // get the fee recipients list
         address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipients[configuration];
 
+        // store the length of the fee recipients list
+        uint256 recepientListLength = recipientsList.length;
+
+        // weth address
         address weth = marketMakingEngineConfigurationData.weth;
 
-        uint256 collectedFees = uint256(fee.collectedFees);
+        // convert collected fees to UD60x18
+        UD60x18 collectedFeesX18 = ud60x18(fee.collectedFees);
 
-        uint256 totalShares;
+        // variable to store the total shares of fee recipients
+        UD60x18 totalSharesX18;
 
-        uint256 recepientListLength = recipientsList.length;
+        // load the weth collateral data storage pointer
+        Collateral.Data storage wethCollateral = Collateral.load(weth);
 
         // get total shares of fee recipients
         for (uint256 i; i < recepientListLength; ++i) {
-            totalShares = ud60x18(totalShares).add(ud60x18(FeeRecipient.load(recipientsList[i]).share)).intoUint256();
+            totalSharesX18 = totalSharesX18.add(ud60x18(FeeRecipient.load(recipientsList[i]).share));
         }
 
         // send amount between fee recipients
-        // for (uint256 i; i < recepientListLength; ++i) {
-        //     address feeRecipient = recipientsList[i];
+        for (uint256 i; i < recepientListLength; ++i) {
 
-        //     UD60x18 amountToSendX18 =
-        //         Fee.calculateFees(FeeRecipient.load(feeRecipient).share, collectedFees, totalShares);
+            // the current fee recipient
+            address feeRecipient = recipientsList[i];
 
-        //     fee.collectedFees = ud60x18(fee.collectedFees).sub(amountToSendX18).intoUint128();
+            // calculate the amount to send to the fee recipient
+            UD60x18 amountToSendX18 =
+                Fee.calculateFees(collectedFeesX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18);
 
-        //     IERC20(weth).safeTransfer(feeRecipient, amountToSendX18.intoUint256());
+            // decrement the collected fees
+            fee.decrementCollectedFees(amountToSendX18);
 
-        //     emit LogSendWethToFeeRecipients(feeRecipient, amountToSendX18.intoUint256());
-        // }
+            // convert the amountToSendX18 to weth amount
+            uint256 amountToSend = wethCollateral.convertUd60x18ToTokenAmount(amountToSendX18);
+
+            // send the amount to the fee recipient
+            IERC20(weth).safeTransfer(feeRecipient, amountToSend);
+
+            // emit event to log the amount sent to the fee recipient
+            emit LogSendWethToFeeRecipients(feeRecipient, amountToSend);
+        }
     }
 
     /// @notice allows user to claim their share of fees
