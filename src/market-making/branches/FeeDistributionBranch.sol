@@ -286,7 +286,6 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         // send amount between fee recipients
         for (uint256 i; i < recepientListLength; ++i) {
-
             // the current fee recipient
             address feeRecipient = recipientsList[i];
 
@@ -311,25 +310,42 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @notice allows user to claim their share of fees
     /// @param vaultId the vault fees are claimed from
     function claimFees(uint128 vaultId) external {
+        // load the vault data storage pointer
         Vault.Data storage vault = Vault.load(vaultId);
+
+        // reverts if the vault doesn't exist
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist();
 
+        // get the actor id
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
-        uint256 claimableAmount = vault.stakingFeeDistribution.getActorValueChange(actorId).intoUint256();
 
+        // reverts if the actor has no shares
         if (vault.stakingFeeDistribution.actor[actorId].shares == 0) revert Errors.NoSharesAvailable();
-        if (claimableAmount == 0) revert Errors.NoFeesToClaim();
+
+        // get the claimable amount of fees
+        UD60x18 amountToClaimX18 = vault.stakingFeeDistribution.getActorValueChange(actorId).intoUD60x18();
+
+        // reverts if the claimable amount is 0
+        if (amountToClaimX18.isZero()) revert Errors.NoFeesToClaim();
 
         vault.stakingFeeDistribution.accumulateActor(actorId);
 
-        SD59x18 amount = ud60x18(claimableAmount).intoSD59x18();
+        // update the unsettled fees of the vault
+        vault.updateUnsettledFeesWeth(-amountToClaimX18.intoSD59x18());
 
-        vault.unsettledFeesWeth = int128(sd59x18(vault.unsettledFeesWeth).sub(amount).intoInt256());
-
+        // weth address
         address weth = MarketMakingEngineConfiguration.load().weth;
 
-        IERC20(weth).safeTransfer(msg.sender, claimableAmount);
+        // load the weth collateral data storage pointer
+        Collateral.Data storage wethCollateral = Collateral.load(weth);
 
-        emit LogClaimFees(msg.sender, vaultId, claimableAmount);
+        // convert the amount to claim to weth amount
+        uint256 amountToClaim = wethCollateral.convertUd60x18ToTokenAmount(amountToClaimX18);
+
+        // transfer the amount to the claimer
+        IERC20(weth).safeTransfer(msg.sender, amountToClaim);
+
+        // emit event to log the amount claimed
+        emit LogClaimFees(msg.sender, vaultId, amountToClaim);
     }
 }
