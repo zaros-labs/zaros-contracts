@@ -146,7 +146,7 @@ contract TradingAccountBranch {
             maintenanceMarginUsdX18 = maintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
         }
 
-        availableMarginUsdX18 = marginBalanceUsdX18.sub((initialMarginUsdX18).intoSD59x18());
+        availableMarginUsdX18 = marginBalanceUsdX18.sub((maintenanceMarginUsdX18).intoSD59x18());
     }
 
     /// @notice Returns the total trading account's unrealized pnl across open positions.
@@ -385,11 +385,24 @@ contract TradingAccountBranch {
 
     /// @notice Used by the Account NFT contract to notify an account transfer.
     /// @dev Can only be called by the Account NFT contract.
-    /// @dev It updates the Trading Account stored access control data.
+    /// @dev Cancels existing pending orders and it updates the Trading Account stored access control data.
     /// @param to The recipient of the account transfer.
     /// @param tradingAccountId The trading account id.
     function notifyAccountTransfer(address to, uint128 tradingAccountId) external {
         _onlyTradingAccountToken();
+
+        // load trader's orders
+        MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
+
+        // cancel pending order if it exists
+        if(marketOrder.marketId != 0) {
+            // reverts if a trader has a pending order and that pending order hasn't
+            // existed for the minimum order lifetime; pending orders can't be cancelled
+            // until they have existed for the minimum order lifetime
+            marketOrder.checkPendingOrder();
+            // cancel pending order
+            marketOrder.clear();
+        }
 
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         tradingAccount.owner = to;
