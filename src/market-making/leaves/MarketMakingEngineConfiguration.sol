@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { FeeRecipient } from "@zaros/market-making/leaves/FeeRecipient.sol";
+
 library MarketMakingEngineConfiguration {
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION =
@@ -11,6 +14,7 @@ library MarketMakingEngineConfiguration {
         address usdc;
         address weth;
         address feeDistributor;
+        address[][] feeRecipientsAddress;
         FeeRecipient.Data[][] feeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;

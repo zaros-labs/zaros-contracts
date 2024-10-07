@@ -25,7 +25,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         uint128 marketPercentage = 6500;
         uint128 feeRecipientsPercentage = 3500;
         // Set percentage ratio for market and fee recipients
-        marketMakingEngine.setPercentageRatio(INITIAL_MARKET_DEBT_ID, marketPercentage, feeRecipientsPercentage);
+        // marketMakingEngine.setPercentageRatio(INITIAL_MARKET_DEBT_ID, marketPercentage, feeRecipientsPercentage);
 
         changePrank({ msgSender: address(perpsEngine) });
 
@@ -44,7 +44,6 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         marketMakingEngine.workaround_Collateral_setParams(
             address(wBtc),
             WBTC_CORE_VAULT_CREDIT_RATIO,
-            WBTC_PRICE_FEED_HEARBEAT_SECONDS,
             WBTC_CORE_VAULT_IS_ENABLED,
             WBTC_DECIMALS,
             address(wbtcMockPriceFeed)
@@ -52,7 +51,6 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         marketMakingEngine.workaround_Collateral_setParams(
             address(wEth),
             WETH_CORE_VAULT_CREDIT_RATIO,
-            WETH_PRICE_FEED_HEARBEAT_SECONDS,
             WETH_CORE_VAULT_IS_ENABLED,
             WETH_DECIMALS,
             address(wethMockPriceFeed)
@@ -60,7 +58,6 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         marketMakingEngine.workaround_Collateral_setParams(
             address(usdc),
             USDC_CORE_VAULT_CREDIT_RATIO,
-            USDC_PRICE_FEED_HEARBEAT_SECONDS,
             USDC_CORE_VAULT_IS_ENABLED,
             USDC_DECIMALS,
             address(usdcMockPriceFeed)
@@ -317,7 +314,6 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         marketMakingEngine.workaround_Collateral_setParams(
             address(usdz),
             WBTC_CORE_VAULT_CREDIT_RATIO,
-            WBTC_PRICE_FEED_HEARBEAT_SECONDS,
             WBTC_CORE_VAULT_IS_ENABLED,
             tokenDecimals,
             address(usdzMockPriceFeed)

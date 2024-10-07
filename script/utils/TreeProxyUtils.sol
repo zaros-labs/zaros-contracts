@@ -469,8 +469,8 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     marketMakingEngineConfigBranchSelectors[4] =
         MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
-    marketMakingEngineConfigBranchSelectors[7] = MarketMakingEngineConfigurationBranch.setPercentageRatio.selector;
-    marketMakingEngineConfigBranchSelectors[8] = MarketMakingEngineConfigurationBranch.getPercentageRatio.selector;
+    marketMakingEngineConfigBranchSelectors[7] = MarketMakingEngineConfigurationBranch.registerEngine.selector;
+    marketMakingEngineConfigBranchSelectors[8] = MarketMakingEngineConfigurationBranch.setUsdz.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -541,12 +541,6 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 
     address marketMakingEngineConfigurationHarness = address(new MarketMakingEngineConfigurationHarness());
     console.log("MarketMakingEngineConfigurationHarness: ", marketMakingEngineConfigurationHarness);
-
-    address feeHarness = address(new FeeHarness());
-    console.log("FeeHarness: ", feeHarness);
-
-    address swapStrategyHarness = address(new SwapStrategyHarness());
-    console.log("SwapStrategyHarness: ", swapStrategyHarness);
 
     address dexSwapStrategyHarness = address(new DexSwapStrategyHarness());
     console.log("DexSwapStrategyHarness: ", dexSwapStrategyHarness);

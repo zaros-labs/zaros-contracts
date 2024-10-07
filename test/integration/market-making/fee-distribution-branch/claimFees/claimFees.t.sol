@@ -41,11 +41,10 @@ contract claimFees_Integration_Test is Base_Test {
         marketMakingEngine.workaround_setWethAddress(address(wEth));
 
         marketMakingEngine.workaround_Collateral_setParams(
-            address(wEth), 
-            WETH_CORE_VAULT_CREDIT_RATIO, 
-            WETH_PRICE_FEED_HEARBEAT_SECONDS, 
-            WETH_CORE_VAULT_IS_ENABLED, 
-            WETH_DECIMALS, 
+            address(wEth),
+            WETH_CORE_VAULT_CREDIT_RATIO,
+            WETH_CORE_VAULT_IS_ENABLED,
+            WETH_DECIMALS,
             address(0)
         );
 
@@ -60,8 +59,8 @@ contract claimFees_Integration_Test is Base_Test {
 
         // set actor shares
         marketMakingEngine.exposed_setActorShares(
-            FINAL_VAULT_ID, 
-            actorId, 
+            FINAL_VAULT_ID,
+            actorId,
             ud60x18(actorShares)
         );
 
@@ -88,8 +87,8 @@ contract claimFees_Integration_Test is Base_Test {
         changePrank({ msgSender: address(perpsEngine) });
         // set Actor Shares
         marketMakingEngine.exposed_setActorShares(
-            FINAL_VAULT_ID, 
-            actorId, 
+            FINAL_VAULT_ID,
+            actorId,
             ud60x18(actorShares)
         );
         // Set the market ID and WETH address
@@ -97,11 +96,10 @@ contract claimFees_Integration_Test is Base_Test {
         marketMakingEngine.workaround_setWethAddress(address(wEth));
 
         marketMakingEngine.workaround_Collateral_setParams(
-            address(wEth), 
-            WETH_CORE_VAULT_CREDIT_RATIO, 
-            WETH_PRICE_FEED_HEARBEAT_SECONDS, 
-            WETH_CORE_VAULT_IS_ENABLED, 
-            WETH_DECIMALS, 
+            address(wEth),
+            WETH_CORE_VAULT_CREDIT_RATIO,
+            WETH_CORE_VAULT_IS_ENABLED,
+            WETH_DECIMALS,
             address(0)
         );
 
@@ -139,11 +137,10 @@ contract claimFees_Integration_Test is Base_Test {
         marketMakingEngine.workaround_setWethAddress(address(wEth));
 
         marketMakingEngine.workaround_Collateral_setParams(
-            address(wEth), 
-            WETH_CORE_VAULT_CREDIT_RATIO, 
-            WETH_PRICE_FEED_HEARBEAT_SECONDS, 
-            WETH_CORE_VAULT_IS_ENABLED, 
-            WETH_DECIMALS, 
+            address(wEth),
+            WETH_CORE_VAULT_CREDIT_RATIO,
+            WETH_CORE_VAULT_IS_ENABLED,
+            WETH_DECIMALS,
             address(0)
         );
 
@@ -158,8 +155,8 @@ contract claimFees_Integration_Test is Base_Test {
 
         // set actor shares
         marketMakingEngine.exposed_setActorShares(
-            FINAL_VAULT_ID, 
-            actorId, 
+            FINAL_VAULT_ID,
+            actorId,
             ud60x18(actorShares)
         );
 
@@ -172,7 +169,7 @@ contract claimFees_Integration_Test is Base_Test {
 
         // Expect event emitted for claimed fees
         vm.expectEmit();
-        emit FeeDistributionBranch.LogClaimFees(address(users.naruto.account), FINAL_VAULT_ID, amountToReceive/ 10);  
+        emit FeeDistributionBranch.LogClaimFees(address(users.naruto.account), FINAL_VAULT_ID, amountToReceive/ 10);
 
         // it should send user the claimable amount
         marketMakingEngine.claimFees(FINAL_VAULT_ID);

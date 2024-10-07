@@ -83,7 +83,7 @@ contract FeeDistributionBranch is EngineAccessControl {
     function getEarnedFees(uint128 vaultId, address staker) external view returns (uint256 earnedFees) {
         Vault.Data storage vault = Vault.load(vaultId);
 
-        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist();
+        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
         bytes32 actorId = bytes32(uint256(uint160(staker)));
         earnedFees = vault.stakingFeeDistribution.getActorValueChange(actorId).intoUint256();
@@ -263,7 +263,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             MarketMakingEngineConfiguration.load();
 
         // get the fee recipients list
-        address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipients[configuration];
+        address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipientsAddress[configuration];
 
         // store the length of the fee recipients list
         uint256 recepientListLength = recipientsList.length;
@@ -315,7 +315,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         Vault.Data storage vault = Vault.load(vaultId);
 
         // reverts if the vault doesn't exist
-        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist();
+        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
         // get the actor id
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));

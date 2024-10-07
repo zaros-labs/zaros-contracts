@@ -21,7 +21,6 @@ contract ReceiveOrderFee_Integration_Test is Base_Test {
         marketMakingEngine.workaround_Collateral_setParams(
             address(wEth),
             WETH_CORE_VAULT_CREDIT_RATIO,
-            WETH_PRICE_FEED_HEARBEAT_SECONDS,
             WETH_CORE_VAULT_IS_ENABLED,
             WETH_DECIMALS,
             address(0)
