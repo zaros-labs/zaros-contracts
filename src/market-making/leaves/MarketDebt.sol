@@ -61,7 +61,6 @@ library MarketDebt {
         EnumerableMap.AddressToUintMap collectedMarginCollateral;
         EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
-        Fee.Data collectedFees;
     }
 
     /// @notice Loads a {MarketDebt} namespace.

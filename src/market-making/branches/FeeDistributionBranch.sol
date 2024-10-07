@@ -13,6 +13,7 @@ import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Fee } from "src/market-making/leaves/Fee.sol";
 import { SwapRouter } from "@zaros/market-making/leaves/SwapRouter.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
+import { Fee } from "@zaros/market-making/leaves/Fee.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -36,6 +37,7 @@ contract FeeDistributionBranch is EngineAccessControl {
     using MarketDebt for MarketDebt.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
+    using Fee for Fee.Data;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   EVENTS
@@ -101,9 +103,11 @@ contract FeeDistributionBranch is EngineAccessControl {
         onlyRegisteredEngine
         onlyExistingMarket(marketId)
     {
+        // verify input amount
         if (amount == 0) revert Errors.ZeroInput("amount");
 
-        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+        // loads the fee data storage pointer
+        Fee.Data storage fee = Fee.load(marketId);
 
         // loads the collateral's data storage pointer
         Collateral.Data storage collateral = Collateral.load(asset);
@@ -111,12 +115,16 @@ contract FeeDistributionBranch is EngineAccessControl {
         // reverts if collateral isn't supported
         collateral.verifyIsEnabled();
 
-        // increment fee amount
-        marketDebt.collectedFees.receivedOrderFees.set(asset, amount);
+        // convert uint256 -> UD60x18; scales input amount to 18 decimals
+        UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
+
+        // increment received fees amount
+        fee.incrementReceivedFees(asset, amountX18);
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
+        // emit event to log the received fee
         emit LogReceiveMarketFee(asset, marketId, amount);
     }
 
@@ -135,24 +143,27 @@ contract FeeDistributionBranch is EngineAccessControl {
         onlyRegisteredEngine
         onlyExistingMarket(marketId)
     {
+        // loads the fee data storage pointer
+        Fee.Data storage fee = Fee.load(marketId);
+
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
         SwapRouter.Data storage swapRouter = SwapRouter.load(swapRouterId);
 
-        if (!marketDebt.collectedFees.receivedOrderFees.contains(asset)) revert Errors.InvalidAsset();
+        if (!fee.receivedMarketFees.contains(asset)) revert Errors.InvalidAsset();
 
         uint256 _accumulatedWeth;
 
-        uint256 assetAmount = marketDebt.collectedFees.receivedOrderFees.get(asset);
+        uint256 assetAmount = fee.receivedMarketFees.get(asset);
 
         // if asset is weth directly add to accumulated weth, else swap token for weth
         if (asset == MarketMakingEngineConfiguration.load().weth) {
             _accumulatedWeth = ud60x18(_accumulatedWeth).add(ud60x18(assetAmount)).intoUint256();
 
-            marketDebt.collectedFees.receivedOrderFees.remove(asset);
+            fee.receivedMarketFees.remove(asset);
 
             emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, assetAmount);
         } else {
-            marketDebt.collectedFees.receivedOrderFees.remove(asset);
+            fee.receivedMarketFees.remove(asset);
             // Prepare the data for executing the swap
             bytes memory routerCallData = abi.encodeWithSelector(
                 swapRouter.selector,
@@ -170,13 +181,11 @@ contract FeeDistributionBranch is EngineAccessControl {
         }
 
         // Calculate and allocate shares of the converted fees
-        uint128 marketShare =
-            Fee.calculateFees(_accumulatedWeth, marketDebt.collectedFees.marketPercentage, SwapRouter.BPS_DENOMINATOR);
-        uint128 feeRecipientsShare = Fee.calculateFees(
-            _accumulatedWeth, marketDebt.collectedFees.feeRecipientsPercentage, SwapRouter.BPS_DENOMINATOR
-        );
+        uint128 marketShare = Fee.calculateFees(_accumulatedWeth, fee.marketShare, SwapRouter.BPS_DENOMINATOR);
+        uint128 feeRecipientsShare =
+            Fee.calculateFees(_accumulatedWeth, fee.feeRecipientsShare, SwapRouter.BPS_DENOMINATOR);
 
-        marketDebt.collectedFees.collectedFeeRecipientsFees = feeRecipientsShare;
+        fee.collectedFees = feeRecipientsShare;
 
         // get connected vaults of market
         uint256[] memory vaultsSet = marketDebt.getConnectedVaultsIds();
@@ -221,15 +230,18 @@ contract FeeDistributionBranch is EngineAccessControl {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
             MarketMakingEngineConfiguration.load();
 
+        // loads the fee data storage pointer
+        Fee.Data storage fee = Fee.load(marketId);
+
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        if (marketDebt.collectedFees.collectedFeeRecipientsFees == 0) revert Errors.NoWethFeesCollected();
+        if (fee.collectedFees == 0) revert Errors.NoWethFeesCollected();
 
         address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipients[configuration];
 
         address weth = marketMakingEngineConfigurationData.weth;
 
-        uint256 collectedFees = uint256(marketDebt.collectedFees.collectedFeeRecipientsFees);
+        uint256 collectedFees = uint256(fee.collectedFees);
 
         uint256 totalShares;
 
@@ -247,8 +259,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             uint256 amountToSend =
                 Fee.calculateFees(FeeRecipient.load(feeRecipient).share, collectedFees, totalShares);
 
-            marketDebt.collectedFees.collectedFeeRecipientsFees =
-                ud60x18(marketDebt.collectedFees.collectedFeeRecipientsFees).sub(ud60x18(amountToSend)).intoUint128();
+            fee.collectedFees = ud60x18(fee.collectedFees).sub(ud60x18(amountToSend)).intoUint128();
 
             IERC20(weth).safeTransfer(feeRecipient, amountToSend);
 
