@@ -202,7 +202,7 @@ contract VaultRouterBranch {
         address vaultAsset = vault.collateral.asset;
 
         // verify vault exists
-        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist();
+        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
         // fetch collateral data by asset
         Collateral.Data storage collateralData = Collateral.load(vaultAsset);
@@ -313,7 +313,7 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.load(vaultId);
 
         // verify vault exists
-        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist();
+        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
         // increment withdrawal request counter and set withdrawal request id
         uint128 withdrawalRequestId = ++vault.withdrawalRequestIdCounter[msg.sender];

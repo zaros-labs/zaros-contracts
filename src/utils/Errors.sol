@@ -205,5 +205,6 @@ library Errors {
     error VaultAlreadyEnabled(uint256 vaultId);
 
     /// @notice Thrown when vault does NOT exist
-    error VaultDoesNotExist();
+    /// @param vaultId The ID of the vault that does NOT exist.
+    error VaultDoesNotExist(uint128 vaultId);
 }

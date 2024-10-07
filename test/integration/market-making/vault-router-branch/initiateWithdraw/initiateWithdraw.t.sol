@@ -42,7 +42,7 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         sharesToWithdraw = bound({ x: sharesToWithdraw, min: 1, max: type(uint128).max });
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector, INVALID_VAULT_ID));
         marketMakingEngine.initiateWithdrawal(INVALID_VAULT_ID, uint128(sharesToWithdraw));
     }
 
