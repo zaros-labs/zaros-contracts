@@ -6,7 +6,6 @@ import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import "@prb-math/Common.sol";
 
 library Fee {
     using EnumerableMap for EnumerableMap.AddressToUintMap;

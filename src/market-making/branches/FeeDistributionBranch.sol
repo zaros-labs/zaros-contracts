@@ -3,11 +3,11 @@ pragma solidity 0.8.25;
 pragma abicoder v2;
 
 // Zaros dependencies
-import { Collateral } from "../leaves/Collateral.sol";
-import { FeeRecipient } from "../leaves/FeeRecipient.sol";
-import { Vault } from "../leaves/Vault.sol";
-import { Distribution } from "../leaves/Distribution.sol";
-import { MarketMakingEngineConfiguration } from "../leaves/MarketMakingEngineConfiguration.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
+import { FeeRecipient } from "@zaros/market-making/leaves/FeeRecipient.sol";
+import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
+import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Fee } from "src/market-making/leaves/Fee.sol";
