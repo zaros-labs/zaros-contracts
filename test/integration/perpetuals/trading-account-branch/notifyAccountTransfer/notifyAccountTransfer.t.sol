@@ -7,7 +7,6 @@ import { Base_Test } from "test/Base.t.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
-import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 
 // PRB Math dependencies
 import { ud60x18 } from "@prb-math/UD60x18.sol";
