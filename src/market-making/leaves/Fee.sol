@@ -22,7 +22,7 @@ library Fee {
     struct Data {
         uint128 feeRecipientsShare;
         uint128 marketShare;
-        uint128 collectedFees;
+        uint256 collectedFees;
         EnumerableMap.AddressToUintMap receivedMarketFees;
     }
 
@@ -37,28 +37,38 @@ library Fee {
     }
 
     /// @notice Support function to calculate the accumulated wEth allocated for the beneficiary
-    /// @param totalAmount The total amount or value to be distributed
-    /// @param portion The portion or share that needs to be calculated
-    /// @param denominator The denominator representing the total divisions or base value
+    /// @param totalAmountX18 The total amount or value to be distributed
+    /// @param shareX18 The share that needs to be calculated
+    /// @param denominatorX18 The denominator representing the total divisions or base value
+    /// @return amountX18 The calculated amount to be distributed
     function calculateFees(
-        uint256 totalAmount,
-        uint256 portion,
-        uint256 denominator
+        UD60x18 totalAmountX18,
+        UD60x18 shareX18,
+        UD60x18 denominatorX18
     )
         internal
         pure
-        returns (uint128 amount)
+        returns (UD60x18 amountX18)
     {
-        amount = uint128(mulDiv(totalAmount, portion, denominator));
+        amountX18 = (totalAmountX18.mul(shareX18)).div(denominatorX18);
     }
 
     /// @notice Support function to increment the received fees for a specific asset
     /// @param self The fee storage pointer
     /// @param asset The asset address
     /// @param amountX18 The amount to be incremented
-    function incrementReceivedFees(Data storage self, address asset, UD60x18 amountX18) internal {
+    function incrementReceivedMarketFees(Data storage self, address asset, UD60x18 amountX18) internal {
         UD60x18 newAmount = amountX18.add(ud60x18(self.receivedMarketFees.get(asset)));
 
         self.receivedMarketFees.set(asset, newAmount.intoUint256());
+    }
+
+    /// @notice Support function to increment the collected fees
+    /// @param self The fee storage pointer
+    /// @param amountX18 The amount to be incremented
+    function incrementCollectedFees(Data storage self, UD60x18 amountX18) internal {
+        UD60x18 newAmount = amountX18.add(ud60x18(self.collectedFees));
+
+        self.collectedFees = newAmount.intoUint256();
     }
 }

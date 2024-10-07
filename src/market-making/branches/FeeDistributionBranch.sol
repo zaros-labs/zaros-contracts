@@ -119,7 +119,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
         // increment received fees amount
-        fee.incrementReceivedFees(asset, amountX18);
+        fee.incrementReceivedMarketFees(asset, amountX18);
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
@@ -130,10 +130,12 @@ contract FeeDistributionBranch is EngineAccessControl {
 
     /// @notice Converts collected collateral amount to Weth
     /// @dev onlyRegisteredEngine address can call this function.
-    /// accumulated fees are split between market and fee recipients and then market fees are distributed to connected
+    /// @dev Accumulated fees are split between market and fee recipients and then market fees are distributed to
+    /// connected
     /// vaults
     /// @param marketId The market who's fees will be converted.
     /// @param asset The asset to be swapped for wEth
+    /// @param swapRouterId The swap router id to be used for swapping
     function convertAccumulatedFeesToWeth(
         uint128 marketId,
         address asset,
@@ -146,73 +148,95 @@ contract FeeDistributionBranch is EngineAccessControl {
         // loads the fee data storage pointer
         Fee.Data storage fee = Fee.load(marketId);
 
-        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
-        SwapRouter.Data storage swapRouter = SwapRouter.load(swapRouterId);
-
+        // reverts if the market hasn't received any fees for the given asset
         if (!fee.receivedMarketFees.contains(asset)) revert Errors.InvalidAsset();
 
-        uint256 _accumulatedWeth;
+        // loads the market data storage pointer
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
-        uint256 assetAmount = fee.receivedMarketFees.get(asset);
+        // loads the swap router data storage pointer
+        SwapRouter.Data storage swapRouter = SwapRouter.load(swapRouterId);
+
+        // declare variable to store accumulated weth
+        UD60x18 accumulatedWethX18;
+
+        // get the amount of asset received as fees
+        UD60x18 assetAmountX18 = ud60x18(fee.receivedMarketFees.get(asset));
 
         // if asset is weth directly add to accumulated weth, else swap token for weth
         if (asset == MarketMakingEngineConfiguration.load().weth) {
-            _accumulatedWeth = ud60x18(_accumulatedWeth).add(ud60x18(assetAmount)).intoUint256();
-
-            fee.receivedMarketFees.remove(asset);
-
-            emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, assetAmount);
+            // store the amount of weth
+            accumulatedWethX18 = assetAmountX18;
         } else {
-            fee.receivedMarketFees.remove(asset);
-            // Prepare the data for executing the swap
+            // prepare the data for executing the swap
             bytes memory routerCallData = abi.encodeWithSelector(
                 swapRouter.selector,
                 asset,
-                assetAmount,
+                assetAmountX18.intoUint256(),
                 MarketMakingEngineConfiguration.load().weth,
                 swapRouter.deadline,
                 address(this)
             );
+
             // Swap collected collateral fee amount for WETH and store the obtained amount
             uint256 tokensSwapped = swapRouter.executeSwap(routerCallData);
-            _accumulatedWeth = ud60x18(_accumulatedWeth).add(ud60x18(tokensSwapped)).intoUint256();
 
-            emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, tokensSwapped);
+            // store the amount of weth received from swap
+            accumulatedWethX18 = ud60x18(tokensSwapped);
         }
 
-        // Calculate and allocate shares of the converted fees
-        uint128 marketShare = Fee.calculateFees(_accumulatedWeth, fee.marketShare, SwapRouter.BPS_DENOMINATOR);
-        uint128 feeRecipientsShare =
-            Fee.calculateFees(_accumulatedWeth, fee.feeRecipientsShare, SwapRouter.BPS_DENOMINATOR);
+        // calculate the fee amount for the market
+        UD60x18 marketFeesX18 =
+            Fee.calculateFees(accumulatedWethX18, ud60x18(fee.marketShare), ud60x18(SwapRouter.BPS_DENOMINATOR));
 
-        fee.collectedFees = feeRecipientsShare;
+        // calculate the fee amount for the fee recipients
+        UD60x18 collectedFeesX18 = Fee.calculateFees(
+            accumulatedWethX18, ud60x18(fee.feeRecipientsShare), ud60x18(SwapRouter.BPS_DENOMINATOR)
+        );
+
+        // increment the collected fees
+        fee.incrementCollectedFees(collectedFeesX18);
 
         // get connected vaults of market
         uint256[] memory vaultsSet = marketDebt.getConnectedVaultsIds();
 
+        // store the length of the vaults set
         uint256 listSize = vaultsSet.length;
 
-        uint128 totalVaultsShares;
+        // variable to store the total shares of vaults
+        UD60x18 totalVaultsSharesX18;
 
         // calculate the total shares of vaults
         for (uint256 i; i < listSize; ++i) {
+            // load the vault data storage pointer
             Vault.Data storage vault = Vault.load(uint128(vaultsSet[i]));
-            if (vault.collateral.asset == asset) {
-                totalVaultsShares =
-                    ud60x18(totalVaultsShares).add(ud60x18(vault.stakingFeeDistribution.totalShares)).intoUint128();
-            }
+
+            // add the total shares of the vault to the total shares of vaults
+            totalVaultsSharesX18 = totalVaultsSharesX18.add(ud60x18(vault.stakingFeeDistribution.totalShares));
         }
 
         // distribute the amount between shares and store the amount each vault has received
         for (uint256 i; i < listSize; ++i) {
-            uint128 vaultShares = Fee.calculateFees(
-                marketShare, Vault.load(uint128(vaultsSet[i])).stakingFeeDistribution.totalShares, totalVaultsShares
-            );
-            Vault.load(uint128(vaultsSet[i])).unsettledFeesWeth = int128(vaultShares);
-            Vault.load(uint128(vaultsSet[i])).stakingFeeDistribution.distributeValue(
-                ud60x18(vaultShares).intoSD59x18()
-            );
+            // load the vault data storage pointer
+            Vault.Data storage vault = Vault.load(uint128(vaultsSet[i]));
+
+            // calculate the amount of weth each vault has received
+            SD59x18 vaultFeeAmountX18 = Fee.calculateFees(
+                marketFeesX18, ud60x18(vault.stakingFeeDistribution.totalShares), totalVaultsSharesX18
+            ).intoSD59x18();
+
+            // update the unsettled fees of the vault
+            vault.updateUnsettledFeesWeth(vaultFeeAmountX18);
+
+            // distribute the amount between the vault's shares
+            vault.stakingFeeDistribution.distributeValue(vaultFeeAmountX18);
         }
+
+        // remove the asset from the received market fees
+        fee.receivedMarketFees.remove(asset);
+
+        // emit event to log the conversion of fees to weth
+        emit LogConvertAccumulatedFeesToWeth(asset, assetAmountX18.intoUint256(), accumulatedWethX18.intoUint256());
     }
 
     /// @notice Sends allocated weth amount to fee recipients.
@@ -253,18 +277,18 @@ contract FeeDistributionBranch is EngineAccessControl {
         }
 
         // send amount between fee recipients
-        for (uint256 i; i < recepientListLength; ++i) {
-            address feeRecipient = recipientsList[i];
+        // for (uint256 i; i < recepientListLength; ++i) {
+        //     address feeRecipient = recipientsList[i];
 
-            uint256 amountToSend =
-                Fee.calculateFees(FeeRecipient.load(feeRecipient).share, collectedFees, totalShares);
+        //     UD60x18 amountToSendX18 =
+        //         Fee.calculateFees(FeeRecipient.load(feeRecipient).share, collectedFees, totalShares);
 
-            fee.collectedFees = ud60x18(fee.collectedFees).sub(ud60x18(amountToSend)).intoUint128();
+        //     fee.collectedFees = ud60x18(fee.collectedFees).sub(amountToSendX18).intoUint128();
 
-            IERC20(weth).safeTransfer(feeRecipient, amountToSend);
+        //     IERC20(weth).safeTransfer(feeRecipient, amountToSendX18.intoUint256());
 
-            emit LogSendWethToFeeRecipients(feeRecipient, amountToSend);
-        }
+        //     emit LogSendWethToFeeRecipients(feeRecipient, amountToSendX18.intoUint256());
+        // }
     }
 
     /// @notice allows user to claim their share of fees
