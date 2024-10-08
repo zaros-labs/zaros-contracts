@@ -4,10 +4,10 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Math } from "@zaros/utils/Math.sol";
 import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
+import { CreditDeposit } from "@zaros/market-making/leaves/CreditDeposit.sol";
 import { Distribution } from "./Distribution.sol";
 
 // Open Zeppelin dependencies
-import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
@@ -20,8 +20,9 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 /// TODO: do we only send realized debt as unsettled debt to the vaults? should it be considered settled debt? or do
 /// we send the entire reported debt as unsettled debt?
 library Market {
+    using CreditDeposit for CreditDeposit.Data;
     using Distribution for Distribution.Data;
-    using EnumerableMap for EnumerableMap.Bytes32ToBytes32Map;
+    using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
 
@@ -29,14 +30,7 @@ library Market {
     bytes32 internal constant MARKET_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Market")) - 1));
 
-    /// @notice Defines the data struct stored at the `Market.Data.depositedCollateral`'s enumerable map.
-    /// @param amount The net amount of collateral deposited to the market.
-    /// @param lastDistributedAmount The last amount of collateral distributed as credit to the connected vaults.
-    struct CollateralDeposit {
-        uint128 amount;
-        uint128 lastDistributedAmount;
-    }
-
+    /// @notice {Market} namespace storage structure.
     /// @param engine The engine contract address that operates this market id.
     /// @param marketId The engine's linked market id.
     /// @param autoDeleverageStartThreshold An admin configurable decimal rate used to determine the starting
@@ -67,7 +61,7 @@ library Market {
         int128 realizedUsdzDebt;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
-        EnumerableMap.Bytes32ToBytes32Map depositedCollateral;
+        EnumerableSet.AddressSet depositedCollateralTypes;
         EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
     }
@@ -186,27 +180,17 @@ library Market {
     /// @notice Deposits collateral to the market as credit.
     /// @dev This function assumes the collateral type address is configured in the protocol and has been previously
     /// verified.
-    function depositCollateral(Data storage self, address collateralType, UD60x18 amount) internal {
-        EnumerableMap.Bytes32ToBytes32Map storage depositedCollateral = self.depositedCollateral;
+    function depositCollateral(Data storage self, address collateralType, UD60x18 amountX18) internal {
+        EnumerableSet.AddressSet storage depositedCollateralTypes = self.depositedCollateralTypes;
 
-        // TODO: we need to store the collateral deposit bytes32 storage slot in the depositedCollateral enumerable
-        // map instead of the abi-encoded struct.
-        // if the collateral type address is alreay a key in the enumerable map, we need to load the current stored
-        // value and add the deposited amount
-        if (depositedCollateral.contains(collateralType)) {
-            CollateralDeposit memory collateralDeposit =
-            // gets the stored value and decodes it into a CollateralDeposit struct
-             abi.decode(depositedCollateral.get(collateralType), (CollateralDeposit));
-            // update the collateral deposit value, notice that the last distributed amount is not updated, as we're
-            // not realizing a distribution here
-            collateralDeposit.amount = ud60x18(collateralDeposit.amount).add(amount).intoUint128();
-            // update the key-value pair
-            depositedCollateral.set(collateralType, abi.encode(collateralDeposit));
-        } else {
-            // if the collateral type address was not a key in the enumerable map, we need to create a new key-value
-            // pair
-            depositedCollateral.set(collateralType, abi.encode(CollateralDeposit(amount.intoUint128(), uint128(0))));
-        }
+        // adds the collateral type address to the address set if it's not already there
+        // NOTE: we don't need to check with `EnumerableSet::contains` as the following function already performs this
+        depositedCollateralTypes.add(collateralType);
+
+        // loads the credit deposit storage pointer
+        CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.marketId, collateralType);
+        // adds the amount of deposited collateral
+        creditDeposit.add(amountX18);
     }
 
     // TODO: after this function is called we need to update a vault's realized unsettled debt

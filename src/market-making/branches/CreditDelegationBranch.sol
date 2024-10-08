@@ -186,7 +186,7 @@ contract CreditDelegationBranch {
         } else {
             // deposits the received collateral to the market to be distributed to vaults, and then settled in the
             // future
-            market.depositCollateral(collateralType, amount);
+            market.depositCollateral(collateralType, amountX18);
         }
 
         // transfers the margin collateral asset from the perps engine to the market making engine
