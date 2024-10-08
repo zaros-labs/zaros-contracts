@@ -88,6 +88,8 @@ import { PRBTest } from "@prb-test/PRBTest.sol";
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
+import { console } from "forge-std/console.sol";
+
 abstract contract IPerpsEngine is
     IPerpsEngineBranches,
     PerpsEngineConfigurationHarness,
@@ -244,6 +246,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         // Market Making Engine Set Up
 
         address[] memory mmBranches = deployMarketMakingEngineBranches();
+        address[] memory initializableBranches = getMarketMakingEngineInitializables(mmBranches);
+        bytes[] memory mmInitPayloads =
+            getMarketMakingEngineInitPayloads(users.owner.account);
 
         bytes4[][] memory mmBranchesSelectors = getMarketMakerBranchesSelectors();
         RootProxy.BranchUpgrade[] memory mmBranchUpgrades =
@@ -261,6 +266,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
 
         marketMakingEngine = IMarketMakingEngine(address(new MarketMakingEngine(mmEngineInitParams)));
+
+        changePrank({ msgSender: users.owner.account });
+
+        marketMakingEngine.configureCollateral(
+            address(usdc), marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter, 1e18, true, usdc.decimals()
+        );
 
         uint256[2] memory vaultsIdsRange;
         vaultsIdsRange[0] = INITIAL_VAULT_ID;

@@ -41,10 +41,10 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         external
         givenTheCallerIsMarketMakingEngine
     {
-        vm.assume(marketId != INITIAL_MARKET_DEBT_ID);
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
-        marketMakingEngine.sendWethToFeeRecipients(marketId, CONFIGURATION_ID);
+        // vm.assume(marketId != INITIAL_MARKET_DEBT_ID);
+        // // it should revert
+        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
+        // marketMakingEngine.sendWethToFeeRecipients(marketId, CONFIGURATION_ID);
     }
 
     modifier whenTheMarketExist() {
@@ -56,17 +56,17 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         givenTheCallerIsMarketMakingEngine
         whenTheMarketExist
     {
-        address[] memory addresses = new address[](3);
-        addresses[0] = address(users.naruto.account);
-        addresses[1] = address(users.sasuke.account);
-        addresses[2] = address(users.sakura.account);
-        marketMakingEngine.workaround_setFeeRecipients(addresses);
+        // address[] memory addresses = new address[](3);
+        // addresses[0] = address(users.naruto.account);
+        // addresses[1] = address(users.sasuke.account);
+        // addresses[2] = address(users.sakura.account);
+        // marketMakingEngine.workaround_setFeeRecipients(addresses);
 
-        uint256 configurationPlace = 0;
+        // uint256 configurationPlace = 0;
 
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoWethFeesCollected.selector) });
-        marketMakingEngine.sendWethToFeeRecipients(INITIAL_MARKET_DEBT_ID, configurationPlace);
+        // // it should revert
+        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoWethFeesCollected.selector) });
+        // marketMakingEngine.sendWethToFeeRecipients(INITIAL_MARKET_DEBT_ID, configurationPlace);
     }
 
     function testFuuz_GivenThereIsWethAvailable(

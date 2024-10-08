@@ -9,6 +9,7 @@ import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { Fee } from "@zaros/market-making/leaves/Fee.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -16,6 +17,10 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 // TODO: add initializer at upgrade branch or auth branch
 contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+
+    constructor() {
+        _disableInitializers();
+    }
 
     /// @notice Emitted when an engine is registered.
     /// @param engine The address of the engine contract.
@@ -144,4 +149,44 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         emit LogConfigureEngine(engine, usdToken, shouldBeEnabled);
     }
+
+    function setUsdz(address usdz) external onlyOwner {
+        if (usdz == address(0)) revert Errors.ZeroInput("usdz");
+
+        MarketMakingEngineConfiguration.load().usdz = usdz;
+
+        emit LogSetUsdz(usdz);
+    }
+
+    /// @notice Configure collateral on Market Making Engine
+    /// @dev Only owner can call this functions
+    /// @param collateral The address of the collateral.
+    /// @param priceAdapter The address of the price adapter.
+    /// @param creditRatio The credit ratio.
+    /// @param isEnabled The status of the collateral.
+    /// @param decimals The decimals of the collateral.
+    function configureCollateral(address collateral, address priceAdapter, uint256 creditRatio, bool isEnabled, uint8 decimals) external onlyOwner {
+        // check if collateral is set to zero
+        if (collateral == address(0)) revert Errors.ZeroInput("collateral");
+
+        // check if price adapter is set to zero
+        if (priceAdapter == address(0)) revert Errors.ZeroInput("priceAdapter");
+
+        // check id credit ratio is set to zero
+        if (creditRatio == 0) revert Errors.ZeroInput("collateral");
+
+        // check if decimals is set to zero
+        if (decimals == 0) revert Errors.ZeroInput("decimals");
+
+        // load collateral data from storage
+        Collateral.Data storage collateralData = Collateral.load(collateral);
+
+        // update collateral data
+        collateralData.asset = collateral;
+        collateralData.priceAdapter = priceAdapter;
+        collateralData.creditRatio = creditRatio;
+        collateralData.isEnabled = isEnabled;
+        collateralData.decimals = decimals;
+    }
+
 }

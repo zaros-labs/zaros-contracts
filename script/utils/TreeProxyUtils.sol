@@ -438,7 +438,10 @@ function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
 // Market Making Engine
 
 function deployMarketMakingEngineBranches() returns (address[] memory) {
-    address[] memory branches = new address[](3);
+    address[] memory branches = new address[](4);
+
+    address upgradeBranch = address(new UpgradeBranch());
+    console.log("UpgradeBranch: ", upgradeBranch);
 
     address marketMakingEnginConfigBranch = address(new MarketMakingEngineConfigurationBranch());
     console.log("MarketMakingEnginConfigBranch: ", marketMakingEnginConfigBranch);
@@ -449,17 +452,48 @@ function deployMarketMakingEngineBranches() returns (address[] memory) {
     address feeDistributionBranch = address(new FeeDistributionBranch());
     console.log("FeeDistributionBranch: ", feeDistributionBranch);
 
-    branches[0] = marketMakingEnginConfigBranch;
-    branches[1] = vaultRouterBranch;
-    branches[2] = feeDistributionBranch;
+    branches[0] = upgradeBranch;
+    branches[1] = marketMakingEnginConfigBranch;
+    branches[2] = vaultRouterBranch;
+    branches[3] = feeDistributionBranch;
 
     return branches;
 }
 
-function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](3);
+function getMarketMakingEngineInitializables(address[] memory branches) pure returns (address[] memory) {
+    address[] memory initializables = new address[](1);
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](5);
+    address upgradeBranch = branches[0];
+
+    initializables[0] = upgradeBranch;
+
+    return initializables;
+}
+
+function getMarketMakingEngineInitPayloads(address deployer)
+    pure
+    returns (bytes[] memory)
+{
+    bytes[] memory initializePayloads = new bytes[](1);
+
+    bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
+
+    initializePayloads = new bytes[](1);
+
+    initializePayloads[0] = rootUpgradeInitializeData;
+
+    return initializePayloads;
+}
+
+function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
+    bytes4[][] memory selectors = new bytes4[][](4);
+
+    bytes4[] memory upgradeBranchSelectors = new bytes4[](2);
+
+    upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
+    upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
+
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](8);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -469,8 +503,9 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     marketMakingEngineConfigBranchSelectors[4] =
         MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
-    marketMakingEngineConfigBranchSelectors[7] = MarketMakingEngineConfigurationBranch.registerEngine.selector;
-    marketMakingEngineConfigBranchSelectors[8] = MarketMakingEngineConfigurationBranch.setUsdz.selector;
+    marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.registerEngine.selector;
+    marketMakingEngineConfigBranchSelectors[6] = MarketMakingEngineConfigurationBranch.setUsdz.selector;
+    marketMakingEngineConfigBranchSelectors[7] = MarketMakingEngineConfigurationBranch.configureCollateral.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -489,9 +524,10 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     feeDistributionBranchSelectors[3] = FeeDistributionBranch.sendWethToFeeRecipients.selector;
     feeDistributionBranchSelectors[4] = FeeDistributionBranch.claimFees.selector;
 
-    selectors[0] = marketMakingEngineConfigBranchSelectors;
-    selectors[1] = vaultRouterBranchSelectors;
-    selectors[2] = feeDistributionBranchSelectors;
+    selectors[0] = upgradeBranchSelectors;
+    selectors[1] = marketMakingEngineConfigBranchSelectors;
+    selectors[2] = vaultRouterBranchSelectors;
+    selectors[3] = feeDistributionBranchSelectors;
 
     return selectors;
 }
@@ -601,8 +637,8 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigurationSelectors[2] =
         MarketMakingEngineConfigurationHarness.workaround_setFeeRecipients.selector;
 
-    bytes4[] memory swapRouterHarnessSelectors = new bytes4[](1);
-    swapRouterHarnessSelectors[3] = DexSwapStrategyHarness.exposed_dexSwapStrategy_load.selector;
+    bytes4[] memory dexSwapStrategyHarnessSelectors = new bytes4[](1);
+    dexSwapStrategyHarnessSelectors[0] = DexSwapStrategyHarness.exposed_dexSwapStrategy_load.selector;
 
     bytes4[] memory feeRecipientHarnessSelectors = new bytes4[](2);
     feeRecipientHarnessSelectors[0] = FeeRecipientHarness.exposed_FeeRecipient_load.selector;
@@ -614,7 +650,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     selectors[3] = distributionHarnessSelectors;
     selectors[4] = marketDebtHarnessSelectors;
     selectors[5] = marketMakingEngineConfigurationSelectors;
-    selectors[6] = swapRouterHarnessSelectors;
+    selectors[6] = dexSwapStrategyHarnessSelectors;
     selectors[7] = feeRecipientHarnessSelectors;
 
     return selectors;
