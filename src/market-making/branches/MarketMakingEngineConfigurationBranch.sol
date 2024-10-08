@@ -39,6 +39,14 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param shouldBeEnabled A flag indicating whether the engine should be enabled or disabled.
     event LogConfigureEngine(address engine, address usdToken, bool shouldBeEnabled);
 
+    /// @notice Emitted when collateral is configured.
+    /// @param collateral The address of the collateral.
+    /// @param priceAdapter The address of the price adapter.
+    /// @param creditRatio The credit ratio.
+    /// @param isEnabled The status of the collateral.
+    /// @param decimals The decimals of the collateral.
+    event LogConfigureCollateral(address indexed collateral, address priceAdapter, uint256 creditRatio, bool isEnabled, uint8 decimals);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -184,6 +192,9 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         collateralData.creditRatio = creditRatio;
         collateralData.isEnabled = isEnabled;
         collateralData.decimals = decimals;
+
+        // emit event LogConfigureCollateral
+        emit LogConfigureCollateral(collateral, priceAdapter, creditRatio, isEnabled, decimals);
     }
 
 }
