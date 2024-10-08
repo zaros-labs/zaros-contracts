@@ -73,10 +73,11 @@ contract CreditDelegationBranch {
     /// @notice Returns the credit capacity of the given market id.
     /// @dev `CreditDelegationBranch::updateCreditDelegation` must be called before calling this function in order to
     /// retrieve the latest state.
-    /// @dev Each engine can implement its own credit schema according to its business logic, thus, this function will
-    /// return the credit delegation state as an abi encoded byte array.
+    /// @dev Each engine can implement its own debt accounting schema according to its business logic, thus, this
+    /// function will simply return the credit capacity in USD for the given market id.
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
+    // TODO: add invariants
     function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18 creditCapacityUsdX18) {
         Market.Data storage market = Market.load(marketId);
 
@@ -89,11 +90,11 @@ contract CreditDelegationBranch {
     /// state.
     /// @dev If the market is in its default state, it will simply return the provided profit. Otherwise, it will
     /// adjust based on the configured ADL parameters.
-    /// @dev This method assumes `profitUsd` is part of the market's unrealized debt returned by
-    /// Market::getUnrealizedDebtUsd
+    /// @dev TODO: If we always take the unrealized debt as part of the total debt, we assume `profitUsd` is part of
+    /// it. Otherwise we need to update this logic.
     /// @param marketId The engine's market id.
     /// @param profitUsd The position's profit in USD.
-    /// @return adjustedProfitUsdX18 The adjusted profit in USDz, according to the market's state.
+    /// @return adjustedProfitUsdX18 The adjusted profit in USDz, according to the market's health.
     // TODO: add invariants
     function getAdjustedProfitForMarketId(
         uint128 marketId,
@@ -121,7 +122,11 @@ contract CreditDelegationBranch {
         SD59x18 creditCapacityUsdX18 =
             market.getCreditCapacityUsd(market.getDelegatedCredit(), unrealizedDebtUsdX18, realizedDebtUsdX18);
 
-        if (creditCapacityUsdX18.lte(SD59x18_ZERO)) revert Errors.InsufficientCreditCapacity(marketId, profitUsd);
+        // if the credit capacity is less than or equal to zero, it means the total debt has already taken all the
+        // delegated credit
+        if (creditCapacityUsdX18.lte(SD59x18_ZERO)) {
+            revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
+        }
 
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
         // NOTE: If we don't return the adjusted profit in this if branch, we assume marketTotalDebtUsdX18 is positive
@@ -211,6 +216,8 @@ contract CreditDelegationBranch {
     /// debt state.
     /// @dev Called by a registered engine to mint USDz to profitable traders.
     /// @dev USDz association with an engine's user happens at the engine contract level.
+    /// @dev TODO: If we always take the unrealized debt as part of the total debt, we assume `amount` is part of it.
+    /// Otherwise we need to update this logic.
     /// @param marketId The engine's market id requesting USDz.
     /// @param amount The amount of USDz to mint.
     /// @dev Invariants involved in the call:
@@ -253,9 +260,13 @@ contract CreditDelegationBranch {
         // delegated credit, see Vault.Data.lockedCreditRatio.
         // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
         // capacity to cover USDz mint requests. Deleverage happens when the perps engine calls
-        // CreditDelegationBranch::getAdjustedProfitForMarketId
-        if (creditCapacityUsdX18.lt(amountX18.intoSD59x18())) {
-            revert Errors.InsufficientCreditCapacity(marketId, amountX18.intoUint256());
+        // CreditDelegationBranch::getAdjustedProfitForMarketId.
+        // NOTE: however, it still is possible to fall into a scenario where the credit capacity is <= 0, as the
+        // delegated credit may be provided in form of volatile collateral assets, which could go down in value as
+        // debt reaches its ceiling. In that case, the market will run out of mintable USDz and the mm engine must
+        // settle all outstanding debt for USDC, in order to keep previously paid USDz fully backed.
+        if (creditCapacityUsdX18.lt(SD59x18_ZERO)) {
+            revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
 
         // prepare the amount of usdz that will be minted to the perps engine
