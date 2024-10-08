@@ -10,10 +10,8 @@ import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
-import { Fee } from "src/market-making/leaves/Fee.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
-import { Fee } from "@zaros/market-making/leaves/Fee.sol";
 import { SwapCallData } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // PRB Math dependencies
@@ -28,7 +26,6 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
 contract FeeDistributionBranch is EngineAccessControl {
     using SafeERC20 for IERC20;
-    using Fee for Fee.Data;
     using DexSwapStrategy for DexSwapStrategy.Data;
     using FeeRecipient for FeeRecipient.Data;
     using Collateral for Collateral.Data;
@@ -38,7 +35,6 @@ contract FeeDistributionBranch is EngineAccessControl {
     using MarketDebt for MarketDebt.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
-    using Fee for Fee.Data;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   EVENTS
@@ -107,8 +103,8 @@ contract FeeDistributionBranch is EngineAccessControl {
         // verify input amount
         if (amount == 0) revert Errors.ZeroInput("amount");
 
-        // loads the fee data storage pointer
-        Fee.Data storage fee = Fee.load(marketId);
+        // loads the market debt data storage pointer
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
         // loads the collateral's data storage pointer
         Collateral.Data storage collateral = Collateral.load(asset);
@@ -120,7 +116,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
         // increment received fees amount
-        fee.incrementReceivedMarketFees(asset, amountX18);
+        marketDebt.incrementReceivedMarketFees(asset, amountX18);
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
@@ -146,14 +142,11 @@ contract FeeDistributionBranch is EngineAccessControl {
         onlyRegisteredEngine
         onlyExistingMarket(marketId)
     {
-        // loads the fee data storage pointer
-        Fee.Data storage fee = Fee.load(marketId);
+        // loads the market debt data storage pointer
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
         // reverts if the market hasn't received any fees for the given asset
-        if (!fee.receivedMarketFees.contains(asset)) revert Errors.InvalidAsset();
-
-        // loads the market data storage pointer
-        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+        if (!marketDebt.receivedMarketFees.contains(asset)) revert Errors.InvalidAsset();
 
         // loads the dex swap strategy data storage pointer
         DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
@@ -162,7 +155,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         UD60x18 accumulatedWethX18;
 
         // get the amount of asset received as fees
-        UD60x18 assetAmountX18 = ud60x18(fee.receivedMarketFees.get(asset));
+        UD60x18 assetAmountX18 = ud60x18(marketDebt.receivedMarketFees.get(asset));
 
         // if asset is weth directly add to accumulated weth, else swap token for weth
         if (asset == MarketMakingEngineConfiguration.load().weth) {
@@ -188,15 +181,15 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         // calculate the fee amount for the market
         UD60x18 marketFeesX18 =
-            Fee.calculateFees(accumulatedWethX18, ud60x18(fee.marketShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR));
+            MarketDebt.calculateFees(accumulatedWethX18, ud60x18(marketDebt.marketShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR));
 
         // calculate the fee amount for the fee recipients
-        UD60x18 collectedFeesX18 = Fee.calculateFees(
-            accumulatedWethX18, ud60x18(fee.feeRecipientsShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR)
+        UD60x18 collectedFeesX18 = MarketDebt.calculateFees(
+            accumulatedWethX18, ud60x18(marketDebt.feeRecipientsShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR)
         );
 
         // increment the collected fees
-        fee.incrementCollectedFees(collectedFeesX18);
+        marketDebt.incrementCollectedFees(collectedFeesX18);
 
         // get connected vaults of market
         uint256[] memory vaultsSet = marketDebt.getConnectedVaultsIds();
@@ -222,7 +215,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             Vault.Data storage vault = Vault.load(uint128(vaultsSet[i]));
 
             // calculate the amount of weth each vault has received
-            SD59x18 vaultFeeAmountX18 = Fee.calculateFees(
+            SD59x18 vaultFeeAmountX18 = MarketDebt.calculateFees(
                 marketFeesX18, ud60x18(vault.stakingFeeDistribution.totalShares), totalVaultsSharesX18
             ).intoSD59x18();
 
@@ -234,7 +227,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         }
 
         // remove the asset from the received market fees
-        fee.receivedMarketFees.remove(asset);
+        marketDebt.receivedMarketFees.remove(asset);
 
         // emit event to log the conversion of fees to weth
         emit LogConvertAccumulatedFeesToWeth(asset, assetAmountX18.intoUint256(), accumulatedWethX18.intoUint256());
@@ -253,10 +246,10 @@ contract FeeDistributionBranch is EngineAccessControl {
         onlyExistingMarket(marketId)
     {
         // loads the fee data storage pointer
-        Fee.Data storage fee = Fee.load(marketId);
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
         // reverts if no fees have been collected
-        if (fee.collectedFees == 0) revert Errors.NoWethFeesCollected();
+        if (marketDebt.collectedFees == 0) revert Errors.NoWethFeesCollected();
 
         // loads the market making engine configuration data storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
@@ -272,7 +265,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         address weth = marketMakingEngineConfigurationData.weth;
 
         // convert collected fees to UD60x18
-        UD60x18 collectedFeesX18 = ud60x18(fee.collectedFees);
+        UD60x18 collectedFeesX18 = ud60x18(marketDebt.collectedFees);
 
         // variable to store the total shares of fee recipients
         UD60x18 totalSharesX18;
@@ -292,10 +285,10 @@ contract FeeDistributionBranch is EngineAccessControl {
 
             // calculate the amount to send to the fee recipient
             UD60x18 amountToSendX18 =
-                Fee.calculateFees(collectedFeesX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18);
+                MarketDebt.calculateFees(collectedFeesX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18);
 
             // decrement the collected fees
-            fee.decrementCollectedFees(amountToSendX18);
+            marketDebt.decrementCollectedFees(amountToSendX18);
 
             // convert the amountToSendX18 to weth amount
             uint256 amountToSend = wethCollateral.convertUd60x18ToTokenAmount(amountToSendX18);

@@ -4,7 +4,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Math } from "@zaros/utils/Math.sol";
 import { Distribution } from "./Distribution.sol";
-import { Fee } from "./Fee.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -21,7 +20,6 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 /// we send the entire reported debt as unsettled debt?
 library MarketDebt {
     using Distribution for Distribution.Data;
-    using Fee for Fee.Data;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
@@ -30,6 +28,7 @@ library MarketDebt {
     bytes32 internal constant MARKET_DEBT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketDebt")) - 1));
 
+    /// @param collectedFees The fees collected in wEth for vaults and fee recipients of this market
     /// @param marketId The engine's linked market id.
     /// @param autoDeleverageStartThreshold An admin configurable decimal rate used to determine the starting
     /// threshold of the ADL polynomial regression curve, ranging from 0 to 1.
@@ -37,6 +36,8 @@ library MarketDebt {
     /// the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleveragePowerScale An admin configurable power scale, used to determine the acceleration of the
     /// ADL polynomial regression curve.
+    /// @param feeRecipientsShare The share of total accumulated weth to be allocated to fee recipients.
+    /// @param marketShare The share of total accumulated weth to be allocated to the market.
     /// @param realizedDebtUsd The net delta of USDz minted by the market and margin collateral collected from
     /// traders and converted to USDC or ZLP Vaults assets.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
@@ -45,20 +46,24 @@ library MarketDebt {
     /// distribution.
     /// @param collectedMarginCollateral An enumerable map that stores the amount of each margin collateral asset
     /// collected from perps traders at a market.
+    /// @param receivedMarketFees An enumerable map that stores the amounts collected from each collateral type.
     /// @param connectedVaultsIds The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
     /// USD denominated debt per share.
-    /// @param collectedFees The fees collected in wEth for vaults and fee recipients of this market
     struct Data {
+        uint256 collectedFees;
         uint128 marketId;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
+        uint128 feeRecipientsShare;
+        uint128 marketShare;
         int128 realizedDebtUsd;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedTotalDebtUsd;
         EnumerableMap.AddressToUintMap collectedMarginCollateral;
+        EnumerableMap.AddressToUintMap receivedMarketFees;
         EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
     }
@@ -202,4 +207,49 @@ library MarketDebt {
     }
 
     function recalculateDelegatedCredit(Data storage self) internal { }
+
+    /// @notice Support function to calculate the accumulated wEth allocated for the beneficiary
+    /// @param totalAmountX18 The total amount or value to be distributed
+    /// @param shareX18 The share that needs to be calculated
+    /// @param denominatorX18 The denominator representing the total divisions or base value
+    /// @return amountX18 The calculated amount to be distributed
+    function calculateFees(
+        UD60x18 totalAmountX18,
+        UD60x18 shareX18,
+        UD60x18 denominatorX18
+    )
+        internal
+        pure
+        returns (UD60x18 amountX18)
+    {
+        amountX18 = (totalAmountX18.mul(shareX18)).div(denominatorX18);
+    }
+
+    /// @notice Support function to increment the received fees for a specific asset
+    /// @param self The fee storage pointer
+    /// @param asset The asset address
+    /// @param amountX18 The amount to be incremented
+    function incrementReceivedMarketFees(Data storage self, address asset, UD60x18 amountX18) internal {
+        UD60x18 newAmount = amountX18.add(ud60x18(self.receivedMarketFees.get(asset)));
+
+        self.receivedMarketFees.set(asset, newAmount.intoUint256());
+    }
+
+    /// @notice Support function to increment the collected fees
+    /// @param self The fee storage pointer
+    /// @param amountX18 The amount to be incremented
+    function incrementCollectedFees(Data storage self, UD60x18 amountX18) internal {
+        UD60x18 newAmount = amountX18.add(ud60x18(self.collectedFees));
+
+        self.collectedFees = newAmount.intoUint256();
+    }
+
+    /// @notice Support function to decrease the collected fees
+    /// @param self The fee storage pointer
+    /// @param amountX18 The amount to be incremented
+    function decrementCollectedFees(Data storage self, UD60x18 amountX18) internal {
+        UD60x18 newAmount = amountX18.sub(ud60x18(self.collectedFees));
+
+        self.collectedFees = newAmount.intoUint256();
+    }
 }
