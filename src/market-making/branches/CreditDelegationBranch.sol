@@ -81,7 +81,7 @@ contract CreditDelegationBranch {
     function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18 creditCapacityUsdX18) {
         Market.Data storage market = Market.load(marketId);
 
-        return market.getCreditCapacityUsd(
+        return Market.getCreditCapacityUsd(
             market.getDelegatedCredit(), market.getUnrealizedDebtUsd(), market.getRealizedDebtUsd()
         );
     }
@@ -110,6 +110,8 @@ contract CreditDelegationBranch {
         // TODO: determine whether or not we trust the market's unrealized debt to take part of the following
         // calculations. Remember that a malicious engine could report a false unrealized debt to manipulate the
         // system, e.g a large fake credit.
+        // NOTE: Worst case if too tricky we can assume this value is trusted and we review the engine's
+        // implementation.
         SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
         // cache the market's realized debt
         SD59x18 realizedDebtUsdX18 = market.getRealizedDebtUsd();
@@ -120,7 +122,7 @@ contract CreditDelegationBranch {
 
         // caches the market's credit capacity
         SD59x18 creditCapacityUsdX18 =
-            market.getCreditCapacityUsd(market.getDelegatedCredit(), unrealizedDebtUsdX18, realizedDebtUsdX18);
+            Market.getCreditCapacityUsd(market.getDelegatedCredit(), unrealizedDebtUsdX18, realizedDebtUsdX18);
 
         // if the credit capacity is less than or equal to zero, it means the total debt has already taken all the
         // delegated credit
@@ -179,11 +181,8 @@ contract CreditDelegationBranch {
         // loads the market's data storage pointer
         Market.Data storage market = Market.load(marketId);
 
-        // enforces that the market has enough credit capacity, if it' a listed market it must always have some
-        // delegated credit, see Vault.Data.lockedCreditRatio.
-        // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
-        // capacity to cover USDz mint requests. Deleverage happens when the perps engine calls
-        // CreditDelegationBranch::getAdjustedProfitForMarketId
+        // ensures that the market has delegated credit, so the engine is not depositing credit to an empty
+        // distribution (with 0 total shares), although this should never happen if the system functions properly.
         if (market.getDelegatedCredit().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
@@ -228,6 +227,8 @@ contract CreditDelegationBranch {
 
         // caches the market's unrealized debt
         // TODO: define whether we take into account credit or not, potential attack vector
+        // NOTE: Worst case if too tricky we can assume this value is trusted and we review the engine's
+        // implementation.
         SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
         // caches the market's realized debt
         SD59x18 realizedDebtUsdX18 = market.getRealizedDebtUsd();
@@ -254,7 +255,7 @@ contract CreditDelegationBranch {
 
         // cache the market's credit capacity
         SD59x18 creditCapacityUsdX18 =
-            market.getCreditCapacityUsd(market.getDelegatedCredit(), unrealizedDebtUsdX18, realizedDebtUsdX18);
+            Market.getCreditCapacityUsd(market.getDelegatedCredit(), unrealizedDebtUsdX18, realizedDebtUsdX18);
 
         // enforces that the market has enough credit capacity, if it' a listed market it must always have some
         // delegated credit, see Vault.Data.lockedCreditRatio.

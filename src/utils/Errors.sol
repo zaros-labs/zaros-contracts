@@ -175,7 +175,9 @@ library Errors {
     /// @notice Thrown when trying to realize debt but the market has a credit capacity <= 0. The ADL
     /// system and LP's collateral risk parameters are built to prevent this error from being thrown.
     error InsufficientCreditCapacity(uint128 marketId, int256 creditCapacityUsd);
-    /// @notice Thrown when updating the debt state of a market with no delegated credit.
+    /// @notice Thrown when trying to distribute value to an empty vaults debt distribution.
+    /// NOTE: This error must be unreachable as the system enforces market to have a minimum delegated credit through
+    /// Vault.Data.lockedCreditRatio.
     error NoDelegatedCredit(uint128 marketId);
 
     /// @notice MarketMakingEngine.Collateral errors.

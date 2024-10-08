@@ -16,7 +16,8 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @dev Vault's debt for ADL determination purposes:
-///  (unrealized debt > 0 ? unrealized debt : 0) + realized debt + unsettled debt + settled debt + requested usdz.
+///  (unrealized debt > 0 ? unrealized debt : 0 || TODO: define this) + realized debt + unsettled debt + settled debt
+/// + requested usdz.
 /// This means if the engine fails to report the unrealized debt properly, its users will unexpectedly and unfairly be
 /// deleveraged.
 /// NOTE: We only take into account positive debt in order to prevent a malicious engine of reporting a large fake
@@ -103,21 +104,48 @@ library Vault {
             Data storage self = load(vaultsIds[i].toUint128());
 
             // iterate over each connected market id and distribute its debt so we can have the latest credit
-            // delegation of this vault
+            // delegation of the vault id being iterated to the provided `marketId`
+            for (uint256 j; j < self.connectedMarkets.length(); j++) {
+                uint128 connectedMarketId = self.connectedMarkets[j].toUint128();
+                Market.Data storage market = Market.load(connectedMarketId);
+
+                // TODO: come back here and define if we need two distributions for unrealized vs realized debt or one single distribution.
+                // TODO: add distribution last timestamp or last value to determine whether a debt distribution is required or not.
+                if (market.isDistributionRequired()) {
+                    SD59x18 marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
+                    SD59x18 marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
+
+                    market.distributeDebtToVaults(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
+                    self.unsettledRealizedDebtUsd
+                }
+
+                // we must always recalculate the credit capacity before updating a vault's credit delegation
+                // recalculateUnsettledRealizedDebt(self, connectedMarketId);
+                // load the credit delegation to the given market id
+                // CreditDelegation.Data storage creditDelegation =
+                //     CreditDelegation.load(self.vaultId, connectedMarketId);
+
+                // // get the latest credit delegation share of the vault's credit capacity
+                // UD60x18 creditDelegationShareX18 =
+                //     ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
+
+                // SD59x18 newCreditDelegationUsdX18 =
+                //     getTotalCreditCapacityUsd(self).mul(creditDelegationShareX18.intoSD59x18());
+            }
 
             // we must always recalculate the credit capacity before updating a vault's credit delegation
             // recalculateUnsettledRealizedDebt(self);
             // load the credit delegation to the given market id
-            CreditDelegation.Data storage creditDelegation = CreditDelegation.load(self.vaultId, marketId);
+            // CreditDelegation.Data storage creditDelegation = CreditDelegation.load(self.vaultId, marketId);
 
-            // get the latest credit delegation share of the vault's credit capacity
-            UD60x18 creditDelegationShareX18 =
-                ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
+            // // get the latest credit delegation share of the vault's credit capacity
+            // UD60x18 creditDelegationShareX18 =
+            //     ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
 
-            SD59x18 newCreditDelegationUsdX18 =
-                getTotalCreditCapacityUsd(self).mul(creditDelegationShareX18.intoSD59x18());
+            // SD59x18 newCreditDelegationUsdX18 =
+            //     getTotalCreditCapacityUsd(self).mul(creditDelegationShareX18.intoSD59x18());
 
-            Market.Data storage market = Market.load(marketId);
+            // Market.Data storage market = Market.load(marketId);
         }
     }
 

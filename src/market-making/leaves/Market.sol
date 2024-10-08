@@ -151,7 +151,6 @@ library Market {
     }
 
     function getCreditCapacityUsd(
-        Data storage self,
         UD60x18 delegatedCreditUsdX18,
         SD59x18 unrealizedDebtUsdX18,
         SD59x18 realizedDebtUsdX18
@@ -195,10 +194,11 @@ library Market {
     }
 
     // TODO: after this function is called we need to update a vault's realized unsettled debt
+    // todo: update realized debt usd logic
     function distributeDebtToVaults(
         Data storage self,
         SD59x18 newUnrealizedDebtUsdX18,
-        SD59x18 debtToRealizeUsdX18
+        SD59x18 newRealizedDebtUsdX18
     )
         internal
     {
