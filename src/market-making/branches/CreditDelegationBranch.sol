@@ -70,7 +70,7 @@ contract CreditDelegationBranch {
                                    VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Returns the credit delegation state of the given market id.
+    /// @notice Returns the credit capacity of the given market id.
     /// @dev `CreditDelegationBranch::updateCreditDelegation` must be called before calling this function in order to
     /// retrieve the latest state.
     /// @dev Each engine can implement its own credit schema according to its business logic, thus, this function will
@@ -80,7 +80,9 @@ contract CreditDelegationBranch {
     function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18 creditCapacityUsdX18) {
         Market.Data storage market = Market.load(marketId);
 
-        return market.getCreditCapacityUsd(market.getDelegatedCredit());
+        return market.getCreditCapacityUsd(
+            market.getDelegatedCredit(), market.getUnrealizedDebtUsd(), market.getRealizedDebtUsd()
+        );
     }
 
     /// @notice Returns the adjusted profit of an active position at the given market id, considering the market's ADL
@@ -103,14 +105,22 @@ contract CreditDelegationBranch {
     {
         // load the market's data storage pointer
         Market.Data storage market = Market.load(marketId);
+        // cache the market's unrealized debt
+        // TODO: determine whether or not we trust the market's unrealized debt to take part of the following
+        // calculations. Remember that a malicious engine could report a false unrealized debt to manipulate the
+        // system, e.g a large fake credit.
+        SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
+        // cache the market's realized debt
+        SD59x18 realizedDebtUsdX18 = market.getRealizedDebtUsd();
         // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd());
+        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
         // uint256 -> UD60x18
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
-        SD59x18 creditCapacityUsdX18 = market.getCreditCapacityUsd(market.getDelegatedCredit());
+        // caches the market's credit capacity
+        SD59x18 creditCapacityUsdX18 =
+            market.getCreditCapacityUsd(market.getDelegatedCredit(), unrealizedDebtUsdX18, realizedDebtUsdX18);
 
-        // TODO: is this check needed?
         if (creditCapacityUsdX18.lte(SD59x18_ZERO)) revert Errors.InsufficientCreditCapacity(marketId, profitUsd);
 
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
@@ -122,9 +132,8 @@ contract CreditDelegationBranch {
         }
 
         // if the market's auto deleverage system is triggered, it assumes marketTotalDebtUsdX18 > 0
-        adjustedProfitUsdX18 = market.getAutoDeleverageFactor(
-            market.getCreditCapacityUsd(market.getDelegatedCredit()), marketTotalDebtUsdX18
-        ).mul(profitUsdX18);
+        adjustedProfitUsdX18 =
+            market.getAutoDeleverageFactor(creditCapacityUsdX18, marketTotalDebtUsdX18).mul(profitUsdX18);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -211,7 +220,10 @@ contract CreditDelegationBranch {
         Market.Data storage market = Market.load(marketId);
 
         // caches the market's unrealized debt
+        // TODO: define whether we take into account credit or not, potential attack vector
         SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
+        // caches the market's realized debt
+        SD59x18 realizedDebtUsdX18 = market.getRealizedDebtUsd();
 
         // uint256 -> UD60x18
         // NOTE: we don't need to scale decimals here as it's known that USDz has 18 decimals
@@ -229,35 +241,35 @@ contract CreditDelegationBranch {
         // realized debt value
         market.distributeDebtToVaults(unrealizedDebtUsdX18, amountX18.intoSD59x18());
 
-        // once the unrealiezd debt is distributed, we need to update the credit delegated by these vaults to the
+        // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
         // market
         Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
 
-        // cache the market's delegated credit
-        UD60x18 delegatedCreditUsdX18 = market.getDelegatedCredit();
+        // cache the market's credit capacity
+        SD59x18 creditCapacityUsdX18 =
+            market.getCreditCapacityUsd(market.getDelegatedCredit(), unrealizedDebtUsdX18, realizedDebtUsdX18);
 
         // enforces that the market has enough credit capacity, if it' a listed market it must always have some
         // delegated credit, see Vault.Data.lockedCreditRatio.
         // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
         // capacity to cover USDz mint requests. Deleverage happens when the perps engine calls
         // CreditDelegationBranch::getAdjustedProfitForMarketId
-        if (market.getCreditCapacityUsd(delegatedCreditUsdX18).lt(amountX18.intoSD59x18())) {
+        if (creditCapacityUsdX18.lt(amountX18.intoSD59x18())) {
             revert Errors.InsufficientCreditCapacity(marketId, amountX18.intoUint256());
         }
 
         // prepare the amount of usdz that will be minted to the perps engine
         uint256 amountToMint;
         // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(market.getRealizedDebtUsd());
+        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
 
         // now we realize the added usd debt of the market
         // note: USDz is assumed to be 1:1 with the system's usd accounting
         if (market.isAutoDeleverageTriggered(marketTotalDebtUsdX18.add(amountX18.intoSD59x18()))) {
             // if the market is in the ADL state, it reduces the requested USDz amount by multiplying it by the ADL
             // factor, which must be < 1
-            UD60x18 adjustedUsdzToMintX18 = market.getAutoDeleverageFactor(
-                market.getCreditCapacityUsd(delegatedCreditUsdX18), marketTotalDebtUsdX18
-            ).mul(amountX18);
+            UD60x18 adjustedUsdzToMintX18 =
+                market.getAutoDeleverageFactor(creditCapacityUsdX18, marketTotalDebtUsdX18).mul(amountX18);
             amountToMint = adjustedUsdzToMintX18.intoUint256();
             market.realizeDebt(adjustedUsdzToMintX18.intoSD59x18());
         } else {
@@ -316,7 +328,7 @@ contract CreditDelegationBranch {
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
     /// TODO: add invariants
-    function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
+    function updateCreditDelegationAndReturnCreditForMarket(uint128 marketId)
         external
         returns (SD59x18 creditCapacityUsdX18)
     {

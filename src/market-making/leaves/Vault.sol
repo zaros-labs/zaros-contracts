@@ -16,20 +16,20 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @dev Vault's debt for ADL determination purposes:
-///  unrealized debt + realized debt + unsettled debt + settled debt + requested usdz.
+///  (unrealized debt > 0 ? unrealized debt : 0) + realized debt + unsettled debt + settled debt + requested usdz.
 /// This means if the engine fails to report the unrealized debt properly, its users will unexpectedly and unfairly be
 /// deleveraged.
+/// NOTE: We only take into account positive debt in order to prevent a malicious engine of reporting a large fake
+/// credit, harming LPs.
 /// The MM engine protects LPs by taking into account the requested USDz.
 /// @dev Vault's debt for credit delegation purposes = unrealized debt of each market (Market::getTotalDebt or
 /// market unrealized debt) +
-/// unsettledRealizedDebtUsd (comes from each market's realized debt) + settledRealizedDebtUsd (realized must always
-/// be
-/// distributed to
-/// unsettled following the Debt Distribution System)
+/// unsettledRealizedDebtUsd (comes from each market's realized debt) + settledRealizedDebtUsd.
+/// NOTE: each market's realized debt must always be distributed as unsettledRealizedDebt to vaults following the Debt
+/// Distribution System.
 /// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd + settledRealizedDebtUsd
 /// @dev A swap adds `settledRealizedDebt` but subtracts `unsettledRealizedDebt`. The Vault earns a swap fee for the
-/// inconvenience,
-/// allocated as additional WETH staking rewards.
+/// inconvenience, allocated as additional WETH staking rewards.2
 library Vault {
     using Collateral for Collateral.Data;
     using Market for Market.Data;

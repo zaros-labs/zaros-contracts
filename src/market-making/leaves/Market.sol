@@ -45,9 +45,8 @@ library Market {
     /// vaults.
     /// @param lastDistributedUnrealizedDebtUsd The last total debt in USD distributed as `value` to the vaults debt
     /// distribution.
-    /// @param depositedCollateral Stores collateral deposited as credit by the market's underlying engine. Key:
-    /// collateral address, Value: CollateralDeposit struct. Used to determine the connected vault's unsettled
-    /// realized debt.
+    /// @param depositedCollateralTypes Stores the set of addresses of collateral types deposited as credit for a
+    /// market.
     /// @param connectedVaultsIds The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
@@ -153,13 +152,15 @@ library Market {
 
     function getCreditCapacityUsd(
         Data storage self,
-        UD60x18 delegatedCreditUsdX18
+        UD60x18 delegatedCreditUsdX18,
+        SD59x18 unrealizedDebtUsdX18,
+        SD59x18 realizedDebtUsdX18
     )
         internal
         view
         returns (SD59x18 creditCapacityUsdX18)
     {
-        creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(sd59x18(self.realizedUsdzDebt));
+        creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(unrealizedDebtUsdX18).add(realizedDebtUsdX18);
     }
 
     function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCreditUsdX18) {
