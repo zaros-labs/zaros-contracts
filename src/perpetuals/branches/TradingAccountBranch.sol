@@ -10,6 +10,9 @@ import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
+import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
+import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
+import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -34,6 +37,8 @@ contract TradingAccountBranch {
     using SafeERC20 for IERC20;
     using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
+    using Referral for Referral.Data;
+    using MarketOrder for MarketOrder.Data;
 
     /// @notice Emitted when a new trading account is created.
     /// @param tradingAccountId The trading account id.
@@ -300,6 +305,13 @@ contract TradingAccountBranch {
         // collateral for other traders if they wish
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
+        // fetch storage slot for this trading account's market order
+        MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
+
+        // reverts if a trader has a pending order and that pending order hasn't
+        // existed for the minimum order lifetime
+        marketOrder.checkPendingOrder();
+
         // convert uint256 -> UD60x18; scales input amount to 18 decimals
         UD60x18 amountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
 
@@ -340,6 +352,13 @@ contract TradingAccountBranch {
         // enforces `msg.sender == owner` so only account owner can withdraw
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
+
+        // fetch storage slot for this trading account's market order
+        MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
+
+        // reverts if a trader has a pending order and that pending order hasn't
+        // existed for the minimum order lifetime
+        marketOrder.checkPendingOrder();
 
         // convert uint256 -> UD60x18; scales input amount to 18 decimals
         UD60x18 amountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
