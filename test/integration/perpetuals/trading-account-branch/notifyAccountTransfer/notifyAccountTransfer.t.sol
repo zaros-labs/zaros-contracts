@@ -175,15 +175,23 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         
         changePrank({ msgSender: address(tradingAccountToken) });
 
+        // previous owner active market order
+        MarketOrder.Data memory previousOwnerMarketOrder = perpsEngine.getActiveMarketOrder(tradingAccountId);
+
+        // verify active market order
+        assertEq(previousOwnerMarketOrder.timestamp, block.timestamp);
+        assertEq(previousOwnerMarketOrder.sizeDelta, sizeDelta);
+
         // transfer the trading account
         perpsEngine.notifyAccountTransfer(users.madara.account, tradingAccountId);
 
-        MarketOrder.Data memory marketOrder = perpsEngine.getActiveMarketOrder(tradingAccountId);
+        // new owner active market order
+        MarketOrder.Data memory newOwnerMarketOrder = perpsEngine.getActiveMarketOrder(tradingAccountId);
 
-        // it should cancel the active market order
-        assertEq(marketOrder.marketId, 0);
-        assertEq(marketOrder.sizeDelta, 0);
-        assertEq(marketOrder.timestamp, 0);
+        // verify no active market order exists
+        assertEq(newOwnerMarketOrder.marketId, 0);
+        assertEq(newOwnerMarketOrder.sizeDelta, 0);
+        assertEq(newOwnerMarketOrder.timestamp, 0);
         
         // new user can withdraw
         changePrank({ msgSender: users.madara.account });

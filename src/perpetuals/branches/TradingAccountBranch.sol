@@ -146,7 +146,7 @@ contract TradingAccountBranch {
             maintenanceMarginUsdX18 = maintenanceMarginUsdX18.add(positionMaintenanceMarginUsdX18);
         }
 
-        availableMarginUsdX18 = marginBalanceUsdX18.sub((maintenanceMarginUsdX18).intoSD59x18());
+        availableMarginUsdX18 = marginBalanceUsdX18.sub((initialMarginUsdX18).intoSD59x18());
     }
 
     /// @notice Returns the total trading account's unrealized pnl across open positions.
@@ -385,7 +385,7 @@ contract TradingAccountBranch {
 
     /// @notice Used by the Account NFT contract to notify an account transfer.
     /// @dev Can only be called by the Account NFT contract.
-    /// @dev Cancels existing pending orders and it updates the Trading Account stored access control data.
+    /// @dev It updates the Trading Account stored access control data and cancel existing pending orders.
     /// @param to The recipient of the account transfer.
     /// @param tradingAccountId The trading account id.
     function notifyAccountTransfer(address to, uint128 tradingAccountId) external {
