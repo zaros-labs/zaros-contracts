@@ -6,7 +6,7 @@ SettlementConfiguration_VerifyOffchainPrice_Unit_Test
     │   └── it should revert
     ├── when the block timestamp is greater than the premium report validFromTimestamp sum with maxVerificationDelay
     │   └── it should revert
-    ├── when the block timestamp is greater than the premium report expireAt
+    ├── when the block timestamp is greater than the premium report expiresAt
     │   └── it should revert
     └── when data streams report is valid
         ├── it should return the bidX18

@@ -741,7 +741,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         mockedSignedReport = abi.encode(mockedSignatures, mockedReportData);
     }
 
-    function getMockedSignedReportWithExpireAtTimestampZero(
+    function getMockedSignedReportWithExpiresAtTimestampZero(
         bytes32 streamId,
         uint256 price
     )

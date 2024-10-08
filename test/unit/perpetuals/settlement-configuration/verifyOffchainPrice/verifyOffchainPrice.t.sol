@@ -134,7 +134,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
         );
     }
 
-    function testFuzz_RevertWhen_TheBlockTimestampIsGreaterThanThePremiumReportValidFromExpiresAt(
+    function testFuzz_RevertWhen_TheBlockTimestampIsGreaterThanThePremiumReportExpiresAt(
         uint256 marketId,
         uint128 settlementConfigurationId
     )
@@ -160,7 +160,7 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
         perpsEngine.exposed_update(fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration);
 
         bytes memory mockSignedReport =
-            getMockedSignedReportWithExpireAtTimestampZero(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+            getMockedSignedReportWithExpiresAtTimestampZero(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
 
         // it should revert
         vm.expectRevert({
