@@ -28,7 +28,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheMarketDoesNotExist(uint256 amount) external givenTheSenderIsRegisteredEngine {
+    function testFuzz_RevertWhen_TheMarketDoesNotExist(uint256 amount) external givenTheSenderIsRegisteredEngine {
         changePrank({ msgSender: address(perpsEngine) });
 
         uint128 invalidMarketDebtId = FINAL_MARKET_DEBT_ID + 1;
@@ -50,12 +50,23 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheAmountIsZero() external givenTheSenderIsRegisteredEngine whenTheMarketExist {
-        // uint256 zeroAmount = 0;
+    function testFuzz_RevertWhen_TheAmountIsZero(
+        uint256 marketDebtId
+    )
+        external
+        givenTheSenderIsRegisteredEngine
+        whenTheMarketExist
+    {
+        changePrank({ msgSender: address(perpsEngine) });
 
-        // // it should revert
-        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
-        // marketMakingEngine.receiveMarketFee(INITIAL_MARKET_DEBT_ID, address(wEth), zeroAmount);
+        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+
+        uint256 amount = 0;
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
+
+        marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, address(usdc), amount);
     }
 
     modifier whenTheAmountIsNotZero() {
