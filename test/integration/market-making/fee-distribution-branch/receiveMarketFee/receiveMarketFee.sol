@@ -73,20 +73,23 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheAssetIsNotEnabled(
-        uint256 amountToReceive
+    function testFuzz_RevertWhen_TheAssetIsNotEnabled(
+        uint256 marketDebtId,
+        address assetNotEnabled
     )
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
         whenTheAmountIsNotZero
     {
-        // amountToReceive =
-        //     bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
+        changePrank({ msgSender: address(perpsEngine) });
 
-        // // it should revert
-        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralDisabled.selector, address(0)) });
-        // marketMakingEngine.receiveMarketFee(INITIAL_MARKET_DEBT_ID, address(wBtc), amountToReceive);
+        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralDisabled.selector, address(0)) });
+
+        marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, address(assetNotEnabled), 1);
     }
 
     function test_WhenTheAssetIsEnabled(
