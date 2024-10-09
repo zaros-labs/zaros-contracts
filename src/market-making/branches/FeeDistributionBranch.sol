@@ -67,7 +67,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
         if (marketDebt.marketId == 0) {
-            revert Errors.UnrecognisedMarket();
+            revert Errors.UnrecognisedMarket(marketId);
         }
         _;
     }
@@ -180,8 +180,9 @@ contract FeeDistributionBranch is EngineAccessControl {
         }
 
         // calculate the fee amount for the market
-        UD60x18 marketFeesX18 =
-            MarketDebt.calculateFees(accumulatedWethX18, ud60x18(marketDebt.marketShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR));
+        UD60x18 marketFeesX18 = MarketDebt.calculateFees(
+            accumulatedWethX18, ud60x18(marketDebt.marketShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR)
+        );
 
         // calculate the fee amount for the fee recipients
         UD60x18 collectedFeesX18 = MarketDebt.calculateFees(
@@ -284,8 +285,9 @@ contract FeeDistributionBranch is EngineAccessControl {
             address feeRecipient = recipientsList[i];
 
             // calculate the amount to send to the fee recipient
-            UD60x18 amountToSendX18 =
-                MarketDebt.calculateFees(collectedFeesX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18);
+            UD60x18 amountToSendX18 = MarketDebt.calculateFees(
+                collectedFeesX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18
+            );
 
             // decrement the collected fees
             marketDebt.decrementCollectedFees(amountToSendX18);

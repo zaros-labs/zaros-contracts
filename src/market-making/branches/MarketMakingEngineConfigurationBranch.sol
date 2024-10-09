@@ -7,9 +7,13 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
+import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
+
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 // TODO: add initializer at upgrade branch or auth branch
 contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
@@ -45,7 +49,25 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param creditRatio The credit ratio.
     /// @param isEnabled The status of the collateral.
     /// @param decimals The decimals of the collateral.
-    event LogConfigureCollateral(address indexed collateral, address priceAdapter, uint256 creditRatio, bool isEnabled, uint8 decimals);
+    event LogConfigureCollateral(
+        address indexed collateral, address priceAdapter, uint256 creditRatio, bool isEnabled, uint8 decimals
+    );
+
+    /// @notice Emitted when market debt is configured.
+    /// @param marketId The perps engine's market id.
+    /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
+    /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
+    /// @param autoDeleveragePowerScale The auto deleverage power scale.
+    /// @param marketShare The market share between 0 and 1 in 18 decimals
+    /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
+    event LogConfigureMarketDebt(
+        uint128 marketId,
+        uint128 autoDeleverageStartThreshold,
+        uint128 autoDeleverageEndThreshold,
+        uint128 autoDeleveragePowerScale,
+        uint128 marketShare,
+        uint128 feeRecipientsShare
+    );
 
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
@@ -170,7 +192,16 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param creditRatio The credit ratio.
     /// @param isEnabled The status of the collateral.
     /// @param decimals The decimals of the collateral.
-    function configureCollateral(address collateral, address priceAdapter, uint256 creditRatio, bool isEnabled, uint8 decimals) external onlyOwner {
+    function configureCollateral(
+        address collateral,
+        address priceAdapter,
+        uint256 creditRatio,
+        bool isEnabled,
+        uint8 decimals
+    )
+        external
+        onlyOwner
+    {
         // check if collateral is set to zero
         if (collateral == address(0)) revert Errors.ZeroInput("collateral");
 
@@ -197,4 +228,63 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogConfigureCollateral(collateral, priceAdapter, creditRatio, isEnabled, decimals);
     }
 
+    /// @notice Configure market debt on Market Making Engine
+    /// @dev Only owner can call this functions
+    /// @param marketId The perps engine's market id.
+    /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
+    /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
+    /// @param autoDeleveragePowerScale The auto deleverage power scale.
+    /// @param marketShare The market share between 0 and 1 in 18 decimals
+    /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
+    function configureMarketDebt(
+        uint128 marketId,
+        uint128 autoDeleverageStartThreshold,
+        uint128 autoDeleverageEndThreshold,
+        uint128 autoDeleveragePowerScale,
+        uint128 marketShare,
+        uint128 feeRecipientsShare
+    )
+        external
+        onlyOwner
+    {
+        // revert if marketId is set to zero
+        if (marketId == 0) revert Errors.ZeroInput("marketId");
+
+        // revert if autoDeleverageStartThreshold is set to zero
+        if (autoDeleverageStartThreshold == 0) revert Errors.ZeroInput("autoDeleverageStartThreshold");
+
+        // revert if autoDeleverageEndThreshold is set to zero
+        if (autoDeleverageEndThreshold == 0) revert Errors.ZeroInput("autoDeleverageEndThreshold");
+
+        // revert if autoDeleveragePowerScale is set to zero
+        if (autoDeleveragePowerScale == 0) revert Errors.ZeroInput("autoDeleveragePowerScale");
+
+        UD60x18 marketShareX18 = ud60x18(marketShare);
+        UD60x18 feeRecipientsShareX18 = ud60x18(feeRecipientsShare);
+
+        // revert if marketShare + feeRecipientsShare is greater than 1
+        if (marketShareX18.add(feeRecipientsShareX18).gt(ud60x18(1e18))) {
+            revert Errors.InvalidMarketShareAndFeeRecipientsShare(marketShare, feeRecipientsShare);
+        }
+
+        // load market debt data from storage
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+
+        // update market debt data
+        marketDebt.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
+        marketDebt.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
+        marketDebt.autoDeleveragePowerScale = autoDeleveragePowerScale;
+        marketDebt.marketShare = marketShare;
+        marketDebt.feeRecipientsShare = feeRecipientsShare;
+
+        // emit event LogConfigureMarketDebt
+        emit LogConfigureMarketDebt(
+            marketId,
+            autoDeleverageStartThreshold,
+            autoDeleverageEndThreshold,
+            autoDeleveragePowerScale,
+            marketShare,
+            feeRecipientsShare
+        );
+    }
 }

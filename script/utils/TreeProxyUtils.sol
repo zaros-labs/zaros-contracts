@@ -470,10 +470,7 @@ function getMarketMakingEngineInitializables(address[] memory branches) pure ret
     return initializables;
 }
 
-function getMarketMakingEngineInitPayloads(address deployer)
-    pure
-    returns (bytes[] memory)
-{
+function getMarketMakingEngineInitPayloads(address deployer) pure returns (bytes[] memory) {
     bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
@@ -493,7 +490,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](8);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](9);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -506,6 +503,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.registerEngine.selector;
     marketMakingEngineConfigBranchSelectors[6] = MarketMakingEngineConfigurationBranch.setUsdz.selector;
     marketMakingEngineConfigBranchSelectors[7] = MarketMakingEngineConfigurationBranch.configureCollateral.selector;
+    marketMakingEngineConfigBranchSelectors[8] = MarketMakingEngineConfigurationBranch.configureMarketDebt.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -631,7 +629,8 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketDebtHarnessSelectors[2] = MarketDebtHarness.workaround_setConnectedVaults.selector;
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](3);
-    marketMakingEngineConfigurationSelectors[0] = MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
+    marketMakingEngineConfigurationSelectors[0] =
+        MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
     marketMakingEngineConfigurationSelectors[1] =
         MarketMakingEngineConfigurationHarness.workaround_setPerpsEngineAddress.selector;
     marketMakingEngineConfigurationSelectors[2] =

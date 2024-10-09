@@ -202,6 +202,9 @@ library Errors {
     /// @notice Thrown when the given `marketId` does not exist.
     error MarketDoesNotExist(uint128 marketId);
 
+    /// @notice Thrown when market does not exist
+    error UnrecognisedMarket(uint128 marketId);
+
     /// @notice Thrown when the given `marketId` is disabled.
     error MarketIsDisabled(uint128 marketId);
 
@@ -270,13 +273,14 @@ library Errors {
     /// @notice Thrown when sum of percentages does not total 10_000 (e.g. 100%)
     error PercentageValidationFailed();
 
-    /// @notice Thrown when market does not exist
-    error UnrecognisedMarket();
-
     /// @notice Thrown when fees have not been collected from selected asset
     error InvalidAsset();
 
     /// @notice Thrown when Uniswap router address is not defined
     error SwapRouterAddressUndefined();
-}
 
+    /// @notice Thrown when marketShare plus feeRecipientsShare is greater than 1
+    /// @param marketShare The market share between 0 and 1 in 18 decimals
+    /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
+    error InvalidMarketShareAndFeeRecipientsShare(uint256 marketShare, uint256 feeRecipientsShare);
+}

@@ -13,14 +13,15 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: address(users.owner.account) });
+        configureMarketsDebt();
     }
 
-    function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(address user, uint256 amount) external {
+    function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(uint256 marketDebtId, uint256 amount) external {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account) });
-        marketMakingEngine.receiveMarketFee(INITIAL_MARKET_DEBT_ID, address(usdc), amount);
+        marketMakingEngine.receiveMarketFee(uint128(marketDebtId), address(usdc), amount);
     }
 
     modifier givenTheSenderIsRegisteredEngine() {
@@ -28,31 +29,27 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     }
 
     function test_RevertWhen_TheMarketDoesNotExist(
-        uint128 marketId,
-        uint256 assetsToDeposit
+        uint256 marketDebtId,
+        uint256 amount
     )
         external
         givenTheSenderIsRegisteredEngine
     {
+        changePrank({ msgSender: address(perpsEngine) });
 
-        // deal(address(wEth), address(perpsEngine), assetsToDeposit);
-
-        // IERC20(address(wEth)).approve(address(marketMakingEngine), assetsToDeposit);
+        MarketDebtConfig memory marketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
 
         // // it should revert
-        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
-        // marketMakingEngine.receiveMarketFee(marketId, address(wEth), assetsToDeposit);
+        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector, uint128(marketId))
+        // });
+        // marketMakingEngine.receiveMarketFee(uint128(marketId), address(usdc), amount);
     }
 
     modifier whenTheMarketExist() {
         _;
     }
 
-    function test_RevertWhen_TheAmountIsZero()
-        external
-        givenTheSenderIsRegisteredEngine
-        whenTheMarketExist
-    {
+    function test_RevertWhen_TheAmountIsZero() external givenTheSenderIsRegisteredEngine whenTheMarketExist {
         // uint256 zeroAmount = 0;
 
         // // it should revert
@@ -60,7 +57,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         // marketMakingEngine.receiveMarketFee(INITIAL_MARKET_DEBT_ID, address(wEth), zeroAmount);
     }
 
-     modifier whenTheAmountIsNotZero() {
+    modifier whenTheAmountIsNotZero() {
         _;
     }
 
@@ -79,7 +76,6 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralDisabled.selector, address(0)) });
         // marketMakingEngine.receiveMarketFee(INITIAL_MARKET_DEBT_ID, address(wBtc), amountToReceive);
     }
-
 
     function test_WhenTheAssetIsEnabled(
         uint256 amountToReceive

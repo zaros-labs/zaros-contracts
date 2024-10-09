@@ -7,12 +7,13 @@ import { Markets } from "script/markets/Markets.sol";
 import { Vaults } from "script/vaults/Vaults.sol";
 import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.sol";
 import { SequencerUptimeFeeds } from "script/sequencer-uptime-feeds/SequencerUptimeFeeds.sol";
+import { MarketsDebt } from "script/markets-debt/MarketsDebt.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } from "@prb-math/SD59x18.sol";
 
-abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Vaults, SequencerUptimeFeeds {
+abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Vaults, SequencerUptimeFeeds, MarketsDebt {
     /// @notice Admin addresses.
 
     // TODO: Update to actual multisig address
@@ -55,7 +56,7 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Vaults, S
     uint128 internal constant FINAL_VAULT_ID = 15;
     uint128 internal constant INVALID_VAULT_ID = 0;
     uint128 internal constant INITIAL_MARKET_DEBT_ID = 1;
-
+    uint128 internal constant FINAL_MARKET_DEBT_ID = 2;
 
     /// @notice The maximum delay allowed for the off chain price verification.
     uint256 internal constant MAX_VERIFICATION_DELAY = 60 seconds;

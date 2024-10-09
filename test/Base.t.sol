@@ -247,8 +247,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         address[] memory mmBranches = deployMarketMakingEngineBranches();
         address[] memory initializableBranches = getMarketMakingEngineInitializables(mmBranches);
-        bytes[] memory mmInitPayloads =
-            getMarketMakingEngineInitPayloads(users.owner.account);
+        bytes[] memory mmInitPayloads = getMarketMakingEngineInitPayloads(users.owner.account);
 
         bytes4[][] memory mmBranchesSelectors = getMarketMakerBranchesSelectors();
         RootProxy.BranchUpgrade[] memory mmBranchUpgrades =
@@ -269,9 +268,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         changePrank({ msgSender: users.owner.account });
 
+        setupMarketsDebtConfig();
+
         marketMakingEngine.configureCollateral(
             address(usdc), marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter, 1e18, true, usdc.decimals()
         );
+
+        marketMakingEngine.registerEngine(address(perpsEngine));
 
         uint256[2] memory vaultsIdsRange;
         vaultsIdsRange[0] = INITIAL_VAULT_ID;
@@ -402,6 +405,16 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         }
     }
 
+    function configureMarketsDebt() internal {
+        configureMarketsDebt(
+            ConfigureMarketDebtsParams({
+                marketMakingEngine: marketMakingEngine,
+                initialMarketDebtId: INITIAL_MARKET_DEBT_ID,
+                finalMarketDebtId: FINAL_MARKET_DEBT_ID
+            })
+        );
+    }
+
     function depositInVault(uint128 vaultId, uint128 assetsToDeposit) internal {
         address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
         deal(vaultAsset, users.naruto.account, assetsToDeposit);
@@ -452,6 +465,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketsIdsRange[1] = marketId;
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
+
+        return filteredMarketsConfig[0];
+    }
+
+    function getFuzzMarketDebtConfig(uint256 marketDebtId) internal view returns (MarketDebtConfig memory) {
+        marketDebtId = bound({ x: marketDebtId, min: INITIAL_MARKET_DEBT_ID, max: FINAL_MARKET_DEBT_ID });
+
+        uint256[2] memory marketsDebtIdsRange;
+        marketsDebtIdsRange[0] = marketDebtId;
+        marketsDebtIdsRange[1] = marketDebtId;
+
+        MarketDebtConfig[] memory filteredMarketsConfig = getFilteredMarketsDebtConfig(marketsDebtIdsRange);
 
         return filteredMarketsConfig[0];
     }

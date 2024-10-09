@@ -85,7 +85,9 @@ library MarketDebt {
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale
+        uint128 autoDeleveragePowerScale,
+        uint128 marketShare,
+        uint128 feeRecipientsShare
     )
         internal
     {
@@ -95,6 +97,8 @@ library MarketDebt {
         self.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         self.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
         self.autoDeleveragePowerScale = autoDeleveragePowerScale;
+        self.marketShare = marketShare;
+        self.feeRecipientsShare = feeRecipientsShare;
     }
 
     /// @notice Computes the auto delevarage factor of the market based on the market's credit capacity, total debt
