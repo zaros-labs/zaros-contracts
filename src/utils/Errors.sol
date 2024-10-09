@@ -172,10 +172,12 @@ library Errors {
     /// @notice Thrown when the given `marketId` has no vaults delegating credit to it. This error must be unreachable
     /// and treated as a panic state.
     error NoConnectedVaults(uint128 marketId);
-    /// @notice Thrown when trying to realize debt but the market doesn't have enough credit capacity left. If the ADL
-    /// handling is working properly, this error should be unreachable.
-    error InsufficientCreditCapacity(uint128 marketId, uint256 requestedDebt);
-    /// @notice Thrown when updating the debt state of a market with no delegated credit.
+    /// @notice Thrown when trying to realize debt but the market has a credit capacity <= 0. The ADL
+    /// system and LP's collateral risk parameters are built to prevent this error from being thrown.
+    error InsufficientCreditCapacity(uint128 marketId, int256 creditCapacityUsd);
+    /// @notice Thrown when trying to distribute value to an empty vaults debt distribution.
+    /// NOTE: This error must be unreachable as the system enforces market to have a minimum delegated credit through
+    /// Vault.Data.lockedCreditRatio.
     error NoDelegatedCredit(uint128 marketId);
 
     /// @notice MarketMakingEngine.Collateral errors.

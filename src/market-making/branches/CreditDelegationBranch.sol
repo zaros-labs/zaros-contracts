@@ -6,9 +6,9 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { USDToken } from "@zaros/usd/USDToken.sol";
 // import { CreditDelegation } from "@zaros/market-making/leaves/CreditDelegation.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
-import { MarketDebt } from "@zaros/market-making/leaves/MarketDebt.sol";
+import { Market } from "@zaros/market-making/leaves/Market.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
-import { SystemDebt } from "@zaros/market-making/leaves/SystemDebt.sol";
+// import { SystemDebt } from "@zaros/market-making/leaves/SystemDebt.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
 // Open Zeppelin dependencies
@@ -17,14 +17,15 @@ import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
+import { SD59x18, ZERO as SD59x18_ZERO, sd59x18, unary } from "@prb-math/SD59x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USDz
 contract CreditDelegationBranch {
     using Collateral for Collateral.Data;
-    using MarketDebt for MarketDebt.Data;
+    using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeCast for uint256;
+    using SafeCast for int256;
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -46,11 +47,11 @@ contract CreditDelegationBranch {
     /// @param requestedUsdzAmount The requested amount of USDz to minted.
     /// @param mintedUsdzAmount The actual amount of USDz minted, potentially factored by the market's auto deleverage
     /// system.
-    event LogRequestUsdzForMarket(
+    event LogWithdrawUsdzFromMarket(
         address indexed engine, uint128 indexed marketId, uint256 requestedUsdzAmount, uint256 mintedUsdzAmount
     );
 
-    // TODO: check if `msg.sender` is registered
+    /// @notice Verifies if the caller is a registered engine.
     modifier onlyRegisteredEngine() {
         // load market making engine configuration and the perps engine address
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
@@ -69,26 +70,31 @@ contract CreditDelegationBranch {
                                    VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Returns the credit delegation state of the given market id.
+    /// @notice Returns the credit capacity of the given market id.
     /// @dev `CreditDelegationBranch::updateCreditDelegation` must be called before calling this function in order to
     /// retrieve the latest state.
-    /// @dev Each engine can implement its own credit schema according to its business logic, thus, this function will
-    /// return the credit delegation state as an abi encoded byte array.
+    /// @dev Each engine can implement its own debt accounting schema according to its business logic, thus, this
+    /// function will simply return the credit capacity in USD for the given market id.
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
+    // TODO: add invariants
     function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18 creditCapacityUsdX18) {
-        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+        Market.Data storage market = Market.load(marketId);
 
-        return marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit());
+        return Market.getCreditCapacityUsd(
+            market.getTotalDelegatedCreditUsd(), market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd())
+        );
     }
 
     /// @notice Returns the adjusted profit of an active position at the given market id, considering the market's ADL
     /// state.
     /// @dev If the market is in its default state, it will simply return the provided profit. Otherwise, it will
     /// adjust based on the configured ADL parameters.
+    /// @dev TODO: If we always take the unrealized debt as part of the total debt, we assume `profitUsd` is part of
+    /// it. Otherwise we need to update this logic.
     /// @param marketId The engine's market id.
     /// @param profitUsd The position's profit in USD.
-    /// @return adjustedProfitUsdX18 The adjusted profit in USDz, according to the market's state.
+    /// @return adjustedProfitUsdX18 The adjusted profit in USDz, according to the market's health.
     // TODO: add invariants
     function getAdjustedProfitForMarketId(
         uint128 marketId,
@@ -98,29 +104,38 @@ contract CreditDelegationBranch {
         view
         returns (UD60x18 adjustedProfitUsdX18)
     {
-        // load the market's debt data storage pointer
-        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+        // load the market's data storage pointer
+        Market.Data storage market = Market.load(marketId);
         // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = marketDebt.getTotalDebt();
+        SD59x18 marketTotalDebtUsdX18 = market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd());
         // uint256 -> UD60x18
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
+        // caches the market's credit capacity
+        SD59x18 creditCapacityUsdX18 =
+            Market.getCreditCapacityUsd(market.getTotalDelegatedCreditUsd(), marketTotalDebtUsdX18);
+
+        // if the credit capacity is less than or equal to zero, it means the total debt has already taken all the
+        // delegated credit
+        if (creditCapacityUsdX18.lte(SD59x18_ZERO)) {
+            revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
+        }
+
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
         // NOTE: If we don't return the adjusted profit in this if branch, we assume marketTotalDebtUsdX18 is positive
-        if (!marketDebt.isAutoDeleverageTriggered(marketTotalDebtUsdX18)) {
+        if (!market.isAutoDeleverageTriggered(marketTotalDebtUsdX18)) {
             // if the market is not in the ADL state, it returns the profit as is
             adjustedProfitUsdX18 = profitUsdX18;
             return adjustedProfitUsdX18;
         }
 
         // if the market's auto deleverage system is triggered, it assumes marketTotalDebtUsdX18 > 0
-        adjustedProfitUsdX18 = marketDebt.getAutoDeleverageFactor(
-            marketDebt.getCreditCapacity(marketDebt.getDelegatedCredit()), marketTotalDebtUsdX18
-        ).mul(profitUsdX18);
+        adjustedProfitUsdX18 =
+            market.getAutoDeleverageFactor(creditCapacityUsdX18, marketTotalDebtUsdX18).mul(profitUsdX18);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                  PERPS ENGINE ONLY PROTECTED FUNCTIONS
+                                REGISTERED ENGINE ONLY PROTECTED FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
     /// @notice Adds credit in form of a registered collateral type to the given market id.
     /// @dev Engines call this function to send collateral collected from their users and increase their credit
@@ -134,10 +149,10 @@ contract CreditDelegationBranch {
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of collateral to receive.
     /// @dev Invariants involved in the call:
-    ///     * marketDebt.getDelegatedCredit() > 0
+    ///     * market.getTotalDelegatedCreditUsd() > 0
     ///     * ERC20(collateralType).allowance(perpsEngine, marketMakingEngine) >= amount
     ///     * ERC20(collateralType).balanceOf(perpsEngine) >= amount
-    ///     * marketDebt.collectedMarginCollateral.get(collateralType) ==  ∑convertTokenAmountToUd60x18(amount)
+    ///     * market.collectedMarginCollateral.get(collateralType) ==  ∑convertTokenAmountToUd60x18(amount)
     ///     * ERC20(collateralType).balanceOf(marketMakingEngine) == ∑amount
     function depositCreditForMarket(
         uint128 marketId,
@@ -154,29 +169,29 @@ contract CreditDelegationBranch {
         // reverts if collateral isn't supported
         collateral.verifyIsEnabled();
 
-        // loads the market's debt data storage pointer
-        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+        // loads the market's data storage pointer
+        Market.Data storage market = Market.load(marketId);
 
-        // enforces that the market has enough credit capacity, if it' a listed market it must always have some
-        // delegated credit, see Vault.Data.lockedCreditRatio.
-        // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
-        // capacity to cover USDz mint requests. Deleverage happens when the perps engine calls
-        // CreditDelegationBranch::getAdjustedProfitForMarketId
-        if (marketDebt.getDelegatedCredit().isZero()) {
+        // ensures that the market has delegated credit, so the engine is not depositing credit to an empty
+        // distribution (with 0 total shares), although this should never happen if the system functions properly.
+        if (market.getTotalDelegatedCreditUsd().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
         // uint256 -> UD60x18 and scale decimals to 18
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
-        // adds the collected margin collateral to the market's debt data storage, to be settled later
-        marketDebt.addMarginCollateral(collateralType, amount);
+        // caches the usdz address
+        address usdz = MarketMakingEngineConfiguration.load().usdz;
 
-        // calculates the usd value of margin collateral received
-        UD60x18 receivedValueUsdX18 = collateral.getPrice().mul(amountX18);
-
-        // realizes the received margin collateral usd value as added credit
-        marketDebt.realizeDebt(unary(receivedValueUsdX18.intoSD59x18()));
+        if (collateralType == usdz) {
+            // if the deposited collateral is USDz, it reduces the market's realized debt
+            market.realizedUsdzDebt -= amountX18.intoSD59x18().intoInt256().toInt128();
+        } else {
+            // deposits the received collateral to the market to be distributed to vaults, and then settled in the
+            // future
+            market.depositCollateral(collateralType, amountX18);
+        }
 
         // transfers the margin collateral asset from the perps engine to the market making engine
         // NOTE: The engine must approve the market making engine to transfer the margin collateral asset, see
@@ -190,55 +205,72 @@ contract CreditDelegationBranch {
     /// @notice Mints the requested amount of USDz to the caller and updates the market's
     /// debt state.
     /// @dev Called by a registered engine to mint USDz to profitable traders.
-    /// @dev USDz association with a trading account happens at the engine level.
-    /// @dev This function assumes the perps engine won't call it with a zero amount.
-    /// @dev Effects must be performed at the perps engine beforehand, otherwise this function will assume an invalid
-    /// total debt value.
+    /// @dev USDz association with an engine's user happens at the engine contract level.
+    /// @dev We assume `amount` is part of the market's reported unrealized debt.
     /// @param marketId The engine's market id requesting USDz.
     /// @param amount The amount of USDz to mint.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function requestUsdzForMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine {
-        // loads the market's debt data storage pointer
-        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
-
-        // we need to first recalculate the latest credit delegation state
-        marketDebt.recalculateDelegatedCredit();
+    function withdrawUsdzFromMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine {
+        // loads the market's data storage pointer
+        Market.Data storage market = Market.load(marketId);
+        // caches the market's unrealized debt
+        SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
+        // caches the market's realized debt
+        SD59x18 realizedDebtUsdX18 = market.getRealizedDebtUsd();
 
         // uint256 -> UD60x18
         // NOTE: we don't need to scale decimals here as it's known that USDz has 18 decimals
         UD60x18 amountX18 = ud60x18(amount);
-        // cache the market's delegated credit
-        UD60x18 delegatedCreditUsdX18 = marketDebt.getDelegatedCredit();
+
+        // load the market's connected vaults ids and `mstore` them
+        // TODO: is it more gas efficient if we pass the market id to the next function and load each vault at its
+        // loop?
+        uint256[] memory connectedVaultsIds = market.getConnectedVaultsIds();
+
+        // distributes the up to date unrealized and realized debt values to the market's connected vaults
+        market.distributeDebtToVaults(unrealizedDebtUsdX18, realizedDebtUsdX18);
+
+        // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
+        // market
+        Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
+
+        // cache the market's total debt
+        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
+
+        // cache the market's credit capacity
+        SD59x18 creditCapacityUsdX18 =
+            Market.getCreditCapacityUsd(market.getTotalDelegatedCreditUsd(), marketTotalDebtUsdX18);
 
         // enforces that the market has enough credit capacity, if it' a listed market it must always have some
         // delegated credit, see Vault.Data.lockedCreditRatio.
         // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
         // capacity to cover USDz mint requests. Deleverage happens when the perps engine calls
-        // CreditDelegationBranch::getAdjustedProfitForMarketId
-        if (marketDebt.getCreditCapacity(delegatedCreditUsdX18).lt(amountX18.intoSD59x18())) {
-            revert Errors.InsufficientCreditCapacity(marketId, amountX18.intoUint256());
+        // CreditDelegationBranch::getAdjustedProfitForMarketId.
+        // NOTE: however, it still is possible to fall into a scenario where the credit capacity is <= 0, as the
+        // delegated credit may be provided in form of volatile collateral assets, which could go down in value as
+        // debt reaches its ceiling. In that case, the market will run out of mintable USDz and the mm engine must
+        // settle all outstanding debt for USDC, in order to keep previously paid USDz fully backed.
+        if (creditCapacityUsdX18.lt(SD59x18_ZERO)) {
+            revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
 
         // prepare the amount of usdz that will be minted to the perps engine
         uint256 amountToMint;
-        // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = marketDebt.getTotalDebt();
 
         // now we realize the added usd debt of the market
         // note: USDz is assumed to be 1:1 with the system's usd accounting
-        if (marketDebt.isAutoDeleverageTriggered(marketTotalDebtUsdX18.add(amountX18.intoSD59x18()))) {
+        if (market.isAutoDeleverageTriggered(marketTotalDebtUsdX18.add(amountX18.intoSD59x18()))) {
             // if the market is in the ADL state, it reduces the requested USDz amount by multiplying it by the ADL
             // factor, which must be < 1
-            UD60x18 adjustedUsdzToMintX18 = marketDebt.getAutoDeleverageFactor(
-                marketDebt.getCreditCapacity(delegatedCreditUsdX18), marketTotalDebtUsdX18
-            ).mul(amountX18);
+            UD60x18 adjustedUsdzToMintX18 =
+                market.getAutoDeleverageFactor(creditCapacityUsdX18, marketTotalDebtUsdX18).mul(amountX18);
             amountToMint = adjustedUsdzToMintX18.intoUint256();
-            marketDebt.realizeDebt(adjustedUsdzToMintX18.intoSD59x18());
+            market.realizeUsdTokenDebt(adjustedUsdzToMintX18.intoSD59x18());
         } else {
             // if the market is not in the ADL state, it realizes the full requested USDz amount
             amountToMint = amountX18.intoUint256();
-            marketDebt.realizeDebt(amountX18.intoSD59x18());
+            market.realizeUsdTokenDebt(amountX18.intoSD59x18());
         }
 
         // loads the market making engine configuration storage pointer
@@ -251,7 +283,7 @@ contract CreditDelegationBranch {
         usdz.mint(msg.sender, amountToMint);
 
         // emit an event
-        emit LogRequestUsdzForMarket(msg.sender, marketId, amount, amountToMint);
+        emit LogWithdrawUsdzFromMarket(msg.sender, marketId, amount, amountToMint);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -281,7 +313,7 @@ contract CreditDelegationBranch {
     /// credit to `n` markets, configured by the protocol admin.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    // TODO: update credit delegation and debt distribution chain
+    // TODO: update credit delegation and debt distribution
     // TODO: how to account for collected margin collateral's fluctuation in value?
     function updateCreditDelegation() public { }
 
@@ -291,7 +323,7 @@ contract CreditDelegationBranch {
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
     /// TODO: add invariants
-    function updateCreditDelegationAndReturnCreditForMarketId(uint128 marketId)
+    function updateCreditDelegationAndReturnCreditForMarket(uint128 marketId)
         external
         returns (SD59x18 creditCapacityUsdX18)
     {

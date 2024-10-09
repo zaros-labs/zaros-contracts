@@ -6,6 +6,7 @@ library CreditDelegation {
     bytes32 internal constant CREDIT_DELEGATION_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.CreditDelegation")) - 1));
 
+    // TODO: apply max debt per share to market debt calculation
     struct Data {
         uint128 vaultId;
         uint128 marketId;
