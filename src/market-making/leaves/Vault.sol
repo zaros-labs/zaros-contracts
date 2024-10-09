@@ -54,6 +54,7 @@ library Vault {
     /// earned per share.
     /// @param connectedMarkets The list of connected market ids. Whenever there's an update, a new
     /// `EnumerableSet.UintSet` is created.
+    // TODO: update natspec here and connect a vault to an engine.
     struct Data {
         uint128 vaultId;
         uint128 totalDeposited;
@@ -65,6 +66,7 @@ library Vault {
         int128 unsettledRealizedDebtUsd;
         int128 settledRealizedDebtUsd;
         address indexToken;
+        address connectedEngine;
         Collateral.Data collateral;
         Distribution.Data stakingFeeDistribution;
         EnumerableSet.UintSet[] connectedMarkets;
