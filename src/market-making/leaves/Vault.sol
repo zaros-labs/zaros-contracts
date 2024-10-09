@@ -109,14 +109,16 @@ library Vault {
                 uint128 connectedMarketId = self.connectedMarkets[j].toUint128();
                 Market.Data storage market = Market.load(connectedMarketId);
 
-                // TODO: come back here and define if we need two distributions for unrealized vs realized debt or one single distribution.
-                // TODO: add distribution last timestamp or last value to determine whether a debt distribution is required or not.
+                // TODO: come back here and define if we need two distributions for unrealized vs realized debt or one
+                // single distribution.
+                // TODO: add distribution last timestamp or last value to determine whether a debt distribution is
+                // required or not.
                 if (market.isDistributionRequired()) {
                     SD59x18 marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
                     SD59x18 marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
 
                     market.distributeDebtToVaults(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
-                    self.unsettledRealizedDebtUsd
+                    // self.unsettledRealizedDebtUsd
                 }
 
                 // we must always recalculate the credit capacity before updating a vault's credit delegation

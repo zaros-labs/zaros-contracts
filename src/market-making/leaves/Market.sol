@@ -62,7 +62,8 @@ library Market {
         int128 lastDistributedUnrealizedDebtUsd;
         EnumerableSet.AddressSet depositedCollateralTypes;
         EnumerableSet.UintSet[] connectedVaultsIds;
-        Distribution.Data vaultsDebtDistribution;
+        Distribution.Data vaultsUnrealizedDebtDistribution;
+        Distribution.Data vaultsRealizedDebtDistribution;
     }
 
     /// @notice Loads a {Market} namespace.
@@ -152,14 +153,13 @@ library Market {
 
     function getCreditCapacityUsd(
         UD60x18 delegatedCreditUsdX18,
-        SD59x18 unrealizedDebtUsdX18,
-        SD59x18 realizedDebtUsdX18
+        SD59x18 totalDebtUsdX18
     )
         internal
         view
         returns (SD59x18 creditCapacityUsdX18)
     {
-        creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(unrealizedDebtUsdX18).add(realizedDebtUsdX18);
+        creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(totalDebtUsdX18);
     }
 
     function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCreditUsdX18) {
@@ -193,8 +193,8 @@ library Market {
         creditDeposit.add(amountX18);
     }
 
-    // TODO: after this function is called we need to update a vault's realized unsettled debt
-    // todo: update realized debt usd logic
+    // TODO: can we optimize by having a single distribution and then just calculating based on the total unrealized
+    // or realized debt how much is a vault's unrealized or realized debt?
     function distributeDebtToVaults(
         Data storage self,
         SD59x18 newUnrealizedDebtUsdX18,
@@ -207,28 +207,24 @@ library Market {
         // int128 -> SD59x18
         SD59x18 lastDistributedRealizedDebtUsdX18 = sd59x18(self.lastDistributedRealizedDebtUsd);
 
-        // caches the new realized debt value to be stored
-        int128 newRealizedDebtUsd = sd59x18(self.realizedUsdzDebt).add(debtToRealizeUsdX18).intoInt256().toInt128();
-
         // update storage values
-        self.realizedUsdzDebt = newRealizedDebtUsd;
-        self.lastDistributedRealizedDebtUsd = newRealizedDebtUsd;
+        self.lastDistributedRealizedDebtUsd = newRealizedDebtUsdX18.intoInt256().toInt128();
         self.lastDistributedUnrealizedDebtUsd = newUnrealizedDebtUsdX18.intoInt256().toInt128();
 
-        // loads the vaults debt distribution storage pointer
-        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
+        // loads the vaults unrealized debt distribution storage pointer
+        Distribution.Data storage vaultsUnrealizedDebtDistribution = self.vaultsUnrealizedDebtDistribution;
+        // loads the vaults realized debt distribution storage pointer
+        Distribution.Data storage vaultsRealizedDebtDistribution = self.vaultsRealizedDebtDistribution;
 
-        // The debt to be distributed takes into account the diff between the last and the new unrealized debt, and
-        // sums with the diff between the last and new realized debt, taking into account the additional debt that is
-        // being realized in the current execution context.
-        SD59x18 distributedDebtUsdX18 = newUnrealizedDebtUsdX18.sub(lastDistributedUnrealizedDebtUsdX18).add(
-            sd59x18(newRealizedDebtUsd).sub(lastDistributedRealizedDebtUsdX18)
-        );
+        // The debt to be distributed takes into account the delta between the last and the new debt values
+        SD59x18 unrealizedDebtToDistribute = newUnrealizedDebtUsdX18.sub(lastDistributedUnrealizedDebtUsdX18);
+        SD59x18 realizedDebtToDistribute = newRealizedDebtUsdX18.sub(lastDistributedRealizedDebtUsdX18);
 
-        // distributes debt as value to the vaults debt distribution
-        // NOTE: distributed debt must be further pushed down the debt distribution system in order to keep the
-        // system accounting valid.
-        vaultsDebtDistribution.distributeValue(distributedDebtUsdX18);
+        // distributes debt as value to each vaults debt distribution
+        // NOTE: Each vault will need to call `Distribution::accumulateActor` in order to update its owned debt or
+        // credit.
+        vaultsUnrealizedDebtDistribution.distributeValue(unrealizedDebtToDistribute);
+        vaultsRealizedDebtDistribution.distributeValue(realizedDebtToDistribute);
     }
 
     /// @notice Adds the minted usdz or the margin collateral collected from traders into the stored realized debt.

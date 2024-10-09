@@ -82,7 +82,7 @@ contract CreditDelegationBranch {
         Market.Data storage market = Market.load(marketId);
 
         return Market.getCreditCapacityUsd(
-            market.getDelegatedCredit(), market.getUnrealizedDebtUsd(), market.getRealizedDebtUsd()
+            market.getDelegatedCredit(), market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd())
         );
     }
 
@@ -106,23 +106,13 @@ contract CreditDelegationBranch {
     {
         // load the market's data storage pointer
         Market.Data storage market = Market.load(marketId);
-        // cache the market's unrealized debt
-        // TODO: determine whether or not we trust the market's unrealized debt to take part of the following
-        // calculations. Remember that a malicious engine could report a false unrealized debt to manipulate the
-        // system, e.g a large fake credit.
-        // NOTE: Worst case if too tricky we can assume this value is trusted and we review the engine's
-        // implementation.
-        SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
-        // cache the market's realized debt
-        SD59x18 realizedDebtUsdX18 = market.getRealizedDebtUsd();
         // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
+        SD59x18 marketTotalDebtUsdX18 = market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd());
         // uint256 -> UD60x18
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
         // caches the market's credit capacity
-        SD59x18 creditCapacityUsdX18 =
-            Market.getCreditCapacityUsd(market.getDelegatedCredit(), unrealizedDebtUsdX18, realizedDebtUsdX18);
+        SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(market.getDelegatedCredit(), marketTotalDebtUsdX18);
 
         // if the credit capacity is less than or equal to zero, it means the total debt has already taken all the
         // delegated credit
@@ -215,8 +205,7 @@ contract CreditDelegationBranch {
     /// debt state.
     /// @dev Called by a registered engine to mint USDz to profitable traders.
     /// @dev USDz association with an engine's user happens at the engine contract level.
-    /// @dev TODO: If we always take the unrealized debt as part of the total debt, we assume `amount` is part of it.
-    /// Otherwise we need to update this logic.
+    /// @dev We assume `amount` is part of the market's reported unrealized debt.
     /// @param marketId The engine's market id requesting USDz.
     /// @param amount The amount of USDz to mint.
     /// @dev Invariants involved in the call:
@@ -224,11 +213,7 @@ contract CreditDelegationBranch {
     function withdrawUsdzFromMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine {
         // loads the market's data storage pointer
         Market.Data storage market = Market.load(marketId);
-
         // caches the market's unrealized debt
-        // TODO: define whether we take into account credit or not, potential attack vector
-        // NOTE: Worst case if too tricky we can assume this value is trusted and we review the engine's
-        // implementation.
         SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
         // caches the market's realized debt
         SD59x18 realizedDebtUsdX18 = market.getRealizedDebtUsd();
@@ -242,20 +227,18 @@ contract CreditDelegationBranch {
         // loop?
         uint256[] memory connectedVaultsIds = market.getConnectedVaultsIds();
 
-        // distributes outstanding unrealized debt + the requested usdz amount as debt to be realized to the connected
-        // vaults
-        // TODO: we need to update the realized debt and probably switch the data structure to a mapping of assets to
-        // realized debt, as we need to sync the realized debt value in order to know the actual vault's unsettled
-        // realized debt value
-        market.distributeDebtToVaults(unrealizedDebtUsdX18, amountX18.intoSD59x18());
+        // distributes the up to date unrealized and realized debt values to the market's connected vaults
+        market.distributeDebtToVaults(unrealizedDebtUsdX18, realizedDebtUsdX18);
 
         // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
         // market
         Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
 
+        // cache the market's total debt
+        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
+
         // cache the market's credit capacity
-        SD59x18 creditCapacityUsdX18 =
-            Market.getCreditCapacityUsd(market.getDelegatedCredit(), unrealizedDebtUsdX18, realizedDebtUsdX18);
+        SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(market.getDelegatedCredit(), marketTotalDebtUsdX18);
 
         // enforces that the market has enough credit capacity, if it' a listed market it must always have some
         // delegated credit, see Vault.Data.lockedCreditRatio.
@@ -272,8 +255,6 @@ contract CreditDelegationBranch {
 
         // prepare the amount of usdz that will be minted to the perps engine
         uint256 amountToMint;
-        // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
 
         // now we realize the added usd debt of the market
         // note: USDz is assumed to be 1:1 with the system's usd accounting
