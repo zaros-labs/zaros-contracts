@@ -7,6 +7,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 
 contract CreatePerpMarket_Integration_Test is Base_Test {
     function setUp() public override {
@@ -442,7 +443,9 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    function test_WhenMaxFundingVelocityIsNotZero()
+    function testFuzz_WhenMaxFundingVelocityIsNotZero(
+        uint128 marketId
+    )
         external
         whenMarketIdIsNotZero
         whenLengthOfNameIsNotZero
@@ -457,12 +460,14 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: users.owner.account });
 
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
         SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         PerpsEngineConfigurationBranch.CreatePerpMarketParams memory params = PerpsEngineConfigurationBranch
             .CreatePerpMarketParams({
-            marketId: 1,
+            marketId: fuzzMarketConfig.marketId,
             name: "BTC/USD",
             symbol: "BTC",
             priceAdapter: address(0x20),
@@ -485,5 +490,11 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         // it should create perp market
         // it should enable perp market
         perpsEngine.createPerpMarket({ params: params });
+
+        PerpMarket.Data memory perpMarket = perpsEngine.exposed_PerpMarket_load(params.marketId);
+
+        assertEq(perpMarket.id, params.marketId, "perp market should be created");
+        assertEq(perpMarket.initialized, true, "perp market should be initialized");
+        assertEq(perpMarket.lastFundingTime, block.timestamp, "last funding time == block.timestamp");
     }
 }
