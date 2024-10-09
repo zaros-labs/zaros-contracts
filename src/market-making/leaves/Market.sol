@@ -50,7 +50,7 @@ library Market {
     /// @param connectedVaultsIds The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated, `valuePerShare`:
-    /// USD denominated debt per share.
+    /// USD denominated unerealized + realized debt per share.
     struct Data {
         address engine;
         uint128 marketId;
@@ -62,8 +62,7 @@ library Market {
         int128 lastDistributedUnrealizedDebtUsd;
         EnumerableSet.AddressSet depositedCollateralTypes;
         EnumerableSet.UintSet[] connectedVaultsIds;
-        Distribution.Data vaultsUnrealizedDebtDistribution;
-        Distribution.Data vaultsRealizedDebtDistribution;
+        Distribution.Data vaultsDebtDistribution;
     }
 
     /// @notice Loads a {Market} namespace.
@@ -162,7 +161,11 @@ library Market {
         creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(totalDebtUsdX18);
     }
 
-    function getDelegatedCredit(Data storage self) internal view returns (UD60x18 totalDelegatedCreditUsdX18) {
+    function getTotalDelegatedCreditUsd(Data storage self)
+        internal
+        view
+        returns (UD60x18 totalDelegatedCreditUsdX18)
+    {
         totalDelegatedCreditUsdX18 = ud60x18(self.vaultsDebtDistribution.totalShares);
     }
 
@@ -171,11 +174,30 @@ library Market {
     // TODO: iterate over each collateral deposit + realized usdz debt
     function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) { }
 
+    function getVaultDelegatedCreditUsd(
+        Data storage self,
+        uint128 vaultId
+    )
+        internal
+        view
+        returns (UD60x18 vaultDelegatedCreditUsdX18)
+    {
+        // loads the vaults debt distribution storage pointer
+        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
+        // uint128 -> bytes32
+        bytes32 actorId = bytes32(uint256(vaultId));
+
+        // gets the vault's delegated credit in USD as its distribution shares
+        vaultDelegatedCreditUsdX18 = vaultsDebtDistribution.getActorShares(actorId);
+    }
+
     function getUnrealizedDebtUsd(Data storage self) internal view returns (SD59x18 unrealizedDebtUsdX18) {
         unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.marketId));
     }
 
     function isAutoDeleverageTriggered(Data storage self, SD59x18 totalDebtUsdX18) internal view returns (bool) { }
+
+    function isDistributionRequired(Data storage self) internal view returns (bool) { }
 
     /// @notice Deposits collateral to the market as credit.
     /// @dev This function assumes the collateral type address is configured in the protocol and has been previously
@@ -193,14 +215,19 @@ library Market {
         creditDeposit.add(amountX18);
     }
 
-    // TODO: can we optimize by having a single distribution and then just calculating based on the total unrealized
-    // or realized debt how much is a vault's unrealized or realized debt?
+    /// @notice Distributes the market's unrealized and realized debt to the connected vaults.
+    /// @dev `Market::accumulateVaultDebt` must be called after this function to update the vault's owned unrealized
+    /// and realized credit or debt.
+    /// @param self The market storage pointer.
+    /// @param newUnrealizedDebtUsdX18 The latest unrealized debt in USD.
+    /// @param newRealizedDebtUsdX18 The latest realized debt in USD.
     function distributeDebtToVaults(
         Data storage self,
         SD59x18 newUnrealizedDebtUsdX18,
         SD59x18 newRealizedDebtUsdX18
     )
         internal
+        returns (SD59x18 unrealizedDebtChangeUsdX18, SD59x18 realizedDebtChangeUsdX18)
     {
         // int128 -> SD59x18
         SD59x18 lastDistributedUnrealizedDebtUsdX18 = sd59x18(self.lastDistributedUnrealizedDebtUsd);
@@ -211,26 +238,34 @@ library Market {
         self.lastDistributedRealizedDebtUsd = newRealizedDebtUsdX18.intoInt256().toInt128();
         self.lastDistributedUnrealizedDebtUsd = newUnrealizedDebtUsdX18.intoInt256().toInt128();
 
-        // loads the vaults unrealized debt distribution storage pointer
-        Distribution.Data storage vaultsUnrealizedDebtDistribution = self.vaultsUnrealizedDebtDistribution;
-        // loads the vaults realized debt distribution storage pointer
-        Distribution.Data storage vaultsRealizedDebtDistribution = self.vaultsRealizedDebtDistribution;
+        // loads the vaults debt distribution storage pointer
+        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
 
-        // The debt to be distributed takes into account the delta between the last and the new debt values
-        SD59x18 unrealizedDebtToDistribute = newUnrealizedDebtUsdX18.sub(lastDistributedUnrealizedDebtUsdX18);
-        SD59x18 realizedDebtToDistribute = newRealizedDebtUsdX18.sub(lastDistributedRealizedDebtUsdX18);
+        // stores the return values representing the unrealized and realized debt fluctuations
+        unrealizedDebtChangeUsdX18 = newUnrealizedDebtUsdX18.sub(lastDistributedUnrealizedDebtUsdX18);
+        realizedDebtChangeUsdX18 = newRealizedDebtUsdX18.sub(lastDistributedRealizedDebtUsdX18);
 
-        // distributes debt as value to each vaults debt distribution
+        // distributes the total debt as value to the vaults debt distribution
         // NOTE: Each vault will need to call `Distribution::accumulateActor` in order to update its owned debt or
-        // credit.
-        vaultsUnrealizedDebtDistribution.distributeValue(unrealizedDebtToDistribute);
-        vaultsRealizedDebtDistribution.distributeValue(realizedDebtToDistribute);
+        // credit, and use the return values from this function to segregate unrealized from realized debt.
+        vaultsDebtDistribution.distributeValue(unrealizedDebtChangeUsdX18.add(realizedDebtChangeUsdX18));
+    }
+
+    function accumulateVaultTotalDebt(uint128 vaultId) internal returns (SD59x18 totalDebtUsdX18) {
+        // loads the vaults debt distribution storage pointer
+        Distribution.Data storage vaultsDebtDistribution = market.vaultsDebtDistribution;
+
+        // uint128 -> bytes32
+        bytes32 actorId = bytes32(uint256(vaultId));
+
+        // accumulates the vault's debt in the distribution
+        totalDebtUsdX18 = vaultsDebtDistribution.accumulateActor(vaultId);
     }
 
     /// @notice Adds the minted usdz or the margin collateral collected from traders into the stored realized debt.
     /// @param self The market storage pointer.
     /// @param debtToRealizeUsdX18 The amount of debt to realize in USD.
-    function realizeDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
+    function realizeUsdTokenDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
         self.realizedUsdzDebt = sd59x18(self.realizedUsdzDebt).add(debtToRealizeUsdX18).intoInt256().toInt128();
     }
 

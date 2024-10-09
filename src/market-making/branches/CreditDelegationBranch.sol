@@ -82,7 +82,7 @@ contract CreditDelegationBranch {
         Market.Data storage market = Market.load(marketId);
 
         return Market.getCreditCapacityUsd(
-            market.getDelegatedCredit(), market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd())
+            market.getTotalDelegatedCreditUsd(), market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd())
         );
     }
 
@@ -112,7 +112,8 @@ contract CreditDelegationBranch {
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
         // caches the market's credit capacity
-        SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(market.getDelegatedCredit(), marketTotalDebtUsdX18);
+        SD59x18 creditCapacityUsdX18 =
+            Market.getCreditCapacityUsd(market.getTotalDelegatedCreditUsd(), marketTotalDebtUsdX18);
 
         // if the credit capacity is less than or equal to zero, it means the total debt has already taken all the
         // delegated credit
@@ -148,7 +149,7 @@ contract CreditDelegationBranch {
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of collateral to receive.
     /// @dev Invariants involved in the call:
-    ///     * market.getDelegatedCredit() > 0
+    ///     * market.getTotalDelegatedCreditUsd() > 0
     ///     * ERC20(collateralType).allowance(perpsEngine, marketMakingEngine) >= amount
     ///     * ERC20(collateralType).balanceOf(perpsEngine) >= amount
     ///     * market.collectedMarginCollateral.get(collateralType) ==  ∑convertTokenAmountToUd60x18(amount)
@@ -173,7 +174,7 @@ contract CreditDelegationBranch {
 
         // ensures that the market has delegated credit, so the engine is not depositing credit to an empty
         // distribution (with 0 total shares), although this should never happen if the system functions properly.
-        if (market.getDelegatedCredit().isZero()) {
+        if (market.getTotalDelegatedCreditUsd().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
@@ -238,7 +239,8 @@ contract CreditDelegationBranch {
         SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
 
         // cache the market's credit capacity
-        SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(market.getDelegatedCredit(), marketTotalDebtUsdX18);
+        SD59x18 creditCapacityUsdX18 =
+            Market.getCreditCapacityUsd(market.getTotalDelegatedCreditUsd(), marketTotalDebtUsdX18);
 
         // enforces that the market has enough credit capacity, if it' a listed market it must always have some
         // delegated credit, see Vault.Data.lockedCreditRatio.
@@ -264,11 +266,11 @@ contract CreditDelegationBranch {
             UD60x18 adjustedUsdzToMintX18 =
                 market.getAutoDeleverageFactor(creditCapacityUsdX18, marketTotalDebtUsdX18).mul(amountX18);
             amountToMint = adjustedUsdzToMintX18.intoUint256();
-            market.realizeDebt(adjustedUsdzToMintX18.intoSD59x18());
+            market.realizeUsdTokenDebt(adjustedUsdzToMintX18.intoSD59x18());
         } else {
             // if the market is not in the ADL state, it realizes the full requested USDz amount
             amountToMint = amountX18.intoUint256();
-            market.realizeDebt(amountX18.intoSD59x18());
+            market.realizeUsdTokenDebt(amountX18.intoSD59x18());
         }
 
         // loads the market making engine configuration storage pointer
