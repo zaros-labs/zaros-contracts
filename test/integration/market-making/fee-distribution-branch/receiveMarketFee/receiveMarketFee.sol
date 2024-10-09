@@ -28,21 +28,22 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheMarketDoesNotExist(
-        uint256 marketDebtId,
-        uint256 amount
-    )
-        external
-        givenTheSenderIsRegisteredEngine
-    {
+    function test_RevertWhen_TheMarketDoesNotExist(uint256 amount) external givenTheSenderIsRegisteredEngine {
         changePrank({ msgSender: address(perpsEngine) });
 
-        MarketDebtConfig memory marketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+        uint128 invalidMarketDebtId = FINAL_MARKET_DEBT_ID + 1;
 
-        // // it should revert
-        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector, uint128(marketId))
-        // });
-        // marketMakingEngine.receiveMarketFee(uint128(marketId), address(usdc), amount);
+        amount = bound({
+            x: amount,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector, invalidMarketDebtId) });
+
+        marketMakingEngine.receiveMarketFee(invalidMarketDebtId, address(usdc), amount);
     }
 
     modifier whenTheMarketExist() {

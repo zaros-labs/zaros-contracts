@@ -234,7 +234,11 @@ library MarketDebt {
     /// @param asset The asset address
     /// @param amountX18 The amount to be incremented
     function incrementReceivedMarketFees(Data storage self, address asset, UD60x18 amountX18) internal {
-        UD60x18 newAmount = amountX18.add(ud60x18(self.receivedMarketFees.get(asset)));
+        UD60x18 newAmount;
+
+        if (self.receivedMarketFees.contains(asset)) {
+            newAmount = amountX18.add(ud60x18(self.receivedMarketFees.get(asset)));
+        }
 
         self.receivedMarketFees.set(asset, newAmount.intoUint256());
     }

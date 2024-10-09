@@ -342,6 +342,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 spender: address(marketMakingEngine),
                 value: uMAX_UD60x18
             });
+
+            changePrank({ msgSender: address(perpsEngine) });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
+                value: uMAX_UD60x18
+            });
         }
 
         changePrank({ msgSender: users.owner.account });

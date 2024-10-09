@@ -230,7 +230,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Configure market debt on Market Making Engine
     /// @dev Only owner can call this functions
-    /// @param marketId The perps engine's market id.
+    /// @param marketId The market id.
     /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
     /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
     /// @param autoDeleveragePowerScale The auto deleverage power scale.
@@ -271,6 +271,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
         // update market debt data
+        marketDebt.marketId = marketId;
         marketDebt.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         marketDebt.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
         marketDebt.autoDeleveragePowerScale = autoDeleveragePowerScale;
