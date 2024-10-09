@@ -238,6 +238,8 @@ library MarketDebt {
 
         if (self.receivedMarketFees.contains(asset)) {
             newAmount = amountX18.add(ud60x18(self.receivedMarketFees.get(asset)));
+        } else {
+            newAmount = amountX18;
         }
 
         self.receivedMarketFees.set(asset, newAmount.intoUint256());

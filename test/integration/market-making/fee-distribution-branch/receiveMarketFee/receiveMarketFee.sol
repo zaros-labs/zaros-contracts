@@ -6,8 +6,8 @@ import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 
-// Openzeppelin dependencies
-import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract ReceiveMarketFee_Integration_Test is Base_Test {
     function setUp() public virtual override {
@@ -93,25 +93,39 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     }
 
     function test_WhenTheAssetIsEnabled(
-        uint256 amountToReceive
+        uint256 marketDebtId,
+        uint256 amount
     )
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
         whenTheAmountIsNotZero
     {
-        // amountToReceive =
-        //     bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
+        changePrank({ msgSender: address(perpsEngine) });
 
-        // deal(address(wEth), address(perpsEngine), amountToReceive);
-        // IERC20(address(wEth)).approve(address(marketMakingEngine), amountToReceive);
+        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
 
-        // it should emit event { LogReceiveMarketFee }
-        // vm.expectEmit();
-        // emit FeeDistributionBranch.LogReceiveMarketFee(address(wEth), amountToReceive);
+        amount = bound({
+            x: amount,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
 
-        // // it should receive tokens
-        // marketMakingEngine.receiveMarketFee(INITIAL_MARKET_DEBT_ID, address(wEth), amountToReceive);
-        // assertEq(IERC20(address(wEth)).balanceOf(address(marketMakingEngine)), amountToReceive);
+        // it should emit {LogReceiveMarketFee} event
+        vm.expectEmit({ emitter: address(marketMakingEngine) });
+        emit FeeDistributionBranch.LogReceiveMarketFee(address(usdc), fuzzMarketDebtConfig.marketDebtId, amount);
+
+        marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, address(usdc), amount);
+
+        // it should increment received market fee
+        uint256 receivedMarketFeeX18 =
+            marketMakingEngine.workaround_getReceivedMarketFees(fuzzMarketDebtConfig.marketDebtId, address(usdc));
+        UD60x18 amountX18 = convertTokenAmountToUd60x18(address(usdc), amount);
+        assertEq(amountX18.intoUint256(), receivedMarketFeeX18);
+
+        // it should transfer the fee to the contract
+        assertEq(usdc.balanceOf(address(marketMakingEngine)), amount);
+        assertEq(usdc.balanceOf(address(perpsEngine)), 0);
     }
 }

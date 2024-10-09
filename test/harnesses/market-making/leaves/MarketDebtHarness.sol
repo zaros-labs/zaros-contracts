@@ -41,4 +41,9 @@ contract MarketDebtHarness {
             vaults.add(connectedVaults[i]);
         }
     }
+
+    function workaround_getReceivedMarketFees(uint128 marketDebtId, address asset) external view returns (uint256) {
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketDebtId);
+        return marketDebt.receivedMarketFees.get(asset);
+    }
 }
