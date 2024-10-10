@@ -46,4 +46,9 @@ contract MarketDebtHarness {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketDebtId);
         return marketDebt.receivedMarketFees.get(asset);
     }
+
+    function workaround_setReceivedMarketFees(uint128 marketDebtId, address asset, uint256 amount) external {
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketDebtId);
+        marketDebt.receivedMarketFees.set(asset, amount);
+    }
 }

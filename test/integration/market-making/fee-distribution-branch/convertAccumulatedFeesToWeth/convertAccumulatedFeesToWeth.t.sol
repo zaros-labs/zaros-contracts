@@ -64,8 +64,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
     function testFuzz_RevertWhen_TheCollatealIsNotEnabled(
         uint256 marketDebtId,
-        uint128 dexSwapStrategyId,
-        address assetNotEnabled
+        uint128 dexSwapStrategyId
     )
         external
         givenTheSenderIsRegisteredEngine
@@ -74,6 +73,8 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         changePrank({ msgSender: address(perpsEngine) });
 
         MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+
+        address assetNotEnabled = address(0x123);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralDisabled.selector, address(0)) });
@@ -110,44 +111,33 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         );
     }
 
-    // function testFuzz_RevertGiven_TheCallerIsNotMarketMakingEngine(address user) external {
-    //     vm.assume(user != address(perpsEngine));
+    modifier whenTheMarketDebtHasTheAsset() {
+        _;
+    }
 
-    //     changePrank({ msgSender: user });
+    function testFuzz_RevertWhen_TheAmountIsZero(
+        uint256 marketDebtId,
+        uint128 dexSwapStrategyId
+    )
+        external
+        givenTheSenderIsRegisteredEngine
+        whenTheMarketExist
+        whenTheCollateralIsEnabled
+        whenTheMarketDebtHasTheAsset
+    {
+        changePrank({ msgSender: address(perpsEngine) });
 
-    //     // it should revert
-    //     vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, user) });
-    //     marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
-    // }
+        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
 
-    // modifier givenTheCallerIsMarketMakingEngine() {
-    //     _;
-    // }
+        marketMakingEngine.workaround_setReceivedMarketFees(fuzzMarketDebtConfig.marketDebtId, address(usdc), 0);
 
-    // function testFuzz_RevertWhen_MarketDoesNotExist(uint128 marketId) external givenTheCallerIsMarketMakingEngine {
-    //     // vm.assume(marketId != INITIAL_MARKET_DEBT_ID);
-    //     // // it should revert
-    //     // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
-    //     // marketMakingEngine.convertAccumulatedFeesToWeth(marketId, address(wBtc), 0);
-    // }
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.AssetAmountIsZero.selector, address(usdc)) });
 
-    // modifier whenMarketExist() {
-    //     _;
-    // }
-
-    // function test_RevertWhen_TheAmountIsZero() external givenTheCallerIsMarketMakingEngine whenMarketExist {
-    //     // it should revert
-    //     // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidAsset.selector) });
-    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdz), 0);
-    // }
-
-    // modifier whenTheAmountIsNotZero() {
-    //     _;
-    // }
-
-    // modifier whenTheAssetExists() {
-    //     _;
-    // }
+        marketMakingEngine.convertAccumulatedFeesToWeth(
+            fuzzMarketDebtConfig.marketDebtId, address(usdc), dexSwapStrategyId
+        );
+    }
 
     // function testFuzz_WhenTheAssetIsWeth(
     //     uint256 amountToReceive

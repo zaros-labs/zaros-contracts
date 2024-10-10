@@ -158,7 +158,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         UD60x18 assetAmountX18 = ud60x18(marketDebt.receivedMarketFees.get(asset));
 
         // reverts if the amount is zero
-        if (assetAmountX18.isZero()) revert Errors.ZeroInput("assetAmountX18");
+        if (assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
 
         // loads the dex swap strategy data storage pointer
         DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);

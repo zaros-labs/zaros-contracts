@@ -285,5 +285,10 @@ library Errors {
     error InvalidMarketShareAndFeeRecipientsShare(uint256 marketShare, uint256 feeRecipientsShare);
 
     /// @notice Thrown when the asset is not in the market debt
+    /// @param asset The asset that is not in the market debt
     error MarketDebtDoesNotContainTheAsset(address asset);
+
+    /// @notice Thrown when the asset amount is zero
+    /// @param asset The asset that has zero amount
+    error AssetAmountIsZero(address asset);
 }
