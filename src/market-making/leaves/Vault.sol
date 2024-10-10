@@ -32,6 +32,10 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 /// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd + settledRealizedDebtUsd
 /// @dev A swap adds `settledRealizedDebt` but subtracts `unsettledRealizedDebt`. The Vault earns a swap fee for the
 /// inconvenience, allocated as additional WETH staking rewards.2
+// todo: next, update natspec here then work on the new usd tokens system and finalize by implementing the missing
+// functions
+// todo: see if we different service leaves from repository (or something else) leaves.
+// Vault::recalculateVaultsCreditCapacity is a service function that should live in a service leaf.
 library Vault {
     using Collateral for Collateral.Data;
     using CreditDelegation for CreditDelegation.Data;
@@ -44,6 +48,7 @@ library Vault {
     bytes32 internal constant VAULT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Vault")) - 1));
 
+    /// @param id The vault identifier.
     /// @param totalDeposited The total amount of collateral assets deposited in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
@@ -166,7 +171,7 @@ library Vault {
     }
 
     /// @dev We use a `uint256` array because a market's connected vaults ids are stored at a `EnumerableSet.UintSet`.
-    // TODO: mby move the loops to its own functions for better composability / testability
+    // todo: benchmark worst, average and best case gas costs for this function
     function recalculateVaultsCreditCapacity(uint256[] memory vaultsIds) internal {
         for (uint256 i; i < vaultsIds.length; i++) {
             // uint256 -> uint128
