@@ -11,6 +11,9 @@ import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
+// Open Zeppelin dependencies
+import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
+
 /// @notice Uniswap V3 adapter contract
 contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /*//////////////////////////////////////////////////////////////////////////
@@ -62,6 +65,12 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @param swapData The swap data to perform the swap.
     /// @return amountOut The amount out returned.
     function executeSwapExactInputSingle(SwapCallData calldata swapData) external returns (uint256 amountOut) {
+        // transfer the tokenIn from the send to this contract
+        IERC20(swapData.tokenIn).transferFrom(msg.sender, address(this), swapData.amountIn);
+
+        // aprove the tokenIn to the swap router
+        IERC20(swapData.tokenIn).approve(UNISWAP_V3_SWAP_STRATEGY_ROUTER, swapData.amountIn);
+
         // instantiate the swap router
         ISwapRouter swapRouter = ISwapRouter(UNISWAP_V3_SWAP_STRATEGY_ROUTER);
 
