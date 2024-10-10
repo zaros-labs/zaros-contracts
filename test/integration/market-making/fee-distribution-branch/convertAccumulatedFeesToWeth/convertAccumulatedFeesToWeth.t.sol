@@ -62,7 +62,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheCollatealIsNotEnabled(
+    function testFuzz_RevertWhen_TheCollatealIsNotEnabled(
         uint256 marketDebtId,
         uint128 dexSwapStrategyId,
         address assetNotEnabled
@@ -80,6 +80,33 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
             fuzzMarketDebtConfig.marketDebtId, assetNotEnabled, dexSwapStrategyId
+        );
+    }
+
+    modifier whenTheCollateralIsEnabled() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_TheMarketDebtDoesntHaveTheAsset(
+        uint256 marketDebtId,
+        uint128 dexSwapStrategyId
+    )
+        external
+        givenTheSenderIsRegisteredEngine
+        whenTheMarketExist
+        whenTheCollateralIsEnabled
+    {
+        changePrank({ msgSender: address(perpsEngine) });
+
+        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.MarketDebtDoesNotContainTheAsset.selector, address(usdc))
+        });
+
+        marketMakingEngine.convertAccumulatedFeesToWeth(
+            fuzzMarketDebtConfig.marketDebtId, address(usdc), dexSwapStrategyId
         );
     }
 
