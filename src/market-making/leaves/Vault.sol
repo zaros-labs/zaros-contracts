@@ -34,6 +34,7 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 /// inconvenience, allocated as additional WETH staking rewards.2
 library Vault {
     using Collateral for Collateral.Data;
+    using CreditDelegation for CreditDelegation.Data;
     using EnumerableSet for EnumerableSet.UintSet;
     using Market for Market.Data;
     using SafeCast for uint256;
@@ -108,8 +109,8 @@ library Vault {
 
             // prepare to `mstore` the vault's total unrealized and realized debt changes coming from each connected
             // market
-            SD59x18 vaultUnrealizedDebtChangeUsdX18;
-            SD59x18 vaultRealizedDebtChangeUsdX18;
+            SD59x18 vaultTotalUnrealizedDebtChangeUsdX18;
+            SD59x18 vaultTotalRealizedDebtChangeUsdX18;
 
             // loads the connected markets storage pointer by taking the ast configured market ids uint set
             EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length];
@@ -125,42 +126,50 @@ library Vault {
                 uint128 connectedMarketId = connectedMarketsIdsCached[j];
                 Market.Data storage market = Market.load(connectedMarketId);
 
+                SD59x18 marketUnrealizedDebtUsdX18;
+                SD59x18 marketRealizedDebtUsdX18;
+
                 // if the market has already had its debt distributed at the current block, we skip it
                 if (market.isDistributionRequired()) {
                     // first we cache the market's unrealized and realized debt
-                    SD59x18 marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
-                    SD59x18 marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
+                    marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
+                    marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
 
                     // distribute the market's debt to its connected vaults
                     market.distributeDebtToVaults(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
                 }
-                // accumulate the vault's unrealized and realized debt changes since the last market to vaults debt
-                // distribution
-                (SD59x18 marketUnrealizedDebtChangeUsdX18, SD59x18 marketRealizedDebtChangeUsdX18) =
-                    market.accumulateVaultTotalDebt(vaultId);
 
-                // calculate the vault's share of the market's total delegated credit.
-                // NOTE: `div` rounds down by default, which would lead to a small loss in a credit state, but a
-                // small gain in a debt state. We assume this behavior to be negligible in the protocol's context
-                // since the diff is minimal and there are risk parameters ensuring debt settlement happens in a
-                // timely manner.
-                SD59x18 vaultCreditShareX18 =
-                    market.getVaultDelegatedCreditUsd(vaultId).div(market.getTotalDelegatedCreditUsd()).intoSD59x18();
+                // load the credit delegation to the given market id
+                CreditDelegation.Data storage creditDelegation = CreditDelegation.load(vaultId, connectedMarketId);
+
+                // accumulate the vault's associated debt change and returns the unrealized and realized debt changes
+                // since the last distribution
+                (SD59x18 unrealizedDebtChangeUsdX18, SD59x18 realizedDebtChangeUsdX18) = market.accumulateVaultDebt(
+                    vaultId,
+                    sd59x18(creditDelegation.lastVaultDistributedUnrealizedDebtUsd),
+                    sd59x18(creditDelegation.lastVaultDistributedRealizedDebtUsd)
+                );
+
+                if (unrealizedDebtChangeUsdX18.isZero() && realizedDebtChangeUsdX18.isZero()) {
+                    continue;
+                }
 
                 // add the vault's share of the market's unrealized and realized debt to the cached values which
                 // will update the vault's storage once this loop ends.
-                vaultUnrealizedDebtChangeUsdX18 =
-                    vaultUnrealizedDebtChangeUsdX18.add(marketUnrealizedDebtChangeUsdX18.mul(vaultCreditShareX18));
-                vaultRealizedDebtChangeUsdX18 =
-                    vaultRealizedDebtChangeUsdX18.add(marketRealizedDebtChangeUsdX18.mul(vaultCreditShareX18));
+                vaultTotalUnrealizedDebtChangeUsdX18 =
+                    vaultTotalUnrealizedDebtChangeUsdX18.add(unrealizedDebtChangeUsdX18);
+                vaultTotalRealizedDebtChangeUsdX18 = vaultTotalRealizedDebtChangeUsdX18.add(realizedDebtChangeUsdX18);
+
+                creditDelegation.updateVaultLastDistributedDebt(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
             }
 
             // updates the vault's stored unrealized debt distributed from markets
-            self.marketsUnrealizedDebtUsd =
-                sd59x18(self.marketsUnrealizedDebtUsd).add(vaultUnrealizedDebtChangeUsdX18).intoInt256().toInt128();
+            self.marketsUnrealizedDebtUsd = sd59x18(self.marketsUnrealizedDebtUsd).add(
+                vaultTotalUnrealizedDebtChangeUsdX18
+            ).intoInt256().toInt128();
             // updates the vault's stored unsettled realized debt distributed from markets
             self.unsettledRealizedDebtUsd =
-                sd59x18(self.unsettledRealizedDebtUsd).add(vaultRealizedDebtChangeUsdX18).intoInt256().toInt128();
+                sd59x18(self.unsettledRealizedDebtUsd).add(vaultTotalRealizedDebtChangeUsdX18).intoInt256().toInt128();
 
             // loop over each connected market id that has been cached once again in order to update this vault's
             // credit delegations
@@ -195,12 +204,4 @@ library Vault {
             }
         }
     }
-
-    /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
-    function updateVaultsUnsettledRealizedDebt(
-        uint256[] memory vaultsIds,
-        SD59x18 realizedDebtChangeUsdX18
-    )
-        internal
-    { }
 }

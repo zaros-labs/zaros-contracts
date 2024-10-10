@@ -49,12 +49,8 @@ library Market {
     /// market.
     /// @param connectedVaultsIds The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
-    /// @param vaultsUnrealizedDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
-    /// `valuePerShare`: USD denominated unerealized debt per share.
-    /// @param vaultsRealizedDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
-    /// `valuePerShare`: USD denominated realized debt per share.
-    // TODO: think about unifiying the vaults debt distribution to gain gas efficiency and code clarity
-    // NOTE: perhaps adapt or create another `Distribution` leaf to handle two or multi dimensional distributions?
+    /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
+    /// `valuePerShare`: USD denominated market debt or credit per share.
     struct Data {
         address engine;
         uint128 marketId;
@@ -257,26 +253,48 @@ library Market {
 
         // distributes the unrealized and realized debt as value to each vaults debt distribution
         // NOTE: Each vault will need to call `Distribution::accumulateActor` through
-        // `Market::accumulateVaultTotalDebt`, and use the return values from that function to update its owned
+        // `Market::accumulateVaultDebt`, and use the return values from that function to update its owned
         // unrealized and realized debt storage values.
         vaultsDebtDistribution.distributeValue(totalDebtUsdX18);
     }
 
     function accumulateVaultDebt(
         Data storage self,
-        uint128 vaultId
+        uint128 vaultId,
+        SD59x18 lastVaultDistributedUnrealizedDebtUsdX18,
+        SD59x18 lastVaultDistributedRealizedDebtUsdX18
     )
         internal
-        returns (SD59x18 totalDebtChangeUsdX18)
+        returns (SD59x18 unrealizedDebtChangeUsdX18, SD59x18 realizedDebtChangeUsdX18)
     {
         // loads the vaults unrealized debt distribution storage pointer
         Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
 
         // uint128 -> bytes32
         bytes32 actorId = bytes32(uint256(vaultId));
+        // calculate the given vault's ratio of the total delegated credit => actor shares / distribution total
+        // shares => then convert it to SD59x18
+        // NOTE: `div` rounds down by default, which would lead to a small loss to vaults in a
+        // credit state, but a small gain in a debt state. We assume this behavior to be negligible in the protocol's
+        // context since the diff is minimal and there are risk parameters ensuring debt settlement happens in a
+        // timely manner.
+        SD59x18 vaultCreditRatioX18 = vaultsDebtDistribution.getActorShares(actorId).div(
+            ud60x18(vaultsDebtDistribution.totalShares)
+        ).intoSD59x18();
 
-        // accumulates the vault's share of the debt since the last distribution
-        totalDebtChangeUsdX18 = vaultsDebtDistribution.accumulateActor(actorId);
+        // accumulates the vault's share of the debt since the last distribution, ignoring the return value as it's
+        // not needed in this context
+        vaultsDebtDistribution.accumulateActor(actorId);
+        // multiplies the vault's credit ratio by the change of the market's unrealized debt since the last
+        // distribution to determine its share of the unrealized debt change
+        unrealizedDebtChangeUsdX18 = vaultCreditRatioX18.mul(
+            lastVaultDistributedUnrealizedDebtUsdX18.sub(sd59x18(self.lastDistributedUnrealizedDebtUsd))
+        );
+        // multiplies the vault's credit ratio by the change of the market's realized debt since the last
+        // distribution to determine its share of the realized debt change
+        realizedDebtChangeUsdX18 = vaultCreditRatioX18.mul(
+            lastVaultDistributedRealizedDebtUsdX18.sub(sd59x18(self.lastDistributedRealizedDebtUsd))
+        );
     }
 
     /// @notice Adds the minted usdz or the margin collateral collected from traders into the stored realized debt.
