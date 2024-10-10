@@ -23,8 +23,11 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     // the slippage tolerance
     uint256 public slippageTolerance;
 
-    // the pool fee
-    uint24 public poolFee;
+    /// @notice The pool fee
+    /// @dev 500 bps (0.05%) for stable pairs with low volatility.
+    /// @dev 3000 bps (0.30%) for most pairs with moderate volatility.
+    /// @dev 10000 bps (1.00%) for highly volatile pairs.
+    uint24 public fee;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTANTS
@@ -35,9 +38,6 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
 
     /// @notice Uniswap V3 Swap Strategy ID
     uint128 internal constant UNISWAP_V3_SWAP_STRATEGY_ID = 1;
-
-    /// @notice The minimum pool fee
-    uint256 internal constant MIN_POOL_FEE = 1000;
 
     /// @notice The minimum slippage tolerance
     uint256 internal constant MIN_SLIPPAGE_TOLERANCE = 100;
@@ -50,9 +50,9 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         _disableInitializers();
     }
 
-    function initialize(address owner, uint256 _slippageTolerance, uint24 _poolFee) external initializer {
+    function initialize(address owner, uint256 _slippageTolerance, uint24 _fee) external initializer {
         slippageTolerance = _slippageTolerance;
-        poolFee = _poolFee;
+        fee = _fee;
 
         __Ownable_init(owner);
     }
@@ -78,7 +78,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: swapData.tokenIn,
                 tokenOut: swapData.tokenOut,
-                fee: poolFee,
+                fee: fee,
                 recipient: swapData.recipient,
                 deadline: swapData.deadline,
                 amountIn: swapData.amountIn,
@@ -91,8 +91,8 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @notice Sets pool fee
     /// @dev the minimum is 1000 (e.g. 0.1%)
     function setPoolFee(uint24 newFee) external onlyOwner {
-        if (newFee < MIN_POOL_FEE) revert Errors.InvalidPoolFee();
-        poolFee = newFee;
+        if (newFee != 500 && newFee != 3000 && newFee != 10_000) revert Errors.InvalidPoolFee();
+        fee = newFee;
     }
 
     // TODO: Implement slippage tolerance
