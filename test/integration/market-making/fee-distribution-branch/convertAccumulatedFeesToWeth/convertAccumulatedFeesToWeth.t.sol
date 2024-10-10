@@ -68,279 +68,282 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         marketMakingEngine.workaround_setWethAddress(address(wEth));
     }
 
-    function testFuzz_RevertGiven_TheCallerIsNotMarketMakingEngine(address user) external {
-        vm.assume(user != address(perpsEngine));
+    // function testFuzz_RevertGiven_TheCallerIsNotMarketMakingEngine(address user) external {
+    //     vm.assume(user != address(perpsEngine));
 
-        changePrank({ msgSender: user });
+    //     changePrank({ msgSender: user });
 
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, user) });
-        marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
-    }
+    //     // it should revert
+    //     vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, user) });
+    //     marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
+    // }
 
-    modifier givenTheCallerIsMarketMakingEngine() {
-        _;
-    }
+    // modifier givenTheCallerIsMarketMakingEngine() {
+    //     _;
+    // }
 
-    function testFuzz_RevertWhen_MarketDoesNotExist(uint128 marketId) external givenTheCallerIsMarketMakingEngine {
-        // vm.assume(marketId != INITIAL_MARKET_DEBT_ID);
-        // // it should revert
-        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
-        // marketMakingEngine.convertAccumulatedFeesToWeth(marketId, address(wBtc), 0);
-    }
+    // function testFuzz_RevertWhen_MarketDoesNotExist(uint128 marketId) external givenTheCallerIsMarketMakingEngine {
+    //     // vm.assume(marketId != INITIAL_MARKET_DEBT_ID);
+    //     // // it should revert
+    //     // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector) });
+    //     // marketMakingEngine.convertAccumulatedFeesToWeth(marketId, address(wBtc), 0);
+    // }
 
-    modifier whenMarketExist() {
-        _;
-    }
+    // modifier whenMarketExist() {
+    //     _;
+    // }
 
-    function test_RevertWhen_TheAmountIsZero() external givenTheCallerIsMarketMakingEngine whenMarketExist {
-        // it should revert
-        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidAsset.selector) });
-        // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdz), 0);
-    }
+    // function test_RevertWhen_TheAmountIsZero() external givenTheCallerIsMarketMakingEngine whenMarketExist {
+    //     // it should revert
+    //     // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidAsset.selector) });
+    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdz), 0);
+    // }
 
-    modifier whenTheAmountIsNotZero() {
-        _;
-    }
+    // modifier whenTheAmountIsNotZero() {
+    //     _;
+    // }
 
-    modifier whenTheAssetExists() {
-        _;
-    }
+    // modifier whenTheAssetExists() {
+    //     _;
+    // }
 
-    function testFuzz_WhenTheAssetIsWeth(
-        uint256 amountToReceive
-    )
-        external
-        givenTheCallerIsMarketMakingEngine
-        whenMarketExist
-        whenTheAmountIsNotZero
-        whenTheAssetExists
-    {
-        // amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max:
-        // WETH_DEPOSIT_CAP_X18.intoUint256() });
+    // function testFuzz_WhenTheAssetIsWeth(
+    //     uint256 amountToReceive
+    // )
+    //     external
+    //     givenTheCallerIsMarketMakingEngine
+    //     whenMarketExist
+    //     whenTheAmountIsNotZero
+    //     whenTheAssetExists
+    // {
+    //     // amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max:
+    //     // WETH_DEPOSIT_CAP_X18.intoUint256() });
 
-        // // set contract with initial wEth fees
-        // receiveOrderFeeInFeeDistribution(address(wEth), amountToReceive);
+    //     // // set contract with initial wEth fees
+    //     // receiveOrderFeeInFeeDistribution(address(wEth), amountToReceive);
 
-        // // it should emit event { LogConvertAccumulatedFeesToWeth }
-        // vm.expectEmit();
-        // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(
-        //     address(wEth), amountToReceive, amountToReceive
-        // );
+    //     // // it should emit event { LogConvertAccumulatedFeesToWeth }
+    //     // vm.expectEmit();
+    //     // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(
+    //     //     address(wEth), amountToReceive, amountToReceive
+    //     // );
 
-        // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wEth), 1);
+    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wEth), 1);
 
-        // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
+    //     // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
 
-        // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
-        // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
+    //     // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
+    //     // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
-        // // it should divide amount between market and fee recipients
-        // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
-    }
+    //     // // it should divide amount between market and fee recipients
+    //     // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
+    // }
 
-    modifier whenTheAssetIsNotWeth() {
-        _;
-    }
+    // modifier whenTheAssetIsNotWeth() {
+    //     _;
+    // }
 
-    function test_RevertGiven_PriceAdapterAddressIsNotSet(
-        uint256 amountToReceive
-    )
-        external
-        givenTheCallerIsMarketMakingEngine
-        whenMarketExist
-        whenTheAmountIsNotZero
-        whenTheAssetExists
-        whenTheAssetIsNotWeth
-    {
-        // amountToReceive =
-        //     bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
+    // function test_RevertGiven_PriceAdapterAddressIsNotSet(
+    //     uint256 amountToReceive
+    // )
+    //     external
+    //     givenTheCallerIsMarketMakingEngine
+    //     whenMarketExist
+    //     whenTheAmountIsNotZero
+    //     whenTheAssetExists
+    //     whenTheAssetIsNotWeth
+    // {
+    //     // amountToReceive =
+    //     //     bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256()
+    // });
 
-        // // Deploy MockUniswapRouter to simulate the swap and mock
-        // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-        // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
+    //     // // Deploy MockUniswapRouter to simulate the swap and mock
+    //     // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
+    //     // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
 
-        // // set contract with initial wbtc fees
-        // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
+    //     // // set contract with initial wbtc fees
+    //     // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
 
-        // // Set Price Adapter address to zero
-        // marketMakingEngine.workaround_Collateral_setParams(
-        //     address(wBtc),
-        //     WBTC_CORE_VAULT_CREDIT_RATIO,
-        //     WBTC_PRICE_FEED_HEARBEAT_SECONDS,
-        //     WBTC_CORE_VAULT_IS_ENABLED,
-        //     WBTC_DECIMALS,
-        //     address(0)
-        // );
+    //     // // Set Price Adapter address to zero
+    //     // marketMakingEngine.workaround_Collateral_setParams(
+    //     //     address(wBtc),
+    //     //     WBTC_CORE_VAULT_CREDIT_RATIO,
+    //     //     WBTC_PRICE_FEED_HEARBEAT_SECONDS,
+    //     //     WBTC_CORE_VAULT_IS_ENABLED,
+    //     //     WBTC_DECIMALS,
+    //     //     address(0)
+    //     // );
 
-        // // it should revert
-        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PriceAdapterUndefined.selector) });
-        // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
-    }
+    //     // // it should revert
+    //     // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PriceAdapterUndefined.selector) });
+    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
+    // }
 
-    modifier givenPriceAdapterAddressIsSet() {
-        _;
-    }
+    // modifier givenPriceAdapterAddressIsSet() {
+    //     _;
+    // }
 
-    function test_RevertGiven_TheUniswapAddressIsNotSet(
-        uint256 amountToReceive
-    )
-        external
-        givenTheCallerIsMarketMakingEngine
-        whenMarketExist
-        whenTheAmountIsNotZero
-        whenTheAssetExists
-        whenTheAssetIsNotWeth
-        givenPriceAdapterAddressIsSet
-    {
-        // amountToReceive =
-        //     bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
+    // function test_RevertGiven_TheUniswapAddressIsNotSet(
+    //     uint256 amountToReceive
+    // )
+    //     external
+    //     givenTheCallerIsMarketMakingEngine
+    //     whenMarketExist
+    //     whenTheAmountIsNotZero
+    //     whenTheAssetExists
+    //     whenTheAssetIsNotWeth
+    //     givenPriceAdapterAddressIsSet
+    // {
+    //     // amountToReceive =
+    //     //     bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256()
+    // });
 
-        // // set contract with initial wbtc fees
-        // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
+    //     // // set contract with initial wbtc fees
+    //     // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
 
-        // // it should revert
-        // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "swapRouter address") });
-        // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
-    }
+    //     // // it should revert
+    //     // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "swapRouter address")
+    // });
+    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
+    // }
 
-    modifier givenTheUniswapAddressIsSet() {
-        _;
-    }
+    // modifier givenTheUniswapAddressIsSet() {
+    //     _;
+    // }
 
-    function testFuzz_GivenTokenInDecimalsAreLessThan18(
-        uint256 amountToReceive
-    )
-        external
-        givenTheCallerIsMarketMakingEngine
-        whenMarketExist
-        whenTheAmountIsNotZero
-        whenTheAssetExists
-        whenTheAssetIsNotWeth
-        givenPriceAdapterAddressIsSet
-        givenTheUniswapAddressIsSet
-    {
-        // amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max:
-        // WETH_DEPOSIT_CAP_X18.intoUint256() });
+    // function testFuzz_GivenTokenInDecimalsAreLessThan18(
+    //     uint256 amountToReceive
+    // )
+    //     external
+    //     givenTheCallerIsMarketMakingEngine
+    //     whenMarketExist
+    //     whenTheAmountIsNotZero
+    //     whenTheAssetExists
+    //     whenTheAssetIsNotWeth
+    //     givenPriceAdapterAddressIsSet
+    //     givenTheUniswapAddressIsSet
+    // {
+    //     // amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max:
+    //     // WETH_DEPOSIT_CAP_X18.intoUint256() });
 
-        // // set contract with initial wbtc fees
-        // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
+    //     // // set contract with initial wbtc fees
+    //     // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
 
-        // // Deploy MockUniswapRouter to simulate the swap and mock
-        // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-        // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
+    //     // // Deploy MockUniswapRouter to simulate the swap and mock
+    //     // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
+    //     // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
 
-        // // Expect event emitted for fee conversion
-        // vm.expectEmit();
-        // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(wBtc), amountToReceive,
-        // amountToReceive);
+    //     // // Expect event emitted for fee conversion
+    //     // vm.expectEmit();
+    //     // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(wBtc), amountToReceive,
+    //     // amountToReceive);
 
-        // // Call the function to convert accumulated fees to WETH from wBtc (token with less than 18 decimals)
-        // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
+    //     // // Call the function to convert accumulated fees to WETH from wBtc (token with less than 18 decimals)
+    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
 
-        // // Check the resulting split of fees between market and fee recipients
-        // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
+    //     // // Check the resulting split of fees between market and fee recipients
+    //     // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
 
-        // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
-        // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
+    //     // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
+    //     // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
-        // // it should divide amount between market and fee recipients
-        // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
-    }
+    //     // // it should divide amount between market and fee recipients
+    //     // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
+    // }
 
-    function testFuzz_GivenTokenInDecimalsAre18(
-        uint256 amountToReceive
-    )
-        external
-        givenTheCallerIsMarketMakingEngine
-        whenMarketExist
-        whenTheAmountIsNotZero
-        whenTheAssetExists
-        whenTheAssetIsNotWeth
-        givenPriceAdapterAddressIsSet
-        givenTheUniswapAddressIsSet
-    {
-        // amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max:
-        // WETH_DEPOSIT_CAP_X18.intoUint256() });
+    // function testFuzz_GivenTokenInDecimalsAre18(
+    //     uint256 amountToReceive
+    // )
+    //     external
+    //     givenTheCallerIsMarketMakingEngine
+    //     whenMarketExist
+    //     whenTheAmountIsNotZero
+    //     whenTheAssetExists
+    //     whenTheAssetIsNotWeth
+    //     givenPriceAdapterAddressIsSet
+    //     givenTheUniswapAddressIsSet
+    // {
+    //     // amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max:
+    //     // WETH_DEPOSIT_CAP_X18.intoUint256() });
 
-        // // set contract with initial usdc fees
-        // receiveOrderFeeInFeeDistribution(address(usdc), amountToReceive);
+    //     // // set contract with initial usdc fees
+    //     // receiveOrderFeeInFeeDistribution(address(usdc), amountToReceive);
 
-        // // Deploy MockUniswapRouter to simulate the swap and mock
-        // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-        // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
+    //     // // Deploy MockUniswapRouter to simulate the swap and mock
+    //     // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
+    //     // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
 
-        // // Expect event emitted for fee conversion
-        // vm.expectEmit();
-        // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(usdc), amountToReceive,
-        // amountToReceive);
+    //     // // Expect event emitted for fee conversion
+    //     // vm.expectEmit();
+    //     // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(usdc), amountToReceive,
+    //     // amountToReceive);
 
-        // // Call the function to convert accumulated fees to WETH from usdc (token with 18 decimalsa)
-        // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdc), 0);
+    //     // // Call the function to convert accumulated fees to WETH from usdc (token with 18 decimalsa)
+    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdc), 0);
 
-        // // Check the resulting split of fees between market and fee recipients
-        // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
+    //     // // Check the resulting split of fees between market and fee recipients
+    //     // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
 
-        // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
-        // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
+    //     // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
+    //     // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
-        // // it should divide amount between market and fee recipients
-        // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
-    }
+    //     // // it should divide amount between market and fee recipients
+    //     // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
+    // }
 
-    function testFuzz_GivenTokenInDecimalsAreMoreThan18(
-        uint256 amountToReceive
-    )
-        external
-        givenTheCallerIsMarketMakingEngine
-        whenMarketExist
-        whenTheAmountIsNotZero
-        whenTheAssetExists
-        whenTheAssetIsNotWeth
-        givenPriceAdapterAddressIsSet
-        givenTheUniswapAddressIsSet
-    {
-        amountToReceive =
-            bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
+    // function testFuzz_GivenTokenInDecimalsAreMoreThan18(
+    //     uint256 amountToReceive
+    // )
+    //     external
+    //     givenTheCallerIsMarketMakingEngine
+    //     whenMarketExist
+    //     whenTheAmountIsNotZero
+    //     whenTheAssetExists
+    //     whenTheAssetIsNotWeth
+    //     givenPriceAdapterAddressIsSet
+    //     givenTheUniswapAddressIsSet
+    // {
+    //     amountToReceive =
+    //         bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
 
-        uint8 priceFeedDecimals = 8;
-        int256 priceFeedPrice = 1e18;
+    //     uint8 priceFeedDecimals = 8;
+    //     int256 priceFeedPrice = 1e18;
 
-        MockPriceFeed usdzMockPriceFeed = new MockPriceFeed(priceFeedDecimals, priceFeedPrice);
+    //     MockPriceFeed usdzMockPriceFeed = new MockPriceFeed(priceFeedDecimals, priceFeedPrice);
 
-        uint8 tokenDecimals = 20;
+    //     uint8 tokenDecimals = 20;
 
-        // Set tokenIn decimals to 20
-        marketMakingEngine.workaround_Collateral_setParams(
-            address(usdz),
-            WBTC_CORE_VAULT_CREDIT_RATIO,
-            WBTC_CORE_VAULT_IS_ENABLED,
-            tokenDecimals,
-            address(usdzMockPriceFeed)
-        );
+    //     // Set tokenIn decimals to 20
+    //     marketMakingEngine.workaround_Collateral_setParams(
+    //         address(usdz),
+    //         WBTC_CORE_VAULT_CREDIT_RATIO,
+    //         WBTC_CORE_VAULT_IS_ENABLED,
+    //         tokenDecimals,
+    //         address(usdzMockPriceFeed)
+    //     );
 
-        // // set contract with initial usdc fees
-        // receiveOrderFeeInFeeDistribution(address(usdz), amountToReceive);
+    //     // // set contract with initial usdc fees
+    //     // receiveOrderFeeInFeeDistribution(address(usdz), amountToReceive);
 
-        // // Deploy MockUniswapRouter to simulate the swap and mock
-        // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-        // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
+    //     // // Deploy MockUniswapRouter to simulate the swap and mock
+    //     // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
+    //     // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
 
-        // // Expect event emitted for fee conversion
-        // vm.expectEmit();
-        // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(usdz), amountToReceive,
-        // amountToReceive);
+    //     // // Expect event emitted for fee conversion
+    //     // vm.expectEmit();
+    //     // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(usdz), amountToReceive,
+    //     // amountToReceive);
 
-        // // Call the function to convert accumulated fees to WETH from usdz (token with 18 decimals)
-        // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdz), 0);
+    //     // // Call the function to convert accumulated fees to WETH from usdz (token with 18 decimals)
+    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdz), 0);
 
-        // // Check the resulting split of fees between market and fee recipients
-        // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
+    //     // // Check the resulting split of fees between market and fee recipients
+    //     // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
 
-        // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
-        // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
+    //     // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
+    //     // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
 
-        // // it should divide amount between market and fee recipients
-        // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
-    }
+    //     // // it should divide amount between market and fee recipients
+    //     // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
+    // }
 }

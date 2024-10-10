@@ -28,7 +28,7 @@ library MarketDebt {
     bytes32 internal constant MARKET_DEBT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketDebt")) - 1));
 
-    /// @param collectedFees The fees collected in wEth for vaults and fee recipients of this market
+    /// @param collectedFees All fees collected in wEth for vaults and fee recipients of this market
     /// @param marketId The engine's linked market id.
     /// @param autoDeleverageStartThreshold An admin configurable decimal rate used to determine the starting
     /// threshold of the ADL polynomial regression curve, ranging from 0 to 1.
@@ -53,6 +53,7 @@ library MarketDebt {
     /// USD denominated debt per share.
     struct Data {
         uint256 collectedFees;
+        uint256 availableFeesToWithdraw;
         uint128 marketId;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
@@ -254,12 +255,21 @@ library MarketDebt {
         self.collectedFees = newAmount.intoUint256();
     }
 
-    /// @notice Support function to decrease the collected fees
+    /// @notice Support function to increment the available fees to withdraw
     /// @param self The fee storage pointer
     /// @param amountX18 The amount to be incremented
-    function decrementCollectedFees(Data storage self, UD60x18 amountX18) internal {
-        UD60x18 newAmount = amountX18.sub(ud60x18(self.collectedFees));
+    function incrementAvailableFeesToWithdraw(Data storage self, UD60x18 amountX18) internal {
+        UD60x18 newAmount = amountX18.add(ud60x18(self.availableFeesToWithdraw));
 
-        self.collectedFees = newAmount.intoUint256();
+        self.availableFeesToWithdraw = newAmount.intoUint256();
+    }
+
+    /// @notice Support function to decrease the available fees to withdraw
+    /// @param self The fee storage pointer
+    /// @param amountX18 The amount to be incremented
+    function decrementAvailableFeesToWithdraw(Data storage self, UD60x18 amountX18) internal {
+        UD60x18 newAmount = amountX18.sub(ud60x18(self.availableFeesToWithdraw));
+
+        self.availableFeesToWithdraw = newAmount.intoUint256();
     }
 }

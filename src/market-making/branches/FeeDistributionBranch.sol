@@ -142,20 +142,29 @@ contract FeeDistributionBranch is EngineAccessControl {
         onlyRegisteredEngine
         onlyExistingMarket(marketId)
     {
+        // loads the collateral data storage pointer
+        Collateral.Data storage collateral = Collateral.load(asset);
+
+        // reverts if the collateral isn't enabled
+        collateral.verifyIsEnabled();
+
         // loads the market debt data storage pointer
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
         // reverts if the market hasn't received any fees for the given asset
-        if (!marketDebt.receivedMarketFees.contains(asset)) revert Errors.InvalidAsset();
+        if (!marketDebt.receivedMarketFees.contains(asset)) revert Errors.MarketDebtDoesNotContainTheAsset(asset);
+
+        // get the amount of asset received as fees
+        UD60x18 assetAmountX18 = ud60x18(marketDebt.receivedMarketFees.get(asset));
+
+        // reverts if the amount is zero
+        if (assetAmountX18.isZero()) revert Errors.ZeroInput("assetAmountX18");
 
         // loads the dex swap strategy data storage pointer
         DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
 
         // declare variable to store accumulated weth
         UD60x18 accumulatedWethX18;
-
-        // get the amount of asset received as fees
-        UD60x18 assetAmountX18 = ud60x18(marketDebt.receivedMarketFees.get(asset));
 
         // if asset is weth directly add to accumulated weth, else swap token for weth
         if (asset == MarketMakingEngineConfiguration.load().weth) {
@@ -190,7 +199,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         );
 
         // increment the collected fees
-        marketDebt.incrementCollectedFees(collectedFeesX18);
+        marketDebt.incrementAvailableFeesToWithdraw(collectedFeesX18);
 
         // get connected vaults of market
         uint256[] memory vaultsSet = marketDebt.getConnectedVaultsIds();
@@ -266,7 +275,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         address weth = marketMakingEngineConfigurationData.weth;
 
         // convert collected fees to UD60x18
-        UD60x18 collectedFeesX18 = ud60x18(marketDebt.collectedFees);
+        UD60x18 availableFeesToWithdrawX18 = ud60x18(marketDebt.availableFeesToWithdraw);
 
         // variable to store the total shares of fee recipients
         UD60x18 totalSharesX18;
@@ -286,11 +295,11 @@ contract FeeDistributionBranch is EngineAccessControl {
 
             // calculate the amount to send to the fee recipient
             UD60x18 amountToSendX18 = MarketDebt.calculateFees(
-                collectedFeesX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18
+                availableFeesToWithdrawX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18
             );
 
             // decrement the collected fees
-            marketDebt.decrementCollectedFees(amountToSendX18);
+            marketDebt.decrementAvailableFeesToWithdraw(amountToSendX18);
 
             // convert the amountToSendX18 to weth amount
             uint256 amountToSend = wethCollateral.convertUd60x18ToTokenAmount(amountToSendX18);

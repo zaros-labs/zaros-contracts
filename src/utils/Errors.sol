@@ -283,4 +283,7 @@ library Errors {
     /// @param marketShare The market share between 0 and 1 in 18 decimals
     /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
     error InvalidMarketShareAndFeeRecipientsShare(uint256 marketShare, uint256 feeRecipientsShare);
+
+    /// @notice Thrown when the asset is not in the market debt
+    error MarketDebtDoesNotContainTheAsset(address asset);
 }
