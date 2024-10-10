@@ -12,6 +12,8 @@ library CreditDelegation {
         uint128 marketId;
         uint128 weight;
         uint128 maxDebtPerShare;
+        int128 lastDistributedUnrealizedDebtUsd;
+        int128 lastDistributedRealizedDebtUsd;
     }
 
     /// @notice Loads a {CreditDelegation}.
