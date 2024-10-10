@@ -4,15 +4,11 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { MockUniswapRouter } from "test/mocks/MockUniswapRouter.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 
 // Openzeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-
-// UniSwap dependencies
-import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     using EnumerableSet for EnumerableSet.UintSet;

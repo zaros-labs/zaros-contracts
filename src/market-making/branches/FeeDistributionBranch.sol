@@ -182,7 +182,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             });
 
             // Swap collected collateral fee amount for WETH and store the obtained amount
-            uint256 tokensSwapped = dexSwapStrategy.executeSwap(swapCallData);
+            uint256 tokensSwapped = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
 
             // store the amount of weth received from swap
             accumulatedWethX18 = ud60x18(tokensSwapped);

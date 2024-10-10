@@ -4,21 +4,23 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { SwapCallData } from "@zaros/utils/interfaces/IDexAdapter.sol";
-
-// Uniswap dependencies
-import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import { ISwapRouter } from "@zaros/utils/interfaces/ISwapRouter.sol";
+import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // Open zeppelin upgradeable dependencies
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
 /// @notice Uniswap V3 adapter contract
-contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable {
+contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /*//////////////////////////////////////////////////////////////////////////
                                     PUBLIC VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
+    // the slippage tolerance
     uint256 public slippageTolerance;
+
+    // the pool fee
     uint24 public poolFee;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -56,10 +58,11 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable {
                                     EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    // TODO: define EIP7201 storage
-    function executeSwap(SwapCallData calldata swapData) external returns (uint256 amount) {
-        // Execute swap
-
+    /// @notice Executes a swap exact input with the given calldata.
+    /// @param swapData The swap data to perform the swap.
+    /// @return amountOut The amount out returned.
+    function executeSwapExactInputSingle(SwapCallData calldata swapData) external returns (uint256 amountOut) {
+        // instantiate the swap router
         ISwapRouter swapRouter = ISwapRouter(UNISWAP_V3_SWAP_STRATEGY_ROUTER);
 
         return swapRouter.exactInputSingle(
@@ -83,12 +86,13 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable {
         poolFee = newFee;
     }
 
+    // TODO: Implement slippage tolerance
     /// @notice Sets slippage tolerance
     /// @dev the minimum is 100 (e.g. 1%)
-    function setSlippageTolerance(uint256 newSlippageTolerance) external onlyOwner {
-        if (newSlippageTolerance < MIN_SLIPPAGE_TOLERANCE) revert Errors.InvalidSlippage();
-        slippageTolerance = newSlippageTolerance;
-    }
+    // function setSlippageTolerance(uint256 newSlippageTolerance) external onlyOwner {
+    //     if (newSlippageTolerance < MIN_SLIPPAGE_TOLERANCE) revert Errors.InvalidSlippage();
+    //     slippageTolerance = newSlippageTolerance;
+    // }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     UPGRADEABLE FUNCTIONS

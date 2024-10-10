@@ -30,15 +30,14 @@ library DexSwapStrategy {
     /// @param self The SwapRouter data storage.
     /// @param swapCallData The calldata to perform the swap.
     /// @return amount The result of the swap execution.
-    function executeSwap(
+    function executeSwapExactInputSingle(
         Data storage self,
         SwapCallData memory swapCallData
     )
         internal
-        view
         returns (uint256 amount)
     {
         IDexAdapter dexAdapter = IDexAdapter(self.dexAdapter);
-        return dexAdapter.executeSwap(swapCallData);
+        return dexAdapter.executeSwapExactInputSingle(swapCallData);
     }
 }

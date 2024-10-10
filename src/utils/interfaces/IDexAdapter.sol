@@ -15,7 +15,7 @@ struct SwapCallData {
 
 /// @notice The interface for the DEX adapter.
 interface IDexAdapter {
-    /// @notice Executes a swap with the given calldata.
-    /// @return amount The amount returned.
-    function executeSwap(SwapCallData memory swapCallData) external view returns (uint256 amount);
+    /// @notice Executes a swap exact input with the given calldata.
+    /// @return amountOut The amount out returned.
+    function executeSwapExactInputSingle(SwapCallData memory swapCallData) external returns (uint256 amountOut);
 }
