@@ -1,26 +1,23 @@
 ConvertAccumulatedFeesToWeth_Integration_Test
-    ├── given the caller is not market making engine
+├── given the sender is not registered engine
+│   └── it should revert
+└── given the sender is registered engine
+    ├── when the market does not exist
     │   └── it should revert
-    └── given the caller is market making engine
-        ├── when market does not exist
+    └── when the market exist
+        ├── when the collateal is not enabled
         │   └── it should revert
-        └── when market exist
-            ├── when the amount is zero
+        └── when the collateral is enabled
+            ├── when the market debt doesn't have the asset
             │   └── it should revert
-            └── when the amount is not zero  
-                └── when the asset exists
-                    ├── when the asset is weth
-                    │   └── it should divide amount between market and fee recipients
-                    └── when the asset is not weth
-                        ├── given price adapter address is not set
-                        │   └── it should revert
-                        └── given price adapter address is set
-                            ├── given the uniswap address is not set
-                            │   └── it should revert
-                            └── given the uniswap address is set
-                                ├── given tokenIn decimals are less than 18
-                                │   └── it should convert amount and update
-                                ├── given tokenIn decimals are 18
-                                │   └── it should convert amount and update
-                                └── given tokenIn decimals are more than 18
-                                    └── it should convert amount and update
+            └── when the market debt has the asset
+                ├── when the amount is zero
+                │   └── it should revert
+                └── when the amount is not zero
+                    ├── when the asset is different that weth
+                    │   └── it should convert to weth
+                    ├── it should update the available fees to withdraw
+                    ├── it should update unsettled fees weth of the vault
+                    ├── it should distribute value to the vault
+                    ├── it should remove the asset from receivedMarketFees
+                    └── it should emit {LogConvertAccumulatedFeesToWeth} event
