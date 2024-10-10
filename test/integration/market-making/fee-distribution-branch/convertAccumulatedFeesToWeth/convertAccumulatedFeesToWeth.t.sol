@@ -24,13 +24,38 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         configureMarketsDebt();
     }
 
-    function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(uint256 marketDebtId, uint128 dexSwapStrategyId) external {
+    function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(
+        uint256 marketDebtId,
+        uint128 dexSwapStrategyId
+    )
+        external
+    {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account) });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(uint128(marketDebtId), address(usdc), dexSwapStrategyId);
+    }
+
+    modifier givenTheSenderIsRegisteredEngine() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_TheMarketDoesNotExist(
+        uint128 dexSwapStrategyId
+    )
+        external
+        givenTheSenderIsRegisteredEngine
+    {
+        changePrank({ msgSender: address(perpsEngine) });
+
+        uint128 invalidMarketDebtId = FINAL_MARKET_DEBT_ID + 1;
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector, invalidMarketDebtId) });
+
+        marketMakingEngine.convertAccumulatedFeesToWeth(invalidMarketDebtId, address(usdc), dexSwapStrategyId);
     }
 
     // function testFuzz_RevertGiven_TheCallerIsNotMarketMakingEngine(address user) external {
