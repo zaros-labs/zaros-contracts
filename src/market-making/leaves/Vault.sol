@@ -98,6 +98,8 @@ library Vault {
         vaultCreditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledRealizedDebtUsd));
     }
 
+    // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
+    // testability / visibility
     function recalculateConnectedMarketsDebt(
         Data storage self,
         uint128[] memory connectedMarketsIdsCache,
@@ -203,6 +205,8 @@ library Vault {
     }
 
     // todo: see if the `shouldRefreshCache` parameter will be needed or not
+    // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
+    // testability / visibility
     function updateCreditDelegations(
         Data storage self,
         uint128[] memory connectedMarketsIdsCache,
