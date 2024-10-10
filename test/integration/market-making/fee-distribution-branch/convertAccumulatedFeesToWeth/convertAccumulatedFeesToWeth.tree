@@ -14,8 +14,7 @@ ConvertAccumulatedFeesToWeth_Integration_Test
                 ├── when the amount is zero
                 │   └── it should revert
                 └── when the amount is not zero
-                    ├── when the asset is different that weth
-                    │   └── it should convert to weth
+                    ├── it should verify if the asset is different that weth and convert
                     ├── it should update the available fees to withdraw
                     ├── it should update unsettled fees weth of the vault
                     ├── it should distribute value to the vault

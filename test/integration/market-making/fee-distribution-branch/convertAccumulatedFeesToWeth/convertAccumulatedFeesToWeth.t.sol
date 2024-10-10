@@ -139,6 +139,21 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         );
     }
 
+    function test_WhenTheAmountIsNotZero()
+        external
+        givenTheSenderIsRegisteredEngine
+        whenTheMarketExist
+        whenTheCollateralIsEnabled
+        whenTheMarketDebtHasTheAsset
+    {
+        // it should verify if the asset is different that weth and convert
+        // it should update the available fees to withdraw
+        // it should update unsettled fees weth of the vault
+        // it should distribute value to the vault
+        // it should remove the asset from receivedMarketFees
+        // it should emit {LogConvertAccumulatedFeesToWeth} event
+    }
+
     // function testFuzz_WhenTheAssetIsWeth(
     //     uint256 amountToReceive
     // )
