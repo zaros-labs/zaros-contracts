@@ -21,51 +21,16 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        configureMarketsDebt();
+    }
 
-        uint128 marketPercentage = 6500;
-        uint128 feeRecipientsPercentage = 3500;
-        // Set percentage ratio for market and fee recipients
-        // marketMakingEngine.setPercentageRatio(INITIAL_MARKET_DEBT_ID, marketPercentage, feeRecipientsPercentage);
+    function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(uint256 marketDebtId, uint128 dexSwapStrategyId) external {
+        changePrank({ msgSender: users.naruto.account });
 
-        changePrank({ msgSender: address(perpsEngine) });
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account) });
 
-        // set perpsEngine address in MarketMakingEngineConfiguration
-        marketMakingEngine.workaround_setPerpsEngineAddress(address(perpsEngine));
-
-        uint8 priceFeedDecimals = 8;
-        int256 priceFeedPrice = 1e18;
-
-        // Deploy MockPriceAdapter with an initial price
-        MockPriceFeed wbtcMockPriceFeed = new MockPriceFeed(priceFeedDecimals, priceFeedPrice);
-        MockPriceFeed wethMockPriceFeed = new MockPriceFeed(priceFeedDecimals, priceFeedPrice);
-        MockPriceFeed usdcMockPriceFeed = new MockPriceFeed(priceFeedDecimals, priceFeedPrice);
-
-        // Set collateral types params
-        marketMakingEngine.workaround_Collateral_setParams(
-            address(wBtc),
-            WBTC_CORE_VAULT_CREDIT_RATIO,
-            WBTC_CORE_VAULT_IS_ENABLED,
-            WBTC_DECIMALS,
-            address(wbtcMockPriceFeed)
-        );
-        marketMakingEngine.workaround_Collateral_setParams(
-            address(wEth),
-            WETH_CORE_VAULT_CREDIT_RATIO,
-            WETH_CORE_VAULT_IS_ENABLED,
-            WETH_DECIMALS,
-            address(wethMockPriceFeed)
-        );
-        marketMakingEngine.workaround_Collateral_setParams(
-            address(usdc),
-            USDC_CORE_VAULT_CREDIT_RATIO,
-            USDC_CORE_VAULT_IS_ENABLED,
-            USDC_DECIMALS,
-            address(usdcMockPriceFeed)
-        );
-
-        // Set the market ID and WETH address
-        setMarketDebtId(INITIAL_MARKET_DEBT_ID);
-        marketMakingEngine.workaround_setWethAddress(address(wEth));
+        marketMakingEngine.convertAccumulatedFeesToWeth(uint128(marketDebtId), address(usdc), dexSwapStrategyId);
     }
 
     // function testFuzz_RevertGiven_TheCallerIsNotMarketMakingEngine(address user) external {
