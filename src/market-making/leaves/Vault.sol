@@ -100,7 +100,7 @@ library Vault {
 
     /// @dev We use a `uint256` array because the vaults ids are stored at a `EnumerableSet.UintSet`.
     // TODO: mby move the loops to its own functions for better composability / testability
-    function updateVaultsCreditDelegation(uint256[] memory vaultsIds, uint128 marketId) internal {
+    function updateVaultsCreditDelegation(uint256[] memory vaultsIds) internal {
         for (uint256 i; i < vaultsIds.length; i++) {
             // uint256 -> uint128
             uint128 vaultId = vaultsIds[i].toUint128();

@@ -60,6 +60,7 @@ library Market {
         int128 realizedUsdzDebt;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
+        uint128 lastDistributionTimestamp;
         EnumerableSet.AddressSet depositedCollateralTypes;
         EnumerableSet.UintSet[] connectedVaultsIds;
         Distribution.Data vaultsDebtDistribution;
@@ -203,7 +204,9 @@ library Market {
 
     function isAutoDeleverageTriggered(Data storage self, SD59x18 totalDebtUsdX18) internal view returns (bool) { }
 
-    function isDistributionRequired(Data storage self) internal view returns (bool) { }
+    function isDistributionRequired(Data storage self) internal view returns (bool) {
+        return block.timestamp < self.lastDistributionTimestamp;
+    }
 
     /// @notice Deposits collateral to the market as credit.
     /// @dev This function assumes the collateral type address is configured in the protocol and has been previously
