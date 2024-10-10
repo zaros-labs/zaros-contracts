@@ -189,14 +189,10 @@ contract FeeDistributionBranch is EngineAccessControl {
         }
 
         // calculate the fee amount for the market
-        UD60x18 marketFeesX18 = MarketDebt.calculateFees(
-            accumulatedWethX18, ud60x18(marketDebt.marketShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR)
-        );
+        UD60x18 marketFeesX18 = accumulatedWethX18.mul(ud60x18(marketDebt.marketShare));
 
         // calculate the fee amount for the fee recipients
-        UD60x18 collectedFeesX18 = MarketDebt.calculateFees(
-            accumulatedWethX18, ud60x18(marketDebt.feeRecipientsShare), ud60x18(DexSwapStrategy.BPS_DENOMINATOR)
-        );
+        UD60x18 collectedFeesX18 = accumulatedWethX18.mul(ud60x18(marketDebt.feeRecipientsShare));
 
         // increment the collected fees
         marketDebt.incrementAvailableFeesToWithdraw(collectedFeesX18);
