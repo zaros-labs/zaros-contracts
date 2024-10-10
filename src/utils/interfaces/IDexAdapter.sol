@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
-struct SwapCallData {
+struct SwapPayload {
     address tokenIn;
     address tokenOut;
     uint256 amountIn;
@@ -17,5 +17,5 @@ struct SwapCallData {
 interface IDexAdapter {
     /// @notice Executes a swap exact input with the given calldata.
     /// @return amountOut The amount out returned.
-    function executeSwapExactInputSingle(SwapCallData memory swapCallData) external returns (uint256 amountOut);
+    function executeSwapExactInputSingle(SwapPayload memory swapCallData) external returns (uint256 amountOut);
 }

@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { SwapCallData } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { ISwapRouter } from "@zaros/utils/interfaces/ISwapRouter.sol";
 import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
@@ -62,27 +62,27 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Executes a swap exact input with the given calldata.
-    /// @param swapData The swap data to perform the swap.
+    /// @param swapPayload The swap data to perform the swap.
     /// @return amountOut The amount out returned.
-    function executeSwapExactInputSingle(SwapCallData calldata swapData) external returns (uint256 amountOut) {
+    function executeSwapExactInputSingle(SwapPayload calldata swapPayload) external returns (uint256 amountOut) {
         // transfer the tokenIn from the send to this contract
-        IERC20(swapData.tokenIn).transferFrom(msg.sender, address(this), swapData.amountIn);
+        IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
 
         // aprove the tokenIn to the swap router
-        IERC20(swapData.tokenIn).approve(UNISWAP_V3_SWAP_STRATEGY_ROUTER, swapData.amountIn);
+        IERC20(swapPayload.tokenIn).approve(UNISWAP_V3_SWAP_STRATEGY_ROUTER, swapPayload.amountIn);
 
         // instantiate the swap router
         ISwapRouter swapRouter = ISwapRouter(UNISWAP_V3_SWAP_STRATEGY_ROUTER);
 
         return swapRouter.exactInputSingle(
             ISwapRouter.ExactInputSingleParams({
-                tokenIn: swapData.tokenIn,
-                tokenOut: swapData.tokenOut,
+                tokenIn: swapPayload.tokenIn,
+                tokenOut: swapPayload.tokenOut,
                 fee: fee,
-                recipient: swapData.recipient,
-                deadline: swapData.deadline,
-                amountIn: swapData.amountIn,
-                amountOutMinimum: swapData.amountOutMin,
+                recipient: swapPayload.recipient,
+                deadline: swapPayload.deadline,
+                amountIn: swapPayload.amountIn,
+                amountOutMinimum: swapPayload.amountOutMin,
                 sqrtPriceLimitX96: 0
             })
         );

@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IDexAdapter, SwapCallData } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { IDexAdapter, SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 library DexSwapStrategy {
     /// @notice ERC7201 storage location.
@@ -32,7 +32,7 @@ library DexSwapStrategy {
     /// @return amount The result of the swap execution.
     function executeSwapExactInputSingle(
         Data storage self,
-        SwapCallData memory swapCallData
+        SwapPayload memory swapCallData
     )
         internal
         returns (uint256 amount)

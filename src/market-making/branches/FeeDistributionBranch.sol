@@ -12,7 +12,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
-import { SwapCallData } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -172,7 +172,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             accumulatedWethX18 = assetAmountX18;
         } else {
             // prepare the data for executing the swap
-            SwapCallData memory swapCallData = SwapCallData({
+            SwapPayload memory swapCallData = SwapPayload({
                 tokenIn: asset,
                 tokenOut: MarketMakingEngineConfiguration.load().weth,
                 amountIn: assetAmountX18.intoUint256(),
