@@ -8,6 +8,7 @@ import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
+import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -18,6 +19,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // TODO: add initializer at upgrade branch or auth branch
 contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+    using DexSwapStrategy for DexSwapStrategy.Data;
 
     constructor() {
         _disableInitializers();
@@ -68,6 +70,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         uint128 marketShare,
         uint128 feeRecipientsShare
     );
+
+    /// @notice Emitted when a dex swap strategy is configured.
+    /// @param dexSwapStrategyId The dex swap strategy id.
+    /// @param dexAdapter The address of the dex adapter.
+    event LogConfigureDexSwapStrategy(uint128 dexSwapStrategyId, address dexAdapter);
 
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
@@ -287,5 +294,27 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             marketShare,
             feeRecipientsShare
         );
+    }
+
+    /// @notice Configure dex swap strategy on Market Making Engine
+    /// @dev Only owner can call this function
+    /// @param dexSwapStrategyId The dex swap strategy id.
+    /// @param dexAdapter The address of the dex adapter.
+    function configureDexSwapStrategy(uint128 dexSwapStrategyId, address dexAdapter) external onlyOwner {
+        // revert if dexSwapStrategyId is set to zero
+        if (dexSwapStrategyId == 0) revert Errors.ZeroInput("dexSwapStrategyId");
+
+        // revert if dexAdapter is set to zero
+        if (dexAdapter == address(0)) revert Errors.ZeroInput("dexAdapter");
+
+        // load dex swap strategy data from storage
+        DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
+
+        // update dex swap strategy data
+        dexSwapStrategy.id = dexSwapStrategyId;
+        dexSwapStrategy.dexAdapter = dexAdapter;
+
+        // emit event LogConfigureDexSwapStrategy
+        emit LogConfigureDexSwapStrategy(dexSwapStrategyId, dexAdapter);
     }
 }
