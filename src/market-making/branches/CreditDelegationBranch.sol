@@ -233,7 +233,7 @@ contract CreditDelegationBranch {
 
         // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
         // market
-        Vault.updateVaultsCreditDelegation(connectedVaultsIds, marketId);
+        Vault.recalculateVaultsCreditCapacity(connectedVaultsIds);
 
         // cache the market's total debt
         SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
