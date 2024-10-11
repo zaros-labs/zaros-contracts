@@ -76,6 +76,10 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param dexAdapter The address of the dex adapter.
     event LogConfigureDexSwapStrategy(uint128 dexSwapStrategyId, address dexAdapter);
 
+    /// @notice Emitted when the wETH address is set or updated.
+    /// @param weth The address of the wETH token.
+    event LogSetWeth(address weth);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -190,6 +194,20 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         MarketMakingEngineConfiguration.load().usdz = usdz;
 
         emit LogSetUsdz(usdz);
+    }
+
+    /// @notice Set the wETH address
+    /// @dev Only owner can call this function
+    /// @param weth The address of the wETH token.
+    function setWeth(address weth) external onlyOwner {
+        // revert if weth is set to zero
+        if (weth == address(0)) revert Errors.ZeroInput("wEth");
+
+        // update weth address
+        MarketMakingEngineConfiguration.load().weth = weth;
+
+        // emit event LogSetWeth
+        emit LogSetWeth(weth);
     }
 
     /// @notice Configure collateral on Market Making Engine

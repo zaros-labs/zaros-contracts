@@ -14,14 +14,31 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+
 /// @notice Uniswap V3 adapter contract
 contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /*//////////////////////////////////////////////////////////////////////////
-                                    PUBLIC VARIABLES
+                                    EVENTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    // the slippage tolerance
-    uint256 public slippageTolerance;
+    /// @notice Event emitted when the pool fee is set
+    /// @param newFee The new pool fee
+    event LogSetPoolFee(uint24 newFee);
+
+    /// @notice Event emitted when the slippage tolerance is set
+    /// @param newSlippageTolerance The new slippage tolerance
+    event LogSetSlippageTolerance(uint256 newSlippageTolerance);
+
+    struct CollateralData {
+        uint8 decimals;
+        address priceAdapter;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    PUBLIC VARIABLES
+    //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice The pool fee
     /// @dev 500 bps (0.05%) for stable pairs with low volatility.
@@ -29,18 +46,26 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @dev 10000 bps (1.00%) for highly volatile pairs.
     uint24 public fee;
 
+    // the slippage tolerance
+    uint256 public slippageTolerance;
+
+    /// @notice The Mock Uniswap V3 Swap Strategy Router address
+    address public mockUniswapV3SwapStrategyRouter;
+
+    /// @notice A flag indicating if the Mock Uniswap V3 Swap Strategy Router is to be used
+    bool public useMockUniswapV3SwapStrategyRouter = false;
+
+    mapping(address collateral => CollateralData data) public collateralData;
+
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTANTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Uniswap V3 Swap Strategy address
-    address internal constant UNISWAP_V3_SWAP_STRATEGY_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    /// @notice Uniswap V3 Swap Strategy Router address
+    address public constant UNISWAP_V3_SWAP_STRATEGY_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
     /// @notice Uniswap V3 Swap Strategy ID
-    uint128 internal constant UNISWAP_V3_SWAP_STRATEGY_ID = 1;
-
-    /// @notice The minimum slippage tolerance
-    uint256 internal constant MIN_SLIPPAGE_TOLERANCE = 100;
+    uint128 public constant UNISWAP_V3_SWAP_STRATEGY_ID = 1;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     INITIALIZE FUNCTIONS
@@ -51,14 +76,18 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     }
 
     function initialize(address owner, uint256 _slippageTolerance, uint24 _fee) external initializer {
-        slippageTolerance = _slippageTolerance;
-        fee = _fee;
-
+        // initialize the owner
         __Ownable_init(owner);
+
+        // set the pool fee
+        setPoolFee(_fee);
+
+        // set the slippage tolerance
+        slippageTolerance = _slippageTolerance;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                    EXTERNAL FUNCTIONS
+                                    FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Executes a swap exact input with the given calldata.
@@ -68,11 +97,21 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         // transfer the tokenIn from the send to this contract
         IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
 
-        // aprove the tokenIn to the swap router
-        IERC20(swapPayload.tokenIn).approve(UNISWAP_V3_SWAP_STRATEGY_ROUTER, swapPayload.amountIn);
-
         // instantiate the swap router
-        ISwapRouter swapRouter = ISwapRouter(UNISWAP_V3_SWAP_STRATEGY_ROUTER);
+        ISwapRouter swapRouter;
+        if (useMockUniswapV3SwapStrategyRouter) {
+            swapRouter = ISwapRouter(mockUniswapV3SwapStrategyRouter);
+        } else {
+            swapRouter = ISwapRouter(UNISWAP_V3_SWAP_STRATEGY_ROUTER);
+        }
+
+        // aprove the tokenIn to the swap router
+        IERC20(swapPayload.tokenIn).approve(address(swapRouter), swapPayload.amountIn);
+
+        uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
+
+        // Calculate the minimum acceptable output based on the slippage tolerance
+        uint256 amountOutMinimum = calculateAmountOutMin(expectedAmountOut);
 
         return swapRouter.exactInputSingle(
             ISwapRouter.ExactInputSingleParams({
@@ -82,26 +121,55 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
                 recipient: swapPayload.recipient,
                 deadline: swapPayload.deadline,
                 amountIn: swapPayload.amountIn,
-                amountOutMinimum: swapPayload.amountOutMin,
+                amountOutMinimum: amountOutMinimum,
                 sqrtPriceLimitX96: 0
             })
         );
     }
 
-    /// @notice Sets pool fee
-    /// @dev the minimum is 1000 (e.g. 0.1%)
-    function setPoolFee(uint24 newFee) external onlyOwner {
-        if (newFee != 500 && newFee != 3000 && newFee != 10_000) revert Errors.InvalidPoolFee();
-        fee = newFee;
+    function getExpectedOutput(address tokenIn, address tokenOut, uint256 amountIn) internal view returns (uint256) { }
+
+    function calculateAmountOutMin(uint256 amountOutMinExpected) internal view returns (uint256) {
+        // calculate the amount out min
+        return (amountOutMinExpected * (10_000 - slippageTolerance)) / 10_000;
     }
 
-    // TODO: Implement slippage tolerance
-    /// @notice Sets slippage tolerance
-    /// @dev the minimum is 100 (e.g. 1%)
-    // function setSlippageTolerance(uint256 newSlippageTolerance) external onlyOwner {
-    //     if (newSlippageTolerance < MIN_SLIPPAGE_TOLERANCE) revert Errors.InvalidSlippage();
-    //     slippageTolerance = newSlippageTolerance;
-    // }
+    /// @notice Sets pool fee
+    /// @dev the minimum is 1000 (e.g. 0.1%)
+    function setPoolFee(uint24 newFee) public onlyOwner {
+        // revert if the new fee is not 500, 3000 or 10_000
+        if (newFee != 500 && newFee != 3000 && newFee != 10_000) revert Errors.InvalidPoolFee();
+
+        // set the new fee
+        fee = newFee;
+
+        // emit the event
+        emit LogSetPoolFee(newFee);
+    }
+
+    /// @notice Sets the Mock Uniswap V3 Swap Strategy Router address
+    /// @param newMockUniswapV3SwapStrategyRouter The new Mock Uniswap V3 Swap Strategy Router address
+    function setMockUniswapV3SwapStrategyRouter(address newMockUniswapV3SwapStrategyRouter) external onlyOwner {
+        // require that the new address is not the zero address
+        mockUniswapV3SwapStrategyRouter = newMockUniswapV3SwapStrategyRouter;
+    }
+
+    /// @notice Sets the flag indicating if the Mock Uniswap V3 Swap Strategy Router is to be used
+    /// @param _useMockUniswapV3SwapStrategyRouter The flag indicating if the Mock Uniswap V3 Swap Strategy Router is
+    /// to be used
+    function setUseMockUniswapV3SwapStrategyRouter(bool _useMockUniswapV3SwapStrategyRouter) external onlyOwner {
+        useMockUniswapV3SwapStrategyRouter = _useMockUniswapV3SwapStrategyRouter;
+    }
+
+    // / @notice Sets slippage tolerance
+    // / @dev the minimum is 100 (e.g. 1%)
+    function setSlippageTolerance(uint256 newSlippageTolerance) external onlyOwner {
+        // revert if the new slippage tolerance is less than 100
+        slippageTolerance = newSlippageTolerance;
+
+        // emit the event LogSetSlippageTolerance
+        emit LogSetSlippageTolerance(newSlippageTolerance);
+    }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     UPGRADEABLE FUNCTIONS

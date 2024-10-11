@@ -6,9 +6,11 @@ import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
+import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
 
 // Openzeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
 contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -135,14 +137,43 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         );
     }
 
-    function test_WhenTheAmountIsNotZero()
+    function test_WhenTheAmountIsNotZero(
+        uint256 marketDebtId,
+        uint256 amount
+    )
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
         whenTheCollateralIsEnabled
         whenTheMarketDebtHasTheAsset
     {
+        changePrank({ msgSender: address(perpsEngine) });
+
+        uint128 uniswapV3StrategyId = 1;
+
+        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+
+        amount = bound({
+            x: amount,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+
+        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+
+        marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, address(usdc), amount);
+
+        assertEq(IERC20(usdc).balanceOf(address(marketMakingEngine)), amount);
+        assertEq(IERC20(wEth).balanceOf(address(marketMakingEngine)), 0);
+
+        marketMakingEngine.convertAccumulatedFeesToWeth(
+            fuzzMarketDebtConfig.marketDebtId, address(usdc), uniswapV3StrategyId
+        );
+
         // it should verify if the asset is different that weth and convert
+        assertEq(IERC20(usdc).balanceOf(address(marketMakingEngine)), 0);
+        // assertEq(IERC20(wEth).balanceOf(address(marketMakingEngine)), );
+
         // it should update the available fees to withdraw
         // it should update unsettled fees weth of the vault
         // it should distribute value to the vault

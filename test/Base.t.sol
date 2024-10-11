@@ -24,6 +24,7 @@ import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol"
 import { IMarketMakingEngine as IMarketMakingEngineBranches } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -57,6 +58,7 @@ import { MarketMakingEngineConfigurationHarness } from
 import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { FeeRecipientHarness } from "test/harnesses/market-making/leaves/FeeRecipientHarness.sol";
+import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
 
 // Zaros dependencies script
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -72,6 +74,7 @@ import {
     deployMarketMakingHarnesses
 } from "script/utils/TreeProxyUtils.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
+import { DexAdapterUtils } from "script/utils/DexAdapterUtils.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -275,6 +278,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         );
 
         marketMakingEngine.registerEngine(address(perpsEngine));
+
+        marketMakingEngine.setUsdz(address(usdz));
+        marketMakingEngine.setWeth(address(wEth));
+
+        address uniswapV3Adapter =
+            address(DexAdapterUtils.deployUniswapV3Adapter(marketMakingEngine, users.owner.account, 100, 3000, true));
+
+        deal({
+            token: address(wEth),
+            to: UniswapV3Adapter(uniswapV3Adapter).mockUniswapV3SwapStrategyRouter(),
+            give: type(uint256).max
+        });
 
         uint256[2] memory vaultsIdsRange;
         vaultsIdsRange[0] = INITIAL_VAULT_ID;

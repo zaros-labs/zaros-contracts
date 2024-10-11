@@ -8,7 +8,6 @@ struct SwapPayload {
     address tokenIn;
     address tokenOut;
     uint256 amountIn;
-    uint256 amountOutMin;
     uint256 deadline;
     address recipient;
 }

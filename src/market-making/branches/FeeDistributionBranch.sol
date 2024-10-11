@@ -13,6 +13,7 @@ import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -160,32 +161,54 @@ contract FeeDistributionBranch is EngineAccessControl {
         // reverts if the amount is zero
         if (assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
 
-        // loads the dex swap strategy data storage pointer
-        DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
-
         // declare variable to store accumulated weth
         UD60x18 accumulatedWethX18;
 
+        // weth address
+        address weth = MarketMakingEngineConfiguration.load().weth;
+
         // if asset is weth directly add to accumulated weth, else swap token for weth
-        if (asset == MarketMakingEngineConfiguration.load().weth) {
+        if (asset == weth) {
             // store the amount of weth
             accumulatedWethX18 = assetAmountX18;
         } else {
+            // loads the dex swap strategy data storage pointer
+            DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
+
+            // load the weth collateral data storage pointer
+            Collateral.Data storage wethCollateral = Collateral.load(weth);
+
+            uint256 assetAmount = collateral.convertUd60x18ToTokenAmount(assetAmountX18);
+
+            // approve the collateral token to the dex adapter
+            IERC20(asset).approve(dexSwapStrategy.dexAdapter, assetAmount);
+
+            // get price of the tokenIn
+            // UD60x18 priceTokenInX18 = IPriceAdapter(collateral.priceAdapter).getPrice();
+
+            // // get price of the tokenOut
+            // UD60x18 priceTokenOutX18 = IPriceAdapter(wethCollateral.priceAdapter).getPrice();
+
+            // // calculate the amount out min
+            // uint256 amountOutMin = wethCollateral.convertUd60x18ToTokenAmount(
+            //     priceTokenInX18.mul(assetAmountX18).div(priceTokenOutX18)
+            // );
+
             // prepare the data for executing the swap
             SwapPayload memory swapCallData = SwapPayload({
                 tokenIn: asset,
                 tokenOut: MarketMakingEngineConfiguration.load().weth,
-                amountIn: assetAmountX18.intoUint256(),
-                amountOutMin: 0,
+                amountIn: assetAmount,
                 deadline: 3600,
                 recipient: address(this)
             });
 
             // Swap collected collateral fee amount for WETH and store the obtained amount
             uint256 tokensSwapped = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
+            UD60x18 tokensSwappedX18 = wethCollateral.convertTokenAmountToUd60x18(tokensSwapped);
 
             // store the amount of weth received from swap
-            accumulatedWethX18 = ud60x18(tokensSwapped);
+            accumulatedWethX18 = tokensSwappedX18;
         }
 
         // calculate the fee amount for the market

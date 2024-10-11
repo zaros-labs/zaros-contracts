@@ -28,17 +28,17 @@ contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
         uint256 amountIn,
         address recipient,
         uint160 sqrtPriceLimitX96,
-        SwapCallbackData memory data
+        uint256 amountOutMinimum
     )
         private
         pure
         returns (uint256 amountOut)
     {
         // only for mock purposes
+        amountIn;
         recipient;
         sqrtPriceLimitX96;
-        data;
-        amountOut = amountIn;
+        amountOut = amountOutMinimum;
     }
 
     /// @inheritdoc ISwapRouter
@@ -56,12 +56,8 @@ contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
         IERC20(params.tokenIn).transferFrom(msg.sender, address(this), params.amountIn);
         IERC20(params.tokenOut).transfer(params.recipient, params.amountIn);
 
-        amountOut = exactInputInternal(
-            params.amountIn,
-            params.recipient,
-            params.sqrtPriceLimitX96,
-            SwapCallbackData({ path: abi.encodePacked(params.tokenIn, params.fee, params.tokenOut), payer: msg.sender })
-        );
+        amountOut =
+            exactInputInternal(params.amountIn, params.recipient, params.sqrtPriceLimitX96, params.amountOutMinimum);
         require(amountOut >= params.amountOutMinimum, "Too little received");
     }
 
