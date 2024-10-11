@@ -11,7 +11,6 @@ library MarketMakingEngineConfiguration {
 
     // TODO: pack storage slots
     struct Data {
-        address usdToken;
         address usdc;
         address weth;
         address feeDistributor;

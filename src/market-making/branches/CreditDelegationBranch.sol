@@ -186,7 +186,7 @@ contract CreditDelegationBranch {
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
         // caches the usdToken address
-        address usdToken = MarketMakingEngineConfiguration.load().usdToken;
+        address usdToken = MarketMakingEngineConfiguration.load().usdTokenOfEngine[msg.sender];
 
         if (collateralType == usdToken) {
             // if the deposited collateral is USD Token, it reduces the market's realized debt
@@ -283,7 +283,7 @@ contract CreditDelegationBranch {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
         // cache the USD Token address
-        UsdToken usdToken = UsdToken(marketMakingEngineConfiguration.usdToken);
+        UsdToken usdToken = UsdToken(marketMakingEngineConfiguration.usdTokenOfEngine[msg.sender]);
 
         // mints USD Token to the perps engine
         usdToken.mint(msg.sender, amountToMint);
