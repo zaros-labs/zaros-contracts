@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // Margin Collaterals
-import { Usdz } from "script/margin-collaterals/Usdz.sol";
+import { UsdToken } from "script/margin-collaterals/Usdz.sol";
 import { Usdc } from "script/margin-collaterals/Usdc.sol";
 import { WEth } from "script/margin-collaterals/WEth.sol";
 import { WBtc } from "script/margin-collaterals/WBtc.sol";
@@ -12,12 +12,12 @@ import { WeEth } from "script/margin-collaterals/WeEth.sol";
 // Zaros dependencies
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
-import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
+import { MockUsdToken } from "test/mocks/MockUsdToken.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
 
-abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
+abstract contract MarginCollaterals is UsdToken, Usdc, WEth, WBtc, WstEth, WeEth {
     struct MarginCollateral {
         string name;
         string symbol;
@@ -64,34 +64,34 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
         });
         marginCollaterals[USDC_MARGIN_COLLATERAL_ID] = usdcConfig;
 
-        MarginCollateral memory usdzConfig = MarginCollateral({
-            name: USDZ_NAME,
-            symbol: USDZ_SYMBOL,
-            marginCollateralId: USDZ_MARGIN_COLLATERAL_ID,
-            depositCap: USDZ_DEPOSIT_CAP_X18.intoUint128(),
-            loanToValue: USDZ_LOAN_TO_VALUE,
-            minDepositMargin: USDZ_MIN_DEPOSIT_MARGIN,
-            mockUsdPrice: MOCK_USDZ_USD_PRICE,
-            marginCollateralAddress: USDZ_ADDRESS,
+        MarginCollateral memory usdTokenConfig = MarginCollateral({
+            name: USD_TOKEN_NAME,
+            symbol: USD_TOKEN_SYMBOL,
+            marginCollateralId: USD_TOKEN_MARGIN_COLLATERAL_ID,
+            depositCap: USD_TOKEN_DEPOSIT_CAP_X18.intoUint128(),
+            loanToValue: USD_TOKEN_LOAN_TO_VALUE,
+            minDepositMargin: USD_TOKEN_MIN_DEPOSIT_MARGIN,
+            mockUsdPrice: MOCK_USD_TOKEN_USD_PRICE,
+            marginCollateralAddress: USD_TOKEN_ADDRESS,
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.InitializeParams({
-                        name: USDZ_PRICE_ADAPTER_NAME,
-                        symbol: USDZ_PRICE_ADAPTER_SYMBOL,
+                        name: USD_TOKEN_PRICE_ADAPTER_NAME,
+                        symbol: USD_TOKEN_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: USDZ_PRICE_FEED,
+                        priceFeed: USD_TOKEN_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: USDZ_PRICE_FEED_HEARBEAT_SECONDS,
+                        priceFeedHeartbeatSeconds: USD_TOKEN_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useEthPriceFeed: false
                     })
                 )
             ),
-            liquidationPriority: USDZ_LIQUIDATION_PRIORITY,
-            tokenDecimals: USDZ_DECIMALS
+            liquidationPriority: USD_TOKEN_LIQUIDATION_PRIORITY,
+            tokenDecimals: USD_TOKEN_DECIMALS
         });
-        marginCollaterals[USDZ_MARGIN_COLLATERAL_ID] = usdzConfig;
+        marginCollaterals[USD_TOKEN_MARGIN_COLLATERAL_ID] = usdTokenConfig;
 
         MarginCollateral memory wEth = MarginCollateral({
             name: WETH_NAME,
@@ -254,8 +254,15 @@ abstract contract MarginCollaterals is Usdz, Usdc, WEth, WBtc, WstEth, WeEth {
             address mockERC20;
 
             if (isTest) {
-                if (filteredMarginCollateralsConfig[i].marginCollateralId == USDZ_MARGIN_COLLATERAL_ID) {
-                    mockERC20 = address(new MockUSDToken({ owner: owner, deployerBalance: 100_000_000e18 }));
+                if (filteredMarginCollateralsConfig[i].marginCollateralId == USD_TOKEN_MARGIN_COLLATERAL_ID) {
+                    mockERC20 = address(
+                        new MockUsdToken({
+                            owner: owner,
+                            deployerBalance: 100_000_000e18,
+                            _name: "Zaros Perpetuals AMM USD",
+                            _symbol: "USDz"
+                        })
+                    );
                 } else {
                     mockERC20 = address(
                         new MockERC20({

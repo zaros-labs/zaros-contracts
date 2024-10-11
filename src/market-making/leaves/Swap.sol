@@ -10,7 +10,7 @@ library Swap {
     struct Data {
         address assetFrom;
         uint256 amount;
-        uint256 minUsdzOut;
+        uint256 minUsdTokenOut;
         uint256 deadline;
     }
 

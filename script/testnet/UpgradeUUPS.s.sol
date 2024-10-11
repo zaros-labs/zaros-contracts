@@ -19,7 +19,7 @@ contract UpgradeUUPS is BaseScript {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     LimitedMintingERC20 internal usdc;
-    LimitedMintingERC20 internal usdz;
+    LimitedMintingERC20 internal usdToken;
 
     address internal forwarder;
     MarketOrderKeeper internal btcUsdMarketOrderKeeper;

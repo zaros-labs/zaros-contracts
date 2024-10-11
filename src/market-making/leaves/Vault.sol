@@ -18,12 +18,12 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @dev Vault's debt for ADL determination purposes:
 ///  (unrealized debt > 0 ? unrealized debt : 0 || TODO: define this) + realized debt + unsettled debt + settled debt
-/// + requested usdz.
+/// + requested usdToken.
 /// This means if the engine fails to report the unrealized debt properly, its users will unexpectedly and unfairly be
 /// deleveraged.
 /// NOTE: We only take into account positive debt in order to prevent a malicious engine of reporting a large fake
 /// credit, harming LPs.
-/// The MM engine protects LPs by taking into account the requested USDz.
+/// The MM engine protects LPs by taking into account the requested USD Token.
 /// @dev Vault's debt for credit delegation purposes = unrealized debt of each market (Market::getTotalDebt or
 /// market unrealized debt) +
 /// unsettledRealizedDebtUsd (comes from each market's realized debt) + settledRealizedDebtUsd.

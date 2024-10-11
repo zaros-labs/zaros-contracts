@@ -16,9 +16,9 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param engine The address of the engine contract.
     event LogRegisterEngine(address engine);
 
-    /// @notice Emitted when the USDz address is set or updated.
-    /// @param usdz The address of the USDz token.
-    event LogSetUsdz(address usdz);
+    /// @notice Emitted when the USD Token address is set or updated.
+    /// @param usdToken The address of the USD Token token.
+    event LogSetUsdToken(address usdToken);
 
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
@@ -49,11 +49,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogRegisterEngine(engine);
     }
 
-    function setUsdz(address usdz) external onlyOwner {
-        if (usdz == address(0)) revert Errors.ZeroInput("usdz");
+    function setUsdToken(address usdToken) external onlyOwner {
+        if (usdToken == address(0)) revert Errors.ZeroInput("usdToken");
 
-        MarketMakingEngineConfiguration.load().usdz = usdz;
+        MarketMakingEngineConfiguration.load().usdToken = usdToken;
 
-        emit LogSetUsdz(usdz);
+        emit LogSetUsdToken(usdToken);
     }
 }

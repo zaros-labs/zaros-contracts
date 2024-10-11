@@ -22,7 +22,7 @@ import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { MockSequencerUptimeFeed } from "test/mocks/MockSequencerUptimeFeed.sol";
-import { MockUSDToken } from "test/mocks/MockUSDToken.sol";
+import { MockUsdToken } from "test/mocks/MockUsdToken.sol";
 import { Storage } from "test/utils/Storage.sol";
 import { Users, User } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
@@ -105,7 +105,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     TradingAccountNFT internal tradingAccountToken;
 
     MockERC20 internal usdc;
-    MockUSDToken internal usdz;
+    MockUsdToken internal usdToken;
     MockERC20 internal wstEth;
     MockERC20 internal weEth;
     MockERC20 internal wEth;
@@ -175,14 +175,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         );
 
         usdc = MockERC20(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
-        usdz = MockUSDToken(marginCollaterals[USDZ_MARGIN_COLLATERAL_ID].marginCollateralAddress);
+        usdToken = MockUsdToken(marginCollaterals[USD_TOKEN_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         weEth = MockERC20(marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         wstEth = MockERC20(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         wEth = MockERC20(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress);
         wBtc = MockERC20(marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].marginCollateralAddress);
 
         vm.label({ account: address(usdc), newLabel: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].symbol });
-        vm.label({ account: address(usdz), newLabel: marginCollaterals[USDZ_MARGIN_COLLATERAL_ID].symbol });
+        vm.label({ account: address(usdToken), newLabel: marginCollaterals[USD_TOKEN_MARGIN_COLLATERAL_ID].symbol });
         vm.label({ account: address(weEth), newLabel: marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].symbol });
         vm.label({ account: address(wstEth), newLabel: marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].symbol });
         vm.label({ account: address(wEth), newLabel: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].symbol });
@@ -256,13 +256,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function configureContracts() internal {
-        perpsEngine.setUsdToken(address(usdz));
+        perpsEngine.setUsdToken(address(usdToken));
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
         // TODO: Temporary, switch to Market Making engine
-        usdz.transferOwnership(address(perpsEngine));
+        usdToken.transferOwnership(address(perpsEngine));
     }
 
     function configureLiquidationKeepers() internal {
@@ -586,7 +586,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     {
         address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({

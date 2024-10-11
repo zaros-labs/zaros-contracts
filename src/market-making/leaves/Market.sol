@@ -39,7 +39,8 @@ library Market {
     /// the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleveragePowerScale An admin configurable power scale, used to determine the acceleration of the
     /// ADL polynomial regression curve.
-    /// @param realizedUsdzDebt The net value of usdz deposited or withdrawn to / from the market. Used to determine
+    /// @param realizedUsdTokenDebt The net value of usdToken deposited or withdrawn to / from the market. Used to
+    /// determine
     /// the total realized debt and the connected vault's unsettled debt.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
     /// vaults.
@@ -57,7 +58,7 @@ library Market {
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
-        int128 realizedUsdzDebt;
+        int128 realizedUsdTokenDebt;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
         uint128 lastDistributionTimestamp;
@@ -104,7 +105,7 @@ library Market {
     /// x = (Math.min(marketRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
-    /// marketRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedUsdzDebt) /
+    /// marketRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedUsdTokenDebt) /
     /// Market::getCreditCapacityUsd
     /// @param self The market storage pointer.
     /// @param creditCapacityUsdX18 The market's credit capacity in USD.
@@ -175,7 +176,7 @@ library Market {
 
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
 
-    // TODO: iterate over each collateral deposit + realized usdz debt
+    // TODO: iterate over each collateral deposit + realized usdToken debt
     function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) { }
 
     /// @dev We assume the vault's unrealized and realized debt distributions have the same shares value.
@@ -300,11 +301,13 @@ library Market {
         );
     }
 
-    /// @notice Adds the minted usdz or the margin collateral collected from traders into the stored realized debt.
+    /// @notice Adds the minted usdToken or the margin collateral collected from traders into the stored realized
+    /// debt.
     /// @param self The market storage pointer.
     /// @param debtToRealizeUsdX18 The amount of debt to realize in USD.
     function realizeUsdTokenDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
-        self.realizedUsdzDebt = sd59x18(self.realizedUsdzDebt).add(debtToRealizeUsdX18).intoInt256().toInt128();
+        self.realizedUsdTokenDebt =
+            sd59x18(self.realizedUsdTokenDebt).add(debtToRealizeUsdX18).intoInt256().toInt128();
     }
 
     /// @notice Updates a vault's credit delegation to a market, updating each vault's unrealized and realized debt

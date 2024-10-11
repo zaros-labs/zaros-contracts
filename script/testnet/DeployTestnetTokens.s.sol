@@ -19,14 +19,15 @@ contract DeployTestnetTokens is BaseScript {
 
         bytes memory usdcInitializeData =
             abi.encodeWithSelector(LimitedMintingERC20.initialize.selector, deployer, "USD Coin", "USDC");
-        bytes memory usdzInitializeData =
-            abi.encodeWithSelector(LimitedMintingERC20.initialize.selector, deployer, "Zaros USD", "USDz");
+        bytes memory usdTokenInitializeData = abi.encodeWithSelector(
+            LimitedMintingERC20.initialize.selector, deployer, "Zaros Perpetuals AMM USD", "USDz"
+        );
 
         address usdc = address(new ERC1967Proxy(limitedMintingErc20Implementation, usdcInitializeData));
-        address usdz = address(new ERC1967Proxy(limitedMintingErc20Implementation, usdzInitializeData));
+        address usdToken = address(new ERC1967Proxy(limitedMintingErc20Implementation, usdTokenInitializeData));
 
         console.log("Limited Minting ERC20 Implementation: ", limitedMintingErc20Implementation);
         console.log("USDC Proxy: ", usdc);
-        console.log("USDz Proxy: ", usdz);
+        console.log("USD Token Proxy: ", usdToken);
     }
 }

@@ -159,12 +159,12 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         );
 
         marginValueUsd =
-            bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: ctx.maxMarginValueUsd.intoUint256() });
+            bound({ x: marginValueUsd, min: USD_TOKEN_MIN_DEPOSIT_MARGIN, max: ctx.maxMarginValueUsd.intoUint256() });
         ctx.amountToWithdraw = marginValueUsd;
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
-        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: ctx.tradingAccountId,
@@ -231,7 +231,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
         perpsEngine.withdrawMargin({
             tradingAccountId: ctx.tradingAccountId,
-            collateralType: address(usdz),
+            collateralType: address(usdToken),
             amount: ctx.amountToWithdraw
         });
     }

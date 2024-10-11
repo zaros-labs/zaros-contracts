@@ -31,7 +31,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         tradingAccountToken = TradingAccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         marketMakingEngine = IMarketMakingEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
-        usdToken = vm.envAddress("USDZ");
+        usdToken = vm.envAddress("USD_TOKEN");
         liquidationKeeper = vm.envAddress("LIQUIDATION_KEEPER");
 
         configureContracts(initialMarginCollateralId, finalMarginCollateralId);
@@ -81,12 +81,12 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         console.log(liquidators[0]);
 
         console.log("**************************");
-        console.log("Configuring USDz token...");
+        console.log("Configuring USD Token token...");
         console.log("**************************");
 
         perpsEngine.setUsdToken(usdToken);
 
-        console.log("Success! USDz token address:");
+        console.log("Success! USD Token token address:");
         console.log("\n");
         console.log(usdToken);
 
@@ -101,12 +101,12 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         console.log(address(tradingAccountToken));
 
         console.log("**************************");
-        console.log("Transferring USDz ownership to the market making engine...");
+        console.log("Transferring USD Token ownership to the market making engine...");
         console.log("**************************");
 
-        // NOTE: Once the MM engine v1 is deployed, USDz ownership must be transferred to the MM engine.
-        LimitedMintingERC20(USDZ_ADDRESS).transferOwnership(address(perpsEngine));
+        // NOTE: Once the MM engine v1 is deployed, USD Token ownership must be transferred to the MM engine.
+        LimitedMintingERC20(USD_TOKEN_ADDRESS).transferOwnership(address(perpsEngine));
 
-        console.log("Success! USDz token ownership transferred to the market making engine.");
+        console.log("Success! USD Token token ownership transferred to the market making engine.");
     }
 }

@@ -4,18 +4,18 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { USDToken } from "@zaros/usd/USDToken.sol";
+import { UsdToken } from "@zaros/usd/UsdToken.sol";
 
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
-contract USDToken_Mint_Test is Base_Test {
-    USDToken token;
+contract UsdToken_Mint_Test is Base_Test {
+    UsdToken token;
 
     function setUp() public virtual override {
         Base_Test.setUp();
 
-        token = new USDToken(users.owner.account);
+        token = new UsdToken(users.owner.account, "Zaros Perpetuals AMM USD", "USDz");
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotTheOwner(uint256 amount) external {
