@@ -16,7 +16,7 @@ library MarketMakingEngineConfiguration {
         address weth;
         address feeDistributor;
         FeeRecipient.Data[][] feeRecipients;
-        mapping(address engine => bool isRegistered) registeredEngines;
+        mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
         // TODO: define roles
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;

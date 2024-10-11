@@ -62,7 +62,7 @@ contract CreditDelegationBranch {
             MarketMakingEngineConfiguration.load();
 
         // if `msg.sender` is not a registered engine, revert
-        if (!marketMakingEngineConfiguration.registeredEngines[msg.sender]) {
+        if (!marketMakingEngineConfiguration.isRegisteredEngine[msg.sender]) {
             revert Errors.Unauthorized(msg.sender);
         }
 
