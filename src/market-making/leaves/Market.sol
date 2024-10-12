@@ -260,6 +260,10 @@ library Market {
         // `Market::accumulateVaultDebt`, and use the return values from that function to update its owned
         // unrealized and realized debt storage values.
         vaultsDebtDistribution.distributeValue(totalDebtUsdX18);
+
+        // updates the last distribution timestamp, preventing multiple distributions to be needlessly triggered in
+        // the same block
+        self.lastDistributionTimestamp = block.timestamp;
     }
 
     function accumulateVaultDebt(

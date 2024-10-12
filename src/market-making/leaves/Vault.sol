@@ -105,10 +105,17 @@ library Vault {
 
     // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
     // testability / visibility
+    /// @notice Recalculates the latest debt of each market connected to a vault, distributing its total debt to it.
+    /// @param self The vault storage pointer.
+    /// @param connectedMarketsIdsCache The cached connected markets ids.
+    /// @param shouldRehydrateCache Whether the connected markets ids cache should be rehydrated or not.
+    /// @return connectedMarketsIdCache The connected markets ids cache that could've been updated.
+    /// @return vaultTotalUnrealizedDebtChangeUsdX18 The vault's total unrealized debt change in USD.
+    /// @return vaultTotalRealizedDebtChangeUsdX18 The vault's total realized debt change in USD.
     function recalculateConnectedMarketsDebt(
         Data storage self,
         uint128[] memory connectedMarketsIdsCache,
-        bool shouldRefreshCache
+        bool shouldRehydrateCache
     )
         internal
         returns (
@@ -124,7 +131,7 @@ library Vault {
 
         for (uint256 j; j < connectedMarketsIdsCache.length; j++) {
             // update the markets ids cache if needed
-            if (shouldRefreshCache) {
+            if (shouldRehydrateCache) {
                 connectedMarketsIdsCache[j] = connectedMarkets.at(j).toUint128();
             }
             // loads the memory cached market id
@@ -132,6 +139,7 @@ library Vault {
             // loads the market storage pointer
             Market.Data storage market = Market.load(connectedMarketId);
 
+            // prepare to store the market's unrealized debt and realized debt values
             SD59x18 marketUnrealizedDebtUsdX18;
             SD59x18 marketRealizedDebtUsdX18;
 
@@ -156,6 +164,8 @@ library Vault {
                 sd59x18(creditDelegation.lastVaultDistributedRealizedDebtUsd)
             );
 
+            // if there's been no change in neither the unrealized nor the realized debt, we can iterate to the next
+            // market id
             if (unrealizedDebtChangeUsdX18.isZero() && realizedDebtChangeUsdX18.isZero()) {
                 continue;
             }
@@ -166,12 +176,16 @@ library Vault {
                 vaultTotalUnrealizedDebtChangeUsdX18.add(unrealizedDebtChangeUsdX18);
             vaultTotalRealizedDebtChangeUsdX18 = vaultTotalRealizedDebtChangeUsdX18.add(realizedDebtChangeUsdX18);
 
+            // updates the last distributed debt values to the vault's credit delegation to the given market id
             creditDelegation.updateVaultLastDistributedDebt(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
         }
     }
 
     /// @dev We use a `uint256` array because a market's connected vaults ids are stored at a `EnumerableSet.UintSet`.
     // todo: benchmark worst, average and best case gas costs for this function
+    /// @notice Recalculates the latest credit capacity of the provided vaults ids taking into account their latest
+    /// assets and debt usd denonimated values.
+    /// @param vaultsIds The array of vaults ids to recalculate the credit capacity.
     function recalculateVaultsCreditCapacity(uint256[] memory vaultsIds) internal {
         for (uint256 i; i < vaultsIds.length; i++) {
             // uint256 -> uint128
@@ -179,13 +193,11 @@ library Vault {
             // load the vault storage pointer
             Data storage self = load(vaultId);
 
-            // prepare to `mstore` the vault's total unrealized and realized debt changes coming from each connected
-            // market
-
-            // loads the connected markets storage pointer by taking the ast configured market ids uint set
+            // loads the connected markets storage pointer by taking the last configured market ids uint set
             EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length];
 
             // cache the connected markets ids to avoid multiple storage reads, as we're going to loop over them twice
+            // at `recalculateConnectedMarketsDebt` and `updateCreditDelegations`
             uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
 
             // iterate over each connected market id and distribute its debt so we can have the latest credit
@@ -209,15 +221,25 @@ library Vault {
         }
     }
 
-    // todo: see if the `shouldRefreshCache` parameter will be needed or not
+    // todo: see if the `shouldRehydrateCache` parameter will be needed or not
     // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
     // testability / visibility
+    // todo: we may need to remove the return value to save gas / remove if not needed
+    /// @notice Updates the vault's credit delegations to its connected markets, using the provided cache of connected
+    /// markets ids.
+    /// @dev This function assumes that the connected markets ids cache is up to date with the stored markets ids. If
+    /// this invariant resolves to false, the function will not work as expected.
+    /// @param self The vault storage pointer.
+    /// @param connectedMarketsIdsCache The cached connected markets ids.
+    /// @param shouldRehydrateCache Whether the connected markets ids cache should be rehydrated or not.
+    /// @return connectedMarketsIdCache The connected markets ids cache that could've been updated.
     function updateCreditDelegations(
         Data storage self,
         uint128[] memory connectedMarketsIdsCache,
-        bool shouldRefreshCache
+        bool shouldRehydrateCache
     )
         internal
+        returns (uint128[] memory connectedMarketsIdsCache)
     {
         // cache the vault id
         uint128 vaultId = self.id;
@@ -228,7 +250,7 @@ library Vault {
         // credit delegations
         for (uint256 j; j < connectedMarketsIdsCache.length; j++) {
             // update the markets ids cache if needed
-            if (shouldRefreshCache) {
+            if (shouldRehydrateCache) {
                 connectedMarketsIdsCache[j] = connectedMarkets.at(j).toUint128();
             }
             // loads the memory cached market id
