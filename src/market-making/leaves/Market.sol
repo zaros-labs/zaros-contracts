@@ -102,13 +102,13 @@ library Market {
     //// X and Y in [0, 1] ∈ R
     /// y = x^z
     /// z = Market.Data.autoDeleveragePowerScale
-    /// x = (Math.min(marketRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
+    /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
-    /// marketRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedUsdTokenDebt) /
+    /// marketDebtRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedUsdTokenDebt) /
     /// Market::getCreditCapacityUsd
     /// @param self The market storage pointer.
-    /// @param creditCapacityUsdX18 The market's credit capacity in USD.
+    /// @param delegatedCreditUsdX18 The market's credit delegated by vaults in USD, used to determine the ADL state.
     /// @param totalDebtUsdX18 The market's total debt in USD, assumed to be positive.
     /// @dev IMPORTANT: This function assumes the market is in net debt. If the market is in net credit,
     /// this function must not be called otherwise it will return an incorrect deleverage factor.
@@ -116,7 +116,7 @@ library Market {
     /// position's profit. Ranges between 0 and 1.
     function getAutoDeleverageFactor(
         Data storage self,
-        SD59x18 creditCapacityUsdX18,
+        SD59x18 delegatedCreditUsdX18,
         SD59x18 totalDebtUsdX18
     )
         internal
@@ -128,7 +128,7 @@ library Market {
             return autoDeleverageFactorX18;
         }
         // calculates the market ratio
-        UD60x18 marketRatio = totalDebtUsdX18.div(creditCapacityUsdX18).intoUD60x18();
+        UD60x18 marketDebtRatio = totalDebtUsdX18.div(creditCapacityUsdX18).intoUD60x18();
 
         // cache the auto deleverage parameters as UD60x18
         UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
@@ -136,7 +136,7 @@ library Market {
         UD60x18 autoDeleveragePowerScaleX18 = ud60x18(self.autoDeleveragePowerScale);
 
         // first, calculate the unscaled delevarage factor
-        UD60x18 unscaledDeleverageFactor = Math.min(marketRatio, autoDeleverageEndThresholdX18).sub(
+        UD60x18 unscaledDeleverageFactor = Math.min(marketDebtRatio, autoDeleverageEndThresholdX18).sub(
             autoDeleverageStartThresholdX18
         ).div(autoDeleverageEndThresholdX18.sub(autoDeleverageStartThresholdX18));
 
@@ -174,6 +174,7 @@ library Market {
         totalDelegatedCreditUsdX18 = ud60x18(self.vaultsDebtDistribution.totalShares);
     }
 
+    // todo: see if this function will be actually needed
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
 
     // TODO: iterate over each collateral deposit + realized usdToken debt
@@ -203,7 +204,33 @@ library Market {
         unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.marketId));
     }
 
-    function isAutoDeleverageTriggered(Data storage self, SD59x18 totalDebtUsdX18) internal view returns (bool) { }
+    /// @notice Returns whether the market has reached the auto deleverage start threshold, i.e, if the ADL system
+    /// must be triggered or not.
+    /// @param self The market storage pointer.
+    /// @param delegatedCreditUsdX18 The market's credit delegated by vaults in USD, used to determine the ADL state.
+    /// @param totalDebtUsdX18 The market's total debt in USD, used to determine the ADL state.
+    // todo: when back, determine if we need to use delegated credit or credit capacity.
+    function isAutoDeleverageTriggered(
+        Data storage self,
+        SD59x18 delegatedCreditUsdX18,
+        SD59x18 totalDebtUsdX18
+    )
+        internal
+        view
+        returns (bool)
+    {
+        if (creditCapacityUsdX18.lte(totalDebtUsdX18) || creditCapacityUsdX18.lte(SD59x18_ZERO)) {
+            return false;
+        }
+        // calculates the market ratio
+        UD60x18 marketDebtRatio = totalDebtUsdX18.div(creditCapacityUsdX18).intoUD60x18();
+
+        // cache the auto deleverage parameters as UD60x18
+        UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
+        UD60x18 autoDeleverageEndThresholdX18 = ud60x18(self.autoDeleverageEndThreshold);
+
+        return marketDebtRatio.gte(autoDeleverageEndThresholdX18);
+    }
 
     function isDistributionRequired(Data storage self) internal view returns (bool) {
         return block.timestamp < self.lastDistributionTimestamp;
