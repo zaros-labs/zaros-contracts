@@ -36,6 +36,7 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 // functions
 // todo: see if we different service leaves from repository (or something else) leaves.
 // Vault::recalculateVaultsCreditCapacity is a service function that should live in a service leaf.
+// todo: create vault service and services directory, separating from leaf logic. See services internal notes
 library Vault {
     using Collateral for Collateral.Data;
     using CreditDelegation for CreditDelegation.Data;
