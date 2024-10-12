@@ -13,7 +13,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, UNIT as UD60x18_UNIT } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @dev NOTE: unrealized debt (from market) -> realized debt (market) -> unsettled debt (vaults) -> settled
 /// debt (vaults)
@@ -25,6 +25,7 @@ library Market {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeCast for int256;
+    using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_LOCATION =
@@ -116,19 +117,20 @@ library Market {
     /// position's profit. Ranges between 0 and 1.
     function getAutoDeleverageFactor(
         Data storage self,
-        SD59x18 delegatedCreditUsdX18,
+        UD60x18 delegatedCreditUsdX18,
         SD59x18 totalDebtUsdX18
     )
         internal
         view
         returns (UD60x18 autoDeleverageFactorX18)
     {
-        if (creditCapacityUsdX18.lte(totalDebtUsdX18) || creditCapacityUsdX18.lte(SD59x18_ZERO)) {
+        SD59x18 sdDelegatedCreditUsdX18 = delegatedCreditUsdX18.intoSD59x18();
+        if (sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()) {
             autoDeleverageFactorX18 = UD60x18_UNIT;
             return autoDeleverageFactorX18;
         }
         // calculates the market ratio
-        UD60x18 marketDebtRatio = totalDebtUsdX18.div(creditCapacityUsdX18).intoUD60x18();
+        UD60x18 marketDebtRatio = totalDebtUsdX18.div(sdDelegatedCreditUsdX18).intoUD60x18();
 
         // cache the auto deleverage parameters as UD60x18
         UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
@@ -212,24 +214,24 @@ library Market {
     // todo: when back, determine if we need to use delegated credit or credit capacity.
     function isAutoDeleverageTriggered(
         Data storage self,
-        SD59x18 delegatedCreditUsdX18,
+        UD60x18 delegatedCreditUsdX18,
         SD59x18 totalDebtUsdX18
     )
         internal
         view
         returns (bool)
     {
-        if (creditCapacityUsdX18.lte(totalDebtUsdX18) || creditCapacityUsdX18.lte(SD59x18_ZERO)) {
+        SD59x18 sdDelegatedCreditUsdX18 = delegatedCreditUsdX18.intoSD59x18();
+        if (sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()) {
             return false;
         }
         // calculates the market ratio
-        UD60x18 marketDebtRatio = totalDebtUsdX18.div(creditCapacityUsdX18).intoUD60x18();
+        UD60x18 marketDebtRatio = totalDebtUsdX18.div(sdDelegatedCreditUsdX18).intoUD60x18();
 
         // cache the auto deleverage parameters as UD60x18
         UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
-        UD60x18 autoDeleverageEndThresholdX18 = ud60x18(self.autoDeleverageEndThreshold);
 
-        return marketDebtRatio.gte(autoDeleverageEndThresholdX18);
+        return marketDebtRatio.gte(autoDeleverageStartThresholdX18);
     }
 
     function isDistributionRequired(Data storage self) internal view returns (bool) {
@@ -290,7 +292,7 @@ library Market {
 
         // updates the last distribution timestamp, preventing multiple distributions to be needlessly triggered in
         // the same block
-        self.lastDistributionTimestamp = block.timestamp;
+        self.lastDistributionTimestamp = block.timestamp.toUint128();
     }
 
     function accumulateVaultDebt(

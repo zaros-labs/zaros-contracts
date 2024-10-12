@@ -82,7 +82,7 @@ contract CreditDelegationBranch {
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
     // TODO: add invariants
-    function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18 creditCapacityUsdX18) {
+    function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18) {
         Market.Data storage market = Market.load(marketId);
 
         return Market.getCreditCapacityUsd(
@@ -115,9 +115,10 @@ contract CreditDelegationBranch {
         // uint256 -> UD60x18
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
+        // caches the market's delegated credit
+        UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
         // caches the market's credit capacity
-        SD59x18 creditCapacityUsdX18 =
-            Market.getCreditCapacityUsd(market.getTotalDelegatedCreditUsd(), marketTotalDebtUsdX18);
+        SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(delegatedCreditUsdX18, marketTotalDebtUsdX18);
 
         // if the credit capacity is less than or equal to zero, it means the total debt has already taken all the
         // delegated credit
@@ -127,7 +128,7 @@ contract CreditDelegationBranch {
 
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
         // NOTE: If we don't return the adjusted profit in this if branch, we assume marketTotalDebtUsdX18 is positive
-        if (!market.isAutoDeleverageTriggered(marketTotalDebtUsdX18)) {
+        if (!market.isAutoDeleverageTriggered(delegatedCreditUsdX18, marketTotalDebtUsdX18)) {
             // if the market is not in the ADL state, it returns the profit as is
             adjustedProfitUsdX18 = profitUsdX18;
             return adjustedProfitUsdX18;
@@ -135,7 +136,7 @@ contract CreditDelegationBranch {
 
         // if the market's auto deleverage system is triggered, it assumes marketTotalDebtUsdX18 > 0
         adjustedProfitUsdX18 =
-            market.getAutoDeleverageFactor(creditCapacityUsdX18, marketTotalDebtUsdX18).mul(profitUsdX18);
+            market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(profitUsdX18);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -242,9 +243,10 @@ contract CreditDelegationBranch {
         // cache the market's total debt
         SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
 
+        // cache the market's delegated credit
+        UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
         // cache the market's credit capacity
-        SD59x18 creditCapacityUsdX18 =
-            Market.getCreditCapacityUsd(market.getTotalDelegatedCreditUsd(), marketTotalDebtUsdX18);
+        SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(delegatedCreditUsdX18, marketTotalDebtUsdX18);
 
         // enforces that the market has enough credit capacity, if it' a listed market it must always have some
         // delegated credit, see Vault.Data.lockedCreditRatio.
@@ -265,12 +267,11 @@ contract CreditDelegationBranch {
 
         // now we realize the added usd debt of the market
         // note: USD Token is assumed to be 1:1 with the system's usd accounting
-        if (market.isAutoDeleverageTriggered(marketTotalDebtUsdX18.add(amountX18.intoSD59x18()))) {
+        if (market.isAutoDeleverageTriggered(delegatedCreditUsdX18, marketTotalDebtUsdX18)) {
             // if the market is in the ADL state, it reduces the requested USD Token amount by multiplying it by the
-            // ADL
-            // factor, which must be < 1
+            // ADL factor, which must be < 1
             UD60x18 adjustedUsdTokenToMintX18 =
-                market.getAutoDeleverageFactor(creditCapacityUsdX18, marketTotalDebtUsdX18).mul(amountX18);
+                market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(amountX18);
             amountToMint = adjustedUsdTokenToMintX18.intoUint256();
             market.realizeUsdTokenDebt(adjustedUsdTokenToMintX18.intoSD59x18());
         } else {
@@ -329,10 +330,7 @@ contract CreditDelegationBranch {
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
     /// TODO: add invariants
-    function updateCreditDelegationAndReturnCreditForMarket(uint128 marketId)
-        external
-        returns (SD59x18 creditCapacityUsdX18)
-    {
+    function updateCreditDelegationAndReturnCreditForMarket(uint128 marketId) external returns (SD59x18) {
         updateCreditDelegation();
         return getCreditCapacityForMarketId(marketId);
     }

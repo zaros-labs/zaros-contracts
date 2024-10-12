@@ -110,7 +110,7 @@ library Vault {
     /// @param self The vault storage pointer.
     /// @param connectedMarketsIdsCache The cached connected markets ids.
     /// @param shouldRehydrateCache Whether the connected markets ids cache should be rehydrated or not.
-    /// @return connectedMarketsIdCache The connected markets ids cache that could've been updated.
+    /// @return rehydratedConnectedMarketsIdsCache The potentially rehydrated connected markets ids cache.
     /// @return vaultTotalUnrealizedDebtChangeUsdX18 The vault's total unrealized debt change in USD.
     /// @return vaultTotalRealizedDebtChangeUsdX18 The vault's total realized debt change in USD.
     function recalculateConnectedMarketsDebt(
@@ -120,7 +120,7 @@ library Vault {
     )
         internal
         returns (
-            uint128[] memory connectedMarketsIdCache,
+            uint128[] memory rehydratedConnectedMarketsIdsCache,
             SD59x18 vaultTotalUnrealizedDebtChangeUsdX18,
             SD59x18 vaultTotalRealizedDebtChangeUsdX18
         )
@@ -131,9 +131,10 @@ library Vault {
         EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length];
 
         for (uint256 j; j < connectedMarketsIdsCache.length; j++) {
-            // update the markets ids cache if needed
             if (shouldRehydrateCache) {
-                connectedMarketsIdsCache[j] = connectedMarkets.at(j).toUint128();
+                rehydratedConnectedMarketsIdsCache[j] = connectedMarkets.at(j).toUint128();
+            } else {
+                rehydratedConnectedMarketsIdsCache[j] = connectedMarketsIdsCache[j];
             }
             // loads the memory cached market id
             uint128 connectedMarketId = connectedMarketsIdsCache[j];
@@ -233,14 +234,14 @@ library Vault {
     /// @param self The vault storage pointer.
     /// @param connectedMarketsIdsCache The cached connected markets ids.
     /// @param shouldRehydrateCache Whether the connected markets ids cache should be rehydrated or not.
-    /// @return connectedMarketsIdCache The connected markets ids cache that could've been updated.
+    /// @return rehydratedConnectedMarketsIdsCache The potentially rehydrated connected markets ids cache.
     function updateCreditDelegations(
         Data storage self,
         uint128[] memory connectedMarketsIdsCache,
         bool shouldRehydrateCache
     )
         internal
-        returns (uint128[] memory connectedMarketsIdsCache)
+        returns (uint128[] memory rehydratedConnectedMarketsIdsCache)
     {
         // cache the vault id
         uint128 vaultId = self.id;
@@ -250,12 +251,15 @@ library Vault {
         // loop over each connected market id that has been cached once again in order to update this vault's
         // credit delegations
         for (uint256 j; j < connectedMarketsIdsCache.length; j++) {
-            // update the markets ids cache if needed
+            // rehydrate the markets ids cache if needed
             if (shouldRehydrateCache) {
-                connectedMarketsIdsCache[j] = connectedMarkets.at(j).toUint128();
+                rehydratedConnectedMarketsIdsCache[j] = connectedMarkets.at(j).toUint128();
+            } else {
+                rehydratedConnectedMarketsIdsCache[j] = connectedMarketsIdsCache[j];
             }
+
             // loads the memory cached market id
-            uint128 connectedMarketId = connectedMarketsIdsCache[j];
+            uint128 connectedMarketId = rehydratedConnectedMarketsIdsCache[j];
 
             // load the credit delegation to the given market id
             CreditDelegation.Data storage creditDelegation = CreditDelegation.load(vaultId, connectedMarketId);
