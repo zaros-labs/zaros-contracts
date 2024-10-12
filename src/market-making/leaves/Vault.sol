@@ -2,7 +2,6 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Math } from "@zaros/utils/Math.sol";
 import { Collateral } from "./Collateral.sol";
 import { CreditDelegation } from "./CreditDelegation.sol";
 import { Distribution } from "./Distribution.sol";
@@ -32,10 +31,6 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 /// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd + settledRealizedDebtUsd
 /// @dev A swap adds `settledRealizedDebt` but subtracts `unsettledRealizedDebt`. The Vault earns a swap fee for the
 /// inconvenience, allocated as additional WETH staking rewards.2
-// todo: next, update natspec here then work on the new usd tokens system and finalize by implementing the missing
-// functions
-// todo: see if we different service leaves from repository (or something else) leaves.
-// Vault::recalculateVaultsCreditCapacity is a service function that should live in a service leaf.
 // todo: create vault service and services directory, separating from leaf logic. See services internal notes
 library Vault {
     using Collateral for Collateral.Data;

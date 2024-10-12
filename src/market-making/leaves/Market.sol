@@ -17,8 +17,6 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @dev NOTE: unrealized debt (from market) -> realized debt (market) -> unsettled debt (vaults) -> settled
 /// debt (vaults)
-/// TODO: do we only send realized debt as unsettled debt to the vaults? should it be considered settled debt? or do
-/// we send the entire reported debt as unsettled debt?
 library Market {
     using CreditDeposit for CreditDeposit.Data;
     using Distribution for Distribution.Data;
@@ -28,6 +26,9 @@ library Market {
     using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.
+    /// todo: resolve marked TODOs in this and the Vault's branch before opening the PR, and review the natspec of
+    /// both data structs.
+    /// todo: create VaultService and MarketService
     bytes32 internal constant MARKET_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Market")) - 1));
 
@@ -146,6 +147,9 @@ library Market {
         autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleveragePowerScaleX18);
     }
 
+    /// @notice Returns a memory array containing the vaults delegating credit to the market.
+    /// @param self The market storage pointer.
+    /// @return connectedVaultsIds The vaults ids delegating credit to the market.
     function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaultsIds) {
         if (self.connectedVaultsIds.length == 0) {
             return connectedVaultsIds;
@@ -154,6 +158,10 @@ library Market {
         connectedVaultsIds = self.connectedVaultsIds[self.connectedVaultsIds.length].values();
     }
 
+    /// @notice Returns a market's credit capacity in USD based on its delegated credit and total debt.
+    /// @param delegatedCreditUsdX18 The market's credit delegated by vaults in USD.
+    /// @param totalDebtUsdX18 The market's unrealized + realized debt in USD.
+    /// @return creditCapacityUsdX18 The market's credit capacity in USD.
     function getCreditCapacityUsd(
         UD60x18 delegatedCreditUsdX18,
         SD59x18 totalDebtUsdX18
@@ -165,14 +173,16 @@ library Market {
         creditCapacityUsdX18 = delegatedCreditUsdX18.intoSD59x18().add(totalDebtUsdX18);
     }
 
+    /// @notice Returns all the credit delegated by the vaults connected to the market.
+    /// @param self The market storage pointer.
+    /// @return totalDelegatedCreditUsdX18 The total credit delegated by the vaults in USD.
     function getTotalDelegatedCreditUsd(Data storage self)
         internal
         view
         returns (UD60x18 totalDelegatedCreditUsdX18)
     {
-        // we assume vaultsUnrealizedDebtDistribution.totalShares equals vaultsRealizedDebtDistribution.totalShares
-        // TODO: think about unifying the debt distributions and storing unrealized vs realized debt per vault in a
-        // different way to gain efficiency
+        // the market's total delegated credit equals the total shares of the vaults debt distribution, as 1 share
+        // equals 1 USD of vault-delegated credit
         totalDelegatedCreditUsdX18 = ud60x18(self.vaultsDebtDistribution.totalShares);
     }
 
@@ -180,11 +190,15 @@ library Market {
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
 
     // TODO: iterate over each collateral deposit + realized usdToken debt
+    // todo: implement this function
     function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) { }
 
-    /// @dev We assume the vault's unrealized and realized debt distributions have the same shares value.
-    /// @dev TODO: define if we unify the distributions or not by segregating the unrealized / realized debt stored
-    /// per vault
+    /// @notice Returns the credit delegated by a vault to the market in USD.
+    /// @dev A vault's usd credit delegated to the market is represented by its shares in the
+    /// `Market.Data.vaultsDebtDistribution`.
+    /// @param self The market storage pointer.
+    /// @param vaultId The id of the vault to get the delegated credit from.
+    /// @return vaultDelegatedCreditUsdX18 The vault's delegated credit in USD.
     function getVaultDelegatedCreditUsd(
         Data storage self,
         uint128 vaultId
@@ -202,6 +216,11 @@ library Market {
         vaultDelegatedCreditUsdX18 = vaultsDebtDistribution.getActorShares(actorId);
     }
 
+    /// @notice Returns the market's total unrealized debt in USD.
+    /// @dev This function assumes that the `IEngine::getUnrealizedDebt` function is trusted and returns the accurate
+    /// unrealized debt value of the given market id.
+    /// @param self The market storage pointer.
+    /// @return unrealizedDebtUsdX18 The market's total unrealized debt in USD.
     function getUnrealizedDebtUsd(Data storage self) internal view returns (SD59x18 unrealizedDebtUsdX18) {
         unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.marketId));
     }
@@ -211,7 +230,6 @@ library Market {
     /// @param self The market storage pointer.
     /// @param delegatedCreditUsdX18 The market's credit delegated by vaults in USD, used to determine the ADL state.
     /// @param totalDebtUsdX18 The market's total debt in USD, used to determine the ADL state.
-    // todo: when back, determine if we need to use delegated credit or credit capacity.
     function isAutoDeleverageTriggered(
         Data storage self,
         UD60x18 delegatedCreditUsdX18,
@@ -234,6 +252,13 @@ library Market {
         return marketDebtRatio.gte(autoDeleverageStartThresholdX18);
     }
 
+    /// @notice Returns whether the market is in a state where a debt distribution is required or not.
+    /// @dev We don't need to perform debt distributions in the same block.timestamp as we assume that the vault's
+    /// assets' oracle reported price wouldn't fluctuate in the same block, and the market's debt would also remain
+    /// the same until the next block.
+    /// todo: the assumption above is not fully correct. Assets prices won't fluctuate but the market's reported
+    /// unrealized debt could. We need to refactor so that we only skip credit deposits and vault assets
+    /// recalculations, but we still need to distribute the potentially added / subtracted debt.
     function isDistributionRequired(Data storage self) internal view returns (bool) {
         return block.timestamp < self.lastDistributionTimestamp;
     }
@@ -241,6 +266,9 @@ library Market {
     /// @notice Deposits collateral to the market as credit.
     /// @dev This function assumes the collateral type address is configured in the protocol and has been previously
     /// verified.
+    /// @param self The market storage pointer.
+    /// @param collateralType The address of the collateral type to deposit.
+    /// @param amountX18 The amount of collateral to deposit in the market in 18 decimals.
     function depositCollateral(Data storage self, address collateralType, UD60x18 amountX18) internal {
         EnumerableSet.AddressSet storage depositedCollateralTypes = self.depositedCollateralTypes;
 
@@ -295,6 +323,14 @@ library Market {
         self.lastDistributionTimestamp = block.timestamp.toUint128();
     }
 
+    /// @notice Accumulates a vault's share of the market's unrealized and realized debt since the last distribution,
+    /// and calculates the vault's debt changes in USD.
+    /// @param self The market storage pointer.
+    /// @param vaultId The vault id to accumulate the debt for.
+    /// @param lastVaultDistributedUnrealizedDebtUsdX18 The last distributed unrealized debt in USD for the given
+    /// credit delegation (by the vault).
+    /// @param lastVaultDistributedRealizedDebtUsdX18 The last distributed realized debt in USD for the given credit
+    /// delegation (by the vault).
     function accumulateVaultDebt(
         Data storage self,
         uint128 vaultId,
@@ -350,7 +386,7 @@ library Market {
     /// enforce that the vault's shares and the distribution's total shares are always equal.
     /// @param self The market storage pointer.
     /// @param vaultId The vault id to update have its credit delegation shares updated.
-    /// @param newCreditDelegationUsdX18 The new credit delegation in USD, i.e distribution shares.
+    /// @param creditDelegationChangeUsdX18 The USD change of the vault's credit delegation to the market.
     function updateVaultCreditDelegation(
         Data storage self,
         uint128 vaultId,
