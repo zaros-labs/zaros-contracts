@@ -4,15 +4,15 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Base_Test } from "test/Base.t.sol";
-import { USDToken } from "@zaros/usd/USDToken.sol";
+import { UsdToken } from "@zaros/usd/UsdToken.sol";
 
-contract USDToken_Burn_Test is Base_Test {
-    USDToken token;
+contract UsdToken_Burn_Test is Base_Test {
+    UsdToken token;
 
     function setUp() public virtual override {
         Base_Test.setUp();
 
-        token = new USDToken(users.owner.account);
+        token = new UsdToken(users.owner.account, "Zaros Perpetuals AMM USD", "USDz");
     }
 
     function test_RevertWhen_AmountIsZero() external {

@@ -8,7 +8,7 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 library Collateral {
@@ -88,16 +88,26 @@ library Collateral {
         return Math.convertSd59x18ToTokenAmount(self.decimals, amountX18);
     }
 
-    /// @notice Returns the price of the given collateral type.
+    /// @notice Returns the collateral asset price adjusted by its credit ratio.
     /// @param self The collateral type storage pointer.
-    /// @return priceX18 The price of the given collateral type.
+    /// @return adjustedPriceX18 The price of the given collateral type.
+    function getAdjustedPrice(Data storage self) internal view returns (UD60x18 adjustedPriceX18) {
+        adjustedPriceX18 = getPrice(self).mul(ud60x18(self.creditRatio));
+    }
+
+    /// @notice Gets the oracle provided usd price of the collateral asset.
+    /// @param self The collateral type storage pointer.
+    /// @return priceX18 The price of the collateral asset in USD.
     function getPrice(Data storage self) internal view returns (UD60x18 priceX18) {
+        // cache the price adapter contract address
         address priceAdapter = self.priceAdapter;
 
+        // reverts if the price adapter is not defined
         if (priceAdapter == address(0)) {
             revert Errors.CollateralPriceFeedNotDefined();
         }
 
+        // call the price adapter contract
         priceX18 = IPriceAdapter(priceAdapter).getPrice();
     }
 }

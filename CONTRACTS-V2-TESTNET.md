@@ -1,6 +1,7 @@
 Contracts V2 Testnet
 
 ————————————————————————————————————————————————————
+
 ```bash
 forge script script/01_DeployPerpsEngine.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
@@ -20,7 +21,6 @@ forge script script/01_DeployPerpsEngine.s.sol --rpc-url arbitrum_sepolia --broa
   Perps Engine:  0x6f7b7e54a643E1285004AaCA95f3B2e6F5bcC1f3
 ```
 
-
 - Update `TRADING_ACCOUNT_NFT` environment variable in the `.env` file
 - Update `PERPS_ENGINE` environment variable in the `.env` file
 - Update `PERPS_ENGINE` variable in the `LimitedMintingERC20.sol`
@@ -31,6 +31,7 @@ forge script script/01_DeployPerpsEngine.s.sol --rpc-url arbitrum_sepolia --broa
 - Add `Perps Engine` address to the allowlist of Chainlink or send some ETHs to the contract.
 
 ————————————————————————————————————————————————————
+
 ```bash
 forge script script/testnet/DeployTestnetTokens.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
@@ -39,15 +40,16 @@ forge script script/testnet/DeployTestnetTokens.s.sol --rpc-url arbitrum_sepolia
 == Logs ==
   Limited Minting ERC20 Implementation:  0x5D3EDD497625B4A83874Ac784324328753193cA5
   USDC Proxy:  0x95011b96c11A4cc96CD8351165645E00F68632a3
-  USDz Proxy:  0x8648d10fE74dD9b4B454B4db9B63b03998c087Ba
+  USD Token Proxy:  0x8648d10fE74dD9b4B454B4db9B63b03998c087Ba
 ```
 
 - Update `USDC_ADDRESS` in the `Usdc.sol`
-- Update `USDZ_ADDRESS`in the `Usdz.sol`
+- Update `USD_TOKEN_ADDRESS`in the `UsdToken.sol`
 - Update `USDC` environment variable in the `.env` file
-- Update `USDZ` environment variable in the `.env` file
+- Update `USD_TOKEN` environment variable in the `.env` file
 
 ————————————————————————————————————————————————————
+
 ```bash
 forge script script/testnet/SetStartTimeMinting.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
@@ -58,6 +60,7 @@ forge script script/testnet/SetStartTimeMinting.s.sol --rpc-url arbitrum_sepolia
 ```
 
 ————————————————————————————————————————————————————
+
 ```bash
 forge script script/02_ConfigurePerpsEngine.s.sol --sig "run(uint256,uint256)" 1 2 --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
@@ -78,6 +81,7 @@ Backend address:
 ```
 
 ————————————————————————————————————————————————————
+
 ```bash
 forge script script/03_CreatePerpMarkets.s.sol --sig "run(uint256,uint256)" 1 10 --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
@@ -98,6 +102,7 @@ forge script script/03_CreatePerpMarkets.s.sol --sig "run(uint256,uint256)" 1 10
 ```
 
 ————————————————————————————————————————————————————
+
 ```bash
 forge script script/testnet/CreateListOfCustomReferrals.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv
 ```
@@ -106,21 +111,20 @@ forge script script/testnet/CreateListOfCustomReferrals.s.sol --rpc-url arbitrum
 == Logs ==
   Custom referral codes created successfully
 ```
-————————————————————————————————————————————————————
-<br/>
-You can run in 50 by 50 with solidity script:
+
+———————————————————————————————————————————————————— <br/> You can run in 50 by 50 with solidity script:
+
 ```bash
 forge script script/testnet/CreateListOfTradingAccounts.s.sol --sig "run(uint256,uint256)" 0 50 --rpc-url arbitrum_sepolia --broadcast --legacy -vvvv
 ```
 
 Or use the js script to run all at once:
+
 ```bash
 node createListOfTradingAccounts.js
 ```
 
-————————————————————————————————————————————————————
-<br/>
-Market order keepers in the Chalink Automation:
+———————————————————————————————————————————————————— <br/> Market order keepers in the Chalink Automation:
 
 ```bash
 BTC-USD Market ID: 1: https://automation.chain.link/arbitrum-sepolia/90288828766752025420065681979340487832907615164954474878130858312114572802820
@@ -144,8 +148,7 @@ LTC-USD Market ID: 9: https://automation.chain.link/arbitrum-sepolia/10120886004
 FTM-USD Market ID: 10: https://automation.chain.link/arbitrum-sepolia/11886920437632908777712314774151618776394941799843815047975461379531670939078
 ```
 
-————————————————————————————————————————————————————
-<br/>
+———————————————————————————————————————————————————— <br/>
 
 ```bash
 forge script script/utils/SetForwarders.s.sol --rpc-url arbitrum_sepolia --broadcast -vvvv

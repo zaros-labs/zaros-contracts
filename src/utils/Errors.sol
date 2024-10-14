@@ -209,4 +209,7 @@ library Errors {
     /// @notice Thrown when vault does NOT exist
     /// @param vaultId The ID of the vault that does NOT exist.
     error VaultDoesNotExist(uint128 vaultId);
+
+    /// @notice MarketMakingEngine.Vault errors.
+    error NoMarketsConnectedToVault(uint128 vaultId);
 }

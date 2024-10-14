@@ -35,13 +35,13 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({
             x: marginValueUsd,
-            min: USDZ_MIN_DEPOSIT_MARGIN,
-            max: convertUd60x18ToTokenAmount(address(usdz), USDZ_DEPOSIT_CAP_X18)
+            min: USD_TOKEN_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdToken), USD_TOKEN_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         changePrank({ msgSender: users.owner.account });
 
@@ -73,13 +73,13 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             bound({ x: initialMarginRate, min: fuzzMarketConfig.marginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({
             x: marginValueUsd,
-            min: USDZ_MIN_DEPOSIT_MARGIN,
-            max: convertUd60x18ToTokenAmount(address(usdz), USDZ_DEPOSIT_CAP_X18)
+            min: USD_TOKEN_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdToken), USD_TOKEN_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoActiveMarketOrder.selector, tradingAccountId) });

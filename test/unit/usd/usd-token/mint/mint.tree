@@ -1,4 +1,4 @@
-USDToken_Mint_Test
+UsdToken_Mint_Test
 ├── given the sender is not the owner
 │   └── it should revert
 └── given the sender is the owner

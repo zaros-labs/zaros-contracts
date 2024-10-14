@@ -10,15 +10,13 @@ library MarketMakingEngineConfiguration {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketMakingEngineConfiguration")) - 1));
 
     // TODO: pack storage slots
-    // TODO: configure one usd token per engine, isolating risk.
     struct Data {
-        address usdz;
         address usdc;
         address weth;
         address feeDistributor;
         FeeRecipient.Data[][] feeRecipients;
-        mapping(address engine => bool isRegistered) registeredEngines;
-        // mapping(address engine => address usdToken) usdTokenOfEngine;
+        mapping(address engine => bool isRegistered) isRegisteredEngine;
+        mapping(address engine => address usdToken) usdTokenOfEngine;
         // TODO: define roles
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;
     }

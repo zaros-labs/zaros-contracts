@@ -9,8 +9,16 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { ERC20, ERC20Permit } from "@openzeppelin/token/ERC20/extensions/ERC20Permit.sol";
 
-contract USDToken is ERC20Permit, Ownable {
-    constructor(address owner) ERC20("Zaros USD", "USDz") ERC20Permit("Zaros USD") Ownable(owner) { }
+contract UsdToken is ERC20Permit, Ownable {
+    constructor(
+        address owner,
+        string memory _name,
+        string memory _symbol
+    )
+        ERC20(_name, _symbol)
+        ERC20Permit(_name)
+        Ownable(owner)
+    { }
 
     function mint(address to, uint256 amount) external onlyOwner {
         _requireAmountNotZero(amount);

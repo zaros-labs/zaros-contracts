@@ -456,12 +456,12 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         );
 
         marginValueUsd =
-            bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
+            bound({ x: marginValueUsd, min: USD_TOKEN_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
         initialMarginRate = bound({ x: initialMarginRate, min: 1, max: adjustedMarginRequirements.intoUint256() });
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
