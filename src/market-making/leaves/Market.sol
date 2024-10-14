@@ -270,6 +270,7 @@ library Market {
     function configureConnectedVaults(Data storage self, uint128[] memory vaultsIds) internal {
         EnumerableSet.UintSet[] storage connectedVaultsIds = self.connectedVaultsIds;
 
+        // add the vauls ids to a new UintSet instance in the connectedVaultsIds array
         for (uint256 i = 0; i < vaultsIds.length; i++) {
             connectedVaultsIds[connectedVaultsIds.length].add(vaultsIds[i]);
         }

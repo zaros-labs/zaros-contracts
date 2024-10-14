@@ -88,14 +88,23 @@ library Vault {
         }
     }
 
+    /// @notice Returns the vault's minimum credit capacity allocated to the connected markets.
+    /// @dev Prevents the vault's LPs from withdrawing more collateral than allowed, leading to potential liquidity
+    /// issues to connected markets.
+    /// @param self The vault storage pointer.
     function getLockedCreditCapacityUsd(Data storage self) internal view returns (SD59x18) {
         return getTotalCreditCapacityUsd(self).mul(ud60x18(self.lockedCreditRatio).intoSD59x18());
     }
 
+    /// @notice Returns the vault's total credit capacity allocated to the connected markets.
+    /// @dev The vault's total credit capacity is adjusted by its the credit ratio of its underlying collateral asset.
+    /// @param self The vault storage pointer.
+    /// @return vaultCreditCapacityUsdX18 The vault's total credit capacity in USD.
     function getTotalCreditCapacityUsd(Data storage self) internal view returns (SD59x18 vaultCreditCapacityUsdX18) {
         Collateral.Data storage collateral = self.collateral;
         // TODO: update self.totalDeposited to ERC4626::totalAssets
-        UD60x18 totalAssetsUsdX18 = collateral.getPrice().mul(ud60x18(self.totalDeposited));
+        UD60x18 totalAssetsUsdX18 =
+            collateral.getPrice().mul(ud60x18(self.totalDeposited)).mul(ud60x18(collateral.creditRatio));
 
         vaultCreditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledRealizedDebtUsd));
     }
@@ -227,7 +236,7 @@ library Vault {
     }
 
     // todo: see if the `shouldRehydrateCache` parameter will be needed or not
-    // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
+    // todo: see if this function will be used elsewhere or if we can turn it into a private function for better
     // testability / visibility
     // todo: we may need to remove the return value to save gas / remove if not needed
     /// @notice Updates the vault's credit delegations to its connected markets, using the provided cache of connected
