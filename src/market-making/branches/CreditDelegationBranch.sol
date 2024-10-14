@@ -17,7 +17,7 @@ import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, ZERO as SD59x18_ZERO, sd59x18, unary } from "@prb-math/SD59x18.sol";
+import { SD59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USD Token
 contract CreditDelegationBranch {
@@ -191,7 +191,7 @@ contract CreditDelegationBranch {
 
         if (collateralType == usdToken) {
             // if the deposited collateral is USD Token, it reduces the market's realized debt
-            market.realizedUsdTokenDebt -= amountX18.intoSD59x18().intoInt256().toInt128();
+            market.realizeUsdTokenDebt(unary(amountX18.intoSD59x18()));
         } else {
             // deposits the received collateral to the market to be distributed to vaults, and then settled in the
             // future

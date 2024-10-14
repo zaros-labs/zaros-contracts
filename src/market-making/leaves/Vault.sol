@@ -192,15 +192,13 @@ library Vault {
             SD59x18 marketUnrealizedDebtUsdX18;
             SD59x18 marketRealizedDebtUsdX18;
 
-            // if the market has already had its debt distributed at the current block, we skip it
-            if (market.isDistributionRequired()) {
-                // first we cache the market's unrealized and realized debt
-                marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
-                marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
+            // first we cache the market's unrealized and realized debt
+            marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
+            marketRealizedDebtUsdX18 =
+                market.isRealizedDebtUpdateRequired() ? market.updateRealizedDebt() : market.getRealizedDebtUsd();
 
-                // distribute the market's debt to its connected vaults
-                market.distributeDebtToVaults(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
-            }
+            // distribute the market's debt to its connected vaults
+            market.distributeDebtToVaults(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
 
             // load the credit delegation to the given market id
             CreditDelegation.Data storage creditDelegation = CreditDelegation.load(vaultId, connectedMarketId);
