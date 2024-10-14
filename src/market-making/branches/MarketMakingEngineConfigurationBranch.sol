@@ -9,6 +9,9 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
+import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+import { ZLPVault } from "@zaros/zlp/ZlpVault.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -49,6 +52,19 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param systemKeeper The address of the system keeper.
     /// @param shouldBeEnabled A flag indicating whether the system keeper should be enabled.
     event LogConfigureSystemKeeper(address systemKeeper, bool shouldBeEnabled);
+
+    /// @notice Emitted when a keeper is updated.
+    /// @param keeper The address of the keeper to update.
+    /// @param enabled Indicating whether a keeper is enabled or disabled.
+    event LogUpdateKeeper(address keeper, bool enabled);
+
+    /// @dev The Ownable contract is initialized at the UpgradeBranch.
+    /// @dev {MarketMakingEngineConfigurationBranch} UUPS initializer.
+    function initialize(address usdToken, address owner) external initializer {
+        __Ownable_init(owner);
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+    }
 
     /// @notice Emitted when an engine's configuration is updated.
     /// @param engine The address of the engine contract.
@@ -398,5 +414,19 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit event LogConfigureFeeRecipient
         emit LogConfigureFeeRecipient(feeRecipient, share);
+    }
+
+    function updateKeeper(address keeper, bool enabled) external onlyOwner {
+        if (keeper == address(0)) revert Errors.ZeroInput("keeper");
+
+        MarketMakingEngineConfiguration.load().isSystemKeeperEnabled[keeper] = enabled;
+
+        emit LogUpdateKeeper(keeper, enabled);
+    }
+
+    function updateVaultAssetAllowance(uint128 vaultId, uint256 allowance) external onlyOwner {
+        Vault.Data storage vault = Vault.load(vaultId);
+
+        ZLPVault(vault.indexToken).updateAssetAllowance(allowance);
     }
 }

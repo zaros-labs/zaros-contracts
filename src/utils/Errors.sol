@@ -268,4 +268,27 @@ library Errors {
     /// @notice Thrown when the asset amount is zero
     /// @param asset The asset that has zero amount
     error AssetAmountIsZero(address asset);
+
+    /// @notice MarketMakingEngine.StabilityBranch errors.
+
+    /// @notice Thrown when the sender is not an enabled keeper
+    /// @notice the address of the caller
+    error KeeperNotEnabled(address sender);
+
+    /// @notice Thrown when assets in initiate swap are different
+    error MissmatchingCollateralAssets(address asset1, address asset2);
+
+    /// @notice Thrown when swap request is not yet expired
+    /// @param user the user that initiated the request
+    /// @param requestId The id of the request
+    error RequestNotExpired(address user, uint128 requestId);
+
+    /// @notice Thrown when request was already processed
+    /// @param user the user that initiated the request
+    /// @param requestId The id of the request
+    error RequestAlreadyProcessed(address user, uint128 requestId);
+
+    /// @notice Thrown when the asset out is unsupported
+    /// @param asset The address of the unsupported asset
+    error UnsupportedAssetOut(address asset);
 }
