@@ -137,6 +137,16 @@ library Vault {
         vaultCreditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledRealizedDebtUsd));
     }
 
+    /// @notice Returns the vault's total unsettled debt in USD, taking into account both the markets' unrealized
+    /// debt, but yet to be settled.
+    /// @dev Note that only the vault's share of the markets' realized debt is taken into consideration for debt /
+    /// credit settlements.
+    /// @param self The vault storage pointer.
+    /// @return unsettledDebtUsdX18 The vault's total unsettled debt in USD.
+    function getUnsettledDebt(Data storage self) internal view returns (SD59x18 unsettledDebtUsdX18) {
+        unsettledDebtUsdX18 = sd59x18(self.unsettledRealizedDebtUsd).add(sd59x18(self.marketsUnrealizedDebtUsd));
+    }
+
     // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
     // testability / visibility
     /// @notice Recalculates the latest debt of each market connected to a vault, distributing its total debt to it.

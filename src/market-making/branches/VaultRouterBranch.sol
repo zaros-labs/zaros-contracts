@@ -23,9 +23,10 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 // TODO: think about referrals
 contract VaultRouterBranch {
     using SafeERC20 for IERC20;
+    using Collateral for Collateral.Data;
     using Distribution for Distribution.Data;
     using Referral for Referral.Data;
-    using Collateral for Collateral.Data;
+    using Vault for Vault.Data;
     using SafeCast for uint256;
     using Math for uint256;
 
@@ -113,8 +114,9 @@ contract VaultRouterBranch {
         // fetch the vault's total assets
         SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
 
-        // convert total debt to 18 dec
-        SD59x18 unsettledDebtX18 = sd59x18(vault.unsettledRealizedDebtUsd); // TODO which debt do we take here
+        // get the vault's total unsettled debt, taking into account both the markets' reported unrealized debt + the
+        // realized, but still unsettled (i.e to be settled) debt
+        SD59x18 unsettledDebtUsdX18 = vault.getUnsettledDebt();
 
         // get decimal offset
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
@@ -123,7 +125,7 @@ contract VaultRouterBranch {
         UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
         // get amount of assets that are credited
-        SD59x18 assetsCreditX18 = unsettledDebtX18.div(assetPriceX18.intoSD59x18());
+        SD59x18 assetsCreditX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
 
         // calculate the total assets minus the debt
         SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCreditX18);
@@ -152,9 +154,9 @@ contract VaultRouterBranch {
         // fetch the vault's total assets
         SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
 
-        // convert total debt to 18 dec
-        SD59x18 unsettledDebtX18 = sd59x18(vault.unsettledRealizedDebtUsd); // TODO which debt do we take here. Do we
-            // take settled debt as well ?
+        // get the vault's total unsettled debt, taking into account both the markets' reported unrealized debt + the
+        // realized, but still unsettled (i.e to be settled) debt
+        SD59x18 unsettledDebtUsdX18 = vault.getUnsettledDebt();
 
         // get decimal offset
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
@@ -163,7 +165,7 @@ contract VaultRouterBranch {
         UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
         // get amount of assets that are credited
-        SD59x18 assetsCreditX18 = unsettledDebtX18.div(assetPriceX18.intoSD59x18());
+        SD59x18 assetsCreditX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
 
         // calculate the total assets minus the debt
         SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCreditX18);
