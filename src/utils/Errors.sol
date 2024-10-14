@@ -187,4 +187,7 @@ library Errors {
 
     /// @notice Thrown when trying to distribute value to an empty distribution.
     error EmptyDistribution();
+
+    /// @notice MarketMakingEngine.Vault errors.
+    error NoMarketsConnectedToVault(uint128 vaultId);
 }

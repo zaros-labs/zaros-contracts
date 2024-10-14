@@ -79,25 +79,6 @@ library Market {
         }
     }
 
-    /// @notice Updates the market's configuration parameters.
-    /// @dev See {Market.Data} for parameters description.
-    /// @dev Calls to this function must be protected by an authorization modifier.
-    function configure(
-        uint128 marketId,
-        uint128 autoDeleverageStartThreshold,
-        uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale
-    )
-        internal
-    {
-        Data storage self = load(marketId);
-
-        self.marketId = marketId;
-        self.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
-        self.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
-        self.autoDeleveragePowerScale = autoDeleveragePowerScale;
-    }
-
     /// @notice Computes the auto delevarage factor of the market based on the market's credit capacity, total debt
     /// and its configured ADL parameters.
     /// @dev The auto deleverage factor is the `y` coordinate of the following polynomial regression curve:
@@ -261,6 +242,37 @@ library Market {
     /// recalculations, but we still need to distribute the potentially added / subtracted debt.
     function isDistributionRequired(Data storage self) internal view returns (bool) {
         return block.timestamp < self.lastDistributionTimestamp;
+    }
+
+    /// @notice Updates the market's configuration parameters.
+    /// @dev See {Market.Data} for parameters description.
+    /// @dev Calls to this function must be protected by an authorization modifier.
+    function configure(
+        uint128 marketId,
+        uint128 autoDeleverageStartThreshold,
+        uint128 autoDeleverageEndThreshold,
+        uint128 autoDeleveragePowerScale
+    )
+        internal
+    {
+        Data storage self = load(marketId);
+
+        self.marketId = marketId;
+        self.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
+        self.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
+        self.autoDeleveragePowerScale = autoDeleveragePowerScale;
+    }
+
+    /// @notice Configures the vaults ids delegating credit to the market.
+    /// @dev This function assumes the vaults ids are unique and have been previously verified.
+    /// @param self The market storage pointer.
+    /// @param vaultsIds The vaults ids to connect to the market.
+    function configureConnectedVaults(Data storage self, uint128[] memory vaultsIds) internal {
+        EnumerableSet.UintSet[] storage connectedVaultsIds = self.connectedVaultsIds;
+
+        for (uint256 i = 0; i < vaultsIds.length; i++) {
+            connectedVaultsIds[connectedVaultsIds.length].add(vaultsIds[i]);
+        }
     }
 
     /// @notice Deposits collateral to the market as credit.

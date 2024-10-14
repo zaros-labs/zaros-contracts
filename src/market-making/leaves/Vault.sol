@@ -2,10 +2,11 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
 import { Collateral } from "./Collateral.sol";
 import { CreditDelegation } from "./CreditDelegation.sol";
 import { Distribution } from "./Distribution.sol";
-import { Market } from "@zaros/market-making/leaves/Market.sol";
+import { Market } from "./Market.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -122,8 +123,12 @@ library Vault {
     {
         // cache the vault id
         uint128 vaultId = self.id;
+
+        // make sure there are markets connected to the vault
+        if (self.connectedMarkets.length == 0) revert Errors.NoMarketsConnectedToVault(vaultId);
+
         // loads the connected markets storage pointer by taking the last configured market ids uint set
-        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length];
+        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
         for (uint256 j; j < connectedMarketsIdsCache.length; j++) {
             if (shouldRehydrateCache) {
@@ -190,8 +195,11 @@ library Vault {
             // load the vault storage pointer
             Data storage self = load(vaultId);
 
+            // make sure there are markets connected to the vault
+            if (self.connectedMarkets.length == 0) revert Errors.NoMarketsConnectedToVault(vaultId);
+
             // loads the connected markets storage pointer by taking the last configured market ids uint set
-            EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length];
+            EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
             // cache the connected markets ids to avoid multiple storage reads, as we're going to loop over them twice
             // at `recalculateConnectedMarketsDebt` and `updateCreditDelegations`
@@ -240,8 +248,12 @@ library Vault {
     {
         // cache the vault id
         uint128 vaultId = self.id;
+
+        // make sure there are markets connected to the vault
+        if (self.connectedMarkets.length == 0) revert Errors.NoMarketsConnectedToVault(vaultId);
+
         // loads the connected markets storage pointer by taking the last configured market ids uint set
-        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length];
+        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
         // loop over each connected market id that has been cached once again in order to update this vault's
         // credit delegations
