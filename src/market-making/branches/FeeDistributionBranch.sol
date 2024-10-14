@@ -161,6 +161,9 @@ contract FeeDistributionBranch is EngineAccessControl {
         // reverts if the amount is zero
         if (assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
 
+        // convert the asset amount to token amount
+        uint256 assetAmount = collateral.convertUd60x18ToTokenAmount(assetAmountX18);
+
         // declare variable to store accumulated weth
         UD60x18 accumulatedWethX18;
 
@@ -177,8 +180,6 @@ contract FeeDistributionBranch is EngineAccessControl {
 
             // load the weth collateral data storage pointer
             Collateral.Data storage wethCollateral = Collateral.load(weth);
-
-            uint256 assetAmount = collateral.convertUd60x18ToTokenAmount(assetAmountX18);
 
             // approve the collateral token to the dex adapter
             IERC20(asset).approve(dexSwapStrategy.dexAdapter, assetAmount);
@@ -246,9 +247,6 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         // remove the asset from the received market fees
         marketDebt.receivedMarketFees.remove(asset);
-
-        // convert the asset amount to token amount
-        uint256 assetAmount = collateral.convertUd60x18ToTokenAmount(assetAmountX18);
 
         // emit event to log the conversion of fees to weth
         emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, accumulatedWethX18.intoUint256());
