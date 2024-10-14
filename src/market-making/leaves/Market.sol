@@ -28,8 +28,6 @@ library Market {
     using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.
-    /// todo: resolve marked TODOs in this and the Vault's branch before opening the PR, and review the natspec of
-    /// both data structs.
     /// todo: create VaultService and MarketService
     bytes32 internal constant MARKET_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Market")) - 1));
@@ -41,16 +39,15 @@ library Market {
     /// threshold of the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleverageEndThreshold An admin configurable decimal rate used to determine the ending threshold of
     /// the ADL polynomial regression curve, ranging from 0 to 1.
-    /// @param autoDeleveragePowerScale An admin configurable power scale, used to determine the acceleration of the
+    /// @param autoDeleveragePowerScale An admin configurable exponent used to determine the acceleration of the
     /// ADL polynomial regression curve.
     /// @param realizedUsdTokenDebt The net value of usdToken deposited or withdrawn to / from the market. Used to
-    /// determine
-    /// the total realized debt and the connected vault's unsettled debt.
+    /// determine the market's realized usd debt and the connected vaults' unsettled debt.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
     /// vaults.
-    /// @param lastDistributedUnrealizedDebtUsd The last total debt in USD distributed as `value` to the vaults debt
-    /// distribution.
-    /// @param depositedCollateralTypes Stores the set of addresses of collateral types deposited as credit for a
+    /// @param lastDistributedUnrealizedDebtUsd The last unrealized debt in USD distributed as `value` to the vaults
+    /// debt distribution.
+    /// @param depositedCollateralTypes Stores the set of addresses of collateral assets used for credit deposits to a
     /// market.
     /// @param connectedVaultsIds The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
