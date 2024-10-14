@@ -348,7 +348,7 @@ abstract contract Vaults is
         public
     {
         for (uint256 i = initialVaultId; i <= finalVaultId; i++) {
-            Collateral.Data memory collateralData = Collateral.Data(
+            Collateral.Data memory collateral = Collateral.Data(
                 vaultsConfig[i].creditRatio,
                 vaultsConfig[i].isEnabled,
                 vaultsConfig[i].decimals,
@@ -362,7 +362,7 @@ abstract contract Vaults is
                     depositCap: vaultsConfig[i].depositCap,
                     withdrawalDelay: vaultsConfig[i].withdrawalDelay,
                     indexToken: vaultsConfig[i].indexToken, // ZLP Vault shares
-                    collateral: collateralData
+                    collateral: collateral
                 })
             );
         }

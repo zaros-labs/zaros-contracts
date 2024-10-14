@@ -20,7 +20,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
     function testFuzz_RevertWhen_TheIndexTokenAddressIsZero(uint128 vaultId) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
+        Collateral.Data memory collateral = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
@@ -33,7 +33,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: address(0),
-            collateral: collateralData
+            collateral: collateral
         });
 
         // it should revert
@@ -48,7 +48,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
     function testFuzz_RevertWhen_TheDepositCapIsZero(uint128 vaultId) external whenTheIndexTokenAddressIsNotZero {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
+        Collateral.Data memory collateral = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
@@ -61,7 +61,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: 0,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateralData
+            collateral: collateral
         });
 
         // it should revert
@@ -80,7 +80,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
+        Collateral.Data memory collateral = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
@@ -93,7 +93,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: 0,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateralData
+            collateral: collateral
         });
 
         // it should revert
@@ -113,7 +113,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
+        Collateral.Data memory collateral = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
@@ -126,7 +126,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateralData
+            collateral: collateral
         });
 
         // it should revert
@@ -149,7 +149,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
+        Collateral.Data memory collateral = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
@@ -162,7 +162,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateralData
+            collateral: collateral
         });
 
         // it should revert
@@ -179,7 +179,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
+        Collateral.Data memory collateral = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
@@ -192,7 +192,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateralData
+            collateral: collateral
         });
 
         // it should emit event

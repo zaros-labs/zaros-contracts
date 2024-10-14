@@ -104,6 +104,9 @@ contract VaultRouterBranch {
     // values
 
     /// @notice Returns the swap rate from index token to collateral asset for the provided vault.
+    /// @dev This function does not perform state updates. Thus, in order to retrieve the atomic state in a non-view
+    /// function like `deposit` `redeem`, the implementation must handle those updates beforehand, through the `Vault`
+    /// leaf's methods.
     /// @param vaultId The vault identifier.
     /// @param sharesIn The amount of input shares for which to calculate the swap rate.
     /// @return assetsOut The swap price from index token to collateral asset.
@@ -201,17 +204,17 @@ contract VaultRouterBranch {
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
         // fetch collateral data by asset
-        Collateral.Data storage collateralData = Collateral.load(vaultAsset);
+        Collateral.Data storage collateral = Collateral.load(vaultAsset);
 
         // convert uint256 -> UD60x18; scales input to 18 decimals
-        UD60x18 amountX18 = collateralData.convertTokenAmountToUd60x18(assets);
+        UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(assets);
 
         // uint128 -> UD60x18
-        UD60x18 depositCapX18 = collateralData.convertTokenAmountToUd60x18(vault.depositCap);
+        UD60x18 depositCapX18 = collateral.convertTokenAmountToUd60x18(vault.depositCap);
 
         // fetch the vault's total assets and convert to UD60x18
         UD60x18 totalCollateralDepositedX18 =
-            collateralData.convertTokenAmountToUd60x18(IERC4626(vault.indexToken).totalAssets());
+            collateral.convertTokenAmountToUd60x18(IERC4626(vault.indexToken).totalAssets());
 
         // enforce new deposit + already deposited <= deposit cap
         _requireEnoughDepositCap(vaultAsset, amountX18, depositCapX18, totalCollateralDepositedX18);

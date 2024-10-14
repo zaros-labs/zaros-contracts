@@ -20,7 +20,7 @@ contract Vault_Create_Unit_Test is Base_Test {
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
+        Collateral.Data memory collateral = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
@@ -33,7 +33,7 @@ contract Vault_Create_Unit_Test is Base_Test {
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateralData
+            collateral: collateral
         });
 
         // it should revert
@@ -44,7 +44,7 @@ contract Vault_Create_Unit_Test is Base_Test {
     function testFuzz_WhenCreateIsPassedValidVaultId(uint256 vaultId) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        Collateral.Data memory collateralData = Collateral.Data({
+        Collateral.Data memory collateral = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
             priceAdapter: fuzzVaultConfig.priceAdapter,
             asset: fuzzVaultConfig.asset,
@@ -57,7 +57,7 @@ contract Vault_Create_Unit_Test is Base_Test {
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateralData
+            collateral: collateral
         });
 
         // it should create new vault
