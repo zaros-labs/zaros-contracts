@@ -19,22 +19,19 @@ import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @dev Vault's debt for ADL determination purposes:
-///  (unrealized debt > 0 ? unrealized debt : 0 || TODO: define this) + realized debt + unsettled debt + settled debt
-/// + requested usdToken.
+///  unrealized debt + realized debt + unsettled debt + settled debt
 /// This means if the engine fails to report the unrealized debt properly, its users will unexpectedly and unfairly be
-/// deleveraged.
-/// NOTE: We only take into account positive debt in order to prevent a malicious engine of reporting a large fake
-/// credit, harming LPs.
-/// The MM engine protects LPs by taking into account the requested USD Token.
+/// deleveraged, and lps of vaults providing liquidity to that engine may be exploited by that bad implementation.
 /// @dev Vault's debt for credit delegation purposes = unrealized debt of each market (Market::getTotalDebt or
 /// market unrealized debt) +
 /// unsettledRealizedDebtUsd (comes from each market's realized debt) + settledRealizedDebtUsd.
-/// NOTE: each market's realized debt must always be distributed as unsettledRealizedDebt to vaults following the Debt
-/// Distribution System.
+/// @dev NOTE: each market's realized debt must always be distributed as unsettledRealizedDebt to vaults following the
+/// Debt Distribution System.
 /// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd + settledRealizedDebtUsd
 /// @dev A swap adds `settledRealizedDebt` but subtracts `unsettledRealizedDebt`. The Vault earns a swap fee for the
 /// inconvenience, allocated as additional WETH staking rewards.2
-// todo: create vault service and services directory, separating from leaf logic. See services internal notes
+/// TODO: we need to update the system's global debt during vault debt distribution triggers, will do so in a next PR
+/// handling debt / credit settlement.
 library Vault {
     using Collateral for Collateral.Data;
     using CreditDelegation for CreditDelegation.Data;
@@ -60,6 +57,8 @@ library Vault {
     /// @param collateral The collateral asset data.
     /// @param stakingFeeDistribution `actor`: Stakers, `shares`: Staked index tokens, `valuePerShare`: WETH fee
     /// earned per share.
+    /// todo: assert that when configuring the connected markets ids that they all belong to the same engine.
+    /// todo: we may need to store the connected engine contract address.
     /// @param connectedMarkets The list of connected market ids. Whenever there's an update, a new
     /// `EnumerableSet.UintSet` is created.
     /// @param withdrawalRequestIdCounter Counter for user withdraw requiest ids
@@ -74,7 +73,6 @@ library Vault {
         int128 unsettledRealizedDebtUsd;
         int128 settledRealizedDebtUsd;
         address indexToken;
-        address connectedEngine;
         Collateral.Data collateral;
         Distribution.Data stakingFeeDistribution;
         EnumerableSet.UintSet[] connectedMarkets;
