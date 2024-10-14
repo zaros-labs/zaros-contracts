@@ -9,17 +9,12 @@ import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
 contract Vault_Update_Unit_Test is Base_Test {
-
     function setUp() public virtual override {
         Base_Test.setUp();
     }
 
     function test_RevertWhen_UpdateIsPassedZeroId() external {
-        Vault.UpdateParams memory params = Vault.UpdateParams({
-            vaultId: 0,
-            depositCap: 1,
-            withdrawalDelay: 1
-        });
+        Vault.UpdateParams memory params = Vault.UpdateParams({ vaultId: 0, depositCap: 1, withdrawalDelay: 1 });
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.ZeroInput.selector, "vaultId"));

@@ -11,6 +11,7 @@ import { Market } from "./Market.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
@@ -47,7 +48,6 @@ library Vault {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Vault")) - 1));
 
     /// @param id The vault identifier.
-    /// @param totalDeposited The total amount of collateral assets deposited in the vault.
     /// @param totalCreditDelegationWeight The total amount of credit delegation weight in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
@@ -65,8 +65,8 @@ library Vault {
     /// @param withdrawalRequestIdCounter Counter for user withdraw requiest ids
     struct Data {
         uint128 id;
-        uint128 totalDeposited;
         uint128 totalCreditDelegationWeight;
+        uint128 totalDeposited;
         uint128 depositCap;
         uint128 withdrawalDelay;
         uint128 lockedCreditRatio;
@@ -128,11 +128,15 @@ library Vault {
     /// @param self The vault storage pointer.
     /// @return vaultCreditCapacityUsdX18 The vault's total credit capacity in USD.
     function getTotalCreditCapacityUsd(Data storage self) internal view returns (SD59x18 vaultCreditCapacityUsdX18) {
+        // load the collateral configuration storage pointer
         Collateral.Data storage collateral = self.collateral;
-        // TODO: update self.totalDeposited to ERC4626::totalAssets
-        UD60x18 totalAssetsUsdX18 =
-            collateral.getPrice().mul(ud60x18(self.totalDeposited)).mul(ud60x18(collateral.creditRatio));
 
+        // fetch the zlp vault's total assets amount
+        UD60x18 totalAssetsX18 = ud60x18(IERC4626(collateral.asset).totalAssets());
+        // calculate the total assets value in usd terms
+        UD60x18 totalAssetsUsdX18 = collateral.getAdjustedPrice().mul(totalAssetsX18);
+
+        // calculate the vault's credit capacity in usd terms
         vaultCreditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledRealizedDebtUsd));
     }
 

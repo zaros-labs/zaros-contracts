@@ -9,7 +9,7 @@ library WithdrawalRequest {
     /// @param timestamp The timestamo the request was created.
     /// @param shares The amount of shares to withdraw.
     /// @param fulfilled Bool indicating whether the withdraw request was fulfilled.
-        struct Data {
+    struct Data {
         uint128 timestamp;
         uint128 shares;
         bool fulfilled;

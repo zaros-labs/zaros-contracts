@@ -137,9 +137,7 @@ contract VaultRouterBranch {
         // Get the asset amount out for the input amount of shares, taking into account the unsettled debt
         // See {IERC4626-previewRedeem}
         uint256 previewAssetsOut = sharesIn.mulDiv(
-            totalAssetsMinusDebt,
-            IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
-            Math.Rounding.Floor
+            totalAssetsMinusDebt, IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset, Math.Rounding.Floor
         );
 
         // Return the final adjusted amountOut as UD60x18
@@ -158,7 +156,8 @@ contract VaultRouterBranch {
         SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
 
         // convert total debt to 18 dec
-        SD59x18 unsettledDebtX18 = sd59x18(vault.unsettledRealizedDebtUsd); // TODO which debt do we take here. Do we take settled debt as well ?
+        SD59x18 unsettledDebtX18 = sd59x18(vault.unsettledRealizedDebtUsd); // TODO which debt do we take here. Do we
+            // take settled debt as well ?
 
         // get decimal offset
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
@@ -178,9 +177,7 @@ contract VaultRouterBranch {
         // Get the shares amount out for the input amount of tokens, taking into account the unsettled debt
         // See {IERC4626-previewDeposit}.
         uint256 previewSharesOut = assetsIn.mulDiv(
-            IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
-            totalAssetsMinusDebt,
-            Math.Rounding.Floor
+            IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset, totalAssetsMinusDebt, Math.Rounding.Floor
         );
 
         // Return the final adjusted amountOut as UD60x18

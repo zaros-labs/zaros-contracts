@@ -171,8 +171,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getPerpsEngineInitializables(branches);
-        bytes[] memory initializePayloads =
-            getPerpsEngineInitializePayloads(users.owner.account);
+        bytes[] memory initializePayloads = getPerpsEngineInitializePayloads(users.owner.account);
 
         branchUpgrades = deployPerpsEngineHarnesses(branchUpgrades);
 

@@ -13,7 +13,11 @@ import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { BaseScript } from "../Base.s.sol";
-import { deployPerpsEngineBranches, getPerpsEngineBranchesSelectors, getBranchUpgrades } from "../utils/TreeProxyUtils.sol";
+import {
+    deployPerpsEngineBranches,
+    getPerpsEngineBranchesSelectors,
+    getBranchUpgrades
+} from "../utils/TreeProxyUtils.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";

@@ -82,13 +82,7 @@ abstract contract Vaults is
 
     mapping(address asset => mapping(VaultTypes vaultType => ZLPVault zlpVault)) internal zlpVaults;
 
-    function createZLPVaults(
-        address marketMakingEngine,
-        address owner,
-        uint256[2] memory vaultsIdsRange
-    )
-        public
-    {
+    function createZLPVaults(address marketMakingEngine, address owner, uint256[2] memory vaultsIdsRange) public {
         uint256 initialVaultId = vaultsIdsRange[0];
         uint256 finalVaultlId = vaultsIdsRange[1];
 
@@ -107,7 +101,8 @@ abstract contract Vaults is
     }
 
     function setupVaultsConfig() internal {
-        // Not using the margin collateral address or price feed constants as it is reset in the marginCollaterals mapping
+        // Not using the margin collateral address or price feed constants as it is reset in the marginCollaterals
+        // mapping
         // when MarginCollaterals::configureMarginCollaterals() is called
         address usdcAddress = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
         address usdcPriceAdapter = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
@@ -156,7 +151,6 @@ abstract contract Vaults is
         });
         vaultsConfig[USDC_DEGEN_VAULT_ID] = usdcDegen;
 
-
         address wBtcAddress = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
         address wBtcPriceAdapter = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter;
         VaultConfig memory wBtcCore = VaultConfig({
@@ -203,7 +197,6 @@ abstract contract Vaults is
             vaultType: VaultTypes.Degen
         });
         vaultsConfig[WBTC_DEGEN_VAULT_ID] = wBtcDegen;
-
 
         address weEthAddress = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
         address weEthPriceAdapter = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceAdapter;
@@ -252,7 +245,6 @@ abstract contract Vaults is
         });
         vaultsConfig[WEETH_DEGEN_VAULT_ID] = weEthDegen;
 
-
         address wEthAddress = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
         address wEthPriceAdapter = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter;
         VaultConfig memory wEthCore = VaultConfig({
@@ -299,7 +291,6 @@ abstract contract Vaults is
             vaultType: VaultTypes.Degen
         });
         vaultsConfig[WETH_DEGEN_VAULT_ID] = wEthDegen;
-
 
         address wStETHAddress = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
         address wStEthPriceAdapter = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter;

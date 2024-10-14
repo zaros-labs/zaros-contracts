@@ -19,7 +19,12 @@ contract Unstake_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_RevertWhen_UserDoesNotHaveEnoguhtStakedShares(uint256 vaultId, uint256 depositAmount) external {
+    function testFuzz_RevertWhen_UserDoesNotHaveEnoguhtStakedShares(
+        uint256 vaultId,
+        uint256 depositAmount
+    )
+        external
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         depositAmount = bound({ x: depositAmount, min: 1, max: fuzzVaultConfig.depositCap });
 

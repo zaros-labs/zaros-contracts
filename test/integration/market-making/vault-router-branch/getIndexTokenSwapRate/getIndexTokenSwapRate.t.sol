@@ -9,8 +9,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 contract GetIndexTokenSwapRate_Integration_Test is Base_Test {
     using SafeCast for uint256;
@@ -23,7 +22,7 @@ contract GetIndexTokenSwapRate_Integration_Test is Base_Test {
     }
 
     function testFuzz_WhenGetIndexTokenSwapRateIsCalled(uint128 vaultId, uint256 amountToSwap) external {
-        amountToSwap = bound({x: amountToSwap, min: 0, max: uint256(type(int256).max)});
+        amountToSwap = bound({ x: amountToSwap, min: 0, max: uint256(type(int256).max) });
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         vaultId = fuzzVaultConfig.vaultId;
 

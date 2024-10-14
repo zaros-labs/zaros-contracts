@@ -55,8 +55,7 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
         address[] memory initializables = getPerpsEngineInitializables(branches);
-        bytes[] memory initializePayloads =
-            getPerpsEngineInitializePayloads(deployer);
+        bytes[] memory initializePayloads = getPerpsEngineInitializePayloads(deployer);
 
         RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,

@@ -204,12 +204,7 @@ function getPerpsEngineInitializables(address[] memory branches) pure returns (a
     return initializables;
 }
 
-function getPerpsEngineInitializePayloads(
-    address deployer
-)
-    pure
-    returns (bytes[] memory)
-{
+function getPerpsEngineInitializePayloads(address deployer) pure returns (bytes[] memory) {
     bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
@@ -467,9 +462,8 @@ function getMarketMakingEngineInitPayloads(
 {
     bytes[] memory initializePayloads = new bytes[](1);
 
-    bytes memory marketMakingEngineInitializeData = abi.encodeWithSelector(
-        MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, owner
-    );
+    bytes memory marketMakingEngineInitializeData =
+        abi.encodeWithSelector(MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, owner);
 
     initializePayloads[0] = marketMakingEngineInitializeData;
 
