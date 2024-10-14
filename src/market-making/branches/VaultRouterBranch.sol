@@ -110,7 +110,7 @@ contract VaultRouterBranch {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.load(vaultId);
 
-        // get the total assets
+        // fetch the vault's total assets
         SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
 
         // convert total debt to 18 dec
@@ -149,7 +149,7 @@ contract VaultRouterBranch {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.load(vaultId);
 
-        // get the total assets
+        // fetch the vault's total assets
         SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
 
         // convert total debt to 18 dec
@@ -207,7 +207,7 @@ contract VaultRouterBranch {
         // uint128 -> UD60x18
         UD60x18 depositCapX18 = collateralData.convertTokenAmountToUd60x18(vault.depositCap);
 
-        // uint128 -> UD60x18
+        // fetch the vault's total assets and convert to UD60x18
         UD60x18 totalCollateralDepositedX18 =
             collateralData.convertTokenAmountToUd60x18(IERC4626(vault.indexToken).totalAssets());
 
