@@ -28,7 +28,7 @@ import { MockUsdToken } from "test/mocks/MockUsdToken.sol";
 import { Storage } from "test/utils/Storage.sol";
 import { Users, User } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
-import { ZLPVault } from "@zaros/zlp/ZlpVault.sol";
+import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";
@@ -253,7 +253,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vaultsIdsRange[1] = FINAL_VAULT_ID;
 
         setupVaultsConfig();
-        createZLPVaults(address(marketMakingEngine), users.owner.account, vaultsIdsRange);
+        createZlpVaults(address(marketMakingEngine), users.owner.account, vaultsIdsRange);
 
         // Other Set Up
         approveContracts();

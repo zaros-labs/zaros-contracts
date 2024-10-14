@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
-import { ZLPVault } from "@zaros/zlp/ZlpVault.sol";
+import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 
@@ -80,9 +80,9 @@ abstract contract Vaults is
     /// @notice Vault configurations mapped by vault id.
     mapping(uint256 vaultId => VaultConfig vaultConfig) internal vaultsConfig;
 
-    mapping(address asset => mapping(VaultTypes vaultType => ZLPVault zlpVault)) internal zlpVaults;
+    mapping(address asset => mapping(VaultTypes vaultType => ZlpVault zlpVault)) internal zlpVaults;
 
-    function createZLPVaults(address marketMakingEngine, address owner, uint256[2] memory vaultsIdsRange) public {
+    function createZlpVaults(address marketMakingEngine, address owner, uint256[2] memory vaultsIdsRange) public {
         uint256 initialVaultId = vaultsIdsRange[0];
         uint256 finalVaultlId = vaultsIdsRange[1];
 
@@ -91,7 +91,7 @@ abstract contract Vaults is
             address vaultAsset = vaultsConfig[i].asset;
             VaultTypes vaultType = vaultsConfig[i].vaultType;
 
-            ZLPVault zlpVault = new ZLPVault();
+            ZlpVault zlpVault = new ZlpVault();
             uint8 decimalOffset = Constants.SYSTEM_DECIMALS - vaultsConfig[i].decimals;
             zlpVault.initialize(marketMakingEngine, decimalOffset, owner, IERC20(vaultAsset), vaultsConfig[i].vaultId);
             zlpVaults[vaultAsset][vaultType] = zlpVault;

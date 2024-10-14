@@ -70,7 +70,6 @@ contract VaultRouterBranch {
 
     /// @notice Returns the data and state of a given vault.
     /// @param vaultId The vault identifier.
-    /// @return totalDeposited The total amount of collateral assets deposited in the vault.
     /// @return depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @return withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @return unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
@@ -81,7 +80,6 @@ contract VaultRouterBranch {
         external
         view
         returns (
-            uint128 totalDeposited,
             uint128 depositCap,
             uint128 withdrawalDelay,
             int128 unsettledRealizedDebtUsd,
@@ -93,7 +91,6 @@ contract VaultRouterBranch {
         // load vault by id
         Vault.Data storage vault = Vault.load(vaultId);
 
-        totalDeposited = vault.totalDeposited;
         depositCap = vault.depositCap;
         withdrawalDelay = vault.withdrawalDelay;
         unsettledRealizedDebtUsd = vault.unsettledRealizedDebtUsd;
@@ -211,13 +208,11 @@ contract VaultRouterBranch {
         UD60x18 depositCapX18 = collateralData.convertTokenAmountToUd60x18(vault.depositCap);
 
         // uint128 -> UD60x18
-        UD60x18 totalCollateralDepositedX18 = collateralData.convertTokenAmountToUd60x18(vault.totalDeposited);
+        UD60x18 totalCollateralDepositedX18 =
+            collateralData.convertTokenAmountToUd60x18(IERC4626(vault.indexToken).totalAssets());
 
         // enforce new deposit + already deposited <= deposit cap
         _requireEnoughDepositCap(vaultAsset, amountX18, depositCapX18, totalCollateralDepositedX18);
-
-        // add deposited amount to total deposited
-        vault.totalDeposited += amountX18.intoUint128();
 
         // get the tokens
         IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assets);
@@ -225,7 +220,8 @@ contract VaultRouterBranch {
         // increase vault allowance to transfer tokens
         IERC20(vaultAsset).approve(address(vault.indexToken), assets);
 
-        // then perform the acctual deposit
+        // then perform the actual deposit
+        // NOTE: the following call will update the total assets deposited in the vault
         uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
 
         // assert min shares minted
@@ -409,7 +405,6 @@ contract VaultRouterBranch {
     /// @param assetType The address of the asset
     /// @param amount The amount to deposit
     /// @param depositCap The deposit max deposit cap
-    /// @param totalDeposited The total deposited amount so far
     function _requireEnoughDepositCap(
         address assetType,
         UD60x18 amount,
