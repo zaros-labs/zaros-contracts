@@ -28,17 +28,10 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param vaultId The vault id.
     event LogUpdateVaultConfiguration(address indexed sender, uint128 vaultId);
 
-    /// @dev The Ownable contract is initialized at the UpgradeBranch.
-    /// @dev {MarketMakingEngineConfigurationBranch} UUPS initializer.
-    function initialize(address usdToken, address owner) external initializer {
-        __Ownable_init(owner);
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-    }
-
-    /// @notice Emitted when the USDz address is set or updated.
-    /// @param usdz The address of the USDz token.
-    event LogSetUsdz(address usdz);
+    /// @notice Emitted when an engine's configuration is updated.
+    /// @param engine The address of the engine contract.
+    /// @param usdToken The address of the USD token contract.
+    /// @param shouldBeEnabled A flag indicating whether the engine should be enabled or disabled.
     event LogConfigureEngine(address engine, address usdToken, bool shouldBeEnabled);
 
     /// @notice Returns the address of custom referral code

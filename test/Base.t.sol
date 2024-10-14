@@ -56,9 +56,7 @@ import {
     getPerpsEngineInitializables,
     getPerpsEngineInitializePayloads,
     deployPerpsEngineHarnesses,
-    getMarketMakingEngineInitializables,
     deployMarketMakingEngineBranches,
-    getMarketMakingEngineInitPayloads,
     getMarketMakerBranchesSelectors,
     deployMarketMakingHarnesses
 } from "script/utils/TreeProxyUtils.sol";
@@ -230,9 +228,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         // Market Making Engine Set Up
 
         address[] memory mmBranches = deployMarketMakingEngineBranches();
-        address[] memory initializableBranches = getMarketMakingEngineInitializables(mmBranches);
-        bytes[] memory mmInitPayloads =
-            getMarketMakingEngineInitPayloads(address(perpsEngine), address(usdToken), users.owner.account);
 
         bytes4[][] memory mmBranchesSelectors = getMarketMakerBranchesSelectors();
         RootProxy.BranchUpgrade[] memory mmBranchUpgrades =
@@ -240,10 +235,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         mmBranchUpgrades = deployMarketMakingHarnesses(mmBranchUpgrades);
 
+        address[] memory initializableBranches = new address[](0);
+        bytes[] memory initializableBranchesPayloads = new bytes[](0);
+
         RootProxy.InitParams memory mmEngineInitParams = RootProxy.InitParams({
             initBranches: mmBranchUpgrades,
             initializables: initializableBranches,
-            initializePayloads: mmInitPayloads
+            initializePayloads: initializableBranchesPayloads
         });
 
         marketMakingEngine = IMarketMakingEngine(address(new MarketMakingEngine(mmEngineInitParams)));

@@ -442,38 +442,10 @@ function deployMarketMakingEngineBranches() returns (address[] memory) {
     return branches;
 }
 
-function getMarketMakingEngineInitializables(address[] memory branches) pure returns (address[] memory) {
-    address[] memory initializables = new address[](1);
-
-    address marketMakingEnginConfigBranch = branches[0];
-
-    initializables[0] = marketMakingEnginConfigBranch;
-
-    return initializables;
-}
-
-function getMarketMakingEngineInitPayloads(
-    address perpsEngine,
-    address usdzToken,
-    address owner
-)
-    pure
-    returns (bytes[] memory)
-{
-    bytes[] memory initializePayloads = new bytes[](1);
-
-    bytes memory marketMakingEngineInitializeData =
-        abi.encodeWithSelector(MarketMakingEngineConfigurationBranch.initialize.selector, usdzToken, owner);
-
-    initializePayloads[0] = marketMakingEngineInitializeData;
-
-    return initializePayloads;
-}
-
 function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](2);
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](6);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](5);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -481,8 +453,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigBranchSelectors[2] = MarketMakingEngineConfigurationBranch.createVault.selector;
     marketMakingEngineConfigBranchSelectors[3] =
         MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
-    marketMakingEngineConfigBranchSelectors[4] = MarketMakingEngineConfigurationBranch.initialize.selector;
-    marketMakingEngineConfigBranchSelectors[5] =
+    marketMakingEngineConfigBranchSelectors[4] =
         MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
