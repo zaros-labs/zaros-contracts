@@ -4,6 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Math } from "@zaros/utils/Math.sol";
 import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { CreditDeposit } from "@zaros/market-making/leaves/CreditDeposit.sol";
 import { Distribution } from "./Distribution.sol";
 
@@ -18,6 +19,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 /// @dev NOTE: unrealized debt (from market) -> realized debt (market) -> unsettled debt (vaults) -> settled
 /// debt (vaults)
 library Market {
+    using Collateral for Collateral.Data;
     using CreditDeposit for CreditDeposit.Data;
     using Distribution for Distribution.Data;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -170,9 +172,30 @@ library Market {
     // todo: see if this function will be actually needed
     function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
 
-    // TODO: iterate over each collateral deposit + realized usdToken debt
-    // todo: implement this function
-    function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) { }
+    /// @notice Returns the market's realized debt in USD.
+    /// @param self The market storage pointer.
+    /// @return realizedDebtUsdX18 The market's total realized debt in USD.
+    function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) {
+        // load the deposited collateral types address set storage pointer
+        EnumerableSet.AddressSet storage depositedCollateralTypes = self.depositedCollateralTypes;
+
+        for (uint256 i; i < depositedCollateralTypes.length(); i++) {
+            address collateralType = depositedCollateralTypes.at(i);
+            // load the configured collateral type storage pointer
+            Collateral.Data storage collateral = Collateral.load(collateralType);
+            // load the credit deposit storage pointer
+            CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.marketId, collateralType);
+
+            // add the credit deposit usd value to the realized debt return value
+            realizedDebtUsdX18 = realizedDebtUsdX18.add(
+                (collateral.getAdjustedPrice().mul(ud60x18(creditDeposit.value))).intoSD59x18()
+            );
+        }
+
+        // finally after looping over the credit deposits, add the realized usdToken debt to the realized debt to be
+        // returned
+        realizedDebtUsdX18 = realizedDebtUsdX18.add(sd59x18(self.realizedUsdTokenDebt));
+    }
 
     /// @notice Returns the credit delegated by a vault to the market in USD.
     /// @dev A vault's usd credit delegated to the market is represented by its shares in the
