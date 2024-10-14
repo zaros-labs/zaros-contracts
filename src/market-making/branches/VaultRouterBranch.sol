@@ -203,6 +203,13 @@ contract VaultRouterBranch {
         // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
+
+        // updates the vault's credit capacity before depositing
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
+
         // fetch collateral data by asset
         Collateral.Data storage collateral = Collateral.load(vaultAsset);
 
@@ -357,6 +364,13 @@ contract VaultRouterBranch {
         if (withdrawalRequest.timestamp + vault.withdrawalDelay > block.timestamp) {
             revert Errors.WithdrawDelayNotPassed();
         }
+
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
+
+        // updates the vault's credit capacity before redeeming
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
         // redeem actual tokens from vault
         uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, msg.sender);
