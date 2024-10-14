@@ -74,8 +74,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_TheAssetIsNotEnabled(
-        uint256 marketDebtId,
-        address assetNotEnabled
+        uint256 marketDebtId
     )
         external
         givenTheSenderIsRegisteredEngine
@@ -86,10 +85,12 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
 
         MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
 
+        address assetNotEnabled = address(0x123);
+
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralDisabled.selector, address(0)) });
 
-        marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, address(assetNotEnabled), 1);
+        marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, assetNotEnabled, 1);
     }
 
     function test_WhenTheAssetIsEnabled(

@@ -183,17 +183,6 @@ contract FeeDistributionBranch is EngineAccessControl {
             // approve the collateral token to the dex adapter
             IERC20(asset).approve(dexSwapStrategy.dexAdapter, assetAmount);
 
-            // get price of the tokenIn
-            // UD60x18 priceTokenInX18 = IPriceAdapter(collateral.priceAdapter).getPrice();
-
-            // // get price of the tokenOut
-            // UD60x18 priceTokenOutX18 = IPriceAdapter(wethCollateral.priceAdapter).getPrice();
-
-            // // calculate the amount out min
-            // uint256 amountOutMin = wethCollateral.convertUd60x18ToTokenAmount(
-            //     priceTokenInX18.mul(assetAmountX18).div(priceTokenOutX18)
-            // );
-
             // prepare the data for executing the swap
             SwapPayload memory swapCallData = SwapPayload({
                 tokenIn: asset,
@@ -258,8 +247,11 @@ contract FeeDistributionBranch is EngineAccessControl {
         // remove the asset from the received market fees
         marketDebt.receivedMarketFees.remove(asset);
 
+        // convert the asset amount to token amount
+        uint256 assetAmount = collateral.convertUd60x18ToTokenAmount(assetAmountX18);
+
         // emit event to log the conversion of fees to weth
-        emit LogConvertAccumulatedFeesToWeth(asset, assetAmountX18.intoUint256(), accumulatedWethX18.intoUint256());
+        emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, accumulatedWethX18.intoUint256());
     }
 
     /// @notice Sends allocated weth amount to fee recipients.

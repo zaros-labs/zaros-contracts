@@ -7,10 +7,15 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
+import { Math } from "@zaros/utils/Math.sol";
 
 // Openzeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
+
+// PRB Math dependencies
+import { UD60x18, ud60x18, UNIT as UD60x18_UNIT } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -163,261 +168,72 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, address(usdc), amount);
 
+        assertEq(
+            IERC20(usdc).balanceOf(address(uniswapV3Adapter)),
+            0,
+            "the uniswap v3 adapter should have 0 balance of usdc"
+        );
+        assertEq(
+            IERC20(wEth).balanceOf(address(uniswapV3Adapter)),
+            0,
+            "the uniswap v3 adapter should have 0 balance of wEth"
+        );
+
         assertEq(IERC20(usdc).balanceOf(address(marketMakingEngine)), amount);
         assertEq(IERC20(wEth).balanceOf(address(marketMakingEngine)), 0);
+
+        uint256 expectedTokenAmount = uniswapV3Adapter.getExpectedOutput(address(usdc), address(wEth), amount);
+        uint256 amountOutMin = uniswapV3Adapter.calculateAmountOutMin(expectedTokenAmount);
+
+        // it should emit {LogConvertAccumulatedFeesToWeth} event
+        vm.expectEmit({ emitter: address(marketMakingEngine) });
+        emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(usdc), amount, amountOutMin);
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
             fuzzMarketDebtConfig.marketDebtId, address(usdc), uniswapV3StrategyId
         );
 
         // it should verify if the asset is different that weth and convert
-        assertEq(IERC20(usdc).balanceOf(address(marketMakingEngine)), 0);
-        // assertEq(IERC20(wEth).balanceOf(address(marketMakingEngine)), );
+        assertEq(
+            IERC20(usdc).balanceOf(address(uniswapV3Adapter)),
+            0,
+            "the uniswap v3 adapter should have 0 balance of usdc"
+        );
+        assertEq(
+            IERC20(wEth).balanceOf(address(uniswapV3Adapter)),
+            0,
+            "the uniswap v3 adapter should have 0 balance of wEth"
+        );
+
+        assertEq(
+            IERC20(usdc).balanceOf(address(marketMakingEngine)),
+            0,
+            "the balance of the usdc in the market making engine after the convert should be zero"
+        );
+        assertEq(
+            IERC20(wEth).balanceOf(address(marketMakingEngine)),
+            amountOutMin,
+            "the balance of the wEth in the market making engine after the convert is wrong"
+        );
 
         // it should update the available fees to withdraw
+        UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
+        UD60x18 expectedAvailableFeesToWithdrawX18 =
+            amountOutMinX18.mul(ud60x18(fuzzMarketDebtConfig.feeRecipientsShare));
+
+        assertEq(
+            marketMakingEngine.workaround_getAvailableFeesToWithdraw(fuzzMarketDebtConfig.marketDebtId),
+            expectedAvailableFeesToWithdrawX18.intoUint256(),
+            "the available fees to withdraw is wrong"
+        );
+
+        // TODO
         // it should update unsettled fees weth of the vault
+
+        // TODO
         // it should distribute value to the vault
+
+        // TODO
         // it should remove the asset from receivedMarketFees
-        // it should emit {LogConvertAccumulatedFeesToWeth} event
     }
-
-    // function testFuzz_WhenTheAssetIsWeth(
-    //     uint256 amountToReceive
-    // )
-    //     external
-    //     givenTheCallerIsMarketMakingEngine
-    //     whenMarketExist
-    //     whenTheAmountIsNotZero
-    //     whenTheAssetExists
-    // {
-    //     // amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max:
-    //     // WETH_DEPOSIT_CAP_X18.intoUint256() });
-
-    //     // // set contract with initial wEth fees
-    //     // receiveOrderFeeInFeeDistribution(address(wEth), amountToReceive);
-
-    //     // // it should emit event { LogConvertAccumulatedFeesToWeth }
-    //     // vm.expectEmit();
-    //     // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(
-    //     //     address(wEth), amountToReceive, amountToReceive
-    //     // );
-
-    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wEth), 1);
-
-    //     // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
-
-    //     // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
-    //     // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
-
-    //     // // it should divide amount between market and fee recipients
-    //     // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
-    // }
-
-    // modifier whenTheAssetIsNotWeth() {
-    //     _;
-    // }
-
-    // function test_RevertGiven_PriceAdapterAddressIsNotSet(
-    //     uint256 amountToReceive
-    // )
-    //     external
-    //     givenTheCallerIsMarketMakingEngine
-    //     whenMarketExist
-    //     whenTheAmountIsNotZero
-    //     whenTheAssetExists
-    //     whenTheAssetIsNotWeth
-    // {
-    //     // amountToReceive =
-    //     //     bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256()
-    // });
-
-    //     // // Deploy MockUniswapRouter to simulate the swap and mock
-    //     // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-    //     // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
-
-    //     // // set contract with initial wbtc fees
-    //     // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
-
-    //     // // Set Price Adapter address to zero
-    //     // marketMakingEngine.workaround_Collateral_setParams(
-    //     //     address(wBtc),
-    //     //     WBTC_CORE_VAULT_CREDIT_RATIO,
-    //     //     WBTC_PRICE_FEED_HEARBEAT_SECONDS,
-    //     //     WBTC_CORE_VAULT_IS_ENABLED,
-    //     //     WBTC_DECIMALS,
-    //     //     address(0)
-    //     // );
-
-    //     // // it should revert
-    //     // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.PriceAdapterUndefined.selector) });
-    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
-    // }
-
-    // modifier givenPriceAdapterAddressIsSet() {
-    //     _;
-    // }
-
-    // function test_RevertGiven_TheUniswapAddressIsNotSet(
-    //     uint256 amountToReceive
-    // )
-    //     external
-    //     givenTheCallerIsMarketMakingEngine
-    //     whenMarketExist
-    //     whenTheAmountIsNotZero
-    //     whenTheAssetExists
-    //     whenTheAssetIsNotWeth
-    //     givenPriceAdapterAddressIsSet
-    // {
-    //     // amountToReceive =
-    //     //     bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256()
-    // });
-
-    //     // // set contract with initial wbtc fees
-    //     // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
-
-    //     // // it should revert
-    //     // vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "swapRouter address")
-    // });
-    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
-    // }
-
-    // modifier givenTheUniswapAddressIsSet() {
-    //     _;
-    // }
-
-    // function testFuzz_GivenTokenInDecimalsAreLessThan18(
-    //     uint256 amountToReceive
-    // )
-    //     external
-    //     givenTheCallerIsMarketMakingEngine
-    //     whenMarketExist
-    //     whenTheAmountIsNotZero
-    //     whenTheAssetExists
-    //     whenTheAssetIsNotWeth
-    //     givenPriceAdapterAddressIsSet
-    //     givenTheUniswapAddressIsSet
-    // {
-    //     // amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max:
-    //     // WETH_DEPOSIT_CAP_X18.intoUint256() });
-
-    //     // // set contract with initial wbtc fees
-    //     // receiveOrderFeeInFeeDistribution(address(wBtc), amountToReceive);
-
-    //     // // Deploy MockUniswapRouter to simulate the swap and mock
-    //     // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-    //     // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
-
-    //     // // Expect event emitted for fee conversion
-    //     // vm.expectEmit();
-    //     // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(wBtc), amountToReceive,
-    //     // amountToReceive);
-
-    //     // // Call the function to convert accumulated fees to WETH from wBtc (token with less than 18 decimals)
-    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(wBtc), 0);
-
-    //     // // Check the resulting split of fees between market and fee recipients
-    //     // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
-
-    //     // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
-    //     // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
-
-    //     // // it should divide amount between market and fee recipients
-    //     // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
-    // }
-
-    // function testFuzz_GivenTokenInDecimalsAre18(
-    //     uint256 amountToReceive
-    // )
-    //     external
-    //     givenTheCallerIsMarketMakingEngine
-    //     whenMarketExist
-    //     whenTheAmountIsNotZero
-    //     whenTheAssetExists
-    //     whenTheAssetIsNotWeth
-    //     givenPriceAdapterAddressIsSet
-    //     givenTheUniswapAddressIsSet
-    // {
-    //     // amountToReceive = bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max:
-    //     // WETH_DEPOSIT_CAP_X18.intoUint256() });
-
-    //     // // set contract with initial usdc fees
-    //     // receiveOrderFeeInFeeDistribution(address(usdc), amountToReceive);
-
-    //     // // Deploy MockUniswapRouter to simulate the swap and mock
-    //     // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-    //     // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
-
-    //     // // Expect event emitted for fee conversion
-    //     // vm.expectEmit();
-    //     // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(usdc), amountToReceive,
-    //     // amountToReceive);
-
-    //     // // Call the function to convert accumulated fees to WETH from usdc (token with 18 decimalsa)
-    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdc), 0);
-
-    //     // // Check the resulting split of fees between market and fee recipients
-    //     // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
-
-    //     // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
-    //     // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
-
-    //     // // it should divide amount between market and fee recipients
-    //     // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
-    // }
-
-    // function testFuzz_GivenTokenInDecimalsAreMoreThan18(
-    //     uint256 amountToReceive
-    // )
-    //     external
-    //     givenTheCallerIsMarketMakingEngine
-    //     whenMarketExist
-    //     whenTheAmountIsNotZero
-    //     whenTheAssetExists
-    //     whenTheAssetIsNotWeth
-    //     givenPriceAdapterAddressIsSet
-    //     givenTheUniswapAddressIsSet
-    // {
-    //     amountToReceive =
-    //         bound({ x: amountToReceive, min: WETH_MIN_DEPOSIT_MARGIN, max: WETH_DEPOSIT_CAP_X18.intoUint256() });
-
-    //     uint8 priceFeedDecimals = 8;
-    //     int256 priceFeedPrice = 1e18;
-
-    //     MockPriceFeed usdzMockPriceFeed = new MockPriceFeed(priceFeedDecimals, priceFeedPrice);
-
-    //     uint8 tokenDecimals = 20;
-
-    //     // Set tokenIn decimals to 20
-    //     marketMakingEngine.workaround_Collateral_setParams(
-    //         address(usdz),
-    //         WBTC_CORE_VAULT_CREDIT_RATIO,
-    //         WBTC_CORE_VAULT_IS_ENABLED,
-    //         tokenDecimals,
-    //         address(usdzMockPriceFeed)
-    //     );
-
-    //     // // set contract with initial usdc fees
-    //     // receiveOrderFeeInFeeDistribution(address(usdz), amountToReceive);
-
-    //     // // Deploy MockUniswapRouter to simulate the swap and mock
-    //     // ISwapRouter swapRouter = ISwapRouter(address(new MockUniswapRouter()));
-    //     // marketMakingEngine.exposed_setSwapStrategy(0, address(swapRouter));
-
-    //     // // Expect event emitted for fee conversion
-    //     // vm.expectEmit();
-    //     // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(usdz), amountToReceive,
-    //     // amountToReceive);
-
-    //     // // Call the function to convert accumulated fees to WETH from usdz (token with 18 decimals)
-    //     // marketMakingEngine.convertAccumulatedFeesToWeth(INITIAL_MARKET_DEBT_ID, address(usdz), 0);
-
-    //     // // Check the resulting split of fees between market and fee recipients
-    //     // uint256 feeRecipientsFees = marketMakingEngine.workaround_getFeeRecipientsFees(INITIAL_MARKET_DEBT_ID);
-
-    //     // (uint128 marketPercentage, uint128 feeRecipientsPercentage) =
-    //     // marketMakingEngine.getPercentageRatio(INITIAL_MARKET_DEBT_ID);
-
-    //     // // it should divide amount between market and fee recipients
-    //     // assertEq(feeRecipientsFees, (amountToReceive * feeRecipientsPercentage) / SwapRouter.BPS_DENOMINATOR);
-    // }
 }

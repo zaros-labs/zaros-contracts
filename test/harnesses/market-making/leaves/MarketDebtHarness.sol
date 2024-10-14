@@ -8,8 +8,6 @@ import { MarketDebt } from "@zaros/market-making/leaves/MarketDebt.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract MarketDebtHarness {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -50,5 +48,10 @@ contract MarketDebtHarness {
     function workaround_setReceivedMarketFees(uint128 marketDebtId, address asset, uint256 amount) external {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketDebtId);
         marketDebt.receivedMarketFees.set(asset, amount);
+    }
+
+    function workaround_getAvailableFeesToWithdraw(uint128 marketDebtId) external view returns (uint256) {
+        MarketDebt.Data storage marketDebt = MarketDebt.load(marketDebtId);
+        return marketDebt.availableFeesToWithdraw;
     }
 }

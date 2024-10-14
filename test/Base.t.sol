@@ -155,6 +155,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     IMarketMakingEngine internal marketMakingEngine;
     IMarketMakingEngine internal marketMakingEngineImplementation;
 
+    UniswapV3Adapter internal uniswapV3Adapter;
+
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
@@ -274,7 +276,19 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         setupMarketsDebtConfig();
 
         marketMakingEngine.configureCollateral(
-            address(usdc), marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter, 1e18, true, usdc.decimals()
+            address(usdc),
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter,
+            1e18,
+            true,
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals
+        );
+
+        marketMakingEngine.configureCollateral(
+            address(wEth),
+            marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter,
+            1e18,
+            true,
+            marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals
         );
 
         marketMakingEngine.registerEngine(address(perpsEngine));
@@ -282,14 +296,32 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketMakingEngine.setUsdz(address(usdz));
         marketMakingEngine.setWeth(address(wEth));
 
-        address uniswapV3Adapter =
-            address(DexAdapterUtils.deployUniswapV3Adapter(marketMakingEngine, users.owner.account, 100, 3000, true));
+        uint256 slippageTolerance = 100;
+        uint24 fee = 3000;
 
-        deal({
-            token: address(wEth),
-            to: UniswapV3Adapter(uniswapV3Adapter).mockUniswapV3SwapStrategyRouter(),
-            give: type(uint256).max
+        address[] memory collaterals = new address[](2);
+        collaterals[0] = address(usdc);
+        collaterals[1] = address(wEth);
+
+        UniswapV3Adapter.CollateralData[] memory collateralData = new UniswapV3Adapter.CollateralData[](2);
+
+        collateralData[0] = UniswapV3Adapter.CollateralData({
+            decimals: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter)
         });
+
+        collateralData[1] = UniswapV3Adapter.CollateralData({
+            decimals: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        bool isTest = true;
+
+        uniswapV3Adapter = DexAdapterUtils.deployUniswapV3Adapter(
+            marketMakingEngine, users.owner.account, slippageTolerance, fee, collaterals, collateralData, isTest
+        );
+
+        deal({ token: address(wEth), to: uniswapV3Adapter.mockUniswapV3SwapStrategyRouter(), give: type(uint256).max });
 
         uint256[2] memory vaultsIdsRange;
         vaultsIdsRange[0] = INITIAL_VAULT_ID;

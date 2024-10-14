@@ -54,7 +54,7 @@ contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
         )
     {
         IERC20(params.tokenIn).transferFrom(msg.sender, address(this), params.amountIn);
-        IERC20(params.tokenOut).transfer(params.recipient, params.amountIn);
+        IERC20(params.tokenOut).transfer(params.recipient, params.amountOutMinimum);
 
         amountOut =
             exactInputInternal(params.amountIn, params.recipient, params.sqrtPriceLimitX96, params.amountOutMinimum);

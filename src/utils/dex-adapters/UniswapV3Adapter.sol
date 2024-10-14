@@ -6,6 +6,8 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { ISwapRouter } from "@zaros/utils/interfaces/ISwapRouter.sol";
 import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
+import { Math } from "@zaros/utils/Math.sol";
 
 // Open zeppelin upgradeable dependencies
 import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -31,6 +33,16 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @param newSlippageTolerance The new slippage tolerance
     event LogSetSlippageTolerance(uint256 newSlippageTolerance);
 
+    /// @notice Event emitted when the new collateral data is set
+    /// @param collateral The collateral address
+    /// @param decimals The collateral decimals
+    /// @param priceAdapter The collateral price adapter
+    event LogSetCollateralData(address indexed collateral, uint8 decimals, address priceAdapter);
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    STRUCTS
+    //////////////////////////////////////////////////////////////////////////*/
+
     struct CollateralData {
         uint8 decimals;
         address priceAdapter;
@@ -46,7 +58,8 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @dev 10000 bps (1.00%) for highly volatile pairs.
     uint24 public fee;
 
-    // the slippage tolerance
+    /// @notice the slippage tolerance
+    /// @dev the minimum is 100 (e.g. 1%)
     uint256 public slippageTolerance;
 
     /// @notice The Mock Uniswap V3 Swap Strategy Router address
@@ -83,7 +96,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         setPoolFee(_fee);
 
         // set the slippage tolerance
-        slippageTolerance = _slippageTolerance;
+        setSlippageTolerance(_slippageTolerance);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -108,6 +121,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         // aprove the tokenIn to the swap router
         IERC20(swapPayload.tokenIn).approve(address(swapRouter), swapPayload.amountIn);
 
+        // get the expected output amount
         uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
 
         // Calculate the minimum acceptable output based on the slippage tolerance
@@ -127,11 +141,37 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         );
     }
 
-    function getExpectedOutput(address tokenIn, address tokenOut, uint256 amountIn) internal view returns (uint256) { }
+    /// @notice Get the expected output amount
+    /// @param tokenIn The token in address
+    /// @param tokenOut The token out address
+    /// @param amountIn The amount int address
+    /// @return expectedAmountOut The expected amount out
+    function getExpectedOutput(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn
+    )
+        public
+        view
+        returns (uint256 expectedAmountOut)
+    {
+        UD60x18 priceTokenInX18 = IPriceAdapter(collateralData[tokenIn].priceAdapter).getPrice();
 
-    function calculateAmountOutMin(uint256 amountOutMinExpected) internal view returns (uint256) {
+        UD60x18 priceTokenOutX18 = IPriceAdapter(collateralData[tokenOut].priceAdapter).getPrice();
+
+        UD60x18 amountInX18 = Math.convertTokenAmountToUd60x18(collateralData[tokenIn].decimals, amountIn);
+
+        expectedAmountOut = Math.convertUd60x18ToTokenAmount(
+            collateralData[tokenOut].decimals, amountInX18.mul(priceTokenInX18).div(priceTokenOutX18)
+        );
+    }
+
+    /// @notice Calculate the amount out min
+    /// @param amountOutMinExpected The amount out min expected
+    /// @return amountOutMin The amount out min
+    function calculateAmountOutMin(uint256 amountOutMinExpected) public view returns (uint256 amountOutMin) {
         // calculate the amount out min
-        return (amountOutMinExpected * (10_000 - slippageTolerance)) / 10_000;
+        amountOutMin = (amountOutMinExpected * (10_000 - slippageTolerance)) / 10_000;
     }
 
     /// @notice Sets pool fee
@@ -161,14 +201,20 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         useMockUniswapV3SwapStrategyRouter = _useMockUniswapV3SwapStrategyRouter;
     }
 
-    // / @notice Sets slippage tolerance
-    // / @dev the minimum is 100 (e.g. 1%)
-    function setSlippageTolerance(uint256 newSlippageTolerance) external onlyOwner {
+    /// @notice Sets slippage tolerance
+    /// @dev the minimum is 100 (e.g. 1%)
+    function setSlippageTolerance(uint256 newSlippageTolerance) public onlyOwner {
         // revert if the new slippage tolerance is less than 100
         slippageTolerance = newSlippageTolerance;
 
         // emit the event LogSetSlippageTolerance
         emit LogSetSlippageTolerance(newSlippageTolerance);
+    }
+
+    function setCollateralData(address collateral, uint8 decimals, address priceAdapter) public onlyOwner {
+        collateralData[collateral] = CollateralData(decimals, priceAdapter);
+
+        emit LogSetCollateralData(collateral, decimals, priceAdapter);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
