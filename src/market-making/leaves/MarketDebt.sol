@@ -255,15 +255,6 @@ library MarketDebt {
         self.collectedFees = newAmount.intoUint256();
     }
 
-    /// @notice Support function to increment the available fees to withdraw
-    /// @param self The fee storage pointer
-    /// @param amountX18 The amount to be incremented
-    function incrementAvailableFeesToWithdraw(Data storage self, UD60x18 amountX18) internal {
-        UD60x18 newAmount = amountX18.add(ud60x18(self.availableFeesToWithdraw));
-
-        self.availableFeesToWithdraw = newAmount.intoUint256();
-    }
-
     /// @notice Support function to decrease the available fees to withdraw
     /// @param self The fee storage pointer
     /// @param amountX18 The amount to be incremented
@@ -271,5 +262,17 @@ library MarketDebt {
         UD60x18 newAmount = amountX18.sub(ud60x18(self.availableFeesToWithdraw));
 
         self.availableFeesToWithdraw = newAmount.intoUint256();
+    }
+
+    /// @notice Support function to update the received and available fees
+    /// @param self The fee storage pointer
+    /// @param asset The asset address
+    /// @param amountX18 The amount to be incremented
+    function updateReceivedAndAvailableFees(Data storage self, address asset, UD60x18 amountX18) internal {
+        UD60x18 newAmount = amountX18.add(ud60x18(self.availableFeesToWithdraw));
+
+        self.availableFeesToWithdraw = newAmount.intoUint256();
+
+        self.receivedMarketFees.remove(asset);
     }
 }

@@ -207,8 +207,8 @@ contract FeeDistributionBranch is EngineAccessControl {
         // calculate the fee amount for the fee recipients
         UD60x18 collectedFeesX18 = accumulatedWethX18.mul(ud60x18(marketDebt.feeRecipientsShare));
 
-        // increment the collected fees
-        marketDebt.incrementAvailableFeesToWithdraw(collectedFeesX18);
+        // increment the collected fees and rmeove the asset form the received market fees
+        marketDebt.updateReceivedAndAvailableFees(asset, collectedFeesX18);
 
         // get connected vaults of market
         uint256[] memory vaultsSet = marketDebt.getConnectedVaultsIds();
@@ -244,9 +244,6 @@ contract FeeDistributionBranch is EngineAccessControl {
             // distribute the amount between the vault's shares
             vault.stakingFeeDistribution.distributeValue(vaultFeeAmountX18);
         }
-
-        // remove the asset from the received market fees
-        marketDebt.receivedMarketFees.remove(asset);
 
         // emit event to log the conversion of fees to weth
         emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, accumulatedWethX18.intoUint256());
