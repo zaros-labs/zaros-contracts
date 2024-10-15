@@ -19,6 +19,12 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+/// @title Zaros Liquidity Provisioning (ZLP) Vault contract
+/// @notice The ZlpVault contract is a UUPS upgradeable contract that extends the ERC4626 standard.
+/// @dev It is deployed as a standalone proxy, separately from the `MarketMakingEngine`, and its core responsibility
+/// is to store and manage the assets and shares of a single ZLP Vault.
+/// @author 0xpedro.eth
+// TODO: add co-authors
 contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626Upgradeable {
     using Math for uint256;
 
@@ -42,6 +48,8 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         _;
     }
 
+    /// @notice Initializes the ZlpVault UUPS contract.
+    /// @dev See {UUPSUpgradeable}.
     function initialize(
         address marketMakingEngine,
         uint8 decimalsOffset,
@@ -61,6 +69,7 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         zlpVaultStorage.vaultId = vaultId;
     }
 
+    /// @notice ERC7201 storage access function.
     function _getZlpVaultStorage() private pure returns (ZlpVaultStorage storage zlpVaultStorage) {
         bytes32 slot = ZlpVaultStorageLocation;
         assembly {
@@ -68,14 +77,17 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         }
     }
 
+    /// @inheritdoc ERC4626Upgradeable
     function deposit(uint256 assets, address receiver) public override onlyMarketMakingEngine returns (uint256) {
         return super.deposit(assets, receiver);
     }
 
+    /// @inheritdoc ERC4626Upgradeable
     function mint(uint256 shares, address receiver) public override onlyMarketMakingEngine returns (uint256) {
         return super.mint(shares, receiver);
     }
 
+    /// @inheritdoc ERC4626Upgradeable
     function withdraw(
         uint256 assets,
         address receiver,
@@ -89,6 +101,7 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         return super.withdraw(assets, receiver, owner);
     }
 
+    /// @inheritdoc ERC4626Upgradeable
     function redeem(
         uint256 shares,
         address receiver,
