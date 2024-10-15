@@ -4,7 +4,6 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { UsdToken } from "@zaros/usd/UsdToken.sol";
-// import { CreditDelegation } from "@zaros/market-making/leaves/CreditDelegation.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Market } from "@zaros/market-making/leaves/Market.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
@@ -322,7 +321,7 @@ contract CreditDelegationBranch {
     /// TODO: add invariants
     // TODO: update credit delegation and debt distribution
     // TODO: how to account for collected margin collateral's fluctuation in value?
-    function updateCreditDelegation() public { }
+    function updateCreditDelegation(uint128 marketId) public { }
 
     /// @dev Called by the perps trading engine to update the credit delegation and return the credit for a given
     /// market id
@@ -331,7 +330,19 @@ contract CreditDelegationBranch {
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
     /// TODO: add invariants
     function updateCreditDelegationAndReturnCreditForMarket(uint128 marketId) external returns (SD59x18) {
-        updateCreditDelegation();
+        updateCreditDelegation(marketId);
         return getCreditCapacityForMarketId(marketId);
+    }
+
+    /// @notice Updates the credit capacity of the given vault id, recalculating its connected markets' debt and its
+    /// collateral assets USD value.
+    /// @param vaultId The vault identifier.
+    function updateVaultCreditCapacity(uint128 vaultId) external {
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
+
+        // updates the vault's credit capacity
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
     }
 }

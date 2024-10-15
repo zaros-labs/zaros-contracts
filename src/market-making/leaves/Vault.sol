@@ -44,6 +44,21 @@ library Vault {
     bytes32 internal constant VAULT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Vault")) - 1));
 
+    /// @notice Emitted when a vault's credit capacity is updated at the `Vault::recalculateVaultsCreditCapacity`
+    /// loop.
+    /// @param vaultId The vault identifier.
+    /// @param vaultUnrealizedDebtChangeUsd The vault's unrealized debt update during the recalculation.
+    /// @param vaultRealizedDebtChangeUsd The vault's realized debt update during the recalculation.
+    /// @param vaultNewCreditCapacityUsd The vault's new credit capacity after the recalculation of total debt and the
+    /// USD adjusted value of its underlying assets.
+    /// @dev The parameter above is adjusted by the configured collateral's credit ratio.
+    event LogUpdateVaultCreditCapacity(
+        uint128 indexed vaultId,
+        int256 vaultUnrealizedDebtChangeUsd,
+        int256 vaultRealizedDebtChangeUsd,
+        int256 vaultNewCreditCapacityUsd
+    );
+
     /// @param id The vault identifier.
     /// @param totalCreditDelegationWeight The total amount of credit delegation weight in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
@@ -267,7 +282,15 @@ library Vault {
                 sd59x18(self.unsettledRealizedDebtUsd).add(vaultTotalRealizedDebtChangeUsdX18).intoInt256().toInt128();
 
             // update the vault's credit delegations
-            updateCreditDelegations(self, updatedConnectedMarketsIdsCache, false);
+            (, SD59x18 vaultNewCreditCapacityUsdX18) =
+                updateCreditDelegations(self, updatedConnectedMarketsIdsCache, false);
+
+            emit LogUpdateVaultCreditCapacity(
+                vaultId,
+                vaultTotalUnrealizedDebtChangeUsdX18.intoInt256(),
+                vaultTotalRealizedDebtChangeUsdX18.intoInt256(),
+                vaultNewCreditCapacityUsdX18.intoInt256()
+            );
         }
     }
 
@@ -320,7 +343,7 @@ library Vault {
         bool shouldRehydrateCache
     )
         internal
-        returns (uint128[] memory rehydratedConnectedMarketsIdsCache)
+        returns (uint128[] memory rehydratedConnectedMarketsIdsCache, SD59x18 vaultCreditCapacityUsdX18)
     {
         // cache the vault id
         uint128 vaultId = self.id;
@@ -351,16 +374,16 @@ library Vault {
             UD60x18 creditDelegationShareX18 =
                 ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
 
-            // caches the vault's total credit capacity
-            SD59x18 vaultCreditCapacity = getTotalCreditCapacityUsd(self);
+            // stores the vault's total credit capacity to be returned
+            vaultCreditCapacityUsdX18 = getTotalCreditCapacityUsd(self);
 
             // if the vault's credit capacity went to zero or below, we set its credit delegation to that market
             // to zero
             // TODO: think about the implications of this, as it might lead to markets going insolvent due and bad
             // debt generation as the vault's collateral value unexpectedly tanks and / or its total debt
             // increases.
-            UD60x18 newCreditDelegationUsdX18 = vaultCreditCapacity.gt(SD59x18_ZERO)
-                ? vaultCreditCapacity.intoUD60x18().mul(creditDelegationShareX18)
+            UD60x18 newCreditDelegationUsdX18 = vaultCreditCapacityUsdX18.gt(SD59x18_ZERO)
+                ? vaultCreditCapacityUsdX18.intoUD60x18().mul(creditDelegationShareX18)
                 : UD60x18_ZERO;
 
             // loads the market's storage pointer
