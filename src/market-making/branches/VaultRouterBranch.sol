@@ -100,9 +100,6 @@ contract VaultRouterBranch {
         collateral = vault.collateral;
     }
 
-    // TODO: update the debt distribution chain of the Vault and its connected markets in order to retrieve the latest
-    // values
-
     /// @notice Returns the swap rate from index token to collateral asset for the provided vault.
     /// @dev This function does not perform state updates. Thus, in order to retrieve the atomic state in a non-view
     /// function like `deposit` `redeem`, the implementation must handle those updates beforehand, through the `Vault`

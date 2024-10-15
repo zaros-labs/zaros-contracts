@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 
 // Open Zeppelin dependencies
@@ -17,7 +16,7 @@ import { ERC4626Upgradeable } from "@openzeppelin-upgradeable/token/ERC20/extens
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18 } from "@prb-math/UD60x18.sol";
 
 /// @title Zaros Liquidity Provisioning (ZLP) Vault contract
 /// @notice The ZlpVault contract is a UUPS upgradeable contract that extends the ERC4626 standard.
@@ -36,9 +35,10 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
     }
 
     /// @notice ERC-7201 namespace storage location.
-    bytes32 private constant ZlpVaultStorageLocation =
+    bytes32 private constant ZLP_VAULT_STORAGE_LOCATION =
         keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.ZlpVault")) - 1)) & ~bytes32(uint256(0xff));
 
+    /// @notice Modifier to restrict access to the MarketMakingEngine root proxy contract.
     modifier onlyMarketMakingEngine() {
         ZlpVaultStorage storage zlpVaultStorage = _getZlpVaultStorage();
 
@@ -71,7 +71,7 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
 
     /// @notice ERC7201 storage access function.
     function _getZlpVaultStorage() private pure returns (ZlpVaultStorage storage zlpVaultStorage) {
-        bytes32 slot = ZlpVaultStorageLocation;
+        bytes32 slot = ZLP_VAULT_STORAGE_LOCATION;
         assembly {
             zlpVaultStorage.slot := slot
         }
