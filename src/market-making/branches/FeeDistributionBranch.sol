@@ -265,7 +265,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
         // reverts if no fees have been collected
-        if (marketDebt.collectedFees == 0) revert Errors.NoWethFeesCollected();
+        if (marketDebt.availableFeesToWithdraw == 0) revert Errors.NoWethFeesCollected();
 
         // loads the market making engine configuration data storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
