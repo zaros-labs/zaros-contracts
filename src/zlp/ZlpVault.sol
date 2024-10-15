@@ -115,26 +115,39 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         return super.redeem(shares, receiver, owner);
     }
 
-    /// @notice Returns the decimals offset for the Vault
-    /// Overridden and used in ERC4626
-    /// @return The decimal offset for the Vault
+    /// @notice Returns the decimals offset between the ZLP Vault's underlying asset and its shares (index tokens).
+    /// @dev Overridden and used in ERC4626.
     function _decimalsOffset() internal pure override returns (uint8) {
         ZlpVaultStorage memory zlpVaultStorage = _getZlpVaultStorage();
         return zlpVaultStorage.decimalsOffset;
     }
 
-    function _convertToAssets(uint256 assets, Math.Rounding /**/ ) internal view override returns (uint256) {
+    /// @notice Converts the provided amount of ZLP Vault shares to the equivalent amount of underlying assets.
+    /// @dev Overridden and used in ERC4626.
+    /// @dev This function takes into account the ZLP Vault's unsettled debt in usd to return the correct expected
+    /// amount of assets out for the given amount of shares in.
+    /// @param shares The amount of ZLP Vault shares to convert.
+    /// @return The equivalent amount of underlying assets for the given shares in parameter.
+    function _convertToAssets(uint256 shares, Math.Rounding /**/ ) internal view override returns (uint256) {
+        // load erc-7201 storage pointer
         ZlpVaultStorage storage zlpVaultStorage = _getZlpVaultStorage();
 
+        // fetch the amount of assets out for the shares input value calling the `MarketMakingEngine`
         UD60x18 assetsOut = IMarketMakingEngine(zlpVaultStorage.marketMakingEngine).getIndexTokenSwapRate(
-            zlpVaultStorage.vaultId, assets
+            zlpVaultStorage.vaultId, shares
         );
 
         return assetsOut.intoUint256();
     }
 
+    /// @notice Converts the provided amount of the ZLP Vault's assets to the equivalent amount of shares.
+    /// @dev Overridden and used in ERC4626.
+    /// @dev This function takes into account the ZLP Vault's unsettled debt in usd to return the correct expected
+    /// amount of shares out for the given amount of assets in.
+    /// @param assets The amount of ZLP Vault assets to convert.
+    /// @return The equivalent amount of ERC4626 shares for the given assets in parameter.
     function _convertToShares(
-        uint256 shares,
+        uint256 assets,
         Math.Rounding
     )
         /*
@@ -144,14 +157,17 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         override
         returns (uint256)
     {
+        // load erc-7201 storage pointer
         ZlpVaultStorage storage zlpVaultStorage = _getZlpVaultStorage();
 
+        // fetch the amount of shares out for the assets input value calling the `MarketMakingEngine`
         UD60x18 sharesOut = IMarketMakingEngine(zlpVaultStorage.marketMakingEngine).getVaultAssetSwapRate(
-            zlpVaultStorage.vaultId, shares
+            zlpVaultStorage.vaultId, assets
         );
 
         return sharesOut.intoUint256();
     }
 
+    /// @inheritdoc UUPSUpgradeable
     function _authorizeUpgrade(address) internal override onlyOwner { }
 }

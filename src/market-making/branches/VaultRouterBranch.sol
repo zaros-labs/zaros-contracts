@@ -124,19 +124,25 @@ contract VaultRouterBranch {
         // get collateral asset price
         UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
-        // get amount of assets that are credited
-        SD59x18 assetsCreditX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
+        // convert the unsettled debt value in USD to the equivalent amount of assets to be credited or debited
+        SD59x18 unsettledDebtInAssetsX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
 
-        // calculate the total assets minus the debt
-        SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCreditX18);
+        // subtract the unsettled debt from the total assets
+        // NOTE: we add 1 to the total assets to avoid division by zero
+        // NOTE: credit is accounted as negative debt, so it would be added to the total assets
+        SD59x18 totalAssetsMinusUnsettledDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(unsettledDebtInAssetsX18);
 
         // sd59x18 -> uint256
-        uint256 totalAssetsMinusDebt = totalAssetsMinusDebtX18.intoUint256();
+        uint256 totalAssetsMinusUnsettledDebt = totalAssetsMinusUnsettledDebtX18.intoUint256();
 
         // Get the asset amount out for the input amount of shares, taking into account the unsettled debt
         // See {IERC4626-previewRedeem}
+        // TODO: check with Cyfrin if the potentially added dust value to assets out due to
+        // `IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset` could lead to problems
         uint256 previewAssetsOut = sharesIn.mulDiv(
-            totalAssetsMinusDebt, IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset, Math.Rounding.Floor
+            totalAssetsMinusUnsettledDebt,
+            IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
+            Math.Rounding.Floor
         );
 
         // Return the final adjusted amountOut as UD60x18
@@ -164,19 +170,25 @@ contract VaultRouterBranch {
         // get collateral asset price
         UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
-        // get amount of assets that are credited
-        SD59x18 assetsCreditX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
+        // convert the unsettled debt value in USD to the equivalent amount of assets to be credited or debited
+        SD59x18 unsettledDebtInAssetsX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
 
-        // calculate the total assets minus the debt
-        SD59x18 totalAssetsMinusDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(assetsCreditX18);
+        // subtract the unsettled debt from the total assets
+        // NOTE: we add 1 to the total assets to avoid division by zero
+        // NOTE: credit is accounted as negative debt, so it would be added to the total assets
+        SD59x18 totalAssetsMinusUnsettledDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(unsettledDebtInAssetsX18);
 
         // sd59x18 -> uint256
-        uint256 totalAssetsMinusDebt = totalAssetsMinusDebtX18.intoUint256();
+        uint256 totalAssetsMinusUnsettledDebt = totalAssetsMinusUnsettledDebtX18.intoUint256();
 
         // Get the shares amount out for the input amount of tokens, taking into account the unsettled debt
         // See {IERC4626-previewDeposit}.
+        // TODO: check with Cyfrin if the potentially added dust value to shares out due to
+        // `IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset` could lead to problems
         uint256 previewSharesOut = assetsIn.mulDiv(
-            IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset, totalAssetsMinusDebt, Math.Rounding.Floor
+            IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
+            totalAssetsMinusUnsettledDebt,
+            Math.Rounding.Floor
         );
 
         // Return the final adjusted amountOut as UD60x18
