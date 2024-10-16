@@ -5,5 +5,3 @@ forge-std/=lib/forge-std/src/
 @openzeppelin/=lib/openzeppelin-contracts/contracts/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @solady=lib/solady/src/
-@uniswap/v3-core/=lib/v3-core/
-@uniswap/v3-periphery=lib/v3-periphery/
