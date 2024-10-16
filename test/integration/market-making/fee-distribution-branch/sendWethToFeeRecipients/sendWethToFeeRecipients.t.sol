@@ -65,13 +65,32 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_ThereAreNoFeeRecipients()
+    function testFuzz_RevertWhen_ThereAreNoFeeRecipients(uint256 marketDebtId, uint256 configuration, uint256 amount)
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
         whenThereIsAvailableFeesToWithdraw
     {
+        changePrank({ msgSender: address(perpsEngine) });
+
+        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+
+        amount = bound({
+            x: amount,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+
+        marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, address(usdc), amount);
+
+        marketMakingEngine.convertAccumulatedFeesToWeth(fuzzMarketDebtConfig.marketDebtId, address(usdc), uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID());
+
+        // TODO: add custom error
         // it should revert
+        vm.expectRevert({ });
+
+        marketMakingEngine.sendWethToFeeRecipients(fuzzMarketDebtConfig.marketDebtId, configuration);
     }
 
     function test_WhenThereAreFeeRecipients()

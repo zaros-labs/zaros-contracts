@@ -275,7 +275,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipientsAddress[configuration];
 
         // store the length of the fee recipients list
-        uint256 recepientListLength = recipientsList.length;
+        uint256 recipientListLength = recipientsList.length;
 
         // weth address
         address weth = marketMakingEngineConfigurationData.weth;
@@ -290,12 +290,12 @@ contract FeeDistributionBranch is EngineAccessControl {
         Collateral.Data storage wethCollateral = Collateral.load(weth);
 
         // get total shares of fee recipients
-        for (uint256 i; i < recepientListLength; ++i) {
+        for (uint256 i; i < recipientListLength; ++i) {
             totalSharesX18 = totalSharesX18.add(ud60x18(FeeRecipient.load(recipientsList[i]).share));
         }
 
         // send amount between fee recipients
-        for (uint256 i; i < recepientListLength; ++i) {
+        for (uint256 i; i < recipientListLength; ++i) {
             // the current fee recipient
             address feeRecipient = recipientsList[i];
 
