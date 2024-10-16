@@ -80,9 +80,8 @@ contract FeeDistributionBranch is EngineAccessControl {
     function getEarnedFees(uint128 vaultId, address staker) external view returns (uint256 earnedFees) {
         Vault.Data storage vault = Vault.load(vaultId);
 
-        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
-
         bytes32 actorId = bytes32(uint256(uint160(staker)));
+
         earnedFees = vault.stakingFeeDistribution.getActorValueChange(actorId).intoUint256();
     }
 
