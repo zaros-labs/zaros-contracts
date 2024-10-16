@@ -179,6 +179,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         MarketOrder.Data memory previousOwnerMarketOrder = perpsEngine.getActiveMarketOrder(tradingAccountId);
 
         // verify active market order
+        assertEq(previousOwnerMarketOrder.marketId, fuzzMarketConfig.marketId);
         assertEq(previousOwnerMarketOrder.timestamp, block.timestamp);
         assertEq(previousOwnerMarketOrder.sizeDelta, sizeDelta);
 
