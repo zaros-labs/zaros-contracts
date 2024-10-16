@@ -19,4 +19,19 @@ contract WithdrawalRequestHarness {
 
         return withdrawRequestData;
     }
+
+    function exposed_WithdrawalRequest_loadExisting(
+        uint128 vaultId,
+        address account,
+        uint128 withdrawalRequestId
+    )
+        external
+        view
+        returns (WithdrawalRequest.Data memory)
+    {
+        WithdrawalRequest.Data memory withdrawRequestData =
+            WithdrawalRequest.loadExisting(vaultId, account, withdrawalRequestId);
+
+        return withdrawRequestData;
+    }
 }

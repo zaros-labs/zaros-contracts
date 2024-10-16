@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Math } from "@zaros/utils/Math.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { CreditDeposit } from "@zaros/market-making/leaves/CreditDeposit.sol";
@@ -17,7 +18,8 @@ import { UD60x18, ud60x18, UNIT as UD60x18_UNIT } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @dev NOTE: unrealized debt (from market) -> realized debt (market) -> unsettled debt (vaults) -> settled
-/// debt (vaults)
+/// debt (vaults)'
+/// todo: create and update functions
 library Market {
     using Collateral for Collateral.Data;
     using CreditDeposit for CreditDeposit.Data;
@@ -55,7 +57,7 @@ library Market {
     /// `valuePerShare`: USD denominated market debt or credit per share.
     struct Data {
         address engine;
-        uint128 marketId;
+        uint128 id;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
@@ -63,6 +65,7 @@ library Market {
         uint128 lastRealizedDebtUpdateTime;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
+        bool isLive;
         EnumerableSet.AddressSet depositedCollateralTypes;
         EnumerableSet.UintSet[] connectedVaults;
         Distribution.Data vaultsDebtDistribution;
@@ -71,10 +74,37 @@ library Market {
     /// @notice Loads a {Market} namespace.
     /// @param marketId The perp market id.
     /// @return market The loaded market storage pointer.
-    function load(uint256 marketId) internal pure returns (Data storage market) {
+    function load(uint128 marketId) internal pure returns (Data storage market) {
         bytes32 slot = keccak256(abi.encode(MARKET_LOCATION, marketId));
         assembly {
             market.slot := slot
+        }
+    }
+
+    /// @notice Loads a {Market} namespace.
+    /// @dev Invariants:
+    /// The Market MUST exist.
+    /// @param marketId The perp market id.
+    /// @return market The loaded market storage pointer.
+    function loadExisting(uint128 marketId) internal view returns (Data storage market) {
+        market = load(marketId);
+
+        if (market.id == 0) {
+            revert Errors.MarketDoesNotExist(marketId);
+        }
+    }
+
+    /// @notice Loads a {Market} namespace.
+    /// @dev Invariants:
+    /// The Market MUST exist.
+    /// The Market MUST be live.
+    /// @param marketId The perp market id.
+    /// @return market The loaded market storage pointer.
+    function loadLive(uint128 marketId) internal view returns (Data storage market) {
+        market = loadExisting(marketId);
+
+        if (!market.isLive) {
+            revert Errors.MarketIsDisabled(marketId);
         }
     }
 
@@ -188,7 +218,7 @@ library Market {
             // load the configured collateral type storage pointer
             Collateral.Data storage collateral = Collateral.load(collateralType);
             // load the credit deposit storage pointer
-            CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.marketId, collateralType);
+            CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.id, collateralType);
 
             // add the credit deposit usd value to the realized debt return value
             realizedDebtUsdX18 = realizedDebtUsdX18.add(
@@ -230,7 +260,7 @@ library Market {
     /// @param self The market storage pointer.
     /// @return unrealizedDebtUsdX18 The market's total unrealized debt in USD.
     function getUnrealizedDebtUsd(Data storage self) internal view returns (SD59x18 unrealizedDebtUsdX18) {
-        unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.marketId));
+        unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.id));
     }
 
     /// @notice Returns whether the market has reached the auto deleverage start threshold, i.e, if the ADL system
@@ -280,7 +310,7 @@ library Market {
     {
         Data storage self = load(marketId);
 
-        self.marketId = marketId;
+        self.id = marketId;
         self.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         self.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
         self.autoDeleveragePowerScale = autoDeleveragePowerScale;
@@ -313,7 +343,7 @@ library Market {
         depositedCollateralTypes.add(collateralType);
 
         // loads the credit deposit storage pointer
-        CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.marketId, collateralType);
+        CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.id, collateralType);
         // adds the amount of deposited collateral
         creditDeposit.add(amountX18);
     }

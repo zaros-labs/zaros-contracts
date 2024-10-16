@@ -131,7 +131,9 @@ library Vault {
         }
     }
 
-    /// @notice Loads a {Vault} namespace, but reverts if it doesn't exist.
+    /// @notice Loads a {Vault} namespace.
+    /// @dev Invariants:
+    /// The Vault MUST exist.
     /// @param vaultId The vault identifier.
     /// @return vault The loaded vault storage pointer.
     function loadExisting(uint128 vaultId) internal view returns (Data storage vault) {
@@ -142,7 +144,10 @@ library Vault {
         return vault;
     }
 
-    /// @notice Loads a {Vault} namespace, but reverts if it doesn't exist or isn't live.
+    /// @notice Loads a {Vault} namespace.
+    /// @dev Invariants:
+    /// The Vault MUST exist.
+    /// The Vault MUST be live.
     /// @param vaultId The vault identifier.
     /// @return vault The loaded vault storage pointer.
     function loadLive(uint128 vaultId) internal view returns (Data storage vault) {

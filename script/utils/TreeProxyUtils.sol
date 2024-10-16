@@ -531,8 +531,9 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;
     collateralHarnessSelectors[1] = CollateralHarness.workaround_Collateral_setParams.selector;
 
-    bytes4[] memory withdrawalRequestHarnessSelectors = new bytes4[](1);
+    bytes4[] memory withdrawalRequestHarnessSelectors = new bytes4[](2);
     withdrawalRequestHarnessSelectors[0] = WithdrawalRequestHarness.exposed_WithdrawalRequest_load.selector;
+    withdrawalRequestHarnessSelectors[1] = WithdrawalRequestHarness.exposed_WithdrawalRequest_loadExisting.selector;
 
     selectors[0] = vaultHarnessSelectors;
     selectors[1] = withdrawalRequestHarnessSelectors;

@@ -151,7 +151,7 @@ contract Redeem_Integration_Test is Base_Test {
 
         uint256 userBalanceAfter = IERC20(indexToken).balanceOf(users.naruto.account);
 
-        WithdrawalRequest.Data memory withdrawalRequest = marketMakingEngine.exposed_WithdrawalRequest_load(
+        WithdrawalRequest.Data memory withdrawalRequest = marketMakingEngine.exposed_WithdrawalRequest_loadExisting(
             fuzzVaultConfig.vaultId, users.naruto.account, WITHDRAW_REQUEST_ID
         );
 

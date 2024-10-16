@@ -188,6 +188,22 @@ library Errors {
     /// @notice Thrown when trying to distribute value to an empty distribution.
     error EmptyDistribution();
 
+    /// @notice MarketMakingEngine.Market errors.
+
+    /// @notice Thrown when the given `marketId` does not exist.
+    error MarketDoesNotExist(uint128 marketId);
+
+    /// @notice Thrown when the given `marketId` is disabled.
+    error MarketIsDisabled(uint128 marketId);
+
+    /// @notice MarketMakingEngine.WithdrawalRequest errors.
+
+    /// @notice Thrown when a withdrawal request does not exist.
+    /// @param vaultId The vault to withdraw assets from identifier.
+    /// @param account The address of the user account requesting the withdrawal.
+    /// @param withdrawalRequestId The withdrawal request identifier.
+    error WithdrawalRequestDoesNotExist(uint128 vaultId, address account, uint128 withdrawalRequestId);
+
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
     /// @notice Thrown when a slippage check fails.

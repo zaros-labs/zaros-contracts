@@ -361,9 +361,9 @@ contract VaultRouterBranch {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
-        // load storage slot for withdrawal request
+        // load storage slot for previously created withdrawal request
         WithdrawalRequest.Data storage withdrawalRequest =
-            WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestId);
+            WithdrawalRequest.loadExisting(vaultId, msg.sender, withdrawalRequestId);
 
         // revert if withdrawal request already filfilled
         if (withdrawalRequest.fulfilled) revert Errors.WithdrawalRequestAlreadyFullfilled();

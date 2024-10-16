@@ -78,11 +78,13 @@ contract CreditDelegationBranch {
     /// retrieve the latest state.
     /// @dev Each engine can implement its own debt accounting schema according to its business logic, thus, this
     /// function will simply return the credit capacity in USD for the given market id.
+    /// @dev Invariants:
+    /// The Market MUST exist.
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
     // TODO: add invariants
     function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18) {
-        Market.Data storage market = Market.load(marketId);
+        Market.Data storage market = Market.loadExisting(marketId);
 
         return Market.getCreditCapacityUsd(
             market.getTotalDelegatedCreditUsd(), market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd())
@@ -93,8 +95,9 @@ contract CreditDelegationBranch {
     /// state.
     /// @dev If the market is in its default state, it will simply return the provided profit. Otherwise, it will
     /// adjust based on the configured ADL parameters.
-    /// @dev TODO: If we always take the unrealized debt as part of the total debt, we assume `profitUsd` is part of
-    /// it. Otherwise we need to update this logic.
+    /// @dev Invariants:
+    /// The Market of `marketId` MUST exist.
+    /// The Market of `marketId` MUST be live.
     /// @param marketId The engine's market id.
     /// @param profitUsd The position's profit in USD.
     /// @return adjustedProfitUsdX18 The adjusted profit in USD Token, according to the market's health.
@@ -108,7 +111,7 @@ contract CreditDelegationBranch {
         returns (UD60x18 adjustedProfitUsdX18)
     {
         // load the market's data storage pointer
-        Market.Data storage market = Market.load(marketId);
+        Market.Data storage market = Market.loadLive(marketId);
         // cache the market's total debt
         SD59x18 marketTotalDebtUsdX18 = market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd());
         // uint256 -> UD60x18
@@ -152,12 +155,14 @@ contract CreditDelegationBranch {
     /// @param marketId The engine's market id.
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of collateral to receive.
-    /// @dev Invariants involved in the call:
+    /// @dev Invariants: TODO: update invariants
     ///     * market.getTotalDelegatedCreditUsd() > 0
     ///     * ERC20(collateralType).allowance(perpsEngine, marketMakingEngine) >= amount
     ///     * ERC20(collateralType).balanceOf(perpsEngine) >= amount
     ///     * market.collectedMarginCollateral.get(collateralType) ==  ∑convertTokenAmountToUd60x18(amount)
     ///     * ERC20(collateralType).balanceOf(marketMakingEngine) == ∑amount
+    /// The Market of `marketId` MUST exist.
+    /// The Market of `marketId` MUST be live.
     function depositCreditForMarket(
         uint128 marketId,
         address collateralType,
@@ -174,7 +179,7 @@ contract CreditDelegationBranch {
         collateral.verifyIsEnabled();
 
         // loads the market's data storage pointer
-        Market.Data storage market = Market.load(marketId);
+        Market.Data storage market = Market.loadLive(marketId);
 
         // ensures that the market has delegated credit, so the engine is not depositing credit to an empty
         // distribution (with 0 total shares), although this should never happen if the system functions properly.
@@ -211,13 +216,14 @@ contract CreditDelegationBranch {
     /// @dev Called by a registered engine to mint USD Token to profitable traders.
     /// @dev USD Token association with an engine's user happens at the engine contract level.
     /// @dev We assume `amount` is part of the market's reported unrealized debt.
+    /// @dev Invariants:
+    /// The Market of `marketId` MUST exist.
+    /// The Market of `marketId` MUST be live.
     /// @param marketId The engine's market id requesting USD Token.
     /// @param amount The amount of USD Token to mint.
-    /// @dev Invariants involved in the call:
-    /// TODO: add invariants
     function withdrawUsdTokenFromMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine {
         // loads the market's data storage pointer
-        Market.Data storage market = Market.load(marketId);
+        Market.Data storage market = Market.loadLive(marketId);
         // caches the market's unrealized debt
         SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
         // caches the market's realized debt
