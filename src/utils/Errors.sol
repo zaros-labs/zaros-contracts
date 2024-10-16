@@ -204,11 +204,16 @@ library Errors {
 
     /// @notice Thrown when vault with the given id already exists.
     /// @param vaultId The ID of the vault to create.
-    error VaultAlreadyEnabled(uint256 vaultId);
+    error VaultAlreadyExists(uint256 vaultId);
 
     /// @notice Thrown when vault does NOT exist
     /// @param vaultId The ID of the vault that does NOT exist.
     error VaultDoesNotExist(uint128 vaultId);
+
+    /// @notice Thrown when vault is NOT live.
+    /// @dev A vault could be paused by setting its `isLive` flag to false.
+    /// @param vaultId The ID of the vault that is NOT live.
+    error VaultIsDisabled(uint128 vaultId);
 
     /// @notice MarketMakingEngine.Vault errors.
     error NoMarketsConnectedToVault(uint128 vaultId);

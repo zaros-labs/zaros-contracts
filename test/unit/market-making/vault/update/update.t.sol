@@ -14,7 +14,8 @@ contract Vault_Update_Unit_Test is Base_Test {
     }
 
     function test_RevertWhen_UpdateIsPassedZeroId() external {
-        Vault.UpdateParams memory params = Vault.UpdateParams({ vaultId: 0, depositCap: 1, withdrawalDelay: 1 });
+        Vault.UpdateParams memory params =
+            Vault.UpdateParams({ vaultId: 0, depositCap: 1, withdrawalDelay: 1, isLive: true });
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.ZeroInput.selector, "vaultId"));

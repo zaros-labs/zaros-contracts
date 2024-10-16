@@ -166,7 +166,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         });
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.VaultAlreadyEnabled.selector, fuzzVaultConfig.vaultId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.VaultAlreadyExists.selector, fuzzVaultConfig.vaultId));
         marketMakingEngine.createVault(params);
     }
 

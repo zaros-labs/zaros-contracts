@@ -17,13 +17,14 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
     }
 
-    function testFuzz_RevertWhen_TheDepositCapIsZero(uint256 vaultId) external {
+    function testFuzz_RevertWhen_TheDepositCapIsZero(uint256 vaultId, bool isLive) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: fuzzVaultConfig.vaultId,
             depositCap: 0,
-            withdrawalDelay: fuzzVaultConfig.withdrawalDelay
+            withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
+            isLive: isLive
         });
 
         // it should revert
@@ -35,13 +36,20 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_WithdrawalDelayIsZero(uint256 vaultId) external whenTheDepositCapIsNotZero {
+    function testFuzz_RevertWhen_WithdrawalDelayIsZero(
+        uint256 vaultId,
+        bool isLive
+    )
+        external
+        whenTheDepositCapIsNotZero
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: fuzzVaultConfig.vaultId,
             depositCap: fuzzVaultConfig.depositCap,
-            withdrawalDelay: 0
+            withdrawalDelay: 0,
+            isLive: isLive
         });
 
         // it should revert
@@ -55,7 +63,8 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
 
     function testFuzz_RevertWhen_VaultIdIsZero(
         uint256 depositCap,
-        uint256 withdrawDelay
+        uint256 withdrawDelay,
+        bool isLive
     )
         external
         whenTheDepositCapIsNotZero
@@ -67,7 +76,8 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: 0,
             depositCap: uint128(depositCap),
-            withdrawalDelay: uint128(withdrawDelay)
+            withdrawalDelay: uint128(withdrawDelay),
+            isLive: isLive
         });
 
         // it should revert
@@ -78,7 +88,8 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
     function testFuzz_WhenVaultIdIsNotZero(
         uint256 vaultId,
         uint256 updatedDepositCap,
-        uint256 updatedWithdrawDelay
+        uint256 updatedWithdrawDelay,
+        bool isLive
     )
         external
         whenTheDepositCapIsNotZero
@@ -92,7 +103,8 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
         Vault.UpdateParams memory params = Vault.UpdateParams({
             vaultId: fuzzVaultConfig.vaultId,
             depositCap: uint128(updatedDepositCap),
-            withdrawalDelay: uint128(updatedWithdrawDelay)
+            withdrawalDelay: uint128(updatedWithdrawDelay),
+            isLive: isLive
         });
 
         // it should emit update event
@@ -105,5 +117,6 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
         // it should update vault
         assertEq(updatedDepositCap, marketMakingEngine.workaround_Vault_getDepositCap(fuzzVaultConfig.vaultId));
         assertEq(updatedWithdrawDelay, marketMakingEngine.workaround_Vault_getWithdrawDelay(fuzzVaultConfig.vaultId));
+        assertEq(isLive, marketMakingEngine.workaround_Vault_getIsLive(fuzzVaultConfig.vaultId));
     }
 }

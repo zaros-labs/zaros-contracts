@@ -37,7 +37,7 @@ contract Vault_Create_Unit_Test is Base_Test {
         });
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.VaultAlreadyEnabled.selector, fuzzVaultConfig.vaultId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.VaultAlreadyExists.selector, fuzzVaultConfig.vaultId));
         marketMakingEngine.exposed_Vault_create(params);
     }
 

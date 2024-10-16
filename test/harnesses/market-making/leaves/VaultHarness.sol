@@ -47,6 +47,12 @@ contract VaultHarness {
         return vaultData.depositCap;
     }
 
+    function workaround_Vault_getIsLive(uint128 vaultId) external view returns (bool) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+
+        return vaultData.isLive;
+    }
+
     function workaround_Vault_getVaultAsset(uint128 vaultId) external view returns (address) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 

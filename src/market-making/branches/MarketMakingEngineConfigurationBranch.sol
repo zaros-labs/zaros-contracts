@@ -91,6 +91,20 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogUpdateVaultConfiguration(msg.sender, params.vaultId);
     }
 
+    function updateVaultConnectedMarkets(uint128 vaultId, uint128[] calldata marketsIds) external onlyOwner {
+        // if (vaultId == 0) {
+        //     revert Errors.ZeroInput("vaultId");
+        // }
+
+        // if (marketsIds.length == 0) {
+        //     revert Errors.ZeroInput("connectedMarketsIds");
+        // }
+
+        // Vault.Data storage vault = Vault.load(vaultId);
+
+        // vault.
+    }
+
     /// @notice Configures an engine contract and sets its linked USD token address.
     /// @dev This function can be used to enable or disable an active engine contract.
     /// @param engine The address of the engine contract.

@@ -67,6 +67,7 @@ library Vault {
     /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
     /// @param marketsUnrealizedDebtUsd The total amount of unrealized debt coming from markets in USD.
     /// @param unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
+    // TODO: we may be able to remove the next variable
     /// @param settledRealizedDebtUsd The total amount of settled debt in USD.
     /// @param indexToken The index token address.
     /// @param collateral The collateral asset data.
@@ -87,6 +88,7 @@ library Vault {
         int128 unsettledRealizedDebtUsd;
         int128 settledRealizedDebtUsd;
         address indexToken;
+        bool isLive;
         Collateral.Data collateral;
         Distribution.Data stakingFeeDistribution;
         EnumerableSet.UintSet[] connectedMarkets;
@@ -111,10 +113,12 @@ library Vault {
     /// @param vaultId The unique identifier for the vault to be updated.
     /// @param depositCap The new maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The new delay period, in seconds, before a withdrawal request can be fulfilled.
+    /// @param isLive The new status of the vault.
     struct UpdateParams {
         uint128 vaultId;
         uint128 depositCap;
         uint128 withdrawalDelay;
+        bool isLive;
     }
 
     /// @notice Loads a {Vault} namespace.
@@ -124,6 +128,28 @@ library Vault {
         bytes32 slot = keccak256(abi.encode(VAULT_LOCATION, vaultId));
         assembly {
             vault.slot := slot
+        }
+    }
+
+    /// @notice Loads a {Vault} namespace, but reverts if it doesn't exist.
+    /// @param vaultId The vault identifier.
+    /// @return vault The loaded vault storage pointer.
+    function loadExisting(uint128 vaultId) internal view returns (Data storage vault) {
+        vault = load(vaultId);
+        if (vault.id == 0) {
+            revert Errors.VaultDoesNotExist(vaultId);
+        }
+        return vault;
+    }
+
+    /// @notice Loads a {Vault} namespace, but reverts if it doesn't exist or isn't live.
+    /// @param vaultId The vault identifier.
+    /// @return vault The loaded vault storage pointer.
+    function loadLive(uint128 vaultId) internal view returns (Data storage vault) {
+        vault = loadExisting(vaultId);
+
+        if (!vault.isLive) {
+            revert Errors.VaultIsDisabled(vaultId);
         }
     }
 
@@ -306,6 +332,7 @@ library Vault {
 
         self.depositCap = params.depositCap;
         self.withdrawalDelay = params.withdrawalDelay;
+        self.isLive = params.isLive;
     }
 
     /// @notice Creates a new vault with the specified parameters.
@@ -315,7 +342,7 @@ library Vault {
         Data storage self = load(params.vaultId);
 
         if (self.id != 0) {
-            revert Errors.VaultAlreadyEnabled(params.vaultId);
+            revert Errors.VaultAlreadyExists(params.vaultId);
         }
 
         self.id = params.vaultId;
@@ -323,6 +350,7 @@ library Vault {
         self.withdrawalDelay = params.withdrawalDelay;
         self.indexToken = params.indexToken;
         self.collateral = params.collateral;
+        self.isLive = true;
     }
 
     // todo: see if the `shouldRehydrateCache` parameter will be needed or not
