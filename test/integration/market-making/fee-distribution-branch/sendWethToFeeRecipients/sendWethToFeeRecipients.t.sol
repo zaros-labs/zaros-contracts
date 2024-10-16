@@ -31,8 +31,15 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheMarketDoesNotExist() external givenTheSenderIsRegisteredEngine {
+    function testFuzz_RevertWhen_TheMarketDoesNotExist(uint256 configuration) external givenTheSenderIsRegisteredEngine {
+        changePrank({ msgSender: address(perpsEngine) });
+
+        uint128 invalidMarketDebtId = FINAL_MARKET_DEBT_ID + 1;
+
         // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector, invalidMarketDebtId) });
+
+        marketMakingEngine.sendWethToFeeRecipients(invalidMarketDebtId, configuration);
     }
 
     modifier whenTheMarketExist() {
