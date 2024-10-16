@@ -1,5 +1,0 @@
-SwapRouter_SetSwapRouterAddress_Unit_Test
-    ├── when SetSwapRouterAddress is passed zero address
-    │   └── it should revert
-    └── when SetSwapRouterAddress is passed valid address
-        └── it should set address
