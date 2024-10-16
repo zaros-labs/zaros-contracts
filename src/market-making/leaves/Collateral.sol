@@ -90,7 +90,7 @@ library Collateral {
 
     /// @notice Returns the collateral asset price adjusted by its credit ratio.
     /// @param self The collateral type storage pointer.
-    /// @return adjustedPriceX18 The price of the given collateral type.
+    /// @return adjustedPriceX18 The adjusted price of the collateral asset in USD.
     function getAdjustedPrice(Data storage self) internal view returns (UD60x18 adjustedPriceX18) {
         adjustedPriceX18 = getPrice(self).mul(ud60x18(self.creditRatio));
     }

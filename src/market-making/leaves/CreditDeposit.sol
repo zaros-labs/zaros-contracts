@@ -19,6 +19,7 @@ library CreditDeposit {
     /// @notice Load a {CreditDeposit}.
     /// @param marketId The id of the market that owns this credit deposit.
     /// @param asset The address of the collateral type used for this deposit.
+    /// @return creditDeposit The loaded credit deposit storage pointer.
     function load(uint128 marketId, address asset) internal pure returns (Data storage creditDeposit) {
         bytes32 slot = keccak256(abi.encode(CREDIT_DEPOSIT_LOCATION, marketId, asset));
         assembly {

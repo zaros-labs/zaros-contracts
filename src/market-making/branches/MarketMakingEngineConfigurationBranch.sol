@@ -124,6 +124,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             marketMakingEngineConfiguration.usdTokenOfEngine[engine] = address(0);
 
             emit LogConfigureEngine(engine, address(0), shouldBeEnabled);
+
+            return;
         }
 
         // if the engine should be registered or the usd token updated, it mustn't be the zero address
