@@ -80,6 +80,8 @@ library Errors {
     error CollateralLiquidationPriorityNotDefined(address collateralType);
     /// @notice Thrown when the provided referral code is invalid.
     error InvalidReferralCode();
+    /// @notice Thrown when trying to withdraw margin while having active order.
+    error ActiveMarketOrder(uint128 tradingAccountId, uint128 marketId, int128 sizeDelta, uint256 timestamp);
 
     /// @notice PerpsEngine.PerpsEngineConfigurationBranch
 

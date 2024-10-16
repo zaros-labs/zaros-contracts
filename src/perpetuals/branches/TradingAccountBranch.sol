@@ -308,9 +308,8 @@ contract TradingAccountBranch {
         // fetch storage slot for this trading account's market order
         MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
 
-        // reverts if a trader has a pending order and that pending order hasn't
-        // existed for the minimum order lifetime
-        marketOrder.checkPendingOrder();
+        // reverts if a trader has a pending order
+        _requireNoActiveMarketOrder(tradingAccountId);
 
         // convert uint256 -> UD60x18; scales input amount to 18 decimals
         UD60x18 amountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
@@ -353,12 +352,8 @@ contract TradingAccountBranch {
         TradingAccount.Data storage tradingAccount =
             TradingAccount.loadExistingAccountAndVerifySender(tradingAccountId);
 
-        // fetch storage slot for this trading account's market order
-        MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
-
-        // reverts if a trader has a pending order and that pending order hasn't
-        // existed for the minimum order lifetime
-        marketOrder.checkPendingOrder();
+        // reverts if a trader has a pending order
+        _requireNoActiveMarketOrder(tradingAccountId);
 
         // convert uint256 -> UD60x18; scales input amount to 18 decimals
         UD60x18 amountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(amount);
@@ -473,6 +468,22 @@ contract TradingAccountBranch {
             revert Errors.InsufficientCollateralBalance(
                 amount.intoUint256(), marginCollateralBalanceX18.intoUint256()
             );
+        }
+    }
+
+    /// @notice Reverts if the trading account has a pending order.
+    /// @param tradingAccountId The trading account id.
+    function _requireNoActiveMarketOrder(uint128 tradingAccountId) internal view {
+        // fetch storage slot for this trading account's market order
+        MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
+
+        // reverts if a trader has a pending order and that pending order hasn't
+        // existed for the minimum order lifetime
+        marketOrder.checkPendingOrder();
+
+        // reverts if the trader has a pending order
+        if (marketOrder.marketId != 0 && marketOrder.sizeDelta != 0 && marketOrder.timestamp != 0) {
+            revert Errors.ActiveMarketOrder(tradingAccountId, marketOrder.marketId, marketOrder.sizeDelta, marketOrder.timestamp);
         }
     }
 
