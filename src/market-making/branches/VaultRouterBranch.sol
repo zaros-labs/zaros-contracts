@@ -70,6 +70,8 @@ contract VaultRouterBranch {
     event LogRedeem(uint256 indexed vaultId, address indexed user, uint256 shares);
 
     /// @notice Returns the data and state of a given vault.
+    /// @dev Invariants:
+    /// - Vault MUST exist.
     /// @param vaultId The vault identifier.
     /// @return depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @return withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
@@ -89,8 +91,8 @@ contract VaultRouterBranch {
             Collateral.Data memory collateral
         )
     {
-        // load vault by id
-        Vault.Data storage vault = Vault.load(vaultId);
+        // load existing vault by id
+        Vault.Data storage vault = Vault.loadExisting(vaultId);
 
         depositCap = vault.depositCap;
         withdrawalDelay = vault.withdrawalDelay;
@@ -101,6 +103,8 @@ contract VaultRouterBranch {
     }
 
     /// @notice Returns the swap rate from index token to collateral asset for the provided vault.
+    /// @dev Invariants:
+    /// - Vault MUST exist.
     /// @dev This function does not perform state updates. Thus, in order to retrieve the atomic state in a non-view
     /// function like `deposit` `redeem`, the implementation must handle those updates beforehand, through the `Vault`
     /// leaf's methods.
@@ -109,7 +113,7 @@ contract VaultRouterBranch {
     /// @return assetsOut The swap price from index token to collateral asset.
     function getIndexTokenSwapRate(uint128 vaultId, uint256 sharesIn) external view returns (UD60x18 assetsOut) {
         // fetch storage slot for vault by id
-        Vault.Data storage vault = Vault.load(vaultId);
+        Vault.Data storage vault = Vault.loadExisting(vaultId);
 
         // fetch the vault's total assets
         SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
@@ -150,12 +154,14 @@ contract VaultRouterBranch {
     }
 
     /// @notice Returns the swap rate from collateral asset to index token for the provided vault.
+    /// @dev Invariants:
+    /// - Vault MUST exist.
     /// @param vaultId The vault identifier.
     /// @param assetsIn The amount of input assets for which to calculate the swap rate.
     /// @return sharesOut The swap price from underlying collateral asset to the vault shares.
     function getVaultAssetSwapRate(uint128 vaultId, uint256 assetsIn) external view returns (UD60x18 sharesOut) {
         // fetch storage slot for vault by id
-        Vault.Data storage vault = Vault.load(vaultId);
+        Vault.Data storage vault = Vault.loadExisting(vaultId);
 
         // fetch the vault's total assets
         SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
@@ -199,12 +205,14 @@ contract VaultRouterBranch {
     /// @dev Invariants involved in the call:
     /// The total deposits MUST not exceed the vault after the deposit.
     /// The number of received shares MUST be greater than or equal to minShares.
+    /// The Vault MUST exist.
+    /// The Vault MUST be live.
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
     function deposit(uint128 vaultId, uint128 assets, uint128 minShares) external {
         // fetch storage slot for vault by id
-        Vault.Data storage vault = Vault.load(vaultId);
+        Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // get vault asset
         address vaultAsset = vault.collateral.asset;
@@ -241,13 +249,15 @@ contract VaultRouterBranch {
     /// @dev Index token holders must stake in order to earn fees distributions from the market making engine.
     /// @dev Invariants involved in the call:
     /// The sum of all staked assets SHOULD always equal the total stake value
+    /// The Vault MUST exist.
+    /// The Vault MUST be live.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to stake, in 18 decimals.
     /// @param referralCode The referral code to use.
     /// @param isCustomReferralCode True if the referral code is a custom referral code.
     function stake(uint128 vaultId, uint128 shares, bytes memory referralCode, bool isCustomReferralCode) external {
         // fetch storage slot for vault by id
-        Vault.Data storage vault = Vault.load(vaultId);
+        Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // load distribution data
         Distribution.Data storage distributionData = vault.stakingFeeDistribution;
@@ -301,6 +311,8 @@ contract VaultRouterBranch {
     /// @dev Invariants involved in the call:
     /// The shares to withdraw MUST be greater than zero.
     /// The user MUST have enough shares in their balance to initiate the withdrawal.
+    /// The Vault MUST exist.
+    /// The Vault MUST be live.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to withdraw, in 18 decimals.
     function initiateWithdrawal(uint128 vaultId, uint128 shares) external {
@@ -309,7 +321,7 @@ contract VaultRouterBranch {
         }
 
         // fetch storage slot for vault by id
-        Vault.Data storage vault = Vault.load(vaultId);
+        Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
@@ -339,13 +351,15 @@ contract VaultRouterBranch {
     /// @dev Invariants involved in the call:
     /// The withdrawalRequest MUST NOT be already fulfilled.
     /// The withdrawal delay period MUST have elapsed.
-    /// Redeemed assets MUST meet or exceed minAssets
+    /// Redeemed assets MUST meet or exceed minAssets.
+    /// The Vault MUST exist.
+    /// The Vault MUST be live.
     /// @param vaultId The vault identifier.
     /// @param withdrawalRequestId The previously initiated withdrawal request id.
     /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
     function redeem(uint128 vaultId, uint128 withdrawalRequestId, uint256 minAssets) external {
         // fetch storage slot for vault by id
-        Vault.Data storage vault = Vault.load(vaultId);
+        Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // load storage slot for withdrawal request
         WithdrawalRequest.Data storage withdrawalRequest =
@@ -383,11 +397,13 @@ contract VaultRouterBranch {
     /// @dev Unstaked tokens don't participate in fees distributions.
     /// @dev Invariants involved in the call:
     /// The user MUST have enough shares staked to perform the unstake.
+    /// The Vault MUST exist.
+    /// The Vault MUST be live.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to unstake, in 18 decimals.
     function unstake(uint128 vaultId, uint256 shares) external {
         // fetch storage slot for vault by id
-        Vault.Data storage vault = Vault.load(vaultId);
+        Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // get vault staking fee distribution data
         Distribution.Data storage distributionData = vault.stakingFeeDistribution;
