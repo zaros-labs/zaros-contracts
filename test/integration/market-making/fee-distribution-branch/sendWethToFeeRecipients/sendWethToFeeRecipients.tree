@@ -1,11 +1,16 @@
 SendWethToFeeRecipients_Integration_Test
-    ├── given the caller is not market making engine
+├── given the sender is not registered engine
+│   └── it should revert
+└── given the sender is registered engine
+    ├── when the market does not exist
     │   └── it should revert
-    └── given the caller is market making engine
-        ├── when the market does not exist
+    └── when the market exist
+        ├── when there is no available fees to withdraw
         │   └── it should revert
-        └── when the market exist
-            ├── given there is no available weth
+        └── when there is available fees to withdraw
+            ├── when there are no fee recipients
             │   └── it should revert
-            └── given there is weth available 
-                └── it should distribute weth to fee recipients
+            └── when there are fee recipients
+                ├── it should transfer the fees to the fee recipients
+                ├── it should emit {LogSendWethToFeeRecipients} event
+                └── it should decrement the available fees to withdraw
