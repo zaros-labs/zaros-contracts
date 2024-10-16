@@ -46,12 +46,19 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_ThereIsNoAvailableFeesToWithdraw()
+    function testFuzz_RevertWhen_ThereIsNoAvailableFeesToWithdraw(uint256 marketDebtId, uint256 configuration)
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
     {
+        changePrank({ msgSender: address(perpsEngine) });
+
+        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+
         // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoWethFeesCollected.selector) });
+
+        marketMakingEngine.sendWethToFeeRecipients(fuzzMarketDebtConfig.marketDebtId, configuration);
     }
 
     modifier whenThereIsAvailableFeesToWithdraw() {
