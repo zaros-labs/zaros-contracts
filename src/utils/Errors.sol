@@ -291,4 +291,6 @@ library Errors {
     /// @notice Thrown when the asset out is unsupported
     /// @param asset The address of the unsupported asset
     error UnsupportedAssetOut(address asset);
+
+    error DataStreamReportExpired();
 }

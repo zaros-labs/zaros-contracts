@@ -9,17 +9,17 @@ library UsdTokenSwap {
     /// @notice Represents a swap request for a user.
     /// @param processed Indicates whether the swap has been processed.
     /// @param amountIn The amount of the input asset provided for the swap.
-    /// @param amountOut The amount of the output asset expected after the swap.
+    /// @param minAmountOut The min amount of the output asset expected after the swap.
     /// @param deadline The deadline by which the swap must be fulfilled.
     /// @param assetOut The address of the asset to be received as the output of the swap.
     /// @param vaultId The id of the vault associated with the swap.
     struct SwapRequest {
         bool processed;
         uint128 amountIn;
-        uint128 amountOut;
         uint128 deadline;
         address assetOut;
         uint128 vaultId;
+        uint256 minAmountOut;
     }
 
     /// @notice Represents the configuration and state data for USD token swaps.
