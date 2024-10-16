@@ -77,6 +77,45 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         }
     }
 
+    /// @notice Returns the maximum amount of assets that can be deposited into the ZLP Vault, taking into account the
+    /// configured deposit cap.
+    /// @dev Overridden and used in ERC4626.
+    /// @return maxAssets The maximum amount of depositable assets.
+    function maxDeposit(address) public view override returns (uint256 maxAssets) {
+        // load the zlp vault storage pointer
+        ZlpVaultStorage storage zlpVaultStorage = _getZlpVaultStorage();
+        // cache the market making engine contract
+        IMarketMakingEngine marketMakingEngine = IMarketMakingEngine(zlpVaultStorage.marketMakingEngine);
+
+        // get the vault's deposit cap
+        (uint128 depositCap,,,,,) = marketMakingEngine.getVaultData(zlpVaultStorage.vaultId);
+
+        // cache the vault's total assets
+        uint256 totalAssetsCached = totalAssets();
+
+        // underflow check here would be redundant
+        unchecked {
+            // we need to ensure that depositCap > totalAssets, otherwise, a malicious actor could grief deposits by
+            // sending assets directly to the vault contract and bypassing the deposit cap
+            maxAssets = depositCap > totalAssetsCached ? depositCap - totalAssetsCached : 0;
+        }
+    }
+
+    /// @dev The Market Making Engine does not call `ERC4626::mint`, thus, the max mint is always 0.
+    function maxMint(address) public view override returns (uint256) {
+        return 0;
+    }
+
+    /// @dev The Market Making Engine does not call `ERC4626::withdraw`, thus, the max mint is always 0.
+    function maxWithdraw(address) public view override returns (uint256) {
+        return 0;
+    }
+
+    // todo: add timelock logic
+    function maxRedeem(address) public view override returns (uint256) {
+        return type(uint256).max;
+    }
+
     /// @inheritdoc ERC4626Upgradeable
     function deposit(uint256 assets, address receiver) public override onlyMarketMakingEngine returns (uint256) {
         return super.deposit(assets, receiver);

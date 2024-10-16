@@ -219,22 +219,6 @@ contract VaultRouterBranch {
         // updates the vault's credit capacity before depositing
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
-        // fetch collateral data by asset
-        Collateral.Data storage collateral = Collateral.load(vaultAsset);
-
-        // convert uint256 -> UD60x18; scales input to 18 decimals
-        UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(assets);
-
-        // uint128 -> UD60x18
-        UD60x18 depositCapX18 = collateral.convertTokenAmountToUd60x18(vault.depositCap);
-
-        // fetch the vault's total assets and convert to UD60x18
-        UD60x18 totalCollateralDepositedX18 =
-            collateral.convertTokenAmountToUd60x18(IERC4626(vault.indexToken).totalAssets());
-
-        // enforce new deposit + already deposited <= deposit cap
-        _requireEnoughDepositCap(vaultAsset, amountX18, depositCapX18, totalCollateralDepositedX18);
-
         // get the tokens
         IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assets);
 
@@ -243,6 +227,7 @@ contract VaultRouterBranch {
 
         // then perform the actual deposit
         // NOTE: the following call will update the total assets deposited in the vault
+        // NOTE: the following call will validate the vault's deposit cap
         uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
 
         // assert min shares minted
@@ -427,23 +412,5 @@ contract VaultRouterBranch {
 
         // emit an event
         emit LogUnstake(vaultId, msg.sender, shares);
-    }
-
-    /// @notice Reverts if the deposit cap is exceeded.
-    /// @param assetType The address of the asset
-    /// @param amount The amount to deposit
-    /// @param depositCap The deposit max deposit cap
-    function _requireEnoughDepositCap(
-        address assetType,
-        UD60x18 amount,
-        UD60x18 depositCap,
-        UD60x18 totalDeposited
-    )
-        internal
-        pure
-    {
-        if (amount.add(totalDeposited).gt(depositCap)) {
-            revert Errors.DepositCap(assetType, amount.intoUint256(), depositCap.intoUint256());
-        }
     }
 }
