@@ -1,10 +1,11 @@
-claimFees_Integration_Test
-    ├── when vault does not exist
+ClaimFees_Integration_Test
+├── when the user does not have available shares
+│   └── it should revert
+└── when the user does have available shares
+    ├── when amount to claim is zero
     │   └── it should revert
-    └── when vault does exist
-        ├── given the user has already claimed
-        │   └── it should return revert
-        ├── given the user has zero shares
-        │   └── it should return revert
-        └── given the user has fees to claim
-            └── it should send user the claimable amount
+    └── when amount to calim is greater then zero
+        ├── it should update accumulate actor
+        ├── it should update unsettledFeesWeth
+        ├── it should transfer the fees to the sender
+        └── it should emit {LogClaimFees} event

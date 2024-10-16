@@ -324,9 +324,6 @@ contract FeeDistributionBranch is EngineAccessControl {
         // load the vault data storage pointer
         Vault.Data storage vault = Vault.load(vaultId);
 
-        // reverts if the vault doesn't exist
-        if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
-
         // get the actor id
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
