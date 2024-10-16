@@ -199,6 +199,7 @@ library Vault {
         for (uint256 i; i < vaultsIds.length; i++) {
             // uint256 -> uint128
             uint128 vaultId = vaultsIds[i].toUint128();
+
             // load the vault storage pointer
             Data storage self = load(vaultId);
 
