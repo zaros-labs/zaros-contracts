@@ -230,14 +230,14 @@ contract CreditDelegationBranch {
         // load the market's connected vaults ids and `mstore` them
         // TODO: is it more gas efficient if we pass the market id to the next function and load each vault at its
         // loop?
-        uint256[] memory connectedVaultsIds = market.getConnectedVaultsIds();
+        uint256[] memory connectedVaults = market.getConnectedVaultsIds();
 
         // distributes the up to date unrealized and realized debt values to the market's connected vaults
         market.distributeDebtToVaults(unrealizedDebtUsdX18, realizedDebtUsdX18);
 
         // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
         // market
-        Vault.recalculateVaultsCreditCapacity(connectedVaultsIds);
+        Vault.recalculateVaultsCreditCapacity(connectedVaults);
 
         // cache the market's total debt
         SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);

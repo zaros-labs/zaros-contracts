@@ -49,7 +49,7 @@ library Market {
     /// debt distribution.
     /// @param depositedCollateralTypes Stores the set of addresses of collateral assets used for credit deposits to a
     /// market.
-    /// @param connectedVaultsIds The list of vaults ids delegating credit to this market. Whenever there's an update,
+    /// @param connectedVaults The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
     /// `valuePerShare`: USD denominated market debt or credit per share.
@@ -64,7 +64,7 @@ library Market {
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
         EnumerableSet.AddressSet depositedCollateralTypes;
-        EnumerableSet.UintSet[] connectedVaultsIds;
+        EnumerableSet.UintSet[] connectedVaults;
         Distribution.Data vaultsDebtDistribution;
     }
 
@@ -129,13 +129,13 @@ library Market {
 
     /// @notice Returns a memory array containing the vaults delegating credit to the market.
     /// @param self The market storage pointer.
-    /// @return connectedVaultsIds The vaults ids delegating credit to the market.
-    function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaultsIds) {
-        if (self.connectedVaultsIds.length == 0) {
-            return connectedVaultsIds;
+    /// @return connectedVaults The vaults ids delegating credit to the market.
+    function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaults) {
+        if (self.connectedVaults.length == 0) {
+            return connectedVaults;
         }
 
-        connectedVaultsIds = self.connectedVaultsIds[self.connectedVaultsIds.length].values();
+        connectedVaults = self.connectedVaults[self.connectedVaults.length].values();
     }
 
     /// @notice Returns a market's credit capacity in USD based on its delegated credit and total debt.
@@ -291,11 +291,11 @@ library Market {
     /// @param self The market storage pointer.
     /// @param vaultsIds The vaults ids to connect to the market.
     function configureConnectedVaults(Data storage self, uint128[] memory vaultsIds) internal {
-        EnumerableSet.UintSet[] storage connectedVaultsIds = self.connectedVaultsIds;
+        EnumerableSet.UintSet[] storage connectedVaults = self.connectedVaults;
 
-        // add the vauls ids to a new UintSet instance in the connectedVaultsIds array
+        // add the vauls ids to a new UintSet instance in the connectedVaults array
         for (uint256 i = 0; i < vaultsIds.length; i++) {
-            connectedVaultsIds[connectedVaultsIds.length].add(vaultsIds[i]);
+            connectedVaults[connectedVaults.length].add(vaultsIds[i]);
         }
     }
 
