@@ -193,7 +193,7 @@ library Errors {
     /// @notice Thrown when a slippage check fails.
     error SlippageCheckFailed();
 
-    /// @notice Thrown when a user does not have enought shares.
+    /// @notice Thrown when a user does not have enough shares.
     error NotEnoughShares();
 
     /// @notice Thrown when a withdrawal is attempted before the required delay has passed.

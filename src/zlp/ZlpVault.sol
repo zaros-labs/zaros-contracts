@@ -111,11 +111,6 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         return 0;
     }
 
-    // todo: add timelock logic
-    function maxRedeem(address) public view override returns (uint256) {
-        return type(uint256).max;
-    }
-
     /// @inheritdoc ERC4626Upgradeable
     function deposit(uint256 assets, address receiver) public override onlyMarketMakingEngine returns (uint256) {
         return super.deposit(assets, receiver);

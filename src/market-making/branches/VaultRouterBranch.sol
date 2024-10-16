@@ -321,14 +321,14 @@ contract VaultRouterBranch {
         WithdrawalRequest.Data storage withdrawalRequest =
             WithdrawalRequest.load(vaultId, msg.sender, withdrawalRequestId);
 
-        // verify user has enought shares
-        if (IERC4626(vault.indexToken).balanceOf(msg.sender) < shares) revert Errors.NotEnoughShares();
-
         // update withdrawal request create time
         withdrawalRequest.timestamp = block.timestamp.toUint128();
 
         // update withdrawal request shares
         withdrawalRequest.shares = shares;
+
+        // transfer shares to the contract to be later redeemed
+        IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
 
         // emit an event
         emit LogInitiateWithdrawal(vaultId, msg.sender, shares);
@@ -366,7 +366,7 @@ contract VaultRouterBranch {
         // updates the vault's credit capacity before redeeming
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
-        // redeem actual tokens from vault
+        // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
         uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, msg.sender);
 
         // require at least min assets amount returned
