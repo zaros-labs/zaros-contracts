@@ -503,11 +503,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         );
 
         marginValueUsd =
-            bound({ x: marginValueUsd, min: USDZ_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
+            bound({ x: marginValueUsd, min: USD_TOKEN_MIN_DEPOSIT_MARGIN, max: maxMarginValueUsd.intoUint256() });
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
         int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
@@ -714,17 +714,17 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             bound({ x: initialMarginRate, min: ctx.adjustedMarginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({
             x: marginValueUsd,
-            min: USDZ_MIN_DEPOSIT_MARGIN,
-            max: convertUd60x18ToTokenAmount(address(usdz), USDZ_DEPOSIT_CAP_X18)
+            min: USD_TOKEN_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdToken), USD_TOKEN_DEPOSIT_CAP_X18)
         });
         timeDelta = bound({ x: timeDelta, min: 1 seconds, max: 1 days });
 
         ctx.priceShiftBps = ctx.adjustedMarginRequirements / priceShiftRatio;
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
-        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         ctx.firstOrderSizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -773,8 +773,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
-        expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
+        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
         emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
@@ -860,9 +860,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         ctx.liquidationFeeUsdX18 = perpsEngine.workaround_getLiquidationFeeUsdX18();
 
-        deal({ token: address(usdz), to: users.naruto.account, give: ctx.liquidationFeeUsdX18 });
+        deal({ token: address(usdToken), to: users.naruto.account, give: ctx.liquidationFeeUsdX18 });
 
-        perpsEngine.depositMargin(ctx.tradingAccountId, address(usdz), ctx.liquidationFeeUsdX18);
+        perpsEngine.depositMargin(ctx.tradingAccountId, address(usdToken), ctx.liquidationFeeUsdX18);
 
         (,,, ctx.secondOrderFeeUsdX18,,) = perpsEngine.simulateTrade(
             OrderBranch.SimulateTradeParams({
@@ -904,10 +904,10 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
-        expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
+        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
         expectCallToTransfer(
-            usdz,
+            usdToken,
             feeRecipients.marginCollateralRecipient,
             ctx.secondOrderExpectedPnlX18.abs().intoUD60x18().intoUint256()
         );
@@ -1048,16 +1048,16 @@ contract FillMarketOrder_Integration_Test is Base_Test {
             bound({ x: initialMarginRate, min: ctx.adjustedMarginRequirements, max: MAX_MARGIN_REQUIREMENTS });
         marginValueUsd = bound({
             x: marginValueUsd,
-            min: USDZ_MIN_DEPOSIT_MARGIN,
-            max: convertUd60x18ToTokenAmount(address(usdz), USDZ_DEPOSIT_CAP_X18)
+            min: USD_TOKEN_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdToken), USD_TOKEN_DEPOSIT_CAP_X18)
         });
         timeDelta = bound({ x: timeDelta, min: 1 seconds, max: 1 days });
 
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
-        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        ctx.tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         ctx.firstOrderSizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
@@ -1106,8 +1106,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
-        expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
+        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
         emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
@@ -1364,14 +1364,14 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.marketId = BTC_USD_MARKET_ID;
         ctx.marginValueUsd = 100_000e18;
 
-        deal({ token: address(usdz), to: users.naruto.account, give: ctx.marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: ctx.marginValueUsd });
 
         // Config first fill order
 
         ctx.firstOrderSizeDelta = 10e18;
         ctx.fuzzMarketConfig = getFuzzMarketConfig(ctx.marketId);
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
-        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdz));
+        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdToken));
         ctx.firstMockSignedReport =
             getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
 
@@ -1431,7 +1431,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.marketId = BTC_USD_MARKET_ID;
         ctx.marginValueUsd = 100_000e18;
 
-        deal({ token: address(usdz), to: users.naruto.account, give: ctx.marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: ctx.marginValueUsd });
 
         // Config first fill order
 
@@ -1439,7 +1439,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
 
-        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdz));
+        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdToken));
 
         ctx.firstOrderSizeDelta = 10e18;
 
@@ -1472,8 +1472,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should transfer the pnl and fees
-        expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
+        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
 
         // it should emit a {LogFillOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -1549,8 +1549,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should transfer the pnl and fees
-        expectCallToTransfer(usdz, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdz, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
+        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
+        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
 
         // it should emit a {LogFillOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });

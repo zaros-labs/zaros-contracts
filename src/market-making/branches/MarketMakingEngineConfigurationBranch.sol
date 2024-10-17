@@ -14,11 +14,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Emitted when an engine is registered.
     /// @param engine The address of the engine contract.
-    event LogRegisterEngine(address engine);
-
-    /// @notice Emitted when the USDz address is set or updated.
-    /// @param usdz The address of the USDz token.
-    event LogSetUsdz(address usdz);
+    event LogConfigureEngine(address engine, address usdToken, bool shouldBeEnabled);
 
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
@@ -41,19 +37,40 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// TODO: add invariants
     function updateVaultConfiguration() external onlyOwner { }
 
-    function registerEngine(address engine) external onlyOwner {
+    /// @notice Configures an engine contract and sets its linked USD token address.
+    /// @dev This function can be used to enable or disable an active engine contract.
+    /// @param engine The address of the engine contract.
+    /// @param usdToken The address of the USD token contract.
+    /// @param shouldBeEnabled A flag indicating whether the engine should be enabled.
+    function configureEngine(address engine, address usdToken, bool shouldBeEnabled) external onlyOwner {
         if (engine == address(0)) revert Errors.ZeroInput("engine");
 
-        MarketMakingEngineConfiguration.load().registeredEngines[engine] = true;
+        // loads the mm engine config storage pointer
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
 
-        emit LogRegisterEngine(engine);
-    }
+        // if the engine needs to be disabled, set the isRegisteredEngine flag to false
+        if (!shouldBeEnabled) {
+            marketMakingEngineConfiguration.isRegisteredEngine[engine] = false;
+            // sets the engine's usd token address to zero
+            marketMakingEngineConfiguration.usdTokenOfEngine[engine] = address(0);
 
-    function setUsdz(address usdz) external onlyOwner {
-        if (usdz == address(0)) revert Errors.ZeroInput("usdz");
+            emit LogConfigureEngine(engine, address(0), shouldBeEnabled);
 
-        MarketMakingEngineConfiguration.load().usdz = usdz;
+            return;
+        }
 
-        emit LogSetUsdz(usdz);
+        // if the engine should be registered or the usd token updated, it mustn't be the zero address
+        if (usdToken == address(0)) revert Errors.ZeroInput("usdToken");
+
+        // registers the given engine if not already registered
+        if (!marketMakingEngineConfiguration.isRegisteredEngine[engine]) {
+            marketMakingEngineConfiguration.isRegisteredEngine[engine] = true;
+        }
+
+        // sets the USD token address of the given engine
+        marketMakingEngineConfiguration.usdTokenOfEngine[engine] = usdToken;
+
+        emit LogConfigureEngine(engine, usdToken, shouldBeEnabled);
     }
 }

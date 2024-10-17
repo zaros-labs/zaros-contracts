@@ -11,6 +11,7 @@ import { MarketMakingEngineConfigurationBranch } from
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
 
+// solhint-disable-next-line no-empty-blocks
 abstract contract IMarketMakingEngine is
     UpgradeBranch,
     LookupBranch,

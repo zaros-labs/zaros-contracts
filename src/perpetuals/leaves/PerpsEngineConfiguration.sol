@@ -26,7 +26,7 @@ library PerpsEngineConfiguration {
     /// @param orderFeeRecipient The address that receives order fees.
     /// @param settlementFeeRecipient The address that receives settlement fees.
     /// @param liquidationFeeRecipient The address that receives liquidation fees.
-    /// @param usdToken The address of the USD token (USDz).
+    /// @param usdToken The address of the USD token (USD Token).
     /// @param tradingAccountToken The address of the trading account NFT.
     /// @param maxVerificationDelay The maximum delay allowed for the off chain price verification.
     /// @param nextAccountId The next available trading account id.

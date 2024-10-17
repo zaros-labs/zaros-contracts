@@ -5,8 +5,8 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD_ZERO } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
@@ -26,13 +26,13 @@ library Distribution {
     }
 
     function distributeValue(Data storage self, SD59x18 value) internal {
-        if (value.eq(SD_ZERO)) {
+        if (value.eq(SD59x18_ZERO)) {
             return;
         }
 
         UD60x18 totalShares = ud60x18(self.totalShares);
 
-        if (totalShares.eq(UD_ZERO)) {
+        if (totalShares.eq(UD60x18_ZERO)) {
             revert Errors.EmptyDistribution();
         }
 
@@ -84,7 +84,7 @@ library Distribution {
     {
         valueChange = _getActorValueChange(self, actor);
 
-        actor.lastValuePerShare = newActorShares.eq(UD_ZERO) ? int128(0) : self.valuePerShare;
+        actor.lastValuePerShare = newActorShares.eq(UD60x18_ZERO) ? int128(0) : self.valuePerShare;
     }
 
     function _getActorValueChange(

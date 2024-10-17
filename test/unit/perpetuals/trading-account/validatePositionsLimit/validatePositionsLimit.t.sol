@@ -28,9 +28,9 @@ contract ValidatePositionsLimit_Unit_Test is Base_Test {
         uint256 marginValueUsdPerPosition = marginValueUsd / maxPositionsPerAccount;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         for (uint256 i; i < maxPositionsPerAccount - 1; i++) {
             openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsdPerPosition, isLong);
@@ -71,9 +71,9 @@ contract ValidatePositionsLimit_Unit_Test is Base_Test {
         uint256 marginValueUsd = 10_000_000e18;
         uint256 initialMarginRate = fuzzMarketConfig.imr;
 
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
-        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdz));
+        uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdToken));
 
         // it should not revert
         openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, marginValueUsd, isLong);

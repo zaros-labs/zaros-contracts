@@ -43,6 +43,18 @@ faced by large smart contract systems, by introducing the following solutions:
 
   > **_NOTE:_** The pattern is still in a preliminary version.
 
+# Derivatives Market Making Engine (`MarketMakingEngine`)
+
+- TODO
+
+## Zaros Protocol Debt Distribution System
+
+- TODO
+
+# First Zaros Powered Derivatives Product: The Perpetual Futures Engine (`PerpsEngine`)
+
+- TODO
+
 ## Relevant links
 
 - [TPP Documentation](https://docs.zaros.fi/overview/getting-started/tree-proxy-pattern)
