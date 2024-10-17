@@ -12,7 +12,6 @@ import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
-import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
