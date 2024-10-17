@@ -43,6 +43,9 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
                                     STRUCTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Collateral data struct
+    /// @param decimals The collateral decimals
+    /// @param priceAdapter The collateral price adapter
     struct CollateralData {
         uint8 decimals;
         address priceAdapter;
@@ -68,6 +71,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @notice A flag indicating if the Mock Uniswap V3 Swap Strategy Router is to be used
     bool public useMockUniswapV3SwapStrategyRouter = false;
 
+    /// @notice The collateral data
     mapping(address collateral => CollateralData data) public collateralData;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -155,12 +159,16 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         view
         returns (uint256 expectedAmountOut)
     {
+        // get the price of the tokenIn
         UD60x18 priceTokenInX18 = IPriceAdapter(collateralData[tokenIn].priceAdapter).getPrice();
 
+        // get the price of the tokenOut
         UD60x18 priceTokenOutX18 = IPriceAdapter(collateralData[tokenOut].priceAdapter).getPrice();
 
+        // convert the amount in to UD60x18
         UD60x18 amountInX18 = Math.convertTokenAmountToUd60x18(collateralData[tokenIn].decimals, amountIn);
 
+        // calculate the expected amount out
         expectedAmountOut = Math.convertUd60x18ToTokenAmount(
             collateralData[tokenOut].decimals, amountInX18.mul(priceTokenInX18).div(priceTokenOutX18)
         );
@@ -211,9 +219,17 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         emit LogSetSlippageTolerance(newSlippageTolerance);
     }
 
+    /// @notice Sets the collateral data
+    /// @dev The collateral data is used to calculate the expected output amount
+    /// @dev Only the owner can set the collateral data
+    /// @param collateral The collateral address
+    /// @param decimals The collateral decimals
+    /// @param priceAdapter The collateral price adapter
     function setCollateralData(address collateral, uint8 decimals, address priceAdapter) public onlyOwner {
+        // set the collateral data
         collateralData[collateral] = CollateralData(decimals, priceAdapter);
 
+        // emit the event
         emit LogSetCollateralData(collateral, decimals, priceAdapter);
     }
 
@@ -221,5 +237,8 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
                                     UPGRADEABLE FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Upgrades the contract
+    /// @dev This function is called by the proxy when the contract is upgraded
+    /// @dev Only the owner can upgrade the contract
     function _authorizeUpgrade(address) internal override onlyOwner { }
 }
