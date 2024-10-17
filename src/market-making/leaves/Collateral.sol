@@ -4,12 +4,16 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
+import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 library Collateral {
+    using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+
     /// @notice ERC7201 storage location.
     bytes32 internal constant COLLATERAL_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Collateral")) - 1));
@@ -64,6 +68,24 @@ library Collateral {
         returns (uint256 amount)
     {
         return Math.convertUd60x18ToTokenAmount(self.decimals, amountX18);
+    }
+
+    /// @notice Converts the provided denormalized amount of collateral to SD59x18.
+    /// @dev We can assume self.decimals is always <= SYSTEM_DECIMALS, since it's a requirement at `setDecimals`.
+    /// @param self The collateral type storage pointer.
+    /// @param amount The amount of collateral to convert.
+    /// @return amountX18 The converted amount of collateral to the system's decimals.
+    function convertTokenAmountToSd59x18(Data storage self, int256 amount) internal view returns (SD59x18) {
+        return Math.convertTokenAmountToSd59x18(self.decimals, amount);
+    }
+
+    /// @notice Converts the provided 18 decimals normalized amount to the collateral's decimals amount.
+    /// @dev We can assume self.decimals is always <= SYSTEM_DECIMALS, since it's a requirement at `setDecimals`.
+    /// @param self The collateral type storage pointer.
+    /// @param amountX18 The 18 decimals normalized amount.
+    /// @return amount The denormalized amount using the ERC20 token's decimals.
+    function convertUd59x18ToTokenAmount(Data storage self, SD59x18 amountX18) internal view returns (uint256) {
+        return Math.convertSd59x18ToTokenAmount(self.decimals, amountX18);
     }
 
     /// @notice Returns the collateral asset price adjusted by its credit ratio.

@@ -6,10 +6,12 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Collateral } from "./Collateral.sol";
 import { CreditDelegation } from "./CreditDelegation.sol";
 import { Distribution } from "./Distribution.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { Market } from "./Market.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
@@ -42,15 +44,30 @@ library Vault {
     bytes32 internal constant VAULT_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Vault")) - 1));
 
+    /// @notice Emitted when a vault's credit capacity is updated at the `Vault::recalculateVaultsCreditCapacity`
+    /// loop.
+    /// @param vaultId The vault identifier.
+    /// @param vaultUnrealizedDebtChangeUsd The vault's unrealized debt update during the recalculation.
+    /// @param vaultRealizedDebtChangeUsd The vault's realized debt update during the recalculation.
+    /// @param vaultNewCreditCapacityUsd The vault's new credit capacity after the recalculation of total debt and the
+    /// USD adjusted value of its underlying assets.
+    /// @dev The parameter above is adjusted by the configured collateral's credit ratio.
+    event LogUpdateVaultCreditCapacity(
+        uint128 indexed vaultId,
+        int256 vaultUnrealizedDebtChangeUsd,
+        int256 vaultRealizedDebtChangeUsd,
+        int256 vaultNewCreditCapacityUsd
+    );
+
     /// @param id The vault identifier.
-    /// @param totalDeposited The total amount of collateral assets deposited in the vault.
-    // todo: next parameter may need to be handled at the ERC4626 ZLP Vault contract.
+    /// @param totalCreditDelegationWeight The total amount of credit delegation weight in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @param lockedCreditRatio The configured ratio that determines how much of the vault's total assets can't be
     /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
     /// @param marketsUnrealizedDebtUsd The total amount of unrealized debt coming from markets in USD.
     /// @param unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
+    // TODO: we may be able to remove the next variable
     /// @param settledRealizedDebtUsd The total amount of settled debt in USD.
     /// @param indexToken The index token address.
     /// @param collateral The collateral asset data.
@@ -60,9 +77,9 @@ library Vault {
     /// todo: we may need to store the connected engine contract address.
     /// @param connectedMarkets The list of connected market ids. Whenever there's an update, a new
     /// `EnumerableSet.UintSet` is created.
+    /// @param withdrawalRequestIdCounter Counter for user withdraw requiest ids
     struct Data {
         uint128 id;
-        uint128 totalDeposited;
         uint128 totalCreditDelegationWeight;
         uint128 depositCap;
         uint128 withdrawalDelay;
@@ -71,9 +88,37 @@ library Vault {
         int128 unsettledRealizedDebtUsd;
         int128 settledRealizedDebtUsd;
         address indexToken;
+        bool isLive;
         Collateral.Data collateral;
         Distribution.Data stakingFeeDistribution;
         EnumerableSet.UintSet[] connectedMarkets;
+        mapping(address => uint128) withdrawalRequestIdCounter;
+    }
+
+    /// @notice Parameters required to create a new vault.
+    /// @param vaultId The unique identifier for the vault to be created.
+    /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
+    /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
+    /// @param indexToken The address of the index token used in the vault.
+    /// @param collateral The collateral asset data associated with the vault.
+    struct CreateParams {
+        uint128 vaultId;
+        uint128 depositCap;
+        uint128 withdrawalDelay;
+        address indexToken;
+        Collateral.Data collateral;
+    }
+
+    /// @notice Parameters required to update an existing vault.
+    /// @param vaultId The unique identifier for the vault to be updated.
+    /// @param depositCap The new maximum amount of collateral assets that can be deposited in the vault.
+    /// @param withdrawalDelay The new delay period, in seconds, before a withdrawal request can be fulfilled.
+    /// @param isLive The new status of the vault.
+    struct UpdateParams {
+        uint128 vaultId;
+        uint128 depositCap;
+        uint128 withdrawalDelay;
+        bool isLive;
     }
 
     /// @notice Loads a {Vault} namespace.
@@ -83,6 +128,33 @@ library Vault {
         bytes32 slot = keccak256(abi.encode(VAULT_LOCATION, vaultId));
         assembly {
             vault.slot := slot
+        }
+    }
+
+    /// @notice Loads a {Vault} namespace.
+    /// @dev Invariants:
+    /// The Vault MUST exist.
+    /// @param vaultId The vault identifier.
+    /// @return vault The loaded vault storage pointer.
+    function loadExisting(uint128 vaultId) internal view returns (Data storage vault) {
+        vault = load(vaultId);
+        if (vault.id == 0) {
+            revert Errors.VaultDoesNotExist(vaultId);
+        }
+        return vault;
+    }
+
+    /// @notice Loads a {Vault} namespace.
+    /// @dev Invariants:
+    /// The Vault MUST exist.
+    /// The Vault MUST be live.
+    /// @param vaultId The vault identifier.
+    /// @return vault The loaded vault storage pointer.
+    function loadLive(uint128 vaultId) internal view returns (Data storage vault) {
+        vault = loadExisting(vaultId);
+
+        if (!vault.isLive) {
+            revert Errors.VaultIsDisabled(vaultId);
         }
     }
 
@@ -99,12 +171,26 @@ library Vault {
     /// @param self The vault storage pointer.
     /// @return vaultCreditCapacityUsdX18 The vault's total credit capacity in USD.
     function getTotalCreditCapacityUsd(Data storage self) internal view returns (SD59x18 vaultCreditCapacityUsdX18) {
+        // load the collateral configuration storage pointer
         Collateral.Data storage collateral = self.collateral;
-        // TODO: update self.totalDeposited to ERC4626::totalAssets
-        UD60x18 totalAssetsUsdX18 =
-            collateral.getPrice().mul(ud60x18(self.totalDeposited)).mul(ud60x18(collateral.creditRatio));
 
+        // fetch the zlp vault's total assets amount
+        UD60x18 totalAssetsX18 = ud60x18(IERC4626(collateral.asset).totalAssets());
+        // calculate the total assets value in usd terms
+        UD60x18 totalAssetsUsdX18 = collateral.getAdjustedPrice().mul(totalAssetsX18);
+
+        // calculate the vault's credit capacity in usd terms
         vaultCreditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledRealizedDebtUsd));
+    }
+
+    /// @notice Returns the vault's total unsettled debt in USD, taking into account both the markets' unrealized
+    /// debt, but yet to be settled.
+    /// @dev Note that only the vault's share of the markets' realized debt is taken into consideration for debt /
+    /// credit settlements.
+    /// @param self The vault storage pointer.
+    /// @return unsettledDebtUsdX18 The vault's total unsettled debt in USD.
+    function getUnsettledDebt(Data storage self) internal view returns (SD59x18 unsettledDebtUsdX18) {
+        unsettledDebtUsdX18 = sd59x18(self.unsettledRealizedDebtUsd).add(sd59x18(self.marketsUnrealizedDebtUsd));
     }
 
     // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
@@ -152,15 +238,13 @@ library Vault {
             SD59x18 marketUnrealizedDebtUsdX18;
             SD59x18 marketRealizedDebtUsdX18;
 
-            // if the market has already had its debt distributed at the current block, we skip it
-            if (market.isDistributionRequired()) {
-                // first we cache the market's unrealized and realized debt
-                marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
-                marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
+            // first we cache the market's unrealized and realized debt
+            marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
+            marketRealizedDebtUsdX18 =
+                market.isRealizedDebtUpdateRequired() ? market.updateRealizedDebt() : market.getRealizedDebtUsd();
 
-                // distribute the market's debt to its connected vaults
-                market.distributeDebtToVaults(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
-            }
+            // distribute the market's debt to its connected vaults
+            market.distributeDebtToVaults(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
 
             // load the credit delegation to the given market id
             CreditDelegation.Data storage creditDelegation = CreditDelegation.load(vaultId, connectedMarketId);
@@ -230,8 +314,49 @@ library Vault {
                 sd59x18(self.unsettledRealizedDebtUsd).add(vaultTotalRealizedDebtChangeUsdX18).intoInt256().toInt128();
 
             // update the vault's credit delegations
-            updateCreditDelegations(self, updatedConnectedMarketsIdsCache, false);
+            (, SD59x18 vaultNewCreditCapacityUsdX18) =
+                updateCreditDelegations(self, updatedConnectedMarketsIdsCache, false);
+
+            emit LogUpdateVaultCreditCapacity(
+                vaultId,
+                vaultTotalUnrealizedDebtChangeUsdX18.intoInt256(),
+                vaultTotalRealizedDebtChangeUsdX18.intoInt256(),
+                vaultNewCreditCapacityUsdX18.intoInt256()
+            );
         }
+    }
+
+    /// @notice Updates an existing vault with the specified parameters.
+    /// @dev Modifies the vault's settings. Reverts if the vault does not exist.
+    /// @param params The struct containing the parameters required to update the vault.
+    function update(UpdateParams memory params) internal {
+        Data storage self = load(params.vaultId);
+
+        if (self.id == 0) {
+            revert Errors.ZeroInput("vaultId");
+        }
+
+        self.depositCap = params.depositCap;
+        self.withdrawalDelay = params.withdrawalDelay;
+        self.isLive = params.isLive;
+    }
+
+    /// @notice Creates a new vault with the specified parameters.
+    /// @dev Initializes the vault with the provided parameters. Reverts if the vault already exists.
+    /// @param params The struct containing the parameters required to create the vault.
+    function create(CreateParams memory params) internal {
+        Data storage self = load(params.vaultId);
+
+        if (self.id != 0) {
+            revert Errors.VaultAlreadyExists(params.vaultId);
+        }
+
+        self.id = params.vaultId;
+        self.depositCap = params.depositCap;
+        self.withdrawalDelay = params.withdrawalDelay;
+        self.indexToken = params.indexToken;
+        self.collateral = params.collateral;
+        self.isLive = true;
     }
 
     // todo: see if the `shouldRehydrateCache` parameter will be needed or not
@@ -252,7 +377,7 @@ library Vault {
         bool shouldRehydrateCache
     )
         internal
-        returns (uint128[] memory rehydratedConnectedMarketsIdsCache)
+        returns (uint128[] memory rehydratedConnectedMarketsIdsCache, SD59x18 vaultCreditCapacityUsdX18)
     {
         // cache the vault id
         uint128 vaultId = self.id;
@@ -283,16 +408,16 @@ library Vault {
             UD60x18 creditDelegationShareX18 =
                 ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
 
-            // caches the vault's total credit capacity
-            SD59x18 vaultCreditCapacity = getTotalCreditCapacityUsd(self);
+            // stores the vault's total credit capacity to be returned
+            vaultCreditCapacityUsdX18 = getTotalCreditCapacityUsd(self);
 
             // if the vault's credit capacity went to zero or below, we set its credit delegation to that market
             // to zero
             // TODO: think about the implications of this, as it might lead to markets going insolvent due and bad
             // debt generation as the vault's collateral value unexpectedly tanks and / or its total debt
             // increases.
-            UD60x18 newCreditDelegationUsdX18 = vaultCreditCapacity.gt(SD59x18_ZERO)
-                ? vaultCreditCapacity.intoUD60x18().mul(creditDelegationShareX18)
+            UD60x18 newCreditDelegationUsdX18 = vaultCreditCapacityUsdX18.gt(SD59x18_ZERO)
+                ? vaultCreditCapacityUsdX18.intoUD60x18().mul(creditDelegationShareX18)
                 : UD60x18_ZERO;
 
             // loads the market's storage pointer

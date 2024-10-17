@@ -1,0 +1,11 @@
+Redeem_Integration_Test
+├── when request is fulfulled
+│   └── it should revert
+└── when request is not fulfulled
+    ├── when delay has not passed
+    │   └── it should revert
+    └── when delay has passed
+        ├── when assets are less than min amount
+        │   └── it should revert
+        └── when assets are more than min amount
+            └── it should transfer assets to user

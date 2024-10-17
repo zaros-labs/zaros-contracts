@@ -188,6 +188,49 @@ library Errors {
     /// @notice Thrown when trying to distribute value to an empty distribution.
     error EmptyDistribution();
 
+    /// @notice MarketMakingEngine.Market errors.
+
+    /// @notice Thrown when the given `marketId` does not exist.
+    error MarketDoesNotExist(uint128 marketId);
+
+    /// @notice Thrown when the given `marketId` is disabled.
+    error MarketIsDisabled(uint128 marketId);
+
+    /// @notice MarketMakingEngine.WithdrawalRequest errors.
+
+    /// @notice Thrown when a withdrawal request does not exist.
+    /// @param vaultId The vault to withdraw assets from identifier.
+    /// @param account The address of the user account requesting the withdrawal.
+    /// @param withdrawalRequestId The withdrawal request identifier.
+    error WithdrawalRequestDoesNotExist(uint128 vaultId, address account, uint128 withdrawalRequestId);
+
+    /// @notice MarketMakingEngine.VaultRouterBranch errors
+
+    /// @notice Thrown when a slippage check fails.
+    error SlippageCheckFailed();
+
+    /// @notice Thrown when a user does not have enough shares.
+    error NotEnoughShares();
+
+    /// @notice Thrown when a withdrawal is attempted before the required delay has passed.
+    error WithdrawDelayNotPassed();
+
+    /// @notice Thrown when a withdraw request is fulfiled.
+    error WithdrawalRequestAlreadyFullfilled();
+
+    /// @notice Thrown when vault with the given id already exists.
+    /// @param vaultId The ID of the vault to create.
+    error VaultAlreadyExists(uint256 vaultId);
+
+    /// @notice Thrown when vault does NOT exist
+    /// @param vaultId The ID of the vault that does NOT exist.
+    error VaultDoesNotExist(uint128 vaultId);
+
+    /// @notice Thrown when vault is NOT live.
+    /// @dev A vault could be paused by setting its `isLive` flag to false.
+    /// @param vaultId The ID of the vault that is NOT live.
+    error VaultIsDisabled(uint128 vaultId);
+
     /// @notice MarketMakingEngine.Vault errors.
     error NoMarketsConnectedToVault(uint128 vaultId);
 }

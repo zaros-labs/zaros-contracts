@@ -24,6 +24,12 @@ import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingA
 import { ReferralHarness } from "test/harnesses/perpetuals/leaves/ReferralHarness.sol";
 import { CustomReferralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
+import { MarketMakingEngineConfigurationBranch } from
+    "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
+import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
+import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
+import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
+import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
@@ -32,7 +38,9 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-function deployBranches(bool isTestnet) returns (address[] memory) {
+// Perps Engine
+
+function deployPerpsEngineBranches(bool isTestnet) returns (address[] memory) {
     address[] memory branches = new address[](8);
 
     address upgradeBranch = address(new UpgradeBranch());
@@ -78,7 +86,7 @@ function deployBranches(bool isTestnet) returns (address[] memory) {
     return branches;
 }
 
-function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
+function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
     bytes4[] memory upgradeBranchSelectors = new bytes4[](2);
@@ -186,27 +194,7 @@ function getBranchesSelectors(bool isTestnet) pure returns (bytes4[][] memory) {
     return selectors;
 }
 
-function getBranchUpgrades(
-    address[] memory branches,
-    bytes4[][] memory branchesSelectors,
-    RootProxy.BranchUpgradeAction action
-)
-    pure
-    returns (RootProxy.BranchUpgrade[] memory)
-{
-    require(branches.length == branchesSelectors.length, "TreeProxyUtils: branchesSelectors length mismatch");
-    RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](branches.length);
-
-    for (uint256 i; i < branches.length; i++) {
-        bytes4[] memory selectors = branchesSelectors[i];
-
-        branchUpgrades[i] = RootProxy.BranchUpgrade({ branch: branches[i], action: action, selectors: selectors });
-    }
-
-    return branchUpgrades;
-}
-
-function getInitializables(address[] memory branches) pure returns (address[] memory) {
+function getPerpsEngineInitializables(address[] memory branches) pure returns (address[] memory) {
     address[] memory initializables = new address[](1);
 
     address upgradeBranch = branches[0];
@@ -216,7 +204,7 @@ function getInitializables(address[] memory branches) pure returns (address[] me
     return initializables;
 }
 
-function getInitializePayloads(address deployer) pure returns (bytes[] memory) {
+function getPerpsEngineInitializePayloads(address deployer) pure returns (bytes[] memory) {
     bytes[] memory initializePayloads = new bytes[](1);
 
     bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
@@ -228,12 +216,12 @@ function getInitializePayloads(address deployer) pure returns (bytes[] memory) {
     return initializePayloads;
 }
 
-function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+function deployPerpsEngineHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     returns (RootProxy.BranchUpgrade[] memory)
 {
-    address[] memory harnesses = deployAddressHarnesses();
+    address[] memory harnesses = deployPerpsEngineAddressHarnesses();
 
-    bytes4[][] memory harnessesSelectors = getHarnessesSelectors();
+    bytes4[][] memory harnessesSelectors = getPerpsEngineHarnessesSelectors();
 
     RootProxy.BranchUpgrade[] memory harnessesUpgrades =
         getBranchUpgrades(harnesses, harnessesSelectors, RootProxy.BranchUpgradeAction.Add);
@@ -252,7 +240,7 @@ function deployHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     return brancheAndHarnessesUpgrades;
 }
 
-function deployAddressHarnesses() returns (address[] memory) {
+function deployPerpsEngineAddressHarnesses() returns (address[] memory) {
     address[] memory addressHarnesses = new address[](10);
 
     address perpsEngineConfigurationHarness = address(new PerpsEngineConfigurationHarness());
@@ -300,7 +288,7 @@ function deployAddressHarnesses() returns (address[] memory) {
     return addressHarnesses;
 }
 
-function getHarnessesSelectors() pure returns (bytes4[][] memory) {
+function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](10);
 
     bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](12);
@@ -435,4 +423,142 @@ function getHarnessesSelectors() pure returns (bytes4[][] memory) {
     selectors[9] = customReferralConfigurationHarnessSelectors;
 
     return selectors;
+}
+
+// Market Making Engine
+
+function deployMarketMakingEngineBranches() returns (address[] memory) {
+    address[] memory branches = new address[](2);
+
+    address marketMakingEnginConfigBranch = address(new MarketMakingEngineConfigurationBranch());
+    console.log("MarketMakingEnginConfigBranch: ", marketMakingEnginConfigBranch);
+
+    address vaultRouterBranch = address(new VaultRouterBranch());
+    console.log("VaultRouterBranch: ", vaultRouterBranch);
+
+    branches[0] = marketMakingEnginConfigBranch;
+    branches[1] = vaultRouterBranch;
+
+    return branches;
+}
+
+function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
+    bytes4[][] memory selectors = new bytes4[][](2);
+
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](5);
+    marketMakingEngineConfigBranchSelectors[0] =
+        MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
+    marketMakingEngineConfigBranchSelectors[1] =
+        MarketMakingEngineConfigurationBranch.createCustomReferralCode.selector;
+    marketMakingEngineConfigBranchSelectors[2] = MarketMakingEngineConfigurationBranch.createVault.selector;
+    marketMakingEngineConfigBranchSelectors[3] =
+        MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
+    marketMakingEngineConfigBranchSelectors[4] =
+        MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
+
+    bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
+    vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
+    vaultRouterBranchSelectors[1] = VaultRouterBranch.getIndexTokenSwapRate.selector;
+    vaultRouterBranchSelectors[2] = VaultRouterBranch.getVaultData.selector;
+    vaultRouterBranchSelectors[3] = VaultRouterBranch.initiateWithdrawal.selector;
+    vaultRouterBranchSelectors[4] = VaultRouterBranch.redeem.selector;
+    vaultRouterBranchSelectors[5] = VaultRouterBranch.stake.selector;
+    vaultRouterBranchSelectors[6] = VaultRouterBranch.unstake.selector;
+    vaultRouterBranchSelectors[7] = VaultRouterBranch.getVaultAssetSwapRate.selector;
+
+    selectors[0] = marketMakingEngineConfigBranchSelectors;
+    selectors[1] = vaultRouterBranchSelectors;
+
+    return selectors;
+}
+
+function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+    returns (RootProxy.BranchUpgrade[] memory)
+{
+    address[] memory harnesses = deployMarketMakingAddressHarnesses();
+
+    bytes4[][] memory harnessesSelectors = getMarketMakingHarnessSelectors();
+
+    RootProxy.BranchUpgrade[] memory harnessesUpgrades =
+        getBranchUpgrades(harnesses, harnessesSelectors, RootProxy.BranchUpgradeAction.Add);
+
+    uint256 cachedBranchUpgradesLength = branchUpgrades.length;
+    uint256 maxLength = cachedBranchUpgradesLength + harnessesUpgrades.length;
+
+    RootProxy.BranchUpgrade[] memory brancheAndHarnessesUpgrades = new RootProxy.BranchUpgrade[](maxLength);
+
+    for (uint256 i; i < maxLength; i++) {
+        brancheAndHarnessesUpgrades[i] =
+            i < cachedBranchUpgradesLength ? branchUpgrades[i] : harnessesUpgrades[i - cachedBranchUpgradesLength];
+    }
+
+    return brancheAndHarnessesUpgrades;
+}
+
+function deployMarketMakingAddressHarnesses() returns (address[] memory) {
+    address[] memory addressHarnesses = new address[](3);
+
+    address vaultHarness = address(new VaultHarness());
+    console.log("VaultHarness: ", vaultHarness);
+
+    address withdrawalRequestHarness = address(new WithdrawalRequestHarness());
+    console.log("WithdrawalRequestHarness: ", withdrawalRequestHarness);
+
+    address collateralHarness = address(new CollateralHarness());
+    console.log("CollateralHarness: ", collateralHarness);
+
+    addressHarnesses[0] = vaultHarness;
+    addressHarnesses[1] = withdrawalRequestHarness;
+    addressHarnesses[2] = collateralHarness;
+
+    return addressHarnesses;
+}
+
+function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
+    bytes4[][] memory selectors = new bytes4[][](3);
+
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](8);
+    vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
+    vaultHarnessSelectors[1] = VaultHarness.workaround_Vault_getActorStakedShares.selector;
+    vaultHarnessSelectors[2] = VaultHarness.workaround_Vault_getTotalStakedShares.selector;
+    vaultHarnessSelectors[3] = VaultHarness.workaround_Vault_getWithdrawDelay.selector;
+    vaultHarnessSelectors[4] = VaultHarness.workaround_Vault_getDepositCap.selector;
+    vaultHarnessSelectors[5] = VaultHarness.exposed_Vault_create.selector;
+    vaultHarnessSelectors[6] = VaultHarness.exposed_Vault_update.selector;
+    vaultHarnessSelectors[7] = VaultHarness.workaround_Vault_getVaultAsset.selector;
+
+    bytes4[] memory collateralHarnessSelectors = new bytes4[](2);
+    collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;
+    collateralHarnessSelectors[1] = CollateralHarness.workaround_Collateral_setParams.selector;
+
+    bytes4[] memory withdrawalRequestHarnessSelectors = new bytes4[](2);
+    withdrawalRequestHarnessSelectors[0] = WithdrawalRequestHarness.exposed_WithdrawalRequest_load.selector;
+    withdrawalRequestHarnessSelectors[1] = WithdrawalRequestHarness.exposed_WithdrawalRequest_loadExisting.selector;
+
+    selectors[0] = vaultHarnessSelectors;
+    selectors[1] = withdrawalRequestHarnessSelectors;
+    selectors[2] = collateralHarnessSelectors;
+
+    return selectors;
+}
+
+// Shared Utils
+
+function getBranchUpgrades(
+    address[] memory branches,
+    bytes4[][] memory branchesSelectors,
+    RootProxy.BranchUpgradeAction action
+)
+    pure
+    returns (RootProxy.BranchUpgrade[] memory)
+{
+    require(branches.length == branchesSelectors.length, "TreeProxyUtils: branchesSelectors length mismatch");
+    RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](branches.length);
+
+    for (uint256 i; i < branches.length; i++) {
+        bytes4[] memory selectors = branchesSelectors[i];
+        branchUpgrades[i] = RootProxy.BranchUpgrade({ branch: branches[i], action: action, selectors: selectors });
+    }
+
+    return branchUpgrades;
 }

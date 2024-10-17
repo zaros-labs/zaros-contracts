@@ -59,4 +59,31 @@ library Math {
 
         return amountX18.intoUint256() / (10 ** (Constants.SYSTEM_DECIMALS - decimals));
     }
+
+    /// @notice Converts a native amount of ERC20 tokens to 18 decimals.
+    /// @dev This function assumes decimals is always <= 18, thus, configuration functions must enforce this
+    /// invariant.
+    /// @param decimals The decimals value of an ERC20 token.
+    /// @param amount The ERC20 token amount to convert to 18 decimals.
+    /// @return amountX18 The ERC20 token amount represented in 18 decimals.
+    function convertTokenAmountToSd59x18(uint8 decimals, int256 amount) internal pure returns (SD59x18) {
+        if (Constants.SYSTEM_DECIMALS == decimals) {
+            return sd59x18(amount);
+        }
+        return sd59x18(amount * int256(10 ** (Constants.SYSTEM_DECIMALS - decimals)));
+    }
+
+    /// @notice Converts an 18 decimals system value to a native amount of ERC20 tokens.
+    /// @dev This function assumes decimals is always <= 18, thus, configuration functions must enforce this
+    /// invariant.
+    /// @param decimals The decimals value of an ERC20 token.
+    /// @param amountX18 The ERC20 token amount to convert to 18 decimals.
+    /// @return amount The downscaled amount represented with the ERC20 token decimals.
+    function convertSd59x18ToTokenAmount(uint8 decimals, SD59x18 amountX18) internal pure returns (uint256) {
+        if (Constants.SYSTEM_DECIMALS == decimals) {
+            return amountX18.intoUint256();
+        }
+
+        return amountX18.intoUint256() / (10 ** (Constants.SYSTEM_DECIMALS - decimals));
+    }
 }

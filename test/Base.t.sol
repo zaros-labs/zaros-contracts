@@ -7,7 +7,6 @@ import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
-import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
@@ -17,6 +16,9 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
+import { IMarketMakingEngine as IMarketMakingEngineBranches } from "@zaros/market-making/MarketMakingEngine.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // Zaros dependencies test
@@ -26,6 +28,7 @@ import { MockUsdToken } from "test/mocks/MockUsdToken.sol";
 import { Storage } from "test/utils/Storage.sol";
 import { Users, User } from "test/utils/Types.sol";
 import { MockERC20 } from "test/mocks/MockERC20.sol";
+import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 import { PerpsEngineConfigurationHarness } from "test/harnesses/perpetuals/leaves/PerpsEngineConfigurationHarness.sol";
 import { MarginCollateralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/MarginCollateralConfigurationHarness.sol";
@@ -40,16 +43,22 @@ import { CustomReferralConfigurationHarness } from
     "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
+import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
+import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
+import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 
 // Zaros dependencies script
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 import {
-    deployBranches,
-    getBranchesSelectors,
+    deployPerpsEngineBranches,
+    getPerpsEngineBranchesSelectors,
     getBranchUpgrades,
-    getInitializables,
-    getInitializePayloads,
-    deployHarnesses
+    getPerpsEngineInitializables,
+    getPerpsEngineInitializePayloads,
+    deployPerpsEngineHarnesses,
+    deployMarketMakingEngineBranches,
+    getMarketMakerBranchesSelectors,
+    deployMarketMakingHarnesses
 } from "script/utils/TreeProxyUtils.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 
@@ -82,9 +91,17 @@ abstract contract IPerpsEngine is
     CustomReferralConfigurationHarness
 { }
 
+abstract contract IMarketMakingEngine is
+    IMarketMakingEngineBranches,
+    VaultHarness,
+    WithdrawalRequestHarness,
+    CollateralHarness
+{ }
+
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
     using Math for UD60x18;
     using SafeCast for int256;
+    using SafeCast for uint256;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
@@ -144,15 +161,17 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             address(new ERC1967Proxy(tradingAccountTokenImplementation, tradingAccountTokenInitializeData))
         );
 
+        // Perps Engine Set Up
+
         bool isTestnet = false;
-        address[] memory branches = deployBranches(isTestnet);
-        bytes4[][] memory branchesSelectors = getBranchesSelectors(isTestnet);
+        address[] memory branches = deployPerpsEngineBranches(isTestnet);
+        bytes4[][] memory branchesSelectors = getPerpsEngineBranchesSelectors(isTestnet);
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
-        address[] memory initializables = getInitializables(branches);
-        bytes[] memory initializePayloads = getInitializePayloads(users.owner.account);
+        address[] memory initializables = getPerpsEngineInitializables(branches);
+        bytes[] memory initializePayloads = getPerpsEngineInitializePayloads(users.owner.account);
 
-        branchUpgrades = deployHarnesses(branchUpgrades);
+        branchUpgrades = deployPerpsEngineHarnesses(branchUpgrades);
 
         RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,
@@ -161,8 +180,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         });
 
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
-        // TODO: deploy MM engine
-        marketMakingEngine = IMarketMakingEngine(address(bytes20(bytes("MarketMakingEngine"))));
 
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;
@@ -193,9 +210,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.label({ account: address(tradingAccountToken), newLabel: "Trading Account NFT" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
-        approveContracts();
-        changePrank({ msgSender: users.naruto.account });
-
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
         feeRecipients = FeeRecipients.Data({
@@ -210,6 +224,38 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.label({ account: mockChainlinkFeeManager, newLabel: "Chainlink Fee Manager" });
         vm.label({ account: mockChainlinkVerifier, newLabel: "Chainlink Verifier" });
         vm.label({ account: OFFCHAIN_ORDERS_KEEPER_ADDRESS, newLabel: "Offchain Orders Keeper" });
+
+        // Market Making Engine Set Up
+
+        address[] memory mmBranches = deployMarketMakingEngineBranches();
+
+        bytes4[][] memory mmBranchesSelectors = getMarketMakerBranchesSelectors();
+        RootProxy.BranchUpgrade[] memory mmBranchUpgrades =
+            getBranchUpgrades(mmBranches, mmBranchesSelectors, RootProxy.BranchUpgradeAction.Add);
+
+        mmBranchUpgrades = deployMarketMakingHarnesses(mmBranchUpgrades);
+
+        address[] memory initializableBranches = new address[](0);
+        bytes[] memory initializableBranchesPayloads = new bytes[](0);
+
+        RootProxy.InitParams memory mmEngineInitParams = RootProxy.InitParams({
+            initBranches: mmBranchUpgrades,
+            initializables: initializableBranches,
+            initializePayloads: initializableBranchesPayloads
+        });
+
+        marketMakingEngine = IMarketMakingEngine(address(new MarketMakingEngine(mmEngineInitParams)));
+
+        uint256[2] memory vaultsIdsRange;
+        vaultsIdsRange[0] = INITIAL_VAULT_ID;
+        vaultsIdsRange[1] = FINAL_VAULT_ID;
+
+        setupVaultsConfig();
+        createZlpVaults(address(marketMakingEngine), users.owner.account, vaultsIdsRange);
+
+        // Other Set Up
+        approveContracts();
+        changePrank({ msgSender: users.naruto.account });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -232,10 +278,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
+                value: uMAX_UD60x18
+            });
 
             changePrank({ msgSender: users.sasuke.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
                 spender: address(perpsEngine),
+                value: uMAX_UD60x18
+            });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
                 value: uMAX_UD60x18
             });
 
@@ -244,10 +298,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
+                value: uMAX_UD60x18
+            });
 
             changePrank({ msgSender: users.madara.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
                 spender: address(perpsEngine),
+                value: uMAX_UD60x18
+            });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
                 value: uMAX_UD60x18
             });
         }
@@ -311,6 +373,38 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         for (uint256 i = INITIAL_MARKET_ID; i <= FINAL_MARKET_ID; i++) {
             vm.label({ account: marketOrderKeepers[i], newLabel: "Market Order Keeper" });
         }
+    }
+
+    function depositInVault(uint128 vaultId, uint128 assetsToDeposit) internal {
+        address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
+        deal(vaultAsset, users.naruto.account, assetsToDeposit);
+
+        marketMakingEngine.deposit(vaultId, assetsToDeposit, 0);
+    }
+
+    function depositAndStakeInVault(uint128 vaultId, uint128 assetsToDeposit) internal {
+        address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
+        deal(vaultAsset, users.naruto.account, assetsToDeposit);
+
+        marketMakingEngine.deposit(vaultId, assetsToDeposit, 0);
+
+        address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(vaultId);
+        uint128 sharesToStake = IERC20(indexToken).balanceOf(users.naruto.account).toUint128();
+
+        IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
+        marketMakingEngine.stake(vaultId, sharesToStake, new bytes(0), false);
+    }
+
+    function getFuzzVaultConfig(uint256 vaultId) internal view returns (VaultConfig memory) {
+        vaultId = bound({ x: vaultId, min: INITIAL_VAULT_ID, max: FINAL_VAULT_ID });
+
+        uint256[2] memory vaultIdsRange;
+        vaultIdsRange[0] = vaultId;
+        vaultIdsRange[1] = vaultId;
+
+        VaultConfig[] memory filteredVaultsConfig = getFilteredVaultsConfig(vaultIdsRange);
+
+        return filteredVaultsConfig[0];
     }
 
     function getFuzzMarketConfig(uint256 marketId) internal view returns (MarketConfig memory) {
