@@ -11,7 +11,7 @@ import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
-import { ZLPVault } from "@zaros/zlp/ZlpVault.sol";
+import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -427,6 +427,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     function updateVaultAssetAllowance(uint128 vaultId, uint256 allowance) external onlyOwner {
         Vault.Data storage vault = Vault.load(vaultId);
 
-        ZLPVault(vault.indexToken).updateAssetAllowance(allowance);
+        ZlpVault(vault.indexToken).updateAssetAllowance(allowance);
     }
 }
