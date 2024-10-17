@@ -7,6 +7,7 @@ import { IDexAdapter, SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.so
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+/// @notice DexSwapStrategy library for executing swaps on a DEX.
 library DexSwapStrategy {
     /// @notice ERC7201 storage location.
     bytes32 internal constant SWAP_ROUTER_LOCATION =
@@ -14,7 +15,9 @@ library DexSwapStrategy {
 
     uint256 internal constant BPS_DENOMINATOR = 10_000;
 
-    // TODO: add natspec
+    /// @notice DexSwapStrategy data storage struct.
+    /// @param id The unique identifier of the DexSwapStrategy.
+    /// @param dexAdapter The address of the DexAdapter contract.
     struct Data {
         uint128 id;
         address dexAdapter;
