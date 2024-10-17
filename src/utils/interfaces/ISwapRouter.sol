@@ -1,6 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.7.5;
-pragma abicoder v2;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.25;
 
 import { IUniswapV3SwapCallback } from "@zaros/utils/interfaces/IUniswapV3SwapCallback.sol";
 
