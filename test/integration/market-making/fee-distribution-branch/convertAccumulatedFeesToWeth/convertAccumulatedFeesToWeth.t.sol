@@ -228,9 +228,6 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         );
 
         // TODO
-        // it should update unsettled fees weth of the vault
-
-        // TODO
         // it should distribute value to the vault
 
         // TODO

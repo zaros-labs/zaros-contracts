@@ -188,14 +188,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogConfigureEngine(engine, usdToken, shouldBeEnabled);
     }
 
-    function setUsdz(address usdz) external onlyOwner {
-        if (usdz == address(0)) revert Errors.ZeroInput("usdz");
-
-        MarketMakingEngineConfiguration.load().usdz = usdz;
-
-        emit LogSetUsdz(usdz);
-    }
-
     /// @notice Set the wETH address
     /// @dev Only owner can call this function
     /// @param weth The address of the wETH token.

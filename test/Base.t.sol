@@ -71,7 +71,9 @@ import {
     deployPerpsEngineHarnesses,
     deployMarketMakingEngineBranches,
     getMarketMakerBranchesSelectors,
-    deployMarketMakingHarnesses
+    deployMarketMakingHarnesses,
+    getMarketMakingEngineInitializables,
+    getMarketMakingEngineInitPayloads
 } from "script/utils/TreeProxyUtils.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 import { DexAdapterUtils } from "script/utils/DexAdapterUtils.sol";
@@ -260,13 +262,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         mmBranchUpgrades = deployMarketMakingHarnesses(mmBranchUpgrades);
 
-        address[] memory initializableBranches = new address[](0);
-        bytes[] memory initializableBranchesPayloads = new bytes[](0);
-
         RootProxy.InitParams memory mmEngineInitParams = RootProxy.InitParams({
             initBranches: mmBranchUpgrades,
             initializables: initializableBranches,
-            initializePayloads: initializableBranchesPayloads
+            initializePayloads: mmInitPayloads
         });
 
         marketMakingEngine = IMarketMakingEngine(address(new MarketMakingEngine(mmEngineInitParams)));
@@ -291,9 +290,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals
         );
 
-        marketMakingEngine.registerEngine(address(perpsEngine));
+        marketMakingEngine.configureEngine(address(perpsEngine), address(usdToken), true);
 
-        marketMakingEngine.setUsdz(address(usdz));
         marketMakingEngine.setWeth(address(wEth));
 
         uint256 slippageTolerance = 100;

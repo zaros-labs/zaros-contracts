@@ -6,6 +6,5 @@ ClaimFees_Integration_Test
     │   └── it should revert
     └── when amount to calim is greater then zero
         ├── it should update accumulate actor
-        ├── it should update unsettledFeesWeth
         ├── it should transfer the fees to the sender
         └── it should emit {LogClaimFees} event

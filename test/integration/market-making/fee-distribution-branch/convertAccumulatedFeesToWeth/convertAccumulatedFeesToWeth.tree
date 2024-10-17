@@ -16,7 +16,6 @@ ConvertAccumulatedFeesToWeth_Integration_Test
                 └── when the amount is not zero
                     ├── it should verify if the asset is different that weth and convert
                     ├── it should update the available fees to withdraw
-                    ├── it should update unsettled fees weth of the vault
                     ├── it should distribute value to the vault
                     ├── it should remove the asset from receivedMarketFees
                     └── it should emit {LogConvertAccumulatedFeesToWeth} event

@@ -235,9 +235,6 @@ contract FeeDistributionBranch is EngineAccessControl {
                 marketFeesX18, ud60x18(vault.stakingFeeDistribution.totalShares), totalVaultsSharesX18
             ).intoSD59x18();
 
-            // update the unsettled fees of the vault
-            vault.updateUnsettledFeesWeth(vaultFeeAmountX18);
-
             // distribute the amount between the vault's shares
             vault.stakingFeeDistribution.distributeValue(vaultFeeAmountX18);
         }
@@ -334,9 +331,6 @@ contract FeeDistributionBranch is EngineAccessControl {
         if (amountToClaimX18.isZero()) revert Errors.NoFeesToClaim();
 
         vault.stakingFeeDistribution.accumulateActor(actorId);
-
-        // update the unsettled fees of the vault
-        vault.updateUnsettledFeesWeth(-amountToClaimX18.intoSD59x18());
 
         // weth address
         address weth = MarketMakingEngineConfiguration.load().weth;

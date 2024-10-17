@@ -9,12 +9,12 @@ import { Errors } from "@zaros/utils/Errors.sol";
 abstract contract EngineAccessControl {
     /// @notice Modifier to check if the caller is a registered engine.
     modifier onlyRegisteredEngine() {
-        // load market making engine configuration form storage
+        // load market making engine configuration and the perps engine address
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
         // if `msg.sender` is not a registered engine, revert
-        if (!marketMakingEngineConfiguration.registeredEngines[msg.sender]) {
+        if (!marketMakingEngineConfiguration.isRegisteredEngine[msg.sender]) {
             revert Errors.Unauthorized(msg.sender);
         }
 

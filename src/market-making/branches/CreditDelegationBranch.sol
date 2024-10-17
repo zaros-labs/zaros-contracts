@@ -20,7 +20,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USD Token
-contract CreditDelegationBranch {
+contract CreditDelegationBranch is EngineAccessControl{
     using Collateral for Collateral.Data;
     using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
@@ -54,21 +54,6 @@ contract CreditDelegationBranch {
         uint256 requestedUsdTokenAmount,
         uint256 mintedUsdTokenAmount
     );
-
-    /// @notice Verifies if the caller is a registered engine.
-    modifier onlyRegisteredEngine() {
-        // load market making engine configuration and the perps engine address
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-
-        // if `msg.sender` is not a registered engine, revert
-        if (!marketMakingEngineConfiguration.isRegisteredEngine[msg.sender]) {
-            revert Errors.Unauthorized(msg.sender);
-        }
-
-        // continue execution
-        _;
-    }
 
     /*//////////////////////////////////////////////////////////////////////////
                                    VIEW FUNCTIONS
