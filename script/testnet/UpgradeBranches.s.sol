@@ -12,19 +12,7 @@ import { SettlementBranch } from "@zaros/perpetuals/branches/SettlementBranch.so
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
-import { BaseScript } from "../Base.s.sol";
-import {
-    deployPerpsEngineBranches,
-    getPerpsEngineBranchesSelectors,
-    getBranchUpgrades
-} from "../utils/TreeProxyUtils.sol";
-
-// Open Zeppelin dependencies
-import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
-import { UUPSUpgradeable } from "@openzeppelin/proxy/utils/UUPSUpgradeable.sol";
-
-// Forge dependencies
-import { console } from "forge-std/console.sol";
+import { BaseScript } from "script/Base.s.sol";
 
 contract UpgradeBranches is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
