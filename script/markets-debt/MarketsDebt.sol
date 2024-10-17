@@ -15,7 +15,16 @@ import { EthMarketDebt } from "script/markets-debt/EthMarketDebt.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
+/// @notice MarketsDebt contract
 abstract contract MarketsDebt is StdCheats, StdUtils, BtcMarketDebt, EthMarketDebt {
+
+    /// @notice Market debt config
+    /// @param marketDebtId Market debt id
+    /// @param autoDeleverageStartThreshold Auto deleverage start threshold
+    /// @param autoDeleverageEndThreshold Auto deleverage end threshold
+    /// @param autoDeleveragePowerScale Auto deleverage power scale
+    /// @param marketShare Market share
+    /// @param feeRecipientsShare Fee recipients share
     struct MarketDebtConfig {
         uint128 marketDebtId;
         uint128 autoDeleverageStartThreshold;
@@ -25,6 +34,10 @@ abstract contract MarketsDebt is StdCheats, StdUtils, BtcMarketDebt, EthMarketDe
         uint128 feeRecipientsShare;
     }
 
+    /// @notice Configure market debts params
+    /// @param marketMakingEngine Market making engine
+    /// @param initialMarketDebtId Initial market debt id
+    /// @param finalMarketDebtId Final market debt id
     struct ConfigureMarketDebtsParams {
         IMarketMakingEngine marketMakingEngine;
         uint256 initialMarketDebtId;
@@ -34,6 +47,7 @@ abstract contract MarketsDebt is StdCheats, StdUtils, BtcMarketDebt, EthMarketDe
     /// @notice Market debt configurations mapped by market debtid.
     mapping(uint256 marketDebtId => MarketDebtConfig marketConfig) internal marketsDebtConfig;
 
+    /// @notice Setup markets debt config
     function setupMarketsDebtConfig() internal {
         marketsDebtConfig[BTC_MARKET_DEBT_ID] = MarketDebtConfig({
             marketDebtId: BTC_MARKET_DEBT_ID,
@@ -54,6 +68,8 @@ abstract contract MarketsDebt is StdCheats, StdUtils, BtcMarketDebt, EthMarketDe
         });
     }
 
+    /// @notice Get filtered markets debt config
+    /// @param marketsDebtIdsRange Markets debt ids range
     function getFilteredMarketsDebtConfig(
         uint256[2] memory marketsDebtIdsRange
     )
@@ -76,6 +92,8 @@ abstract contract MarketsDebt is StdCheats, StdUtils, BtcMarketDebt, EthMarketDe
         return filteredMarketsDebtConfig;
     }
 
+    /// @notice Configure markets debt
+    /// @param params Configure market debts params
     function configureMarketsDebt(ConfigureMarketDebtsParams memory params) public {
         for (uint256 i = params.initialMarketDebtId; i <= params.finalMarketDebtId; i++) {
             params.marketMakingEngine.configureMarketDebt(
