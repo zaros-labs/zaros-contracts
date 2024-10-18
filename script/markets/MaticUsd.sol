@@ -31,7 +31,7 @@ abstract contract MaticUsd {
     bool internal constant MATIC_USD_USE_CUSTOM_PRICE_ADAPTER = false;
 
     // TODO: Update stream id value
-    bytes32 internal constant MATIC_USD_STREAM_ID = 0x0003fd6ff25e1a28ddd55c85882279987be478a66a75abdf05a468beb5b8b467;
+    bytes32 internal constant MATIC_USD_STREAM_ID = 0x0003675e8721a97b94f3ed48cbec8c7990ddeea9608e8823e22d5566b6592529;
     string internal constant STRING_MATIC_USD_STREAM_ID =
-        "0x0003fd6ff25e1a28ddd55c85882279987be478a66a75abdf05a468beb5b8b467";
+        "0x0003675e8721a97b94f3ed48cbec8c7990ddeea9608e8823e22d5566b6592529";
 }
