@@ -61,7 +61,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), marginValueUsd);
     }
 
-    function test_RevertGiven_ThePreviousOwnerHasPendingMarketOrderWithMinimumLifeTimeNotPassed(
+    function testFuzz_RevertGiven_ThePreviousOwnerHasPendingMarketOrderWithMinimumLifeTimeNotPassed(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
@@ -116,7 +116,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         perpsEngine.notifyAccountTransfer(users.madara.account, tradingAccountId);  
     }
 
-    function test_GivenThePreviousOwnerHasPendingMarketOrderWithMinimumLifeTimePassed(
+    function testFuzz_GivenThePreviousOwnerHasPendingMarketOrderWithMinimumLifeTimePassed(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
