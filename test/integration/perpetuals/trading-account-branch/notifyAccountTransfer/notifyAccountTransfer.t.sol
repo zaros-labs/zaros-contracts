@@ -31,8 +31,8 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         perpsEngine.notifyAccountTransfer(users.madara.account, tradingAccountId);
     }
 
-    function testFuzz_GivenTheSenderIsTheAccountNftContract(uint256 marginValueUsd) external {
-       marginValueUsd = bound({
+    function test_GivenTheSenderIsTheAccountNftContract(uint256 marginValueUsd) external {
+        marginValueUsd = bound({
             x: marginValueUsd,
             min: WSTETH_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(wstEth), WSTETH_DEPOSIT_CAP_X18)
@@ -61,13 +61,18 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), marginValueUsd);
     }
 
-    function testFuzz_RevertGiven_ThePreviousOwnerHasPendingMarketOrderWithMinimumLifeTimeNotPassed(
+    modifier givenThePreviousOwnerHasPendingMarketOrder() {
+        _;
+    }
+
+    function test_RevertWhen_TheMinimumLifeTimeNotPassed(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
         uint256 marketId
-    ) 
-        external 
+    )
+        external
+        givenThePreviousOwnerHasPendingMarketOrder
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -82,7 +87,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
-         int128 sizeDelta = fuzzOrderSizeDelta(
+        int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
@@ -104,7 +109,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
                 sizeDelta: sizeDelta
             })
         );
-        
+
         changePrank({ msgSender: address(tradingAccountToken) });
 
         // it should revert
@@ -113,16 +118,17 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         });
 
         // transfer the trading account token
-        perpsEngine.notifyAccountTransfer(users.madara.account, tradingAccountId);  
+        perpsEngine.notifyAccountTransfer(users.madara.account, tradingAccountId);
     }
 
-    function testFuzz_GivenThePreviousOwnerHasPendingMarketOrderWithMinimumLifeTimePassed(
+    function test_WhenTheMinimumLifeTimePassed(
         uint256 initialMarginRate,
         uint256 marginValueUsd,
         bool isLong,
         uint256 marketId
-    ) 
-        external 
+    )
+        external
+        givenThePreviousOwnerHasPendingMarketOrder
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
@@ -137,7 +143,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
 
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
-         int128 sizeDelta = fuzzOrderSizeDelta(
+        int128 sizeDelta = fuzzOrderSizeDelta(
             FuzzOrderSizeDeltaParams({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
@@ -172,7 +178,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
             marketMakingEngine: address(marketMakingEngine),
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
-        
+
         changePrank({ msgSender: address(tradingAccountToken) });
 
         // previous owner active market order
@@ -193,7 +199,7 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
         assertEq(newOwnerMarketOrder.marketId, 0);
         assertEq(newOwnerMarketOrder.sizeDelta, 0);
         assertEq(newOwnerMarketOrder.timestamp, 0);
-        
+
         // new user can withdraw
         changePrank({ msgSender: users.madara.account });
         perpsEngine.withdrawMargin(tradingAccountId, address(usdc), marginValueUsd);
