@@ -10,15 +10,4 @@ contract MarketMakingEngineConfigurationHarness {
         data.weth = wethAddr;
         return data.weth;
     }
-
-    function workaround_setPerpsEngineAddress(address perpsEngineAddr) external  {
-        // MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
-        // data.perpsEngine = perpsEngineAddr;
-        // return data.perpsEngine;
-    }
-
-    function workaround_setFeeRecipients(address[] calldata feeRecipients) external {
-        // MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
-        // data.feeRecipients.push(feeRecipients);
-    }
 }
