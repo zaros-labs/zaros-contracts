@@ -70,17 +70,6 @@ library Distribution {
         return ud60x18(self.actor[actorId].shares);
     }
 
-    function getLastValuePerShare(
-        Data storage self,
-        bytes32 actorId
-    )
-        internal
-        view
-        returns (SD59x18 lastValuePerShare)
-    {
-        return sd59x18(self.actor[actorId].lastValuePerShare);
-    }
-
     function getValuePerShare(Data storage self) internal view returns (SD59x18) {
         return sd59x18(self.valuePerShare);
     }
