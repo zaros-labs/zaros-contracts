@@ -13,7 +13,7 @@ import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 contract UsdTokenSwapKeeper is
     ILogAutomation,
     IStreamsLookupCompatible,
-    BaseKeeper // @note this address goes in contract to automate
+    BaseKeeper
 {
     /// @notice ERC7201 storage location.
     bytes32 internal constant USDZ_SWAP_KEEPER_LOCATION = keccak256(
@@ -80,6 +80,11 @@ contract UsdTokenSwapKeeper is
         // load requiest for user by id
         UsdTokenSwap.SwapRequest storage request = tokenSwapData.swapRequests[caller][requestId];
 
+        // if request dealine expired revert
+        if (request.deadline > block.timestamp) {
+            return (false, new bytes(0));
+        }
+
         // load usd token swap storage
         UsdTokenSwapKeeperStorage storage self = _getUsdTokenSwapKeeperStorage();
 
@@ -89,7 +94,7 @@ contract UsdTokenSwapKeeper is
         // encode perform data
         bytes memory extraData = abi.encode(caller, requestId);
 
-        revert StreamsLookup(DATA_STREAMS_FEED_LABEL, streams, DATA_STREAMS_QUERY_LABEL, request.deadline, extraData);
+        revert StreamsLookup(DATA_STREAMS_FEED_LABEL, streams, DATA_STREAMS_QUERY_LABEL, block.timestamp, extraData);
     }
 
     /// @inheritdoc ILogAutomation
@@ -99,7 +104,7 @@ contract UsdTokenSwapKeeper is
 
         UsdTokenSwapKeeperStorage storage self = _getUsdTokenSwapKeeperStorage();
 
-        self.marketMakingEngine.fulfillSwap(user, requestId, signedReport);
+        self.marketMakingEngine.fulfillSwap(user, requestId, signedReport, address(self.marketMakingEngine));
     }
 
     /// @inheritdoc IStreamsLookupCompatible

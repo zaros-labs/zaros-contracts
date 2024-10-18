@@ -288,9 +288,9 @@ library Errors {
     /// @param requestId The id of the request
     error RequestAlreadyProcessed(address user, uint128 requestId);
 
-    /// @notice Thrown when the asset out is unsupported
-    /// @param asset The address of the unsupported asset
-    error UnsupportedAssetOut(address asset);
+    /// @notice Thrown when USD token swap is unsupported
+    /// @param asset The address of the asset
+    error InvalidUsdTokenSwap(address asset);
 
     error DataStreamReportExpired();
 }
