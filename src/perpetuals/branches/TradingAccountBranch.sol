@@ -305,9 +305,6 @@ contract TradingAccountBranch {
         // collateral for other traders if they wish
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
 
-        // fetch storage slot for this trading account's market order
-        MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
-
         // reverts if a trader has a pending order
         _requireNoActiveMarketOrder(tradingAccountId);
 
