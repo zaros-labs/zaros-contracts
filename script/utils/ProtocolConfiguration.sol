@@ -45,7 +45,6 @@ abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Vaults, S
     uint128 internal constant LIQUIDATION_FEE_USD = 5e18;
 
     /// @notice Test only mocks and constants.
-    uint256 internal constant CONFIGURATION_ID = 1;
     uint256 internal constant INITIAL_MARKET_ID = 1;
     uint256 internal constant FINAL_MARKET_ID = 10;
     uint256 internal constant INITIAL_MARGIN_COLLATERAL_ID = 1;
