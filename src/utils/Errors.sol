@@ -188,15 +188,6 @@ library Errors {
     /// @notice Thrown when trying to distribute value to an empty distribution.
     error EmptyDistribution();
 
-    /// @notice Thrown when collateral type not supported
-    error UnsupportedCollateralType();
-
-    /// @notice Thrown when not enough balance
-    error NotEnoughCollateralBalance(uint256 balance);
-
-    /// @notice Thrown when PriceAdapter not defined
-    error PriceAdapterUndefined();
-
     /// @notice MarketMakingEngine.Market errors.
 
     /// @notice Thrown when the given `marketId` does not exist.
@@ -219,12 +210,6 @@ library Errors {
     /// @notice Thrown when Uniswap pool fee set to zero
     error InvalidPoolFee();
 
-    /// @notice Thrown when slippage set to less than 100 (e.g. 0.1%)
-    error InvalidSlippage();
-
-    /// @notice Thrown when configuration does not exist
-    error UnrecognisedConfiguration();
-
     /// @notice Thrown when there are no available wEth fees to be collected
     error NoWethFeesCollected();
 
@@ -233,12 +218,6 @@ library Errors {
 
     /// @notice Thrown when user does not have shares to claim fees
     error NoSharesAvailable();
-
-    /// @notice Thrown when swap execution fails
-    error SwapExecutionFailed();
-
-    /// @notice Thrown when deadline is block.timestamp before current block.timestamp
-    error InvalidDeadline();
 
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
@@ -269,12 +248,6 @@ library Errors {
 
     /// @notice MarketMakingEngine.Vault errors.
     error NoMarketsConnectedToVault(uint128 vaultId);
-
-    /// @notice Thrown when sum of percentages does not total 10_000 (e.g. 100%)
-    error PercentageValidationFailed();
-
-    /// @notice Thrown when fees have not been collected from selected asset
-    error InvalidAsset();
 
     /// @notice Thrown when the Dex Swap Strategy has an invalid dex adapter
     error DexSwapStrategyHasAnInvalidDexAdapter(uint128 dexSwapStrategyId);
