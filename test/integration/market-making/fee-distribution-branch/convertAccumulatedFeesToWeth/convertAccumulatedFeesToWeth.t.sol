@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
-import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
 import { Math } from "@zaros/utils/Math.sol";
 
@@ -14,8 +13,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, UNIT as UD60x18_UNIT } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -142,7 +140,11 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         );
     }
 
-    function test_WhenTheAmountIsNotZero(
+    modifier whenTheAmountIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_TheDexSwapStrategyHasAnInvalidDexAdapter(
         uint256 marketDebtId,
         uint256 amount
     )
@@ -151,6 +153,44 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         whenTheMarketExist
         whenTheCollateralIsEnabled
         whenTheMarketDebtHasTheAsset
+        whenTheAmountIsNotZero
+    {
+        changePrank({ msgSender: address(perpsEngine) });
+
+        uint128 wrongStrategyId = 0;
+
+        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+
+        amount = bound({
+            x: amount,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+
+        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+
+        marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, address(usdc), amount);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.DexSwapStrategyHasAnInvalidDexAdapter.selector, wrongStrategyId)
+        });
+
+        marketMakingEngine.convertAccumulatedFeesToWeth(
+            fuzzMarketDebtConfig.marketDebtId, address(usdc), wrongStrategyId
+        );
+    }
+
+    function testFuzz_WhenTheDexSwapStrategyHasAValidDexAdapter(
+        uint256 marketDebtId,
+        uint256 amount
+    )
+        external
+        givenTheSenderIsRegisteredEngine
+        whenTheMarketExist
+        whenTheCollateralIsEnabled
+        whenTheMarketDebtHasTheAsset
+        whenTheAmountIsNotZero
     {
         changePrank({ msgSender: address(perpsEngine) });
 

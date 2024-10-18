@@ -276,8 +276,8 @@ library Errors {
     /// @notice Thrown when fees have not been collected from selected asset
     error InvalidAsset();
 
-    /// @notice Thrown when Uniswap router address is not defined
-    error SwapRouterAddressUndefined();
+    /// @notice Thrown when the Dex Swap Strategy has an invalid dex adapter
+    error DexSwapStrategyHasAnInvalidDexAdapter(uint128 dexSwapStrategyId);
 
     /// @notice Thrown when marketShare plus feeRecipientsShare is greater than 1
     /// @param marketShare The market share between 0 and 1 in 18 decimals

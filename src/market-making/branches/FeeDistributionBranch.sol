@@ -175,6 +175,9 @@ contract FeeDistributionBranch is EngineAccessControl {
             // loads the dex swap strategy data storage pointer
             DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
 
+            // reverts if the dex swap strategy has an invalid dex adapter
+            if (dexSwapStrategy.dexAdapter == address(0)) revert Errors.DexSwapStrategyHasAnInvalidDexAdapter(dexSwapStrategyId);
+
             // load the weth collateral data storage pointer
             Collateral.Data storage wethCollateral = Collateral.load(weth);
 
