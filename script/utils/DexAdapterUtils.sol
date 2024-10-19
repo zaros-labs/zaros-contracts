@@ -18,7 +18,7 @@ library DexAdapterUtils {
     /// @notice Deploys the Uniswap V3 Adapter
     /// @param marketMakingEngine The Market Making Engine
     /// @param owner The owner of the Uniswap V3 Adapter
-    /// @param slippageTolerance The slippage tolerance
+    /// @param slippageToleranceBps The slippage tolerance
     /// @param fee The Uniswap V3 pool fee
     /// @param collaterals The collaterals to set in the Uniswap V3 Adapter
     /// @param collateralData The collateral data to set in the Uniswap V3 Adapter
@@ -26,7 +26,7 @@ library DexAdapterUtils {
     function deployUniswapV3Adapter(
         IMarketMakingEngine marketMakingEngine,
         address owner,
-        uint256 slippageTolerance,
+        uint256 slippageToleranceBps,
         uint24 fee,
         address[] memory collaterals,
         UniswapV3Adapter.CollateralData[] memory collateralData,
@@ -45,7 +45,7 @@ library DexAdapterUtils {
 
         // create bytes of the initialze function of Uniswap V3 Adapter Implementation
         bytes memory initializeUniswapV3Adapter =
-            abi.encodeWithSelector(uniswapV3AdapterImplementation.initialize.selector, owner, slippageTolerance, fee);
+            abi.encodeWithSelector(uniswapV3AdapterImplementation.initialize.selector, owner, slippageToleranceBps, fee);
 
         // deploy the Uniswap V3 Adapter Proxy
         uniswapV3Adapter = UniswapV3Adapter(

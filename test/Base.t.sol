@@ -294,7 +294,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         marketMakingEngine.setWeth(address(wEth));
 
-        uint256 slippageTolerance = 100;
+        uint256 slippageToleranceBps = 100;
         uint24 fee = 3000;
 
         address[] memory collaterals = new address[](2);
@@ -316,7 +316,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         bool isTest = true;
 
         uniswapV3Adapter = DexAdapterUtils.deployUniswapV3Adapter(
-            marketMakingEngine, users.owner.account, slippageTolerance, fee, collaterals, collateralData, isTest
+            marketMakingEngine, users.owner.account, slippageToleranceBps, fee, collaterals, collateralData, isTest
         );
 
         deal({ token: address(wEth), to: uniswapV3Adapter.mockUniswapV3SwapStrategyRouter(), give: type(uint256).max });

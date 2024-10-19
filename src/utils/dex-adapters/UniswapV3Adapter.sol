@@ -63,7 +63,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
 
     /// @notice the slippage tolerance
     /// @dev the minimum is 100 (e.g. 1%)
-    uint256 public slippageTolerance;
+    uint256 public slippageToleranceBps;
 
     /// @notice The Mock Uniswap V3 Swap Strategy Router address
     address public mockUniswapV3SwapStrategyRouter;
@@ -92,7 +92,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         _disableInitializers();
     }
 
-    function initialize(address owner, uint256 _slippageTolerance, uint24 _fee) external initializer {
+    function initialize(address owner, uint256 _slippageToleranceBps, uint24 _fee) external initializer {
         // initialize the owner
         __Ownable_init(owner);
 
@@ -100,7 +100,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         setPoolFee(_fee);
 
         // set the slippage tolerance
-        setSlippageTolerance(_slippageTolerance);
+        setSlippageTolerance(_slippageToleranceBps);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -179,7 +179,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @return amountOutMin The amount out min
     function calculateAmountOutMin(uint256 amountOutMinExpected) public view returns (uint256 amountOutMin) {
         // calculate the amount out min
-        amountOutMin = (amountOutMinExpected * (10_000 - slippageTolerance)) / 10_000;
+        amountOutMin = (amountOutMinExpected * (10_000 - slippageToleranceBps)) / 10_000;
     }
 
     /// @notice Sets pool fee
@@ -213,7 +213,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @dev the minimum is 100 (e.g. 1%)
     function setSlippageTolerance(uint256 newSlippageTolerance) public onlyOwner {
         // revert if the new slippage tolerance is less than 100
-        slippageTolerance = newSlippageTolerance;
+        slippageToleranceBps = newSlippageTolerance;
 
         // emit the event LogSetSlippageTolerance
         emit LogSetSlippageTolerance(newSlippageTolerance);
