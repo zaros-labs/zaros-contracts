@@ -107,7 +107,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
                                     FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Executes a swap exact input with the given calldata.
+    /// @notice Executes a swap using the exact input amount, coming from the swap payload passed by the Market Making Engine.
     /// @param swapPayload The swap data to perform the swap.
     /// @return amountOut The amount out returned.
     function executeSwapExactInputSingle(SwapPayload calldata swapPayload) external returns (uint256 amountOut) {

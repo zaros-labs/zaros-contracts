@@ -20,7 +20,7 @@ struct SwapPayload {
 
 /// @notice The interface for the DEX adapter.
 interface IDexAdapter {
-    /// @notice Executes a swap exact input with the given calldata.
+    /// @notice Executes a swap using the exact input amount, coming from the swap payload passed by the Market Making Engine.
     /// @return amountOut The amount out returned.
     function executeSwapExactInputSingle(SwapPayload memory swapCallData) external returns (uint256 amountOut);
 }
