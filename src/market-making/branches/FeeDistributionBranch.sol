@@ -269,7 +269,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             MarketMakingEngineConfiguration.load();
 
         // get the fee recipients list
-        address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipientsAddress[configuration];
+        address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipientsAddresses[configuration];
 
         // store the length of the fee recipients list
         uint256 recipientListLength = recipientsList.length;

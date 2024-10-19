@@ -14,7 +14,7 @@ library MarketMakingEngineConfiguration {
         address usdc;
         address weth;
         address feeDistributor;
-        address[][] feeRecipientsAddress;
+        address[][] feeRecipientsAddresses;
         FeeRecipient.Data[][] feeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
