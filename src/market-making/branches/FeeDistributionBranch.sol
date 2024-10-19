@@ -66,7 +66,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
 
         if (marketDebt.marketId == 0) {
-            revert Errors.UnrecognisedMarket(marketId);
+            revert Errors.MarketDoesNotExist(marketId);
         }
         _;
     }

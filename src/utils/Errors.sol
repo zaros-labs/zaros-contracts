@@ -193,9 +193,6 @@ library Errors {
     /// @notice Thrown when the given `marketId` does not exist.
     error MarketDoesNotExist(uint128 marketId);
 
-    /// @notice Thrown when market does not exist
-    error UnrecognisedMarket(uint128 marketId);
-
     /// @notice Thrown when the given `marketId` is disabled.
     error MarketIsDisabled(uint128 marketId);
 

@@ -37,7 +37,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         uint128 invalidMarketDebtId = FINAL_MARKET_DEBT_ID + 1;
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector, invalidMarketDebtId) });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketDebtId) });
 
         marketMakingEngine.sendWethToFeeRecipients(invalidMarketDebtId, configuration);
     }

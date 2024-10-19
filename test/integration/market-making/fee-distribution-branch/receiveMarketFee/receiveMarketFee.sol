@@ -41,7 +41,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         deal({ token: address(usdc), to: address(perpsEngine), give: amount });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.UnrecognisedMarket.selector, invalidMarketDebtId) });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketDebtId) });
 
         marketMakingEngine.receiveMarketFee(invalidMarketDebtId, address(usdc), amount);
     }
