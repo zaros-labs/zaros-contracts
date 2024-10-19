@@ -24,21 +24,15 @@ contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
 
     /// @dev Performs a single exact input swap
     function exactInputInternal(
-        uint256 amountIn,
-        address recipient,
-        uint160 sqrtPriceLimitX96,
-        uint256 amountOutMinimum
+        uint256,
+        address,
+        uint160,
+        uint256
     )
         private
         pure
         returns (uint256 amountOut)
-    {
-        // only for mock purposes
-        amountIn;
-        recipient;
-        sqrtPriceLimitX96;
-        amountOut = amountOutMinimum;
-    }
+    {}
 
     /// @inheritdoc ISwapRouter
     function exactInputSingle(
