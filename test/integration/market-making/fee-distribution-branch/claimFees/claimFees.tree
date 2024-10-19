@@ -4,7 +4,7 @@ ClaimFees_Integration_Test
 └── when the user does have available shares
     ├── when amount to claim is zero
     │   └── it should revert
-    └── when amount to calim is greater then zero
+    └── when amount to claim is greater then zero
         ├── it should update accumulate actor
         ├── it should transfer the fees to the sender
         └── it should emit {LogClaimFees} event

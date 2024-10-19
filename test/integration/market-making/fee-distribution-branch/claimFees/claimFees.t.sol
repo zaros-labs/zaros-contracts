@@ -27,7 +27,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         // it should revert
     }
 
-    function testFuzz_WhenAmountToCalimIsGreaterThenZero() external whenTheUserDoesHaveAvailableShares {
+    function testFuzz_WhenAmountToClaimIsGreaterThenZero() external whenTheUserDoesHaveAvailableShares {
         // it should update accumulate actor
         // it should transfer the fees to the sender
         // it should emit {LogClaimFees} event
