@@ -13,8 +13,6 @@ library DexSwapStrategy {
     bytes32 internal constant DEX_SWAP_STRATEGY_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.DexSwapStrategy")) - 1));
 
-    uint256 internal constant BPS_DENOMINATOR = 10_000;
-
     /// @notice DexSwapStrategy data storage struct.
     /// @param id The unique identifier of the DexSwapStrategy.
     /// @param dexAdapter The address of the DexAdapter contract.
