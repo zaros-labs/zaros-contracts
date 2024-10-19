@@ -8,7 +8,7 @@ import { MarketDebt } from "@zaros/market-making/leaves/MarketDebt.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
-contract MarketDebtHarness {
+contract MarketHarness {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
 

@@ -52,7 +52,7 @@ import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.s
 import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
 import { DistributionHarness } from "test/harnesses/market-making/leaves/DistributionHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
-import { MarketDebtHarness } from "test/harnesses/market-making/leaves/MarketDebtHarness.sol";
+import { MarketHarness } from "test/harnesses/market-making/leaves/MarketHarness.sol";
 import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
 import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
@@ -115,7 +115,7 @@ abstract contract IMarketMakingEngine is
     WithdrawalRequestHarness,
     CollateralHarness,
     DistributionHarness,
-    MarketDebtHarness,
+    MarketHarness,
     MarketMakingEngineConfigurationHarness,
     DexSwapStrategyHarness,
     FeeRecipientHarness

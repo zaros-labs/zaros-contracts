@@ -32,7 +32,7 @@ import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/Wi
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { DistributionHarness } from "test/harnesses/market-making/leaves/DistributionHarness.sol";
-import { MarketDebtHarness } from "test/harnesses/market-making/leaves/MarketDebtHarness.sol";
+import { MarketHarness } from "test/harnesses/market-making/leaves/MarketHarness.sol";
 import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
 import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
@@ -572,8 +572,8 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     address distributionHarness = address(new DistributionHarness());
     console.log("DistributionHarness: ", distributionHarness);
 
-    address marketDebtHarness = address(new MarketDebtHarness());
-    console.log("MarketDebtHarness: ", marketDebtHarness);
+    address marketDebtHarness = address(new MarketHarness());
+    console.log("MarketHarness: ", marketDebtHarness);
 
     address marketMakingEngineConfigurationHarness = address(new MarketMakingEngineConfigurationHarness());
     console.log("MarketMakingEngineConfigurationHarness: ", marketMakingEngineConfigurationHarness);
@@ -626,12 +626,12 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     distributionHarnessSelectors[3] = DistributionHarness.exposed_getActorValueChange.selector;
 
     bytes4[] memory marketDebtHarnessSelectors = new bytes4[](6);
-    marketDebtHarnessSelectors[0] = MarketDebtHarness.workaround_getMarketId.selector;
-    marketDebtHarnessSelectors[1] = MarketDebtHarness.workaround_setMarketId.selector;
-    marketDebtHarnessSelectors[2] = MarketDebtHarness.workaround_setConnectedVaults.selector;
-    marketDebtHarnessSelectors[3] = MarketDebtHarness.workaround_getReceivedMarketFees.selector;
-    marketDebtHarnessSelectors[4] = MarketDebtHarness.workaround_setReceivedMarketFees.selector;
-    marketDebtHarnessSelectors[5] = MarketDebtHarness.workaround_getAvailableFeesToWithdraw.selector;
+    marketDebtHarnessSelectors[0] = MarketHarness.workaround_getMarketId.selector;
+    marketDebtHarnessSelectors[1] = MarketHarness.workaround_setMarketId.selector;
+    marketDebtHarnessSelectors[2] = MarketHarness.workaround_setConnectedVaults.selector;
+    marketDebtHarnessSelectors[3] = MarketHarness.workaround_getReceivedMarketFees.selector;
+    marketDebtHarnessSelectors[4] = MarketHarness.workaround_setReceivedMarketFees.selector;
+    marketDebtHarnessSelectors[5] = MarketHarness.workaround_getAvailableFeesToWithdraw.selector;
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](1);
     marketMakingEngineConfigurationSelectors[0] =
