@@ -62,7 +62,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param autoDeleveragePowerScale The auto deleverage power scale.
     /// @param marketShare The market share between 0 and 1 in 18 decimals
     /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
-    event LogConfigureMarketDebt(
+    event LogConfigureMarket(
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
@@ -295,8 +295,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         marketDebt.marketShare = marketShare;
         marketDebt.feeRecipientsShare = feeRecipientsShare;
 
-        // emit event LogConfigureMarketDebt
-        emit LogConfigureMarketDebt(
+        // emit event LogConfigureMarket
+        emit LogConfigureMarket(
             marketId,
             autoDeleverageStartThreshold,
             autoDeleverageEndThreshold,
