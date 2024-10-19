@@ -10,7 +10,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 /// @notice DexSwapStrategy library for executing swaps on a DEX.
 library DexSwapStrategy {
     /// @notice ERC7201 storage location.
-    bytes32 internal constant SWAP_ROUTER_LOCATION =
+    bytes32 internal constant DEX_SWAP_STRATEGY_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.DexSwapStrategy")) - 1));
 
     uint256 internal constant BPS_DENOMINATOR = 10_000;
@@ -26,7 +26,7 @@ library DexSwapStrategy {
     /// @notice Loads a {DexSwapStrategy}.
     /// @return dexSwapStrategy The loaded dex swap strategy storage pointer.
     function load(uint128 dexSwapStrategyId) internal pure returns (Data storage dexSwapStrategy) {
-        bytes32 slot = keccak256(abi.encode(SWAP_ROUTER_LOCATION, dexSwapStrategyId));
+        bytes32 slot = keccak256(abi.encode(DEX_SWAP_STRATEGY_LOCATION, dexSwapStrategyId));
         assembly {
             dexSwapStrategy.slot := slot
         }
