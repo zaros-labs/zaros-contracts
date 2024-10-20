@@ -215,13 +215,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         // caches the market's realized debt
         SD59x18 realizedDebtUsdX18 = market.getRealizedDebtUsd();
 
-        // uint256 -> UD60x18
-        // NOTE: we don't need to scale decimals here as it's known that USD Token has 18 decimals
-        UD60x18 amountX18 = ud60x18(amount);
-
         // load the market's connected vaults ids and `mstore` them
-        // TODO: is it more gas efficient if we pass the market id to the next function and load each vault at its
-        // loop?
         uint256[] memory connectedVaults = market.getConnectedVaultsIds();
 
         // distributes the up to date unrealized and realized debt values to the market's connected vaults
@@ -253,6 +247,9 @@ contract CreditDelegationBranch is EngineAccessControl {
             revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
 
+        // uint256 -> UD60x18
+        // NOTE: we don't need to scale decimals here as it's known that USD Token has 18 decimals
+        UD60x18 amountX18 = ud60x18(amount);
         // prepare the amount of usdToken that will be minted to the perps engine
         uint256 amountToMint;
 
@@ -320,23 +317,26 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// TODO: add invariants
     function settleVaultsDebt() external { }
 
-    /// @dev Must be called whenever the perps trading engine needs to know a market's skew and OI caps.
-    /// @dev It takes into accounts all vault's credit delegated to each supported market. `n` Vaults may delegate
-    /// credit to `n` markets, configured by the protocol admin.
-    /// @dev Invariants involved in the call:
+    /// @notice Updates the credit delegations from ZLP Vaults to the given market id.
+    /// @dev Must be called whenever an engine needs to know the current credit capacity of a given market id.
     /// TODO: add invariants
-    // TODO: update credit delegation and debt distribution
-    // TODO: how to account for collected margin collateral's fluctuation in value?
-    function updateCreditDelegation(uint128 marketId) public { }
+    function updateMarketCreditDelegations(uint128 marketId) public {
+        // load the market's data storage pointer
+        Market.Data storage market = Market.loadLive(marketId);
 
-    /// @dev Called by the perps trading engine to update the credit delegation and return the credit for a given
-    /// market id
-    /// @dev Invariants involved in the call:
+        // load the market's connected vaults ids and `mstore` them
+        uint256[] memory connectedVaults = market.getConnectedVaultsIds();
+
+        // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
+        // market
+        Vault.recalculateVaultsCreditCapacity(connectedVaults);
+    }
+
+    /// @notice Called by a registered to update a market's credit delegations and return its credit capacity.
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
-    /// TODO: add invariants
-    function updateCreditDelegationAndReturnCreditForMarket(uint128 marketId) external returns (SD59x18) {
-        updateCreditDelegation(marketId);
+    function updateMarketCreditDelegationsAndReturnCapacity(uint128 marketId) external returns (SD59x18) {
+        updateMarketCreditDelegations(marketId);
         return getCreditCapacityForMarketId(marketId);
     }
 
