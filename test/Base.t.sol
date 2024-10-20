@@ -322,7 +322,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             marketMakingEngine, users.owner.account, address(mockUniswapV3SwapStrategyRouter), slippageToleranceBps, fee, collaterals, collateralData
         );
 
-        deal({ token: address(wEth), to: uniswapV3Adapter.mockUniswapV3SwapStrategyRouter(), give: type(uint256).max });
+        deal({ token: address(wEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
 
         uint256[2] memory vaultsIdsRange;
         vaultsIdsRange[0] = INITIAL_VAULT_ID;
