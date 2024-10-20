@@ -122,9 +122,7 @@ contract TradingAccountBranch {
     /// @return initialMarginUsdX18 The account's initial margin in positions.
     /// @return maintenanceMarginUsdX18 The account's maintenance margin.
     /// @return availableMarginUsdX18 The account's withdrawable margin balance.
-    function getAccountMarginBreakdown(
-        uint128 tradingAccountId
-    )
+    function getAccountMarginBreakdown(uint128 tradingAccountId)
         external
         view
         returns (
@@ -166,9 +164,7 @@ contract TradingAccountBranch {
     /// @notice Returns the total trading account's unrealized pnl across open positions.
     /// @param tradingAccountId The trading account id.
     /// @return accountTotalUnrealizedPnlUsdX18 The account's total unrealized pnl.
-    function getAccountTotalUnrealizedPnl(
-        uint128 tradingAccountId
-    )
+    function getAccountTotalUnrealizedPnl(uint128 tradingAccountId)
         external
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18)

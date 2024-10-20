@@ -29,9 +29,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_GivenCallUpdateConfigFunction(
-        uint256 marketId
-    )
+    function testFuzz_GivenCallUpdateConfigFunction(uint256 marketId)
         external
         givenInitializeContract
         givenCallUpdateConfigFunction
@@ -60,9 +58,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         assertEq(newMarketId, marketIdConfig, "market id is not correct");
     }
 
-    function testFuzz_WhenAddressOfPerpsEngineIsZero(
-        uint256 marketId
-    )
+    function testFuzz_WhenAddressOfPerpsEngineIsZero(uint256 marketId)
         external
         givenInitializeContract
         givenCallUpdateConfigFunction
@@ -85,9 +81,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
     }
 
-    function testFuzz_WhenMarketIdIsZero(
-        uint256 marketId
-    )
+    function testFuzz_WhenMarketIdIsZero(uint256 marketId)
         external
         givenInitializeContract
         givenCallUpdateConfigFunction
@@ -110,9 +104,7 @@ contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
         MarketOrderKeeper(marketOrderKeeper).updateConfig(newPersEngine, newMarketId, newStreamId);
     }
 
-    function testFuzz_WhenStreamIdIsZero(
-        uint256 marketId
-    )
+    function testFuzz_WhenStreamIdIsZero(uint256 marketId)
         external
         givenInitializeContract
         givenCallUpdateConfigFunction
