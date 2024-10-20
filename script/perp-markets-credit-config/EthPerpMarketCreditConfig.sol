@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 abstract contract EthPerpMarketCreditConfig {
-    /// @notice ETH market debt configuration parameters.
+    /// @notice ETH perp market credit configuration parameters.
     uint128 internal constant ETH_PERP_MARKET_CREDIT_CONFIG_ID = 2;
     uint128 internal constant ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD = 0.5e18;
     uint128 internal constant ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD = 0.6e18;

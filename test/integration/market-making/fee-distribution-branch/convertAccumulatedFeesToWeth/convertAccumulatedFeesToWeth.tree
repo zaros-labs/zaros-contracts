@@ -8,9 +8,9 @@ ConvertAccumulatedFeesToWeth_Integration_Test
         ├── when the collateal is not enabled
         │   └── it should revert
         └── when the collateral is enabled
-            ├── when the market debt doesn't have the asset
+            ├── when the market doesn't have the asset
             │   └── it should revert
-            └── when the market debt has the asset
+            └── when the market has the asset
                 ├── when the amount is zero
                 │   └── it should revert
                 └── when the amount is not zero

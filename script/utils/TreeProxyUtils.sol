@@ -503,7 +503,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.configureEngine.selector;
     marketMakingEngineConfigBranchSelectors[6] = MarketMakingEngineConfigurationBranch.setWeth.selector;
     marketMakingEngineConfigBranchSelectors[7] = MarketMakingEngineConfigurationBranch.configureCollateral.selector;
-    marketMakingEngineConfigBranchSelectors[8] = MarketMakingEngineConfigurationBranch.configureMarketDebt.selector;
+    marketMakingEngineConfigBranchSelectors[8] = MarketMakingEngineConfigurationBranch.configureMarket.selector;
     marketMakingEngineConfigBranchSelectors[9] =
         MarketMakingEngineConfigurationBranch.configureDexSwapStrategy.selector;
 

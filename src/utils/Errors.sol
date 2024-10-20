@@ -260,9 +260,9 @@ library Errors {
     /// @notice Thrown when the Dex Swap Strategy has an invalid dex adapter
     error DexSwapStrategyHasAnInvalidDexAdapter(uint128 dexSwapStrategyId);
 
-    /// @notice Thrown when the asset is not in the market debt
-    /// @param asset The asset that is not in the market debt
-    error MarketDebtDoesNotContainTheAsset(address asset);
+    /// @notice Thrown when the asset is not in the market
+    /// @param asset The asset that is not in the market
+    error MarketDoesNotContainTheAsset(address asset);
 
     /// @notice Thrown when the asset amount is zero
     /// @param asset The asset that has zero amount

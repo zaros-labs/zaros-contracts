@@ -101,7 +101,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         // verify input amount
         if (amount == 0) revert Errors.ZeroInput("amount");
 
-        // loads the market debt data storage pointer
+        // loads the market data storage pointer
         Market.Data storage market = Market.load(marketId);
 
         // loads the collateral's data storage pointer
@@ -146,11 +146,11 @@ contract FeeDistributionBranch is EngineAccessControl {
         // reverts if the collateral isn't enabled
         collateral.verifyIsEnabled();
 
-        // loads the market debt data storage pointer
+        // loads the market data storage pointer
         Market.Data storage market = Market.load(marketId);
 
         // reverts if the market hasn't received any fees for the given asset
-        if (!market.receivedMarketFees.contains(asset)) revert Errors.MarketDebtDoesNotContainTheAsset(asset);
+        if (!market.receivedMarketFees.contains(asset)) revert Errors.MarketDoesNotContainTheAsset(asset);
 
         // get the amount of asset received as fees
         UD60x18 assetAmountX18 = ud60x18(market.receivedMarketFees.get(asset));

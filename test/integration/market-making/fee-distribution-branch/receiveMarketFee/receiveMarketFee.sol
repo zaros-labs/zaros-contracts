@@ -13,7 +13,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: address(users.owner.account) });
-        configureMarketsDebt();
+        configureMarkets();
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(uint256 marketId, uint256 amount) external {

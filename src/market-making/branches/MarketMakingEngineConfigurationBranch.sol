@@ -55,7 +55,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         address indexed collateral, address priceAdapter, uint256 creditRatio, bool isEnabled, uint8 decimals
     );
 
-    /// @notice Emitted when market debt is configured.
+    /// @notice Emitted when market is configured.
     /// @param marketId The perps engine's market id.
     /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
     /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
@@ -245,7 +245,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogConfigureCollateral(collateral, priceAdapter, creditRatio, isEnabled, decimals);
     }
 
-    /// @notice Configure market debt on Market Making Engine
+    /// @notice Configure market on Market Making Engine
     /// @dev Only owner can call this functions
     /// @param marketId The market id.
     /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
@@ -253,7 +253,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param autoDeleveragePowerScale The auto deleverage power scale.
     /// @param marketShare The market share between 0 and 1 in 18 decimals
     /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
-    function configureMarketDebt(
+    function configureMarket(
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
@@ -284,10 +284,10 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.InvalidMarketShareAndFeeRecipientsShare(marketShare, feeRecipientsShare);
         }
 
-        // load market debt data from storage
+        // load market data from storage
         Market.Data storage market = Market.load(marketId);
 
-        // update market debt data
+        // update market data
         market.id = marketId;
         market.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         market.autoDeleverageEndThreshold = autoDeleverageEndThreshold;

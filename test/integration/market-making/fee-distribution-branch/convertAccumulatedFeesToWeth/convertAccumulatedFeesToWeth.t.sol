@@ -22,7 +22,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
-        configureMarketsDebt();
+        configureMarkets();
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(
@@ -51,12 +51,12 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        uint128 invalidMarketDebtId = FINAL_MARKET_DEBT_ID + 1;
+        uint128 invalidMarketId = FINAL_MARKET_DEBT_ID + 1;
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketDebtId) });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketId) });
 
-        marketMakingEngine.convertAccumulatedFeesToWeth(invalidMarketDebtId, address(usdc), dexSwapStrategyId);
+        marketMakingEngine.convertAccumulatedFeesToWeth(invalidMarketId, address(usdc), dexSwapStrategyId);
     }
 
     modifier whenTheMarketExist() {
@@ -89,7 +89,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheMarketDebtDoesntHaveTheAsset(
+    function testFuzz_RevertWhen_TheMarketDoesntHaveTheAsset(
         uint256 marketId,
         uint128 dexSwapStrategyId
     )
@@ -104,7 +104,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.MarketDebtDoesNotContainTheAsset.selector, address(usdc))
+            revertData: abi.encodeWithSelector(Errors.MarketDoesNotContainTheAsset.selector, address(usdc))
         });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
@@ -112,7 +112,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         );
     }
 
-    modifier whenTheMarketDebtHasTheAsset() {
+    modifier whenTheMarketHasTheAsset() {
         _;
     }
 
@@ -124,7 +124,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
         whenTheCollateralIsEnabled
-        whenTheMarketDebtHasTheAsset
+        whenTheMarketHasTheAsset
     {
         changePrank({ msgSender: address(perpsEngine) });
 
@@ -152,7 +152,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
         whenTheCollateralIsEnabled
-        whenTheMarketDebtHasTheAsset
+        whenTheMarketHasTheAsset
         whenTheAmountIsNotZero
     {
         changePrank({ msgSender: address(perpsEngine) });
@@ -189,7 +189,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
         whenTheCollateralIsEnabled
-        whenTheMarketDebtHasTheAsset
+        whenTheMarketHasTheAsset
         whenTheAmountIsNotZero
     {
         changePrank({ msgSender: address(perpsEngine) });
