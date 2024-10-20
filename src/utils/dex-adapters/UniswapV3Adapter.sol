@@ -98,9 +98,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
                                     FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Executes a swap using the exact input amount, coming from the swap payload passed by the Market Making Engine.
-    /// @param swapPayload The swap data to perform the swap.
-    /// @return amountOut The amount out returned.
+    /// @inheritdoc IDexAdapter
     function executeSwapExactInputSingle(SwapPayload calldata swapPayload) external returns (uint256 amountOut) {
         // transfer the tokenIn from the send to this contract
         IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
