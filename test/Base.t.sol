@@ -461,10 +461,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     function configureMarketsDebt() internal {
         configureMarketsDebt(
-            ConfigureMarketDebtsParams({
+            ConfigureMarketParams({
                 marketMakingEngine: marketMakingEngine,
-                initialMarketDebtId: INITIAL_MARKET_DEBT_ID,
-                finalMarketDebtId: FINAL_MARKET_DEBT_ID
+                initialMarketId: INITIAL_MARKET_DEBT_ID,
+                finalMarketId: FINAL_MARKET_DEBT_ID
             })
         );
     }

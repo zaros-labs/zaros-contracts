@@ -34,14 +34,14 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
         uint128 feeRecipientsShare;
     }
 
-    /// @notice Configure market debts params
+    /// @notice Configure market params
     /// @param marketMakingEngine Market making engine
-    /// @param initialMarketDebtId Initial market debt id
-    /// @param finalMarketDebtId Final market debt id
-    struct ConfigureMarketDebtsParams {
+    /// @param initialMarketId Initial market id
+    /// @param finalMarketId Final market id
+    struct ConfigureMarketParams {
         IMarketMakingEngine marketMakingEngine;
-        uint256 initialMarketDebtId;
-        uint256 finalMarketDebtId;
+        uint256 initialMarketId;
+        uint256 finalMarketId;
     }
 
     /// @notice Market debt configurations mapped by market debtid.
@@ -94,8 +94,8 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
 
     /// @notice Configure markets debt
     /// @param params Configure market debts params
-    function configureMarketsDebt(ConfigureMarketDebtsParams memory params) public {
-        for (uint256 i = params.initialMarketDebtId; i <= params.finalMarketDebtId; i++) {
+    function configureMarketsDebt(ConfigureMarketParams memory params) public {
+        for (uint256 i = params.initialMarketId; i <= params.finalMarketId; i++) {
             params.marketMakingEngine.configureMarketDebt(
                 marketsDebtConfig[i].marketDebtId,
                 marketsDebtConfig[i].autoDeleverageStartThreshold,
