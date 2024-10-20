@@ -25,7 +25,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     /// @param autoDeleveragePowerScale Auto deleverage power scale
     /// @param marketShare Market share
     /// @param feeRecipientsShare Fee recipients share
-    struct MarketDebtConfig {
+    struct PerpMarketCreditConfig {
         uint128 marketDebtId;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
@@ -45,11 +45,11 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     }
 
     /// @notice Market debt configurations mapped by market debtid.
-    mapping(uint256 marketDebtId => MarketDebtConfig marketConfig) internal marketsDebtConfig;
+    mapping(uint256 marketDebtId => PerpMarketCreditConfig marketConfig) internal marketsDebtConfig;
 
     /// @notice Setup markets debt config
     function setupMarketsDebtConfig() internal {
-        marketsDebtConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = MarketDebtConfig({
+        marketsDebtConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             marketDebtId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -58,7 +58,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
             feeRecipientsShare: BTC_PERP_MARKET_CREDIT_CONFIG_FEE_RECIPIENTS_SHARE
         });
 
-        marketsDebtConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = MarketDebtConfig({
+        marketsDebtConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             marketDebtId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -75,13 +75,13 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     )
         internal
         view
-        returns (MarketDebtConfig[] memory)
+        returns (PerpMarketCreditConfig[] memory)
     {
         uint256 initialMarketId = marketsDebtIdsRange[0];
         uint256 finalMarketId = marketsDebtIdsRange[1];
         uint256 filteredMarketsDebtLength = finalMarketId - initialMarketId + 1;
 
-        MarketDebtConfig[] memory filteredMarketsDebtConfig = new MarketDebtConfig[](filteredMarketsDebtLength);
+        PerpMarketCreditConfig[] memory filteredMarketsDebtConfig = new PerpMarketCreditConfig[](filteredMarketsDebtLength);
 
         uint256 nextMarketDebtId = initialMarketId;
         for (uint256 i; i < filteredMarketsDebtLength; i++) {

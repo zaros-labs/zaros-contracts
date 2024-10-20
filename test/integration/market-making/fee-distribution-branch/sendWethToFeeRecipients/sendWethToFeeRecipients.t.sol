@@ -53,12 +53,12 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoWethFeesCollected.selector) });
 
-        marketMakingEngine.sendWethToFeeRecipients(fuzzMarketDebtConfig.marketDebtId, configuration);
+        marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketDebtId, configuration);
     }
 
     modifier whenThereIsAvailableFeesToWithdraw() {
@@ -73,7 +73,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        MarketDebtConfig memory fuzzMarketDebtConfig = getFuzzMarketDebtConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
 
         amount = bound({
             x: amount,
@@ -82,15 +82,15 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         });
         deal({ token: address(usdc), to: address(perpsEngine), give: amount });
 
-        marketMakingEngine.receiveMarketFee(fuzzMarketDebtConfig.marketDebtId, address(usdc), amount);
+        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), amount);
 
-        marketMakingEngine.convertAccumulatedFeesToWeth(fuzzMarketDebtConfig.marketDebtId, address(usdc), uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID());
+        marketMakingEngine.convertAccumulatedFeesToWeth(fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID());
 
         // TODO: add custom error
         // it should revert
         vm.expectRevert({ });
 
-        marketMakingEngine.sendWethToFeeRecipients(fuzzMarketDebtConfig.marketDebtId, configuration);
+        marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketDebtId, configuration);
     }
 
     function test_WhenThereAreFeeRecipients()
