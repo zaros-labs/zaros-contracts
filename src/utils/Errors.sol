@@ -243,7 +243,7 @@ library Errors {
 
     /// @notice Dex Swap Strategy errors.
 
-    /// @notice Thrown when Uniswap pool fee set to zero
+    /// @notice Thrown when dex swap strategy pool fee set to zero
     error InvalidPoolFee();
 
     /// @notice MarketMakingEngine.FeeDistributionBranch errors
