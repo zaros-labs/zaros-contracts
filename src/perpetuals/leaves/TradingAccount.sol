@@ -9,6 +9,7 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { Math } from "@zaros/utils/Math.sol";
 
 // Open Zeppelin dependencies
 import { SafeERC20, IERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
@@ -447,7 +448,9 @@ library TradingAccount {
             MarginCollateralConfiguration.load(collateralType);
 
         UD60x18 marginCollateralBalanceX18 = getMarginCollateralBalance(self, collateralType);
-        UD60x18 requiredMarginInCollateralX18 = amountUsdX18.div(marginCollateralPriceUsdX18);
+
+        UD60x18 requiredMarginInCollateralX18 = Math.divUp(amountUsdX18, marginCollateralPriceUsdX18);
+
         uint256 amountToTransfer;
 
         if (marginCollateralBalanceX18.gte(requiredMarginInCollateralX18)) {
