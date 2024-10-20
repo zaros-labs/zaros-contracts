@@ -74,7 +74,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @dev 500 bps (0.05%) for stable pairs with low volatility.
     /// @dev 3000 bps (0.30%) for most pairs with moderate volatility.
     /// @dev 10000 bps (1.00%) for highly volatile pairs.
-    uint24 public fee;
+    uint24 public feeBps;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTANTS
@@ -135,7 +135,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: swapPayload.tokenIn,
                 tokenOut: swapPayload.tokenOut,
-                fee: fee,
+                fee: feeBps,
                 recipient: swapPayload.recipient,
                 deadline: swapPayload.deadline,
                 amountIn: swapPayload.amountIn,
@@ -189,7 +189,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         if (newFee != 500 && newFee != 3000 && newFee != 10_000) revert Errors.InvalidPoolFee();
 
         // set the new fee
-        fee = newFee;
+        feeBps = newFee;
 
         // emit the event
         emit LogSetPoolFee(newFee);
