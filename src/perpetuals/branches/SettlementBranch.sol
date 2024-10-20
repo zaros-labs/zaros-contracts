@@ -506,6 +506,20 @@ contract SettlementBranch is EIP712Upgradeable {
             settlementFeeUsdX18: ctx.settlementFeeUsdX18
         });
 
+        {
+            // // get account's required maintenance margin & unrealized PNL
+            (, UD60x18 requiredMaintenanceMarginUsdX18, SD59x18 accountTotalUnrealizedPnlUsdX18) =
+                tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(0, SD59x18_ZERO);
+
+            // use unrealized PNL to calculate & output account's margin balance
+            SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
+
+            // prevent liquidatable accounts from trading
+            if (TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
+                revert Errors.AccountIsLiquidatable(tradingAccountId);
+            }
+         }
+
         emit LogFillOrder(
             msg.sender,
             tradingAccountId,
