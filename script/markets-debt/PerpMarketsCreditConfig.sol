@@ -15,8 +15,8 @@ import { EthMarketDebt } from "script/markets-debt/EthMarketDebt.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-/// @notice MarketsDebt contract
-abstract contract MarketsDebt is StdCheats, StdUtils, BtcMarketDebt, EthMarketDebt {
+/// @notice PerpMarketsCreditConfig contract
+abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcMarketDebt, EthMarketDebt {
 
     /// @notice Market debt config
     /// @param marketDebtId Market debt id
