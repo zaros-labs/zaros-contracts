@@ -13,7 +13,6 @@ import { StabilityConfiguration } from "@zaros/market-making/leaves/StabilityCon
 
 // Open Zeppelin dependencies
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import { IERC4626 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies

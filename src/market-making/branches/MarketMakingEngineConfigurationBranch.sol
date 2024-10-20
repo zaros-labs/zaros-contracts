@@ -58,14 +58,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param enabled Indicating whether a keeper is enabled or disabled.
     event LogUpdateKeeper(address keeper, bool enabled);
 
-    /// @dev The Ownable contract is initialized at the UpgradeBranch.
-    /// @dev {MarketMakingEngineConfigurationBranch} UUPS initializer.
-    function initialize(address usdToken, address owner) external initializer {
-        __Ownable_init(owner);
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-    }
-
     /// @notice Emitted when an engine's configuration is updated.
     /// @param engine The address of the engine contract.
     /// @param usdToken The address of the USD token contract.

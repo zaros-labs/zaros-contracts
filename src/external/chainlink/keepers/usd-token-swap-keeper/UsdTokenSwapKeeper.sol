@@ -9,7 +9,6 @@ import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol
 import { Errors } from "@zaros/utils/Errors.sol";
 import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 
-// TODO: Make it a log trigger, streams compatible, automation keeper
 contract UsdTokenSwapKeeper is
     ILogAutomation,
     IStreamsLookupCompatible,
@@ -35,7 +34,7 @@ contract UsdTokenSwapKeeper is
         _disableInitializers();
     }
 
-    /// @notice {UsdzSwapKeeper} UUPS initializer.
+    /// @notice {UsdTokenSwapKeeper} UUPS initializer.
     function initialize(address owner, address marketMakingEngine, string calldata streamId) external initializer {
         __BaseKeeper_init(owner);
 
