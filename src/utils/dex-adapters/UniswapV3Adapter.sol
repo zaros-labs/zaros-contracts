@@ -7,6 +7,7 @@ import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { ISwapRouter } from "@zaros/utils/interfaces/ISwapRouter.sol";
 import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 
@@ -179,7 +180,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @return amountOutMin The amount out min
     function calculateAmountOutMin(uint256 amountOutMinExpected) public view returns (uint256 amountOutMin) {
         // calculate the amount out min
-        amountOutMin = (amountOutMinExpected * (10_000 - slippageToleranceBps)) / 10_000;
+        amountOutMin = (amountOutMinExpected * (10_000 - slippageToleranceBps)) / Constants.BPS_DENOMINATOR;
     }
 
     /// @notice Sets pool fee
