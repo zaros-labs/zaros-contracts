@@ -7,7 +7,7 @@ import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
-// Markets Debt
+// Markets
 import { BtcPerpMarketCreditConfig } from "script/perp-markets-credit-config/BtcPerpMarketCreditConfig.sol";
 import { EthPerpMarketCreditConfig } from "script/perp-markets-credit-config/EthPerpMarketCreditConfig.sol";
 
@@ -45,11 +45,11 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     }
 
     /// @notice Perp market credit configurations mapped by market id.
-    mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal perpMarketsDebtConfig;
+    mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal perpMarketsCreditConfig;
 
     /// @notice Setup perp markets credit config
     function setupPerpMarketsCreditConfig() internal {
-        perpMarketsDebtConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+        perpMarketsCreditConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             marketId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -58,7 +58,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
             feeRecipientsShare: BTC_PERP_MARKET_CREDIT_CONFIG_FEE_RECIPIENTS_SHARE
         });
 
-        perpMarketsDebtConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+        perpMarketsCreditConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             marketId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -79,14 +79,14 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     {
         uint256 initialMarketId = marketsIdsRange[0];
         uint256 finalMarketId = marketsIdsRange[1];
-        uint256 filteredMarketsDebtLength = finalMarketId - initialMarketId + 1;
+        uint256 filteredMarketsLength = finalMarketId - initialMarketId + 1;
 
-        PerpMarketCreditConfig[] memory filteredPerpMarketsCreditConfig = new PerpMarketCreditConfig[](filteredMarketsDebtLength);
+        PerpMarketCreditConfig[] memory filteredPerpMarketsCreditConfig = new PerpMarketCreditConfig[](filteredMarketsLength);
 
-        uint256 nextMarketDebtId = initialMarketId;
-        for (uint256 i; i < filteredMarketsDebtLength; i++) {
-            filteredPerpMarketsCreditConfig[i] = perpMarketsDebtConfig[nextMarketDebtId];
-            nextMarketDebtId++;
+        uint256 nextMarketId = initialMarketId;
+        for (uint256 i; i < filteredMarketsLength; i++) {
+            filteredPerpMarketsCreditConfig[i] = perpMarketsCreditConfig[nextMarketId];
+            nextMarketId++;
         }
 
         return filteredPerpMarketsCreditConfig;
@@ -97,12 +97,12 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     function configureMarkets(ConfigureMarketParams memory params) public {
         for (uint256 i = params.initialMarketId; i <= params.finalMarketId; i++) {
             params.marketMakingEngine.configureMarket(
-                perpMarketsDebtConfig[i].marketId,
-                perpMarketsDebtConfig[i].autoDeleverageStartThreshold,
-                perpMarketsDebtConfig[i].autoDeleverageEndThreshold,
-                perpMarketsDebtConfig[i].autoDeleveragePowerScale,
-                perpMarketsDebtConfig[i].marketShare,
-                perpMarketsDebtConfig[i].feeRecipientsShare
+                perpMarketsCreditConfig[i].marketId,
+                perpMarketsCreditConfig[i].autoDeleverageStartThreshold,
+                perpMarketsCreditConfig[i].autoDeleverageEndThreshold,
+                perpMarketsCreditConfig[i].autoDeleveragePowerScale,
+                perpMarketsCreditConfig[i].marketShare,
+                perpMarketsCreditConfig[i].feeRecipientsShare
             );
         }
     }

@@ -489,7 +489,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketMakingEngine.stake(vaultId, sharesToStake, new bytes(0), false);
     }
 
-    function setMarketDebtId(uint128 marketId) internal {
+    function setMarketId(uint128 marketId) internal {
         marketMakingEngine.workaround_setMarketId(marketId);
     }
 
@@ -526,11 +526,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function getFuzzPerpMarketCreditConfig(uint256 marketId) internal view returns (PerpMarketCreditConfig memory) {
         marketId = bound({ x: marketId, min: INITIAL_MARKET_DEBT_ID, max: FINAL_MARKET_DEBT_ID });
 
-        uint256[2] memory marketsDebtIdsRange;
-        marketsDebtIdsRange[0] = marketId;
-        marketsDebtIdsRange[1] = marketId;
+        uint256[2] memory marketsIdsRange;
+        marketsIdsRange[0] = marketId;
+        marketsIdsRange[1] = marketId;
 
-        PerpMarketCreditConfig[] memory filteredMarketsConfig = getFilteredPerpMarketsCreditConfig(marketsDebtIdsRange);
+        PerpMarketCreditConfig[] memory filteredMarketsConfig = getFilteredPerpMarketsCreditConfig(marketsIdsRange);
 
         return filteredMarketsConfig[0];
     }
