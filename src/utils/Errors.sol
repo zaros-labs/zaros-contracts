@@ -167,6 +167,13 @@ library Errors {
     /// one.
     error InvalidDataStreamReport(bytes32 streamId, bytes32 reportStreamId);
 
+    /// @notice MarketMakingEngine.MarketMakingEngineBranch errors.
+
+    /// @notice Thrown when marketShare plus feeRecipientsShare is greater than 1
+    /// @param marketShare The market share between 0 and 1 in 18 decimals
+    /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
+    error InvalidMarketShareAndFeeRecipientsShare(uint256 marketShare, uint256 feeRecipientsShare);
+
     /// @notice MarketMakingEngine.CreditDelegationBranch errors.
 
     /// @notice Thrown when the given `marketId` has no vaults delegating credit to it. This error must be unreachable
@@ -204,18 +211,6 @@ library Errors {
     /// @param withdrawalRequestId The withdrawal request identifier.
     error WithdrawalRequestDoesNotExist(uint128 vaultId, address account, uint128 withdrawalRequestId);
 
-    /// @notice Thrown when Uniswap pool fee set to zero
-    error InvalidPoolFee();
-
-    /// @notice Thrown when there are no available wEth fees to be collected
-    error NoWethFeesCollected();
-
-    /// @notice Thrown when user does not have fees to claim
-    error NoFeesToClaim();
-
-    /// @notice Thrown when user does not have shares to claim fees
-    error NoSharesAvailable();
-
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
     /// @notice Thrown when a slippage check fails.
@@ -246,13 +241,24 @@ library Errors {
     /// @notice MarketMakingEngine.Vault errors.
     error NoMarketsConnectedToVault(uint128 vaultId);
 
+    /// @notice Dex Swap Strategy errors.
+
+    /// @notice Thrown when Uniswap pool fee set to zero
+    error InvalidPoolFee();
+
+    /// @notice MarketMakingEngine.FeeDistributionBranch errors
+
+    /// @notice Thrown when there are no available wEth fees to be collected
+    error NoWethFeesCollected();
+
+    /// @notice Thrown when user does not have fees to claim
+    error NoFeesToClaim();
+
+    /// @notice Thrown when user does not have shares to claim fees
+    error NoSharesAvailable();
+
     /// @notice Thrown when the Dex Swap Strategy has an invalid dex adapter
     error DexSwapStrategyHasAnInvalidDexAdapter(uint128 dexSwapStrategyId);
-
-    /// @notice Thrown when marketShare plus feeRecipientsShare is greater than 1
-    /// @param marketShare The market share between 0 and 1 in 18 decimals
-    /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
-    error InvalidMarketShareAndFeeRecipientsShare(uint256 marketShare, uint256 feeRecipientsShare);
 
     /// @notice Thrown when the asset is not in the market debt
     /// @param asset The asset that is not in the market debt
