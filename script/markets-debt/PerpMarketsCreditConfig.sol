@@ -45,11 +45,11 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     }
 
     /// @notice Market debt configurations mapped by market debtid.
-    mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal marketsDebtConfig;
+    mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal perpMarketsDebtConfig;
 
     /// @notice Setup markets debt config
     function setupPerpMarketsCreditConfig() internal {
-        marketsDebtConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+        perpMarketsDebtConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             marketId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -58,7 +58,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
             feeRecipientsShare: BTC_PERP_MARKET_CREDIT_CONFIG_FEE_RECIPIENTS_SHARE
         });
 
-        marketsDebtConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+        perpMarketsDebtConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             marketId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -85,7 +85,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
 
         uint256 nextMarketDebtId = initialMarketId;
         for (uint256 i; i < filteredMarketsDebtLength; i++) {
-            filteredPerpMarketsCreditConfig[i] = marketsDebtConfig[nextMarketDebtId];
+            filteredPerpMarketsCreditConfig[i] = perpMarketsDebtConfig[nextMarketDebtId];
             nextMarketDebtId++;
         }
 
@@ -97,12 +97,12 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     function configureMarketsDebt(ConfigureMarketParams memory params) public {
         for (uint256 i = params.initialMarketId; i <= params.finalMarketId; i++) {
             params.marketMakingEngine.configureMarketDebt(
-                marketsDebtConfig[i].marketId,
-                marketsDebtConfig[i].autoDeleverageStartThreshold,
-                marketsDebtConfig[i].autoDeleverageEndThreshold,
-                marketsDebtConfig[i].autoDeleveragePowerScale,
-                marketsDebtConfig[i].marketShare,
-                marketsDebtConfig[i].feeRecipientsShare
+                perpMarketsDebtConfig[i].marketId,
+                perpMarketsDebtConfig[i].autoDeleverageStartThreshold,
+                perpMarketsDebtConfig[i].autoDeleverageEndThreshold,
+                perpMarketsDebtConfig[i].autoDeleveragePowerScale,
+                perpMarketsDebtConfig[i].marketShare,
+                perpMarketsDebtConfig[i].feeRecipientsShare
             );
         }
     }
