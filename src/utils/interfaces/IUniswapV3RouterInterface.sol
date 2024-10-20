@@ -4,8 +4,9 @@ pragma solidity 0.8.25;
 import { IUniswapV3SwapCallback } from "@zaros/utils/interfaces/IUniswapV3SwapCallback.sol";
 
 /// @title Router token swapping functionality
+/// @dev copied from https://github.com/Uniswap/v3-periphery/blob/main/contracts/interfaces/IUniswapV3RouterInterface.sol
 /// @notice Functions for swapping tokens via Uniswap V3
-interface ISwapRouter is IUniswapV3SwapCallback {
+interface IUniswapV3RouterInterface is IUniswapV3SwapCallback {
     struct ExactInputSingleParams {
         address tokenIn;
         address tokenOut;

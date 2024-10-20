@@ -2,14 +2,14 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { ISwapRouter } from "@zaros/utils/interfaces/ISwapRouter.sol";
+import { IUniswapV3RouterInterface } from "@zaros/utils/interfaces/IUniswapV3RouterInterface.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
 /// @title mock Uniswap V3 Swap Strategy Router
 /// @notice Router for stateless execution of swaps against Uniswap V3
-contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
+contract MockUniswapV3SwapStrategyRouter is IUniswapV3RouterInterface {
     /// @dev Used as the placeholder value for amountInCached, because the computed amount in for an exact output swap
     /// can never actually be this value
     uint256 private constant DEFAULT_AMOUNT_IN_CACHED = type(uint256).max;
@@ -36,7 +36,7 @@ contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
         amountOut = amountOutMinimum;
     }
 
-    /// @inheritdoc ISwapRouter
+    /// @inheritdoc IUniswapV3RouterInterface
     function exactInputSingle(
         ExactInputSingleParams calldata params
     )
@@ -56,7 +56,7 @@ contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
         require(amountOut >= params.amountOutMinimum, "Too little received");
     }
 
-    /// @inheritdoc ISwapRouter
+    /// @inheritdoc IUniswapV3RouterInterface
     function exactInput(
         ExactInputParams memory params
     )
@@ -80,7 +80,7 @@ contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
         returns (uint256 amountIn)
     { }
 
-    /// @inheritdoc ISwapRouter
+    /// @inheritdoc IUniswapV3RouterInterface
     function exactOutputSingle(
         ExactOutputSingleParams calldata params
     )
@@ -93,7 +93,7 @@ contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
         )
     { }
 
-    /// @inheritdoc ISwapRouter
+    /// @inheritdoc IUniswapV3RouterInterface
     function exactOutput(
         ExactOutputParams calldata params
     )

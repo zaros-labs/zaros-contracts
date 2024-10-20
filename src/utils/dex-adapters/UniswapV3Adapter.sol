@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
-import { ISwapRouter } from "@zaros/utils/interfaces/ISwapRouter.sol";
+import { IUniswapV3RouterInterface } from "@zaros/utils/interfaces/IUniswapV3RouterInterface.sol";
 import { IDexAdapter, SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -106,10 +106,10 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
 
         // instantiate the swap router
-        ISwapRouter swapRouter;
+        IUniswapV3RouterInterface swapRouter;
 
         // get the uniswap v3 swap strategy router
-        swapRouter = ISwapRouter(uniswapV3SwapStrategyRouter);
+        swapRouter = IUniswapV3RouterInterface(uniswapV3SwapStrategyRouter);
 
         // aprove the tokenIn to the swap router
         IERC20(swapPayload.tokenIn).approve(address(swapRouter), swapPayload.amountIn);
@@ -121,7 +121,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         uint256 amountOutMinimum = calculateAmountOutMin(expectedAmountOut);
 
         return swapRouter.exactInputSingle(
-            ISwapRouter.ExactInputSingleParams({
+            IUniswapV3RouterInterface.ExactInputSingleParams({
                 tokenIn: swapPayload.tokenIn,
                 tokenOut: swapPayload.tokenOut,
                 fee: feeBps,
