@@ -7,7 +7,7 @@ import { Markets } from "script/markets/Markets.sol";
 import { Vaults } from "script/vaults/Vaults.sol";
 import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.sol";
 import { SequencerUptimeFeeds } from "script/sequencer-uptime-feeds/SequencerUptimeFeeds.sol";
-import { PerpMarketsCreditConfig } from "script/markets-debt/PerpMarketsCreditConfig.sol";
+import { PerpMarketsCreditConfig } from "script/perp-markets-credit-config/PerpMarketsCreditConfig.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
