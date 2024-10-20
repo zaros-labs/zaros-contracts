@@ -9,11 +9,7 @@ import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol
 import { Errors } from "@zaros/utils/Errors.sol";
 import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 
-contract UsdTokenSwapKeeper is
-    ILogAutomation,
-    IStreamsLookupCompatible,
-    BaseKeeper
-{
+contract UsdTokenSwapKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeeper {
     /// @notice ERC7201 storage location.
     bytes32 internal constant USDZ_SWAP_KEEPER_LOCATION = keccak256(
         abi.encode(uint256(keccak256("fi.zaros.external.chainlink.keepers.UsdTokenSwapKeeper")) - 1)
@@ -27,6 +23,7 @@ contract UsdTokenSwapKeeper is
     /// @param streamId The Chainlink Data Streams stream id.
     struct UsdTokenSwapKeeperStorage {
         IMarketMakingEngine marketMakingEngine;
+        address asset;
         string streamId;
     }
 
@@ -35,11 +32,23 @@ contract UsdTokenSwapKeeper is
     }
 
     /// @notice {UsdTokenSwapKeeper} UUPS initializer.
-    function initialize(address owner, address marketMakingEngine, string calldata streamId) external initializer {
+    function initialize(
+        address owner,
+        address marketMakingEngine,
+        address asset,
+        string calldata streamId
+    )
+        external
+        initializer
+    {
         __BaseKeeper_init(owner);
 
         if (address(marketMakingEngine) == address(0)) {
             revert Errors.ZeroInput("marketMakingEngine");
+        }
+
+        if (asset == address(0)) {
+            revert Errors.ZeroInput("asset");
         }
 
         if (bytes(streamId).length == 0) {
@@ -50,13 +59,20 @@ contract UsdTokenSwapKeeper is
 
         self.marketMakingEngine = IMarketMakingEngine(marketMakingEngine);
         self.streamId = streamId;
+        self.asset = asset;
     }
 
-    function getConfig() external view returns (address keeperOwner, address marketMakingEngine) {
-        UsdTokenSwapKeeperStorage storage self = _getUsdTokenSwapKeeperStorage();
+    function getConfig()
+        external
+        view
+        returns (address keeperOwner, address marketMakingEngine, string memory streamId, address asset)
+    {
+        UsdTokenSwapKeeperStorage memory self = _getUsdTokenSwapKeeperStorage();
 
         keeperOwner = owner();
         marketMakingEngine = address(self.marketMakingEngine);
+        streamId = self.streamId;
+        asset = self.asset;
     }
 
     /// @inheritdoc ILogAutomation
@@ -86,6 +102,13 @@ contract UsdTokenSwapKeeper is
 
         // load usd token swap storage
         UsdTokenSwapKeeperStorage storage self = _getUsdTokenSwapKeeperStorage();
+
+        // if keeper asset stream != vault asset revert
+        // Since the event emitted would be catched by multiple keepers, each with a stream for different asset, only
+        // the one with the matching asset needs to be able to execute the swap
+        if (request.assetOut != self.asset) {
+            return (false, new bytes(0));
+        }
 
         string[] memory streams = new string[](1);
         streams[0] = self.streamId;
@@ -122,9 +145,13 @@ contract UsdTokenSwapKeeper is
         performData = abi.encode(signedReport, extraData);
     }
 
-    function setConfig(address marketMakingEngine, string calldata streamId) external onlyOwner {
+    function updateConfig(address marketMakingEngine, address asset, string calldata streamId) external onlyOwner {
         if (marketMakingEngine == address(0)) {
             revert Errors.ZeroInput("marketMakingEngine");
+        }
+
+        if (asset == address(0)) {
+            revert Errors.ZeroInput("asset");
         }
 
         if (bytes(streamId).length == 0) {
@@ -135,6 +162,7 @@ contract UsdTokenSwapKeeper is
 
         self.marketMakingEngine = IMarketMakingEngine(marketMakingEngine);
         self.streamId = streamId;
+        self.asset = asset;
     }
 
     function _getUsdTokenSwapKeeperStorage() internal pure returns (UsdTokenSwapKeeperStorage storage self) {

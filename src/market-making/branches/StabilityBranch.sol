@@ -36,16 +36,19 @@ contract StabilityBranch {
     /// @notice Emitted when a swap is fulfilled by the keeper
     event LogFulfillSwap(address indexed user, uint128 indexed requestId);
 
-    modifier onlyKeeper(address caller) {
+    modifier onlyKeeper() {
         MarketMakingEngineConfiguration.Data storage configuration = MarketMakingEngineConfiguration.load();
 
-        if (!configuration.isSystemKeeperEnabled[caller]) revert Errors.KeeperNotEnabled(caller);
+        if (!configuration.isSystemKeeperEnabled[msg.sender]) {
+            revert Errors.KeeperNotEnabled(msg.sender);
+        }
+
         _;
     }
 
     /// @dev Swap is fulfilled by a registered keeper.
     /// @dev Invariants involved in the call:
-    /// @dev the asset transfer and / or USDz burn from the msg.sender must happen during initiateSwap,
+    /// @dev the asset transfer and / or USD burn from the msg.sender must happen during initiateSwap,
     /// and then fullfillSwap just updates the system state and performs the payment.
     /// TODO: add invariants
     function initiateSwap(
@@ -106,7 +109,7 @@ contract StabilityBranch {
         address engine
     )
         external
-        onlyKeeper(msg.sender)
+        onlyKeeper()
     {
         // load request for user by id
         UsdTokenSwap.SwapRequest storage request = UsdTokenSwap.load().swapRequests[user][requestId];
@@ -197,14 +200,7 @@ contract StabilityBranch {
         emit LogRefundSwap(msg.sender, requestId);
     }
 
-    function _getAmountOutCollateral(
-        uint256 usdAmountIn,
-        UD60x18 priceX18
-    )
-        internal
-        pure
-        returns (uint256)
-    {
+    function _getAmountOutCollateral(uint256 usdAmountIn, UD60x18 priceX18) internal pure returns (uint256) {
         // uint256 -> SD59x18
         SD59x18 usdAmountInX18 = sd59x18(usdAmountIn.toInt256());
 

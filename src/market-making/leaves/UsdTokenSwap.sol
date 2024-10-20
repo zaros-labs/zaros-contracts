@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { Errors } from "@zaros/utils/Errors.sol";
+
 library UsdTokenSwap {
     /// @notice ERC7201 storage location.
     bytes32 internal constant SWAP_LOCATION =
@@ -45,6 +48,28 @@ library UsdTokenSwap {
         }
     }
 
+    // todo natspec
+    function update(uint128 baseFee, uint128 swapSettlementFeeBps, uint128 maxExecutionTime) internal {
+        Data storage self = load();
+
+        if (self.baseFee == 0) {
+            revert Errors.ZeroInput("baseFee");
+        }
+
+        if (self.swapSettlementFeeBps == 0) {
+            revert Errors.ZeroInput("swapSettlementFeeBps");
+        }
+
+        if (self.maxExecutionTime == 0) {
+            revert Errors.ZeroInput("maxExecutionTime");
+        }
+
+        self.baseFee = baseFee;
+        self.swapSettlementFeeBps = swapSettlementFeeBps;
+        self.maxExecutionTime = maxExecutionTime;
+    }
+
+    // todo natspec
     function nextId(Data storage self, address user) internal returns (uint128 id) {
         return ++self.swapRequestIdCounter[user];
     }
