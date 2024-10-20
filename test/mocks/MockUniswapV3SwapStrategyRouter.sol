@@ -27,12 +27,14 @@ contract MockUniswapV3SwapStrategyRouter is ISwapRouter {
         uint256,
         address,
         uint160,
-        uint256
+        uint256 amountOutMinimum
     )
         private
         pure
         returns (uint256 amountOut)
-    {}
+    {
+        amountOut = amountOutMinimum;
+    }
 
     /// @inheritdoc ISwapRouter
     function exactInputSingle(

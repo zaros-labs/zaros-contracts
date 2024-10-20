@@ -10,6 +10,7 @@ import { CreditDeposit } from "@zaros/market-making/leaves/CreditDeposit.sol";
 import { Distribution } from "./Distribution.sol";
 
 // Open Zeppelin dependencies
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
@@ -26,6 +27,7 @@ library Market {
     using Distribution for Distribution.Data;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
     using SafeCast for int256;
     using SafeCast for uint256;
 
@@ -36,6 +38,7 @@ library Market {
 
     /// @notice {Market} namespace storage structure.
     /// @param engine The engine contract address that operates this market id.
+    /// @param availableFeesToWithdraw The amount of fees available to withdraw from the market.
     /// @param marketId The engine's linked market id.
     /// @param autoDeleverageStartThreshold An admin configurable decimal rate used to determine the starting
     /// threshold of the ADL polynomial regression curve, ranging from 0 to 1.
@@ -43,6 +46,8 @@ library Market {
     /// the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleveragePowerScale An admin configurable exponent used to determine the acceleration of the
     /// ADL polynomial regression curve.
+    /// @param marketShare The share of total accumulated weth to be allocated to the market. Example: 0.5e18 (50%).
+    /// @param feeRecipientsShare The share of total accumulated weth to be allocated to fee recipients.Example: 0.5e18 (50%).
     /// @param realizedDebtUsd Stores the market's latest realized debt value in USD, taking into account usd tokens
     /// that have been directly minted or burned by the market's engine, and the net sum of all credit deposits.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
@@ -53,14 +58,18 @@ library Market {
     /// market.
     /// @param connectedVaults The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
+    /// @param receivedMarketFees An enumerable map that stores the amounts collected from each collateral type available to convert to weth.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
     /// `valuePerShare`: USD denominated market debt or credit per share.
     struct Data {
         address engine;
+        uint256 availableFeesToWithdraw;
         uint128 id;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
+        uint128 marketShare;
+        uint128 feeRecipientsShare;
         int128 realizedDebtUsd;
         uint128 lastRealizedDebtUpdateTime;
         int128 lastDistributedRealizedDebtUsd;
@@ -68,6 +77,7 @@ library Market {
         bool isLive;
         EnumerableSet.AddressSet depositedCollateralTypes;
         EnumerableSet.UintSet[] connectedVaults;
+        EnumerableMap.AddressToUintMap receivedMarketFees;
         Distribution.Data vaultsDebtDistribution;
     }
 
@@ -476,5 +486,69 @@ library Market {
         // updates the vault's credit delegation in USD in both distributions as its shares MUST always be equal,
         // otherwise the system will produce unexpected outputs.
         creditDelegationChangeUsdX18 = vaultsDebtDistribution.setActorShares(actorId, newCreditDelegationUsdX18);
+    }
+
+    /// @notice Support function to increment the received fees for a specific asset
+    /// @param self The fee storage pointer
+    /// @param asset The asset address
+    /// @param amountX18 The amount to be incremented
+    function incrementReceivedMarketFees(Data storage self, address asset, UD60x18 amountX18) internal {
+        // declare newAmount variable
+        UD60x18 newAmount;
+
+        // check if the asset is already in the receivedMarketFees map
+        if (self.receivedMarketFees.contains(asset)) {
+            // if it is, increment the amount
+            newAmount = amountX18.add(ud60x18(self.receivedMarketFees.get(asset)));
+        } else {
+            // if it's not, set the amount
+            newAmount = amountX18;
+        }
+
+        // set the new amount in the receivedMarketFees map
+        self.receivedMarketFees.set(asset, newAmount.intoUint256());
+    }
+
+    /// @notice Support function to update the received and available fees
+    /// @param self The fee storage pointer
+    /// @param asset The asset address
+    /// @param amountX18 The amount to be incremented
+    function updateReceivedAndAvailableFees(Data storage self, address asset, UD60x18 amountX18) internal {
+        // increment the received fees
+        UD60x18 newAmount = amountX18.add(ud60x18(self.availableFeesToWithdraw));
+
+        // set the new amount in the availableFeesToWithdraw
+        self.availableFeesToWithdraw = newAmount.intoUint256();
+
+        // remove the asset from the receivedMarketFees map
+        self.receivedMarketFees.remove(asset);
+    }
+
+    /// @notice Support function to decrease the available fees to withdraw
+    /// @param self The fee storage pointer
+    /// @param amountX18 The amount to be incremented
+    function decrementAvailableFeesToWithdraw(Data storage self, UD60x18 amountX18) internal {
+        // subtract the amount from the availableFeesToWithdraw
+        UD60x18 newAmount = amountX18.sub(ud60x18(self.availableFeesToWithdraw));
+
+        // set the new amount in the availableFeesToWithdraw
+        self.availableFeesToWithdraw = newAmount.intoUint256();
+    }
+
+    /// @notice Support function to calculate the accumulated wEth allocated for the beneficiary
+    /// @param totalAmountX18 The total amount or value to be distributed
+    /// @param shareX18 The share that needs to be calculated
+    /// @param denominatorX18 The denominator representing the total divisions or base value
+    /// @return amountX18 The calculated amount to be distributed
+    function calculateFees(
+        UD60x18 totalAmountX18,
+        UD60x18 shareX18,
+        UD60x18 denominatorX18
+    )
+        internal
+        pure
+        returns (UD60x18 amountX18)
+    {
+        amountX18 = (totalAmountX18.mul(shareX18)).div(denominatorX18);
     }
 }

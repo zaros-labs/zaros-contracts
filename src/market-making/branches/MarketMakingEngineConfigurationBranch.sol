@@ -7,7 +7,7 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
-import { MarketDebt } from "src/market-making/leaves/MarketDebt.sol";
+import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
 
 // Open Zeppelin Upgradeable dependencies
@@ -285,10 +285,10 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         }
 
         // load market debt data from storage
-        MarketDebt.Data storage marketDebt = MarketDebt.load(marketId);
+        Market.Data storage marketDebt = Market.load(marketId);
 
         // update market debt data
-        marketDebt.marketId = marketId;
+        marketDebt.id = marketId;
         marketDebt.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         marketDebt.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
         marketDebt.autoDeleveragePowerScale = autoDeleveragePowerScale;
