@@ -19,14 +19,14 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketCreditConfig, EthPerpMarketCreditConfig {
 
     /// @notice Market debt config
-    /// @param marketDebtId Market debt id
+    /// @param marketId Market debt id
     /// @param autoDeleverageStartThreshold Auto deleverage start threshold
     /// @param autoDeleverageEndThreshold Auto deleverage end threshold
     /// @param autoDeleveragePowerScale Auto deleverage power scale
     /// @param marketShare Market share
     /// @param feeRecipientsShare Fee recipients share
     struct PerpMarketCreditConfig {
-        uint128 marketDebtId;
+        uint128 marketId;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
@@ -45,12 +45,12 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     }
 
     /// @notice Market debt configurations mapped by market debtid.
-    mapping(uint256 marketDebtId => PerpMarketCreditConfig marketConfig) internal marketsDebtConfig;
+    mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal marketsDebtConfig;
 
     /// @notice Setup markets debt config
     function setupMarketsDebtConfig() internal {
         marketsDebtConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
-            marketDebtId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
+            marketId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
             autoDeleveragePowerScale: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE,
@@ -59,7 +59,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
         });
 
         marketsDebtConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
-            marketDebtId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
+            marketId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
             autoDeleveragePowerScale: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE,
@@ -97,7 +97,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     function configureMarketsDebt(ConfigureMarketParams memory params) public {
         for (uint256 i = params.initialMarketId; i <= params.finalMarketId; i++) {
             params.marketMakingEngine.configureMarketDebt(
-                marketsDebtConfig[i].marketDebtId,
+                marketsDebtConfig[i].marketId,
                 marketsDebtConfig[i].autoDeleverageStartThreshold,
                 marketsDebtConfig[i].autoDeleverageEndThreshold,
                 marketsDebtConfig[i].autoDeleveragePowerScale,

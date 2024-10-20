@@ -23,18 +23,18 @@ contract MarketHarness {
         return marketDebt.id;
     }
 
-    function workaround_getReceivedMarketFees(uint128 marketDebtId, address asset) external view returns (uint256) {
-        Market.Data storage marketDebt = Market.load(marketDebtId);
+    function workaround_getReceivedMarketFees(uint128 marketId, address asset) external view returns (uint256) {
+        Market.Data storage marketDebt = Market.load(marketId);
         return marketDebt.receivedMarketFees.get(asset);
     }
 
-    function workaround_setReceivedMarketFees(uint128 marketDebtId, address asset, uint256 amount) external {
-        Market.Data storage marketDebt = Market.load(marketDebtId);
+    function workaround_setReceivedMarketFees(uint128 marketId, address asset, uint256 amount) external {
+        Market.Data storage marketDebt = Market.load(marketId);
         marketDebt.receivedMarketFees.set(asset, amount);
     }
 
-    function workaround_getAvailableFeesToWithdraw(uint128 marketDebtId) external view returns (uint256) {
-        Market.Data storage marketDebt = Market.load(marketDebtId);
+    function workaround_getAvailableFeesToWithdraw(uint128 marketId) external view returns (uint256) {
+        Market.Data storage marketDebt = Market.load(marketId);
         return marketDebt.availableFeesToWithdraw;
     }
 }

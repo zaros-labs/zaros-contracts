@@ -523,12 +523,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         return filteredMarketsConfig[0];
     }
 
-    function getFuzzPerpMarketCreditConfig(uint256 marketDebtId) internal view returns (PerpMarketCreditConfig memory) {
-        marketDebtId = bound({ x: marketDebtId, min: INITIAL_MARKET_DEBT_ID, max: FINAL_MARKET_DEBT_ID });
+    function getFuzzPerpMarketCreditConfig(uint256 marketId) internal view returns (PerpMarketCreditConfig memory) {
+        marketId = bound({ x: marketId, min: INITIAL_MARKET_DEBT_ID, max: FINAL_MARKET_DEBT_ID });
 
         uint256[2] memory marketsDebtIdsRange;
-        marketsDebtIdsRange[0] = marketDebtId;
-        marketsDebtIdsRange[1] = marketDebtId;
+        marketsDebtIdsRange[0] = marketId;
+        marketsDebtIdsRange[1] = marketId;
 
         PerpMarketCreditConfig[] memory filteredMarketsConfig = getFilteredMarketsDebtConfig(marketsDebtIdsRange);
 

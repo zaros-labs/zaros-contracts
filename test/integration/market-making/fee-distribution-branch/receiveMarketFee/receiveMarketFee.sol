@@ -16,12 +16,12 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         configureMarketsDebt();
     }
 
-    function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(uint256 marketDebtId, uint256 amount) external {
+    function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(uint256 marketId, uint256 amount) external {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account) });
-        marketMakingEngine.receiveMarketFee(uint128(marketDebtId), address(usdc), amount);
+        marketMakingEngine.receiveMarketFee(uint128(marketId), address(usdc), amount);
     }
 
     modifier givenTheSenderIsRegisteredEngine() {
@@ -51,7 +51,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_TheAmountIsZero(
-        uint256 marketDebtId
+        uint256 marketId
     )
         external
         givenTheSenderIsRegisteredEngine
@@ -59,14 +59,14 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         uint256 amount = 0;
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
 
-        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), amount);
+        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
     }
 
     modifier whenTheAmountIsNotZero() {
@@ -74,7 +74,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_TheAssetIsNotEnabled(
-        uint256 marketDebtId
+        uint256 marketId
     )
         external
         givenTheSenderIsRegisteredEngine
@@ -83,18 +83,18 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         address assetNotEnabled = address(0x123);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralDisabled.selector, address(0)) });
 
-        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketDebtId, assetNotEnabled, 1);
+        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, assetNotEnabled, 1);
     }
 
     function test_WhenTheAssetIsEnabled(
-        uint256 marketDebtId,
+        uint256 marketId,
         uint256 amount
     )
         external
@@ -104,7 +104,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         amount = bound({
             x: amount,
@@ -115,13 +115,13 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
 
         // it should emit {LogReceiveMarketFee} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
-        emit FeeDistributionBranch.LogReceiveMarketFee(address(usdc), fuzzPerpMarketCreditConfig.marketDebtId, amount);
+        emit FeeDistributionBranch.LogReceiveMarketFee(address(usdc), fuzzPerpMarketCreditConfig.marketId, amount);
 
-        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), amount);
+        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
         // it should increment received market fee
         uint256 receivedMarketFeeX18 =
-            marketMakingEngine.workaround_getReceivedMarketFees(fuzzPerpMarketCreditConfig.marketDebtId, address(usdc));
+            marketMakingEngine.workaround_getReceivedMarketFees(fuzzPerpMarketCreditConfig.marketId, address(usdc));
         UD60x18 amountX18 = convertTokenAmountToUd60x18(address(usdc), amount);
         assertEq(amountX18.intoUint256(), receivedMarketFeeX18);
 

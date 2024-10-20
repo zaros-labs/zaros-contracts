@@ -26,7 +26,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(
-        uint256 marketDebtId,
+        uint256 marketId,
         uint128 dexSwapStrategyId
     )
         external
@@ -36,7 +36,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account) });
 
-        marketMakingEngine.convertAccumulatedFeesToWeth(uint128(marketDebtId), address(usdc), dexSwapStrategyId);
+        marketMakingEngine.convertAccumulatedFeesToWeth(uint128(marketId), address(usdc), dexSwapStrategyId);
     }
 
     modifier givenTheSenderIsRegisteredEngine() {
@@ -64,7 +64,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_TheCollatealIsNotEnabled(
-        uint256 marketDebtId,
+        uint256 marketId,
         uint128 dexSwapStrategyId
     )
         external
@@ -73,7 +73,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         address assetNotEnabled = address(0x123);
 
@@ -81,7 +81,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralDisabled.selector, address(0)) });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketDebtId, assetNotEnabled, dexSwapStrategyId
+            fuzzPerpMarketCreditConfig.marketId, assetNotEnabled, dexSwapStrategyId
         );
     }
 
@@ -90,7 +90,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_TheMarketDebtDoesntHaveTheAsset(
-        uint256 marketDebtId,
+        uint256 marketId,
         uint128 dexSwapStrategyId
     )
         external
@@ -100,7 +100,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         // it should revert
         vm.expectRevert({
@@ -108,7 +108,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), dexSwapStrategyId
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), dexSwapStrategyId
         );
     }
 
@@ -117,7 +117,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_TheAmountIsZero(
-        uint256 marketDebtId,
+        uint256 marketId,
         uint128 dexSwapStrategyId
     )
         external
@@ -128,15 +128,15 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
-        marketMakingEngine.workaround_setReceivedMarketFees(fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), 0);
+        marketMakingEngine.workaround_setReceivedMarketFees(fuzzPerpMarketCreditConfig.marketId, address(usdc), 0);
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.AssetAmountIsZero.selector, address(usdc)) });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), dexSwapStrategyId
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), dexSwapStrategyId
         );
     }
 
@@ -145,7 +145,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_TheDexSwapStrategyHasAnInvalidDexAdapter(
-        uint256 marketDebtId,
+        uint256 marketId,
         uint256 amount
     )
         external
@@ -159,7 +159,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         uint128 wrongStrategyId = 0;
 
-        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         amount = bound({
             x: amount,
@@ -169,7 +169,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         deal({ token: address(usdc), to: address(perpsEngine), give: amount });
 
-        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), amount);
+        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
         // it should revert
         vm.expectRevert({
@@ -177,12 +177,12 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), wrongStrategyId
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), wrongStrategyId
         );
     }
 
     function testFuzz_WhenTheDexSwapStrategyHasAValidDexAdapter(
-        uint256 marketDebtId,
+        uint256 marketId,
         uint256 amount
     )
         external
@@ -196,7 +196,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         uint128 uniswapV3StrategyId = 1;
 
-        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketDebtId);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         amount = bound({
             x: amount,
@@ -206,7 +206,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         deal({ token: address(usdc), to: address(perpsEngine), give: amount });
 
-        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), amount);
+        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
         assertEq(
             IERC20(usdc).balanceOf(address(uniswapV3Adapter)),
@@ -230,7 +230,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(address(usdc), amount, amountOutMin);
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketDebtId, address(usdc), uniswapV3StrategyId
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId
         );
 
         // it should verify if the asset is different that weth and convert
@@ -262,7 +262,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
             amountOutMinX18.mul(ud60x18(fuzzPerpMarketCreditConfig.feeRecipientsShare));
 
         assertEq(
-            marketMakingEngine.workaround_getAvailableFeesToWithdraw(fuzzPerpMarketCreditConfig.marketDebtId),
+            marketMakingEngine.workaround_getAvailableFeesToWithdraw(fuzzPerpMarketCreditConfig.marketId),
             expectedAvailableFeesToWithdrawX18.intoUint256(),
             "the available fees to withdraw is wrong"
         );
