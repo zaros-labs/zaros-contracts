@@ -59,6 +59,7 @@ import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexS
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { FeeRecipientHarness } from "test/harnesses/market-making/leaves/FeeRecipientHarness.sol";
 import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
+import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
 
 // Zaros dependencies script
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -313,10 +314,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
         });
 
-        bool isTest = true;
+        MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter =
+            new MockUniswapV3SwapStrategyRouter();
 
         uniswapV3Adapter = DexAdapterUtils.deployUniswapV3Adapter(
-            marketMakingEngine, users.owner.account, slippageToleranceBps, fee, collaterals, collateralData, isTest
+            marketMakingEngine, users.owner.account, address(mockUniswapV3SwapStrategyRouter), slippageToleranceBps, fee, collaterals, collateralData
         );
 
         deal({ token: address(wEth), to: uniswapV3Adapter.mockUniswapV3SwapStrategyRouter(), give: type(uint256).max });

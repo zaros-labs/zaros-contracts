@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
-import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
@@ -18,19 +17,19 @@ library DexAdapterUtils {
     /// @notice Deploys the Uniswap V3 Adapter
     /// @param marketMakingEngine The Market Making Engine
     /// @param owner The owner of the Uniswap V3 Adapter
+    /// @param uniswapV3SwapStrategyRouter The Uniswap V3 Swap Strategy Router
     /// @param slippageToleranceBps The slippage tolerance
     /// @param fee The Uniswap V3 pool fee
     /// @param collaterals The collaterals to set in the Uniswap V3 Adapter
     /// @param collateralData The collateral data to set in the Uniswap V3 Adapter
-    /// @param isTest If the Uniswap V3 Adapter is for testing purposes
     function deployUniswapV3Adapter(
         IMarketMakingEngine marketMakingEngine,
         address owner,
+        address uniswapV3SwapStrategyRouter,
         uint256 slippageToleranceBps,
         uint24 fee,
         address[] memory collaterals,
-        UniswapV3Adapter.CollateralData[] memory collateralData,
-        bool isTest
+        UniswapV3Adapter.CollateralData[] memory collateralData
     )
         internal
         returns (UniswapV3Adapter uniswapV3Adapter)
@@ -45,7 +44,7 @@ library DexAdapterUtils {
 
         // create bytes of the initialze function of Uniswap V3 Adapter Implementation
         bytes memory initializeUniswapV3Adapter =
-            abi.encodeWithSelector(uniswapV3AdapterImplementation.initialize.selector, owner, slippageToleranceBps, fee);
+            abi.encodeWithSelector(uniswapV3AdapterImplementation.initialize.selector, owner, uniswapV3SwapStrategyRouter, slippageToleranceBps, fee);
 
         // deploy the Uniswap V3 Adapter Proxy
         uniswapV3Adapter = UniswapV3Adapter(
@@ -53,17 +52,6 @@ library DexAdapterUtils {
         );
 
         console.log("UniswapV3Adapter deployed at: %s", address(uniswapV3Adapter));
-
-        if (isTest) {
-            // instantiate the mock of Uniswap V3 Swap Strategy Router
-            MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter = new MockUniswapV3SwapStrategyRouter();
-
-            // set the mock Uniswap V3 Swap Strategy Router in the Uniswap V3 Adapter Proxy
-            uniswapV3Adapter.setMockUniswapV3SwapStrategyRouter(address(mockUniswapV3SwapStrategyRouter));
-
-            // set the use of the mock Uniswap V3 Swap Strategy Router in the Uniswap V3 Adapter Proxy
-            uniswapV3Adapter.setUseMockUniswapV3SwapStrategyRouter(true);
-        }
 
         for (uint256 i; i < collaterals.length; i++) {
             // set the collateral data in the Uniswap V3 Adapter Proxy

@@ -7,6 +7,7 @@ import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { ISwapRouter } from "@zaros/utils/interfaces/ISwapRouter.sol";
 import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 
 // Open zeppelin upgradeable dependencies
@@ -39,6 +40,10 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @param priceAdapter The collateral price adapter
     event LogSetCollateralData(address indexed collateral, uint8 decimals, address priceAdapter);
 
+    /// @notice Event emitted when the Uniswap V3 Swap Strategy Router is set
+    /// @param uniswapV3SwapStrategyRouter The Uniswap V3 Swap Strategy Router address
+    event LogSetUniswapV3SwapStrategyRouter(address indexed uniswapV3SwapStrategyRouter);
+
     /*//////////////////////////////////////////////////////////////////////////
                                     STRUCTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -55,31 +60,25 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
                                     PUBLIC VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Uniswap V3 Swap Strategy Router address
+    address public uniswapV3SwapStrategyRouter;
+
+    /// @notice the slippage tolerance
+    /// @dev the minimum is 100 (e.g. 1%)
+    uint256 public slippageToleranceBps;
+
+    /// @notice The collateral data
+    mapping(address collateral => CollateralData data) public collateralData;
+
     /// @notice The pool fee
     /// @dev 500 bps (0.05%) for stable pairs with low volatility.
     /// @dev 3000 bps (0.30%) for most pairs with moderate volatility.
     /// @dev 10000 bps (1.00%) for highly volatile pairs.
     uint24 public fee;
 
-    /// @notice the slippage tolerance
-    /// @dev the minimum is 100 (e.g. 1%)
-    uint256 public slippageToleranceBps;
-
-    /// @notice The Mock Uniswap V3 Swap Strategy Router address
-    address public mockUniswapV3SwapStrategyRouter;
-
-    /// @notice A flag indicating if the Mock Uniswap V3 Swap Strategy Router is to be used
-    bool public useMockUniswapV3SwapStrategyRouter = false;
-
-    /// @notice The collateral data
-    mapping(address collateral => CollateralData data) public collateralData;
-
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTANTS
     //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Uniswap V3 Swap Strategy Router address
-    address public constant UNISWAP_V3_SWAP_STRATEGY_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
     /// @notice Uniswap V3 Swap Strategy ID
     uint128 public constant UNISWAP_V3_SWAP_STRATEGY_ID = 1;
@@ -92,9 +91,12 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         _disableInitializers();
     }
 
-    function initialize(address owner, uint256 _slippageToleranceBps, uint24 _fee) external initializer {
+    function initialize(address owner, address _uniswapV3SwapStrategyRouter, uint256 _slippageToleranceBps, uint24 _fee) external initializer {
         // initialize the owner
         __Ownable_init(owner);
+
+        // set the Uniswap V3 Swap Strategy Router
+        setUniswapV3SwapStrategyRouter(_uniswapV3SwapStrategyRouter);
 
         // set the pool fee
         setPoolFee(_fee);
@@ -116,11 +118,9 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
 
         // instantiate the swap router
         ISwapRouter swapRouter;
-        if (useMockUniswapV3SwapStrategyRouter) {
-            swapRouter = ISwapRouter(mockUniswapV3SwapStrategyRouter);
-        } else {
-            swapRouter = ISwapRouter(UNISWAP_V3_SWAP_STRATEGY_ROUTER);
-        }
+
+        // get the uniswap v3 swap strategy router
+        swapRouter = ISwapRouter(uniswapV3SwapStrategyRouter);
 
         // aprove the tokenIn to the swap router
         IERC20(swapPayload.tokenIn).approve(address(swapRouter), swapPayload.amountIn);
@@ -195,20 +195,6 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         emit LogSetPoolFee(newFee);
     }
 
-    /// @notice Sets the Mock Uniswap V3 Swap Strategy Router address
-    /// @param newMockUniswapV3SwapStrategyRouter The new Mock Uniswap V3 Swap Strategy Router address
-    function setMockUniswapV3SwapStrategyRouter(address newMockUniswapV3SwapStrategyRouter) external onlyOwner {
-        // require that the new address is not the zero address
-        mockUniswapV3SwapStrategyRouter = newMockUniswapV3SwapStrategyRouter;
-    }
-
-    /// @notice Sets the flag indicating if the Mock Uniswap V3 Swap Strategy Router is to be used
-    /// @param _useMockUniswapV3SwapStrategyRouter The flag indicating if the Mock Uniswap V3 Swap Strategy Router is
-    /// to be used
-    function setUseMockUniswapV3SwapStrategyRouter(bool _useMockUniswapV3SwapStrategyRouter) external onlyOwner {
-        useMockUniswapV3SwapStrategyRouter = _useMockUniswapV3SwapStrategyRouter;
-    }
-
     /// @notice Sets slippage tolerance
     /// @dev the minimum is 100 (e.g. 1%)
     function setSlippageTolerance(uint256 newSlippageTolerance) public onlyOwner {
@@ -231,6 +217,19 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
 
         // emit the event
         emit LogSetCollateralData(collateral, decimals, priceAdapter);
+    }
+
+    /// @notice Sets the Uniswap V3 Swap Strategy Router
+    /// @dev Only the owner can set the Uniswap V3 Swap Strategy Router
+    /// @param _uniswapV3SwapStrategyRouter The Uniswap V3 Swap Strategy Router address
+    function setUniswapV3SwapStrategyRouter(address _uniswapV3SwapStrategyRouter) public onlyOwner {
+        if (_uniswapV3SwapStrategyRouter == address(0)) revert Errors.ZeroInput("_uniswapV3SwapStrategyRouter");
+
+        // set the uniswap v3 swap strategy router
+        uniswapV3SwapStrategyRouter = _uniswapV3SwapStrategyRouter;
+
+        // emit the event
+        emit LogSetUniswapV3SwapStrategyRouter(_uniswapV3SwapStrategyRouter);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
