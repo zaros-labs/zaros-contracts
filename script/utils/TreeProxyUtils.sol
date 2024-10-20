@@ -572,8 +572,8 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     address distributionHarness = address(new DistributionHarness());
     console.log("DistributionHarness: ", distributionHarness);
 
-    address marketDebtHarness = address(new MarketHarness());
-    console.log("MarketHarness: ", marketDebtHarness);
+    address marketHarness = address(new MarketHarness());
+    console.log("MarketHarness: ", marketHarness);
 
     address marketMakingEngineConfigurationHarness = address(new MarketMakingEngineConfigurationHarness());
     console.log("MarketMakingEngineConfigurationHarness: ", marketMakingEngineConfigurationHarness);
@@ -588,7 +588,7 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     addressHarnesses[1] = withdrawalRequestHarness;
     addressHarnesses[2] = collateralHarness;
     addressHarnesses[3] = distributionHarness;
-    addressHarnesses[4] = marketDebtHarness;
+    addressHarnesses[4] = marketHarness;
     addressHarnesses[5] = marketMakingEngineConfigurationHarness;
     addressHarnesses[6] = dexSwapStrategyHarness;
     addressHarnesses[7] = feeRecipientHarness;
@@ -625,12 +625,12 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     distributionHarnessSelectors[2] = DistributionHarness.exposed_accumulateActor.selector;
     distributionHarnessSelectors[3] = DistributionHarness.exposed_getActorValueChange.selector;
 
-    bytes4[] memory marketDebtHarnessSelectors = new bytes4[](5);
-    marketDebtHarnessSelectors[0] = MarketHarness.workaround_getMarketId.selector;
-    marketDebtHarnessSelectors[1] = MarketHarness.workaround_setMarketId.selector;
-    marketDebtHarnessSelectors[2] = MarketHarness.workaround_getReceivedMarketFees.selector;
-    marketDebtHarnessSelectors[3] = MarketHarness.workaround_setReceivedMarketFees.selector;
-    marketDebtHarnessSelectors[4] = MarketHarness.workaround_getAvailableFeesToWithdraw.selector;
+    bytes4[] memory marketHarnessSelectors = new bytes4[](5);
+    marketHarnessSelectors[0] = MarketHarness.workaround_getMarketId.selector;
+    marketHarnessSelectors[1] = MarketHarness.workaround_setMarketId.selector;
+    marketHarnessSelectors[2] = MarketHarness.workaround_getReceivedMarketFees.selector;
+    marketHarnessSelectors[3] = MarketHarness.workaround_setReceivedMarketFees.selector;
+    marketHarnessSelectors[4] = MarketHarness.workaround_getAvailableFeesToWithdraw.selector;
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](1);
     marketMakingEngineConfigurationSelectors[0] =
@@ -647,7 +647,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     selectors[1] = withdrawalRequestHarnessSelectors;
     selectors[2] = collateralHarnessSelectors;
     selectors[3] = distributionHarnessSelectors;
-    selectors[4] = marketDebtHarnessSelectors;
+    selectors[4] = marketHarnessSelectors;
     selectors[5] = marketMakingEngineConfigurationSelectors;
     selectors[6] = dexSwapStrategyHarnessSelectors;
     selectors[7] = feeRecipientHarnessSelectors;

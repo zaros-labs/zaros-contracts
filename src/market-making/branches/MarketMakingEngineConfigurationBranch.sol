@@ -285,15 +285,15 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         }
 
         // load market debt data from storage
-        Market.Data storage marketDebt = Market.load(marketId);
+        Market.Data storage market = Market.load(marketId);
 
         // update market debt data
-        marketDebt.id = marketId;
-        marketDebt.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
-        marketDebt.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
-        marketDebt.autoDeleveragePowerScale = autoDeleveragePowerScale;
-        marketDebt.marketShare = marketShare;
-        marketDebt.feeRecipientsShare = feeRecipientsShare;
+        market.id = marketId;
+        market.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
+        market.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
+        market.autoDeleveragePowerScale = autoDeleveragePowerScale;
+        market.marketShare = marketShare;
+        market.feeRecipientsShare = feeRecipientsShare;
 
         // emit event LogConfigureMarket
         emit LogConfigureMarket(

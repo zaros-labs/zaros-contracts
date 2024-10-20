@@ -13,28 +13,28 @@ contract MarketHarness {
     using EnumerableSet for EnumerableSet.UintSet;
 
     function workaround_getMarketId(uint128 marketId) external view returns (uint128) {
-        Market.Data storage marketDebt = Market.load(marketId);
-        return marketDebt.id;
+        Market.Data storage market = Market.load(marketId);
+        return market.id;
     }
 
     function workaround_setMarketId(uint128 marketId) external returns (uint128) {
-        Market.Data storage marketDebt = Market.load(marketId);
-        marketDebt.id = marketId;
-        return marketDebt.id;
+        Market.Data storage market = Market.load(marketId);
+        market.id = marketId;
+        return market.id;
     }
 
     function workaround_getReceivedMarketFees(uint128 marketId, address asset) external view returns (uint256) {
-        Market.Data storage marketDebt = Market.load(marketId);
-        return marketDebt.receivedMarketFees.get(asset);
+        Market.Data storage market = Market.load(marketId);
+        return market.receivedMarketFees.get(asset);
     }
 
     function workaround_setReceivedMarketFees(uint128 marketId, address asset, uint256 amount) external {
-        Market.Data storage marketDebt = Market.load(marketId);
-        marketDebt.receivedMarketFees.set(asset, amount);
+        Market.Data storage market = Market.load(marketId);
+        market.receivedMarketFees.set(asset, amount);
     }
 
     function workaround_getAvailableFeesToWithdraw(uint128 marketId) external view returns (uint256) {
-        Market.Data storage marketDebt = Market.load(marketId);
-        return marketDebt.availableFeesToWithdraw;
+        Market.Data storage market = Market.load(marketId);
+        return market.availableFeesToWithdraw;
     }
 }
