@@ -76,9 +76,7 @@ library TradingAccount {
     /// @notice Loads an existing trading account and checks if the `msg.sender` is authorized.
     /// @param tradingAccountId The trading account id.
     /// @return tradingAccount The loaded trading account storage pointer.
-    function loadExistingAccountAndVerifySender(
-        uint128 tradingAccountId
-    )
+    function loadExistingAccountAndVerifySender(uint128 tradingAccountId)
         internal
         view
         returns (Data storage tradingAccount)

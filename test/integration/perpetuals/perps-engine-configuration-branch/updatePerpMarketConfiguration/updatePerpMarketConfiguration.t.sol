@@ -79,9 +79,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_LengthOfSymbolIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_LengthOfSymbolIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -114,9 +112,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_PriceAdapterIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_PriceAdapterIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -150,9 +146,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MaintenanceMarginRateIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_MaintenanceMarginRateIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -187,9 +181,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MaxOpenInterestIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_MaxOpenInterestIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -225,9 +217,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MaxSkewIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_MaxSkewIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -264,9 +254,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_InitialMarginRateIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_InitialMarginRateIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -304,9 +292,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_InitialMarginRateIsLessOrEqualToMaintenanceMargin(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_InitialMarginRateIsLessOrEqualToMaintenanceMargin(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -346,9 +332,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_SkewScaleIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_SkewScaleIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -387,9 +371,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MinTradeSizeIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_MinTradeSizeIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero
@@ -429,9 +411,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MaxFundingVelocityIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_MaxFundingVelocityIsZero(uint256 marketId)
         external
         whenMarketIsInitialized
         whenLengthOfNameIsNotZero

@@ -210,9 +210,7 @@ abstract contract MarginCollaterals is UsdToken, Usdc, WEth, WBtc, WstEth, WeEth
         marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID] = wstEth;
     }
 
-    function getFilteredMarginCollateralsConfig(
-        uint256[2] memory marginCollateralIdsRange
-    )
+    function getFilteredMarginCollateralsConfig(uint256[2] memory marginCollateralIdsRange)
         internal
         view
         returns (MarginCollateral[] memory)
