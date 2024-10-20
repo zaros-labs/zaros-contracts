@@ -463,8 +463,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         configureMarkets(
             ConfigureMarketParams({
                 marketMakingEngine: marketMakingEngine,
-                initialMarketId: INITIAL_MARKET_DEBT_ID,
-                finalMarketId: FINAL_MARKET_DEBT_ID
+                initialMarketId: INITIAL_PERP_MARKET_CREDIT_CONFIG_ID,
+                finalMarketId: FINAL_PERP_MARKET_CREDIT_CONFIG_ID
             })
         );
     }
@@ -496,7 +496,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function receiveOrderFeeInFeeDistribution(address token, uint256 amountToReceive) internal {
         deal(token, address(perpsEngine), amountToReceive);
         IERC20(token).approve(address(marketMakingEngine), amountToReceive);
-        marketMakingEngine.receiveMarketFee(INITIAL_MARKET_DEBT_ID, token, amountToReceive);
+        marketMakingEngine.receiveMarketFee(INITIAL_PERP_MARKET_CREDIT_CONFIG_ID, token, amountToReceive);
     }
 
     function getFuzzVaultConfig(uint256 vaultId) internal view returns (VaultConfig memory) {
@@ -524,7 +524,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function getFuzzPerpMarketCreditConfig(uint256 marketId) internal view returns (PerpMarketCreditConfig memory) {
-        marketId = bound({ x: marketId, min: INITIAL_MARKET_DEBT_ID, max: FINAL_MARKET_DEBT_ID });
+        marketId = bound({ x: marketId, min: INITIAL_PERP_MARKET_CREDIT_CONFIG_ID, max: FINAL_PERP_MARKET_CREDIT_CONFIG_ID });
 
         uint256[2] memory marketsIdsRange;
         marketsIdsRange[0] = marketId;

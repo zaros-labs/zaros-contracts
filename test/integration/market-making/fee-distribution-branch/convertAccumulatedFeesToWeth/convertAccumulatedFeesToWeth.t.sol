@@ -51,7 +51,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        uint128 invalidMarketId = FINAL_MARKET_DEBT_ID + 1;
+        uint128 invalidMarketId = FINAL_PERP_MARKET_CREDIT_CONFIG_ID + 1;
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketId) });
