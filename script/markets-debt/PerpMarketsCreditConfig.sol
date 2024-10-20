@@ -48,7 +48,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
     mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal marketsDebtConfig;
 
     /// @notice Setup markets debt config
-    function setupMarketsDebtConfig() internal {
+    function setupPerpMarketsCreditConfig() internal {
         marketsDebtConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             marketId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
@@ -70,7 +70,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
 
     /// @notice Get filtered markets debt config
     /// @param marketsDebtIdsRange Markets debt ids range
-    function getFilteredMarketsDebtConfig(
+    function getFilteredPerpMarketsCreditConfig(
         uint256[2] memory marketsDebtIdsRange
     )
         internal
@@ -81,15 +81,15 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
         uint256 finalMarketId = marketsDebtIdsRange[1];
         uint256 filteredMarketsDebtLength = finalMarketId - initialMarketId + 1;
 
-        PerpMarketCreditConfig[] memory filteredMarketsDebtConfig = new PerpMarketCreditConfig[](filteredMarketsDebtLength);
+        PerpMarketCreditConfig[] memory filteredPerpMarketsCreditConfig = new PerpMarketCreditConfig[](filteredMarketsDebtLength);
 
         uint256 nextMarketDebtId = initialMarketId;
         for (uint256 i; i < filteredMarketsDebtLength; i++) {
-            filteredMarketsDebtConfig[i] = marketsDebtConfig[nextMarketDebtId];
+            filteredPerpMarketsCreditConfig[i] = marketsDebtConfig[nextMarketDebtId];
             nextMarketDebtId++;
         }
 
-        return filteredMarketsDebtConfig;
+        return filteredPerpMarketsCreditConfig;
     }
 
     /// @notice Configure markets debt

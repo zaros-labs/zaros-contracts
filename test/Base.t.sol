@@ -274,7 +274,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         changePrank({ msgSender: users.owner.account });
 
-        setupMarketsDebtConfig();
+        setupPerpMarketsCreditConfig();
 
         marketMakingEngine.configureCollateral(
             address(usdc),
@@ -530,7 +530,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketsDebtIdsRange[0] = marketId;
         marketsDebtIdsRange[1] = marketId;
 
-        PerpMarketCreditConfig[] memory filteredMarketsConfig = getFilteredMarketsDebtConfig(marketsDebtIdsRange);
+        PerpMarketCreditConfig[] memory filteredMarketsConfig = getFilteredPerpMarketsCreditConfig(marketsDebtIdsRange);
 
         return filteredMarketsConfig[0];
     }
