@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { ISwapRouter } from "@zaros/utils/interfaces/ISwapRouter.sol";
-import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { IDexAdapter, SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
@@ -35,27 +35,15 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @param newSlippageTolerance The new slippage tolerance
     event LogSetSlippageTolerance(uint256 newSlippageTolerance);
 
-    /// @notice Event emitted when the new collateral data is set
-    /// @param collateral The collateral address
-    /// @param decimals The collateral decimals
-    /// @param priceAdapter The collateral price adapter
-    event LogSetCollateralData(address indexed collateral, uint8 decimals, address priceAdapter);
+    /// @notice Event emitted when the new swap asset config data is set
+    /// @param asset The asset address
+    /// @param decimals The asset decimals
+    /// @param priceAdapter The asset price adapter
+    event LogSetSwapAssetConfig(address indexed asset, uint8 decimals, address priceAdapter);
 
     /// @notice Event emitted when the Uniswap V3 Swap Strategy Router is set
     /// @param uniswapV3SwapStrategyRouter The Uniswap V3 Swap Strategy Router address
     event LogSetUniswapV3SwapStrategyRouter(address indexed uniswapV3SwapStrategyRouter);
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                    STRUCTS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Collateral data struct
-    /// @param decimals The collateral decimals
-    /// @param priceAdapter The collateral price adapter
-    struct CollateralData {
-        uint8 decimals;
-        address priceAdapter;
-    }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     PUBLIC VARIABLES
@@ -68,8 +56,8 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @dev the minimum is 100 (e.g. 1%)
     uint256 public slippageToleranceBps;
 
-    /// @notice The collateral data
-    mapping(address collateral => CollateralData data) public collateralData;
+    /// @notice The asset data
+    mapping(address asset => SwapAssetConfig data) public swapAssetConfigData;
 
     /// @notice The pool fee
     /// @dev 500 bps (0.05%) for stable pairs with low volatility.
@@ -161,17 +149,17 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         returns (uint256 expectedAmountOut)
     {
         // get the price of the tokenIn
-        UD60x18 priceTokenInX18 = IPriceAdapter(collateralData[tokenIn].priceAdapter).getPrice();
+        UD60x18 priceTokenInX18 = IPriceAdapter(swapAssetConfigData[tokenIn].priceAdapter).getPrice();
 
         // get the price of the tokenOut
-        UD60x18 priceTokenOutX18 = IPriceAdapter(collateralData[tokenOut].priceAdapter).getPrice();
+        UD60x18 priceTokenOutX18 = IPriceAdapter(swapAssetConfigData[tokenOut].priceAdapter).getPrice();
 
         // convert the amount in to UD60x18
-        UD60x18 amountInX18 = Math.convertTokenAmountToUd60x18(collateralData[tokenIn].decimals, amountIn);
+        UD60x18 amountInX18 = Math.convertTokenAmountToUd60x18(swapAssetConfigData[tokenIn].decimals, amountIn);
 
         // calculate the expected amount out
         expectedAmountOut = Math.convertUd60x18ToTokenAmount(
-            collateralData[tokenOut].decimals, amountInX18.mul(priceTokenInX18).div(priceTokenOutX18)
+            swapAssetConfigData[tokenOut].decimals, amountInX18.mul(priceTokenInX18).div(priceTokenOutX18)
         );
     }
 
@@ -206,18 +194,18 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         emit LogSetSlippageTolerance(newSlippageTolerance);
     }
 
-    /// @notice Sets the collateral data
-    /// @dev The collateral data is used to calculate the expected output amount
-    /// @dev Only the owner can set the collateral data
-    /// @param collateral The collateral address
-    /// @param decimals The collateral decimals
-    /// @param priceAdapter The collateral price adapter
-    function setCollateralData(address collateral, uint8 decimals, address priceAdapter) public onlyOwner {
-        // set the collateral data
-        collateralData[collateral] = CollateralData(decimals, priceAdapter);
+    /// @notice Sets the swap asset config data
+    /// @dev The asset config data is used to calculate the expected output amount
+    /// @dev Only the owner can set the asset config data
+    /// @param asset The asset address
+    /// @param decimals The asset decimals
+    /// @param priceAdapter The asset price adapter
+    function setSwapAssetConfig(address asset, uint8 decimals, address priceAdapter) public onlyOwner {
+        // set the swap asset config data
+        swapAssetConfigData[asset] = SwapAssetConfig(decimals, priceAdapter);
 
         // emit the event
-        emit LogSetCollateralData(collateral, decimals, priceAdapter);
+        emit LogSetSwapAssetConfig(asset, decimals, priceAdapter);
     }
 
     /// @notice Sets the Uniswap V3 Swap Strategy Router

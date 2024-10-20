@@ -18,6 +18,14 @@ struct SwapPayload {
     address recipient;
 }
 
+/// @notice Swap asset configuration
+/// @param decimals The asset decimals
+/// @param priceAdapter The asset price adapter
+struct SwapAssetConfig {
+    uint8 decimals;
+    address priceAdapter;
+}
+
 /// @notice The interface for the DEX adapter.
 interface IDexAdapter {
     /// @notice Executes a swap using the exact input amount, coming from the swap payload passed by the Market Making Engine.

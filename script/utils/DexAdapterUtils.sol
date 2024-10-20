@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
@@ -20,23 +21,23 @@ library DexAdapterUtils {
     /// @param uniswapV3SwapStrategyRouter The Uniswap V3 Swap Strategy Router
     /// @param slippageToleranceBps The slippage tolerance
     /// @param fee The Uniswap V3 pool fee
-    /// @param collaterals The collaterals to set in the Uniswap V3 Adapter
-    /// @param collateralData The collateral data to set in the Uniswap V3 Adapter
+    /// @param assets The assets to set in the Uniswap V3 Adapter
+    /// @param swapAssetConfigData The asset data to set in the Uniswap V3 Adapter
     function deployUniswapV3Adapter(
         IMarketMakingEngine marketMakingEngine,
         address owner,
         address uniswapV3SwapStrategyRouter,
         uint256 slippageToleranceBps,
         uint24 fee,
-        address[] memory collaterals,
-        UniswapV3Adapter.CollateralData[] memory collateralData
+        address[] memory assets,
+        SwapAssetConfig[] memory swapAssetConfigData
     )
         internal
         returns (UniswapV3Adapter uniswapV3Adapter)
     {
-        // revert if the length of collaterals and collateralData is different
-        if (collaterals.length != collateralData.length) {
-            revert Errors.ArrayLengthMismatch(collaterals.length, collateralData.length);
+        // revert if the length of assets and swapAssetConfigData is different
+        if (assets.length != swapAssetConfigData.length) {
+            revert Errors.ArrayLengthMismatch(assets.length, swapAssetConfigData.length);
         }
 
         // instatiate the Uniswap V3 Adapter Implementation
@@ -53,17 +54,17 @@ library DexAdapterUtils {
 
         console.log("UniswapV3Adapter deployed at: %s", address(uniswapV3Adapter));
 
-        for (uint256 i; i < collaterals.length; i++) {
-            // set the collateral data in the Uniswap V3 Adapter Proxy
-            uniswapV3Adapter.setCollateralData(
-                collaterals[i], collateralData[i].decimals, collateralData[i].priceAdapter
+        for (uint256 i; i < assets.length; i++) {
+            // set the swap asset config data in the Uniswap V3 Adapter Proxy
+            uniswapV3Adapter.setSwapAssetConfig(
+                assets[i], swapAssetConfigData[i].decimals, swapAssetConfigData[i].priceAdapter
             );
 
             console.log(
-                "Collateral data set in UniswapV3Adapter: collateral: %s, decimals: %s, priceAdapter: %s",
-                collaterals[i],
-                collateralData[i].decimals,
-                collateralData[i].priceAdapter
+                "Asset swap config data set in UniswapV3Adapter: asset: %s, decimals: %s, priceAdapter: %s",
+                assets[i],
+                swapAssetConfigData[i].decimals,
+                swapAssetConfigData[i].priceAdapter
             );
         }
 

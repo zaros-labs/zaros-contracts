@@ -25,6 +25,7 @@ import { IMarketMakingEngine as IMarketMakingEngineBranches } from "@zaros/marke
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
+import { SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -302,14 +303,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         collaterals[0] = address(usdc);
         collaterals[1] = address(wEth);
 
-        UniswapV3Adapter.CollateralData[] memory collateralData = new UniswapV3Adapter.CollateralData[](2);
+        SwapAssetConfig[] memory collateralData = new SwapAssetConfig[](2);
 
-        collateralData[0] = UniswapV3Adapter.CollateralData({
+        collateralData[0] = SwapAssetConfig({
             decimals: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals,
             priceAdapter: address(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter)
         });
 
-        collateralData[1] = UniswapV3Adapter.CollateralData({
+        collateralData[1] = SwapAssetConfig({
             decimals: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals,
             priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
         });
