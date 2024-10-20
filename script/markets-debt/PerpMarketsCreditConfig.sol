@@ -8,15 +8,15 @@ import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
 // Markets Debt
-import { BtcMarketDebt } from "script/markets-debt/BtcMarketDebt.sol";
-import { EthMarketDebt } from "script/markets-debt/EthMarketDebt.sol";
+import { BtcPerpMarketCreditConfig } from "script/markets-debt/BtcPerpMarketCreditConfig.sol";
+import { EthPerpMarketCreditConfig } from "script/markets-debt/EthPerpMarketCreditConfig.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @notice PerpMarketsCreditConfig contract
-abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcMarketDebt, EthMarketDebt {
+abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketCreditConfig, EthPerpMarketCreditConfig {
 
     /// @notice Market debt config
     /// @param marketDebtId Market debt id
@@ -49,22 +49,22 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcMarketDebt,
 
     /// @notice Setup markets debt config
     function setupMarketsDebtConfig() internal {
-        marketsDebtConfig[BTC_MARKET_DEBT_ID] = MarketDebtConfig({
-            marketDebtId: BTC_MARKET_DEBT_ID,
-            autoDeleverageStartThreshold: BTC_MARKET_DEBT_AUTO_DELEVERAGE_START_THRESHOLD,
-            autoDeleverageEndThreshold: BTC_MARKET_DEBT_AUTO_DELEVERAGE_END_THRESHOLD,
-            autoDeleveragePowerScale: BTC_MARKET_DEBT_AUTO_DELEVERAGE_POWER_SCALE,
-            marketShare: BTC_MARKET_DEBT_MARKET_SHARE,
-            feeRecipientsShare: BTC_MARKET_DEBT_FEE_RECIPIENTS_SHARE
+        marketsDebtConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = MarketDebtConfig({
+            marketDebtId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleveragePowerScale: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE,
+            marketShare: BTC_PERP_MARKET_CREDIT_CONFIG_MARKET_SHARE,
+            feeRecipientsShare: BTC_PERP_MARKET_CREDIT_CONFIG_FEE_RECIPIENTS_SHARE
         });
 
-        marketsDebtConfig[ETH_MARKET_DEBT_ID] = MarketDebtConfig({
-            marketDebtId: ETH_MARKET_DEBT_ID,
-            autoDeleverageStartThreshold: ETH_MARKET_DEBT_AUTO_DELEVERAGE_START_THRESHOLD,
-            autoDeleverageEndThreshold: ETH_MARKET_DEBT_AUTO_DELEVERAGE_END_THRESHOLD,
-            autoDeleveragePowerScale: ETH_MARKET_DEBT_AUTO_DELEVERAGE_POWER_SCALE,
-            marketShare: ETH_MARKET_DEBT_MARKET_SHARE,
-            feeRecipientsShare: ETH_MARKET_DEBT_FEE_RECIPIENTS_SHARE
+        marketsDebtConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = MarketDebtConfig({
+            marketDebtId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleveragePowerScale: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE,
+            marketShare: ETH_PERP_MARKET_CREDIT_CONFIG_MARKET_SHARE,
+            feeRecipientsShare: ETH_PERP_MARKET_CREDIT_CONFIG_FEE_RECIPIENTS_SHARE
         });
     }
 
