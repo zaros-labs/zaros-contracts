@@ -521,6 +521,8 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("maxFundingVelocity");
         }
 
+        perpMarket.lastFundingTime = block.timestamp;
+
         perpMarketConfiguration.update(
             MarketConfiguration.Data({
                 name: params.name,
