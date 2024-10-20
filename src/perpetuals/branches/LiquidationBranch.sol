@@ -200,7 +200,7 @@ contract LiquidationBranch {
                 ctx.oldPositionSizeX18 = sd59x18(position.size);
 
                 // save inverted sign of open position size to prepare for closing the position
-                ctx.liquidationSizeX18 = -ctx.oldPositionSizeX18;
+                ctx.liquidationSizeX18 = ctx.liquidationSizeX18.sub(ctx.oldPositionSizeX18);
 
                 // calculate price impact of open position being closed
                 ctx.markPriceX18 = perpMarket.getMarkPrice(ctx.liquidationSizeX18, perpMarket.getIndexPrice());
