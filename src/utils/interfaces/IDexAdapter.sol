@@ -8,13 +8,11 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 /// @param tokenIn The token to swap from.
 /// @param tokenOut The token to swap to.
 /// @param amountIn The token amount to swap.
-/// @param deadline The deadline for the swap.
 /// @param recipient The recipient of the swap.
 struct SwapPayload {
     address tokenIn;
     address tokenOut;
     uint256 amountIn;
-    uint256 deadline;
     address recipient;
 }
 

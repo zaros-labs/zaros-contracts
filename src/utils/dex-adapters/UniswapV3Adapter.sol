@@ -27,6 +27,10 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
                                     EVENTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Event emitted when the deadline is set
+    /// @param deadline The new deadline
+    event LogSetDeadline(uint256 deadline);
+
     /// @notice Event emitted when the pool fee is set
     /// @param newFee The new pool fee
     event LogSetPoolFee(uint24 newFee);
@@ -51,6 +55,9 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
 
     /// @notice Uniswap V3 Swap Strategy Router address
     address public uniswapV3SwapStrategyRouter;
+
+    /// @notice The deadline
+    uint256 public deadline;
 
     /// @notice the slippage tolerance
     /// @dev the minimum is 100 (e.g. 1%)
@@ -124,7 +131,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
                 tokenOut: swapPayload.tokenOut,
                 fee: feeBps,
                 recipient: swapPayload.recipient,
-                deadline: swapPayload.deadline,
+                deadline: deadline,
                 amountIn: swapPayload.amountIn,
                 amountOutMinimum: amountOutMinimum,
                 sqrtPriceLimitX96: 0
@@ -167,6 +174,19 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     function calculateAmountOutMin(uint256 amountOutMinExpected) public view returns (uint256 amountOutMin) {
         // calculate the amount out min
         amountOutMin = (amountOutMinExpected * (10_000 - slippageToleranceBps)) / Constants.BPS_DENOMINATOR;
+    }
+
+    /// @notice Sets deadline
+    /// @param _deadline The new deadline
+    function setDeadline(uint256 _deadline) public onlyOwner {
+        // revert if the new fee is not 500, 3000 or 10_000
+        if (deadline == 0) revert Errors.ZeroInput("deadline");
+
+        // set the new fee
+        deadline = _deadline;
+
+        // emit the event
+        emit LogSetDeadline(deadline);
     }
 
     /// @notice Sets pool fee

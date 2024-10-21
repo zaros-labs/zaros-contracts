@@ -189,7 +189,6 @@ contract FeeDistributionBranch is EngineAccessControl {
                 tokenIn: asset,
                 tokenOut: MarketMakingEngineConfiguration.load().weth,
                 amountIn: assetAmount,
-                deadline: 3600,
                 recipient: address(this)
             });
 
