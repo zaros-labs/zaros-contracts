@@ -80,7 +80,7 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         bytes32 actorId = bytes32(uint256(uint160(staker)));
 
-        earnedFees = vault.stakingFeeDistribution.getActorValueChange(actorId).intoUint256();
+        earnedFees = vault.wethRewardDistribution.getActorValueChange(actorId).intoUint256();
     }
 
     /// @notice Receives collateral as a fee for processing,
@@ -176,7 +176,9 @@ contract FeeDistributionBranch is EngineAccessControl {
             DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
 
             // reverts if the dex swap strategy has an invalid dex adapter
-            if (dexSwapStrategy.dexAdapter == address(0)) revert Errors.DexSwapStrategyHasAnInvalidDexAdapter(dexSwapStrategyId);
+            if (dexSwapStrategy.dexAdapter == address(0)) {
+                revert Errors.DexSwapStrategyHasAnInvalidDexAdapter(dexSwapStrategyId);
+            }
 
             // load the weth collateral data storage pointer
             Collateral.Data storage wethCollateral = Collateral.load(weth);
@@ -224,7 +226,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             Vault.Data storage vault = Vault.load(uint128(vaultsSet[i]));
 
             // add the total shares of the vault to the total shares of vaults
-            totalVaultsSharesX18 = totalVaultsSharesX18.add(ud60x18(vault.stakingFeeDistribution.totalShares));
+            totalVaultsSharesX18 = totalVaultsSharesX18.add(ud60x18(vault.wethRewardDistribution.totalShares));
         }
 
         // distribute the amount between shares and store the amount each vault has received
@@ -234,11 +236,11 @@ contract FeeDistributionBranch is EngineAccessControl {
 
             // calculate the amount of weth each vault has received
             SD59x18 vaultFeeAmountX18 = Market.calculateFees(
-                marketFeesX18, ud60x18(vault.stakingFeeDistribution.totalShares), totalVaultsSharesX18
+                marketFeesX18, ud60x18(vault.wethRewardDistribution.totalShares), totalVaultsSharesX18
             ).intoSD59x18();
 
             // distribute the amount between the vault's shares
-            vault.stakingFeeDistribution.distributeValue(vaultFeeAmountX18);
+            vault.wethRewardDistribution.distributeValue(vaultFeeAmountX18);
         }
 
         // emit event to log the conversion of fees to weth
@@ -324,15 +326,15 @@ contract FeeDistributionBranch is EngineAccessControl {
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
         // reverts if the actor has no shares
-        if (vault.stakingFeeDistribution.actor[actorId].shares == 0) revert Errors.NoSharesAvailable();
+        if (vault.wethRewardDistribution.actor[actorId].shares == 0) revert Errors.NoSharesAvailable();
 
         // get the claimable amount of fees
-        UD60x18 amountToClaimX18 = vault.stakingFeeDistribution.getActorValueChange(actorId).intoUD60x18();
+        UD60x18 amountToClaimX18 = vault.wethRewardDistribution.getActorValueChange(actorId).intoUD60x18();
 
         // reverts if the claimable amount is 0
         if (amountToClaimX18.isZero()) revert Errors.NoFeesToClaim();
 
-        vault.stakingFeeDistribution.accumulateActor(actorId);
+        vault.wethRewardDistribution.accumulateActor(actorId);
 
         // weth address
         address weth = MarketMakingEngineConfiguration.load().weth;

@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 library CreditDelegation {
@@ -15,11 +16,13 @@ library CreditDelegation {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.CreditDelegation")) - 1));
 
     // TODO: apply max debt per share to market debt calculation
+    // TODO: natspec
     struct Data {
         uint128 vaultId;
         uint128 marketId;
         uint128 weight;
         uint128 maxDebtPerShare;
+        uint128 lastVaultDistributedWethReward;
         int128 lastVaultDistributedUnrealizedDebtUsd;
         int128 lastVaultDistributedRealizedDebtUsd;
     }
@@ -35,20 +38,23 @@ library CreditDelegation {
         }
     }
 
-    /// @notice Updates this vault's credit delegation last distributed debt values.
-    /// @dev This function must be called whenever a vault accumulates debt distributed by a market, and this leaf is
-    /// used to support accounting at the Vault and Market leaves.
+    /// @notice Updates this vault's credit delegation last distributed debt and reward values.
+    /// @dev This function must be called whenever a vault accumulates debt and reward distributed by a market, and
+    /// this leaf is used to support accounting at the Vault and Market leaves.
     /// @param self The credit delegation storage pointer.
-    /// @param vaultDistributedUnrealizedDebtUsd The vault's distributed unrealized debt in USD.
-    /// @param vaultDistributedRealizedDebtUsd The vault's distributed realized debt in USD.
-    function updateVaultLastDistributedDebt(
+    /// @param vaultDistributedWethRewardX18 The vault's distributed WETH reward.
+    /// @param vaultDistributedUnrealizedDebtUsdX18 The vault's distributed unrealized debt in USD.
+    /// @param vaultDistributedRealizedDebtUsdX18 The vault's distributed realized debt in USD.
+    function updateVaultLastDistributedDebtAndReward(
         Data storage self,
-        SD59x18 vaultDistributedUnrealizedDebtUsd,
-        SD59x18 vaultDistributedRealizedDebtUsd
+        UD60x18 vaultDistributedWethRewardX18,
+        SD59x18 vaultDistributedUnrealizedDebtUsdX18,
+        SD59x18 vaultDistributedRealizedDebtUsdX18
     )
         internal
     {
-        self.lastVaultDistributedUnrealizedDebtUsd = vaultDistributedUnrealizedDebtUsd.intoInt256().toInt128();
-        self.lastVaultDistributedRealizedDebtUsd = vaultDistributedRealizedDebtUsd.intoInt256().toInt128();
+        self.lastVaultDistributedWethReward = vaultDistributedWethRewardX18.intoUint128();
+        self.lastVaultDistributedUnrealizedDebtUsd = vaultDistributedUnrealizedDebtUsdX18.intoInt256().toInt128();
+        self.lastVaultDistributedRealizedDebtUsd = vaultDistributedRealizedDebtUsdX18.intoInt256().toInt128();
     }
 }

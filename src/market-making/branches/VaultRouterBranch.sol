@@ -260,7 +260,7 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // load distribution data
-        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
+        Distribution.Data storage distributionData = vault.wethRewardDistribution;
 
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
@@ -406,7 +406,7 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // get vault staking fee distribution data
-        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
+        Distribution.Data storage distributionData = vault.wethRewardDistribution;
 
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));

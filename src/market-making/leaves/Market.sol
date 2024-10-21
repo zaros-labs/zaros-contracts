@@ -47,7 +47,8 @@ library Market {
     /// @param autoDeleveragePowerScale An admin configurable exponent used to determine the acceleration of the
     /// ADL polynomial regression curve.
     /// @param marketShare The share of total accumulated weth to be allocated to the market. Example: 0.5e18 (50%).
-    /// @param feeRecipientsShare The share of total accumulated weth to be allocated to fee recipients.Example: 0.5e18 (50%).
+    /// @param feeRecipientsShare The share of total accumulated weth to be allocated to fee recipients.Example:
+    /// 0.5e18 (50%).
     /// @param realizedDebtUsd Stores the market's latest realized debt value in USD, taking into account usd tokens
     /// that have been directly minted or burned by the market's engine, and the net sum of all credit deposits.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
@@ -58,7 +59,8 @@ library Market {
     /// market.
     /// @param connectedVaults The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
-    /// @param receivedMarketFees An enumerable map that stores the amounts collected from each collateral type available to convert to weth.
+    /// @param receivedMarketFees An enumerable map that stores the amounts collected from each collateral type
+    /// available to convert to weth.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
     /// `valuePerShare`: USD denominated market debt or credit per share.
     struct Data {
@@ -74,6 +76,7 @@ library Market {
         uint128 lastRealizedDebtUpdateTime;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
+        uint128 totalWethReward;
         bool isLive;
         EnumerableSet.AddressSet depositedCollateralTypes;
         EnumerableSet.UintSet[] connectedVaults;
@@ -403,14 +406,15 @@ library Market {
     /// credit delegation (by the vault).
     /// @param lastVaultDistributedRealizedDebtUsdX18 The last distributed realized debt in USD for the given credit
     /// delegation (by the vault).
-    function accumulateVaultDebt(
+    function accumulateVaultDebtAndReward(
         Data storage self,
         uint128 vaultId,
+        UD60x18 lastVaultDistributedWethRewardX18,
         SD59x18 lastVaultDistributedUnrealizedDebtUsdX18,
         SD59x18 lastVaultDistributedRealizedDebtUsdX18
     )
         internal
-        returns (SD59x18 unrealizedDebtChangeUsdX18, SD59x18 realizedDebtChangeUsdX18)
+        returns (UD60x18 wethRewardChangeX18, SD59x18 unrealizedDebtChangeUsdX18, SD59x18 realizedDebtChangeUsdX18)
     {
         // loads the vaults unrealized debt distribution storage pointer
         Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
@@ -423,21 +427,27 @@ library Market {
         // credit state, but a small gain in a debt state. We assume this behavior to be negligible in the protocol's
         // context since the diff is minimal and there are risk parameters ensuring debt settlement happens in a
         // timely manner.
-        SD59x18 vaultCreditRatioX18 = vaultsDebtDistribution.getActorShares(actorId).div(
-            ud60x18(vaultsDebtDistribution.totalShares)
-        ).intoSD59x18();
+        UD60x18 vaultCreditRatioX18 =
+            vaultsDebtDistribution.getActorShares(actorId).div(ud60x18(vaultsDebtDistribution.totalShares));
+
+        // accumulates the vault's share of the market's total weth reward since the last interaction
+        wethRewardChangeX18 =
+            vaultCreditRatioX18.mul(lastVaultDistributedWethRewardX18.sub(ud60x18(self.totalWethReward)));
+
+        // cache UD60x18 -> SD59x18 for gas savings
+        SD59x18 vaultCreditRatioSdX18 = vaultCreditRatioX18.intoSD59x18();
 
         // accumulates the vault's share of the debt since the last distribution, ignoring the return value as it's
         // not needed in this context
         vaultsDebtDistribution.accumulateActor(actorId);
         // multiplies the vault's credit ratio by the change of the market's unrealized debt since the last
         // distribution to determine its share of the unrealized debt change
-        unrealizedDebtChangeUsdX18 = vaultCreditRatioX18.mul(
+        unrealizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
             lastVaultDistributedUnrealizedDebtUsdX18.sub(sd59x18(self.lastDistributedUnrealizedDebtUsd))
         );
         // multiplies the vault's credit ratio by the change of the market's realized debt since the last
         // distribution to determine its share of the realized debt change
-        realizedDebtChangeUsdX18 = vaultCreditRatioX18.mul(
+        realizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
             lastVaultDistributedRealizedDebtUsdX18.sub(sd59x18(self.lastDistributedRealizedDebtUsd))
         );
     }

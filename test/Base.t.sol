@@ -317,11 +317,16 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
         });
 
-        MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter =
-            new MockUniswapV3SwapStrategyRouter();
+        MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter = new MockUniswapV3SwapStrategyRouter();
 
         uniswapV3Adapter = DexAdapterUtils.deployUniswapV3Adapter(
-            marketMakingEngine, users.owner.account, address(mockUniswapV3SwapStrategyRouter), slippageToleranceBps, fee, collaterals, collateralData
+            marketMakingEngine,
+            users.owner.account,
+            address(mockUniswapV3SwapStrategyRouter),
+            slippageToleranceBps,
+            fee,
+            collaterals,
+            collateralData
         );
 
         deal({ token: address(wEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
@@ -526,7 +531,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function getFuzzPerpMarketCreditConfig(uint256 marketId) internal view returns (PerpMarketCreditConfig memory) {
-        marketId = bound({ x: marketId, min: INITIAL_PERP_MARKET_CREDIT_CONFIG_ID, max: FINAL_PERP_MARKET_CREDIT_CONFIG_ID });
+        marketId =
+            bound({ x: marketId, min: INITIAL_PERP_MARKET_CREDIT_CONFIG_ID, max: FINAL_PERP_MARKET_CREDIT_CONFIG_ID });
 
         uint256[2] memory marketsIdsRange;
         marketsIdsRange[0] = marketId;

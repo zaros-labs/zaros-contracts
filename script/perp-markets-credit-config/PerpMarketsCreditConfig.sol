@@ -16,8 +16,12 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @notice PerpMarketsCreditConfig contract
-abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketCreditConfig, EthPerpMarketCreditConfig {
-
+abstract contract PerpMarketsCreditConfig is
+    StdCheats,
+    StdUtils,
+    BtcPerpMarketCreditConfig,
+    EthPerpMarketCreditConfig
+{
     /// @notice Perp Market Credit Config
     /// @param marketId Market id
     /// @param autoDeleverageStartThreshold Auto deleverage start threshold
@@ -70,9 +74,7 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
 
     /// @notice Get filtered perp markets credit config
     /// @param marketsIdsRange Markets ids range
-    function getFilteredPerpMarketsCreditConfig(
-        uint256[2] memory marketsIdsRange
-    )
+    function getFilteredPerpMarketsCreditConfig(uint256[2] memory marketsIdsRange)
         internal
         view
         returns (PerpMarketCreditConfig[] memory)
@@ -81,7 +83,8 @@ abstract contract PerpMarketsCreditConfig is StdCheats, StdUtils, BtcPerpMarketC
         uint256 finalMarketId = marketsIdsRange[1];
         uint256 filteredMarketsLength = finalMarketId - initialMarketId + 1;
 
-        PerpMarketCreditConfig[] memory filteredPerpMarketsCreditConfig = new PerpMarketCreditConfig[](filteredMarketsLength);
+        PerpMarketCreditConfig[] memory filteredPerpMarketsCreditConfig =
+            new PerpMarketCreditConfig[](filteredMarketsLength);
 
         uint256 nextMarketId = initialMarketId;
         for (uint256 i; i < filteredMarketsLength; i++) {
