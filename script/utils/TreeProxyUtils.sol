@@ -490,7 +490,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](10);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](11);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -500,11 +500,12 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     marketMakingEngineConfigBranchSelectors[4] =
         MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
-    marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.configureEngine.selector;
-    marketMakingEngineConfigBranchSelectors[6] = MarketMakingEngineConfigurationBranch.setWeth.selector;
-    marketMakingEngineConfigBranchSelectors[7] = MarketMakingEngineConfigurationBranch.configureCollateral.selector;
-    marketMakingEngineConfigBranchSelectors[8] = MarketMakingEngineConfigurationBranch.configureMarket.selector;
-    marketMakingEngineConfigBranchSelectors[9] =
+    marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.configureSystemKeeper.selector;
+    marketMakingEngineConfigBranchSelectors[6] = MarketMakingEngineConfigurationBranch.configureEngine.selector;
+    marketMakingEngineConfigBranchSelectors[7] = MarketMakingEngineConfigurationBranch.setWeth.selector;
+    marketMakingEngineConfigBranchSelectors[8] = MarketMakingEngineConfigurationBranch.configureCollateral.selector;
+    marketMakingEngineConfigBranchSelectors[9] = MarketMakingEngineConfigurationBranch.configureMarket.selector;
+    marketMakingEngineConfigBranchSelectors[10] =
         MarketMakingEngineConfigurationBranch.configureDexSwapStrategy.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);

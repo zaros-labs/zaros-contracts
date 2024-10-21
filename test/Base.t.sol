@@ -292,6 +292,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals
         );
 
+        marketMakingEngine.configureSystemKeeper(address(perpsEngine), true);
+
         marketMakingEngine.configureEngine(address(perpsEngine), address(usdToken), true);
 
         marketMakingEngine.setWeth(address(wEth));

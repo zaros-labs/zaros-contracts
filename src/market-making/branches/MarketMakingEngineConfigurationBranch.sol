@@ -39,6 +39,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param vaultId The vault id.
     event LogUpdateVaultConfiguration(address indexed sender, uint128 vaultId);
 
+    /// @notice Emitted when a system keeper is configured.
+    /// @param systemKeeper The address of the system keeper.
+    /// @param shouldBeEnabled A flag indicating whether the system keeper should be enabled.
+    event LogConfigureSystemKeeper(address systemKeeper, bool shouldBeEnabled);
+
     /// @notice Emitted when an engine's configuration is updated.
     /// @param engine The address of the engine contract.
     /// @param usdToken The address of the USD token contract.
@@ -149,6 +154,25 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         // Vault.Data storage vault = Vault.load(vaultId);
 
         // vault.
+    }
+
+    /// @notice Configure system keeper on Market Making Engine
+    /// @dev Only owner can call this function
+    /// @param systemKeeper The address of the system keeper.
+    /// @param shouldBeEnabled The status of the system keeper.
+    function configureSystemKeeper(address systemKeeper, bool shouldBeEnabled) external onlyOwner {
+        // revert if systemKeeper is set to zero
+        if (systemKeeper == address(0)) revert Errors.ZeroInput("systemKeeper");
+
+        // loads the mm engine config storage pointer
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // update system keeper status
+        marketMakingEngineConfiguration.isSystemKeeperEnabled[systemKeeper] = shouldBeEnabled;
+
+        // emit event LogConfigureSystemKeeper
+        emit LogConfigureSystemKeeper(systemKeeper, shouldBeEnabled);
     }
 
     /// @notice Configures an engine contract and sets its linked USD token address.

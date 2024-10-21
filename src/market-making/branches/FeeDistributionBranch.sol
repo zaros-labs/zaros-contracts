@@ -137,7 +137,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         uint128 dexSwapStrategyId
     )
         external
-        onlyRegisteredEngine
+        onlyRegisteredSystemKeepers
         onlyExistingMarket(marketId)
     {
         // loads the collateral data storage pointer
