@@ -479,7 +479,7 @@ contract TradingAccountBranch {
         marketOrder.checkPendingOrder();
 
         // reverts if the trader has a pending order
-        if (marketOrder.marketId != 0 && marketOrder.sizeDelta != 0 && marketOrder.timestamp != 0) {
+        if (marketOrder.marketId != 0) {
             revert Errors.ActiveMarketOrder(tradingAccountId, marketOrder.marketId, marketOrder.sizeDelta, marketOrder.timestamp);
         }
     }
