@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 // PRB Math dependencies
 import { ud60x18 } from "@prb-math/UD60x18.sol";
@@ -15,8 +16,21 @@ contract ClaimFees_Integration_Test is Base_Test {
         configureMarkets();
     }
 
-    function testFuzz_RevertWhen_TheUserDoesNotHaveAvailableShares() external {
+    function testFuzz_RevertWhen_TheUserDoesNotHaveAvailableShares(
+        uint256 vaultId,
+        uint256 assetsToDeposit
+    )
+        external
+    {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+
         // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoSharesAvailable.selector) });
+
+        marketMakingEngine.claimFees(fuzzVaultConfig.vaultId);
     }
 
     modifier whenTheUserDoesHaveAvailableShares() {
