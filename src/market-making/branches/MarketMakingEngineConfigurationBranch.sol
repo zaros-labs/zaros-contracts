@@ -65,15 +65,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
     /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
     /// @param autoDeleveragePowerScale The auto deleverage power scale.
-    /// @param marketShare The market share between 0 and 1 in 18 decimals
-    /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
     event LogConfigureMarket(
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale,
-        uint128 marketShare,
-        uint128 feeRecipientsShare
+        uint128 autoDeleveragePowerScale
     );
 
     /// @notice Emitted when a dex swap strategy is configured.
@@ -275,15 +271,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
     /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
     /// @param autoDeleveragePowerScale The auto deleverage power scale.
-    /// @param marketShare The market share between 0 and 1 in 18 decimals
-    /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
     function configureMarket(
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale,
-        uint128 marketShare,
-        uint128 feeRecipientsShare
+        uint128 autoDeleveragePowerScale
     )
         external
         onlyOwner
@@ -300,14 +292,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         // revert if autoDeleveragePowerScale is set to zero
         if (autoDeleveragePowerScale == 0) revert Errors.ZeroInput("autoDeleveragePowerScale");
 
-        UD60x18 marketShareX18 = ud60x18(marketShare);
-        UD60x18 feeRecipientsShareX18 = ud60x18(feeRecipientsShare);
-
-        // revert if marketShare + feeRecipientsShare is greater than 1
-        if (marketShareX18.add(feeRecipientsShareX18).gt(ud60x18(1e18))) {
-            revert Errors.InvalidMarketShareAndFeeRecipientsShare(marketShare, feeRecipientsShare);
-        }
-
         // load market data from storage
         Market.Data storage market = Market.load(marketId);
 
@@ -316,17 +300,13 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         market.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         market.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
         market.autoDeleveragePowerScale = autoDeleveragePowerScale;
-        market.marketShare = marketShare;
-        market.feeRecipientsShare = feeRecipientsShare;
 
         // emit event LogConfigureMarket
         emit LogConfigureMarket(
             marketId,
             autoDeleverageStartThreshold,
             autoDeleverageEndThreshold,
-            autoDeleveragePowerScale,
-            marketShare,
-            feeRecipientsShare
+            autoDeleveragePowerScale
         );
     }
 

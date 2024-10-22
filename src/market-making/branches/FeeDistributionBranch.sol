@@ -13,7 +13,7 @@ import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
@@ -45,10 +45,8 @@ contract FeeDistributionBranch is EngineAccessControl {
     event LogReceiveMarketFee(address indexed asset, uint128 marketId, uint256 amount);
 
     /// @notice Emitted when received collateral type has been converted to weth.
-    /// @param asset The address of collateral type to be converted.
-    /// @param amount The amount of collateral type to be converted.
-    /// @param totalWETH The total amounf of weth received once converted.
-    event LogConvertAccumulatedFeesToWeth(address indexed asset, uint256 amount, uint256 totalWETH);
+    /// @param totalWethX18 The total amounf of weth received once converted.
+    event LogConvertAccumulatedFeesToWeth(uint256 totalWethX18);
 
     /// @notice Emitted when end user/fee recipient receives their weth token fees
     /// @param recipient The account address receiving the fees
@@ -199,14 +197,24 @@ contract FeeDistributionBranch is EngineAccessControl {
             accumulatedWethX18 = tokensSwappedX18;
         }
 
+        // not create a instance of the market making engine configuration to prevent stack to deep error
+        // get the total fee recipients shares
+        UD60x18 feeRecipientsSharesX18 = MarketMakingEngineConfiguration.load().getTotalFeeRecipientsShares();
+
         // calculate the fee amount for the market
-        UD60x18 marketFeesX18 = accumulatedWethX18.mul(ud60x18(market.marketShare));
+        UD60x18 marketFeesX18 = accumulatedWethX18.mul(ud60x18(1e18).sub(feeRecipientsSharesX18));
 
-        // calculate the fee amount for the fee recipients
-        UD60x18 collectedFeesX18 = accumulatedWethX18.mul(ud60x18(market.feeRecipientsShare));
+        // variable to store the collected fees
+        UD60x18 collectedFeesX18;
 
-        // increment the collected fees and rmeove the asset form the received market fees
-        market.updateReceivedAndAvailableFees(asset, collectedFeesX18);
+        // verify if fee recipients have shares
+        if (!feeRecipientsSharesX18.isZero()) {
+            // calculate the collected fees
+            collectedFeesX18 = accumulatedWethX18.mul(feeRecipientsSharesX18);
+
+            // increment the collected fees and rmeove the asset form the received market fees
+            market.updateReceivedAndAvailableFees(asset, collectedFeesX18);
+        }
 
         // get connected vaults of market
         uint256[] memory vaultsSet = market.getConnectedVaultsIds();
@@ -241,7 +249,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         }
 
         // emit event to log the conversion of fees to weth
-        emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, accumulatedWethX18.intoUint256());
+        emit LogConvertAccumulatedFeesToWeth(accumulatedWethX18.intoUint256());
     }
 
     /// @notice Sends allocated weth amount to fee recipients.

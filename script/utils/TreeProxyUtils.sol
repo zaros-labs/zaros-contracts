@@ -628,9 +628,11 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketHarnessSelectors[3] = MarketHarness.workaround_setReceivedMarketFees.selector;
     marketHarnessSelectors[4] = MarketHarness.workaround_getAvailableFeesToWithdraw.selector;
 
-    bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](1);
+    bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](2);
     marketMakingEngineConfigurationSelectors[0] =
         MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
+    marketMakingEngineConfigurationSelectors[1] =
+        MarketMakingEngineConfigurationHarness.exposed_getTotalFeeRecipientsShares.selector;
 
     bytes4[] memory dexSwapStrategyHarnessSelectors = new bytes4[](1);
     dexSwapStrategyHarnessSelectors[0] = DexSwapStrategyHarness.exposed_dexSwapStrategy_load.selector;
