@@ -16,8 +16,14 @@ import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgr
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+
 // TODO: add initializer at upgrade branch or auth branch
 contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
+    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using DexSwapStrategy for DexSwapStrategy.Data;
 
@@ -80,6 +86,12 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @notice Emitted when the wETH address is set or updated.
     /// @param weth The address of the wETH token.
     event LogSetWeth(address weth);
+
+    /// @notice Emitted when a fee recipient is configured.
+    /// @param configuration The configuration of which fee recipients are part of.
+    /// @param feeRecipient The address of the fee recipient.
+    /// @param share The share of the fee recipient, example 0.5e18 (50%).
+    event LogConfigureFeeRecipient(uint256 configuration, address feeRecipient, uint256 share);
 
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
@@ -303,10 +315,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit event LogConfigureMarket
         emit LogConfigureMarket(
-            marketId,
-            autoDeleverageStartThreshold,
-            autoDeleverageEndThreshold,
-            autoDeleveragePowerScale
+            marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
         );
     }
 
@@ -330,5 +339,28 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit event LogConfigureDexSwapStrategy
         emit LogConfigureDexSwapStrategy(dexSwapStrategyId, dexAdapter);
+    }
+
+    /// @notice Configure fee recipient on Market Making Engine
+    /// @dev Only owner can call this function
+    /// @param configuration The configuration of which fee recipients are part of.
+    /// @param feeRecipient The address of the fee recipient.
+    /// @param share The share of the fee recipient, example: 0.5e18 (50%).
+    function configureFeeRecipient(uint256 configuration, address feeRecipient, uint256 share) external onlyOwner {
+        // revert if protocolFeeRecipient is set to zero
+        if (feeRecipient == address(0)) revert Errors.ZeroInput("feeRecipient");
+
+        // load market making engine configuration data from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // update configuration fee recipients
+        marketMakingEngineConfiguration.configurationFeeRecipients.add(configuration);
+
+        // update protocol fee recipient
+        marketMakingEngineConfiguration.protocolFeeRecipients[configuration].set(feeRecipient, share);
+
+        // emit event LogConfigureFeeRecipient
+        emit LogConfigureFeeRecipient(configuration, feeRecipient, share);
     }
 }

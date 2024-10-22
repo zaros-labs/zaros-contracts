@@ -26,4 +26,8 @@ library Constants {
 
     /// @notice BPS denominator value.
     uint256 internal constant BPS_DENOMINATOR = 10_000;
+
+    /// @notice Maximum value for shares, example 0.5e18 is 50%.
+    /// @dev This is used to avoid overflows when calculating shares.
+    uint256 internal constant MAX_OF_SHARES = 1e18;
 }

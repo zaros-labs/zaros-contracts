@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
+import { Math } from "@zaros/utils/Math.sol";
 
 // Openzeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
@@ -31,7 +31,12 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheMarketDoesNotExist(uint256 configuration) external givenTheSenderIsRegisteredEngine {
+    function testFuzz_RevertWhen_TheMarketDoesNotExist(
+        uint256 configuration
+    )
+        external
+        givenTheSenderIsRegisteredEngine
+    {
         changePrank({ msgSender: address(perpsEngine) });
 
         uint128 invalidMarketId = FINAL_PERP_MARKET_CREDIT_CONFIG_ID + 1;
@@ -46,7 +51,10 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_ThereIsNoAvailableFeesToWithdraw(uint256 marketId, uint256 configuration)
+    function testFuzz_RevertWhen_ThereIsNoAvailableFeesToWithdraw(
+        uint256 marketId,
+        uint256 configuration
+    )
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
@@ -65,7 +73,10 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_ThereAreNoFeeRecipients(uint256 marketId, uint256 configuration, uint256 amount)
+    function testFuzz_RevertWhen_ThereAreNoFeeRecipientsShares(
+        uint256 marketId,
+        uint256 amount
+    )
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
@@ -84,16 +95,24 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
 
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
-        marketMakingEngine.convertAccumulatedFeesToWeth(fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID());
+        marketMakingEngine.convertAccumulatedFeesToWeth(
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID()
+        );
 
-        // TODO: add custom error
+        changePrank({ msgSender: address(users.owner.account) });
+        marketMakingEngine.configureFeeRecipient(MOCK_CONFIGURATION_FEE_RECIPIENT, address(perpsEngine), 0);
+
+        changePrank({ msgSender: address(perpsEngine) });
+
         // it should revert
-        vm.expectRevert({ });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoSharesAvailable.selector) });
 
-        marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketId, configuration);
+        marketMakingEngine.sendWethToFeeRecipients(
+            fuzzPerpMarketCreditConfig.marketId, MOCK_CONFIGURATION_FEE_RECIPIENT
+        );
     }
 
-    function test_WhenThereAreFeeRecipients()
+    function testFuzz_WhenThereAreFeeRecipientsShares()
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
@@ -103,5 +122,4 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         // it should emit {LogSendWethToFeeRecipients} event
         // it should decrement the available fees to withdraw
     }
-
 }

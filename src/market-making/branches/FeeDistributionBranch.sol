@@ -11,9 +11,10 @@ import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
@@ -173,7 +174,9 @@ contract FeeDistributionBranch is EngineAccessControl {
             DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
 
             // reverts if the dex swap strategy has an invalid dex adapter
-            if (dexSwapStrategy.dexAdapter == address(0)) revert Errors.DexSwapStrategyHasAnInvalidDexAdapter(dexSwapStrategyId);
+            if (dexSwapStrategy.dexAdapter == address(0)) {
+                revert Errors.DexSwapStrategyHasAnInvalidDexAdapter(dexSwapStrategyId);
+            }
 
             // load the weth collateral data storage pointer
             Collateral.Data storage wethCollateral = Collateral.load(weth);
@@ -202,7 +205,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         UD60x18 feeRecipientsSharesX18 = MarketMakingEngineConfiguration.load().getTotalFeeRecipientsShares();
 
         // calculate the fee amount for the market
-        UD60x18 marketFeesX18 = accumulatedWethX18.mul(ud60x18(1e18).sub(feeRecipientsSharesX18));
+        UD60x18 marketFeesX18 = accumulatedWethX18.mul(ud60x18(Constants.MAX_OF_SHARES).sub(feeRecipientsSharesX18));
 
         // variable to store the collected fees
         UD60x18 collectedFeesX18;
@@ -275,7 +278,8 @@ contract FeeDistributionBranch is EngineAccessControl {
             MarketMakingEngineConfiguration.load();
 
         // loads the protocol fee recipients storage pointer
-        EnumerableMap.AddressToUintMap storage protocolFeeRecipients = marketMakingEngineConfigurationData.protocolFeeRecipients[configuration][0];
+        EnumerableMap.AddressToUintMap storage protocolFeeRecipients =
+            marketMakingEngineConfigurationData.protocolFeeRecipients[configuration];
 
         // store the length of the fee recipients list
         uint256 recipientListLength = protocolFeeRecipients.length();
@@ -305,13 +309,16 @@ contract FeeDistributionBranch is EngineAccessControl {
             totalSharesX18 = totalSharesX18.add(ud60x18(cacheSharesList[i]));
         }
 
+        if (totalSharesX18.isZero()) {
+            // if total shares is zero, revert
+            revert Errors.NoSharesAvailable();
+        }
+
         // send amount between fee recipients
         for (uint256 i; i < recipientListLength; ++i) {
-
             // calculate the amount to send to the fee recipient
-            UD60x18 amountToSendX18 = Market.calculateFees(
-                availableFeesToWithdrawX18, ud60x18(cacheSharesList[i]), totalSharesX18
-            );
+            UD60x18 amountToSendX18 =
+                Market.calculateFees(availableFeesToWithdrawX18, ud60x18(cacheSharesList[i]), totalSharesX18);
 
             // decrement the collected fees
             market.decrementAvailableFeesToWithdraw(amountToSendX18);

@@ -16,12 +16,16 @@ library MarketMakingEngineConfiguration {
     bytes32 internal constant MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketMakingEngineConfiguration")) - 1));
 
+    // struct EnumerableMapAddressToUint {
+    //     EnumerableMap.AddressToUintMap map;
+    // }
+
     // TODO: pack storage slots
     struct Data {
         address usdc;
         address weth;
         address feeDistributor;
-        EnumerableMap.AddressToUintMap[][] protocolFeeRecipients;
+        mapping(uint256 configuration => EnumerableMap.AddressToUintMap map) protocolFeeRecipients;
         EnumerableSet.UintSet configurationFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
@@ -53,7 +57,7 @@ library MarketMakingEngineConfiguration {
 
         // Load the configuration fee recipients and protocol fee recipients storage pointers.
         EnumerableSet.UintSet storage configurationFeeRecipients = self.configurationFeeRecipients;
-        EnumerableMap.AddressToUintMap[][] storage protocolFeeRecipients = self.protocolFeeRecipients;
+        // EnumerableMapAddressToUint[] storage protocolFeeRecipients = self.protocolFeeRecipients;
 
         // Iterate over the configuration fee recipients.
         for (uint256 i = 0; i < configurationFeeRecipients.length(); i++) {
@@ -61,12 +65,12 @@ library MarketMakingEngineConfiguration {
             uint256 configuration = configurationFeeRecipients.at(i);
 
             // Cache the length of the protocol fee recipients
-            uint256 feeRecipientsLength = protocolFeeRecipients[configuration][0].length();
+            uint256 feeRecipientsLength = self.protocolFeeRecipients[configuration].length();
 
             // Iterate over the protocol fee recipients
             for (uint256 j = 0; j < feeRecipientsLength; j++) {
                 // Load the shares of the fee recipient
-                (, uint256 shares) = protocolFeeRecipients[configuration][0].at(i);
+                (, uint256 shares) = self.protocolFeeRecipients[configuration].at(i);
 
                 // Add the shares to the total fee recipients shares
                 totalFeeRecipientsSharesX18 = totalFeeRecipientsSharesX18.add(ud60x18(shares));
