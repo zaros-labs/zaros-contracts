@@ -37,9 +37,8 @@ library Market {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Market")) - 1));
 
     /// @notice {Market} namespace storage structure.
-    /// @param engine The engine contract address that operates this market id.
-    /// @param availableFeesToWithdraw The amount of fees available to withdraw from the market.
-    /// @param marketId The engine's linked market id.
+    /// @param id The market identifier, must be the same one stored in the Market Making Engine and in its connected
+    /// engine.
     /// @param autoDeleverageStartThreshold An admin configurable decimal rate used to determine the starting
     /// threshold of the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleverageEndThreshold An admin configurable decimal rate used to determine the ending threshold of
@@ -55,6 +54,10 @@ library Market {
     /// vaults.
     /// @param lastDistributedUnrealizedDebtUsd The last unrealized debt in USD distributed as `value` to the vaults
     /// debt distribution.
+    /// @param totalWethReward The total amount of weth rewards accumulated by the market, paid by its engine.
+    /// @param isLive Whether the market is currently live or paused.
+    /// @param engine The address of the market's connected engine, used to fetch the market's unrealized debt and
+    /// system validations.
     /// @param depositedCollateralTypes Stores the set of addresses of collateral assets used for credit deposits to a
     /// market.
     /// @param connectedVaults The list of vaults ids delegating credit to this market. Whenever there's an update,
@@ -64,8 +67,6 @@ library Market {
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
     /// `valuePerShare`: USD denominated market debt or credit per share.
     struct Data {
-        address engine;
-        uint256 availableFeesToWithdraw;
         uint128 id;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
@@ -77,6 +78,7 @@ library Market {
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
         uint128 totalWethReward;
+        address engine;
         bool isLive;
         EnumerableSet.AddressSet depositedCollateralTypes;
         EnumerableSet.UintSet[] connectedVaults;
@@ -402,6 +404,8 @@ library Market {
     /// and calculates the vault's debt changes in USD.
     /// @param self The market storage pointer.
     /// @param vaultId The vault id to accumulate the debt for.
+    /// @param lastVaultDistributedWethRewardX18 The last distributed WETH reward for the given credit delegation (by
+    /// the vault).
     /// @param lastVaultDistributedUnrealizedDebtUsdX18 The last distributed unrealized debt in USD for the given
     /// credit delegation (by the vault).
     /// @param lastVaultDistributedRealizedDebtUsdX18 The last distributed realized debt in USD for the given credit
@@ -517,32 +521,6 @@ library Market {
 
         // set the new amount in the receivedMarketFees map
         self.receivedMarketFees.set(asset, newAmount.intoUint256());
-    }
-
-    /// @notice Support function to update the received and available fees
-    /// @param self The fee storage pointer
-    /// @param asset The asset address
-    /// @param amountX18 The amount to be incremented
-    function updateReceivedAndAvailableFees(Data storage self, address asset, UD60x18 amountX18) internal {
-        // increment the received fees
-        UD60x18 newAmount = amountX18.add(ud60x18(self.availableFeesToWithdraw));
-
-        // set the new amount in the availableFeesToWithdraw
-        self.availableFeesToWithdraw = newAmount.intoUint256();
-
-        // remove the asset from the receivedMarketFees map
-        self.receivedMarketFees.remove(asset);
-    }
-
-    /// @notice Support function to decrease the available fees to withdraw
-    /// @param self The fee storage pointer
-    /// @param amountX18 The amount to be incremented
-    function decrementAvailableFeesToWithdraw(Data storage self, UD60x18 amountX18) internal {
-        // subtract the amount from the availableFeesToWithdraw
-        UD60x18 newAmount = amountX18.sub(ud60x18(self.availableFeesToWithdraw));
-
-        // set the new amount in the availableFeesToWithdraw
-        self.availableFeesToWithdraw = newAmount.intoUint256();
     }
 
     /// @notice Support function to calculate the accumulated wEth allocated for the beneficiary
