@@ -25,8 +25,8 @@ library MarketMakingEngineConfiguration {
         address usdc;
         address weth;
         address feeDistributor;
-        mapping(uint256 configuration => EnumerableMap.AddressToUintMap map) protocolFeeRecipients;
         EnumerableSet.UintSet configurationFeeRecipients;
+        mapping(uint256 configuration => EnumerableMap.AddressToUintMap map) protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
         // TODO: define roles
