@@ -5,7 +5,8 @@ pragma solidity 0.8.25;
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
-/// @notice EngineAccessControl is an abstract contract that provides access control utility to the market making engine's branches.
+/// @notice EngineAccessControl is an abstract contract that provides access control utility to the market making
+/// engine's branches.
 abstract contract EngineAccessControl {
     /// @notice Modifier to check if the caller is a registered engine.
     modifier onlyRegisteredEngine() {

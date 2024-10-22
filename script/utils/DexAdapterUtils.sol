@@ -44,8 +44,13 @@ library DexAdapterUtils {
         UniswapV3Adapter uniswapV3AdapterImplementation = new UniswapV3Adapter();
 
         // create bytes of the initialze function of Uniswap V3 Adapter Implementation
-        bytes memory initializeUniswapV3Adapter =
-            abi.encodeWithSelector(uniswapV3AdapterImplementation.initialize.selector, owner, uniswapV3SwapStrategyRouter, slippageToleranceBps, fee);
+        bytes memory initializeUniswapV3Adapter = abi.encodeWithSelector(
+            uniswapV3AdapterImplementation.initialize.selector,
+            owner,
+            uniswapV3SwapStrategyRouter,
+            slippageToleranceBps,
+            fee
+        );
 
         // deploy the Uniswap V3 Adapter Proxy
         uniswapV3Adapter = UniswapV3Adapter(
