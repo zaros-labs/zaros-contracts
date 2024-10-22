@@ -9,6 +9,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -354,8 +355,16 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
+        UD60x18 totalFeeRecipientsSharesX18 = marketMakingEngineConfiguration.getTotalFeeRecipientsShares();
+
+        if (totalFeeRecipientsSharesX18.add(ud60x18(share)).gt(ud60x18(Constants.MAX_OF_SHARES))) {
+            revert Errors.FeeRecipientShareExceedsOne();
+        }
+
         // update configuration fee recipients
-        marketMakingEngineConfiguration.configurationFeeRecipients.add(configuration);
+        if (!marketMakingEngineConfiguration.configurationFeeRecipients.contains(configuration)) {
+            marketMakingEngineConfiguration.configurationFeeRecipients.add(configuration);
+        }
 
         // update protocol fee recipient
         marketMakingEngineConfiguration.protocolFeeRecipients[configuration].set(feeRecipient, share);

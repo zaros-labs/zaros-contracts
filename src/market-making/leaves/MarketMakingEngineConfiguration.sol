@@ -66,7 +66,7 @@ library MarketMakingEngineConfiguration {
             // Iterate over the protocol fee recipients
             for (uint256 j = 0; j < feeRecipientsLength; j++) {
                 // Load the shares of the fee recipient
-                (, uint256 shares) = self.protocolFeeRecipients[configuration].at(i);
+                (, uint256 shares) = self.protocolFeeRecipients[configuration].at(j);
 
                 // Add the shares to the total fee recipients shares
                 totalFeeRecipientsSharesX18 = totalFeeRecipientsSharesX18.add(ud60x18(shares));

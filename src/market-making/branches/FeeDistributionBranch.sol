@@ -317,8 +317,12 @@ contract FeeDistributionBranch is EngineAccessControl {
         // send amount between fee recipients
         for (uint256 i; i < recipientListLength; ++i) {
             // calculate the amount to send to the fee recipient
-            UD60x18 amountToSendX18 =
-                Market.calculateFees(availableFeesToWithdrawX18, ud60x18(cacheSharesList[i]), totalSharesX18);
+            UD60x18 amountToSendX18 = availableFeesToWithdrawX18.mul(ud60x18(cacheSharesList[i]));
+
+            if (amountToSendX18.isZero()) {
+                // if the amount to send is zero, continue
+                continue;
+            }
 
             // decrement the collected fees
             market.decrementAvailableFeesToWithdraw(amountToSendX18);

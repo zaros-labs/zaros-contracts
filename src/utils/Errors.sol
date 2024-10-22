@@ -169,6 +169,9 @@ library Errors {
 
     /// @notice MarketMakingEngine.MarketMakingEngineBranch errors.
 
+    /// @notice Thrown when the total of protocol fee recipient share exceeds 1e18
+    error FeeRecipientShareExceedsOne();
+
     /// @notice MarketMakingEngine.CreditDelegationBranch errors.
 
     /// @notice Thrown when the given `marketId` has no vaults delegating credit to it. This error must be unreachable

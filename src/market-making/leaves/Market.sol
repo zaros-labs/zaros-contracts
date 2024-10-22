@@ -528,7 +528,7 @@ library Market {
     /// @param amountX18 The amount to be incremented
     function decrementAvailableFeesToWithdraw(Data storage self, UD60x18 amountX18) internal {
         // subtract the amount from the availableFeesToWithdraw
-        UD60x18 newAmount = amountX18.sub(ud60x18(self.availableFeesToWithdraw));
+        UD60x18 newAmount = ud60x18(self.availableFeesToWithdraw).sub(amountX18);
 
         // set the new amount in the availableFeesToWithdraw
         self.availableFeesToWithdraw = newAmount.intoUint256();
