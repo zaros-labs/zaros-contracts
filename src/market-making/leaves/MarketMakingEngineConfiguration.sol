@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-// Zaros dependencies
-import { FeeRecipient } from "@zaros/market-making/leaves/FeeRecipient.sol";
+// Open Zeppelin dependencies
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 
 library MarketMakingEngineConfiguration {
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
+
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketMakingEngineConfiguration")) - 1));
@@ -14,8 +16,7 @@ library MarketMakingEngineConfiguration {
         address usdc;
         address weth;
         address feeDistributor;
-        address[][] feeRecipientsAddresses;
-        FeeRecipient.Data[][] feeRecipients;
+        EnumerableMap.AddressToUintMap[][] protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
         // TODO: define roles

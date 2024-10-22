@@ -58,7 +58,6 @@ import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
 import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
-import { FeeRecipientHarness } from "test/harnesses/market-making/leaves/FeeRecipientHarness.sol";
 import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
 import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
 
@@ -119,8 +118,7 @@ abstract contract IMarketMakingEngine is
     DistributionHarness,
     MarketHarness,
     MarketMakingEngineConfigurationHarness,
-    DexSwapStrategyHarness,
-    FeeRecipientHarness
+    DexSwapStrategyHarness
 { }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {

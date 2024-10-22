@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
-import { FeeRecipient } from "@zaros/market-making/leaves/FeeRecipient.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
@@ -26,14 +25,14 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 contract FeeDistributionBranch is EngineAccessControl {
     using SafeERC20 for IERC20;
     using DexSwapStrategy for DexSwapStrategy.Data;
-    using FeeRecipient for FeeRecipient.Data;
     using Collateral for Collateral.Data;
     using Vault for Vault.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using Distribution for Distribution.Data;
     using Market for Market.Data;
-    using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   EVENTS
@@ -267,11 +266,11 @@ contract FeeDistributionBranch is EngineAccessControl {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
             MarketMakingEngineConfiguration.load();
 
-        // get the fee recipients list
-        address[] memory recipientsList = marketMakingEngineConfigurationData.feeRecipientsAddresses[configuration];
+        // loads the protocol fee recipients storage pointer
+        EnumerableMap.AddressToUintMap storage protocolFeeRecipients = marketMakingEngineConfigurationData.protocolFeeRecipients[configuration][0];
 
         // store the length of the fee recipients list
-        uint256 recipientListLength = recipientsList.length;
+        uint256 recipientListLength = protocolFeeRecipients.length();
 
         // weth address
         address weth = marketMakingEngineConfigurationData.weth;
@@ -285,19 +284,25 @@ contract FeeDistributionBranch is EngineAccessControl {
         // load the weth collateral data storage pointer
         Collateral.Data storage wethCollateral = Collateral.load(weth);
 
+        // store the recipients and shares in cache
+        address[] memory cacheRecipientsList = new address[](recipientListLength);
+        uint256[] memory cacheSharesList = new uint256[](recipientListLength);
+
         // get total shares of fee recipients
         for (uint256 i; i < recipientListLength; ++i) {
-            totalSharesX18 = totalSharesX18.add(ud60x18(FeeRecipient.load(recipientsList[i]).share));
+            // get the recipient and shares
+            (cacheRecipientsList[i], cacheSharesList[i]) = protocolFeeRecipients.at(i);
+
+            // add the shares to the total shares
+            totalSharesX18 = totalSharesX18.add(ud60x18(cacheSharesList[i]));
         }
 
         // send amount between fee recipients
         for (uint256 i; i < recipientListLength; ++i) {
-            // the current fee recipient
-            address feeRecipient = recipientsList[i];
 
             // calculate the amount to send to the fee recipient
             UD60x18 amountToSendX18 = Market.calculateFees(
-                availableFeesToWithdrawX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18
+                availableFeesToWithdrawX18, ud60x18(cacheSharesList[i]), totalSharesX18
             );
 
             // decrement the collected fees
@@ -307,10 +312,10 @@ contract FeeDistributionBranch is EngineAccessControl {
             uint256 amountToSend = wethCollateral.convertUd60x18ToTokenAmount(amountToSendX18);
 
             // send the amount to the fee recipient
-            IERC20(weth).safeTransfer(feeRecipient, amountToSend);
+            IERC20(weth).safeTransfer(cacheRecipientsList[i], amountToSend);
 
             // emit event to log the amount sent to the fee recipient
-            emit LogSendWethToFeeRecipients(feeRecipient, amountToSend);
+            emit LogSendWethToFeeRecipients(cacheRecipientsList[i], amountToSend);
         }
     }
 
