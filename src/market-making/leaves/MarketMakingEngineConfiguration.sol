@@ -16,10 +16,6 @@ library MarketMakingEngineConfiguration {
     bytes32 internal constant MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketMakingEngineConfiguration")) - 1));
 
-    // struct EnumerableMapAddressToUint {
-    //     EnumerableMap.AddressToUintMap map;
-    // }
-
     // TODO: pack storage slots
     struct Data {
         address usdc;
