@@ -169,11 +169,6 @@ library Errors {
 
     /// @notice MarketMakingEngine.MarketMakingEngineBranch errors.
 
-    /// @notice Thrown when marketShare plus feeRecipientsShare is greater than 1
-    /// @param marketShare The market share between 0 and 1 in 18 decimals
-    /// @param feeRecipientsShare The fee recipients share between 0 and 1 in 18 decimals
-    error InvalidMarketShareAndFeeRecipientsShare(uint256 marketShare, uint256 feeRecipientsShare);
-
     /// @notice MarketMakingEngine.CreditDelegationBranch errors.
 
     /// @notice Thrown when the given `marketId` has no vaults delegating credit to it. This error must be unreachable
