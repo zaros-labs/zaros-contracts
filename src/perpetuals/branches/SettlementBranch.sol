@@ -515,10 +515,16 @@ contract SettlementBranch is EIP712Upgradeable {
             SD59x18 marginBalanceUsdX18 = tradingAccount.getMarginBalanceUsd(accountTotalUnrealizedPnlUsdX18);
 
             // prevent liquidatable accounts from trading
-            if (TradingAccount.isLiquidatable(requiredMaintenanceMarginUsdX18, marginBalanceUsdX18)) {
+            if (
+                TradingAccount.isLiquidatable(
+                    requiredMaintenanceMarginUsdX18,
+                    marginBalanceUsdX18,
+                    ud60x18(perpsEngineConfiguration.liquidationFeeUsdX18)
+                )
+            ) {
                 revert Errors.AccountIsLiquidatable(tradingAccountId);
             }
-         }
+        }
 
         emit LogFillOrder(
             msg.sender,
