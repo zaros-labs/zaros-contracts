@@ -254,7 +254,8 @@ library PerpMarket {
 
     /// @notice Verifies the market's open interest and skew limits based on the next state.
     /// @dev During liquidation we skip the max skew check, so the engine can always liquidate unhealthy accounts.
-    /// @dev If the case outlined above happens and the maxSkew is crossed, the market will only allow orders that
+    /// @dev If the case outlined above happens and the skewCapScaleX18 is crossed, the market will only allow orders
+    /// that
     /// reduce the skew.
     /// @param self The PerpMarket storage pointer.
     /// @param sizeDelta The size delta of the order.
@@ -273,7 +274,7 @@ library PerpMarket {
         returns (UD60x18 newOpenInterest, SD59x18 newSkew)
     {
         // load max & current open interest for this perp market uint128 -> UD60x18
-        UD60x18 maxOpenInterest = ud60x18(self.configuration.maxOpenInterest);
+        UD60x18 openInterestCapScaleX18 = ud60x18(self.configuration.openInterestCapScaleX18);
         UD60x18 currentOpenInterest = ud60x18(self.openInterest);
 
         // calculate new open interest which would result from proposed trade
@@ -287,20 +288,20 @@ library PerpMarket {
         // allows traders to reduce/close their positions in markets where protocol admins
         // have reduced the max open interest to reduce the protocol's exposure to a given
         // perp market
-        if (newOpenInterest.gt(maxOpenInterest) && shouldCheckNewOpenInterestAndNewSkew) {
+        if (newOpenInterest.gt(openInterestCapScaleX18) && shouldCheckNewOpenInterestAndNewSkew) {
             // is the proposed trade reducing open interest?
             bool isReducingOpenInterest = currentOpenInterest.gt(newOpenInterest);
 
             // revert if the proposed trade isn't reducing open interest
             if (!isReducingOpenInterest) {
                 revert Errors.ExceedsOpenInterestLimit(
-                    self.id, maxOpenInterest.intoUint256(), newOpenInterest.intoUint256()
+                    self.id, openInterestCapScaleX18.intoUint256(), newOpenInterest.intoUint256()
                 );
             }
         }
 
         // load max & current skew for this perp market uint128 -> UD60x18 -> SD59x18
-        SD59x18 maxSkew = ud60x18(self.configuration.maxSkew).intoSD59x18();
+        SD59x18 skewCapScaleX18 = ud60x18(self.configuration.skewCapScaleX18).intoSD59x18();
         // int128 -> SD59x18
         SD59x18 currentSkew = sd59x18(self.skew);
 
@@ -309,11 +310,11 @@ library PerpMarket {
 
         // similar logic to the open interest check; if the new skew is greater than
         // the max, we still want to allow trades as long as they decrease the skew
-        if (newSkew.abs().gt(maxSkew) && shouldCheckNewOpenInterestAndNewSkew) {
+        if (newSkew.abs().gt(skewCapScaleX18) && shouldCheckNewOpenInterestAndNewSkew) {
             bool isReducingSkew = currentSkew.abs().gt(newSkew.abs());
 
             if (!isReducingSkew) {
-                revert Errors.ExceedsSkewLimit(self.id, maxSkew.intoUint256(), newSkew.intoInt256());
+                revert Errors.ExceedsSkewLimit(self.id, skewCapScaleX18.intoUint256(), newSkew.intoInt256());
             }
         }
     }
@@ -352,8 +353,8 @@ library PerpMarket {
     /// @param priceAdapter The price oracle contract address.
     /// @param initialMarginRateX18 The initial margin rate in 1e18.
     /// @param maintenanceMarginRateX18 The maintenance margin rate in 1e18.
-    /// @param maxOpenInterest The maximum open interest allowed.
-    /// @param maxSkew The maximum skew allowed.
+    /// @param openInterestCapScaleX18 The maximum open interest allowed.
+    /// @param skewCapScaleX18 The maximum skew allowed.
     /// @param maxFundingVelocity The maximum funding velocity allowed.
     /// @param minTradeSizeX18 The minimum trade size in 1e18.
     /// @param skewScale The skew scale, a configurable parameter that determines price marking and funding.
@@ -367,8 +368,8 @@ library PerpMarket {
         address priceAdapter;
         uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
-        uint128 maxOpenInterest;
-        uint128 maxSkew;
+        uint128 openInterestCapScaleX18;
+        uint128 skewCapScaleX18;
         uint128 maxFundingVelocity;
         uint128 minTradeSizeX18;
         uint256 skewScale;
@@ -395,8 +396,8 @@ library PerpMarket {
                 priceAdapter: params.priceAdapter,
                 initialMarginRateX18: params.initialMarginRateX18,
                 maintenanceMarginRateX18: params.maintenanceMarginRateX18,
-                maxOpenInterest: params.maxOpenInterest,
-                maxSkew: params.maxSkew,
+                openInterestCapScaleX18: params.openInterestCapScaleX18,
+                skewCapScaleX18: params.skewCapScaleX18,
                 maxFundingVelocity: params.maxFundingVelocity,
                 minTradeSizeX18: params.minTradeSizeX18,
                 skewScale: params.skewScale,

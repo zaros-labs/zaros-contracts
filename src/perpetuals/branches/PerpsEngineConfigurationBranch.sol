@@ -342,8 +342,8 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param priceAdapter The price adapter contract, which handles the market's index price.
     /// @param initialMarginRateX18 The perps market min initial margin rate, which defines the max leverage.
     /// @param maintenanceMarginRateX18 The perps market maintenance margin rate.
-    /// @param maxOpenInterest The perps market maximum open interest per side.
-    /// @param maxSkew The perp market maximum skew value.
+    /// @param openInterestCapScaleX18 The perps market maximum open interest per side.
+    /// @param skewCapScaleX18 The perp market maximum skew value.
     /// @param maxFundingVelocity The perps market maximum funding rate velocity.
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
@@ -357,8 +357,8 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         address priceAdapter;
         uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
-        uint128 maxOpenInterest;
-        uint128 maxSkew;
+        uint128 openInterestCapScaleX18;
+        uint128 skewCapScaleX18;
         uint128 maxFundingVelocity;
         uint128 minTradeSizeX18;
         uint256 skewScale;
@@ -385,11 +385,11 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
-        if (params.maxOpenInterest == 0) {
-            revert Errors.ZeroInput("maxOpenInterest");
+        if (params.openInterestCapScaleX18 == 0) {
+            revert Errors.ZeroInput("openInterestCapScaleX18");
         }
-        if (params.maxSkew == 0) {
-            revert Errors.ZeroInput("maxSkew");
+        if (params.skewCapScaleX18 == 0) {
+            revert Errors.ZeroInput("skewCapScaleX18");
         }
         if (params.initialMarginRateX18 <= params.maintenanceMarginRateX18) {
             revert Errors.InitialMarginRateLessOrEqualThanMaintenanceMarginRate();
@@ -414,8 +414,8 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
                 priceAdapter: params.priceAdapter,
                 initialMarginRateX18: params.initialMarginRateX18,
                 maintenanceMarginRateX18: params.maintenanceMarginRateX18,
-                maxOpenInterest: params.maxOpenInterest,
-                maxSkew: params.maxSkew,
+                openInterestCapScaleX18: params.openInterestCapScaleX18,
+                skewCapScaleX18: params.skewCapScaleX18,
                 maxFundingVelocity: params.maxFundingVelocity,
                 minTradeSizeX18: params.minTradeSizeX18,
                 skewScale: params.skewScale,
@@ -435,8 +435,8 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param priceAdapter The price adapter contract, which handles the market's index price.
     /// @param initialMarginRateX18 The perp market min initial margin rate, which defines the max leverage.
     /// @param maintenanceMarginRateX18 The perp market maintenance margin rate.
-    /// @param maxOpenInterest The perp market maximum open interest per side.
-    /// @param maxSkew The perp market maximum skew value.
+    /// @param openInterestCapScaleX18 The perp market maximum open interest per side.
+    /// @param skewCapScaleX18 The perp market maximum skew value.
     /// @param maxFundingVelocity The perp market maximum funding rate velocity.
     /// @param minTradeSizeX18 The minimum size of a trade in contract units.
     /// @param skewScale The configuration parameter used to scale the market's price impact and funding rate.
@@ -447,8 +447,8 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         address priceAdapter;
         uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
-        uint128 maxOpenInterest;
-        uint128 maxSkew;
+        uint128 openInterestCapScaleX18;
+        uint128 skewCapScaleX18;
         uint128 minTradeSizeX18;
         uint128 maxFundingVelocity;
         uint256 skewScale;
@@ -482,11 +482,11 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         if (params.maintenanceMarginRateX18 == 0) {
             revert Errors.ZeroInput("maintenanceMarginRateX18");
         }
-        if (params.maxOpenInterest == 0) {
-            revert Errors.ZeroInput("maxOpenInterest");
+        if (params.openInterestCapScaleX18 == 0) {
+            revert Errors.ZeroInput("openInterestCapScaleX18");
         }
-        if (params.maxSkew == 0) {
-            revert Errors.ZeroInput("maxSkew");
+        if (params.skewCapScaleX18 == 0) {
+            revert Errors.ZeroInput("skewCapScaleX18");
         }
         if (params.initialMarginRateX18 == 0) {
             revert Errors.ZeroInput("initialMarginRateX18");
@@ -511,8 +511,8 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
                 priceAdapter: params.priceAdapter,
                 initialMarginRateX18: params.initialMarginRateX18,
                 maintenanceMarginRateX18: params.maintenanceMarginRateX18,
-                maxOpenInterest: params.maxOpenInterest,
-                maxSkew: params.maxSkew,
+                openInterestCapScaleX18: params.openInterestCapScaleX18,
+                skewCapScaleX18: params.skewCapScaleX18,
                 maxFundingVelocity: params.maxFundingVelocity,
                 minTradeSizeX18: params.minTradeSizeX18,
                 skewScale: params.skewScale,

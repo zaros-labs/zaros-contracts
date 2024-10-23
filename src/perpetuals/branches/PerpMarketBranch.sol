@@ -32,13 +32,13 @@ contract PerpMarketBranch {
     /// @notice Returns the maximum total open interest of the given market.
     /// @param marketId The perps market id.
     function getMaxOpenInterest(uint128 marketId) external view returns (UD60x18) {
-        return ud60x18(PerpMarket.load(marketId).configuration.maxOpenInterest);
+        return ud60x18(PerpMarket.load(marketId).configuration.openInterestCapScaleX18);
     }
 
     /// @notice Returns the maximum skew in one of the market's sides.
     /// @param marketId The perps market id.
     function getMaxSkew(uint128 marketId) external view returns (UD60x18) {
-        return ud60x18(PerpMarket.load(marketId).configuration.maxSkew);
+        return ud60x18(PerpMarket.load(marketId).configuration.skewCapScaleX18);
     }
 
     /// @notice Returns the current market skew.
@@ -124,8 +124,8 @@ contract PerpMarketBranch {
     /// @return symbol The market symbol.
     /// @return initialMarginRateX18 The minimum initial margin rate for the market.
     /// @return maintenanceMarginRateX18 The maintenance margin rate for the market.
-    /// @return maxOpenInterest The maximum open interest for the market.
-    /// @return maxSkew The maximum skew for the market.
+    /// @return openInterestCapScaleX18 The maximum open interest for the market.
+    /// @return skewCapScaleX18 The maximum skew for the market.
     /// @return minTradeSizeX18 The minimum trade size of the market.
     /// @return skewScale The configured skew scale of the market.
     /// @return orderFees The configured maker and taker order fees of the market.
@@ -137,8 +137,8 @@ contract PerpMarketBranch {
             string memory symbol,
             uint128 initialMarginRateX18,
             uint128 maintenanceMarginRateX18,
-            uint128 maxOpenInterest,
-            uint128 maxSkew,
+            uint128 openInterestCapScaleX18,
+            uint128 skewCapScaleX18,
             uint128 minTradeSizeX18,
             uint256 skewScale,
             OrderFees.Data memory orderFees
@@ -150,8 +150,8 @@ contract PerpMarketBranch {
         symbol = perpMarket.configuration.symbol;
         initialMarginRateX18 = perpMarket.configuration.initialMarginRateX18;
         maintenanceMarginRateX18 = perpMarket.configuration.maintenanceMarginRateX18;
-        maxOpenInterest = perpMarket.configuration.maxOpenInterest;
-        maxSkew = perpMarket.configuration.maxSkew;
+        openInterestCapScaleX18 = perpMarket.configuration.openInterestCapScaleX18;
+        skewCapScaleX18 = perpMarket.configuration.skewCapScaleX18;
         skewScale = perpMarket.configuration.skewScale;
         minTradeSizeX18 = perpMarket.configuration.minTradeSizeX18;
         orderFees = perpMarket.configuration.orderFees;

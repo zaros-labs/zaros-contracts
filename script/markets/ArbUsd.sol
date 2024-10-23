@@ -15,7 +15,7 @@ abstract contract ArbUsd {
     uint128 internal constant ARB_USD_IMR = 0.1e18;
     uint128 internal constant ARB_USD_MMR = 0.05e18;
     uint128 internal constant ARB_USD_MARGIN_REQUIREMENTS = ARB_USD_IMR + ARB_USD_MMR;
-    uint128 internal constant ARB_USD_MAX_OI = 100_000_000e18;
+    uint128 internal constant ARB_USD_OI_CAP_SCALE = 100_000_000e18;
     uint128 internal constant ARB_USD_MAX_SKEW = 100_000_000e18;
     uint128 internal constant ARB_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant ARB_USD_SKEW_SCALE = 100_243_316_353e18;

@@ -15,7 +15,7 @@ abstract contract DogeUsd {
     uint128 internal constant DOGE_USD_IMR = 0.1e18;
     uint128 internal constant DOGE_USD_MMR = 0.05e18;
     uint128 internal constant DOGE_USD_MARGIN_REQUIREMENTS = DOGE_USD_IMR + DOGE_USD_MMR;
-    uint128 internal constant DOGE_USD_MAX_OI = 500_000_000e18;
+    uint128 internal constant DOGE_USD_OI_CAP_SCALE = 500_000_000e18;
     uint128 internal constant DOGE_USD_MAX_SKEW = 500_000_000e18;
     uint128 internal constant DOGE_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant DOGE_USD_SKEW_SCALE = 2_415_071_153_532e18;

@@ -15,7 +15,7 @@ abstract contract FtmUsd {
     uint128 internal constant FTM_USD_IMR = 0.1e18;
     uint128 internal constant FTM_USD_MMR = 0.05e18;
     uint128 internal constant FTM_USD_MARGIN_REQUIREMENTS = FTM_USD_IMR + FTM_USD_MMR;
-    uint128 internal constant FTM_USD_MAX_OI = 500_000_000e18;
+    uint128 internal constant FTM_USD_OI_CAP_SCALE = 500_000_000e18;
     uint128 internal constant FTM_USD_MAX_SKEW = 500_000_000e18;
     uint128 internal constant FTM_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant FTM_USD_SKEW_SCALE = 12_462_757_437e18;

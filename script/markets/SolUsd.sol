@@ -15,7 +15,7 @@ abstract contract SolUsd {
     uint128 internal constant SOL_USD_IMR = 0.1e18;
     uint128 internal constant SOL_USD_MMR = 0.05e18;
     uint128 internal constant SOL_USD_MARGIN_REQUIREMENTS = SOL_USD_IMR + SOL_USD_MMR;
-    uint128 internal constant SOL_USD_MAX_OI = 1_000_000e18;
+    uint128 internal constant SOL_USD_OI_CAP_SCALE = 1_000_000e18;
     uint128 internal constant SOL_USD_MAX_SKEW = 1_000_000e18;
     uint128 internal constant SOL_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     uint256 internal constant SOL_USD_SKEW_SCALE = 296_872_247e18;

@@ -15,7 +15,7 @@ abstract contract EthUsd {
     uint128 internal constant ETH_USD_IMR = 0.01e18;
     uint128 internal constant ETH_USD_MMR = 0.005e18;
     uint128 internal constant ETH_USD_MARGIN_REQUIREMENTS = ETH_USD_IMR + ETH_USD_MMR;
-    uint128 internal constant ETH_USD_MAX_OI = 1_000_000e18;
+    uint128 internal constant ETH_USD_OI_CAP_SCALE = 1_000_000e18;
     uint128 internal constant ETH_USD_MAX_SKEW = 1_000_000e18;
     uint128 internal constant ETH_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     // TODO: update to mainnet value = 1_000_000e18.

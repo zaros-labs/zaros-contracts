@@ -11,11 +11,13 @@ library MarketConfiguration {
     /// @param priceAdapter The price oracle contract address.
     /// @param initialMarginRateX18 The initial margin rate in 1e18.
     /// @param maintenanceMarginRateX18 The maintenance margin rate in 1e18.
-    /// @param maxOpenInterest The maximum open interest allowed.
-    /// @param maxSkew The maximum skew allowed.
+    /// @param openInterestCapScaleX18 A multiplier that defines the market's open interest cap based on the credit
+    /// capacity delegated by the market making engine.
+    /// @param skewCapScaleX18 A multiplier that defines the market's skew cap based on the credit capacity delegated
+    /// by the market making engine.
     /// @param maxFundingVelocity The maximum funding velocity allowed.
     /// @param minTradeSizeX18 The minimum trade size in 1e18.
-    /// @param skewScale The skew scale, a configurable parameter that determines price marking and funding.
+    /// @param skewScale A configurable parameter that determines price marking and funding.
     /// @param orderFees The configured maker and taker order fee tiers.
     struct Data {
         string name;
@@ -23,8 +25,8 @@ library MarketConfiguration {
         address priceAdapter;
         uint128 initialMarginRateX18;
         uint128 maintenanceMarginRateX18;
-        uint128 maxOpenInterest;
-        uint128 maxSkew;
+        uint128 openInterestCapScaleX18;
+        uint128 skewCapScaleX18;
         uint128 maxFundingVelocity;
         uint128 minTradeSizeX18;
         uint256 skewScale;
@@ -39,8 +41,8 @@ library MarketConfiguration {
         self.priceAdapter = params.priceAdapter;
         self.initialMarginRateX18 = params.initialMarginRateX18;
         self.maintenanceMarginRateX18 = params.maintenanceMarginRateX18;
-        self.maxOpenInterest = params.maxOpenInterest;
-        self.maxSkew = params.maxSkew;
+        self.openInterestCapScaleX18 = params.openInterestCapScaleX18;
+        self.skewCapScaleX18 = params.skewCapScaleX18;
         self.maxFundingVelocity = params.maxFundingVelocity;
         self.minTradeSizeX18 = params.minTradeSizeX18;
         self.skewScale = params.skewScale;

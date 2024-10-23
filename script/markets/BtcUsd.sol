@@ -15,7 +15,7 @@ abstract contract BtcUsd {
     uint128 internal constant BTC_USD_IMR = 0.01e18;
     uint128 internal constant BTC_USD_MMR = 0.005e18;
     uint128 internal constant BTC_USD_MARGIN_REQUIREMENTS = BTC_USD_IMR + BTC_USD_MMR;
-    uint128 internal constant BTC_USD_MAX_OI = 500_000e18;
+    uint128 internal constant BTC_USD_OI_CAP_SCALE = 500_000e18;
     uint128 internal constant BTC_USD_MAX_SKEW = 500_000e18;
     uint128 internal constant BTC_USD_MAX_FUNDING_VELOCITY = 0.03e18;
     // TODO: update to mainnet value = 100_000e18.
