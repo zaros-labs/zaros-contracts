@@ -223,7 +223,9 @@ function getPerpsEngineInitializePayloads(address deployer) pure returns (bytes[
     return initializePayloads;
 }
 
-function deployPerpsEngineHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+function deployPerpsEngineHarnesses(
+    RootProxy.BranchUpgrade[] memory branchUpgrades
+)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployPerpsEngineAddressHarnesses();
@@ -531,7 +533,9 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     return selectors;
 }
 
-function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+function deployMarketMakingHarnesses(
+    RootProxy.BranchUpgrade[] memory branchUpgrades
+)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployMarketMakingAddressHarnesses();
@@ -618,12 +622,13 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     distributionHarnessSelectors[2] = DistributionHarness.exposed_accumulateActor.selector;
     distributionHarnessSelectors[3] = DistributionHarness.exposed_getActorValueChange.selector;
 
-    bytes4[] memory marketHarnessSelectors = new bytes4[](5);
+    bytes4[] memory marketHarnessSelectors = new bytes4[](6);
     marketHarnessSelectors[0] = MarketHarness.workaround_getMarketId.selector;
     marketHarnessSelectors[1] = MarketHarness.workaround_setMarketId.selector;
     marketHarnessSelectors[2] = MarketHarness.workaround_getReceivedMarketFees.selector;
     marketHarnessSelectors[3] = MarketHarness.workaround_setReceivedMarketFees.selector;
     marketHarnessSelectors[4] = MarketHarness.workaround_getPendingProtocolWethReward.selector;
+    marketHarnessSelectors[5] = MarketHarness.workaround_getIfReceivedMarketFeesContainsTheAsset.selector;
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](2);
     marketMakingEngineConfigurationSelectors[0] =

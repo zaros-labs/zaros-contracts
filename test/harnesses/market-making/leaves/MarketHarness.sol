@@ -37,4 +37,16 @@ contract MarketHarness {
         Market.Data storage market = Market.load(marketId);
         return market.pendingProtocolWethReward;
     }
+
+    function workaround_getIfReceivedMarketFeesContainsTheAsset(
+        uint128 marketId,
+        address asset
+    )
+        external
+        view
+        returns (bool)
+    {
+        Market.Data storage market = Market.load(marketId);
+        return market.receivedMarketFees.contains(asset);
+    }
 }

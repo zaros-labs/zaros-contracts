@@ -43,7 +43,9 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheMarketDoesNotExist(uint128 dexSwapStrategyId)
+    function testFuzz_RevertWhen_TheMarketDoesNotExist(
+        uint128 dexSwapStrategyId
+    )
         external
         givenTheSenderIsRegisteredEngine
     {
@@ -227,6 +229,14 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(amountOutMin);
 
+        assertEq(
+            marketMakingEngine.workaround_getIfReceivedMarketFeesContainsTheAsset(
+                fuzzPerpMarketCreditConfig.marketId, address(usdc)
+            ),
+            true,
+            "the asset should be in the received market fees"
+        );
+
         marketMakingEngine.convertAccumulatedFeesToWeth(
             fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId
         );
@@ -254,7 +264,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
             "the balance of the wEth in the market making engine after the convert is wrong"
         );
 
-        // it should update the available fees to withdraw
+        // it should update the pending protocol weth reward
         UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
         UD60x18 expectedPendingProtocolWethRewardX18 =
             amountOutMinX18.mul(marketMakingEngine.exposed_getTotalFeeRecipientsShares());
@@ -265,10 +275,13 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
             "the available fees to withdraw is wrong"
         );
 
-        // TODO
-        // it should distribute value to the vault
-
-        // TODO
         // it should remove the asset from receivedMarketFees
+        assertEq(
+            marketMakingEngine.workaround_getIfReceivedMarketFeesContainsTheAsset(
+                fuzzPerpMarketCreditConfig.marketId, address(usdc)
+            ),
+            false,
+            "the asset should be removed from the received market fees"
+        );
     }
 }
