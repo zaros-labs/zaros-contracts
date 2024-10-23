@@ -655,8 +655,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             priceAdapter: marketsConfig[marketId].priceAdapter,
             initialMarginRateX18: newImr.intoUint128(),
             maintenanceMarginRateX18: newMmr.intoUint128(),
-            maxOpenInterest: marketsConfig[marketId].maxOi,
-            maxSkew: marketsConfig[marketId].maxSkew,
+            openInterestCapScaleX18: marketsConfig[marketId].openInterestCapScale,
+            skewCapScaleX18: marketsConfig[marketId].skewCapScale,
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
             skewScale: marketsConfig[marketId].skewScale,
@@ -666,7 +666,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
-    function updatePerpMarketMaxOi(uint128 marketId, UD60x18 newMaxOi) internal {
+    function updatePerpMarketOpenInterestCapScale(uint128 marketId, UD60x18 newOpenInterestCapScaleX18) internal {
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
@@ -674,8 +674,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             priceAdapter: marketsConfig[marketId].priceAdapter,
             initialMarginRateX18: marketsConfig[marketId].imr,
             maintenanceMarginRateX18: marketsConfig[marketId].mmr,
-            maxOpenInterest: newMaxOi.intoUint128(),
-            maxSkew: marketsConfig[marketId].maxSkew,
+            openInterestCapScaleX18: newOpenInterestCapScaleX18.intoUint128(),
+            skewCapScaleX18: marketsConfig[marketId].skewCapScale,
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             skewScale: marketsConfig[marketId].skewScale,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
@@ -685,7 +685,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
-    function updatePerpMarketMaxSkew(uint128 marketId, UD60x18 newMaxSkew) internal {
+    function updatePerpMarketSkewCapScale(uint128 marketId, UD60x18 newSkewCapScaleX18) internal {
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
@@ -693,8 +693,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
             initialMarginRateX18: marketsConfig[marketId].imr,
             maintenanceMarginRateX18: marketsConfig[marketId].mmr,
-            maxOpenInterest: marketsConfig[marketId].maxOi,
-            maxSkew: newMaxSkew.intoUint128(),
+            openInterestCapScaleX18: marketsConfig[marketId].openInterestCapScaleX18,
+            skewCapScaleX18: newSkewCapScaleX18.intoUint128(),
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             skewScale: marketsConfig[marketId].skewScale,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
