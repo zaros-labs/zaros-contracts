@@ -92,8 +92,6 @@ import { PRBTest } from "@prb-test/PRBTest.sol";
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
-import { console } from "forge-std/console.sol";
-
 abstract contract IPerpsEngine is
     IPerpsEngineBranches,
     PerpsEngineConfigurationHarness,
@@ -269,7 +267,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         changePrank({ msgSender: users.owner.account });
 
-        setupPerpMarketsCreditConfig();
+        bool isTest = true;
+        setupPerpMarketsCreditConfig(isTest);
 
         marketMakingEngine.configureCollateral(
             address(usdc),
@@ -335,6 +334,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         setupVaultsConfig();
         createZlpVaults(address(marketMakingEngine), users.owner.account, vaultsIdsRange);
+
+        uint128[] memory perpMarketsCreditConfigIds =
+            new uint128[](FINAL_PERP_MARKET_CREDIT_CONFIG_ID - INITIAL_PERP_MARKET_CREDIT_CONFIG_ID + 1);
+        uint256 indexArray = 0;
+
+        for (uint256 i = INITIAL_PERP_MARKET_CREDIT_CONFIG_ID; i <= FINAL_PERP_MARKET_CREDIT_CONFIG_ID; i++) {
+            perpMarketsCreditConfigIds[indexArray++] = uint128(i);
+        }
+
+        for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
+            marketMakingEngine.updateVaultConnectedMarkets(uint128(i), perpMarketsCreditConfigIds);
+        }
 
         // Other Set Up
         approveContracts();

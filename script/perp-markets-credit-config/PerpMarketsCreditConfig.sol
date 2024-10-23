@@ -4,6 +4,9 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 
+// Mock dependencies
+import { MockEngine } from "test/mocks/MockEngine.sol";
+
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
 
@@ -23,11 +26,13 @@ abstract contract PerpMarketsCreditConfig is
     EthPerpMarketCreditConfig
 {
     /// @notice Perp Market Credit Config
+    /// @param engine Engine address
     /// @param marketId Market id
     /// @param autoDeleverageStartThreshold Auto deleverage start threshold
     /// @param autoDeleverageEndThreshold Auto deleverage end threshold
     /// @param autoDeleveragePowerScale Auto deleverage power scale
     struct PerpMarketCreditConfig {
+        address engine;
         uint128 marketId;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
@@ -48,8 +53,9 @@ abstract contract PerpMarketsCreditConfig is
     mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal perpMarketsCreditConfig;
 
     /// @notice Setup perp markets credit config
-    function setupPerpMarketsCreditConfig() internal {
+    function setupPerpMarketsCreditConfig(bool isTest) internal {
         perpMarketsCreditConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: !isTest ? BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE : address(new MockEngine()),
             marketId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -57,6 +63,7 @@ abstract contract PerpMarketsCreditConfig is
         });
 
         perpMarketsCreditConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: !isTest ? ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE : address(new MockEngine()),
             marketId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -66,7 +73,9 @@ abstract contract PerpMarketsCreditConfig is
 
     /// @notice Get filtered perp markets credit config
     /// @param marketsIdsRange Markets ids range
-    function getFilteredPerpMarketsCreditConfig(uint256[2] memory marketsIdsRange)
+    function getFilteredPerpMarketsCreditConfig(
+        uint256[2] memory marketsIdsRange
+    )
         internal
         view
         returns (PerpMarketCreditConfig[] memory)
@@ -92,6 +101,7 @@ abstract contract PerpMarketsCreditConfig is
     function configureMarkets(ConfigureMarketParams memory params) public {
         for (uint256 i = params.initialMarketId; i <= params.finalMarketId; i++) {
             params.marketMakingEngine.configureMarket(
+                perpMarketsCreditConfig[i].engine,
                 perpMarketsCreditConfig[i].marketId,
                 perpMarketsCreditConfig[i].autoDeleverageStartThreshold,
                 perpMarketsCreditConfig[i].autoDeleverageEndThreshold,

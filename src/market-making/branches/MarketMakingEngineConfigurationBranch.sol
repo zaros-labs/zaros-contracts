@@ -68,11 +68,13 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     );
 
     /// @notice Emitted when market is configured.
+    /// @param engine The address of the perps engine.
     /// @param marketId The perps engine's market id.
     /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
     /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
     /// @param autoDeleveragePowerScale The auto deleverage power scale.
     event LogConfigureMarket(
+        address engine,
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
@@ -151,18 +153,26 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogUpdateVaultConfiguration(msg.sender, params.vaultId);
     }
 
+    /// @notice Update connected markets on vault
+    /// @dev Only owner can call this function
+    /// @param vaultId The vault id.
+    /// @param marketsIds The markets ids.
     function updateVaultConnectedMarkets(uint128 vaultId, uint128[] calldata marketsIds) external onlyOwner {
-        // if (vaultId == 0) {
-        //     revert Errors.ZeroInput("vaultId");
-        // }
+        if (vaultId == 0) {
+            revert Errors.ZeroInput("vaultId");
+        }
 
-        // if (marketsIds.length == 0) {
-        //     revert Errors.ZeroInput("connectedMarketsIds");
-        // }
+        if (marketsIds.length == 0) {
+            revert Errors.ZeroInput("connectedMarketsIds");
+        }
 
-        // Vault.Data storage vault = Vault.load(vaultId);
+        Vault.Data storage vault = Vault.load(vaultId);
 
-        // vault.
+        vault.connectedMarkets.push();
+
+        for (uint256 i; i < marketsIds.length; i++) {
+            vault.connectedMarkets[vault.connectedMarkets.length - 1].data.add(marketsIds[i]);
+        }
     }
 
     /// @notice Configure system keeper on Market Making Engine
@@ -280,11 +290,13 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Configure market on Market Making Engine
     /// @dev Only owner can call this functions
+    /// @param engine The address of the engine.
     /// @param marketId The market id.
     /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
     /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
     /// @param autoDeleveragePowerScale The auto deleverage power scale.
     function configureMarket(
+        address engine,
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
@@ -293,6 +305,9 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         external
         onlyOwner
     {
+        // revert if engine is set to zero
+        if (engine == address(0)) revert Errors.ZeroInput("engine");
+
         // revert if marketId is set to zero
         if (marketId == 0) revert Errors.ZeroInput("marketId");
 
@@ -309,6 +324,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         Market.Data storage market = Market.load(marketId);
 
         // update market data
+        market.engine = engine;
         market.id = marketId;
         market.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         market.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
@@ -316,7 +332,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit event LogConfigureMarket
         emit LogConfigureMarket(
-            marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
         );
     }
 
