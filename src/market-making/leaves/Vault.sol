@@ -278,7 +278,7 @@ library Vault {
             // update the last distributed debt and reward values to the vault's credit delegation to the given market
             // id, in order to keep next calculations consistent
             creditDelegation.updateVaultLastDistributedDebtAndReward(
-                ud60x18(market.totalWethReward), marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18
+                ud60x18(market.vaultsWethReward), marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18
             );
         }
     }

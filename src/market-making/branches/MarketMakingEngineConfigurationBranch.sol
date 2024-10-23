@@ -316,8 +316,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         market.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         market.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
         market.autoDeleveragePowerScale = autoDeleveragePowerScale;
-        market.marketShare = marketShare;
-        market.feeRecipientsShare = feeRecipientsShare;
+        // market.marketShare = marketShare;
+        // market.feeRecipientsShare = feeRecipientsShare;
 
         // emit event LogConfigureMarket
         emit LogConfigureMarket(

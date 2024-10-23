@@ -124,13 +124,12 @@ contract FeeDistributionBranch is EngineAccessControl {
     }
 
     /// @notice Converts collected collateral amount to Weth
-    /// @dev onlyRegisteredEngine address can call this function.
-    /// @dev Accumulated fees are split between market and fee recipients and then market fees are distributed to
-    /// connected
-    /// vaults
-    /// @param marketId The market who's fees will be converted.
-    /// @param asset The asset to be swapped for wEth
-    /// @param dexSwapStrategyId The dex swap strategy id to be used for swapping
+    /// @dev Only registered engines can call this function.
+    /// @dev Net WETH rewards are split among fee recipients and vaults delegating credit to the market, according to
+    /// the configured share values.
+    /// @param marketId The id of the market to have its fees converted to WETH.
+    /// @param asset The asset to be swapped for WETH.
+    /// @param dexSwapStrategyId The dex swap strategy id to be used for swapping.
     function convertAccumulatedFeesToWeth(
         uint128 marketId,
         address asset,
@@ -162,7 +161,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         uint256 assetAmount = collateral.convertUd60x18ToTokenAmount(assetAmountX18);
 
         // declare variable to store accumulated weth
-        UD60x18 accumulatedWethX18;
+        UD60x18 receivedWethX18;
 
         // weth address
         address weth = MarketMakingEngineConfiguration.load().weth;
@@ -170,7 +169,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         // if asset is weth directly add to accumulated weth, else swap token for weth
         if (asset == weth) {
             // store the amount of weth
-            accumulatedWethX18 = assetAmountX18;
+            receivedWethX18 = assetAmountX18;
         } else {
             // loads the dex swap strategy data storage pointer
             DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
@@ -199,52 +198,22 @@ contract FeeDistributionBranch is EngineAccessControl {
             UD60x18 tokensSwappedX18 = wethCollateral.convertTokenAmountToUd60x18(tokensSwapped);
 
             // store the amount of weth received from swap
-            accumulatedWethX18 = tokensSwappedX18;
+            receivedWethX18 = tokensSwappedX18;
         }
 
-        // calculate the fee amount for the market
-        UD60x18 marketFeesX18 = accumulatedWethX18.mul(ud60x18(market.marketShare));
+        // TODO: load from the `MarketMakingEngineConfiguration` leaf the data structures required to determine the
+        // correct values of `pendingProtocolWethReward`, paid to protocol fee recipients, and `vaultsWethReward`,
+        // paid to
+        // vaults delegating credit to this market proportionally.
+        UD60x18 receivedProtocolWethRewardX18 = receivedWethX18;
+        UD60x18 receivedVaultsWethRewardX18 = receivedWethX18;
 
-        // calculate the fee amount for the fee recipients
-        UD60x18 collectedFeesX18 = accumulatedWethX18.mul(ud60x18(market.feeRecipientsShare));
-
-        // increment the collected fees and rmeove the asset form the received market fees
-        market.updateReceivedAndAvailableFees(asset, collectedFeesX18);
-
-        // get connected vaults of market
-        uint256[] memory vaultsSet = market.getConnectedVaultsIds();
-
-        // store the length of the vaults set
-        uint256 listSize = vaultsSet.length;
-
-        // variable to store the total shares of vaults
-        UD60x18 totalVaultsSharesX18;
-
-        // calculate the total shares of vaults
-        for (uint256 i; i < listSize; ++i) {
-            // load the vault data storage pointer
-            Vault.Data storage vault = Vault.load(uint128(vaultsSet[i]));
-
-            // add the total shares of the vault to the total shares of vaults
-            totalVaultsSharesX18 = totalVaultsSharesX18.add(ud60x18(vault.wethRewardDistribution.totalShares));
-        }
-
-        // distribute the amount between shares and store the amount each vault has received
-        for (uint256 i; i < listSize; ++i) {
-            // load the vault data storage pointer
-            Vault.Data storage vault = Vault.load(uint128(vaultsSet[i]));
-
-            // calculate the amount of weth each vault has received
-            SD59x18 vaultFeeAmountX18 = Market.calculateFees(
-                marketFeesX18, ud60x18(vault.wethRewardDistribution.totalShares), totalVaultsSharesX18
-            ).intoSD59x18();
-
-            // distribute the amount between the vault's shares
-            vault.wethRewardDistribution.distributeValue(vaultFeeAmountX18);
-        }
+        // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine as
+        // fees, and remove its balance from the market's `receivedMarketFees` map
+        market.receiveWethReward(asset, receivedProtocolWethRewardX18, receivedVaultsWethRewardX18);
 
         // emit event to log the conversion of fees to weth
-        emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, accumulatedWethX18.intoUint256());
+        emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, receivedWethX18.intoUint256());
     }
 
     /// @notice Sends allocated weth amount to fee recipients.
@@ -262,8 +231,8 @@ contract FeeDistributionBranch is EngineAccessControl {
         // loads the fee data storage pointer
         Market.Data storage market = Market.load(marketId);
 
-        // reverts if no fees have been collected
-        if (market.availableFeesToWithdraw == 0) revert Errors.NoWethFeesCollected();
+        // reverts if no protocol weth rewards have been collected
+        if (market.pendingProtocolWethReward == 0) revert Errors.NoWethFeesCollected();
 
         // loads the market making engine configuration data storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
@@ -279,7 +248,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         address weth = marketMakingEngineConfigurationData.weth;
 
         // convert collected fees to UD60x18
-        UD60x18 availableFeesToWithdrawX18 = ud60x18(market.availableFeesToWithdraw);
+        UD60x18 pendingProtocolWethRewardX18 = ud60x18(market.pendingProtocolWethReward);
 
         // variable to store the total shares of fee recipients
         UD60x18 totalSharesX18;
@@ -299,11 +268,11 @@ contract FeeDistributionBranch is EngineAccessControl {
 
             // calculate the amount to send to the fee recipient
             UD60x18 amountToSendX18 = Market.calculateFees(
-                availableFeesToWithdrawX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18
+                pendingProtocolWethRewardX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18
             );
 
-            // decrement the collected fees
-            market.decrementAvailableFeesToWithdraw(amountToSendX18);
+            // subtract the protocol weth reward being sent
+            market.pendingProtocolWethReward -= amountToSendX18.intoUint128();
 
             // convert the amountToSendX18 to weth amount
             uint256 amountToSend = wethCollateral.convertUd60x18ToTokenAmount(amountToSendX18);
