@@ -552,17 +552,18 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](7);
 
-    bytes4[] memory vaultHarnessSelectors = new bytes4[](10);
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](11);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
     vaultHarnessSelectors[1] = VaultHarness.workaround_Vault_getActorStakedShares.selector;
     vaultHarnessSelectors[2] = VaultHarness.workaround_Vault_getTotalStakedShares.selector;
     vaultHarnessSelectors[3] = VaultHarness.workaround_Vault_getWithdrawDelay.selector;
     vaultHarnessSelectors[4] = VaultHarness.workaround_Vault_getDepositCap.selector;
-    vaultHarnessSelectors[5] = VaultHarness.exposed_Vault_create.selector;
-    vaultHarnessSelectors[6] = VaultHarness.exposed_Vault_update.selector;
-    vaultHarnessSelectors[7] = VaultHarness.workaround_Vault_getVaultAsset.selector;
-    vaultHarnessSelectors[8] = VaultHarness.workaround_Vault_setTotalStakedShares.selector;
-    vaultHarnessSelectors[9] = VaultHarness.workaround_Vault_getValuePerShare.selector;
+    vaultHarnessSelectors[5] = VaultHarness.workaround_Vault_getIsLive.selector;
+    vaultHarnessSelectors[6] = VaultHarness.exposed_Vault_create.selector;
+    vaultHarnessSelectors[7] = VaultHarness.exposed_Vault_update.selector;
+    vaultHarnessSelectors[8] = VaultHarness.workaround_Vault_getVaultAsset.selector;
+    vaultHarnessSelectors[9] = VaultHarness.workaround_Vault_setTotalStakedShares.selector;
+    vaultHarnessSelectors[10] = VaultHarness.workaround_Vault_getValuePerShare.selector;
 
     bytes4[] memory collateralHarnessSelectors = new bytes4[](2);
     collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;
