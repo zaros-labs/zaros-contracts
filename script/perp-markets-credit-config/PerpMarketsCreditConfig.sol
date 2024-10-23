@@ -66,9 +66,7 @@ abstract contract PerpMarketsCreditConfig is
 
     /// @notice Get filtered perp markets credit config
     /// @param marketsIdsRange Markets ids range
-    function getFilteredPerpMarketsCreditConfig(
-        uint256[2] memory marketsIdsRange
-    )
+    function getFilteredPerpMarketsCreditConfig(uint256[2] memory marketsIdsRange)
         internal
         view
         returns (PerpMarketCreditConfig[] memory)

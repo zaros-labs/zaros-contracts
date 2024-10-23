@@ -30,10 +30,9 @@ contract DistributionHarness {
         valueChange = Distribution.getActorValueChange(self, actorId);
     }
 
-    function _load_distributionData(uint128 vaultId) internal view returns(Distribution.Data storage){
+    function _load_distributionData(uint128 vaultId) internal view returns (Distribution.Data storage) {
         Vault.Data storage vault = Vault.load(vaultId);
-        Distribution.Data storage self = vault.stakingFeeDistribution;
+        Distribution.Data storage self = vault.wethRewardDistribution;
         return self;
     }
-
 }

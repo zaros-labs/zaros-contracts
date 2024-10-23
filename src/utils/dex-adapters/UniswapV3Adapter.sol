@@ -87,7 +87,15 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
         _disableInitializers();
     }
 
-    function initialize(address owner, address _uniswapV3SwapStrategyRouter, uint256 _slippageToleranceBps, uint24 _fee) external initializer {
+    function initialize(
+        address owner,
+        address _uniswapV3SwapStrategyRouter,
+        uint256 _slippageToleranceBps,
+        uint24 _fee
+    )
+        external
+        initializer
+    {
         // initialize the owner
         __Ownable_init(owner);
 

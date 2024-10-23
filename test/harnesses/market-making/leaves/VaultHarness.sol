@@ -22,21 +22,15 @@ contract VaultHarness {
     {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
-        Distribution.Data storage stakingData = vaultData.stakingFeeDistribution;
+        Distribution.Data storage stakingData = vaultData.wethRewardDistribution;
 
         return stakingData.actor[actorId].shares;
     }
 
-    function workaround_Vault_getValuePerShare(
-        uint128 vaultId
-    )
-        external
-        view
-        returns (int128)
-    {
+    function workaround_Vault_getValuePerShare(uint128 vaultId) external view returns (int128) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
-        Distribution.Data storage stakingData = vaultData.stakingFeeDistribution;
+        Distribution.Data storage stakingData = vaultData.wethRewardDistribution;
 
         return stakingData.valuePerShare;
     }
@@ -44,7 +38,7 @@ contract VaultHarness {
     function workaround_Vault_setTotalStakedShares(uint128 vaultId, uint128 newShares) external {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
-        Distribution.Data storage stakingData = vaultData.stakingFeeDistribution;
+        Distribution.Data storage stakingData = vaultData.wethRewardDistribution;
 
         stakingData.totalShares = newShares;
     }
@@ -52,7 +46,7 @@ contract VaultHarness {
     function workaround_Vault_getTotalStakedShares(uint128 vaultId) external view returns (uint128) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
-        Distribution.Data storage stakingData = vaultData.stakingFeeDistribution;
+        Distribution.Data storage stakingData = vaultData.wethRewardDistribution;
 
         return stakingData.totalShares;
     }

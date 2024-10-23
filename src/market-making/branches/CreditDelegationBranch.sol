@@ -20,7 +20,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 /// @dev This contract deals with USDC to settle protocol debt, used to back USD Token
-contract CreditDelegationBranch is EngineAccessControl{
+contract CreditDelegationBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
     using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;

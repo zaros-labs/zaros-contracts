@@ -223,9 +223,7 @@ function getPerpsEngineInitializePayloads(address deployer) pure returns (bytes[
     return initializePayloads;
 }
 
-function deployPerpsEngineHarnesses(
-    RootProxy.BranchUpgrade[] memory branchUpgrades
-)
+function deployPerpsEngineHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployPerpsEngineAddressHarnesses();
@@ -533,9 +531,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     return selectors;
 }
 
-function deployMarketMakingHarnesses(
-    RootProxy.BranchUpgrade[] memory branchUpgrades
-)
+function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployMarketMakingAddressHarnesses();

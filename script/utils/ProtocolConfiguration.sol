@@ -13,7 +13,13 @@ import { PerpMarketsCreditConfig } from "script/perp-markets-credit-config/PerpM
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
 import { uMAX_SD59x18 as LIB_uMAX_SD59x18, uMIN_SD59x18 as LIB_uMIN_SD59x18 } from "@prb-math/SD59x18.sol";
 
-abstract contract ProtocolConfiguration is Markets, MarginCollaterals, Vaults, SequencerUptimeFeeds, PerpMarketsCreditConfig {
+abstract contract ProtocolConfiguration is
+    Markets,
+    MarginCollaterals,
+    Vaults,
+    SequencerUptimeFeeds,
+    PerpMarketsCreditConfig
+{
     /// @notice Admin addresses.
 
     // TODO: Update to actual multisig address
