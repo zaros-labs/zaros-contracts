@@ -33,7 +33,7 @@ contract MarketHarness {
         market.receivedMarketFees.set(asset, amount);
     }
 
-    function workaround_getAvailableFeesToWithdraw(uint128 marketId) external view returns (uint256) {
+    function workaround_getPendingProtocolWethReward(uint128 marketId) external view returns (uint256) {
         Market.Data storage market = Market.load(marketId);
         return market.pendingProtocolWethReward;
     }

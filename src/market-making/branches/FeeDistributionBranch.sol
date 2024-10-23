@@ -199,19 +199,20 @@ contract FeeDistributionBranch is EngineAccessControl {
             receivedWethX18 = tokensSwappedX18;
         }
 
-        // TODO: load from the `MarketMakingEngineConfiguration` leaf the data structures required to determine the
-        // correct values of `pendingProtocolWethReward`, paid to protocol fee recipients, and `vaultsWethReward`,
-        // paid to
-        // vaults delegating credit to this market proportionally.
-        UD60x18 receivedProtocolWethRewardX18 = receivedWethX18;
-        UD60x18 receivedVaultsWethRewardX18 = receivedWethX18;
+        // not create a instance of the market making engine configuration to prevent stack to deep error
+        // get the total fee recipients shares
+        UD60x18 feeRecipientsSharesX18 = MarketMakingEngineConfiguration.load().getTotalFeeRecipientsShares();
+
+        // calculate the weth rewards for protocol and vaults
+        UD60x18 receivedProtocolWethRewardX18 = receivedWethX18.mul(feeRecipientsSharesX18);
+        UD60x18 receivedVaultsWethRewardX18 = receivedWethX18.mul(ud60x18(Constants.MAX_OF_SHARES).sub(feeRecipientsSharesX18));
 
         // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine as
         // fees, and remove its balance from the market's `receivedMarketFees` map
         market.receiveWethReward(asset, receivedProtocolWethRewardX18, receivedVaultsWethRewardX18);
 
         // emit event to log the conversion of fees to weth
-        emit LogConvertAccumulatedFeesToWeth(asset, assetAmount, receivedWethX18.intoUint256());
+        emit LogConvertAccumulatedFeesToWeth(receivedWethX18.intoUint256());
     }
 
     /// @notice Sends allocated weth amount to fee recipients.
@@ -276,9 +277,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         // send amount between fee recipients
         for (uint256 i; i < recipientListLength; ++i) {
             // calculate the amount to send to the fee recipient
-            UD60x18 amountToSendX18 = Market.calculateFees(
-                pendingProtocolWethRewardX18, ud60x18(FeeRecipient.load(feeRecipient).share), totalSharesX18
-            );
+            UD60x18 amountToSendX18 = pendingProtocolWethRewardX18.mul(ud60x18(cacheSharesList[i]));
 
             if (amountToSendX18.isZero()) {
                 // if the amount to send is zero, continue

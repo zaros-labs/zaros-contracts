@@ -256,12 +256,12 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         // it should update the available fees to withdraw
         UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
-        UD60x18 expectedAvailableFeesToWithdrawX18 =
+        UD60x18 expectedPendingProtocolWethRewardX18 =
             amountOutMinX18.mul(marketMakingEngine.exposed_getTotalFeeRecipientsShares());
 
         assertEq(
-            marketMakingEngine.workaround_getAvailableFeesToWithdraw(fuzzPerpMarketCreditConfig.marketId),
-            expectedAvailableFeesToWithdrawX18.intoUint256(),
+            marketMakingEngine.workaround_getPendingProtocolWethReward(fuzzPerpMarketCreditConfig.marketId),
+            expectedPendingProtocolWethRewardX18.intoUint256(),
             "the available fees to withdraw is wrong"
         );
 

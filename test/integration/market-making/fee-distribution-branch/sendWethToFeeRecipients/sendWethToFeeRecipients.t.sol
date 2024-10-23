@@ -170,14 +170,14 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         uint256 amountOutMin = uniswapV3Adapter.calculateAmountOutMin(expectedTokenAmount);
         UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
 
-        UD60x18 expectedAvailableFeesToWithdrawX18 =
+        UD60x18 expectedPendingProtocolWethRewardX18 =
             amountOutMinX18.mul(marketMakingEngine.exposed_getTotalFeeRecipientsShares());
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
             fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID()
         );
 
-        UD60x18 expectedFeePerRecipientX18 = expectedAvailableFeesToWithdrawX18.mul(sharePerFeeRecipientX18);
+        UD60x18 expectedFeePerRecipientX18 = expectedPendingProtocolWethRewardX18.mul(sharePerFeeRecipientX18);
 
         for (uint256 i = 0; i < quantityOfFeeRecipients; i++) {
             assertEq(
@@ -210,9 +210,9 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
 
         // it should decrement the available fees to withdraw
         UD60x18 expectedAvailableFeesToWithdrawAfterTheSendX18 =
-            expectedAvailableFeesToWithdrawX18.sub(expectedFeePerRecipientX18.mul(quantityOfFeeRecipientsX18));
+            expectedPendingProtocolWethRewardX18.sub(expectedFeePerRecipientX18.mul(quantityOfFeeRecipientsX18));
         assertEq(
-            marketMakingEngine.workaround_getAvailableFeesToWithdraw(fuzzPerpMarketCreditConfig.marketId),
+            marketMakingEngine.workaround_getPendingProtocolWethReward(fuzzPerpMarketCreditConfig.marketId),
             expectedAvailableFeesToWithdrawAfterTheSendX18.intoUint256(),
             "the available fees to withdraw after the send are wrong"
         );
