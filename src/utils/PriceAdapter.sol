@@ -43,6 +43,12 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /// @notice A flag indicating if the price adapter is to use the custom version.
     bool public useEthPriceFeed;
 
+    /// @notice The last time the price feed round was started.
+    uint256 public priceFeedLastStartedAt;
+
+    /// @notice The last time the ETH/USD feed round was started.
+    uint256 public ethUsdLastStartedAt;
+
     /*//////////////////////////////////////////////////////////////////////////
                                      STRUCTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -84,6 +90,8 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
         priceFeedHeartbeatSeconds = params.priceFeedHeartbeatSeconds;
         ethUsdPriceFeedHeartbeatSeconds = params.ethUsdPriceFeedHeartbeatSeconds;
         useEthPriceFeed = params.useEthPriceFeed;
+        priceFeedLastStartedAt = ChainlinkUtil.getLastStartedAt(params.priceFeed);
+        ethUsdLastStartedAt = ChainlinkUtil.getLastStartedAt(params.ethUsdPriceFeed);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -99,7 +107,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                     priceFeed: IAggregatorV3(priceFeed),
                     priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
                     sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed),
-                    lastStartedAt: 0
+                    lastStartedAt: priceFeedLastStartedAt
                 })
             );
 
@@ -108,7 +116,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                     priceFeed: IAggregatorV3(ethUsdPriceFeed),
                     priceFeedHeartbeatSeconds: ethUsdPriceFeedHeartbeatSeconds,
                     sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed),
-                    lastStartedAt: 0
+                    lastStartedAt: ethUsdLastStartedAt
                 })
             );
 
@@ -119,10 +127,15 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                     priceFeed: IAggregatorV3(priceFeed),
                     priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
                     sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed),
-                    lastStartedAt: 0
+                    lastStartedAt: priceFeedLastStartedAt
                 })
             );
         }
+    }
+
+    function updateLastStartedAt() internal {
+        priceFeedLastStartedAt = ChainlinkUtil.getLastStartedAt(priceFeed);
+        ethUsdLastStartedAt = ChainlinkUtil.getLastStartedAt(ethUsdPriceFeed);
     }
 
     function _authorizeUpgrade(address newImplementation) internal virtual override onlyOwner { }

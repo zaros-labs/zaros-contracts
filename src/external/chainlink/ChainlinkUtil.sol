@@ -22,6 +22,7 @@ library ChainlinkUtil {
     /// @param priceFeed The Chainlink Price Feed address.
     /// @param priceFeedHeartbeatSeconds The number of seconds between price feed updates.
     /// @param sequencerUptimeFeed The Chainlink Price Feed address.
+    /// @param lastStartedAt The last time the price feed round was started.
     struct GetPriceParams {
         IAggregatorV3 priceFeed;
         uint32 priceFeedHeartbeatSeconds;
@@ -68,7 +69,6 @@ library ChainlinkUtil {
             if (startedAt < params.lastStartedAt) {
                 revert Errors.OracleStalePriceFeed(startedAt, params.lastStartedAt);
             }
-            params.lastStartedAt = startedAt;
 
             IOffchainAggregator aggregator = IOffchainAggregator(params.priceFeed.aggregator());
             int192 minAnswer = aggregator.minAnswer();
@@ -110,5 +110,19 @@ library ChainlinkUtil {
         returns (bytes memory verifiedReportData)
     {
         verifiedReportData = chainlinkVerifier.verify{ value: fee.amount }(signedReport, abi.encode(fee.assetAddress));
+    }
+
+    function getLastStartedAt(address priceFeed) internal view returns (uint256) {
+         (, , uint256 startedAt, , ) = IAggregatorV3(priceFeed).latestRoundData();
+        return startedAt;
+    }
+
+    function updateLastStartedAt(
+        GetPriceParams storage self,
+        uint256 newLastStartedAt
+    ) 
+        internal
+    {
+        self.lastStartedAt = newLastStartedAt;
     }
 }
