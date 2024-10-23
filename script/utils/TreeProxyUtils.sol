@@ -201,28 +201,6 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     return selectors;
 }
 
-function getPerpsEngineInitializables(address[] memory branches) pure returns (address[] memory) {
-    address[] memory initializables = new address[](1);
-
-    address upgradeBranch = branches[0];
-
-    initializables[0] = upgradeBranch;
-
-    return initializables;
-}
-
-function getPerpsEngineInitializePayloads(address deployer) pure returns (bytes[] memory) {
-    bytes[] memory initializePayloads = new bytes[](1);
-
-    bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
-
-    initializePayloads = new bytes[](1);
-
-    initializePayloads[0] = rootUpgradeInitializeData;
-
-    return initializePayloads;
-}
-
 function deployPerpsEngineHarnesses(
     RootProxy.BranchUpgrade[] memory branchUpgrades
 )
@@ -459,28 +437,6 @@ function deployMarketMakingEngineBranches() returns (address[] memory) {
     return branches;
 }
 
-function getMarketMakingEngineInitializables(address[] memory branches) pure returns (address[] memory) {
-    address[] memory initializables = new address[](1);
-
-    address upgradeBranch = branches[0];
-
-    initializables[0] = upgradeBranch;
-
-    return initializables;
-}
-
-function getMarketMakingEngineInitPayloads(address deployer) pure returns (bytes[] memory) {
-    bytes[] memory initializePayloads = new bytes[](1);
-
-    bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
-
-    initializePayloads = new bytes[](1);
-
-    initializePayloads[0] = rootUpgradeInitializeData;
-
-    return initializePayloads;
-}
-
 function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](4);
 
@@ -651,6 +607,28 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
 }
 
 // Shared Utils
+
+function getInitializables(address[] memory branches) pure returns (address[] memory) {
+    address[] memory initializables = new address[](1);
+
+    address upgradeBranch = branches[0];
+
+    initializables[0] = upgradeBranch;
+
+    return initializables;
+}
+
+function getInitializePayloads(address deployer) pure returns (bytes[] memory) {
+    bytes[] memory initializePayloads = new bytes[](1);
+
+    bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
+
+    initializePayloads = new bytes[](1);
+
+    initializePayloads[0] = rootUpgradeInitializeData;
+
+    return initializePayloads;
+}
 
 function getBranchUpgrades(
     address[] memory branches,

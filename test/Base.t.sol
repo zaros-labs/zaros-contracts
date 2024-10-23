@@ -67,14 +67,12 @@ import {
     deployPerpsEngineBranches,
     getPerpsEngineBranchesSelectors,
     getBranchUpgrades,
-    getPerpsEngineInitializables,
-    getPerpsEngineInitializePayloads,
     deployPerpsEngineHarnesses,
     deployMarketMakingEngineBranches,
     getMarketMakerBranchesSelectors,
     deployMarketMakingHarnesses,
-    getMarketMakingEngineInitializables,
-    getMarketMakingEngineInitPayloads
+    getInitializables,
+    getInitializePayloads
 } from "script/utils/TreeProxyUtils.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 import { DexAdapterUtils } from "script/utils/DexAdapterUtils.sol";
@@ -194,8 +192,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         bytes4[][] memory branchesSelectors = getPerpsEngineBranchesSelectors(isTestnet);
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
-        address[] memory initializables = getPerpsEngineInitializables(branches);
-        bytes[] memory initializePayloads = getPerpsEngineInitializePayloads(users.owner.account);
+        address[] memory initializables = getInitializables(branches);
+        bytes[] memory initializePayloads = getInitializePayloads(users.owner.account);
 
         branchUpgrades = deployPerpsEngineHarnesses(branchUpgrades);
 
@@ -254,8 +252,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         // Market Making Engine Set Up
 
         address[] memory mmBranches = deployMarketMakingEngineBranches();
-        address[] memory initializableBranches = getMarketMakingEngineInitializables(mmBranches);
-        bytes[] memory mmInitPayloads = getMarketMakingEngineInitPayloads(users.owner.account);
+        address[] memory initializableBranches = getInitializables(mmBranches);
+        bytes[] memory mmInitPayloads = getInitializePayloads(users.owner.account);
 
         bytes4[][] memory mmBranchesSelectors = getMarketMakerBranchesSelectors();
         RootProxy.BranchUpgrade[] memory mmBranchUpgrades =
