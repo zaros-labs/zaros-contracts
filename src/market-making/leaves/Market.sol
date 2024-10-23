@@ -279,7 +279,9 @@ library Market {
     /// @param self The market storage pointer.
     /// @return unrealizedDebtUsdX18 The market's total unrealized debt in USD.
     function getUnrealizedDebtUsd(Data storage self) internal view returns (SD59x18 unrealizedDebtUsdX18) {
-        unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.id));
+        // TODO implement the actual call to the engine (config the mock engine)
+        // unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.id));
+        unrealizedDebtUsdX18 = sd59x18(0);
     }
 
     /// @notice Returns whether the market has reached the auto deleverage start threshold, i.e, if the ADL system

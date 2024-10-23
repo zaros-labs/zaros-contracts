@@ -11,6 +11,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+import { ERC4626Upgradeable } from "@openzeppelin-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 
 contract Deposit_Integration_Test is Base_Test {
     function setUp() public virtual override {
@@ -57,10 +58,10 @@ contract Deposit_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.DepositCap.selector,
-                collateral,
-                convertTokenAmountToUd60x18(collateral, assetsToDeposit),
-                convertTokenAmountToUd60x18(collateral, fuzzVaultConfig.depositCap)
+                ERC4626Upgradeable.ERC4626ExceededMaxDeposit.selector,
+                address(users.naruto.account),
+                assetsToDeposit,
+                fuzzVaultConfig.depositCap
             )
         );
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
