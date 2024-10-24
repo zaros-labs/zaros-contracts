@@ -241,7 +241,7 @@ library Vault {
             }
 
             // loads the memory cached market id
-            uint128 connectedMarketId = connectedMarketsIdsCache[j];
+            uint128 connectedMarketId = rehydratedConnectedMarketsIdsCache[j];
             // loads the market storage pointer
             Market.Data storage market = Market.load(connectedMarketId);
 

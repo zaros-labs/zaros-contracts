@@ -25,7 +25,14 @@ contract DistributionHarness {
         Distribution.accumulateActor(self, actorId);
     }
 
-    function exposed_getActorValueChange(uint128 vaultId, bytes32 actorId) external returns (SD59x18 valueChange) {
+    function exposed_getActorValueChange(
+        uint128 vaultId,
+        bytes32 actorId
+    )
+        external
+        view
+        returns (SD59x18 valueChange)
+    {
         Distribution.Data storage self = _load_distributionData(vaultId);
         valueChange = Distribution.getActorValueChange(self, actorId);
     }
