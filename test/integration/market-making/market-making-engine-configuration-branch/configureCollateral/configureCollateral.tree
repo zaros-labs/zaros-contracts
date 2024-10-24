@@ -1,4 +1,4 @@
-MarketMakingEngine_ConfigureCollateral_Integration_Test
+MarketMakingEngineConfigurationBranch_ConfigureCollateral_Integration_Test
 ├── given the sender is not the owner
 │   └── it should revert
 └── given the sender is the owner

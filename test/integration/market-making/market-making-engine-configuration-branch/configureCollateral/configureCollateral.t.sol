@@ -13,7 +13,7 @@ import { Base_Test } from "test/Base.t.sol";
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
-contract MarketMakingEngine_ConfigureCollateral_Integration_Test is Base_Test {
+contract MarketMakingEngineConfigurationBranch_ConfigureCollateral_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
