@@ -79,7 +79,9 @@ contract VaultRouterBranch {
     /// @return settledRealizedDebtUsd The total amount of settled debt in USD.
     /// @return indexToken The index token address.
     /// @return collateral The collateral asset data.
-    function getVaultData(uint128 vaultId)
+    function getVaultData(
+        uint128 vaultId
+    )
         external
         view
         returns (
@@ -381,7 +383,7 @@ contract VaultRouterBranch {
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
-        uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, msg.sender);
+        uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, address(this));
 
         // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed();

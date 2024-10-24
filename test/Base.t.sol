@@ -366,6 +366,23 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
+        for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
+            changePrank({ msgSender: users.owner.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+
+            changePrank({ msgSender: users.naruto.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+
+            changePrank({ msgSender: users.sasuke.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+
+            changePrank({ msgSender: users.sakura.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+
+            changePrank({ msgSender: users.madara.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+        }
+
         for (uint256 i = INITIAL_MARGIN_COLLATERAL_ID; i <= FINAL_MARGIN_COLLATERAL_ID; i++) {
             changePrank({ msgSender: users.naruto.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
