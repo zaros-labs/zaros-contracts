@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
-import { Errors } from "@zaros/utils/Errors.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
@@ -269,7 +268,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         if (priceAdapter == address(0)) revert Errors.ZeroInput("priceAdapter");
 
         // check id credit ratio is set to zero
-        if (creditRatio == 0) revert Errors.ZeroInput("collateral");
+        if (creditRatio == 0) revert Errors.ZeroInput("creditRatio");
 
         // check if decimals is set to zero
         if (decimals == 0) revert Errors.ZeroInput("decimals");

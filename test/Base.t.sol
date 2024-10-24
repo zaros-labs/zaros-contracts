@@ -133,6 +133,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
     uint256 internal constant MOCK_CONFIGURATION_FEE_RECIPIENT = 1;
+    uint256 internal constant MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO = 1e18;
     uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -281,7 +282,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketMakingEngine.configureCollateral(
             address(wEth),
             marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter,
-            1e18,
+            MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO,
             true,
             marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals
         );
