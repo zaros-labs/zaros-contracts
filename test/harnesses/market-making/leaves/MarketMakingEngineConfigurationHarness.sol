@@ -18,4 +18,9 @@ contract MarketMakingEngineConfigurationHarness {
         MarketMakingEngineConfiguration.Data storage self = MarketMakingEngineConfiguration.load();
         return MarketMakingEngineConfiguration.getTotalFeeRecipientsShares(self);
     }
+
+    function workaround_getIfSystemKeeperIsEnabled(address systemKeeper) external view returns (bool) {
+        MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
+        return data.isSystemKeeperEnabled[systemKeeper];
+    }
 }
