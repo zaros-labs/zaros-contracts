@@ -20,4 +20,9 @@ abstract contract WBtc {
     uint256 internal constant WBTC_LIQUIDATION_PRIORITY = 4;
     uint8 internal constant WBTC_DECIMALS = 8;
     uint32 internal constant WBTC_PRICE_FEED_HEARBEAT_SECONDS = 86_400;
+
+    // todo recheck these values
+    bytes32 internal constant WBTC_USD_STREAM_ID = 0x00039d9e45394f473ab1f050a1b963e6b05351e52d71e507509ada0c95ed75b8;
+    string internal constant WBTC_USD_STREAM_ID_STRING =
+        "0x00039d9e45394f473ab1f050a1b963e6b05351e52d71e507509ada0c95ed75b8";
 }

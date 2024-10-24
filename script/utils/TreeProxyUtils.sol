@@ -38,6 +38,7 @@ import { MarketMakingEngineConfigurationHarness } from
     "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
 import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
+import { StabilityConfigurationHarness } from "test/harnesses/market-making/leaves/StabilityConfigurationHarness.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { EIP712Upgradeable } from "@openzeppelin-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
@@ -448,7 +449,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](15);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](18);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -472,6 +473,10 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.updateKeeper.selector;
     marketMakingEngineConfigBranchSelectors[14] =
         MarketMakingEngineConfigurationBranch.updateVaultAssetAllowance.selector;
+    marketMakingEngineConfigBranchSelectors[15] =
+        MarketMakingEngineConfigurationBranch.updateStabilityConfiguration.selector;
+    marketMakingEngineConfigBranchSelectors[16] = MarketMakingEngineConfigurationBranch.getCollateralData.selector;
+    marketMakingEngineConfigBranchSelectors[17] = MarketMakingEngineConfigurationBranch.configureUsdTokenSwap.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -491,9 +496,11 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     feeDistributionBranchSelectors[4] = FeeDistributionBranch.claimFees.selector;
 
     bytes4[] memory stabilityBranchSelectors = new bytes4[](3);
+    bytes4[] memory stabilityBranchSelectors = new bytes4[](4);
     stabilityBranchSelectors[0] = StabilityBranch.initiateSwap.selector;
     stabilityBranchSelectors[1] = StabilityBranch.refundSwap.selector;
     stabilityBranchSelectors[2] = StabilityBranch.fulfillSwap.selector;
+    stabilityBranchSelectors[3] = StabilityBranch.getSwapRequest.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = marketMakingEngineConfigBranchSelectors;
@@ -530,7 +537,7 @@ function deployMarketMakingHarnesses(
 }
 
 function deployMarketMakingAddressHarnesses() returns (address[] memory) {
-    address[] memory addressHarnesses = new address[](7);
+    address[] memory addressHarnesses = new address[](8);
 
     address vaultHarness = address(new VaultHarness());
     console.log("VaultHarness: ", vaultHarness);
@@ -553,6 +560,9 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     address dexSwapStrategyHarness = address(new DexSwapStrategyHarness());
     console.log("DexSwapStrategyHarness: ", dexSwapStrategyHarness);
 
+    address stabilityConfigurationHarness = address(new StabilityConfigurationHarness());
+    console.log("StabilityConfigurationHarness: ", stabilityConfigurationHarness);
+
     addressHarnesses[0] = vaultHarness;
     addressHarnesses[1] = withdrawalRequestHarness;
     addressHarnesses[2] = collateralHarness;
@@ -560,12 +570,13 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     addressHarnesses[4] = marketHarness;
     addressHarnesses[5] = marketMakingEngineConfigurationHarness;
     addressHarnesses[6] = dexSwapStrategyHarness;
+    addressHarnesses[7] = stabilityConfigurationHarness;
 
     return addressHarnesses;
 }
 
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](7);
+    bytes4[][] memory selectors = new bytes4[][](8);
 
     bytes4[] memory vaultHarnessSelectors = new bytes4[](12);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
@@ -626,6 +637,9 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     bytes4[] memory dexSwapStrategyHarnessSelectors = new bytes4[](1);
     dexSwapStrategyHarnessSelectors[0] = DexSwapStrategyHarness.exposed_dexSwapStrategy_load.selector;
 
+    bytes4[] memory stabilityConfigurationHarnessSelectors = new bytes4[](1);
+    stabilityConfigurationHarnessSelectors[0] = StabilityConfigurationHarness.exposed_StabilityConfiguration_load.selector;
+
     selectors[0] = vaultHarnessSelectors;
     selectors[1] = withdrawalRequestHarnessSelectors;
     selectors[2] = collateralHarnessSelectors;
@@ -633,6 +647,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     selectors[4] = marketHarnessSelectors;
     selectors[5] = marketMakingEngineConfigurationSelectors;
     selectors[6] = dexSwapStrategyHarnessSelectors;
+    selectors[7] = stabilityConfigurationHarnessSelectors;
 
     return selectors;
 }

@@ -28,14 +28,14 @@ contract MarketOrderKeeper_GetConfig_Integration_Test is Base_Test {
             fuzzMarketConfig.marketId, users.owner.account, perpsEngine, marketOrderKeeperImplementation
         );
 
-        (address keeperOwner,, address perpsEngine, uint256 marketIdConfig) =
+        (address keeperOwner,, address keeperPerpsEngine, uint256 marketIdConfig) =
             MarketOrderKeeper(marketOrderKeeper).getConfig();
 
         // it should return keeper owner
         assertEq(users.owner.account, keeperOwner, "keeper owner is not correct");
 
         // it should return address of perps engine
-        assertEq(address(perpsEngine), perpsEngine, "perps engine is not correct");
+        assertEq(address(perpsEngine), keeperPerpsEngine, "perps engine is not correct");
 
         // it should return market id
         assertEq(fuzzMarketConfig.marketId, marketIdConfig, "market id is not correct");

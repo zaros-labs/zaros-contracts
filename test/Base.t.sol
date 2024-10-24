@@ -60,6 +60,7 @@ import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexS
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
 import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
+import { StabilityConfigurationHarness } from "test/harnesses/market-making/leaves/StabilityConfigurationHarness.sol";
 
 // Zaros dependencies script
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -117,6 +118,7 @@ abstract contract IMarketMakingEngine is
     MarketHarness,
     MarketMakingEngineConfigurationHarness,
     DexSwapStrategyHarness
+    StabilityConfigurationHarness
 { }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
@@ -351,6 +353,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         // Other Set Up
         approveContracts();
+        marketMakingEngine.updateStabilityConfiguration(mockChainlinkVerifier, uint128(MAX_VERIFICATION_DELAY));
         changePrank({ msgSender: users.naruto.account });
     }
 
@@ -900,6 +903,19 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         // fill first order and open position
         perpsEngine.fillMarketOrder(tradingAccountId, marketId, mockSignedReport);
         changePrank({ msgSender: users.naruto.account });
+    }
+
+    function initiateUsdSwap(uint128 vaultId, uint256 amountInUsd, uint256 minAmountOut) internal {
+        uint128[] memory vaultIds = new uint128[](1);
+        vaultIds[0] = vaultId;
+
+        uint256[] memory amountsInUsd = new uint256[](1);
+        amountsInUsd[0] = amountInUsd;
+
+        uint256[] memory minAmountsOut = new uint256[](1);
+        minAmountsOut[0] = minAmountOut;
+
+        marketMakingEngine.initiateSwap(vaultIds, amountsInUsd, minAmountsOut);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

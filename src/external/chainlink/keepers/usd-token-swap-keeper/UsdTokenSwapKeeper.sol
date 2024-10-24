@@ -89,19 +89,17 @@ contract UsdTokenSwapKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKee
         address caller = bytes32ToAddress(log.topics[1]);
         uint128 requestId = uint128(uint256(log.topics[2]));
 
-        // load swap data
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
-
-        // load requiest for user by id
-        UsdTokenSwap.SwapRequest storage request = tokenSwapData.swapRequests[caller][requestId];
-
-        // if request dealine expired revert
-        if (request.deadline > block.timestamp) {
-            return (false, new bytes(0));
-        }
-
         // load usd token swap storage
         UsdTokenSwapKeeperStorage storage self = _getUsdTokenSwapKeeperStorage();
+
+        // load requiest for user by id
+        UsdTokenSwap.SwapRequest memory request =
+            IMarketMakingEngine(self.marketMakingEngine).getSwapRequest(caller, requestId);
+
+        // if request dealine expired revert
+        if (request.deadline < block.timestamp) {
+            return (false, new bytes(0));
+        }
 
         // if keeper asset stream != vault asset revert
         // Since the event emitted would be catched by multiple keepers, each with a stream for different asset, only

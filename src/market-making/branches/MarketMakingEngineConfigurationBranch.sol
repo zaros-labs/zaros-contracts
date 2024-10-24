@@ -4,14 +4,17 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
+import { StabilityConfiguration } from "@zaros/market-making/leaves/StabilityConfiguration.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
+import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -29,6 +32,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using DexSwapStrategy for DexSwapStrategy.Data;
+    using Collateral for Collateral.Data;
 
     constructor() {
         _disableInitializers();
@@ -408,6 +412,9 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogConfigureFeeRecipient(feeRecipient, share);
     }
 
+    /// @notice Updates the status of a system keeper by enabling or disabling them.
+    /// @param keeper The address of the keeper to be updated.
+    /// @param enabled A boolean flag indicating whether the keeper should be enabled or disabled.
     function updateKeeper(address keeper, bool enabled) external onlyOwner {
         if (keeper == address(0)) revert Errors.ZeroInput("keeper");
 
@@ -416,9 +423,99 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogUpdateKeeper(keeper, enabled);
     }
 
+    /// @notice Updates the stability configuration settings, including the Chainlink verifier and maximum
+    /// verification delay.
+    /// @param chainlinkVerifier The address of the Chainlink verifier contract to be used for price verification.
+    /// @param maxVerificationDelay The maximum allowed delay, in seconds, for price verification.
+    function updateStabilityConfiguration(
+        address chainlinkVerifier,
+        uint128 maxVerificationDelay
+    )
+        external
+        onlyOwner
+    {
+        if (chainlinkVerifier == address(0)) {
+            revert Errors.ZeroInput("chainlinkVerifier");
+        }
+
+        if (maxVerificationDelay == 0) {
+            revert Errors.ZeroInput("maxVerificationDelay");
+        }
+
+        StabilityConfiguration.update(chainlinkVerifier, maxVerificationDelay);
+    }
+
+    /// @notice Updates the asset allowance for a specific vault.
+    /// @param vaultId The ID of the vault for which the asset allowance is being updated.
+    /// @param allowance The new asset allowance amount to be set for the vault's index token.
     function updateVaultAssetAllowance(uint128 vaultId, uint256 allowance) external onlyOwner {
         Vault.Data storage vault = Vault.load(vaultId);
 
         ZlpVault(vault.indexToken).updateAssetAllowance(allowance);
+    }
+
+    /// @notice Configure collateral on Market Making Engine
+    /// @dev Only owner can call this functions
+    /// @param collateral The address of the collateral.
+    /// @param priceAdapter The address of the price adapter.
+    /// @param creditRatio The credit ratio.
+    /// @param isEnabled The status of the collateral.
+    /// @param decimals The decimals of the collateral.
+    function configureCollateral(
+        address collateral,
+        address priceAdapter,
+        uint256 creditRatio,
+        bool isEnabled,
+        uint8 decimals
+    )
+        external
+        onlyOwner
+    {
+        // check if collateral is set to zero
+        if (collateral == address(0)) revert Errors.ZeroInput("collateral");
+
+        // check if price adapter is set to zero
+        if (priceAdapter == address(0)) revert Errors.ZeroInput("priceAdapter");
+
+        // check id credit ratio is set to zero
+        if (creditRatio == 0) revert Errors.ZeroInput("collateral");
+
+        // check if decimals is set to zero
+        if (decimals == 0) revert Errors.ZeroInput("decimals");
+
+        // load collateral data from storage
+        Collateral.Data storage collateralData = Collateral.load(collateral);
+
+        // update collateral data
+        collateralData.asset = collateral;
+        collateralData.priceAdapter = priceAdapter;
+        collateralData.creditRatio = creditRatio;
+        collateralData.isEnabled = isEnabled;
+        collateralData.decimals = decimals;
+
+        // emit event LogConfigureCollateral
+        emit LogConfigureCollateral(collateral, priceAdapter, creditRatio, isEnabled, decimals);
+    }
+
+    function configureUsdTokenSwap(
+        uint128 baseFee,
+        uint128 swapSettlementFeeBps,
+        uint128 maxExecutionTime
+    )
+        external
+        onlyOwner
+    {
+        if (maxExecutionTime == 0) {
+            revert Errors.ZeroInput("maxExecutionTime");
+        }
+
+        UsdTokenSwap.update(baseFee, swapSettlementFeeBps, maxExecutionTime);
+    }
+
+    /// @notice Retrieves the collateral data for a given asset.
+    /// @param asset The address of the asset for which the collateral data is being retrieved.
+    /// @return The collateral data associated with the specified asset.
+    function getCollateralData(address asset) external pure returns (Collateral.Data memory) {
+        return Collateral.load(asset);
     }
 }

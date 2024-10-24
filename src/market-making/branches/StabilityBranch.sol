@@ -24,7 +24,6 @@ contract StabilityBranch {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using UsdTokenSwap for UsdTokenSwap.Data;
-    using Collateral for Collateral.Data;
     using StabilityConfiguration for StabilityConfiguration.Data;
 
     /// @notice Emitted to trigger the Chainlink Log based upkeep
@@ -46,21 +45,25 @@ contract StabilityBranch {
         _;
     }
 
+    /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
+    /// @param vaultIds An array of vault IDs from which to take assets.
+    /// @param amountsIn An array of USD token amounts to be swapped from the user.
+    /// @param minAmountsOut An array of minimum acceptable amounts of collateral the user expects to receive for each
+    /// swap.
     /// @dev Swap is fulfilled by a registered keeper.
     /// @dev Invariants involved in the call:
-    /// @dev the asset transfer and / or USD burn from the msg.sender must happen during initiateSwap,
-    /// and then fullfillSwap just updates the system state and performs the payment.
-    /// TODO: add invariants
+    /// The arrays lengths MUST match
+    /// The vaults MUST be of the same asset
     function initiateSwap(
         uint128[] calldata vaultIds,
         uint256[] calldata amountsIn,
-        uint128[] calldata minAmountsOut,
-        address assetOut
+        uint256[] calldata minAmountsOut
     )
         external
     {
         _validateSwapData(vaultIds, amountsIn, minAmountsOut);
 
+        // load market making engine config
         MarketMakingEngineConfiguration.Data storage configuration = MarketMakingEngineConfiguration.load();
 
         // Load the first vault to store the initial collateral asset for comparison
@@ -70,17 +73,10 @@ contract StabilityBranch {
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
         for (uint256 i = 0; i < amountsIn.length; i++) {
-            // USD Token => collatral asset
-            if (assetOut == initialVault.collateral.asset) {
-                // transfer USD: user => address(this) - burned in fulfillSwap
-                IERC20(configuration.usdTokenOfEngine[msg.sender]).safeTransferFrom(
-                    msg.sender, address(this), amountsIn[i]
-                );
-            }
-            // swap not supported
-            else {
-                revert Errors.InvalidUsdTokenSwap(assetOut);
-            }
+            // transfer USD: user => address(this) - burned in fulfillSwap
+            IERC20(configuration.usdTokenOfEngine[address(this)]).safeTransferFrom(
+                msg.sender, address(this), amountsIn[i]
+            );
 
             // get next request id for user
             uint128 requestId = tokenSwapData.nextId(msg.sender);
@@ -91,7 +87,7 @@ contract StabilityBranch {
             // Set swap request parameters
             swapRequest.minAmountOut = minAmountsOut[i];
             swapRequest.vaultId = vaultIds[i];
-            swapRequest.assetOut = assetOut;
+            swapRequest.assetOut = initialVault.collateral.asset;
             swapRequest.deadline = uint128(block.timestamp + tokenSwapData.maxExecutionTime);
             swapRequest.amountIn = amountsIn[i].toUint128();
 
@@ -99,9 +95,17 @@ contract StabilityBranch {
         }
     }
 
+    /// @notice Fulfills a USD token swap request by converting the specified amount of USD tokens to a collateral
+    /// asset.
+    /// @param user The address of the user who initiated the swap request.
+    /// @param requestId The unique ID of the swap request made by the user.
+    /// @param priceData The off-chain price data provided by Chainlink, encoded in calldata.
     /// @dev Called by data streams powered keeper.
     /// @dev Invariants involved in the call:
-    /// TODO: add invariants
+    /// The swap request MUST NOT have been processed
+    /// MUST apply fees when swap is fulfilled
+    /// The number of received assets MUST be greater than or equal to min assets.
+    /// MUST only be callable by a registered keeper
     function fulfillSwap(
         address user,
         uint128 requestId,
@@ -109,7 +113,7 @@ contract StabilityBranch {
         address engine
     )
         external
-        onlyKeeper()
+        onlyKeeper
     {
         // load request for user by id
         UsdTokenSwap.SwapRequest storage request = UsdTokenSwap.load().swapRequests[user][requestId];
@@ -138,33 +142,32 @@ contract StabilityBranch {
         // get price from report in 18 dec
         UD60x18 priceX18 = data.verifyOffchainPrice(priceData);
 
-        // USD Token => collatral asset
-        if (request.assetOut != address(usdToken)) {
-            // get amount out asset
-            uint256 amountOut = _getAmountOutCollateral(request.amountIn, priceX18);
+        // deduct fee
+        uint256 amountInAfterFee = _handleFeeUsd(request.amountIn, false, usdToken);
 
-            // deduct fees and get asset amount
-            amountOut = _handleFeeAsset(amountOut, request.assetOut);
+        // get amount out asset
+        uint256 amountOut = _getAmountOutCollateral(amountInAfterFee, priceX18);
 
-            // slippage check
-            if (amountOut < request.minAmountOut) {
-                revert Errors.SlippageCheckFailed();
-            }
-
-            // burn usd amount from address(this)
-            usdToken.burn(request.amountIn);
-
-            // update vault debt
-            vault.settledRealizedDebtUsd += int128(request.amountIn);
-
-            // vault => user
-            IERC20(vault.collateral.asset).safeTransferFrom(address(vault.indexToken), user, amountOut);
+        // slippage check
+        if (amountOut < request.minAmountOut) {
+            revert Errors.SlippageCheckFailed();
         }
 
-        emit LogFulfillSwap(msg.sender, requestId);
+        // burn usd amount from address(this)
+        usdToken.burn(request.amountIn);
+
+        // update vault debt
+        vault.settledRealizedDebtUsd += int128(request.amountIn);
+
+        // vault => user
+        IERC20(vault.collateral.asset).safeTransferFrom(address(vault.indexToken), user, amountOut);
+
+        emit LogFulfillSwap(user, requestId);
     }
 
-    function refundSwap(uint128 requestId) external {
+    /// @notice Refunds a swap request that has not been processed and has expired.
+    /// @param requestId The unique ID of the swap request to be refunded.
+    function refundSwap(uint128 requestId, address engine) external {
         // load swap data
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
@@ -176,8 +179,8 @@ contract StabilityBranch {
             revert Errors.RequestAlreadyProcessed(msg.sender, requestId);
         }
 
-        // if dealine hasnot yet passed revert
-        if (request.deadline < block.timestamp) {
+        // if dealine has not yet passed revert
+        if (request.deadline > block.timestamp) {
             revert Errors.RequestNotExpired(msg.sender, requestId);
         }
 
@@ -189,10 +192,10 @@ contract StabilityBranch {
             MarketMakingEngineConfiguration.load();
 
         // get usd token for engine
-        address usdToken = marketMakingEngineConfiguration.usdTokenOfEngine[msg.sender];
+        address usdToken = marketMakingEngineConfiguration.usdTokenOfEngine[engine];
 
         // get refund amount
-        uint256 refundAmount = _handleFeeUsd(request.amountIn, false);
+        uint256 refundAmount = _handleFeeUsd(request.amountIn, false, UsdToken(usdToken));
 
         // transfer usd refund amount back to user
         IERC20(usdToken).safeTransfer(msg.sender, refundAmount);
@@ -200,12 +203,16 @@ contract StabilityBranch {
         emit LogRefundSwap(msg.sender, requestId);
     }
 
+    /// @notice Calculates the amount of collateral to be received based on the input USD amount and the asset price.
+    /// @param usdAmountIn The amount of USD tokens to be swapped.
+    /// @param priceX18 The price of the collateral asset in 18-decimal fixed-point format (UD60x18).
+    /// @return The amount of collateral to be received, calculated from the input USD amount and asset price.
     function _getAmountOutCollateral(uint256 usdAmountIn, UD60x18 priceX18) internal pure returns (uint256) {
         // uint256 -> SD59x18
         SD59x18 usdAmountInX18 = sd59x18(usdAmountIn.toInt256());
 
         // UD60x18 -> SD59x18
-        SD59x18 assetPriceX18 = priceX18.intoSD59x18();
+        SD59x18 assetPriceX18 = priceX18.intoSD59x18(); // TODO: Apply premium/discount
 
         // get amounts out taking into consideration CL price
         SD59x18 amountOutX18 = usdAmountInX18.div(assetPriceX18);
@@ -214,14 +221,14 @@ contract StabilityBranch {
         return amountOutX18.intoUint256();
     }
 
-    function _handleFeeUsd(uint256 amountIn, bool mintOrTransfer) internal returns (uint256) {
-        // load market making engine config
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-
-        // get usd token for engine
-        address usdToken = marketMakingEngineConfiguration.usdTokenOfEngine[msg.sender];
-
+    /// @notice Applies the swap fee to the USD token amount and either mints or transfers the fee to the fee
+    /// recipient.
+    /// @param amountIn The original amount of USD tokens to be swapped, before the fee is deducted.
+    /// @param mintOrTransfer A boolean flag indicating whether the fee should be minted (`true`) or transferred
+    /// (`false`).
+    /// @param usdToken The USD token contract used in the swap.
+    /// @return The amount of USD tokens remaining after the fee is deducted.
+    function _handleFeeUsd(uint256 amountIn, bool mintOrTransfer, UsdToken usdToken) internal returns (uint256) {
         // load swap data
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
@@ -233,56 +240,24 @@ contract StabilityBranch {
 
         if (mintOrTransfer) {
             // mint fee too fee recipient
-            UsdToken(usdToken).mint(marketMakingEngineConfiguration.feeDistributor, feeAmount);
+            UsdToken(usdToken).mint(address(1), feeAmount); // TODO: set recipient
         } else {
             // transfer fee too fee recipient
-            IERC20(usdToken).safeTransfer(marketMakingEngineConfiguration.feeDistributor, feeAmount);
+            IERC20(usdToken).safeTransfer(address(1), feeAmount); // TODO: set recipient
         }
 
         // return amountIn after fee was applied
         return amountIn;
     }
 
-    function _handleFeeAsset(uint256 amountIn, address asset) internal returns (uint256) {
-        // load market making engine config
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-
-        // load swap data
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
-
-        // load collateral data
-        Collateral.Data storage collateral = Collateral.load(asset);
-
-        // get asset price
-        UD60x18 priceX18 = collateral.getPrice();
-
-        // get one UNIT of asset in 18 decimals
-        UD60x18 oneAssetUnitX18 = collateral.convertTokenAmountToUd60x18(10 ** collateral.decimals);
-
-        // get asset amount equal to 1 USD
-        UD60x18 oneUsdAssetUnit = oneAssetUnitX18.div(priceX18);
-
-        // UD60x18 -> uint256
-        uint256 baseFeeAsset = collateral.convertUd60x18ToTokenAmount(oneUsdAssetUnit);
-
-        // calculate fee amount
-        uint256 feeAmount = amountIn - baseFeeAsset - (amountIn * tokenSwapData.swapSettlementFeeBps) / 10_000;
-
-        // deduct the fee from the amount in
-        amountIn -= feeAmount;
-
-        // transfer fee too fee recipient
-        IERC20(asset).safeTransfer(marketMakingEngineConfiguration.feeDistributor, feeAmount);
-
-        // return amountIn after fee was applied
-        return amountIn;
-    }
-
+    /// @notice Validates the input data for initiating a swap.
+    /// @param vaultIds An array of vault IDs that the swap will involve.
+    /// @param amountsIn An array of USD token amounts to be swapped from the user.
+    /// @param minAmountsOut An array of minimum acceptable amounts of collateral to be received.
     function _validateSwapData(
         uint128[] calldata vaultIds,
         uint256[] calldata amountsIn,
-        uint128[] calldata minAmountsOut
+        uint256[] calldata minAmountsOut
     )
         internal
         view
@@ -299,8 +274,11 @@ contract StabilityBranch {
         // load first vault by id
         Vault.Data storage initialVault = Vault.load(vaultIds[0]);
 
+        // load collateral data
+        Collateral.Data storage collateral = Collateral.load(initialVault.collateral.asset);
+
         // Ensure the collateral asset is enabled
-        initialVault.collateral.verifyIsEnabled();
+        collateral.verifyIsEnabled();
 
         // Ensure all vaults are of the same asset
         for (uint256 i = 0; i < amountsIn.length; i++) {
@@ -308,9 +286,26 @@ contract StabilityBranch {
             Vault.Data storage vault = Vault.load(vaultIds[i]);
 
             // if assets are different revert
-            if (vault.collateral.asset == initialVault.collateral.asset) {
+            if (vault.collateral.asset != initialVault.collateral.asset) {
                 revert Errors.MissmatchingCollateralAssets(vault.collateral.asset, initialVault.collateral.asset);
             }
         }
+    }
+
+    /// @notice Retrieves a specific USD token swap request for a given user and request ID.
+    /// @param caller The address of the user who initiated the swap request.
+    /// @param requestId The unique ID of the swap request being retrieved.
+    /// @return request The `SwapRequest` structure containing the details of the swap request.
+    function getSwapRequest(
+        address caller,
+        uint128 requestId
+    )
+        external
+        view
+        returns (UsdTokenSwap.SwapRequest memory request)
+    {
+        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+
+        request = tokenSwapData.swapRequests[caller][requestId];
     }
 }

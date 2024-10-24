@@ -14,7 +14,7 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
-library StabilityConfiguration { // todo think of a better name
+library StabilityConfiguration {
     using SafeCast for int256;
 
     /// @notice ERC7201 storage location.
@@ -39,14 +39,6 @@ library StabilityConfiguration { // todo think of a better name
     /// @param maxVerificationDelay The max verfication delay for chainlink report
     function update(address chainlinkVerifier, uint128 maxVerificationDelay) internal {
         Data storage self = load();
-
-        if (chainlinkVerifier == address(0)) {
-            revert Errors.ZeroInput("chainlinkVerifier");
-        }
-
-        if (maxVerificationDelay == 0) {
-            revert Errors.ZeroInput("maxVerificationDelay");
-        }
 
         self.chainlinkVerifier = IVerifierProxy(chainlinkVerifier);
         self.maxVerificationDelay = maxVerificationDelay;
