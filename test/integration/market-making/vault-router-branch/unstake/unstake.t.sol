@@ -16,6 +16,7 @@ contract Unstake_Integration_Test is Base_Test {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        configureMarkets();
         changePrank({ msgSender: users.naruto.account });
     }
 
