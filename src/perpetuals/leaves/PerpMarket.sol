@@ -247,6 +247,14 @@ library PerpMarket {
     /// @notice Returns the proportional elapsed time since the last funding.
     /// @param self The PerpMarket storage pointer.
     function getProportionalElapsedSinceLastFunding(Data storage self) internal view returns (UD60x18) {
+        if (block.timestamp == self.lastFundingTime) {
+            // if the last funding time is the same as the current block time, calculate with 1 second difference
+            uint256 oneSecondPeriod = 1;
+            return ud60x18Convert(oneSecondPeriod).div(
+                ud60x18Convert(Constants.PROPORTIONAL_FUNDING_PERIOD)
+            );
+        }
+
         return ud60x18Convert(block.timestamp - self.lastFundingTime).div(
             ud60x18Convert(Constants.PROPORTIONAL_FUNDING_PERIOD)
         );
