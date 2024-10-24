@@ -157,19 +157,25 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param vaultId The vault id.
     /// @param marketsIds The markets ids.
     function updateVaultConnectedMarkets(uint128 vaultId, uint128[] calldata marketsIds) external onlyOwner {
+        // revert if vaultId is set to zero
         if (vaultId == 0) {
             revert Errors.ZeroInput("vaultId");
         }
 
+        // revert if marketsIds is empty
         if (marketsIds.length == 0) {
             revert Errors.ZeroInput("connectedMarketsIds");
         }
 
+        // load vault data from storage
         Vault.Data storage vault = Vault.load(vaultId);
 
+        // push new array of connectd markets
         vault.connectedMarkets.push();
 
+        // add markets ids to connected markets
         for (uint256 i; i < marketsIds.length; i++) {
+            // use [vault.connectedMarkets.length - 1] to get the last connected markets array
             vault.connectedMarkets[vault.connectedMarkets.length - 1].data.add(marketsIds[i]);
         }
     }
