@@ -14,6 +14,11 @@ contract MarketMakingEngineConfigurationHarness {
         return data.weth;
     }
 
+    function workaround_getWethAddress() external view returns (address) {
+        MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
+        return data.weth;
+    }
+
     function exposed_getTotalFeeRecipientsShares() external view returns (UD60x18) {
         MarketMakingEngineConfiguration.Data storage self = MarketMakingEngineConfiguration.load();
         return MarketMakingEngineConfiguration.getTotalFeeRecipientsShares(self);
