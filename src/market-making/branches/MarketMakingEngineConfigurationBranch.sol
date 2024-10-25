@@ -95,6 +95,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param share The share of the fee recipient, example 0.5e18 (50%).
     event LogConfigureFeeRecipient(uint256 configuration, address feeRecipient, uint256 share);
 
+    /// @notice Emitted when connected markets are configured on a vault.
+    /// @param vaultId The vault id.
+    /// @param marketsIds The markets ids.
+    event LogConfigureVaultConnectedMarkets(uint128 vaultId, uint128[] marketsIds);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -152,11 +157,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogUpdateVaultConfiguration(msg.sender, params.vaultId);
     }
 
-    /// @notice Update connected markets on vault
+    /// @notice Configure connected markets on vault
     /// @dev Only owner can call this function
     /// @param vaultId The vault id.
     /// @param marketsIds The markets ids.
-    function updateVaultConnectedMarkets(uint128 vaultId, uint128[] calldata marketsIds) external onlyOwner {
+    function configureVaultConnectedMarkets(uint128 vaultId, uint128[] calldata marketsIds) external onlyOwner {
         // revert if vaultId is set to zero
         if (vaultId == 0) {
             revert Errors.ZeroInput("vaultId");
@@ -178,6 +183,9 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             // use [vault.connectedMarkets.length - 1] to get the last connected markets array
             vault.connectedMarkets[vault.connectedMarkets.length - 1].data.add(marketsIds[i]);
         }
+
+        // emit event LogConfigureVaultConnectedMarkets
+        emit LogConfigureVaultConnectedMarkets(vaultId, marketsIds);
     }
 
     /// @notice Configure system keeper on Market Making Engine

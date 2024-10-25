@@ -464,7 +464,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.configureDexSwapStrategy.selector;
     marketMakingEngineConfigBranchSelectors[11] = MarketMakingEngineConfigurationBranch.configureFeeRecipient.selector;
     marketMakingEngineConfigBranchSelectors[12] =
-        MarketMakingEngineConfigurationBranch.updateVaultConnectedMarkets.selector;
+        MarketMakingEngineConfigurationBranch.configureVaultConnectedMarkets.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -554,7 +554,7 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](7);
 
-    bytes4[] memory vaultHarnessSelectors = new bytes4[](11);
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](12);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
     vaultHarnessSelectors[1] = VaultHarness.workaround_Vault_getActorStakedShares.selector;
     vaultHarnessSelectors[2] = VaultHarness.workaround_Vault_getTotalStakedShares.selector;
@@ -566,6 +566,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     vaultHarnessSelectors[8] = VaultHarness.workaround_Vault_getVaultAsset.selector;
     vaultHarnessSelectors[9] = VaultHarness.workaround_Vault_setTotalStakedShares.selector;
     vaultHarnessSelectors[10] = VaultHarness.workaround_Vault_getValuePerShare.selector;
+    vaultHarnessSelectors[11] = VaultHarness.workaround_Vault_getConnectedMarkets.selector;
 
     bytes4[] memory collateralHarnessSelectors = new bytes4[](2);
     collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;

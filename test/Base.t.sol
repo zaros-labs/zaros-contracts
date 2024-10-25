@@ -345,7 +345,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         }
 
         for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
-            marketMakingEngine.updateVaultConnectedMarkets(uint128(i), perpMarketsCreditConfigIds);
+            marketMakingEngine.configureVaultConnectedMarkets(uint128(i), perpMarketsCreditConfigIds);
         }
 
         // Other Set Up
