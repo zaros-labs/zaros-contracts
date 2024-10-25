@@ -7,7 +7,15 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+
 contract MarketMakingEngineConfigurationHarness {
+    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+
     function workaround_setWethAddress(address wethAddr) external returns (address) {
         MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
         data.weth = wethAddr;
@@ -27,5 +35,28 @@ contract MarketMakingEngineConfigurationHarness {
     function workaround_getIfSystemKeeperIsEnabled(address systemKeeper) external view returns (bool) {
         MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
         return data.isSystemKeeperEnabled[systemKeeper];
+    }
+
+    function workaround_getIfConfigurationExistsInTheFeeRecipients(
+        uint256 configuration
+    )
+        external
+        view
+        returns (bool)
+    {
+        MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
+        return data.configurationFeeRecipients.contains(configuration);
+    }
+
+    function workaround_getFeeRecipientShare(
+        uint256 configuration,
+        address feeRecipient
+    )
+        external
+        view
+        returns (uint256)
+    {
+        MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
+        return data.protocolFeeRecipients[configuration].get(feeRecipient);
     }
 }
