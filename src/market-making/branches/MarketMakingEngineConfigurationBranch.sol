@@ -373,6 +373,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Configure fee recipient on Market Making Engine
     /// @dev Only owner can call this function
+    /// @dev The share is in 1e18 precision, example: 0.5e18 (50%), the sum of all shares must not exceed 1e18 (100%),
+    /// if pass it will revert.
     /// @param configuration The configuration of which fee recipients are part of.
     /// @param feeRecipient The address of the fee recipient.
     /// @param share The share of the fee recipient, example: 0.5e18 (50%).
