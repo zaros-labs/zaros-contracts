@@ -666,7 +666,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
-    function updatePerpMarketOpenInterestCapScale(uint128 marketId, UD60x18 newOpenInterestCapScaleX18) internal {
+    function updatePerpMarketMaxOi(uint128 marketId, UD60x18 newMaxOi) internal {
+        // todo: we need to call the MM engine to check the market's credit capacity and update the oi scale to the
+        // value required to achieve the given `newMaxOi`
+        UD60x18 newOpenInterestCapScaleX18 = newMaxOi;
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,
@@ -685,7 +688,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         perpsEngine.updatePerpMarketConfiguration(marketId, params);
     }
 
-    function updatePerpMarketSkewCapScale(uint128 marketId, UD60x18 newSkewCapScaleX18) internal {
+    function updatePerpMarketMaxSkew(uint128 marketId, UD60x18 newMaxSkewX18) internal {
+        // todo: see the todo at `updatePerpMarketMaxOi`
+        UD60x18 newSkewCapScaleX18 = newMaxSkewX18;
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams memory params =
         PerpsEngineConfigurationBranch.UpdatePerpMarketConfigurationParams({
             name: marketsConfig[marketId].marketName,

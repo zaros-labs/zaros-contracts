@@ -41,9 +41,7 @@ library MarketMakingEngineConfiguration {
     /// @notice calculate the total fee recipients shares
     /// @param self The {MarketMakingEngineConfiguration} storage pointer.
     /// @return totalFeeRecipientsSharesX18 The total fee recipients shares.
-    function getTotalFeeRecipientsShares(
-        Data storage self
-    )
+    function getTotalFeeRecipientsShares(Data storage self)
         internal
         view
         returns (UD60x18 totalFeeRecipientsSharesX18)

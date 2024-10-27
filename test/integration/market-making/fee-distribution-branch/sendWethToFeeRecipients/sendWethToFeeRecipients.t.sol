@@ -35,9 +35,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheMarketDoesNotExist(
-        uint256 configuration
-    )
+    function testFuzz_RevertWhen_TheMarketDoesNotExist(uint256 configuration)
         external
         givenTheSenderIsRegisteredEngine
     {
