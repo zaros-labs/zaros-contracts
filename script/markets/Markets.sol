@@ -56,7 +56,7 @@ abstract contract Markets is
         uint128 mmr;
         uint128 marginRequirements;
         uint128 openInterestCapScale;
-        uint128 skewCapScaleX18;
+        uint128 skewCapScale;
         uint128 maxFundingVelocity;
         uint128 minTradeSize;
         uint256 skewScale;
@@ -521,7 +521,7 @@ abstract contract Markets is
                     initialMarginRateX18: marketsConfig[i].imr,
                     maintenanceMarginRateX18: marketsConfig[i].mmr,
                     openInterestCapScaleX18: marketsConfig[i].openInterestCapScale,
-                    skewCapScale: marketsConfig[i].skewCapScaleX18,
+                    skewCapScaleX18: marketsConfig[i].skewCapScale,
                     maxFundingVelocity: marketsConfig[i].maxFundingVelocity,
                     minTradeSizeX18: marketsConfig[i].minTradeSize,
                     skewScale: marketsConfig[i].skewScale,
