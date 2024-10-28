@@ -59,4 +59,14 @@ contract MarketMakingEngineConfigurationHarness {
         MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
         return data.protocolFeeRecipients[configuration].get(feeRecipient);
     }
+
+    function workaround_getIfEngineIsRegistered(address engine) external view returns (bool) {
+        MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
+        return data.isRegisteredEngine[engine];
+    }
+
+    function workaround_getUsdTokenOfEngine(address engine) external view returns (address) {
+        MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
+        return data.usdTokenOfEngine[engine];
+    }
 }

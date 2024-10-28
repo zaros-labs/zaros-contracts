@@ -590,7 +590,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketHarnessSelectors[4] = MarketHarness.workaround_getPendingProtocolWethReward.selector;
     marketHarnessSelectors[5] = MarketHarness.workaround_getIfReceivedMarketFeesContainsTheAsset.selector;
 
-    bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](6);
+    bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](8);
     marketMakingEngineConfigurationSelectors[0] =
         MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
     marketMakingEngineConfigurationSelectors[1] =
@@ -603,6 +603,10 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationHarness.workaround_getIfConfigurationExistsInTheFeeRecipients.selector;
     marketMakingEngineConfigurationSelectors[5] =
         MarketMakingEngineConfigurationHarness.workaround_getFeeRecipientShare.selector;
+    marketMakingEngineConfigurationSelectors[6] =
+        MarketMakingEngineConfigurationHarness.workaround_getIfEngineIsRegistered.selector;
+    marketMakingEngineConfigurationSelectors[7] =
+        MarketMakingEngineConfigurationHarness.workaround_getUsdTokenOfEngine.selector;
 
     bytes4[] memory dexSwapStrategyHarnessSelectors = new bytes4[](1);
     dexSwapStrategyHarnessSelectors[0] = DexSwapStrategyHarness.exposed_dexSwapStrategy_load.selector;
