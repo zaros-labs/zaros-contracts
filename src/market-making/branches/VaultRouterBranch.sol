@@ -227,9 +227,6 @@ contract VaultRouterBranch {
         uint256[] memory vaultsIds = new uint256[](1);
         vaultsIds[0] = uint256(vaultId);
 
-        // updates the vault's credit capacity before depositing
-        // Vault.recalculateVaultsCreditCapacity(vaultsIds);
-
         // get the tokens
         IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assets);
 
@@ -292,7 +289,7 @@ contract VaultRouterBranch {
         uint256[] memory vaultsIds = new uint256[](1);
         vaultsIds[0] = uint256(vaultId);
 
-        // updates the vault's credit capacity before depositing
+        // updates the vault's credit capacity
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
         if (referralCode.length != 0) {
