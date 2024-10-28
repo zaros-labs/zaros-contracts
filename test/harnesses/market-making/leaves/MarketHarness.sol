@@ -49,4 +49,24 @@ contract MarketHarness {
         Market.Data storage market = Market.load(marketId);
         return market.receivedMarketFees.contains(asset);
     }
+
+    function workaround_getMarketEngine(uint128 marketId) external view returns (address) {
+        Market.Data storage market = Market.load(marketId);
+        return market.engine;
+    }
+
+    function workaround_getAutoDeleverageStartThreshold(uint128 marketId) external view returns (uint128) {
+        Market.Data storage market = Market.load(marketId);
+        return market.autoDeleverageStartThreshold;
+    }
+
+    function workaround_getAutoDeleverageEndThreshold(uint128 marketId) external view returns (uint128) {
+        Market.Data storage market = Market.load(marketId);
+        return market.autoDeleverageEndThreshold;
+    }
+
+    function workaround_getAutoDeleveragePowerScale(uint128 marketId) external view returns (uint128) {
+        Market.Data storage market = Market.load(marketId);
+        return market.autoDeleveragePowerScale;
+    }
 }
