@@ -401,7 +401,10 @@ library Market {
         // NOTE: Each vault will need to call `Distribution::accumulateActor` through
         // `Market::accumulateVaultDebtAndReward`, and use the return values from that function to update its owned
         // unrealized and realized debt storage values.
-        vaultsDebtDistribution.distributeValue(totalDebtUsdX18);
+
+        if (!ud60x18(vaultsDebtDistribution.totalShares).isZero()) {
+            vaultsDebtDistribution.distributeValue(totalDebtUsdX18);
+        }
     }
 
     /// @notice Accumulates a vault's share of the market's unrealized and realized debt since the last distribution,
@@ -427,37 +430,45 @@ library Market {
         // loads the vaults unrealized debt distribution storage pointer
         Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
 
-        // uint128 -> bytes32
-        bytes32 actorId = bytes32(uint256(vaultId));
-        // calculate the given vault's ratio of the total delegated credit => actor shares / distribution total
-        // shares => then convert it to SD59x18
-        // NOTE: `div` rounds down by default, which would lead to a small loss to vaults in a
-        // credit state, but a small gain in a debt state. We assume this behavior to be negligible in the protocol's
-        // context since the diff is minimal and there are risk parameters ensuring debt settlement happens in a
-        // timely manner.
-        UD60x18 vaultCreditRatioX18 =
-            vaultsDebtDistribution.getActorShares(actorId).div(ud60x18(vaultsDebtDistribution.totalShares));
+        if (!ud60x18(vaultsDebtDistribution.totalShares).isZero()) {
+            // uint128 -> bytes32
+            bytes32 actorId = bytes32(uint256(vaultId));
+            // calculate the given vault's ratio of the total delegated credit => actor shares / distribution total
+            // shares => then convert it to SD59x18
+            // NOTE: `div` rounds down by default, which would lead to a small loss to vaults in a
+            // credit state, but a small gain in a debt state. We assume this behavior to be negligible in the
+            // protocol's
+            // context since the diff is minimal and there are risk parameters ensuring debt settlement happens in a
+            // timely manner.
+            UD60x18 vaultCreditRatioX18 =
+                vaultsDebtDistribution.getActorShares(actorId).div(ud60x18(vaultsDebtDistribution.totalShares));
 
-        // accumulates the vault's share of the market's total weth reward since the last interaction
-        wethRewardChangeX18 =
-            vaultCreditRatioX18.mul(lastVaultDistributedWethRewardX18.sub(ud60x18(self.vaultsWethReward)));
+            // accumulates the vault's share of the market's total weth reward since the last interaction
+            if (lastVaultDistributedWethRewardX18.isZero()) {
+                wethRewardChangeX18 = vaultCreditRatioX18.mul(ud60x18(self.vaultsWethReward));
+            } else {
+                wethRewardChangeX18 =
+                    vaultCreditRatioX18.mul(lastVaultDistributedWethRewardX18.sub(ud60x18(self.vaultsWethReward)));
+            }
 
-        // cache UD60x18 -> SD59x18 for gas savings
-        SD59x18 vaultCreditRatioSdX18 = vaultCreditRatioX18.intoSD59x18();
+            // cache UD60x18 -> SD59x18 for gas savings
+            SD59x18 vaultCreditRatioSdX18 = vaultCreditRatioX18.intoSD59x18();
 
-        // accumulates the vault's share of the debt since the last distribution, ignoring the return value as it's
-        // not needed in this context
-        vaultsDebtDistribution.accumulateActor(actorId);
-        // multiplies the vault's credit ratio by the change of the market's unrealized debt since the last
-        // distribution to determine its share of the unrealized debt change
-        unrealizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
-            lastVaultDistributedUnrealizedDebtUsdX18.sub(sd59x18(self.lastDistributedUnrealizedDebtUsd))
-        );
-        // multiplies the vault's credit ratio by the change of the market's realized debt since the last
-        // distribution to determine its share of the realized debt change
-        realizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
-            lastVaultDistributedRealizedDebtUsdX18.sub(sd59x18(self.lastDistributedRealizedDebtUsd))
-        );
+            // accumulates the vault's share of the debt since the last distribution, ignoring the return value as
+            // it's
+            // not needed in this context
+            vaultsDebtDistribution.accumulateActor(actorId);
+            // multiplies the vault's credit ratio by the change of the market's unrealized debt since the last
+            // distribution to determine its share of the unrealized debt change
+            unrealizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
+                lastVaultDistributedUnrealizedDebtUsdX18.sub(sd59x18(self.lastDistributedUnrealizedDebtUsd))
+            );
+            // multiplies the vault's credit ratio by the change of the market's realized debt since the last
+            // distribution to determine its share of the realized debt change
+            realizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
+                lastVaultDistributedRealizedDebtUsdX18.sub(sd59x18(self.lastDistributedRealizedDebtUsd))
+            );
+        }
     }
 
     /// @notice Realizes the minted or burned usdToken debt updating the market's realized debt value.

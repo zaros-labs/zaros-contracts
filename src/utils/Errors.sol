@@ -236,6 +236,9 @@ library Errors {
     /// @param vaultId The ID of the vault that is NOT live.
     error VaultIsDisabled(uint128 vaultId);
 
+    /// @notice Thrown when the quantity of shares is less than the minimum allowed.
+    error QuantityOfSharesLessThanTheMinimumAllowed(uint256 minimumAllowed, uint256 quantity);
+
     /// @notice MarketMakingEngine.Vault errors.
     error NoMarketsConnectedToVault(uint128 vaultId);
 

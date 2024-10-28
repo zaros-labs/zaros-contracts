@@ -329,7 +329,9 @@ library Vault {
             ) = recalculateConnectedMarketsDebtAndReward(self, connectedMarketsIdsCache, true);
 
             // distributes the vault's total WETH reward change, earned from its connected markets
-            self.wethRewardDistribution.distributeValue(vaultTotalWethRewardChangeX18.intoSD59x18());
+
+            SD59x18 vaultTotalWethRewardChangeSD59X18 = sd59x18(int256(vaultTotalWethRewardChangeX18.intoUint256()));
+            self.wethRewardDistribution.distributeValue(vaultTotalWethRewardChangeSD59X18);
 
             // updates the vault's stored unrealized debt distributed from markets
             self.marketsUnrealizedDebtUsd = sd59x18(self.marketsUnrealizedDebtUsd).add(
@@ -458,6 +460,47 @@ library Vault {
             // updates the market's vaults debt distributions with this vault's new credit delegation, i.e updates
             // its shares of the market's vaults debt distributions
             market.updateVaultCreditDelegation(vaultId, newCreditDelegationUsdX18);
+        }
+    }
+
+    /// @notice Updates the vault shares of the connected markets
+    /// @param self The vault storage pointer.
+    /// @param actorId The actor id (vault id) to update the shares.
+    /// @param updatedActorShares The updated actor shares.
+    /// @param shouldIncrement Whether the shares should be incremented or decremented.
+    function updateSharesOfConnectedMarkets(
+        Data storage self,
+        bytes32 actorId,
+        UD60x18 updatedActorShares,
+        bool shouldIncrement
+    )
+        internal
+    {
+        // loads the connected markets storage pointer by taking the last configured market ids uint set
+        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1].data;
+
+        // cache the connected markets ids
+        uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
+
+        // iterate over each connected market id
+        for (uint256 i; i < connectedMarketsIdsCache.length; i++) {
+            // loads the memory cached market id
+            uint128 connectedMarketId = connectedMarkets.at(i).toUint128();
+
+            // loads the market storage pointer
+            Market.Data storage market = Market.load(connectedMarketId);
+
+            // update the market's shares of the actor
+            UD60x18 totalSharesX18 = ud60x18(market.vaultsDebtDistribution.totalShares);
+            UD60x18 updatedSharesX18;
+
+            if (shouldIncrement) {
+                updatedSharesX18 = totalSharesX18.add(updatedActorShares);
+            } else {
+                updatedSharesX18 = totalSharesX18.sub(updatedActorShares);
+            }
+
+            market.vaultsDebtDistribution.setActorShares(actorId, updatedSharesX18);
         }
     }
 }

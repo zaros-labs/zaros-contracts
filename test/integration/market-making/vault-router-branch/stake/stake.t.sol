@@ -3,9 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-
-// Zaros dependencies source
-import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
@@ -15,6 +13,7 @@ contract Stake_Integration_Test is Base_Test {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        configureMarkets();
         changePrank({ msgSender: users.naruto.account });
     }
 
@@ -28,17 +27,19 @@ contract Stake_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_WhenUserHasShares(uint256 vaultId, uint256 sharesToStake) external whenVaultIdIsValid {
+    function testFuzz_WhenUserHasShares(uint256 vaultId, uint256 assetsToDepositVault) external whenVaultIdIsValid {
+        changePrank({ msgSender: users.naruto.account });
+
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        sharesToStake = bound({ x: sharesToStake, min: 1, max: type(uint128).max });
-        address indexToken = fuzzVaultConfig.indexToken;
-        deal(address(indexToken), users.naruto.account, sharesToStake);
+        assetsToDepositVault =
+            bound({ x: assetsToDepositVault, min: Constants.MIN_OF_SHARES_TO_STAKE, max: fuzzVaultConfig.depositCap });
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
 
-        IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0);
 
-        vm.expectEmit();
-        emit VaultRouterBranch.LogStake(fuzzVaultConfig.vaultId, users.naruto.account, sharesToStake);
+        uint256 sharesToStake = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
+
         marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake), "", false);
 
         bytes32 actorId = bytes32(uint256(uint160(address(users.naruto.account))));

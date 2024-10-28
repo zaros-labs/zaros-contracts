@@ -30,4 +30,7 @@ library Constants {
     /// @notice Maximum value for shares, example 0.5e18 is 50%.
     /// @dev This is used to avoid overflows when calculating shares.
     uint256 internal constant MAX_OF_SHARES = 1e18;
+
+    /// @notice Minimum value for stake shares.
+    uint256 internal constant MIN_OF_SHARES_TO_STAKE = 1e5;
 }
