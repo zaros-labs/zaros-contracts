@@ -6,6 +6,7 @@ import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
+import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -70,7 +71,6 @@ contract ClaimFees_Integration_Test is Base_Test {
         marketMakingEngine.claimFees(fuzzVaultConfig.vaultId);
     }
 
-    // TODO: Add the rest of the test cases
     function testFuzz_WhenAmountToClaimIsGreaterThenZero(
         uint256 vaultId,
         uint256 marketId,
@@ -118,6 +118,12 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         assertEq(IERC20(wEth).balanceOf(users.naruto.account), 0);
 
+        uint256 getEarnedFees = marketMakingEngine.getEarnedFees(fuzzVaultConfig.vaultId, users.naruto.account);
+
+        // it should emit {LogClaimFees} event
+        vm.expectEmit({ emitter: address(marketMakingEngine) });
+        emit FeeDistributionBranch.LogClaimFees(users.naruto.account, fuzzVaultConfig.vaultId, getEarnedFees);
+
         marketMakingEngine.claimFees(fuzzVaultConfig.vaultId);
 
         uint256 amountUserFeesReceived = IERC20(wEth).balanceOf(users.naruto.account);
@@ -139,8 +145,5 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // TODO
         // it should update accumulate actor
-
-        // TODO
-        // it should emit {LogClaimFees} event
     }
 }
