@@ -58,20 +58,6 @@ contract TradingAccountBranch {
         address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
     );
 
-    /// @notice Emitted when a referral code is set.
-    /// @param accountOwner The account owner address.
-    /// @param tradingAccountId The newly created trading account id.
-    /// @param referrer The referrer address.
-    /// @param referralCode The referral code.
-    /// @param isCustomReferralCode A boolean indicating if the referral code is custom.
-    event LogReferralSet(
-        address indexed accountOwner,
-        uint128 indexed tradingAccountId,
-        address indexed referrer,
-        bytes referralCode,
-        bool isCustomReferralCode
-    );
-
     /// @notice Gets the contract address of the trading accounts NFTs.
     /// @return tradingAccountToken The account token address.
     function getTradingAccountToken() public view returns (address) {

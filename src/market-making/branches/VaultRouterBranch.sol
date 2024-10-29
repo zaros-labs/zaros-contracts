@@ -51,15 +51,6 @@ contract VaultRouterBranch {
     /// @param shares The amount of shares unstaked by the user.
     event LogUnstake(uint256 indexed vaultId, address indexed user, uint256 shares);
 
-    /// @notice Emitted when a referral code is set.
-    /// @param stakingUser The user address that stakes.
-    /// @param referrer The referrer address.
-    /// @param referralCode The referral code.
-    /// @param isCustomReferralCode A boolean indicating if the referral code is custom.
-    event LogReferralSet(
-        address indexed stakingUser, address indexed referrer, bytes referralCode, bool isCustomReferralCode
-    );
-
     /// @notice Emitted when a user deposist assets.
     /// @param vaultId The ID of the vault which assets are deposited.
     /// @param user The user that deposits the assets.

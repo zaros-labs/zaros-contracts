@@ -108,11 +108,6 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param marketId The perps market id.
     event LogDisablePerpMarket(address indexed sender, uint128 marketId);
 
-    /// @notice Emitted when a custom referral code is created.
-    /// @param referrer The address of the referrer.
-    /// @param customReferralCode The custom referral code.
-    event LogCreateCustomReferralCode(address indexed referrer, string customReferralCode);
-
     /// @notice Emitted whe the referral module is configured.
     /// @param sender The address that configured the referral module.
     /// @param referralModule The address of the referral module.

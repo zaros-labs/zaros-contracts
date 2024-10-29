@@ -10,6 +10,7 @@ import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { IReferral } from "@zaros/utils/interfaces/IReferral.sol";
 
 // Open Zeppelin dependencies
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";
@@ -68,30 +69,11 @@ contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, Own
 
         emit LogCreateTradingAccount(tradingAccountId, sender);
 
-        Referral.Data storage referral = Referral.load(tradingAccountId);
+        IReferral referralModule = IReferral(perpsEngineConfiguration.referralModule);
 
         if (referralCode.length != 0) {
-            if (isCustomReferralCode) {
-                CustomReferralConfiguration.Data storage customReferral =
-                    CustomReferralConfiguration.load(string(referralCode));
-                if (customReferral.referrer == address(0)) {
-                    revert Errors.InvalidReferralCode();
-                }
-                referral.referralCode = referralCode;
-                referral.isCustomReferralCode = true;
-            } else {
-                address referrer = abi.decode(referralCode, (address));
-
-                if (referrer == sender) {
-                    revert Errors.InvalidReferralCode();
-                }
-
-                referral.referralCode = referralCode;
-                referral.isCustomReferralCode = false;
-            }
-
-            emit LogReferralSet(
-                sender, tradingAccountId, referral.getReferrerAddress(), referralCode, isCustomReferralCode
+            referralModule.registerReferral(
+                abi.encode(tradingAccountId), msg.sender, referralCode, isCustomReferralCode
             );
         }
 
