@@ -45,9 +45,6 @@ import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHa
 import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
-import { ReferralHarness } from "test/harnesses/perpetuals/leaves/ReferralHarness.sol";
-import { CustomReferralConfigurationHarness } from
-    "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
@@ -103,9 +100,7 @@ abstract contract IPerpsEngine is
     PerpMarketHarness,
     PositionHarness,
     SettlementConfigurationHarness,
-    TradingAccountHarness,
-    ReferralHarness,
-    CustomReferralConfigurationHarness
+    TradingAccountHarness
 { }
 
 abstract contract IMarketMakingEngine is
