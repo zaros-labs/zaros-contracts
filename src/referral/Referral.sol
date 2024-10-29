@@ -17,6 +17,17 @@ import { UUPSUpgradeable } from "@openzeppelin-upgradeable/proxy/utils/UUPSUpgra
 contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     using ReferralConfiguration for ReferralConfiguration.Data;
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                     VARIABLES
+    //////////////////////////////////////////////////////////////////////////*/
+
+    /// @notice Mapping of registered engines.
+    mapping(address engine => bool isAllowed) public registeredEngines;
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                     EVENTS
+    //////////////////////////////////////////////////////////////////////////*/
+
     /// @notice Emitted when a referral is set.
     /// @param engine The engine address.
     /// @param referrerCode The referral code used by the referrer.
@@ -35,16 +46,29 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     /// @param customReferralCode The custom referral code.
     event LogCreateCustomReferralCode(address referrer, string customReferralCode);
 
+    /// @notice Emitted when an engine is configured.
+    /// @param engine The engine address.
+    /// @param isEnabled True if the engine is enabled.
+    event LogConfigureEngine(address engine, bool isEnabled);
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                     ERRORS
+    //////////////////////////////////////////////////////////////////////////*/
+
     /// @notice Emitted when the engine tries to set a new referral to a referrer that already has a referral.
     error ReferralAlreadyExists();
 
     /// @notice Emitted when the engine tries to set a referral with an invalid referral code.
     error InvalidReferralCode();
 
+    /// @notice Emitted when the engine is not registered.
     error EngineNotRegistered(address engine);
 
-    mapping(address engine => bool isAllowed) public registeredEngines;
+    /*//////////////////////////////////////////////////////////////////////////
+                                     MODIFIERS
+    //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Checks if the engine is registered.
     modifier onlyRegisteredEngines() {
         if (registeredEngines[msg.sender] == false) {
             revert EngineNotRegistered(msg.sender);
@@ -52,6 +76,10 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
 
         _;
     }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                     INITIALIZE
+    //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev Disables initialize functions at the implementation.
     constructor() {
@@ -62,6 +90,10 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
         __Ownable_init(owner);
     }
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                     FUNCTIONS
+    //////////////////////////////////////////////////////////////////////////*/
+
     /// @inheritdoc IReferral
     function getReferrerAddress(address engine, bytes memory referrerCode) public view returns (address referrer) {
         // load the referral configuration from storage
@@ -71,6 +103,7 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
         referrer = referralConfiguration.getReferrerAddress(referrerCode);
     }
 
+    /// @inheritdoc IReferral
     function getCustomReferralCodeReferrer(
         string memory customReferralCode
     )
@@ -180,6 +213,9 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     function configureEngine(address engine, bool isEnabled) external onlyOwner {
         // set the engine status
         registeredEngines[engine] = isEnabled;
+
+        // emit the LogEngineConfigured event
+        emit LogConfigureEngine(engine, isEnabled);
     }
 
     /// @notice Upgrades the implementation of the contract.
