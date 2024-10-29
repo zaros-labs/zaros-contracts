@@ -108,7 +108,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](15);
+    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](16);
 
     perpsEngineConfigurationBranchSelectors[0] =
         PerpsEngineConfigurationBranch.getAccountsWithActivePositions.selector;
@@ -131,6 +131,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     perpsEngineConfigurationBranchSelectors[13] =
         PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     perpsEngineConfigurationBranchSelectors[14] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
+    perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.configureReferralModule.selector;
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
 
@@ -278,7 +279,7 @@ function deployPerpsEngineAddressHarnesses() returns (address[] memory) {
 function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](10);
 
-    bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](12);
+    bytes4[] memory perpsEngineConfigurationHarnessSelectors = new bytes4[](13);
     perpsEngineConfigurationHarnessSelectors[0] =
         PerpsEngineConfigurationHarness.exposed_checkMarketIsEnabled.selector;
     perpsEngineConfigurationHarnessSelectors[1] = PerpsEngineConfigurationHarness.exposed_addMarket.selector;
@@ -300,6 +301,8 @@ function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
         PerpsEngineConfigurationHarness.workaround_getMaxPositionsPerAccount.selector;
     perpsEngineConfigurationHarnessSelectors[11] =
         PerpsEngineConfigurationHarness.workaround_getLiquidationFeeUsdX18.selector;
+    perpsEngineConfigurationHarnessSelectors[12] =
+        PerpsEngineConfigurationHarness.workaround_getReferralModule.selector;
 
     bytes4[] memory marginCollateralConfigurationHarnessSelectors = new bytes4[](6);
     marginCollateralConfigurationHarnessSelectors[0] =
@@ -445,7 +448,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](13);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](14);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -465,6 +468,8 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigBranchSelectors[11] = MarketMakingEngineConfigurationBranch.configureFeeRecipient.selector;
     marketMakingEngineConfigBranchSelectors[12] =
         MarketMakingEngineConfigurationBranch.configureVaultConnectedMarkets.selector;
+    marketMakingEngineConfigBranchSelectors[13] =
+        MarketMakingEngineConfigurationBranch.configureReferralModule.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;

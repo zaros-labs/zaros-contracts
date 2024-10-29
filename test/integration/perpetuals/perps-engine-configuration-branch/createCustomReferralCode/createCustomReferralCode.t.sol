@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";
+import { Referral } from "@zaros/referral/Referral.sol";
 
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
@@ -44,8 +44,9 @@ contract CreateCustomReferralCode_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner.account });
 
         // it should emit {LogCreateCustomReferralCode} event
-        vm.expectEmit({ emitter: address(perpsEngine) });
-        emit PerpsEngineConfigurationBranch.LogCreateCustomReferralCode(referrer, customReferralCode);
+        address referralModule = perpsEngine.workaround_getReferralModule();
+        vm.expectEmit({ emitter: referralModule });
+        emit Referral.LogCreateCustomReferralCode(referrer, customReferralCode);
 
         perpsEngine.createCustomReferralCode(referrer, customReferralCode);
 

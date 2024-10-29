@@ -3,9 +3,10 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
+import { IReferral } from "@zaros/utils/interfaces/IReferral.sol";
 
 contract GetReferrerAddress_Unit_Test is Base_Test {
-    function setUp() public override {
+    function setUp() public virtual override {
         Base_Test.setUp();
     }
 
@@ -19,10 +20,14 @@ contract GetReferrerAddress_Unit_Test is Base_Test {
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount(bytesReferralCode, true);
 
-        address referrer = perpsEngine.exposed_Referral_getReferrerAddress(tradingAccountId);
+        (bytes memory referralCode, bool isCustomReferralCode) = perpsEngine.getUserReferralData(tradingAccountId);
+
+        address referralCodeAddress = IReferral(perpsEngine.workaround_getReferralModule()).getReferrerAddress(
+            address(perpsEngine), abi.encode(tradingAccountId)
+        );
 
         // it should return the address of referrer
-        assertEq(referrer, users.naruto.account, "the referrer is not correct");
+        assertEq(referralCodeAddress, users.naruto.account, "the referrer is not correct");
     }
 
     function test_WhenReferralCodeIsNotCustom() external {
@@ -30,9 +35,9 @@ contract GetReferrerAddress_Unit_Test is Base_Test {
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount(abi.encode(users.naruto.account), false);
 
-        address referrer = perpsEngine.exposed_Referral_getReferrerAddress(tradingAccountId);
+        (bytes memory referralCode, bool isCustomReferralCode) = perpsEngine.getUserReferralData(tradingAccountId);
 
         // it should return the address of referrer
-        assertEq(referrer, users.naruto.account, "the referrer is not correct");
+        assertEq(abi.decode(referralCode, (address)), users.naruto.account, "the referrer is not correct");
     }
 }

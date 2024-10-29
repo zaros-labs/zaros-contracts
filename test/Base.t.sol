@@ -26,6 +26,7 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
 import { SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { IReferral } from "@zaros/utils/interfaces/IReferral.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -76,6 +77,7 @@ import {
 } from "script/utils/TreeProxyUtils.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 import { DexAdapterUtils } from "script/utils/DexAdapterUtils.sol";
+import { ReferralUtils } from "script/utils/ReferralUtils.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -147,6 +149,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     MockERC20 internal weEth;
     MockERC20 internal wEth;
     MockERC20 internal wBtc;
+
+    IReferral internal referralModule;
 
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
@@ -346,6 +350,17 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
             marketMakingEngine.configureVaultConnectedMarkets(uint128(i), perpMarketsCreditConfigIds);
         }
+
+        // Referral Module setup
+        changePrank({ msgSender: users.owner.account });
+
+        IReferral referralModule = IReferral(ReferralUtils.deployReferralModule(users.owner.account));
+
+        referralModule.configureEngine(address(perpsEngine), true);
+        referralModule.configureEngine(address(marketMakingEngine), true);
+
+        perpsEngine.configureReferralModule(address(referralModule));
+        marketMakingEngine.configureReferralModule(address(referralModule));
 
         // Other Set Up
         approveContracts();
