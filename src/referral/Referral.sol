@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { ReferralConfiguration } from "@zaros/referral/leaves/ReferralConfiguration.sol";
 import { CustomReferralConfiguration } from "@zaros/referral/leaves/CustomReferralConfiguration.sol";
 import { IReferral } from "@zaros/utils/interfaces/IReferral.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 // Open Zeppelin dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -211,6 +212,11 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     /// @inheritdoc IReferral
     /// @dev Only the owner can update the implementation.
     function configureEngine(address engine, bool isEnabled) external onlyOwner {
+        // revert if the engine address is zero
+        if (engine == address(0)) {
+            revert Errors.ZeroInput("engine");
+        }
+
         // set the engine status
         registeredEngines[engine] = isEnabled;
 
