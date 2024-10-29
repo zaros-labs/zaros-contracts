@@ -698,7 +698,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             priceAdapter: address(new MockPriceFeed(18, int256(marketsConfig[marketId].mockUsdPrice))),
             initialMarginRateX18: marketsConfig[marketId].imr,
             maintenanceMarginRateX18: marketsConfig[marketId].mmr,
-            openInterestCapScaleX18: marketsConfig[marketId].openInterestCapScaleX18,
+            openInterestCapScaleX18: marketsConfig[marketId].openInterestCapScale,
             skewCapScaleX18: newSkewCapScaleX18.intoUint128(),
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             skewScale: marketsConfig[marketId].skewScale,
@@ -746,6 +746,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         UD60x18 totalOrderFeeInSize;
     }
 
+    // todo: we need to update this function to compute the desired max skew based on the skew cap scale, and
+    // potentially update tests calling this helper to pass the max skew properly, or update this function, or create
+    // an additional helper to determine the max skew desired
     function fuzzOrderSizeDelta(FuzzOrderSizeDeltaParams memory params) internal view returns (int128 sizeDelta) {
         FuzzOrderSizeDeltaContext memory ctx;
 
@@ -816,7 +819,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                // todo: pass the actual max skew based on the market's credit capacity instead of just the skew cap
+                // scale
+                maxSkew: ud60x18(fuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,

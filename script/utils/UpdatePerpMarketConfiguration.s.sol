@@ -37,7 +37,7 @@ contract UpdatePerpMarketConfiguration is BaseScript, ProtocolConfiguration {
             initialMarginRateX18: marketsConfig[marketId].imr,
             maintenanceMarginRateX18: marketsConfig[marketId].mmr,
             openInterestCapScaleX18: marketsConfig[marketId].openInterestCapScale,
-            skewCapScaleX18: marketsConfig[marketId].skewCapScaleX18,
+            skewCapScaleX18: marketsConfig[marketId].skewCapScale,
             maxFundingVelocity: marketsConfig[marketId].maxFundingVelocity,
             minTradeSizeX18: marketsConfig[marketId].minTradeSize,
             skewScale: marketsConfig[marketId].skewScale,

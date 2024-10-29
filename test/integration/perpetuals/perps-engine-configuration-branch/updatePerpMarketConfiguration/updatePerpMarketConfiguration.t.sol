@@ -29,8 +29,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
             skewScale: fuzzMarketConfig.skewScale,
@@ -60,8 +60,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -93,8 +93,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -127,8 +127,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: address(0),
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -162,8 +162,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: 0,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -198,8 +198,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: 0,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: 0,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -207,7 +207,7 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         });
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxOpenInterest") });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "openInterestCapScale") });
 
         changePrank({ msgSender: users.owner.account });
         perpsEngine.updatePerpMarketConfiguration(fuzzMarketConfig.marketId, params);
@@ -235,8 +235,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: 0,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: 0,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -273,8 +273,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: 0,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -311,8 +311,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: 1,
             maintenanceMarginRateX18: 1,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -352,8 +352,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: 0,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -392,8 +392,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: fuzzMarketConfig.maxFundingVelocity,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: 0,
@@ -433,8 +433,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: fuzzMarketConfig.priceAdapter,
             initialMarginRateX18: fuzzMarketConfig.imr,
             maintenanceMarginRateX18: fuzzMarketConfig.mmr,
-            maxOpenInterest: fuzzMarketConfig.maxOi,
-            maxSkew: fuzzMarketConfig.maxSkew,
+            openInterestCapScaleX18: fuzzMarketConfig.openInterestCapScale,
+            skewCapScaleX18: fuzzMarketConfig.skewCapScale,
             maxFundingVelocity: 0,
             skewScale: fuzzMarketConfig.skewScale,
             minTradeSizeX18: fuzzMarketConfig.minTradeSize,
@@ -472,8 +472,8 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             priceAdapter: address(123),
             initialMarginRateX18: 2,
             maintenanceMarginRateX18: 1,
-            maxOpenInterest: 3,
-            maxSkew: 4,
+            openInterestCapScaleX18: 3,
+            skewCapScaleX18: 4,
             maxFundingVelocity: 5,
             skewScale: 6,
             minTradeSizeX18: 8,
@@ -505,9 +505,13 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
             "MaintenanceMarginRate should be updated"
         );
         assertEq(
-            perpMarket.configuration.maxOpenInterest, newParams.maxOpenInterest, "MaxOpenInterest should be updated"
+            perpMarket.configuration.openInterestCapScaleX18,
+            newParams.openInterestCapScaleX18,
+            "OpenInterestCapScale should be updated"
         );
-        assertEq(perpMarket.configuration.maxSkew, newParams.maxSkew, "MaxSkew should be updated");
+        assertEq(
+            perpMarket.configuration.skewCapScaleX18, newParams.skewCapScaleX18, "SkewCapScale should be updated"
+        );
         assertEq(
             perpMarket.configuration.maxFundingVelocity,
             newParams.maxFundingVelocity,

@@ -34,8 +34,11 @@ contract Position_GetNotionalValue_Unit_Test is Base_Test {
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        sizeAbs =
-            bound({ x: sizeAbs, min: uint256(fuzzMarketConfig.minTradeSize), max: uint256(fuzzMarketConfig.maxSkew) });
+        sizeAbs = bound({
+            x: sizeAbs,
+            min: uint256(fuzzMarketConfig.minTradeSize),
+            max: uint256(fuzzMarketConfig.skewCapScale)
+        });
         int256 size = isLong ? int256(sizeAbs) : -int256(sizeAbs);
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount(bytes(""), false);

@@ -37,7 +37,7 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
 
         int128 skew = 0;
 
@@ -66,9 +66,9 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
 
-        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
         int128 skew = int128(int256(skewAbs));
 
         perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, mockOpenInterest, sd59x18(skew));
@@ -96,9 +96,9 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
 
-        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
         int128 skew = int128(int256(skewAbs));
 
         perpsEngine.exposed_updateOpenInterest(fuzzMarketConfig.marketId, mockOpenInterest, unary(sd59x18(skew)));
@@ -126,9 +126,9 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
 
-        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
 
         vm.assume(skewAbs > sizeDeltaAbs);
 
@@ -159,9 +159,9 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
 
-        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
 
         vm.assume(skewAbs > sizeDeltaAbs);
 
@@ -185,9 +185,9 @@ contract PerpMarket_GetOrderFeeUsd_Unit_Test is Base_Test {
     function test_WhenSizeDeltaFlipsTheSkew(uint256 marketId, uint256 skewAbs, uint256 sizeDeltaAbs) external {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
-        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        sizeDeltaAbs = bound({ x: sizeDeltaAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
 
-        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.maxSkew });
+        skewAbs = bound({ x: skewAbs, min: 1, max: fuzzMarketConfig.skewCapScale });
 
         vm.assume(sizeDeltaAbs > skewAbs);
 

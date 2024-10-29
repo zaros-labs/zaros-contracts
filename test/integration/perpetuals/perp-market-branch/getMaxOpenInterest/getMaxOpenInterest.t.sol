@@ -22,6 +22,6 @@ contract GetMaxOpenInterest_Integration_Test is Base_Test {
         // it should return the max open interest of the market
         UD60x18 maxOpenInterest = perpsEngine.getMaxOpenInterest(fuzzMarketConfig.marketId);
 
-        assertEq(fuzzMarketConfig.maxOi, maxOpenInterest.intoUint128(), "Invalid max open interest");
+        assertEq(fuzzMarketConfig.openInterestCapScale, maxOpenInterest.intoUint128(), "Invalid max open interest");
     }
 }

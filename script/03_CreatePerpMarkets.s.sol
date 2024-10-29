@@ -84,7 +84,7 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                     initialMarginRateX18: filteredMarketsConfig[i].imr,
                     maintenanceMarginRateX18: filteredMarketsConfig[i].mmr,
                     openInterestCapScaleX18: filteredMarketsConfig[i].openInterestCapScale,
-                    skewCapScaleX18: filteredMarketsConfig[i].skewCapScaleX18,
+                    skewCapScaleX18: filteredMarketsConfig[i].skewCapScale,
                     maxFundingVelocity: filteredMarketsConfig[i].maxFundingVelocity,
                     minTradeSizeX18: filteredMarketsConfig[i].minTradeSize,
                     skewScale: filteredMarketsConfig[i].skewScale,

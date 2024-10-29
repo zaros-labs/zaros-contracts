@@ -22,6 +22,6 @@ contract GetMaxSkew_Integration_Test is Base_Test {
         // it should return the max open interest of market
         UD60x18 maxSkew = perpsEngine.getMaxSkew(fuzzMarketConfig.marketId);
 
-        assertEq(fuzzMarketConfig.maxSkew, maxSkew.intoUint128(), "Invalid max skew");
+        assertEq(fuzzMarketConfig.skewCapScale, maxSkew.intoUint128(), "Invalid max skew");
     }
 }

@@ -114,7 +114,7 @@ contract GetAccountEquityUsd_Integration_Test is Base_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(wstEthmarginValueUsd).add(ud60x18(weEthmarginValueUsd)),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                maxSkew: ud60x18(fuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,

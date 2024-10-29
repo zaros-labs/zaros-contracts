@@ -154,7 +154,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                maxSkew: ud60x18(fuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,
@@ -286,7 +286,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         });
 
         deal({ token: address(usdc), to: users.naruto.account, give: marginValueUsd });
-        SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.maxOi).intoSD59x18().add(sd59x18(1));
+        SD59x18 sizeDeltaAbs = ud60x18(fuzzMarketConfig.openInterestCapScale).intoSD59x18().add(sd59x18(1));
 
         int128 sizeDelta = isLong ? sizeDeltaAbs.intoInt256().toInt128() : unary(sizeDeltaAbs).intoInt256().toInt128();
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsd, address(usdc));
@@ -296,7 +296,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             revertData: abi.encodeWithSelector(
                 Errors.ExceedsOpenInterestLimit.selector,
                 fuzzMarketConfig.marketId,
-                fuzzMarketConfig.maxOi,
+                fuzzMarketConfig.openInterestCapScale,
                 sizeDeltaAbs.intoUint256()
             )
         });
@@ -362,7 +362,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                maxSkew: ud60x18(fuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,
@@ -408,7 +408,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(secondFuzzMarketConfig.maxSkew),
+                maxSkew: ud60x18(secondFuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(secondFuzzMarketConfig.minTradeSize),
                 price: ud60x18(secondFuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,
@@ -451,7 +451,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
         UD60x18 adjustedMarginRequirements = ud60x18(fuzzMarketConfig.imr).mul(ud60x18(0.9e18));
-        UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.maxOi)).mul(
+        UD60x18 maxMarginValueUsd = adjustedMarginRequirements.mul(ud60x18(fuzzMarketConfig.openInterestCapScale)).mul(
             ud60x18(fuzzMarketConfig.mockUsdPrice)
         );
 
@@ -469,7 +469,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                maxSkew: ud60x18(fuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,
@@ -550,7 +550,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                maxSkew: ud60x18(fuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,
@@ -616,7 +616,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                maxSkew: ud60x18(fuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,
@@ -669,7 +669,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ud60x18(initialMarginRate),
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(fuzzMarketConfig.maxSkew),
+                maxSkew: ud60x18(fuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(fuzzMarketConfig.minTradeSize),
                 price: ud60x18(fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,

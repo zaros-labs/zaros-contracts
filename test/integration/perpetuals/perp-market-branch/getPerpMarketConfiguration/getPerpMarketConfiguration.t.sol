@@ -22,7 +22,7 @@ contract GetPerpMarketConfiguration_Integration_Test is Base_Test {
             string memory symbol,
             uint128 initialMarginRateX18,
             uint128 maintenanceMarginRateX18,
-            uint128 maxOpenInterest,
+            uint128 openInterestCapScale,
             uint128 maxSkew,
             uint128 minTradeSizeX18,
             uint256 skewScale,
@@ -42,10 +42,10 @@ contract GetPerpMarketConfiguration_Integration_Test is Base_Test {
         assertEq(maintenanceMarginRateX18, fuzzMarketConfig.mmr, "Invalid maintenance margin rate");
 
         // it should return max open interest
-        assertEq(maxOpenInterest, fuzzMarketConfig.maxOi, "Invalid max open interest");
+        assertEq(openInterestCapScale, fuzzMarketConfig.openInterestCapScale, "Invalid max open interest");
 
         // it should return skew scale
-        assertEq(maxSkew, fuzzMarketConfig.maxSkew, "Invalid max skew");
+        assertEq(maxSkew, fuzzMarketConfig.skewCapScale, "Invalid max skew");
 
         // it should return skew scale
         assertEq(skewScale, fuzzMarketConfig.skewScale, "Invalid skew scale");

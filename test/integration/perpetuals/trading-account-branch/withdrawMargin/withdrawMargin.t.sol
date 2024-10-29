@@ -154,7 +154,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         // avoids very small rounding errors in super edge cases
         // ctx.adjustedMarginRequirements = ud60x18(ctx.fuzzMarketConfig.imr).mul(ud60x18(1.001e18));
-        ctx.maxMarginValueUsd = ctx.adjustedMarginRequirements.mul(ud60x18(ctx.fuzzMarketConfig.maxSkew)).mul(
+        ctx.maxMarginValueUsd = ctx.adjustedMarginRequirements.mul(ud60x18(ctx.fuzzMarketConfig.skewCapScale)).mul(
             ud60x18(ctx.fuzzMarketConfig.mockUsdPrice)
         );
 
@@ -172,7 +172,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
                 settlementConfigurationId: SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
                 initialMarginRate: ctx.adjustedMarginRequirements,
                 marginValueUsd: ud60x18(marginValueUsd),
-                maxSkew: ud60x18(ctx.fuzzMarketConfig.maxSkew),
+                maxSkew: ud60x18(ctx.fuzzMarketConfig.skewCapScale),
                 minTradeSize: ud60x18(ctx.fuzzMarketConfig.minTradeSize),
                 price: ud60x18(ctx.fuzzMarketConfig.mockUsdPrice),
                 isLong: isLong,
