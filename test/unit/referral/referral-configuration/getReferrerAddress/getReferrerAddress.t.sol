@@ -20,8 +20,6 @@ contract GetReferrerAddress_Unit_Test is Base_Test {
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount(bytesReferralCode, true);
 
-        (bytes memory referralCode, bool isCustomReferralCode) = perpsEngine.getUserReferralData(tradingAccountId);
-
         address referralCodeAddress = IReferral(perpsEngine.workaround_getReferralModule()).getReferrerAddress(
             address(perpsEngine), abi.encode(tradingAccountId)
         );
@@ -35,7 +33,7 @@ contract GetReferrerAddress_Unit_Test is Base_Test {
 
         uint128 tradingAccountId = perpsEngine.createTradingAccount(abi.encode(users.naruto.account), false);
 
-        (bytes memory referralCode, bool isCustomReferralCode) = perpsEngine.getUserReferralData(tradingAccountId);
+        (bytes memory referralCode,) = perpsEngine.getUserReferralData(tradingAccountId);
 
         // it should return the address of referrer
         assertEq(abi.decode(referralCode, (address)), users.naruto.account, "the referrer is not correct");

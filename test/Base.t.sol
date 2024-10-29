@@ -349,7 +349,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         // Referral Module setup
         changePrank({ msgSender: users.owner.account });
 
-        IReferral referralModule = IReferral(ReferralUtils.deployReferralModule(users.owner.account));
+        referralModule = IReferral(ReferralUtils.deployReferralModule(users.owner.account));
 
         referralModule.configureEngine(address(perpsEngine), true);
         referralModule.configureEngine(address(marketMakingEngine), true);
