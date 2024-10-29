@@ -36,6 +36,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
+            address(referralModule),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -67,6 +68,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
+            address(referralModule),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -101,6 +103,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
+            address(referralModule),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -136,6 +139,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
+            address(referralModule),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -172,6 +176,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             address(0),
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
+            address(referralModule),
             MAX_VERIFICATION_DELAY
         );
     }
@@ -209,11 +214,51 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.settlementFeeRecipient,
             address(0),
             address(marketMakingEngine),
+            address(referralModule),
             MAX_VERIFICATION_DELAY
         );
     }
 
     modifier whenLiquidationFeeRecipientIsNotZero() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_ReferralModuleIsZero(
+        uint128 maxPositionsPerAccount,
+        uint128 marketOrderMinLifetime,
+        uint128 liquidationFeeUsdX18
+    )
+        external
+        whenMaxPositionsPerAccountIsNotZero
+        whenLiquidationFeeIsNotZero
+        whenMarginCollateralRecipientIsNotZero
+        whenOrderFeeRecipientIsNotZero
+        whenSettlementFeeRecipientIsNotZero
+        whenLiquidationFeeRecipientIsNotZero
+    {
+        vm.assume(maxPositionsPerAccount > 0);
+        vm.assume(marketOrderMinLifetime > 0);
+        vm.assume(liquidationFeeUsdX18 > 0);
+
+        // it should revert
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "referralModule") });
+
+        changePrank({ msgSender: users.owner.account });
+        perpsEngine.configureSystemParameters(
+            maxPositionsPerAccount,
+            marketOrderMinLifetime,
+            liquidationFeeUsdX18,
+            feeRecipients.marginCollateralRecipient,
+            feeRecipients.orderFeeRecipient,
+            feeRecipients.settlementFeeRecipient,
+            users.liquidationFeeRecipient.account,
+            address(marketMakingEngine),
+            address(0),
+            MAX_VERIFICATION_DELAY
+        );
+    }
+
+    modifier whenReferralModuleIsNotZero() {
         _;
     }
 
@@ -229,6 +274,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         whenOrderFeeRecipientIsNotZero
         whenSettlementFeeRecipientIsNotZero
         whenLiquidationFeeRecipientIsNotZero
+        whenReferralModuleIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
         vm.assume(marketOrderMinLifetime > 0);
@@ -247,6 +293,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
+            address(referralModule),
             0
         );
     }
@@ -263,6 +310,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         whenOrderFeeRecipientIsNotZero
         whenSettlementFeeRecipientIsNotZero
         whenLiquidationFeeRecipientIsNotZero
+        whenReferralModuleIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
         vm.assume(marketOrderMinLifetime > 0);
@@ -284,6 +332,7 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             feeRecipients.settlementFeeRecipient,
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
+            address(referralModule),
             MAX_VERIFICATION_DELAY
         );
     }

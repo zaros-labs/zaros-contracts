@@ -480,6 +480,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
             liquidationFeeRecipient: users.liquidationFeeRecipient.account,
             marketMakingEngine: address(marketMakingEngine),
+            referralModule: address(referralModule),
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
     }

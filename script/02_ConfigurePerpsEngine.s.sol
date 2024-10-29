@@ -9,6 +9,7 @@ import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
+import { IReferral } from "@zaros/utils/interfaces/IReferral.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -26,6 +27,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
     TradingAccountNFT internal tradingAccountToken;
     IPerpsEngine internal perpsEngine;
     IMarketMakingEngine internal marketMakingEngine;
+    IReferral internal referralModule;
 
     function run(uint256 initialMarginCollateralId, uint256 finalMarginCollateralId) public broadcaster {
         tradingAccountToken = TradingAccountNFT(vm.envAddress("TRADING_ACCOUNT_NFT"));
@@ -33,6 +35,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         marketMakingEngine = IMarketMakingEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
         usdToken = vm.envAddress("USD_TOKEN");
         liquidationKeeper = vm.envAddress("LIQUIDATION_KEEPER");
+        referralModule = IReferral(vm.envAddress("REFERRAL_MODULE"));
 
         configureContracts(initialMarginCollateralId, finalMarginCollateralId);
     }
@@ -51,6 +54,7 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             settlementFeeRecipient: MSIG_ADDRESS,
             liquidationFeeRecipient: MSIG_ADDRESS,
             marketMakingEngine: address(marketMakingEngine),
+            referralModule: address(referralModule),
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
 

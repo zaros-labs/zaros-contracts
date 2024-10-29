@@ -278,6 +278,13 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
     /// @param marketOrderMinLifetime The minimum lifetime of a market order to be considered active.
     /// @param liquidationFeeUsdX18 The liquidation fee in USD.
+    /// @param marginCollateralRecipient The address that receives the margin collateral.
+    /// @param orderFeeRecipient The address that receives the order fees.
+    /// @param settlementFeeRecipient The address that receives the settlement fees.
+    /// @param liquidationFeeRecipient The address that receives the liquidation fees.
+    /// @param marketMakingEngine The address of the market making engine.
+    /// @param referralModule The address of the referral module.
+    /// @param maxVerificationDelay The maximum verification delay.
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
@@ -287,6 +294,7 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         address settlementFeeRecipient,
         address liquidationFeeRecipient,
         address marketMakingEngine,
+        address referralModule,
         uint256 maxVerificationDelay
     )
         external
@@ -320,6 +328,10 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("marketMakingEngine");
         }
 
+        if (referralModule == address(0)) {
+            revert Errors.ZeroInput("referralModule");
+        }
+
         if (maxVerificationDelay == 0) {
             revert Errors.ZeroInput("maxVerificationDelay");
         }
@@ -334,6 +346,7 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         perpsEngineConfiguration.settlementFeeRecipient = settlementFeeRecipient;
         perpsEngineConfiguration.liquidationFeeRecipient = liquidationFeeRecipient;
         perpsEngineConfiguration.marketMakingEngine = marketMakingEngine;
+        perpsEngineConfiguration.referralModule = referralModule;
         perpsEngineConfiguration.maxVerificationDelay = maxVerificationDelay;
 
         emit LogConfigureSystemParameters(

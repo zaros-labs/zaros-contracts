@@ -94,7 +94,9 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_TheSizeDeltaIsZero(uint256 marketId)
+    function test_RevertWhen_TheSizeDeltaIsZero(
+        uint256 marketId
+    )
         external
         givenTheAccountIdExists
         givenTheSenderIsAuthorized
@@ -379,6 +381,7 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
             liquidationFeeRecipient: users.liquidationFeeRecipient.account,
+            referralModule: address(referralModule),
             marketMakingEngine: address(marketMakingEngine),
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
