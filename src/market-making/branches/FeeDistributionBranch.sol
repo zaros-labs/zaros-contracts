@@ -60,15 +60,6 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @param amount Amount of WETH claimed as fees.
     event LogClaimFees(address indexed claimer, uint128 indexed vaultId, uint256 amount);
 
-    modifier onlyExistingMarket(uint128 marketId) {
-        Market.Data storage market = Market.load(marketId);
-
-        if (market.id == 0) {
-            revert Errors.MarketDoesNotExist(marketId);
-        }
-        _;
-    }
-
     /// @notice Returns the claimable amount of weth fees for the given staker at a given vault.
     /// @param vaultId The vault id to claim fees from.
     /// @param staker The staker address.
