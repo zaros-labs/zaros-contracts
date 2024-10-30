@@ -59,7 +59,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureFeeRecipient_Integration
         givenTheSenderIsTheOwner
         whenFeeRecipientIsNotZero
     {
-        UD60x18 maxOfSharesX18 = ud60x18(Constants.MAX_OF_SHARES);
+        UD60x18 maxOfSharesX18 = ud60x18(Constants.MAX_SHARES);
 
         quantityOfConfigurations = bound({ x: quantityOfConfigurations, min: 1, max: 10 });
         quantityOfFeeRecipientsPerConfigurations =
@@ -93,7 +93,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureFeeRecipient_Integration
         givenTheSenderIsTheOwner
         whenFeeRecipientIsNotZero
     {
-        UD60x18 maxOfSharesX18 = ud60x18(Constants.MAX_OF_SHARES);
+        UD60x18 maxOfSharesX18 = ud60x18(Constants.MAX_SHARES);
 
         quantityOfConfigurations = bound({ x: quantityOfConfigurations, min: 1, max: 10 });
         quantityOfFeeRecipientsPerConfigurations =

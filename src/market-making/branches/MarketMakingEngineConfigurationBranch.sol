@@ -388,7 +388,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         UD60x18 totalFeeRecipientsSharesX18 = marketMakingEngineConfiguration.getTotalFeeRecipientsShares();
 
-        if (totalFeeRecipientsSharesX18.add(ud60x18(share)).gt(ud60x18(Constants.MAX_OF_SHARES))) {
+        if (totalFeeRecipientsSharesX18.add(ud60x18(share)).gt(ud60x18(Constants.MAX_SHARES))) {
             revert Errors.FeeRecipientShareExceedsOne();
         }
 

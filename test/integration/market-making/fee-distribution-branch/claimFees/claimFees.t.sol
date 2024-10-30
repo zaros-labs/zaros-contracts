@@ -134,7 +134,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         uint256 amountOutMin = uniswapV3Adapter.calculateAmountOutMin(expectedTokenAmount);
         UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
         UD60x18 expectedWethRewardX18 = amountOutMinX18.mul(
-            ud60x18(Constants.MAX_OF_SHARES).sub(marketMakingEngine.exposed_getTotalFeeRecipientsShares())
+            ud60x18(Constants.MAX_SHARES).sub(marketMakingEngine.exposed_getTotalFeeRecipientsShares())
         );
         assertAlmostEq(
             amountUserFeesReceived,

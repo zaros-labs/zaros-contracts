@@ -82,7 +82,7 @@ contract FeeDistributionBranch is EngineAccessControl {
     }
 
     /// @notice Receives collateral as a fee for processing,
-    /// this fee later will be converted to Weth and sent to beneficiaries.
+    /// this fee later will be converted to WETH and sent to beneficiaries.
     /// @dev onlyRegisteredEngine address can call this function.
     /// @param marketId The market receiving the fees.
     /// @param asset The margin collateral address.
@@ -121,7 +121,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         emit LogReceiveMarketFee(asset, marketId, amount);
     }
 
-    /// @notice Converts collected collateral amount to Weth
+    /// @notice Converts collected collateral amount to WETH
     /// @dev Only registered engines can call this function.
     /// @dev Net WETH rewards are split among fee recipients and vaults delegating credit to the market, according to
     /// the configured share values.
@@ -184,12 +184,8 @@ contract FeeDistributionBranch is EngineAccessControl {
             IERC20(asset).approve(dexSwapStrategy.dexAdapter, assetAmount);
 
             // prepare the data for executing the swap
-            SwapPayload memory swapCallData = SwapPayload({
-                tokenIn: asset,
-                tokenOut: MarketMakingEngineConfiguration.load().weth,
-                amountIn: assetAmount,
-                recipient: address(this)
-            });
+            SwapPayload memory swapCallData =
+                SwapPayload({ tokenIn: asset, tokenOut: weth, amountIn: assetAmount, recipient: address(this) });
 
             // Swap collected collateral fee amount for WETH and store the obtained amount
             uint256 tokensSwapped = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
@@ -199,13 +195,13 @@ contract FeeDistributionBranch is EngineAccessControl {
             receivedWethX18 = tokensSwappedX18;
         }
 
-        // not create a instance of the market making engine configuration to prevent stack to deep error
         // get the total fee recipients shares
         UD60x18 feeRecipientsSharesX18 = MarketMakingEngineConfiguration.load().getTotalFeeRecipientsShares();
 
         // calculate the weth rewards for protocol and vaults
         UD60x18 receivedProtocolWethRewardX18 = receivedWethX18.mul(feeRecipientsSharesX18);
-        UD60x18 receivedVaultsWethRewardX18 = receivedWethX18.mul(ud60x18(Constants.MAX_OF_SHARES).sub(feeRecipientsSharesX18));
+        UD60x18 receivedVaultsWethRewardX18 =
+            receivedWethX18.mul(ud60x18(Constants.MAX_SHARES).sub(feeRecipientsSharesX18));
 
         // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine as
         // fees, and remove its balance from the market's `receivedMarketFees` map
