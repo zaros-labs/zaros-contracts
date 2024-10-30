@@ -62,7 +62,7 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
         bytes memory performData = abi.encode(mockSignedReport, abi.encode(users.naruto.account, 1));
 
         // it should emit {LogFulfillSwap} event
-        vm.expectEmit();
+        vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit StabilityBranch.LogFulfillSwap(users.naruto.account, 1);
 
         changePrank({ msgSender: users.keepersForwarder.account });

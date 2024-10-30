@@ -125,7 +125,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         changePrank({ msgSender: usdTokenSwapKeeper });
 
         // it should emit {LogFulfillSwap} event
-        vm.expectEmit();
+        vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit StabilityBranch.LogFulfillSwap(users.naruto.account, 1);
 
         marketMakingEngine.fulfillSwap(users.naruto.account, requestId, priceData, address(marketMakingEngine));

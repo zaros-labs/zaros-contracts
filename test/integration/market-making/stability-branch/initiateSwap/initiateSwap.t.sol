@@ -133,7 +133,7 @@ contract InitiateSwap_Integration_Test is Base_Test {
         uint128 swapRequestId = 1;
 
         // it shoud emit {LogInitiateSwap} event
-        vm.expectEmit();
+        vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit StabilityBranch.LogInitiateSwap(users.naruto.account, swapRequestId);
 
         marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);

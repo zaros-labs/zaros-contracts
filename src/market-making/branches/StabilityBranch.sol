@@ -72,7 +72,7 @@ contract StabilityBranch {
         // load Usd token swap data
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
-        for (uint256 i = 0; i < amountsIn.length; i++) {
+        for (uint256 i; i < amountsIn.length; i++) {
             // transfer USD: user => address(this) - burned in fulfillSwap
             IERC20(configuration.usdTokenOfEngine[address(this)]).safeTransferFrom(
                 msg.sender, address(this), amountsIn[i]
@@ -281,7 +281,7 @@ contract StabilityBranch {
         collateral.verifyIsEnabled();
 
         // Ensure all vaults are of the same asset
-        for (uint256 i = 0; i < amountsIn.length; i++) {
+        for (uint256 i; i < amountsIn.length; i++) {
             // load vault by id
             Vault.Data storage vault = Vault.load(vaultIds[i]);
 

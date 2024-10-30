@@ -92,7 +92,7 @@ contract RefundSwap_Integration_Test is Base_Test {
         skip(MAX_VERIFICATION_DELAY + 1);
 
         // it should emit {LogRefundSwap} event
-        vm.expectEmit();
+        vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit StabilityBranch.LogRefundSwap(users.naruto.account, requestId);
 
         marketMakingEngine.refundSwap(requestId, address(marketMakingEngine));
