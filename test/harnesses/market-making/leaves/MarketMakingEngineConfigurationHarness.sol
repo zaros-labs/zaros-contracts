@@ -37,27 +37,9 @@ contract MarketMakingEngineConfigurationHarness {
         return data.isSystemKeeperEnabled[systemKeeper];
     }
 
-    function workaround_getIfConfigurationExistsInTheFeeRecipients(
-        uint256 configuration
-    )
-        external
-        view
-        returns (bool)
-    {
+    function workaround_getFeeRecipientShare(address feeRecipient) external view returns (uint256) {
         MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
-        return data.configurationFeeRecipients.contains(configuration);
-    }
-
-    function workaround_getFeeRecipientShare(
-        uint256 configuration,
-        address feeRecipient
-    )
-        external
-        view
-        returns (uint256)
-    {
-        MarketMakingEngineConfiguration.Data storage data = MarketMakingEngineConfiguration.load();
-        return data.protocolFeeRecipients[configuration].get(feeRecipient);
+        return data.protocolFeeRecipients.get(feeRecipient);
     }
 
     function workaround_getIfEngineIsRegistered(address engine) external view returns (bool) {

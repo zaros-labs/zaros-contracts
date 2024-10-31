@@ -90,10 +90,9 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     event LogSetWeth(address weth);
 
     /// @notice Emitted when a fee recipient is configured.
-    /// @param configuration The configuration of which fee recipients are part of.
     /// @param feeRecipient The address of the fee recipient.
     /// @param share The share of the fee recipient, example 0.5e18 (50%).
-    event LogConfigureFeeRecipient(uint256 configuration, address feeRecipient, uint256 share);
+    event LogConfigureFeeRecipient(address feeRecipient, uint256 share);
 
     /// @notice Emitted when connected markets are configured on a vault.
     /// @param vaultId The vault id.
@@ -375,10 +374,9 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @dev Only owner can call this function
     /// @dev The share is in 1e18 precision, example: 0.5e18 (50%), the sum of all shares must not exceed 1e18 (100%),
     /// if pass it will revert.
-    /// @param configuration The configuration of which fee recipients are part of.
     /// @param feeRecipient The address of the fee recipient.
     /// @param share The share of the fee recipient, example: 0.5e18 (50%).
-    function configureFeeRecipient(uint256 configuration, address feeRecipient, uint256 share) external onlyOwner {
+    function configureFeeRecipient(address feeRecipient, uint256 share) external onlyOwner {
         // revert if protocolFeeRecipient is set to zero
         if (feeRecipient == address(0)) revert Errors.ZeroInput("feeRecipient");
 
@@ -395,15 +393,10 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             }
         }
 
-        // update configuration fee recipients
-        if (!marketMakingEngineConfiguration.configurationFeeRecipients.contains(configuration)) {
-            marketMakingEngineConfiguration.configurationFeeRecipients.add(configuration);
-        }
-
         // update protocol fee recipient
-        marketMakingEngineConfiguration.protocolFeeRecipients[configuration].set(feeRecipient, share);
+        marketMakingEngineConfiguration.protocolFeeRecipients.set(feeRecipient, share);
 
         // emit event LogConfigureFeeRecipient
-        emit LogConfigureFeeRecipient(configuration, feeRecipient, share);
+        emit LogConfigureFeeRecipient(feeRecipient, share);
     }
 }

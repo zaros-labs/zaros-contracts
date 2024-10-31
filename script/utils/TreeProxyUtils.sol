@@ -594,7 +594,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketHarnessSelectors[8] = MarketHarness.workaround_getAutoDeleverageEndThreshold.selector;
     marketHarnessSelectors[9] = MarketHarness.workaround_getAutoDeleveragePowerScale.selector;
 
-    bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](8);
+    bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](7);
     marketMakingEngineConfigurationSelectors[0] =
         MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
     marketMakingEngineConfigurationSelectors[1] =
@@ -604,12 +604,10 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigurationSelectors[3] =
         MarketMakingEngineConfigurationHarness.workaround_getWethAddress.selector;
     marketMakingEngineConfigurationSelectors[4] =
-        MarketMakingEngineConfigurationHarness.workaround_getIfConfigurationExistsInTheFeeRecipients.selector;
-    marketMakingEngineConfigurationSelectors[5] =
         MarketMakingEngineConfigurationHarness.workaround_getFeeRecipientShare.selector;
-    marketMakingEngineConfigurationSelectors[6] =
+    marketMakingEngineConfigurationSelectors[5] =
         MarketMakingEngineConfigurationHarness.workaround_getIfEngineIsRegistered.selector;
-    marketMakingEngineConfigurationSelectors[7] =
+    marketMakingEngineConfigurationSelectors[6] =
         MarketMakingEngineConfigurationHarness.workaround_getUsdTokenOfEngine.selector;
 
     bytes4[] memory dexSwapStrategyHarnessSelectors = new bytes4[](1);

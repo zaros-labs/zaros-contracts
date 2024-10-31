@@ -205,15 +205,7 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @notice Sends allocated weth amount to fee recipients.
     /// @dev onlyRegisteredEngine address can call this function.
     /// @param marketId The market to which fee recipients contribute.
-    /// @param configuration The configuration of which fee recipients are part of.
-    function sendWethToFeeRecipients(
-        uint128 marketId,
-        uint256 configuration
-    )
-        external
-        onlyRegisteredEngine
-        onlyExistingMarket(marketId)
-    {
+    function sendWethToFeeRecipients(uint128 marketId) external onlyRegisteredEngine onlyExistingMarket(marketId) {
         // loads the fee data storage pointer
         Market.Data storage market = Market.load(marketId);
 
@@ -226,7 +218,7 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         // loads the protocol fee recipients storage pointer
         EnumerableMap.AddressToUintMap storage protocolFeeRecipients =
-            marketMakingEngineConfigurationData.protocolFeeRecipients[configuration];
+            marketMakingEngineConfigurationData.protocolFeeRecipients;
 
         // store the length of the fee recipients list
         uint256 recipientListLength = protocolFeeRecipients.length();

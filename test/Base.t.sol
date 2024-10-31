@@ -132,7 +132,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal mockSequencerUptimeFeed;
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
-    uint256 internal constant MOCK_CONFIGURATION_FEE_RECIPIENT = 1;
     uint256 internal constant MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO = 1e18;
     uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
 
@@ -292,7 +291,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketMakingEngine.configureEngine(address(perpsEngine), address(usdToken), true);
 
         uint256 share = 0.1e18;
-        marketMakingEngine.configureFeeRecipient(MOCK_CONFIGURATION_FEE_RECIPIENT, address(perpsEngine), share);
+        marketMakingEngine.configureFeeRecipient(address(perpsEngine), share);
 
         marketMakingEngine.setWeth(address(wEth));
 

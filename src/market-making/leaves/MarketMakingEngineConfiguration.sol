@@ -21,8 +21,7 @@ library MarketMakingEngineConfiguration {
         address usdc;
         address weth;
         address feeDistributor;
-        EnumerableSet.UintSet configurationFeeRecipients;
-        mapping(uint256 configuration => EnumerableMap.AddressToUintMap map) protocolFeeRecipients;
+        EnumerableMap.AddressToUintMap protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
         // TODO: define roles
@@ -51,26 +50,16 @@ library MarketMakingEngineConfiguration {
         // Initialize the total fee recipients shares to zero.
         totalFeeRecipientsSharesX18 = UD60x18_ZERO;
 
-        // Load the configuration fee recipients and protocol fee recipients storage pointers.
-        EnumerableSet.UintSet storage configurationFeeRecipients = self.configurationFeeRecipients;
-        // EnumerableMapAddressToUint[] storage protocolFeeRecipients = self.protocolFeeRecipients;
+        // Cache the length of the protocol fee recipients
+        uint256 feeRecipientsLength = self.protocolFeeRecipients.length();
 
-        // Iterate over the configuration fee recipients.
-        for (uint256 i = 0; i < configurationFeeRecipients.length(); i++) {
-            // Load the configuration fee recipient
-            uint256 configuration = configurationFeeRecipients.at(i);
+        // Iterate over the protocol fee recipients
+        for (uint256 i = 0; i < feeRecipientsLength; i++) {
+            // Load the shares of the fee recipient
+            (, uint256 shares) = self.protocolFeeRecipients.at(i);
 
-            // Cache the length of the protocol fee recipients
-            uint256 feeRecipientsLength = self.protocolFeeRecipients[configuration].length();
-
-            // Iterate over the protocol fee recipients
-            for (uint256 j = 0; j < feeRecipientsLength; j++) {
-                // Load the shares of the fee recipient
-                (, uint256 shares) = self.protocolFeeRecipients[configuration].at(j);
-
-                // Add the shares to the total fee recipients shares
-                totalFeeRecipientsSharesX18 = totalFeeRecipientsSharesX18.add(ud60x18(shares));
-            }
+            // Add the shares to the total fee recipients shares
+            totalFeeRecipientsSharesX18 = totalFeeRecipientsSharesX18.add(ud60x18(shares));
         }
     }
 }

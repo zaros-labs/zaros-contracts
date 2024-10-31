@@ -8,6 +8,5 @@ MarketMakingEngineConfigurationBranch_ConfigureFeeRecipient_Integration_Test
         ├── when the total of fee recipients share is greater then the max of shares
         │   └── it should revert
         └── when the total of fee recipients share is less or equal then the max of shares
-            ├── it should set the configuration fee recipient in the storage
             ├── it should set the protocol fee recipients in the storage
             └── it should emit {LogConfigureFeeRecipient} event

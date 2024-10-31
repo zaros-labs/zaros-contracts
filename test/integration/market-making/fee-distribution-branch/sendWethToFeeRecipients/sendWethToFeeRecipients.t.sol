@@ -23,24 +23,19 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         configureMarkets();
     }
 
-    function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(uint256 marketId, uint256 configuration) external {
+    function testFuzz_RevertGiven_TheSenderIsNotRegisteredEngine(uint256 marketId) external {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account) });
-        marketMakingEngine.sendWethToFeeRecipients(uint128(marketId), configuration);
+        marketMakingEngine.sendWethToFeeRecipients(uint128(marketId));
     }
 
     modifier givenTheSenderIsRegisteredEngine() {
         _;
     }
 
-    function testFuzz_RevertWhen_TheMarketDoesNotExist(
-        uint256 configuration
-    )
-        external
-        givenTheSenderIsRegisteredEngine
-    {
+    function test_RevertWhen_TheMarketDoesNotExist() external givenTheSenderIsRegisteredEngine {
         changePrank({ msgSender: address(perpsEngine) });
 
         uint128 invalidMarketId = FINAL_PERP_MARKET_CREDIT_CONFIG_ID + 1;
@@ -48,7 +43,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketId) });
 
-        marketMakingEngine.sendWethToFeeRecipients(invalidMarketId, configuration);
+        marketMakingEngine.sendWethToFeeRecipients(invalidMarketId);
     }
 
     modifier whenTheMarketExist() {
@@ -56,8 +51,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_ThereIsNoAvailableFeesToWithdraw(
-        uint256 marketId,
-        uint256 configuration
+        uint256 marketId
     )
         external
         givenTheSenderIsRegisteredEngine
@@ -70,7 +64,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoWethFeesCollected.selector) });
 
-        marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketId, configuration);
+        marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketId);
     }
 
     modifier whenThereIsAvailableFeesToWithdraw() {
@@ -104,16 +98,14 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         );
 
         changePrank({ msgSender: address(users.owner.account) });
-        marketMakingEngine.configureFeeRecipient(MOCK_CONFIGURATION_FEE_RECIPIENT, address(perpsEngine), 0);
+        marketMakingEngine.configureFeeRecipient(address(perpsEngine), 0);
 
         changePrank({ msgSender: address(perpsEngine) });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoSharesAvailable.selector) });
 
-        marketMakingEngine.sendWethToFeeRecipients(
-            fuzzPerpMarketCreditConfig.marketId, MOCK_CONFIGURATION_FEE_RECIPIENT
-        );
+        marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketId);
     }
 
     function testFuzz_WhenThereAreFeeRecipientsShares(
@@ -154,13 +146,11 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
 
         changePrank({ msgSender: address(users.owner.account) });
 
-        marketMakingEngine.configureFeeRecipient(MOCK_CONFIGURATION_FEE_RECIPIENT, address(perpsEngine), 0);
+        marketMakingEngine.configureFeeRecipient(address(perpsEngine), 0);
 
         for (uint256 i = 0; i < quantityOfFeeRecipients; i++) {
             feeRecipients[i] = address(uint160(i + 1));
-            marketMakingEngine.configureFeeRecipient(
-                MOCK_CONFIGURATION_FEE_RECIPIENT, feeRecipients[i], sharePerFeeRecipientX18.intoUint256()
-            );
+            marketMakingEngine.configureFeeRecipient(feeRecipients[i], sharePerFeeRecipientX18.intoUint256());
         }
 
         changePrank({ msgSender: address(perpsEngine) });
@@ -195,9 +185,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
             );
         }
 
-        marketMakingEngine.sendWethToFeeRecipients(
-            fuzzPerpMarketCreditConfig.marketId, MOCK_CONFIGURATION_FEE_RECIPIENT
-        );
+        marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketId);
 
         // it should transfer the fees to the fee recipients
         for (uint256 i = 0; i < quantityOfFeeRecipients; i++) {
