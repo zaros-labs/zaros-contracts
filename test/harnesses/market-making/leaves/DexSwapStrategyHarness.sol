@@ -5,7 +5,9 @@ pragma solidity 0.8.25;
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 
 contract DexSwapStrategyHarness {
-    function exposed_dexSwapStrategy_load(uint128 dexSwapStrategyId)
+    function exposed_dexSwapStrategy_load(
+        uint128 dexSwapStrategyId
+    )
         external
         pure
         returns (DexSwapStrategy.Data memory)
