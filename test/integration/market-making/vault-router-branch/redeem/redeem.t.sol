@@ -19,6 +19,7 @@ contract Redeem_Integration_Test is Base_Test {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        configureMarkets();
         changePrank({ msgSender: users.naruto.account });
     }
 
@@ -114,6 +115,7 @@ contract Redeem_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector));
+
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, minAssetsOut);
     }
 

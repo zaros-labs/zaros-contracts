@@ -5,7 +5,12 @@ pragma solidity 0.8.25;
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+
 contract VaultHarness {
+    using EnumerableSet for EnumerableSet.UintSet;
+
     function workaround_Vault_getIndexToken(uint128 vaultId) external view returns (address) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
@@ -22,15 +27,31 @@ contract VaultHarness {
     {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
-        Distribution.Data storage stakingData = vaultData.stakingFeeDistribution;
+        Distribution.Data storage stakingData = vaultData.wethRewardDistribution;
 
         return stakingData.actor[actorId].shares;
+    }
+
+    function workaround_Vault_getValuePerShare(uint128 vaultId) external view returns (int128) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+
+        Distribution.Data storage stakingData = vaultData.wethRewardDistribution;
+
+        return stakingData.valuePerShare;
+    }
+
+    function workaround_Vault_setTotalStakedShares(uint128 vaultId, uint128 newShares) external {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+
+        Distribution.Data storage stakingData = vaultData.wethRewardDistribution;
+
+        stakingData.totalShares = newShares;
     }
 
     function workaround_Vault_getTotalStakedShares(uint128 vaultId) external view returns (uint128) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
-        Distribution.Data storage stakingData = vaultData.stakingFeeDistribution;
+        Distribution.Data storage stakingData = vaultData.wethRewardDistribution;
 
         return stakingData.totalShares;
     }
@@ -65,5 +86,24 @@ contract VaultHarness {
 
     function exposed_Vault_update(Vault.UpdateParams memory params) external {
         Vault.update(params);
+    }
+
+    function workaround_Vault_getConnectedMarkets(
+        uint128 vaultId
+    )
+        external
+        view
+        returns (uint128[] memory connectedMarkets)
+    {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+
+        uint256 connectedMarketsCacheLength =
+            vaultData.connectedMarkets[vaultData.connectedMarkets.length - 1].length();
+
+        connectedMarkets = new uint128[](connectedMarketsCacheLength);
+
+        for (uint256 i; i < connectedMarketsCacheLength; i++) {
+            connectedMarkets[i] = uint128(vaultData.connectedMarkets[vaultData.connectedMarkets.length - 1].at(i));
+        }
     }
 }

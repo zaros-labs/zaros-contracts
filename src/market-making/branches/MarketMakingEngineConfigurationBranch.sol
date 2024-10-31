@@ -5,14 +5,31 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
-import { Errors } from "@zaros/utils/Errors.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
+import { Market } from "src/market-making/leaves/Market.sol";
+import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+
 // TODO: add initializer at upgrade branch or auth branch
 contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
+    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+    using DexSwapStrategy for DexSwapStrategy.Data;
+
+    constructor() {
+        _disableInitializers();
+    }
 
     /// @notice Emitted when an engine is registered.
     /// @param engine The address of the engine contract.
@@ -28,11 +45,59 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param vaultId The vault id.
     event LogUpdateVaultConfiguration(address indexed sender, uint128 vaultId);
 
+    /// @notice Emitted when a system keeper is configured.
+    /// @param systemKeeper The address of the system keeper.
+    /// @param shouldBeEnabled A flag indicating whether the system keeper should be enabled.
+    event LogConfigureSystemKeeper(address systemKeeper, bool shouldBeEnabled);
+
     /// @notice Emitted when an engine's configuration is updated.
     /// @param engine The address of the engine contract.
     /// @param usdToken The address of the USD token contract.
     /// @param shouldBeEnabled A flag indicating whether the engine should be enabled or disabled.
     event LogConfigureEngine(address engine, address usdToken, bool shouldBeEnabled);
+
+    /// @notice Emitted when collateral is configured.
+    /// @param collateral The address of the collateral.
+    /// @param priceAdapter The address of the price adapter.
+    /// @param creditRatio The credit ratio.
+    /// @param isEnabled The status of the collateral.
+    /// @param decimals The decimals of the collateral.
+    event LogConfigureCollateral(
+        address indexed collateral, address priceAdapter, uint256 creditRatio, bool isEnabled, uint8 decimals
+    );
+
+    /// @notice Emitted when market is configured.
+    /// @param engine The address of the perps engine.
+    /// @param marketId The perps engine's market id.
+    /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
+    /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
+    /// @param autoDeleveragePowerScale The auto deleverage power scale.
+    event LogConfigureMarket(
+        address engine,
+        uint128 marketId,
+        uint128 autoDeleverageStartThreshold,
+        uint128 autoDeleverageEndThreshold,
+        uint128 autoDeleveragePowerScale
+    );
+
+    /// @notice Emitted when a dex swap strategy is configured.
+    /// @param dexSwapStrategyId The dex swap strategy id.
+    /// @param dexAdapter The address of the dex adapter.
+    event LogConfigureDexSwapStrategy(uint128 dexSwapStrategyId, address dexAdapter);
+
+    /// @notice Emitted when the wETH address is set or updated.
+    /// @param weth The address of the wETH token.
+    event LogSetWeth(address weth);
+
+    /// @notice Emitted when a fee recipient is configured.
+    /// @param feeRecipient The address of the fee recipient.
+    /// @param share The share of the fee recipient, example 0.5e18 (50%).
+    event LogConfigureFeeRecipient(address feeRecipient, uint256 share);
+
+    /// @notice Emitted when connected markets are configured on a vault.
+    /// @param vaultId The vault id.
+    /// @param marketsIds The markets ids.
+    event LogConfigureVaultConnectedMarkets(uint128 vaultId, uint128[] marketsIds);
 
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
@@ -91,18 +156,54 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogUpdateVaultConfiguration(msg.sender, params.vaultId);
     }
 
-    function updateVaultConnectedMarkets(uint128 vaultId, uint128[] calldata marketsIds) external onlyOwner {
-        // if (vaultId == 0) {
-        //     revert Errors.ZeroInput("vaultId");
-        // }
+    /// @notice Configure connected markets on vault
+    /// @dev Only owner can call this function
+    /// @param vaultId The vault id.
+    /// @param marketsIds The markets ids.
+    function configureVaultConnectedMarkets(uint128 vaultId, uint128[] calldata marketsIds) external onlyOwner {
+        // revert if vaultId is set to zero
+        if (vaultId == 0) {
+            revert Errors.ZeroInput("vaultId");
+        }
 
-        // if (marketsIds.length == 0) {
-        //     revert Errors.ZeroInput("connectedMarketsIds");
-        // }
+        // revert if marketsIds is empty
+        if (marketsIds.length == 0) {
+            revert Errors.ZeroInput("connectedMarketsIds");
+        }
 
-        // Vault.Data storage vault = Vault.load(vaultId);
+        // load vault data from storage
+        Vault.Data storage vault = Vault.load(vaultId);
 
-        // vault.
+        // push new array of connectd markets
+        vault.connectedMarkets.push();
+
+        // add markets ids to connected markets
+        for (uint256 i; i < marketsIds.length; i++) {
+            // use [vault.connectedMarkets.length - 1] to get the last connected markets array
+            vault.connectedMarkets[vault.connectedMarkets.length - 1].add(marketsIds[i]);
+        }
+
+        // emit event LogConfigureVaultConnectedMarkets
+        emit LogConfigureVaultConnectedMarkets(vaultId, marketsIds);
+    }
+
+    /// @notice Configure system keeper on Market Making Engine
+    /// @dev Only owner can call this function
+    /// @param systemKeeper The address of the system keeper.
+    /// @param shouldBeEnabled The status of the system keeper.
+    function configureSystemKeeper(address systemKeeper, bool shouldBeEnabled) external onlyOwner {
+        // revert if systemKeeper is set to zero
+        if (systemKeeper == address(0)) revert Errors.ZeroInput("systemKeeper");
+
+        // loads the mm engine config storage pointer
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // update system keeper status
+        marketMakingEngineConfiguration.isSystemKeeperEnabled[systemKeeper] = shouldBeEnabled;
+
+        // emit event LogConfigureSystemKeeper
+        emit LogConfigureSystemKeeper(systemKeeper, shouldBeEnabled);
     }
 
     /// @notice Configures an engine contract and sets its linked USD token address.
@@ -140,5 +241,162 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         marketMakingEngineConfiguration.usdTokenOfEngine[engine] = usdToken;
 
         emit LogConfigureEngine(engine, usdToken, shouldBeEnabled);
+    }
+
+    /// @notice Set the wETH address
+    /// @dev Only owner can call this function
+    /// @param weth The address of the wETH token.
+    function setWeth(address weth) external onlyOwner {
+        // revert if weth is set to zero
+        if (weth == address(0)) revert Errors.ZeroInput("wEth");
+
+        // update weth address
+        MarketMakingEngineConfiguration.load().weth = weth;
+
+        // emit event LogSetWeth
+        emit LogSetWeth(weth);
+    }
+
+    /// @notice Configure collateral on Market Making Engine
+    /// @dev Only owner can call this functions
+    /// @param collateral The address of the collateral.
+    /// @param priceAdapter The address of the price adapter.
+    /// @param creditRatio The credit ratio.
+    /// @param isEnabled The status of the collateral.
+    /// @param decimals The decimals of the collateral.
+    function configureCollateral(
+        address collateral,
+        address priceAdapter,
+        uint256 creditRatio,
+        bool isEnabled,
+        uint8 decimals
+    )
+        external
+        onlyOwner
+    {
+        // check if collateral is set to zero
+        if (collateral == address(0)) revert Errors.ZeroInput("collateral");
+
+        // check if price adapter is set to zero
+        if (priceAdapter == address(0)) revert Errors.ZeroInput("priceAdapter");
+
+        // check id credit ratio is set to zero
+        if (creditRatio == 0) revert Errors.ZeroInput("creditRatio");
+
+        // check if decimals is set to zero
+        if (decimals == 0) revert Errors.ZeroInput("decimals");
+
+        // load collateral data from storage
+        Collateral.Data storage collateralData = Collateral.load(collateral);
+
+        // update collateral data
+        collateralData.asset = collateral;
+        collateralData.priceAdapter = priceAdapter;
+        collateralData.creditRatio = creditRatio;
+        collateralData.isEnabled = isEnabled;
+        collateralData.decimals = decimals;
+
+        // emit event LogConfigureCollateral
+        emit LogConfigureCollateral(collateral, priceAdapter, creditRatio, isEnabled, decimals);
+    }
+
+    /// @notice Configure market on Market Making Engine
+    /// @dev Only owner can call this functions
+    /// @param engine The address of the engine.
+    /// @param marketId The market id.
+    /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
+    /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
+    /// @param autoDeleveragePowerScale The auto deleverage power scale.
+    function configureMarket(
+        address engine,
+        uint128 marketId,
+        uint128 autoDeleverageStartThreshold,
+        uint128 autoDeleverageEndThreshold,
+        uint128 autoDeleveragePowerScale
+    )
+        external
+        onlyOwner
+    {
+        // revert if engine is set to zero
+        if (engine == address(0)) revert Errors.ZeroInput("engine");
+
+        // revert if marketId is set to zero
+        if (marketId == 0) revert Errors.ZeroInput("marketId");
+
+        // revert if autoDeleverageStartThreshold is set to zero
+        if (autoDeleverageStartThreshold == 0) revert Errors.ZeroInput("autoDeleverageStartThreshold");
+
+        // revert if autoDeleverageEndThreshold is set to zero
+        if (autoDeleverageEndThreshold == 0) revert Errors.ZeroInput("autoDeleverageEndThreshold");
+
+        // revert if autoDeleveragePowerScale is set to zero
+        if (autoDeleveragePowerScale == 0) revert Errors.ZeroInput("autoDeleveragePowerScale");
+
+        // load market data from storage
+        Market.Data storage market = Market.load(marketId);
+
+        // update market data
+        market.engine = engine;
+        market.id = marketId;
+        market.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
+        market.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
+        market.autoDeleveragePowerScale = autoDeleveragePowerScale;
+
+        // emit event LogConfigureMarket
+        emit LogConfigureMarket(
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+        );
+    }
+
+    /// @notice Configure dex swap strategy on Market Making Engine
+    /// @dev Only owner can call this function
+    /// @param dexSwapStrategyId The dex swap strategy id.
+    /// @param dexAdapter The address of the dex adapter.
+    function configureDexSwapStrategy(uint128 dexSwapStrategyId, address dexAdapter) external onlyOwner {
+        // revert if dexSwapStrategyId is set to zero
+        if (dexSwapStrategyId == 0) revert Errors.ZeroInput("dexSwapStrategyId");
+
+        // revert if dexAdapter is set to zero
+        if (dexAdapter == address(0)) revert Errors.ZeroInput("dexAdapter");
+
+        // load dex swap strategy data from storage
+        DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
+
+        // update dex swap strategy data
+        dexSwapStrategy.id = dexSwapStrategyId;
+        dexSwapStrategy.dexAdapter = dexAdapter;
+
+        // emit event LogConfigureDexSwapStrategy
+        emit LogConfigureDexSwapStrategy(dexSwapStrategyId, dexAdapter);
+    }
+
+    /// @notice Configure fee recipient on Market Making Engine
+    /// @dev Only owner can call this function
+    /// @dev The share is in 1e18 precision, example: 0.5e18 (50%), the sum of all shares must not exceed 1e18 (100%),
+    /// if pass it will revert.
+    /// @param feeRecipient The address of the fee recipient.
+    /// @param share The share of the fee recipient, example: 0.5e18 (50%).
+    function configureFeeRecipient(address feeRecipient, uint256 share) external onlyOwner {
+        // revert if protocolFeeRecipient is set to zero
+        if (feeRecipient == address(0)) revert Errors.ZeroInput("feeRecipient");
+
+        // load market making engine configuration data from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // check if share is greater than zero to verify the total will not exceed the maximum shares
+        if (share > 0) {
+            UD60x18 totalFeeRecipientsSharesX18 = marketMakingEngineConfiguration.getTotalFeeRecipientsShares();
+
+            if (totalFeeRecipientsSharesX18.add(ud60x18(share)).gt(ud60x18(Constants.MAX_SHARES))) {
+                revert Errors.FeeRecipientShareExceedsOne();
+            }
+        }
+
+        // update protocol fee recipient
+        marketMakingEngineConfiguration.protocolFeeRecipients.set(feeRecipient, share);
+
+        // emit event LogConfigureFeeRecipient
+        emit LogConfigureFeeRecipient(feeRecipient, share);
     }
 }

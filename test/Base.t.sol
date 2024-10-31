@@ -16,10 +16,16 @@ import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConf
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
+import { MarketMakingEngineConfigurationBranch } from
+    "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { IMarketMakingEngine as IMarketMakingEngineBranches } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
+import { SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -45,7 +51,15 @@ import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol"
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
 import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
+import { DistributionHarness } from "test/harnesses/market-making/leaves/DistributionHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
+import { MarketHarness } from "test/harnesses/market-making/leaves/MarketHarness.sol";
+import { MarketMakingEngineConfigurationHarness } from
+    "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
+import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
+import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
+import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
+import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
 
 // Zaros dependencies script
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
@@ -53,14 +67,15 @@ import {
     deployPerpsEngineBranches,
     getPerpsEngineBranchesSelectors,
     getBranchUpgrades,
-    getPerpsEngineInitializables,
-    getPerpsEngineInitializePayloads,
     deployPerpsEngineHarnesses,
     deployMarketMakingEngineBranches,
     getMarketMakerBranchesSelectors,
-    deployMarketMakingHarnesses
+    deployMarketMakingHarnesses,
+    getInitializables,
+    getInitializePayloads
 } from "script/utils/TreeProxyUtils.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
+import { DexAdapterUtils } from "script/utils/DexAdapterUtils.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -95,7 +110,11 @@ abstract contract IMarketMakingEngine is
     IMarketMakingEngineBranches,
     VaultHarness,
     WithdrawalRequestHarness,
-    CollateralHarness
+    CollateralHarness,
+    DistributionHarness,
+    MarketHarness,
+    MarketMakingEngineConfigurationHarness,
+    DexSwapStrategyHarness
 { }
 
 abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfiguration, Storage {
@@ -113,6 +132,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal mockSequencerUptimeFeed;
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
+    uint256 internal constant MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO = 1e18;
     uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -133,6 +153,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     IMarketMakingEngine internal marketMakingEngine;
     IMarketMakingEngine internal marketMakingEngineImplementation;
+
+    UniswapV3Adapter internal uniswapV3Adapter;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -168,8 +190,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         bytes4[][] memory branchesSelectors = getPerpsEngineBranchesSelectors(isTestnet);
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
-        address[] memory initializables = getPerpsEngineInitializables(branches);
-        bytes[] memory initializePayloads = getPerpsEngineInitializePayloads(users.owner.account);
+        address[] memory initializables = getInitializables(branches);
+        bytes[] memory initializePayloads = getInitializePayloads(users.owner.account);
 
         branchUpgrades = deployPerpsEngineHarnesses(branchUpgrades);
 
@@ -235,16 +257,76 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         mmBranchUpgrades = deployMarketMakingHarnesses(mmBranchUpgrades);
 
-        address[] memory initializableBranches = new address[](0);
-        bytes[] memory initializableBranchesPayloads = new bytes[](0);
-
         RootProxy.InitParams memory mmEngineInitParams = RootProxy.InitParams({
             initBranches: mmBranchUpgrades,
-            initializables: initializableBranches,
-            initializePayloads: initializableBranchesPayloads
+            initializables: initializables,
+            initializePayloads: initializePayloads
         });
 
         marketMakingEngine = IMarketMakingEngine(address(new MarketMakingEngine(mmEngineInitParams)));
+
+        changePrank({ msgSender: users.owner.account });
+
+        bool isTest = true;
+        setupPerpMarketsCreditConfig(isTest);
+
+        marketMakingEngine.configureCollateral(
+            address(usdc),
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter,
+            1e18,
+            true,
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals
+        );
+
+        marketMakingEngine.configureCollateral(
+            address(wEth),
+            marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter,
+            MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO,
+            true,
+            marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals
+        );
+
+        marketMakingEngine.configureSystemKeeper(address(perpsEngine), true);
+
+        marketMakingEngine.configureEngine(address(perpsEngine), address(usdToken), true);
+
+        uint256 share = 0.1e18;
+        marketMakingEngine.configureFeeRecipient(address(perpsEngine), share);
+
+        marketMakingEngine.setWeth(address(wEth));
+
+        uint256 slippageToleranceBps = 100;
+        uint24 fee = 3000;
+
+        address[] memory collaterals = new address[](2);
+        collaterals[0] = address(usdc);
+        collaterals[1] = address(wEth);
+
+        SwapAssetConfig[] memory collateralData = new SwapAssetConfig[](2);
+
+        collateralData[0] = SwapAssetConfig({
+            decimals: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        collateralData[1] = SwapAssetConfig({
+            decimals: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter = new MockUniswapV3SwapStrategyRouter();
+
+        uniswapV3Adapter = DexAdapterUtils.deployUniswapV3Adapter(
+            marketMakingEngine,
+            users.owner.account,
+            address(mockUniswapV3SwapStrategyRouter),
+            slippageToleranceBps,
+            fee,
+            collaterals,
+            collateralData
+        );
+
+        deal({ token: address(wEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
 
         uint256[2] memory vaultsIdsRange;
         vaultsIdsRange[0] = INITIAL_VAULT_ID;
@@ -252,6 +334,18 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         setupVaultsConfig();
         createZlpVaults(address(marketMakingEngine), users.owner.account, vaultsIdsRange);
+
+        uint128[] memory perpMarketsCreditConfigIds =
+            new uint128[](FINAL_PERP_MARKET_CREDIT_CONFIG_ID - INITIAL_PERP_MARKET_CREDIT_CONFIG_ID + 1);
+        uint256 indexArray = 0;
+
+        for (uint256 i = INITIAL_PERP_MARKET_CREDIT_CONFIG_ID; i <= FINAL_PERP_MARKET_CREDIT_CONFIG_ID; i++) {
+            perpMarketsCreditConfigIds[indexArray++] = uint128(i);
+        }
+
+        for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
+            marketMakingEngine.configureVaultConnectedMarkets(uint128(i), perpMarketsCreditConfigIds);
+        }
 
         // Other Set Up
         approveContracts();
@@ -272,6 +366,23 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
     /// @dev Approves all Zaros contracts to spend the test assets.
     function approveContracts() internal {
+        for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
+            changePrank({ msgSender: users.owner.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+
+            changePrank({ msgSender: users.naruto.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+
+            changePrank({ msgSender: users.sasuke.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+
+            changePrank({ msgSender: users.sakura.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+
+            changePrank({ msgSender: users.madara.account });
+            IERC20(vaultsConfig[i].indexToken).approve({ spender: address(marketMakingEngine), value: uMAX_UD60x18 });
+        }
+
         for (uint256 i = INITIAL_MARGIN_COLLATERAL_ID; i <= FINAL_MARGIN_COLLATERAL_ID; i++) {
             changePrank({ msgSender: users.naruto.account });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
@@ -308,6 +419,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 spender: address(perpsEngine),
                 value: uMAX_UD60x18
             });
+            IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                spender: address(marketMakingEngine),
+                value: uMAX_UD60x18
+            });
+
+            changePrank({ msgSender: address(perpsEngine) });
             IERC20(marginCollaterals[i].marginCollateralAddress).approve({
                 spender: address(marketMakingEngine),
                 value: uMAX_UD60x18
@@ -375,6 +492,16 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         }
     }
 
+    function configureMarkets() internal {
+        configureMarkets(
+            ConfigureMarketParams({
+                marketMakingEngine: marketMakingEngine,
+                initialMarketId: INITIAL_PERP_MARKET_CREDIT_CONFIG_ID,
+                finalMarketId: FINAL_PERP_MARKET_CREDIT_CONFIG_ID
+            })
+        );
+    }
+
     function depositInVault(uint128 vaultId, uint128 assetsToDeposit) internal {
         address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
         deal(vaultAsset, users.naruto.account, assetsToDeposit);
@@ -393,6 +520,16 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
         marketMakingEngine.stake(vaultId, sharesToStake, new bytes(0), false);
+    }
+
+    function setMarketId(uint128 marketId) internal {
+        marketMakingEngine.workaround_setMarketId(marketId);
+    }
+
+    function receiveOrderFeeInFeeDistribution(address token, uint256 amountToReceive) internal {
+        deal(token, address(perpsEngine), amountToReceive);
+        IERC20(token).approve(address(marketMakingEngine), amountToReceive);
+        marketMakingEngine.receiveMarketFee(INITIAL_PERP_MARKET_CREDIT_CONFIG_ID, token, amountToReceive);
     }
 
     function getFuzzVaultConfig(uint256 vaultId) internal view returns (VaultConfig memory) {
@@ -415,6 +552,19 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketsIdsRange[1] = marketId;
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
+
+        return filteredMarketsConfig[0];
+    }
+
+    function getFuzzPerpMarketCreditConfig(uint256 marketId) internal view returns (PerpMarketCreditConfig memory) {
+        marketId =
+            bound({ x: marketId, min: INITIAL_PERP_MARKET_CREDIT_CONFIG_ID, max: FINAL_PERP_MARKET_CREDIT_CONFIG_ID });
+
+        uint256[2] memory marketsIdsRange;
+        marketsIdsRange[0] = marketId;
+        marketsIdsRange[1] = marketId;
+
+        PerpMarketCreditConfig[] memory filteredMarketsConfig = getFilteredPerpMarketsCreditConfig(marketsIdsRange);
 
         return filteredMarketsConfig[0];
     }

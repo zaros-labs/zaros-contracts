@@ -1,10 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-// Zaros dependencies
-import { FeeRecipient } from "@zaros/market-making/leaves/FeeRecipient.sol";
+// PRB Math dependencies
+import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+
+// Open Zeppelin dependencies
+import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
+import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 
 library MarketMakingEngineConfiguration {
+    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
+
     /// @notice ERC7201 storage location.
     bytes32 internal constant MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketMakingEngineConfiguration")) - 1));
@@ -14,7 +21,7 @@ library MarketMakingEngineConfiguration {
         address usdc;
         address weth;
         address feeDistributor;
-        FeeRecipient.Data[][] feeRecipients;
+        EnumerableMap.AddressToUintMap protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
         // TODO: define roles
@@ -27,6 +34,32 @@ library MarketMakingEngineConfiguration {
         bytes32 slot = MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION;
         assembly {
             marketMakingEngineConfiguration.slot := slot
+        }
+    }
+
+    /// @notice calculate the total fee recipients shares
+    /// @param self The {MarketMakingEngineConfiguration} storage pointer.
+    /// @return totalFeeRecipientsSharesX18 The total fee recipients shares.
+    function getTotalFeeRecipientsShares(
+        Data storage self
+    )
+        internal
+        view
+        returns (UD60x18 totalFeeRecipientsSharesX18)
+    {
+        // Initialize the total fee recipients shares to zero.
+        totalFeeRecipientsSharesX18 = UD60x18_ZERO;
+
+        // Cache the length of the protocol fee recipients
+        uint256 feeRecipientsLength = self.protocolFeeRecipients.length();
+
+        // Iterate over the protocol fee recipients
+        for (uint256 i = 0; i < feeRecipientsLength; i++) {
+            // Load the shares of the fee recipient
+            (, uint256 shares) = self.protocolFeeRecipients.at(i);
+
+            // Add the shares to the total fee recipients shares
+            totalFeeRecipientsSharesX18 = totalFeeRecipientsSharesX18.add(ud60x18(shares));
         }
     }
 }

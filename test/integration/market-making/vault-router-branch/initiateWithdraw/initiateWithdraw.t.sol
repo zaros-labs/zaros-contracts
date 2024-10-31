@@ -11,6 +11,7 @@ import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBran
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
+import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract InitiateWithdraw_Integration_Test is Base_Test {
     using SafeCast for uint256;
@@ -19,6 +20,7 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        configureMarkets();
         changePrank({ msgSender: users.naruto.account });
     }
 
@@ -67,7 +69,14 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         uint128 sharesToWithdraw = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account).toUint128() + 1;
 
         // it should revert
-        vm.expectRevert(Errors.NotEnoughShares.selector);
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientBalance.selector,
+                users.naruto.account,
+                sharesToWithdraw - 1,
+                sharesToWithdraw
+            )
+        });
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, sharesToWithdraw);
     }
 

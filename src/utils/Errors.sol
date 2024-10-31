@@ -167,6 +167,11 @@ library Errors {
     /// one.
     error InvalidDataStreamReport(bytes32 streamId, bytes32 reportStreamId);
 
+    /// @notice MarketMakingEngine.MarketMakingEngineBranch errors.
+
+    /// @notice Thrown when the total of protocol fee recipient share exceeds 1e18
+    error FeeRecipientShareExceedsOne();
+
     /// @notice MarketMakingEngine.CreditDelegationBranch errors.
 
     /// @notice Thrown when the given `marketId` has no vaults delegating credit to it. This error must be unreachable
@@ -231,6 +236,36 @@ library Errors {
     /// @param vaultId The ID of the vault that is NOT live.
     error VaultIsDisabled(uint128 vaultId);
 
+    /// @notice Thrown when the quantity of shares is less than the minimum allowed.
+    error QuantityOfSharesLessThanTheMinimumAllowed(uint256 minimumAllowed, uint256 quantity);
+
     /// @notice MarketMakingEngine.Vault errors.
     error NoMarketsConnectedToVault(uint128 vaultId);
+
+    /// @notice Dex Swap Strategy errors.
+
+    /// @notice Thrown when dex swap strategy pool fee set to zero
+    error InvalidPoolFee();
+
+    /// @notice MarketMakingEngine.FeeDistributionBranch errors
+
+    /// @notice Thrown when there are no available wEth fees to be collected
+    error NoWethFeesCollected();
+
+    /// @notice Thrown when user does not have fees to claim
+    error NoFeesToClaim();
+
+    /// @notice Thrown when user does not have shares to claim fees
+    error NoSharesAvailable();
+
+    /// @notice Thrown when the Dex Swap Strategy has an invalid dex adapter
+    error DexSwapStrategyHasAnInvalidDexAdapter(uint128 dexSwapStrategyId);
+
+    /// @notice Thrown when the asset is not in the market
+    /// @param asset The asset that is not in the market
+    error MarketDoesNotContainTheAsset(address asset);
+
+    /// @notice Thrown when the asset amount is zero
+    /// @param asset The asset that has zero amount
+    error AssetAmountIsZero(address asset);
 }

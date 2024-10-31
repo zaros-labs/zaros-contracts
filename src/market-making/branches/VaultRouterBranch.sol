@@ -9,6 +9,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 import { Referral } from "@zaros/market-making/leaves/Referral.sol";
 import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
@@ -79,7 +80,9 @@ contract VaultRouterBranch {
     /// @return settledRealizedDebtUsd The total amount of settled debt in USD.
     /// @return indexToken The index token address.
     /// @return collateral The collateral asset data.
-    function getVaultData(uint128 vaultId)
+    function getVaultData(
+        uint128 vaultId
+    )
         external
         view
         returns (
@@ -224,9 +227,6 @@ contract VaultRouterBranch {
         uint256[] memory vaultsIds = new uint256[](1);
         vaultsIds[0] = uint256(vaultId);
 
-        // updates the vault's credit capacity before depositing
-        Vault.recalculateVaultsCreditCapacity(vaultsIds);
-
         // get the tokens
         IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assets);
 
@@ -256,11 +256,16 @@ contract VaultRouterBranch {
     /// @param referralCode The referral code to use.
     /// @param isCustomReferralCode True if the referral code is a custom referral code.
     function stake(uint128 vaultId, uint128 shares, bytes memory referralCode, bool isCustomReferralCode) external {
+        // to prevent safe cast overflow errors
+        if (shares < Constants.MIN_OF_SHARES_TO_STAKE) {
+            revert Errors.QuantityOfSharesLessThanTheMinimumAllowed(Constants.MIN_OF_SHARES_TO_STAKE, uint256(shares));
+        }
+
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // load distribution data
-        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
+        Distribution.Data storage distributionData = vault.wethRewardDistribution;
 
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
@@ -273,6 +278,19 @@ contract VaultRouterBranch {
 
         // update actor staked shares
         distributionData.setActorShares(actorId, updatedActorShares);
+
+        // cast actor vault it to bytes 32
+        bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
+
+        // update actor shares of connected markets
+        vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, true);
+
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
+
+        // updates the vault's credit capacity
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
         if (referralCode.length != 0) {
             Referral.Data storage referral = Referral.load(msg.sender);
@@ -381,7 +399,7 @@ contract VaultRouterBranch {
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
-        uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, msg.sender);
+        uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, address(this));
 
         // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed();
@@ -406,7 +424,7 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // get vault staking fee distribution data
-        Distribution.Data storage distributionData = vault.stakingFeeDistribution;
+        Distribution.Data storage distributionData = vault.wethRewardDistribution;
 
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
@@ -420,8 +438,16 @@ contract VaultRouterBranch {
         // verify actora has shares amount
         if (actorShares.lt(ud60x18(shares))) revert Errors.NotEnoughShares();
 
+        UD60x18 updatedActorShares = actorShares.sub(ud60x18(shares));
+
         // update actor shares
-        distributionData.setActorShares(actorId, actorShares.sub(ud60x18(shares)));
+        distributionData.setActorShares(actorId, updatedActorShares);
+
+        // cast actor vault it to bytes 32
+        bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
+
+        // update actor shares of connected markets
+        vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, false);
 
         // transfer shares to user
         IERC20(vault.indexToken).safeTransfer(msg.sender, shares);

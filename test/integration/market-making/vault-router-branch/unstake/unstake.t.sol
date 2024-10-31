@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies test
 import { Base_Test } from "test/Base.t.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 
 // Zaros dependencies source
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
@@ -16,6 +17,7 @@ contract Unstake_Integration_Test is Base_Test {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        configureMarkets();
         changePrank({ msgSender: users.naruto.account });
     }
 
@@ -26,7 +28,8 @@ contract Unstake_Integration_Test is Base_Test {
         external
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        depositAmount = bound({ x: depositAmount, min: 1, max: fuzzVaultConfig.depositCap });
+        depositAmount =
+            bound({ x: depositAmount, min: Constants.MIN_OF_SHARES_TO_STAKE, max: fuzzVaultConfig.depositCap });
 
         depositAndStakeInVault(fuzzVaultConfig.vaultId, uint128(depositAmount));
 
@@ -37,7 +40,8 @@ contract Unstake_Integration_Test is Base_Test {
 
     function testFuzz_WhenUserHasEnoughStakedShares(uint256 vaultId, uint256 depositAmount) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        depositAmount = bound({ x: depositAmount, min: 1, max: fuzzVaultConfig.depositCap });
+        depositAmount =
+            bound({ x: depositAmount, min: Constants.MIN_OF_SHARES_TO_STAKE, max: fuzzVaultConfig.depositCap });
 
         depositAndStakeInVault(fuzzVaultConfig.vaultId, uint128(depositAmount));
 

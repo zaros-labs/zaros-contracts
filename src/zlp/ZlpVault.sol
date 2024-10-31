@@ -102,12 +102,12 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
     }
 
     /// @dev The Market Making Engine does not call `ERC4626::mint`, thus, the max mint is always 0.
-    function maxMint(address) public view override returns (uint256) {
+    function maxMint(address) public pure override returns (uint256) {
         return 0;
     }
 
     /// @dev The Market Making Engine does not call `ERC4626::withdraw`, thus, the max mint is always 0.
-    function maxWithdraw(address) public view override returns (uint256) {
+    function maxWithdraw(address) public pure override returns (uint256) {
         return 0;
     }
 

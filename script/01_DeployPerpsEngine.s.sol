@@ -13,8 +13,8 @@ import {
     deployPerpsEngineBranches,
     getPerpsEngineBranchesSelectors,
     getBranchUpgrades,
-    getPerpsEngineInitializables,
-    getPerpsEngineInitializePayloads
+    getInitializables,
+    getInitializePayloads
 } from "./utils/TreeProxyUtils.sol";
 
 // Forge dependencies
@@ -54,8 +54,8 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
 
         RootProxy.BranchUpgrade[] memory branchUpgrades =
             getBranchUpgrades(branches, branchesSelectors, RootProxy.BranchUpgradeAction.Add);
-        address[] memory initializables = getPerpsEngineInitializables(branches);
-        bytes[] memory initializePayloads = getPerpsEngineInitializePayloads(deployer);
+        address[] memory initializables = getInitializables(branches);
+        bytes[] memory initializePayloads = getInitializePayloads(deployer);
 
         RootProxy.InitParams memory initParams = RootProxy.InitParams({
             initBranches: branchUpgrades,

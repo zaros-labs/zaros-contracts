@@ -37,6 +37,7 @@ library Distribution {
         }
 
         SD59x18 deltaValuePerShare = value.div(totalShares.intoSD59x18());
+
         self.valuePerShare = sd59x18(self.valuePerShare).add(deltaValuePerShare).intoInt256().toInt128();
     }
 

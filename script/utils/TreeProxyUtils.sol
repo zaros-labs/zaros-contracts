@@ -29,6 +29,13 @@ import { MarketMakingEngineConfigurationBranch } from
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
 import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
+import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
+import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
+import { DistributionHarness } from "test/harnesses/market-making/leaves/DistributionHarness.sol";
+import { MarketHarness } from "test/harnesses/market-making/leaves/MarketHarness.sol";
+import { MarketMakingEngineConfigurationHarness } from
+    "test/harnesses/market-making/leaves/MarketMakingEngineConfigurationHarness.sol";
+import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 
 // Open Zeppelin Upgradeable dependencies
@@ -194,29 +201,9 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     return selectors;
 }
 
-function getPerpsEngineInitializables(address[] memory branches) pure returns (address[] memory) {
-    address[] memory initializables = new address[](1);
-
-    address upgradeBranch = branches[0];
-
-    initializables[0] = upgradeBranch;
-
-    return initializables;
-}
-
-function getPerpsEngineInitializePayloads(address deployer) pure returns (bytes[] memory) {
-    bytes[] memory initializePayloads = new bytes[](1);
-
-    bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
-
-    initializePayloads = new bytes[](1);
-
-    initializePayloads[0] = rootUpgradeInitializeData;
-
-    return initializePayloads;
-}
-
-function deployPerpsEngineHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+function deployPerpsEngineHarnesses(
+    RootProxy.BranchUpgrade[] memory branchUpgrades
+)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployPerpsEngineAddressHarnesses();
@@ -428,7 +415,10 @@ function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
 // Market Making Engine
 
 function deployMarketMakingEngineBranches() returns (address[] memory) {
-    address[] memory branches = new address[](2);
+    address[] memory branches = new address[](4);
+
+    address upgradeBranch = address(new UpgradeBranch());
+    console.log("UpgradeBranch: ", upgradeBranch);
 
     address marketMakingEnginConfigBranch = address(new MarketMakingEngineConfigurationBranch());
     console.log("MarketMakingEnginConfigBranch: ", marketMakingEnginConfigBranch);
@@ -436,16 +426,26 @@ function deployMarketMakingEngineBranches() returns (address[] memory) {
     address vaultRouterBranch = address(new VaultRouterBranch());
     console.log("VaultRouterBranch: ", vaultRouterBranch);
 
-    branches[0] = marketMakingEnginConfigBranch;
-    branches[1] = vaultRouterBranch;
+    address feeDistributionBranch = address(new FeeDistributionBranch());
+    console.log("FeeDistributionBranch: ", feeDistributionBranch);
+
+    branches[0] = upgradeBranch;
+    branches[1] = marketMakingEnginConfigBranch;
+    branches[2] = vaultRouterBranch;
+    branches[3] = feeDistributionBranch;
 
     return branches;
 }
 
 function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](2);
+    bytes4[][] memory selectors = new bytes4[][](4);
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](5);
+    bytes4[] memory upgradeBranchSelectors = new bytes4[](2);
+
+    upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
+    upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
+
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](13);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -455,6 +455,16 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     marketMakingEngineConfigBranchSelectors[4] =
         MarketMakingEngineConfigurationBranch.updateVaultConfiguration.selector;
+    marketMakingEngineConfigBranchSelectors[5] = MarketMakingEngineConfigurationBranch.configureSystemKeeper.selector;
+    marketMakingEngineConfigBranchSelectors[6] = MarketMakingEngineConfigurationBranch.configureEngine.selector;
+    marketMakingEngineConfigBranchSelectors[7] = MarketMakingEngineConfigurationBranch.setWeth.selector;
+    marketMakingEngineConfigBranchSelectors[8] = MarketMakingEngineConfigurationBranch.configureCollateral.selector;
+    marketMakingEngineConfigBranchSelectors[9] = MarketMakingEngineConfigurationBranch.configureMarket.selector;
+    marketMakingEngineConfigBranchSelectors[10] =
+        MarketMakingEngineConfigurationBranch.configureDexSwapStrategy.selector;
+    marketMakingEngineConfigBranchSelectors[11] = MarketMakingEngineConfigurationBranch.configureFeeRecipient.selector;
+    marketMakingEngineConfigBranchSelectors[12] =
+        MarketMakingEngineConfigurationBranch.configureVaultConnectedMarkets.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -466,13 +476,24 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     vaultRouterBranchSelectors[6] = VaultRouterBranch.unstake.selector;
     vaultRouterBranchSelectors[7] = VaultRouterBranch.getVaultAssetSwapRate.selector;
 
-    selectors[0] = marketMakingEngineConfigBranchSelectors;
-    selectors[1] = vaultRouterBranchSelectors;
+    bytes4[] memory feeDistributionBranchSelectors = new bytes4[](5);
+    feeDistributionBranchSelectors[0] = FeeDistributionBranch.getEarnedFees.selector;
+    feeDistributionBranchSelectors[1] = FeeDistributionBranch.receiveMarketFee.selector;
+    feeDistributionBranchSelectors[2] = FeeDistributionBranch.convertAccumulatedFeesToWeth.selector;
+    feeDistributionBranchSelectors[3] = FeeDistributionBranch.sendWethToFeeRecipients.selector;
+    feeDistributionBranchSelectors[4] = FeeDistributionBranch.claimFees.selector;
+
+    selectors[0] = upgradeBranchSelectors;
+    selectors[1] = marketMakingEngineConfigBranchSelectors;
+    selectors[2] = vaultRouterBranchSelectors;
+    selectors[3] = feeDistributionBranchSelectors;
 
     return selectors;
 }
 
-function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
+function deployMarketMakingHarnesses(
+    RootProxy.BranchUpgrade[] memory branchUpgrades
+)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployMarketMakingAddressHarnesses();
@@ -496,7 +517,7 @@ function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgr
 }
 
 function deployMarketMakingAddressHarnesses() returns (address[] memory) {
-    address[] memory addressHarnesses = new address[](3);
+    address[] memory addressHarnesses = new address[](7);
 
     address vaultHarness = address(new VaultHarness());
     console.log("VaultHarness: ", vaultHarness);
@@ -507,25 +528,45 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
     address collateralHarness = address(new CollateralHarness());
     console.log("CollateralHarness: ", collateralHarness);
 
+    address distributionHarness = address(new DistributionHarness());
+    console.log("DistributionHarness: ", distributionHarness);
+
+    address marketHarness = address(new MarketHarness());
+    console.log("MarketHarness: ", marketHarness);
+
+    address marketMakingEngineConfigurationHarness = address(new MarketMakingEngineConfigurationHarness());
+    console.log("MarketMakingEngineConfigurationHarness: ", marketMakingEngineConfigurationHarness);
+
+    address dexSwapStrategyHarness = address(new DexSwapStrategyHarness());
+    console.log("DexSwapStrategyHarness: ", dexSwapStrategyHarness);
+
     addressHarnesses[0] = vaultHarness;
     addressHarnesses[1] = withdrawalRequestHarness;
     addressHarnesses[2] = collateralHarness;
+    addressHarnesses[3] = distributionHarness;
+    addressHarnesses[4] = marketHarness;
+    addressHarnesses[5] = marketMakingEngineConfigurationHarness;
+    addressHarnesses[6] = dexSwapStrategyHarness;
 
     return addressHarnesses;
 }
 
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](3);
+    bytes4[][] memory selectors = new bytes4[][](7);
 
-    bytes4[] memory vaultHarnessSelectors = new bytes4[](8);
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](12);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
     vaultHarnessSelectors[1] = VaultHarness.workaround_Vault_getActorStakedShares.selector;
     vaultHarnessSelectors[2] = VaultHarness.workaround_Vault_getTotalStakedShares.selector;
     vaultHarnessSelectors[3] = VaultHarness.workaround_Vault_getWithdrawDelay.selector;
     vaultHarnessSelectors[4] = VaultHarness.workaround_Vault_getDepositCap.selector;
-    vaultHarnessSelectors[5] = VaultHarness.exposed_Vault_create.selector;
-    vaultHarnessSelectors[6] = VaultHarness.exposed_Vault_update.selector;
-    vaultHarnessSelectors[7] = VaultHarness.workaround_Vault_getVaultAsset.selector;
+    vaultHarnessSelectors[5] = VaultHarness.workaround_Vault_getIsLive.selector;
+    vaultHarnessSelectors[6] = VaultHarness.exposed_Vault_create.selector;
+    vaultHarnessSelectors[7] = VaultHarness.exposed_Vault_update.selector;
+    vaultHarnessSelectors[8] = VaultHarness.workaround_Vault_getVaultAsset.selector;
+    vaultHarnessSelectors[9] = VaultHarness.workaround_Vault_setTotalStakedShares.selector;
+    vaultHarnessSelectors[10] = VaultHarness.workaround_Vault_getValuePerShare.selector;
+    vaultHarnessSelectors[11] = VaultHarness.workaround_Vault_getConnectedMarkets.selector;
 
     bytes4[] memory collateralHarnessSelectors = new bytes4[](2);
     collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;
@@ -535,14 +576,77 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     withdrawalRequestHarnessSelectors[0] = WithdrawalRequestHarness.exposed_WithdrawalRequest_load.selector;
     withdrawalRequestHarnessSelectors[1] = WithdrawalRequestHarness.exposed_WithdrawalRequest_loadExisting.selector;
 
+    bytes4[] memory distributionHarnessSelectors = new bytes4[](4);
+    distributionHarnessSelectors[0] = DistributionHarness.exposed_setActorShares.selector;
+    distributionHarnessSelectors[1] = DistributionHarness.exposed_distributeValue.selector;
+    distributionHarnessSelectors[2] = DistributionHarness.exposed_accumulateActor.selector;
+    distributionHarnessSelectors[3] = DistributionHarness.exposed_getActorValueChange.selector;
+
+    bytes4[] memory marketHarnessSelectors = new bytes4[](10);
+    marketHarnessSelectors[0] = MarketHarness.workaround_getMarketId.selector;
+    marketHarnessSelectors[1] = MarketHarness.workaround_setMarketId.selector;
+    marketHarnessSelectors[2] = MarketHarness.workaround_getReceivedMarketFees.selector;
+    marketHarnessSelectors[3] = MarketHarness.workaround_setReceivedMarketFees.selector;
+    marketHarnessSelectors[4] = MarketHarness.workaround_getPendingProtocolWethReward.selector;
+    marketHarnessSelectors[5] = MarketHarness.workaround_getIfReceivedMarketFeesContainsTheAsset.selector;
+    marketHarnessSelectors[6] = MarketHarness.workaround_getMarketEngine.selector;
+    marketHarnessSelectors[7] = MarketHarness.workaround_getAutoDeleverageStartThreshold.selector;
+    marketHarnessSelectors[8] = MarketHarness.workaround_getAutoDeleverageEndThreshold.selector;
+    marketHarnessSelectors[9] = MarketHarness.workaround_getAutoDeleveragePowerScale.selector;
+
+    bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](7);
+    marketMakingEngineConfigurationSelectors[0] =
+        MarketMakingEngineConfigurationHarness.workaround_setWethAddress.selector;
+    marketMakingEngineConfigurationSelectors[1] =
+        MarketMakingEngineConfigurationHarness.exposed_getTotalFeeRecipientsShares.selector;
+    marketMakingEngineConfigurationSelectors[2] =
+        MarketMakingEngineConfigurationHarness.workaround_getIfSystemKeeperIsEnabled.selector;
+    marketMakingEngineConfigurationSelectors[3] =
+        MarketMakingEngineConfigurationHarness.workaround_getWethAddress.selector;
+    marketMakingEngineConfigurationSelectors[4] =
+        MarketMakingEngineConfigurationHarness.workaround_getFeeRecipientShare.selector;
+    marketMakingEngineConfigurationSelectors[5] =
+        MarketMakingEngineConfigurationHarness.workaround_getIfEngineIsRegistered.selector;
+    marketMakingEngineConfigurationSelectors[6] =
+        MarketMakingEngineConfigurationHarness.workaround_getUsdTokenOfEngine.selector;
+
+    bytes4[] memory dexSwapStrategyHarnessSelectors = new bytes4[](1);
+    dexSwapStrategyHarnessSelectors[0] = DexSwapStrategyHarness.exposed_dexSwapStrategy_load.selector;
+
     selectors[0] = vaultHarnessSelectors;
     selectors[1] = withdrawalRequestHarnessSelectors;
     selectors[2] = collateralHarnessSelectors;
+    selectors[3] = distributionHarnessSelectors;
+    selectors[4] = marketHarnessSelectors;
+    selectors[5] = marketMakingEngineConfigurationSelectors;
+    selectors[6] = dexSwapStrategyHarnessSelectors;
 
     return selectors;
 }
 
 // Shared Utils
+
+function getInitializables(address[] memory branches) pure returns (address[] memory) {
+    address[] memory initializables = new address[](1);
+
+    address upgradeBranch = branches[0];
+
+    initializables[0] = upgradeBranch;
+
+    return initializables;
+}
+
+function getInitializePayloads(address deployer) pure returns (bytes[] memory) {
+    bytes[] memory initializePayloads = new bytes[](1);
+
+    bytes memory rootUpgradeInitializeData = abi.encodeWithSelector(UpgradeBranch.initialize.selector, deployer);
+
+    initializePayloads = new bytes[](1);
+
+    initializePayloads[0] = rootUpgradeInitializeData;
+
+    return initializePayloads;
+}
 
 function getBranchUpgrades(
     address[] memory branches,
