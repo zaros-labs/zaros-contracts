@@ -495,7 +495,6 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     feeDistributionBranchSelectors[3] = FeeDistributionBranch.sendWethToFeeRecipients.selector;
     feeDistributionBranchSelectors[4] = FeeDistributionBranch.claimFees.selector;
 
-    bytes4[] memory stabilityBranchSelectors = new bytes4[](3);
     bytes4[] memory stabilityBranchSelectors = new bytes4[](4);
     stabilityBranchSelectors[0] = StabilityBranch.initiateSwap.selector;
     stabilityBranchSelectors[1] = StabilityBranch.refundSwap.selector;

@@ -117,7 +117,7 @@ abstract contract IMarketMakingEngine is
     DistributionHarness,
     MarketHarness,
     MarketMakingEngineConfigurationHarness,
-    DexSwapStrategyHarness
+    DexSwapStrategyHarness,
     StabilityConfigurationHarness
 { }
 

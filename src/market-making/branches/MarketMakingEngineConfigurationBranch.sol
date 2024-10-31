@@ -32,7 +32,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using DexSwapStrategy for DexSwapStrategy.Data;
-    using Collateral for Collateral.Data;
 
     constructor() {
         _disableInitializers();
@@ -452,49 +451,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         Vault.Data storage vault = Vault.load(vaultId);
 
         ZlpVault(vault.indexToken).updateAssetAllowance(allowance);
-    }
-
-    /// @notice Configure collateral on Market Making Engine
-    /// @dev Only owner can call this functions
-    /// @param collateral The address of the collateral.
-    /// @param priceAdapter The address of the price adapter.
-    /// @param creditRatio The credit ratio.
-    /// @param isEnabled The status of the collateral.
-    /// @param decimals The decimals of the collateral.
-    function configureCollateral(
-        address collateral,
-        address priceAdapter,
-        uint256 creditRatio,
-        bool isEnabled,
-        uint8 decimals
-    )
-        external
-        onlyOwner
-    {
-        // check if collateral is set to zero
-        if (collateral == address(0)) revert Errors.ZeroInput("collateral");
-
-        // check if price adapter is set to zero
-        if (priceAdapter == address(0)) revert Errors.ZeroInput("priceAdapter");
-
-        // check id credit ratio is set to zero
-        if (creditRatio == 0) revert Errors.ZeroInput("collateral");
-
-        // check if decimals is set to zero
-        if (decimals == 0) revert Errors.ZeroInput("decimals");
-
-        // load collateral data from storage
-        Collateral.Data storage collateralData = Collateral.load(collateral);
-
-        // update collateral data
-        collateralData.asset = collateral;
-        collateralData.priceAdapter = priceAdapter;
-        collateralData.creditRatio = creditRatio;
-        collateralData.isEnabled = isEnabled;
-        collateralData.decimals = decimals;
-
-        // emit event LogConfigureCollateral
-        emit LogConfigureCollateral(collateral, priceAdapter, creditRatio, isEnabled, decimals);
     }
 
     function configureUsdTokenSwap(
