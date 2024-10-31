@@ -180,7 +180,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         // add markets ids to connected markets
         for (uint256 i; i < marketsIds.length; i++) {
             // use [vault.connectedMarkets.length - 1] to get the last connected markets array
-            vault.connectedMarkets[vault.connectedMarkets.length - 1].data.add(marketsIds[i]);
+            vault.connectedMarkets[vault.connectedMarkets.length - 1].add(marketsIds[i]);
         }
 
         // emit event LogConfigureVaultConnectedMarkets

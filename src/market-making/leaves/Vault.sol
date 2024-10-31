@@ -60,10 +60,6 @@ library Vault {
         int256 vaultNewCreditCapacityUsd
     );
 
-    struct EnumerableSetUintSet {
-        EnumerableSet.UintSet data;
-    }
-
     /// @param id The vault identifier.
     /// @param totalCreditDelegationWeight The total amount of credit delegation weight in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
@@ -96,7 +92,7 @@ library Vault {
         bool isLive;
         Collateral.Data collateral;
         Distribution.Data wethRewardDistribution;
-        EnumerableSetUintSet[] connectedMarkets;
+        EnumerableSet.UintSet[] connectedMarkets;
         mapping(address => uint128) withdrawalRequestIdCounter;
     }
 
@@ -230,7 +226,7 @@ library Vault {
         if (self.connectedMarkets.length == 0) revert Errors.NoMarketsConnectedToVault(vaultId);
 
         // loads the connected markets storage pointer by taking the last configured market ids uint set
-        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1].data;
+        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
         // TODO: update j to i
         for (uint256 j; j < connectedMarketsIdsCache.length; j++) {
@@ -312,8 +308,7 @@ library Vault {
             if (self.connectedMarkets.length == 0) revert Errors.NoMarketsConnectedToVault(vaultId);
 
             // loads the connected markets storage pointer by taking the last configured market ids uint set
-            EnumerableSet.UintSet storage connectedMarkets =
-                self.connectedMarkets[self.connectedMarkets.length - 1].data;
+            EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
             // cache the connected markets ids to avoid multiple storage reads, as we're going to loop over them twice
             // at `recalculateConnectedMarketsDebt` and `updateCreditDelegations`
@@ -416,7 +411,7 @@ library Vault {
         if (self.connectedMarkets.length == 0) revert Errors.NoMarketsConnectedToVault(vaultId);
 
         // loads the connected markets storage pointer by taking the last configured market ids uint set
-        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1].data;
+        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
         // loop over each connected market id that has been cached once again in order to update this vault's
         // credit delegations
@@ -477,7 +472,7 @@ library Vault {
         internal
     {
         // loads the connected markets storage pointer by taking the last configured market ids uint set
-        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1].data;
+        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
         // cache the connected markets ids
         uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());

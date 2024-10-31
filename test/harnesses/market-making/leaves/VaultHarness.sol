@@ -98,13 +98,12 @@ contract VaultHarness {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
         uint256 connectedMarketsCacheLength =
-            vaultData.connectedMarkets[vaultData.connectedMarkets.length - 1].data.length();
+            vaultData.connectedMarkets[vaultData.connectedMarkets.length - 1].length();
 
         connectedMarkets = new uint128[](connectedMarketsCacheLength);
 
         for (uint256 i; i < connectedMarketsCacheLength; i++) {
-            connectedMarkets[i] =
-                uint128(vaultData.connectedMarkets[vaultData.connectedMarkets.length - 1].data.at(i));
+            connectedMarkets[i] = uint128(vaultData.connectedMarkets[vaultData.connectedMarkets.length - 1].at(i));
         }
     }
 }
