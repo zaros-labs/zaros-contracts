@@ -181,7 +181,8 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @return amountOutMin The amount out min
     function calculateAmountOutMin(uint256 amountOutMinExpected) public view returns (uint256 amountOutMin) {
         // calculate the amount out min
-        amountOutMin = (amountOutMinExpected * (10_000 - slippageToleranceBps)) / Constants.BPS_DENOMINATOR;
+        amountOutMin =
+            (amountOutMinExpected * (Constants.BPS_DENOMINATOR - slippageToleranceBps)) / Constants.BPS_DENOMINATOR;
     }
 
     /// @notice Sets deadline
