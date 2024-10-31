@@ -78,20 +78,12 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @param marketId The market receiving the fees.
     /// @param asset The margin collateral address.
     /// @param amount The token amount of collateral to receive as fee.
-    function receiveMarketFee(
-        uint128 marketId,
-        address asset,
-        uint256 amount
-    )
-        external
-        onlyRegisteredEngine
-        onlyExistingMarket(marketId)
-    {
+    function receiveMarketFee(uint128 marketId, address asset, uint256 amount) external onlyRegisteredEngine {
         // verify input amount
         if (amount == 0) revert Errors.ZeroInput("amount");
 
         // loads the market data storage pointer
-        Market.Data storage market = Market.load(marketId);
+        Market.Data storage market = Market.loadExisting(marketId);
 
         // loads the collateral's data storage pointer
         Collateral.Data storage collateral = Collateral.load(asset);
@@ -126,7 +118,6 @@ contract FeeDistributionBranch is EngineAccessControl {
     )
         external
         onlyRegisteredSystemKeepers
-        onlyExistingMarket(marketId)
     {
         // loads the collateral data storage pointer
         Collateral.Data storage collateral = Collateral.load(asset);
@@ -135,7 +126,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         collateral.verifyIsEnabled();
 
         // loads the market data storage pointer
-        Market.Data storage market = Market.load(marketId);
+        Market.Data storage market = Market.loadExisting(marketId);
 
         // reverts if the market hasn't received any fees for the given asset
         if (!market.receivedMarketFees.contains(asset)) revert Errors.MarketDoesNotContainTheAsset(asset);
@@ -205,9 +196,9 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @notice Sends allocated weth amount to fee recipients.
     /// @dev onlyRegisteredEngine address can call this function.
     /// @param marketId The market to which fee recipients contribute.
-    function sendWethToFeeRecipients(uint128 marketId) external onlyRegisteredEngine onlyExistingMarket(marketId) {
+    function sendWethToFeeRecipients(uint128 marketId) external onlyRegisteredEngine {
         // loads the fee data storage pointer
-        Market.Data storage market = Market.load(marketId);
+        Market.Data storage market = Market.loadExisting(marketId);
 
         // reverts if no protocol weth rewards have been collected
         if (market.pendingProtocolWethReward == 0) revert Errors.NoWethFeesCollected();

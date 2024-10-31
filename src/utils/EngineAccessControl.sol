@@ -38,18 +38,4 @@ abstract contract EngineAccessControl {
         // continue execution
         _;
     }
-
-    /// @notice Modifier to check if the caller is a registered market.
-    modifier onlyExistingMarket(uint128 marketId) {
-        // load the market data from storage
-        Market.Data storage market = Market.load(marketId);
-
-        // if the market does not exist, revert
-        if (market.id == 0) {
-            revert Errors.MarketDoesNotExist(marketId);
-        }
-
-        // continue execution
-        _;
-    }
 }
