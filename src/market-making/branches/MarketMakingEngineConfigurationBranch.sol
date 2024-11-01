@@ -56,11 +56,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param shouldBeEnabled A flag indicating whether the system keeper should be enabled.
     event LogConfigureSystemKeeper(address systemKeeper, bool shouldBeEnabled);
 
-    /// @notice Emitted when a keeper is updated.
-    /// @param keeper The address of the keeper to update.
-    /// @param enabled Indicating whether a keeper is enabled or disabled.
-    event LogUpdateKeeper(address keeper, bool enabled);
-
     /// @notice Emitted when an engine's configuration is updated.
     /// @param engine The address of the engine contract.
     /// @param usdToken The address of the USD token contract.
