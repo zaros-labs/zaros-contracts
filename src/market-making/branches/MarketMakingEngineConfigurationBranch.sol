@@ -411,17 +411,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogConfigureFeeRecipient(feeRecipient, share);
     }
 
-    /// @notice Updates the status of a system keeper by enabling or disabling them.
-    /// @param keeper The address of the keeper to be updated.
-    /// @param enabled A boolean flag indicating whether the keeper should be enabled or disabled.
-    function updateKeeper(address keeper, bool enabled) external onlyOwner {
-        if (keeper == address(0)) revert Errors.ZeroInput("keeper");
-
-        MarketMakingEngineConfiguration.load().isSystemKeeperEnabled[keeper] = enabled;
-
-        emit LogUpdateKeeper(keeper, enabled);
-    }
-
     /// @notice Updates the stability configuration settings, including the Chainlink verifier and maximum
     /// verification delay.
     /// @param chainlinkVerifier The address of the Chainlink verifier contract to be used for price verification.

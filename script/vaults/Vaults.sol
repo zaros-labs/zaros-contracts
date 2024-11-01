@@ -453,6 +453,6 @@ abstract contract Vaults is
         usdTokenSwapKeepers[asset] = usdTokenSwapKeeper;
 
         changePrank({ msgSender: deployer });
-        IMarketMakingEngine(marketMakingEngine).updateKeeper(usdTokenSwapKeeper, true);
+        IMarketMakingEngine(marketMakingEngine).configureSystemKeeper(usdTokenSwapKeeper, true);
     }
 }

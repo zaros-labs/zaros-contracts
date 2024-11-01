@@ -41,7 +41,7 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
 
         UsdTokenSwapKeeper(usdTokenSwapKeeper).setForwarder(users.keepersForwarder.account);
 
-        marketMakingEngine.updateKeeper(usdTokenSwapKeeper, true);
+        marketMakingEngine.configureSystemKeeper(usdTokenSwapKeeper, true);
 
         changePrank({ msgSender: users.naruto.account });
 
