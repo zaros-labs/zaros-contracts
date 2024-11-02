@@ -909,11 +909,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         uint128[] memory vaultIds = new uint128[](1);
         vaultIds[0] = vaultId;
 
-        uint256[] memory amountsInUsd = new uint256[](1);
-        amountsInUsd[0] = amountInUsd;
+        uint128[] memory amountsInUsd = new uint128[](1);
+        amountsInUsd[0] = amountInUsd.toUint128();
 
-        uint256[] memory minAmountsOut = new uint256[](1);
-        minAmountsOut[0] = minAmountOut;
+        uint128[] memory minAmountsOut = new uint128[](1);
+        minAmountsOut[0] = minAmountOut.toUint128();
 
         marketMakingEngine.initiateSwap(vaultIds, amountsInUsd, minAmountsOut);
     }

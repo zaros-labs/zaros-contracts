@@ -46,7 +46,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
 
         IERC20(usdToken).approve(address(marketMakingEngine), amountInUsd);
 
-        initiateUsdSwap(fuzzVaultConfig.vaultId, amountInUsd, 0);
+        initiateUsdSwap(fuzzVaultConfig.vaultId, uint128(amountInUsd), 0);
 
         skip(MAX_VERIFICATION_DELAY + 1);
 

@@ -82,7 +82,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
-        uint256 minAmountOut = type(uint256).max;
+        uint128 minAmountOut = type(uint128).max;
 
         initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), swapAmount, minAmountOut);
 
@@ -92,8 +92,10 @@ contract FulfillSwap_Integration_Test is Base_Test {
         uint128 requestId = 1;
         changePrank({ msgSender: usdTokenSwapKeeper });
 
+        uint256 amountOut = 9;
+
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minAmountOut, amountOut));
 
         marketMakingEngine.fulfillSwap(users.naruto.account, requestId, priceData, address(marketMakingEngine));
     }
@@ -106,11 +108,15 @@ contract FulfillSwap_Integration_Test is Base_Test {
         whenCallerIsKeeper
         whenRequestWasNotYetProcessed
     {
+        changePrank({ msgSender: users.owner.account });
+        marketMakingEngine.configureUsdTokenSwap(1, 30, type(uint96).max);
+        changePrank({ msgSender: users.naruto.account });
+
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint128).max });
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint96).max });
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
@@ -131,9 +137,9 @@ contract FulfillSwap_Integration_Test is Base_Test {
         marketMakingEngine.fulfillSwap(users.naruto.account, requestId, priceData, address(marketMakingEngine));
 
         // it should transfer assets to user
-        assertGt(IERC20(fuzzVaultConfig.asset).balanceOf(users.naruto.account), 0);
+        assertGt(IERC20(fuzzVaultConfig.asset).balanceOf(users.naruto.account), 0, "balance of user > 0 failed");
 
         // it should burn USD token from contract
-        assertEq(IERC20(usdToken).balanceOf(fuzzVaultConfig.indexToken), 0);
+        assertEq(IERC20(usdToken).balanceOf(fuzzVaultConfig.indexToken), 0, "balance of zlp vault == 0 failed");
     }
 }

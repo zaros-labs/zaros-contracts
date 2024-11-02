@@ -212,7 +212,9 @@ library Errors {
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
     /// @notice Thrown when a slippage check fails.
-    error SlippageCheckFailed();
+    /// @param minAmountOut The min amnount of assets to receive back
+    /// @param amountOut The result of the swap execution
+    error SlippageCheckFailed(uint256 minAmountOut, uint256 amountOut);
 
     /// @notice Thrown when a user does not have enough shares.
     error NotEnoughShares();

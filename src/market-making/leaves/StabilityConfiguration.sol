@@ -22,6 +22,9 @@ library StabilityConfiguration {
         abi.encode(uint256(keccak256("fi.zaros.market-making.StabilityConfiguration")) - 1)
     ) & ~bytes32(uint256(0xff));
 
+    /// @notice Structure holding data related to CL verification settings.
+    /// @param chainlinkVerifier The proxy contract responsible for verifying data via Chainlink.
+    /// @param maxVerificationDelay The maximum allowed delay (in seconds) for data verification.
     struct Data {
         IVerifierProxy chainlinkVerifier;
         uint256 maxVerificationDelay;

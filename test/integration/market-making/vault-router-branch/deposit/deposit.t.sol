@@ -85,9 +85,11 @@ contract Deposit_Integration_Test is Base_Test {
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
 
+        uint256 minShares = type(uint128).max;
+
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector));
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), type(uint128).max);
+        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsToDeposit));
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares));
     }
 
     function testFuzz_WhenSharesMintedAreMoreThanMinAmount(

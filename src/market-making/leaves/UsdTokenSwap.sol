@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-// Zaros dependencies
-import { Errors } from "@zaros/utils/Errors.sol";
-
 library UsdTokenSwap {
     /// @notice ERC7201 storage location.
     bytes32 internal constant SWAP_LOCATION =
@@ -18,28 +15,28 @@ library UsdTokenSwap {
     /// @param vaultId The id of the vault associated with the swap.
     struct SwapRequest {
         bool processed;
+        uint120 deadline;
         uint128 amountIn;
-        uint128 deadline;
         address assetOut;
         uint128 vaultId;
-        uint256 minAmountOut;
+        uint128 minAmountOut;
     }
 
     /// @notice Represents the configuration and state data for USD token swaps.
-    /// @param baseFee The flat fee for each swap, denominated in USD.
+    /// @param baseFeeUsd The flat fee for each swap, denominated in USD.
     /// @param swapSettlementFeeBps The swap settlement fee in basis points (bps), applied as a percentage of the swap amount.
     /// @param maxExecutionTime The maximum allowed time, in seconds, to execute a swap after it has been requested.
     /// @param swapRequestIdCounter A counter for tracking the number of swap requests per user address.
     /// @param swapRequests A mapping that tracks all swap requests for each user, by user address and swap request id.
     struct Data {
-        uint128 baseFee; // 1 USD
+        uint128 baseFeeUsd; // 1 USD
         uint128 swapSettlementFeeBps; // 0.3 %
         uint128 maxExecutionTime;
         mapping(address => uint128) swapRequestIdCounter;
         mapping(address => mapping(uint128 => SwapRequest)) swapRequests;
     }
 
-    /// @notice Loads a {Swap}.
+    /// @notice Loads a {UsdTokenSwap}.
     /// @return swap The loaded swap data storage pointer.
     function load() internal pure returns (Data storage swap) {
         bytes32 slot = keccak256(abi.encode(SWAP_LOCATION));
@@ -49,13 +46,13 @@ library UsdTokenSwap {
     }
 
     /// @notice Updates the fee and execution time parameters for USD token swaps.
-    /// @param baseFee The new flat fee for each swap, denominated in USD.
+    /// @param baseFeeUsd The new flat fee for each swap, denominated in USD.
     /// @param swapSettlementFeeBps The new swap settlement fee in basis points (bps), applied as a percentage of the swap amount.
     /// @param maxExecutionTime The new maximum allowed time, in seconds, to execute a swap after it has been requested.
-    function update(uint128 baseFee, uint128 swapSettlementFeeBps, uint128 maxExecutionTime) internal {
+    function update(uint128 baseFeeUsd, uint128 swapSettlementFeeBps, uint128 maxExecutionTime) internal {
         Data storage self = load();
 
-        self.baseFee = baseFee;
+        self.baseFeeUsd = baseFeeUsd;
         self.swapSettlementFeeBps = swapSettlementFeeBps;
         self.maxExecutionTime = maxExecutionTime;
     }

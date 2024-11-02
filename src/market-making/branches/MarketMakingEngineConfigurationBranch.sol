@@ -437,8 +437,12 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         ZlpVault(vault.indexToken).updateAssetAllowance(allowance);
     }
 
+    /// @notice Configures the USD token swap parameters.
+    /// @param baseFeeUsd The base fee applied to each swap.
+    /// @param swapSettlementFeeBps The settlement fee in basis points applied to each swap.
+    /// @param maxExecutionTime The maximum allowable time (in seconds) for swap execution.
     function configureUsdTokenSwap(
-        uint128 baseFee,
+        uint128 baseFeeUsd,
         uint128 swapSettlementFeeBps,
         uint128 maxExecutionTime
     )
@@ -449,7 +453,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("maxExecutionTime");
         }
 
-        UsdTokenSwap.update(baseFee, swapSettlementFeeBps, maxExecutionTime);
+        UsdTokenSwap.update(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
 
     /// @notice Retrieves the collateral data for a given asset.

@@ -109,12 +109,15 @@ contract Redeem_Integration_Test is Base_Test {
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
 
         skip(fuzzVaultConfig.withdrawalDelay + 1);
-        uint256 minAssetsOut = IERC4626(indexToken).previewRedeem(userBalance) + 1;
+
+        uint256 assetsOut = IERC4626(indexToken).previewRedeem(userBalance);
+
+        uint256 minAssetsOut = assetsOut + 1;
 
         IERC20(indexToken).approve(address(marketMakingEngine), userBalance);
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minAssetsOut, assetsOut));
 
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, minAssetsOut);
     }

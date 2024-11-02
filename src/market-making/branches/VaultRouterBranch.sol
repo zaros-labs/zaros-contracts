@@ -239,7 +239,7 @@ contract VaultRouterBranch {
         uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
 
         // assert min shares minted
-        if (shares < minShares) revert Errors.SlippageCheckFailed();
+        if (shares < minShares) revert Errors.SlippageCheckFailed(minShares, shares);
 
         // emit an event
         emit LogDeposit(vaultId, msg.sender, assets);
@@ -402,7 +402,7 @@ contract VaultRouterBranch {
         uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, address(this));
 
         // require at least min assets amount returned
-        if (assets < minAssets) revert Errors.SlippageCheckFailed();
+        if (assets < minAssets) revert Errors.SlippageCheckFailed(minAssets, assets);
 
         // set withdrawal request to fulfilled
         withdrawalRequest.fulfilled = true;

@@ -20,8 +20,8 @@ contract InitiateSwap_Integration_Test is Base_Test {
 
     function test_RevertWhen_VaultIdsAndAmountsInArraysLengthMissmatch() external {
         uint128[] memory vaultIds = new uint128[](1);
-        uint256[] memory amountsIn = new uint256[](2);
-        uint256[] memory minAmountsOut = new uint256[](3);
+        uint128[] memory amountsIn = new uint128[](2);
+        uint128[] memory minAmountsOut = new uint128[](3);
 
         // it should revert
         vm.expectRevert(
@@ -40,8 +40,8 @@ contract InitiateSwap_Integration_Test is Base_Test {
         whenVaultIdsAndAmountsInArraysLengthMatch
     {
         uint128[] memory vaultIds = new uint128[](2);
-        uint256[] memory amountsIn = new uint256[](2);
-        uint256[] memory minAmountsOut = new uint256[](3);
+        uint128[] memory amountsIn = new uint128[](2);
+        uint128[] memory minAmountsOut = new uint128[](3);
 
         // it should revert
         vm.expectRevert(
@@ -69,8 +69,8 @@ contract InitiateSwap_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
 
         uint128[] memory vaultIds = new uint128[](2);
-        uint256[] memory amountsIn = new uint256[](2);
-        uint256[] memory minAmountsOut = new uint256[](2);
+        uint128[] memory amountsIn = new uint128[](2);
+        uint128[] memory minAmountsOut = new uint128[](2);
 
         vaultIds[0] = fuzzVaultConfig.vaultId;
         vaultIds[1] = fuzzVaultConfig.vaultId;
@@ -92,8 +92,8 @@ contract InitiateSwap_Integration_Test is Base_Test {
         whenCollateralIsEnabled
     {
         uint128[] memory vaultIds = new uint128[](2);
-        uint256[] memory amountsIn = new uint256[](2);
-        uint256[] memory minAmountsOut = new uint256[](2);
+        uint128[] memory amountsIn = new uint128[](2);
+        uint128[] memory minAmountsOut = new uint128[](2);
 
         vaultIds[0] = INITIAL_VAULT_ID;
         vaultIds[1] = FINAL_VAULT_ID;
@@ -123,10 +123,10 @@ contract InitiateSwap_Integration_Test is Base_Test {
         uint128[] memory vaultIds = new uint128[](1);
         vaultIds[0] = fuzzVaultConfig.vaultId;
 
-        uint256[] memory amountsIn = new uint256[](1);
-        amountsIn[0] = swapAmount;
+        uint128[] memory amountsIn = new uint128[](1);
+        amountsIn[0] = uint128(swapAmount);
 
-        uint256[] memory minAmountsOut = new uint256[](1);
+        uint128[] memory minAmountsOut = new uint128[](1);
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 

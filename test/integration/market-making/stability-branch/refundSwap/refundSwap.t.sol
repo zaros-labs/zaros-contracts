@@ -64,7 +64,7 @@ contract RefundSwap_Integration_Test is Base_Test {
         marketMakingEngine.configureUsdTokenSwap(0, 0, uint128(300));
         changePrank({ msgSender: users.naruto.account });
 
-        initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), swapAmount, minAmountOut);
+        initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), uint128(swapAmount), minAmountOut);
 
         uint128 requestId = 1;
 
@@ -85,7 +85,7 @@ contract RefundSwap_Integration_Test is Base_Test {
 
         uint128 minAmountOut = 0;
 
-        initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), swapAmount, minAmountOut);
+        initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), uint128(swapAmount), minAmountOut);
 
         uint128 requestId = 1;
 
