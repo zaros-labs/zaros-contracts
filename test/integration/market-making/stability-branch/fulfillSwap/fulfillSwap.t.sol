@@ -7,7 +7,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 
 // Open Zeppelin dependencies
-import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+import { IERC20, ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract FulfillSwap_Integration_Test is Base_Test {
     function setUp() public virtual override {
@@ -74,11 +74,16 @@ contract FulfillSwap_Integration_Test is Base_Test {
         whenCallerIsKeeper
         whenRequestWasNotYetProcessed
     {
+        changePrank({ msgSender: users.owner.account });
+        uint128 bpsFee = 30;
+        marketMakingEngine.configureUsdTokenSwap(1, bpsFee, type(uint96).max);
+        changePrank({ msgSender: users.naruto.account });
+
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint128).max });
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint80).max });
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
@@ -86,16 +91,20 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), swapAmount, minAmountOut);
 
-        bytes memory priceData = getMockedSignedReport(fuzzVaultConfig.streamId, 1);
+        uint256 price = 1e10;
+        bytes memory priceData = getMockedSignedReport(fuzzVaultConfig.streamId, price);
         address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
         uint128 requestId = 1;
         changePrank({ msgSender: usdTokenSwapKeeper });
 
-        uint256 amountOut = 9;
+        uint256 amountOut = swapAmount * price / 100;
+
+        uint8 decimals = ERC20(fuzzVaultConfig.asset).decimals();
+        uint256 amountOutAfterFee = amountOut - (10 ** decimals) / price - (amountOut * bpsFee / 10_000);
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minAmountOut, amountOut));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minAmountOut, amountOutAfterFee));
 
         marketMakingEngine.fulfillSwap(users.naruto.account, requestId, priceData, address(marketMakingEngine));
     }

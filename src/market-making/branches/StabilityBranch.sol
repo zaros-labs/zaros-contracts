@@ -253,11 +253,11 @@ contract StabilityBranch {
     }
 
     /// @notice Calculates and deducts the applicable fee from the specified asset amount.
-    /// @param amountIn The initial amount of the asset being processed.
+    /// @param amountOut The initial amount of the asset being processed.
     /// @param asset The address of the asset for which the fee is being calculated.
     /// @param priceX18 The current price of the asset in UD60x18 format.
     /// @return The amount remaining after the base and settlement fees have been deducted.
-    function _handleFeeAsset(uint256 amountIn, address asset, UD60x18 priceX18) internal view returns (uint256) {
+    function _handleFeeAsset(uint256 amountOut, address asset, UD60x18 priceX18) internal view returns (uint256) {
         // load swap data
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
@@ -277,15 +277,15 @@ contract StabilityBranch {
         uint256 baseFeeAsset = collateral.convertUd60x18ToTokenAmount(baseFeeAssetUnitX18);
 
         // calculate fee amount
-        uint256 feeAmount = amountIn - baseFeeAsset - (amountIn * tokenSwapData.swapSettlementFeeBps) / 10_000;
+        uint256 feeAmount = baseFeeAsset + (amountOut * tokenSwapData.swapSettlementFeeBps) / 10_000;
 
         // TODO: Send fee amount to fee receiver. At this time the fee is just sitting in the vault
 
         // deduct the fee from the amount in
-        amountIn -= feeAmount;
+        amountOut -= feeAmount;
 
         // return amountIn after fee was applied
-        return amountIn;
+        return amountOut;
     }
 
     /// @notice Validates the input data for initiating a swap.
