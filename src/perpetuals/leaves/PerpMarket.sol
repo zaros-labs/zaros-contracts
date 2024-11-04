@@ -14,7 +14,7 @@ import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, convert as ud60x18Convert } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, ZERO as UD60x18_ZERO, convert as ud60x18Convert } from "@prb-math/UD60x18.sol";
 import {
     SD59x18,
     sd59x18,
@@ -267,14 +267,21 @@ library PerpMarket {
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
         SD59x18 newPositionSize,
+        SD59x18 marketCreditCapacityUsdX18,
         bool shouldCheckNewOpenInterestAndNewSkew
     )
         internal
         view
         returns (UD60x18 newOpenInterest, SD59x18 newSkew)
     {
+        // if the market's current credit capacity is less than or equal to zero, both OI and skew caps will also be
+        // zero. In this scenario, the expected outcome is to only let traders decrease or close the active positions'
+        // size.
+        UD60x18 unsignedMarketCreditCapacityUsdX18 =
+            marketCreditCapacityUsdX18.lte(SD59x18_ZERO) ? UD60x18_ZERO : marketCreditCapacityUsdX18.intoUD60x18();
         // load max & current open interest for this perp market uint128 -> UD60x18
-        UD60x18 openInterestCapScaleX18 = ud60x18(self.configuration.openInterestCapScaleX18);
+        UD60x18 openInterestCapX18 =
+            ud60x18(self.configuration.openInterestCapScaleX18).mul(unsignedMarketCreditCapacityUsdX18);
         UD60x18 currentOpenInterest = ud60x18(self.openInterest);
 
         // calculate new open interest which would result from proposed trade
@@ -288,20 +295,21 @@ library PerpMarket {
         // allows traders to reduce/close their positions in markets where protocol admins
         // have reduced the max open interest to reduce the protocol's exposure to a given
         // perp market
-        if (newOpenInterest.gt(openInterestCapScaleX18) && shouldCheckNewOpenInterestAndNewSkew) {
+        if (newOpenInterest.gt(openInterestCapX18) && shouldCheckNewOpenInterestAndNewSkew) {
             // is the proposed trade reducing open interest?
             bool isReducingOpenInterest = currentOpenInterest.gt(newOpenInterest);
 
             // revert if the proposed trade isn't reducing open interest
             if (!isReducingOpenInterest) {
                 revert Errors.ExceedsOpenInterestLimit(
-                    self.id, openInterestCapScaleX18.intoUint256(), newOpenInterest.intoUint256()
+                    self.id, openInterestCapX18.intoUint256(), newOpenInterest.intoUint256()
                 );
             }
         }
 
         // load max & current skew for this perp market uint128 -> UD60x18 -> SD59x18
-        SD59x18 skewCapScaleX18 = ud60x18(self.configuration.skewCapScaleX18).intoSD59x18();
+        SD59x18 skewCapX18 =
+            ud60x18(self.configuration.skewCapScaleX18).mul(unsignedMarketCreditCapacityUsdX18).intoSD59x18();
         // int128 -> SD59x18
         SD59x18 currentSkew = sd59x18(self.skew);
 
@@ -310,11 +318,11 @@ library PerpMarket {
 
         // similar logic to the open interest check; if the new skew is greater than
         // the max, we still want to allow trades as long as they decrease the skew
-        if (newSkew.abs().gt(skewCapScaleX18) && shouldCheckNewOpenInterestAndNewSkew) {
+        if (newSkew.abs().gt(skewCapX18) && shouldCheckNewOpenInterestAndNewSkew) {
             bool isReducingSkew = currentSkew.abs().gt(newSkew.abs());
 
             if (!isReducingSkew) {
-                revert Errors.ExceedsSkewLimit(self.id, skewCapScaleX18.intoUint256(), newSkew.intoInt256());
+                revert Errors.ExceedsSkewLimit(self.id, skewCapX18.intoUint256(), newSkew.intoInt256());
             }
         }
     }

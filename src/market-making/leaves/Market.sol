@@ -189,6 +189,8 @@ library Market {
     /// @param delegatedCreditUsdX18 The market's credit delegated by vaults in USD.
     /// @param totalDebtUsdX18 The market's unrealized + realized debt in USD.
     /// @return creditCapacityUsdX18 The market's credit capacity in USD.
+    // todo: should we apply ADL to the unrealized debt portion of the total debt to return a market's credit
+    // capacity?
     function getCreditCapacityUsd(
         UD60x18 delegatedCreditUsdX18,
         SD59x18 totalDebtUsdX18

@@ -321,7 +321,6 @@ contract SettlementBranch is EIP712Upgradeable {
         Position.Data newPosition;
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
-        UD60x18 newOpenInterestX18;
         UD60x18 requiredMarginUsdX18;
         UD60x18 marginToAddX18;
         SD59x18 oldPositionSizeX18;
@@ -329,8 +328,11 @@ contract SettlementBranch is EIP712Upgradeable {
         SD59x18 pnlUsdX18;
         SD59x18 fundingFeePerUnitX18;
         SD59x18 fundingRateX18;
+        UD60x18 newOpenInterestX18;
         SD59x18 newSkewX18;
+        SD59x18 marketCreditCapacityUsdX18;
         address usdToken;
+        address marketMakingEngine;
         bool shouldUseMaintenanceMargin;
         bool isNotionalValueIncreasing;
     }
@@ -454,10 +456,16 @@ contract SettlementBranch is EIP712Upgradeable {
         // int256 -> SD59x18
         ctx.newPositionSizeX18 = sd59x18(ctx.newPosition.size);
 
+        ctx.marketMakingEngine = perpsEngineConfiguration.marketMakingEngine;
+
+        ctx.marketCreditCapacityUsdX18 =
+            IMarketMakingEngine(ctx.marketMakingEngine).updateCreditDelegationAndReturnCreditForMarket(ctx.marketId);
+
         // enforce open interest and skew limits for target market and calculate
         // new open interest and new skew
-        (ctx.newOpenInterestX18, ctx.newSkewX18) =
-            perpMarket.checkOpenInterestLimits(sizeDeltaX18, ctx.oldPositionSizeX18, ctx.newPositionSizeX18, true);
+        (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
+            sizeDeltaX18, ctx.oldPositionSizeX18, ctx.newPositionSizeX18, ctx.marketCreditCapacityUsdX18, true
+        );
 
         // update open interest and skew for this perp market
         perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
