@@ -85,7 +85,7 @@ contract PerpsEngineConfigurationHarness {
         PerpsEngineConfiguration.removeCollateralFromLiquidationPriority(self, collateralToken);
     }
 
-    function workaround_getReferralModule() external returns (address) {
+    function workaround_getReferralModule() external view returns (address) {
         PerpsEngineConfiguration.Data storage self = PerpsEngineConfiguration.load();
         return self.referralModule;
     }
