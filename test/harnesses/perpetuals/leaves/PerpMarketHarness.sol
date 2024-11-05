@@ -90,6 +90,7 @@ contract PerpMarketHarness {
         SD59x18 sizeDelta,
         SD59x18 oldPositionSize,
         SD59x18 newPositionSize,
+        SD59x18 marketCreditCapacityUsdX18,
         bool shouldCheckNewOpenInterestAndNewSkew
     )
         external
@@ -98,7 +99,12 @@ contract PerpMarketHarness {
     {
         PerpMarket.Data storage self = PerpMarket.load(marketId);
         return PerpMarket.checkOpenInterestLimits(
-            self, sizeDelta, oldPositionSize, newPositionSize, shouldCheckNewOpenInterestAndNewSkew
+            self,
+            sizeDelta,
+            oldPositionSize,
+            newPositionSize,
+            marketCreditCapacityUsdX18,
+            shouldCheckNewOpenInterestAndNewSkew
         );
     }
 

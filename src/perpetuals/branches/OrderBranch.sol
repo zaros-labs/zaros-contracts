@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
+import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
@@ -235,11 +236,13 @@ contract OrderBranch {
         SD59x18 marginBalanceUsdX18;
         SD59x18 sizeDeltaX18;
         SD59x18 positionSizeX18;
+        SD59x18 marketCreditCapacityUsdX18;
         UD60x18 requiredInitialMarginUsdX18;
         UD60x18 requiredMaintenanceMarginUsdX18;
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         UD60x18 requiredMarginUsdX18;
+        address marketMakingEngine;
         bool isNotionalValueIncreasing;
         bool shouldUseMaintenanceMargin;
         bool isMarketWithActivePosition;
@@ -310,9 +313,20 @@ contract OrderBranch {
         // int128 -> SD59x18
         ctx.positionSizeX18 = sd59x18(position.size);
 
+        // cache the market making engine contract address
+        ctx.marketMakingEngine = perpsEngineConfiguration.marketMakingEngine;
+
+        // updates the market's credit delegations and cache its latest credit capacity
+        ctx.marketCreditCapacityUsdX18 = IMarketMakingEngine(ctx.marketMakingEngine)
+            .updateCreditDelegationsAndReturnCapacityOfMarket(params.marketId);
+
         // enforce open interest and skew limits for target market
         perpMarket.checkOpenInterestLimits(
-            ctx.sizeDeltaX18, ctx.positionSizeX18, ctx.positionSizeX18.add(ctx.sizeDeltaX18), true
+            ctx.sizeDeltaX18,
+            ctx.positionSizeX18,
+            ctx.positionSizeX18.add(ctx.sizeDeltaX18),
+            ctx.marketCreditCapacityUsdX18,
+            true
         );
 
         // fetch storage slot for trader's potential pending order

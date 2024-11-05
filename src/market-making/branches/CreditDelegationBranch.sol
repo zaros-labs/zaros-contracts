@@ -60,7 +60,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the credit capacity of the given market id.
-    /// @dev `CreditDelegationBranch::updateCreditDelegation` must be called before calling this function in order to
+    /// @dev `CreditDelegationBranch::updateCreditDelegations` must be called before calling this function in order to
     /// retrieve the latest state.
     /// @dev Each engine can implement its own debt accounting schema according to its business logic, thus, this
     /// function will simply return the credit capacity in USD for the given market id.
@@ -313,7 +313,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// TODO: add invariants
     // TODO: update credit delegation and debt distribution
     // TODO: how to account for collected margin collateral's fluctuation in value?
-    function updateCreditDelegation(uint128 marketId) public { }
+    function updateCreditDelegations(uint128 marketId) public { }
 
     /// @dev Called by the perps trading engine to update the credit delegation and return the credit for a given
     /// market id
@@ -321,8 +321,8 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
     /// TODO: add invariants
-    function updateCreditDelegationAndReturnCreditForMarket(uint128 marketId) external returns (SD59x18) {
-        updateCreditDelegation(marketId);
+    function updateCreditDelegationsAndReturnCapacityOfMarket(uint128 marketId) external returns (SD59x18) {
+        updateCreditDelegations(marketId);
         return getCreditCapacityForMarketId(marketId);
     }
 

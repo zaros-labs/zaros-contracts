@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { OffchainOrder } from "@zaros/perpetuals/leaves/OffchainOrder.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
@@ -456,10 +457,12 @@ contract SettlementBranch is EIP712Upgradeable {
         // int256 -> SD59x18
         ctx.newPositionSizeX18 = sd59x18(ctx.newPosition.size);
 
+        // cache the market making engine contract address
         ctx.marketMakingEngine = perpsEngineConfiguration.marketMakingEngine;
 
+        // updates the market's credit delegations and cache its latest credit capacity
         ctx.marketCreditCapacityUsdX18 =
-            IMarketMakingEngine(ctx.marketMakingEngine).updateCreditDelegationAndReturnCreditForMarket(ctx.marketId);
+            IMarketMakingEngine(ctx.marketMakingEngine).updateCreditDelegationsAndReturnCapacityOfMarket(marketId);
 
         // enforce open interest and skew limits for target market and calculate
         // new open interest and new skew

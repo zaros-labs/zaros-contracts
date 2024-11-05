@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
+import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
@@ -107,6 +108,8 @@ contract LiquidationBranch {
         UD60x18 markPriceX18;
         SD59x18 fundingRateX18;
         SD59x18 fundingFeePerUnitX18;
+        address marketMakingEngine;
+        SD59x18 marketCreditCapacityUsdX18;
         UD60x18 newOpenInterestX18;
         SD59x18 newSkewX18;
         UD60x18 requiredMaintenanceMarginUsdX18;
@@ -219,9 +222,20 @@ contract LiquidationBranch {
                 // is why we are iterating over a memory copy of the trader's active markets
                 tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD59x18_ZERO);
 
+                // cache the market making engine contract address
+                ctx.marketMakingEngine = perpsEngineConfiguration.marketMakingEngine;
+
+                // updates the market's credit delegations and cache its latest credit capacity
+                ctx.marketCreditCapacityUsdX18 = IMarketMakingEngine(ctx.marketMakingEngine)
+                    .updateCreditDelegationsAndReturnCapacityOfMarket(ctx.marketId);
+
                 // we don't check skew during liquidations to protect from DoS
                 (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
-                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false
+                    ctx.liquidationSizeX18,
+                    ctx.oldPositionSizeX18,
+                    SD59x18_ZERO,
+                    ctx.marketCreditCapacityUsdX18,
+                    false
                 );
 
                 // update perp market's open interest and skew; we don't enforce ipen
