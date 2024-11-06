@@ -10,6 +10,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 import { StabilityConfiguration } from "@zaros/market-making/leaves/StabilityConfiguration.sol";
+import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
@@ -19,7 +20,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-contract StabilityBranch {
+contract StabilityBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -35,16 +36,6 @@ contract StabilityBranch {
 
     /// @notice Emitted when a swap is fulfilled by the keeper
     event LogFulfillSwap(address indexed user, uint128 indexed requestId);
-
-    modifier onlyKeeper() {
-        MarketMakingEngineConfiguration.Data storage configuration = MarketMakingEngineConfiguration.load();
-
-        if (!configuration.isSystemKeeperEnabled[msg.sender]) {
-            revert Errors.KeeperNotEnabled(msg.sender);
-        }
-
-        _;
-    }
 
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
     /// @param vaultIds An array of vault IDs from which to take assets.
@@ -122,7 +113,7 @@ contract StabilityBranch {
         address engine
     )
         external
-        onlyKeeper
+        onlyRegisteredSystemKeepers
     {
         // load request for user by id
         UsdTokenSwap.SwapRequest storage request = UsdTokenSwap.load().swapRequests[user][requestId];

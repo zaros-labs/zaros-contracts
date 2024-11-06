@@ -61,7 +61,7 @@ contract UsdTokenSwapKeeper_Initialize_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_StreamIdIsZero(uint256 vaultId)
+    function testFuzz_RevertWhen_StreamIdIsZero(uint256 vaultId)
         external
         whenAddressOfEngineIsNotZero
         whenAddressOfAssetIsNotZero
@@ -86,7 +86,7 @@ contract UsdTokenSwapKeeper_Initialize_Integration_Test is Base_Test {
         );
     }
 
-    function test_WhenStreamIdIsNotZero(uint256 vaultId)
+    function testFuzz_WhenStreamIdIsNotZero(uint256 vaultId)
         external
         whenAddressOfEngineIsNotZero
         whenAddressOfAssetIsNotZero

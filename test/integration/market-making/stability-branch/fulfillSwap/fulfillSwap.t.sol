@@ -20,7 +20,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
     function test_RevertWhen_CallerIsNotKeeper() external {
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.KeeperNotEnabled.selector, users.naruto.account));
+        vm.expectRevert(abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account));
 
         marketMakingEngine.fulfillSwap(users.naruto.account, 1, new bytes(0), address(marketMakingEngine));
     }

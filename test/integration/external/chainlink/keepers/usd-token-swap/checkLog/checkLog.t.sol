@@ -78,7 +78,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         _;
     }
 
-    function test_WhenAssetsMissmatch(uint256 assetsToDeposit) external givenCheckLogIsCalled whenDeadlineHasNotExpired {
+    function testFuzz_WhenAssetsMissmatch(uint256 assetsToDeposit) external givenCheckLogIsCalled whenDeadlineHasNotExpired {
         VaultConfig memory initialVaultConfig = getFuzzVaultConfig(INITIAL_VAULT_ID);
         VaultConfig memory vaultConfig = getFuzzVaultConfig(FINAL_VAULT_ID);
 
@@ -178,7 +178,6 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
 
         string[] memory streams = new string[](1);
         streams[0] = fuzzVaultConfig.streamIdString;
-        // bytes memory extraData = abi.encode(caller, requestId);
 
         // it should revert
         vm.expectRevert({

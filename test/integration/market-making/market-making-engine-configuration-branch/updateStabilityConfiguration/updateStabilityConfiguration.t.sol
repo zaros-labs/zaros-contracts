@@ -37,7 +37,7 @@ contract MarketMakingEngineConfigurationBranch_UpdateStabilityConfiguration_Inte
         marketMakingEngine.updateStabilityConfiguration(chailinkVerifier, maxVerificationDelay);
     }
 
-    function test_WhenMaxVerificationDelayIsNotZero(address chailinkVerifier, uint128 maxVerificationDelay) external whenChainlinkVerifierIsNotAddressZero {
+    function testFuzz_WhenMaxVerificationDelayIsNotZero(address chailinkVerifier, uint128 maxVerificationDelay) external whenChainlinkVerifierIsNotAddressZero {
         vm.assume(chailinkVerifier != address(0));
         maxVerificationDelay = uint128(bound({ x: maxVerificationDelay, min: 1, max: uint256(type(uint128).max) }));
 

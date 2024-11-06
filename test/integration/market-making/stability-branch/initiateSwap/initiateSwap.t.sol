@@ -55,7 +55,7 @@ contract InitiateSwap_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_CollateralIsDisabled(uint256 vaultId)
+    function testFuzz_RevertWhen_CollateralIsDisabled(uint256 vaultId)
         external
         whenVaultIdsAndAmountsInArraysLengthMatch
         whenAmountsInAndMinAmountsOutArraysLengthMatch
@@ -85,7 +85,7 @@ contract InitiateSwap_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_CollateralAssetsOfVaultsMissmatch()
+    function test_RevertWhen_CollateralAssetsOfVaultsMissmatch()
         external
         whenVaultIdsAndAmountsInArraysLengthMatch
         whenAmountsInAndMinAmountsOutArraysLengthMatch
@@ -107,7 +107,7 @@ contract InitiateSwap_Integration_Test is Base_Test {
         marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
     }
 
-    function test_WhenCollateralAssetsOfVaultsMatch(
+    function testFuzz_WhenCollateralAssetsOfVaultsMatch(
         uint256 vaultId,
         uint256 swapAmount
     )

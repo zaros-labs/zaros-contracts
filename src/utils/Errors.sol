@@ -273,10 +273,6 @@ library Errors {
 
     /// @notice MarketMakingEngine.StabilityBranch errors.
 
-    /// @notice Thrown when the sender is not an enabled keeper
-    /// @notice the address of the caller
-    error KeeperNotEnabled(address sender);
-
     /// @notice Thrown when assets in initiate swap are different
     error MissmatchingCollateralAssets(address asset1, address asset2);
 
