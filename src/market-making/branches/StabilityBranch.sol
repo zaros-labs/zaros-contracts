@@ -123,6 +123,11 @@ contract StabilityBranch is EngineAccessControl {
             revert Errors.RequestAlreadyProcessed(user, requestId);
         }
 
+        // if request dealine expired revert
+        if (request.deadline < block.timestamp) {
+            revert Errors.SwapRequestExpired(user, requestId);
+        }
+
         // set request processed to true
         request.processed = true;
 

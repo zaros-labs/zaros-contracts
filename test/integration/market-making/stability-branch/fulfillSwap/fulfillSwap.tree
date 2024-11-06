@@ -5,9 +5,12 @@ FulfillSwap_Integration_Test
     ├── when request was already processed
     │   └── it should revert
     └── when request was not yet processed
-        ├── when slippage check fails
+        ├── when swap request has expired
         │   └── it should revert
-        └── when slippage check passes
-            ├── it should transfer assets to user
-            ├── it should emit {LogFulfillSwap} event
-            └── it should burn USD token from contract
+        └── when swap request not expired
+            ├── when slippage check fails
+            │   └── it should revert
+            └── when slippage check passes
+                ├── it should transfer assets to user
+                ├── it should emit {LogFulfillSwap} event
+                └── it should burn USD token from contract

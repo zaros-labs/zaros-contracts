@@ -66,6 +66,50 @@ contract FulfillSwap_Integration_Test is Base_Test {
         _;
     }
 
+    function testFuzz_RevertWhen_SwapRequestHasExpired(
+        uint256 vaultId,
+        uint256 swapAmount
+    )
+        external
+        whenCallerIsKeeper
+        whenRequestWasNotYetProcessed
+    {
+        uint128 maxExecutionEndTime = 100;
+        changePrank({ msgSender: users.owner.account });
+        marketMakingEngine.configureUsdTokenSwap(1, 30, maxExecutionEndTime);
+        changePrank({ msgSender: users.naruto.account });
+
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
+
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint96).max });
+
+        deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
+
+        uint128 minAmountOut = 0;
+
+        initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), swapAmount, minAmountOut);
+
+        bytes memory priceData = getMockedSignedReport(fuzzVaultConfig.streamId, 1e10);
+        address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
+
+        // Fast forward time so request expires
+        skip(maxExecutionEndTime + 1);
+
+        uint128 requestId = 1;
+        changePrank({ msgSender: usdTokenSwapKeeper });
+
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.SwapRequestExpired.selector, users.naruto.account, 1));
+
+        marketMakingEngine.fulfillSwap(users.naruto.account, requestId, priceData, address(marketMakingEngine));
+    }
+
+    modifier whenSwapRequestNotExpired() {
+        _;
+    }
+
     function testFuzz_RevertWhen_SlippageCheckFails(
         uint256 vaultId,
         uint256 swapAmount
@@ -73,6 +117,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         external
         whenCallerIsKeeper
         whenRequestWasNotYetProcessed
+        whenSwapRequestNotExpired
     {
         changePrank({ msgSender: users.owner.account });
         uint128 bpsFee = 30;
@@ -116,6 +161,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         external
         whenCallerIsKeeper
         whenRequestWasNotYetProcessed
+        whenSwapRequestNotExpired
     {
         changePrank({ msgSender: users.owner.account });
         marketMakingEngine.configureUsdTokenSwap(1, 30, type(uint96).max);

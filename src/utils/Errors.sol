@@ -290,5 +290,11 @@ library Errors {
     /// @param asset The address of the asset
     error InvalidUsdTokenSwap(address asset);
 
+    /// @notice Thrown when the data stream report has expired
     error DataStreamReportExpired();
+
+    /// Thrown when the request has expired
+    /// @param user the user that initiated the request
+    /// @param requestId The id of the request
+    error SwapRequestExpired(address user, uint128 requestId);
 }
