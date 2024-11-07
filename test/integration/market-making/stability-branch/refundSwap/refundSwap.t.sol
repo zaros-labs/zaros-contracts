@@ -5,9 +5,9 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
+import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 
 contract RefundSwap_Integration_Test is Base_Test {
-
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
@@ -40,7 +40,9 @@ contract RefundSwap_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.RequestAlreadyProcessed.selector, users.naruto.account, requestId));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.RequestAlreadyProcessed.selector, users.naruto.account, requestId)
+        );
 
         marketMakingEngine.refundSwap(requestId, address(marketMakingEngine));
     }
@@ -49,7 +51,13 @@ contract RefundSwap_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_DeadlineHasNotPassed(uint256 vaultId, uint256 swapAmount) external whenRequestIsNotProcessed {
+    function testFuzz_RevertWhen_DeadlineHasNotPassed(
+        uint256 vaultId,
+        uint256 swapAmount
+    )
+        external
+        whenRequestIsNotProcessed
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
@@ -91,9 +99,22 @@ contract RefundSwap_Integration_Test is Base_Test {
 
         skip(MAX_VERIFICATION_DELAY + 1);
 
+        (uint256 refundAmount,) = marketMakingEngine.deductFeeUsd(swapAmount);
+
+        UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
+
         // it should emit {LogRefundSwap} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
-        emit StabilityBranch.LogRefundSwap(users.naruto.account, requestId);
+        emit StabilityBranch.LogRefundSwap(
+            users.naruto.account,
+            requestId,
+            request.vaultId,
+            request.amountIn,
+            request.minAmountOut,
+            request.assetOut,
+            request.deadline,
+            refundAmount
+        );
 
         marketMakingEngine.refundSwap(requestId, address(marketMakingEngine));
         // it should transfer usd back to user

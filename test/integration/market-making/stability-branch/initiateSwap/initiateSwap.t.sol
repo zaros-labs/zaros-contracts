@@ -10,6 +10,7 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 
 contract InitiateSwap_Integration_Test is Base_Test {
     using Collateral for Collateral.Data;
+
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
@@ -85,28 +86,6 @@ contract InitiateSwap_Integration_Test is Base_Test {
         _;
     }
 
-    function test_RevertWhen_CollateralAssetsOfVaultsMissmatch()
-        external
-        whenVaultIdsAndAmountsInArraysLengthMatch
-        whenAmountsInAndMinAmountsOutArraysLengthMatch
-        whenCollateralIsEnabled
-    {
-        uint128[] memory vaultIds = new uint128[](2);
-        uint128[] memory amountsIn = new uint128[](2);
-        uint128[] memory minAmountsOut = new uint128[](2);
-
-        vaultIds[0] = INITIAL_VAULT_ID;
-        vaultIds[1] = FINAL_VAULT_ID;
-
-        address asset0 = marketMakingEngine.workaround_Vault_getVaultAsset(INITIAL_VAULT_ID);
-        address asset1 = marketMakingEngine.workaround_Vault_getVaultAsset(FINAL_VAULT_ID);
-
-        // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.MissmatchingCollateralAssets.selector, asset1, asset0));
-
-        marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
-    }
-
     function testFuzz_WhenCollateralAssetsOfVaultsMatch(
         uint256 vaultId,
         uint256 swapAmount
@@ -132,9 +111,19 @@ contract InitiateSwap_Integration_Test is Base_Test {
 
         uint128 swapRequestId = 1;
 
+        address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(fuzzVaultConfig.vaultId);
+
         // it shoud emit {LogInitiateSwap} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
-        emit StabilityBranch.LogInitiateSwap(users.naruto.account, swapRequestId);
+        emit StabilityBranch.LogInitiateSwap(
+            users.naruto.account,
+            swapRequestId,
+            fuzzVaultConfig.vaultId,
+            amountsIn[0],
+            0,
+            vaultAsset,
+            uint120(block.timestamp)
+        );
 
         marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
 

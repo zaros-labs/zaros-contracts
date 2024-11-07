@@ -273,9 +273,6 @@ library Errors {
 
     /// @notice MarketMakingEngine.StabilityBranch errors.
 
-    /// @notice Thrown when assets in initiate swap are different
-    error MissmatchingCollateralAssets(address asset1, address asset2);
-
     /// @notice Thrown when swap request is not yet expired
     /// @param user the user that initiated the request
     /// @param requestId The id of the request
@@ -296,5 +293,6 @@ library Errors {
     /// Thrown when the request has expired
     /// @param user the user that initiated the request
     /// @param requestId The id of the request
-    error SwapRequestExpired(address user, uint128 requestId);
+    /// @param expiration The request expiration time
+    error SwapRequestExpired(address user, uint128 requestId, uint256 expiration);
 }

@@ -5,9 +5,13 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
+import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+
+// PRB Math dependencies
+import { ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract FulfillSwap_Integration_Test is Base_Test {
     function setUp() public virtual override {
@@ -94,6 +98,8 @@ contract FulfillSwap_Integration_Test is Base_Test {
         bytes memory priceData = getMockedSignedReport(fuzzVaultConfig.streamId, 1e10);
         address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
+        UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, 1);
+
         // Fast forward time so request expires
         skip(maxExecutionEndTime + 1);
 
@@ -101,7 +107,11 @@ contract FulfillSwap_Integration_Test is Base_Test {
         changePrank({ msgSender: usdTokenSwapKeeper });
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.SwapRequestExpired.selector, users.naruto.account, 1));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.SwapRequestExpired.selector, users.naruto.account, 1, request.deadline
+            )
+        );
 
         marketMakingEngine.fulfillSwap(users.naruto.account, requestId, priceData, address(marketMakingEngine));
     }
@@ -183,11 +193,25 @@ contract FulfillSwap_Integration_Test is Base_Test {
         address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
         uint128 requestId = 1;
+        UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
+
+        uint256 amountOut = marketMakingEngine.getAmountOutCollateral(swapAmount, ud60x18(1e10));
+        uint256 amountOutAfterFee = marketMakingEngine.deductFeeCollateral(amountOut, fuzzVaultConfig.asset, ud60x18(1e10));
+
         changePrank({ msgSender: usdTokenSwapKeeper });
 
         // it should emit {LogFulfillSwap} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
-        emit StabilityBranch.LogFulfillSwap(users.naruto.account, 1);
+        emit StabilityBranch.LogFulfillSwap(
+            users.naruto.account,
+            requestId,
+            fuzzVaultConfig.vaultId,
+            request.amountIn,
+            request.minAmountOut,
+            request.assetOut,
+            request.deadline,
+            amountOutAfterFee
+        );
 
         marketMakingEngine.fulfillSwap(users.naruto.account, requestId, priceData, address(marketMakingEngine));
 

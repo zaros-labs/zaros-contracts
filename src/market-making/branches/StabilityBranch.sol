@@ -29,13 +29,39 @@ contract StabilityBranch is EngineAccessControl {
     using StabilityConfiguration for StabilityConfiguration.Data;
 
     /// @notice Emitted to trigger the Chainlink Log based upkeep
-    event LogInitiateSwap(address indexed caller, uint128 indexed requestId);
+    event LogInitiateSwap(
+        address indexed caller,
+        uint128 indexed requestId,
+        uint128 vaultId,
+        uint128 amountIn,
+        uint128 minAmountOut,
+        address assetOut,
+        uint120 deadline
+    );
 
     /// @notice Emitted when a swap is not fulfilled by the keeper and assets are refunded
-    event LogRefundSwap(address indexed user, uint128 indexed requestId);
+    event LogRefundSwap(
+        address indexed user,
+        uint128 indexed requestId,
+        uint128 vaultId,
+        uint128 amountIn,
+        uint128 minAmountOut,
+        address assetOut,
+        uint120 deadline,
+        uint256 refundAmount
+    );
 
     /// @notice Emitted when a swap is fulfilled by the keeper
-    event LogFulfillSwap(address indexed user, uint128 indexed requestId);
+    event LogFulfillSwap(
+        address indexed user,
+        uint128 indexed requestId,
+        uint128 vaultId,
+        uint128 amountIn,
+        uint128 minAmountOut,
+        address assetOut,
+        uint120 deadline,
+        uint256 amountOut
+    );
 
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
     /// @param vaultIds An array of vault IDs from which to take assets.
@@ -65,14 +91,6 @@ contract StabilityBranch is EngineAccessControl {
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
         for (uint256 i; i < amountsIn.length; i++) {
-            // load vault by id
-            Vault.Data storage vault = Vault.load(vaultIds[i]);
-
-            // if assets are different revert
-            if (vault.collateral.asset != initialVault.collateral.asset) {
-                revert Errors.MissmatchingCollateralAssets(vault.collateral.asset, initialVault.collateral.asset);
-            }
-
             // transfer USD: user => address(this) - burned in fulfillSwap
             IERC20(configuration.usdTokenOfEngine[address(this)]).safeTransferFrom(
                 msg.sender, address(this), amountsIn[i]
@@ -91,7 +109,15 @@ contract StabilityBranch is EngineAccessControl {
             swapRequest.deadline = uint120(block.timestamp) + uint120(tokenSwapData.maxExecutionTime);
             swapRequest.amountIn = amountsIn[i];
 
-            emit LogInitiateSwap(msg.sender, requestId);
+            emit LogInitiateSwap(
+                msg.sender,
+                requestId,
+                vaultIds[i],
+                amountsIn[i],
+                minAmountsOut[i],
+                swapRequest.assetOut,
+                swapRequest.deadline
+            );
         }
     }
 
@@ -125,7 +151,7 @@ contract StabilityBranch is EngineAccessControl {
 
         // if request dealine expired revert
         if (request.deadline < block.timestamp) {
-            revert Errors.SwapRequestExpired(user, requestId);
+            revert Errors.SwapRequestExpired(user, requestId, request.deadline);
         }
 
         // set request processed to true
@@ -167,7 +193,16 @@ contract StabilityBranch is EngineAccessControl {
         // vault => user
         IERC20(vault.collateral.asset).safeTransferFrom(address(vault.indexToken), user, amountOutAfterFee);
 
-        emit LogFulfillSwap(user, requestId);
+        emit LogFulfillSwap(
+            user,
+            requestId,
+            request.vaultId,
+            request.amountIn,
+            request.minAmountOut,
+            request.assetOut,
+            request.deadline,
+            amountOutAfterFee
+        );
     }
 
     /// @notice Refunds a swap request that has not been processed and has expired.
@@ -200,12 +235,24 @@ contract StabilityBranch is EngineAccessControl {
         address usdToken = marketMakingEngineConfiguration.usdTokenOfEngine[engine];
 
         // get refund amount
-        uint256 refundAmount = _handleFeeUsd(request.amountIn, UsdToken(usdToken));
+        (uint256 refundAmount, uint256 feeAmount) = _handleFeeUsd(request.amountIn);
+
+        // transfer fee too fee recipient
+        IERC20(usdToken).safeTransfer(address(1), feeAmount); // TODO: set USD token fee recipien
 
         // transfer usd refund amount back to user
         IERC20(usdToken).safeTransfer(msg.sender, refundAmount);
 
-        emit LogRefundSwap(msg.sender, requestId);
+        emit LogRefundSwap(
+            msg.sender,
+            requestId,
+            request.vaultId,
+            request.amountIn,
+            request.minAmountOut,
+            request.assetOut,
+            request.deadline,
+            refundAmount
+        );
     }
 
     /// @notice Calculates the amount of collateral to be received based on the input USD amount and the asset price.
@@ -229,9 +276,8 @@ contract StabilityBranch is EngineAccessControl {
     /// @notice Applies the swap fee to the USD token amount and either mints or transfers the fee to the fee
     /// recipient.
     /// @param amountIn The original amount of USD tokens to be swapped, before the fee is deducted.
-    /// @param usdToken The USD token contract used in the swap.
-    /// @return The amount of USD tokens remaining after the fee is deducted.
-    function _handleFeeUsd(uint256 amountIn, UsdToken usdToken) internal returns (uint256) {
+    /// @return The amount of USD tokens remaining after the fee is deducted and the fee
+    function _handleFeeUsd(uint256 amountIn) internal view returns (uint256, uint256) {
         // load swap data
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
@@ -241,11 +287,8 @@ contract StabilityBranch is EngineAccessControl {
         // deduct the fee from the amountIn
         amountIn -= feeAmount;
 
-        // transfer fee too fee recipient
-        IERC20(usdToken).safeTransfer(address(1), feeAmount); // TODO: set USD token fee recipien
-
         // return amountIn after fee was applied
-        return amountIn;
+        return (amountIn, feeAmount);
     }
 
     /// @notice Calculates and deducts the applicable fee from the specified asset amount.
@@ -330,5 +373,38 @@ contract StabilityBranch is EngineAccessControl {
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
         request = tokenSwapData.swapRequests[caller][requestId];
+    }
+
+    /// @notice Calculates the amount of collateral to be received based on the input USD amount and the asset price.
+    /// @param usdAmountIn The amount of USD tokens to be swapped.
+    /// @param priceX18 The price of the collateral asset in 18-decimal fixed-point format (UD60x18).
+    /// @return The amount of collateral to be received, calculated from the input USD amount and asset price.
+    function getAmountOutCollateral(uint256 usdAmountIn, UD60x18 priceX18) external pure returns (uint256) {
+        return _getAmountOutCollateral(usdAmountIn, priceX18);
+    }
+
+    /// @notice Calculates and deducts the applicable fee from the specified asset amount.
+    /// @param assetAmount The initial amount of the asset being processed.
+    /// @param asset The address of the asset for which the fee is being calculated.
+    /// @param priceX18 The current price of the asset in UD60x18 format.
+    /// @return The amount remaining after the base and settlement fees have been deducted.
+    function deductFeeCollateral(
+        uint256 assetAmount,
+        address asset,
+        UD60x18 priceX18
+    )
+        external
+        view
+        returns (uint256)
+    {
+        return _handleFeeAsset(assetAmount, asset, priceX18);
+    }
+
+    /// @notice Applies the swap fee to the USD token amount and either mints or transfers the fee to the fee
+    /// recipient.
+    /// @param usdAmountIn The original amount of USD tokens to be swapped, before the fee is deducted.
+    /// @return The amount of USD tokens remaining after the fee is deducted.
+    function deductFeeUsd(uint256 usdAmountIn) external returns (uint256, uint256) {
+        return _handleFeeUsd(usdAmountIn);
     }
 }

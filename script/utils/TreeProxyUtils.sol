@@ -493,11 +493,14 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     feeDistributionBranchSelectors[3] = FeeDistributionBranch.sendWethToFeeRecipients.selector;
     feeDistributionBranchSelectors[4] = FeeDistributionBranch.claimFees.selector;
 
-    bytes4[] memory stabilityBranchSelectors = new bytes4[](4);
+    bytes4[] memory stabilityBranchSelectors = new bytes4[](7);
     stabilityBranchSelectors[0] = StabilityBranch.initiateSwap.selector;
     stabilityBranchSelectors[1] = StabilityBranch.refundSwap.selector;
     stabilityBranchSelectors[2] = StabilityBranch.fulfillSwap.selector;
     stabilityBranchSelectors[3] = StabilityBranch.getSwapRequest.selector;
+    stabilityBranchSelectors[4] = StabilityBranch.getAmountOutCollateral.selector;
+    stabilityBranchSelectors[5] = StabilityBranch.deductFeeCollateral.selector;
+    stabilityBranchSelectors[6] = StabilityBranch.deductFeeUsd.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = marketMakingEngineConfigBranchSelectors;
