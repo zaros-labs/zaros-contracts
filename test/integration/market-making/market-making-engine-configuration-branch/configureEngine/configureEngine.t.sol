@@ -83,9 +83,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureEngine_Integration_Test 
         _;
     }
 
-    function testFuzz_RevertWhen_TheUsdTokenIsZero(
-        address engine
-    )
+    function testFuzz_RevertWhen_TheUsdTokenIsZero(address engine)
         external
         givenTheSenderIsTheOwner
         whenTheShouldBeEnabledIsTrue

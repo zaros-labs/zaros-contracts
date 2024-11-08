@@ -203,9 +203,7 @@ library Market {
     /// @notice Returns all the credit delegated by the vaults connected to the market.
     /// @param self The market storage pointer.
     /// @return totalDelegatedCreditUsdX18 The total credit delegated by the vaults in USD.
-    function getTotalDelegatedCreditUsd(
-        Data storage self
-    )
+    function getTotalDelegatedCreditUsd(Data storage self)
         internal
         view
         returns (UD60x18 totalDelegatedCreditUsdX18)

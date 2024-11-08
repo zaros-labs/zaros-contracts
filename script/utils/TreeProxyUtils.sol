@@ -511,9 +511,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     return selectors;
 }
 
-function deployMarketMakingHarnesses(
-    RootProxy.BranchUpgrade[] memory branchUpgrades
-)
+function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployMarketMakingAddressHarnesses();
@@ -638,7 +636,8 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     dexSwapStrategyHarnessSelectors[0] = DexSwapStrategyHarness.exposed_dexSwapStrategy_load.selector;
 
     bytes4[] memory stabilityConfigurationHarnessSelectors = new bytes4[](1);
-    stabilityConfigurationHarnessSelectors[0] = StabilityConfigurationHarness.exposed_StabilityConfiguration_load.selector;
+    stabilityConfigurationHarnessSelectors[0] =
+        StabilityConfigurationHarness.exposed_StabilityConfiguration_load.selector;
 
     selectors[0] = vaultHarnessSelectors;
     selectors[1] = withdrawalRequestHarnessSelectors;

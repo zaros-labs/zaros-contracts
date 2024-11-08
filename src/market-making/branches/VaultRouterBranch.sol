@@ -80,9 +80,7 @@ contract VaultRouterBranch {
     /// @return settledRealizedDebtUsd The total amount of settled debt in USD.
     /// @return indexToken The index token address.
     /// @return collateral The collateral asset data.
-    function getVaultData(
-        uint128 vaultId
-    )
+    function getVaultData(uint128 vaultId)
         external
         view
         returns (

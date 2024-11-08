@@ -108,9 +108,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SwapRequestExpired.selector, users.naruto.account, 1, request.deadline
-            )
+            abi.encodeWithSelector(Errors.SwapRequestExpired.selector, users.naruto.account, 1, request.deadline)
         );
 
         marketMakingEngine.fulfillSwap(users.naruto.account, requestId, priceData, address(marketMakingEngine));
@@ -196,7 +194,8 @@ contract FulfillSwap_Integration_Test is Base_Test {
         UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
 
         uint256 amountOut = marketMakingEngine.getAmountOutCollateral(swapAmount, ud60x18(1e10));
-        uint256 amountOutAfterFee = marketMakingEngine.deductFeeCollateral(amountOut, fuzzVaultConfig.asset, ud60x18(1e10));
+        uint256 amountOutAfterFee =
+            marketMakingEngine.deductFeeCollateral(amountOut, fuzzVaultConfig.asset, ud60x18(1e10));
 
         changePrank({ msgSender: usdTokenSwapKeeper });
 

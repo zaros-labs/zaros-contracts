@@ -63,7 +63,9 @@ library MarketMakingEngineConfiguration {
         }
     }
 
-    // todo: natspec
+    /// @notice Sends the accumulated protocol WETH reward to the configured recipients.
+    /// @param self The {MarketMakingEngineConfiguration} storage pointer.
+    /// @param wethReward The accumulated WETH reward to distribute.
     function distributeProtocolWethReward(Data storage self, uint256 wethReward) internal {
         // Cache the length of the protocol fee recipients
         uint256 feeRecipientsLength = self.protocolFeeRecipients.length();

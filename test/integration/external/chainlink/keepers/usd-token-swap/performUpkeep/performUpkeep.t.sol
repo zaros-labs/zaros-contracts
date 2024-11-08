@@ -69,7 +69,8 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
         UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
 
         uint256 amountOut = marketMakingEngine.getAmountOutCollateral(amountInUsd, ud60x18(mockPrice));
-        uint256 amountOutAfterFee = marketMakingEngine.deductFeeCollateral(amountOut, fuzzVaultConfig.asset, ud60x18(mockPrice));
+        uint256 amountOutAfterFee =
+            marketMakingEngine.deductFeeCollateral(amountOut, fuzzVaultConfig.asset, ud60x18(mockPrice));
 
         // it should emit {LogFulfillSwap} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });

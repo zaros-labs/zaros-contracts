@@ -48,9 +48,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureVaultConnectedMarkets_In
         _;
     }
 
-    function testFuzz_RevertWhen_ConnectedMarketsArrayLengthIsZero(
-        uint256 vaultId
-    )
+    function testFuzz_RevertWhen_ConnectedMarketsArrayLengthIsZero(uint256 vaultId)
         external
         givenTheSenderIsTheOwner
         whenVaultIdIsNotZero

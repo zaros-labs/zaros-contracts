@@ -50,9 +50,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheAmountIsZero(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_TheAmountIsZero(uint256 marketId)
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
@@ -73,9 +71,7 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheAssetIsNotEnabled(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_TheAssetIsNotEnabled(uint256 marketId)
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
