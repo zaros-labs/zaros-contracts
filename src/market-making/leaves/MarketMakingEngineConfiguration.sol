@@ -67,12 +67,12 @@ library MarketMakingEngineConfiguration {
     /// @param self The {MarketMakingEngineConfiguration} storage pointer.
     /// @param wethReward The accumulated WETH reward to distribute.
     function distributeProtocolWethReward(Data storage self, uint256 wethReward) internal {
-        // Cache the length of the protocol fee recipients
+        // cache the length of the protocol fee recipients
         uint256 feeRecipientsLength = self.protocolFeeRecipients.length();
 
-        // Iterate over the protocol fee recipients
+        // iterate over the protocol configured fee recipients
         for (uint256 i; i < feeRecipientsLength; i++) {
-            // Load the fee recipient address and shares
+            // load the fee recipient address and shares
             (address feeRecipient, uint256 shares) = self.protocolFeeRecipients.at(i);
 
             // Calculate the fee recipient reward

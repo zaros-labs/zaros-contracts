@@ -51,7 +51,7 @@ contract FeeDistributionBranch is EngineAccessControl {
 
     /// @notice Emitted when weth rewards are sent to fee recipients.
     /// @param marketId The market that distributed weth to the protocol fee recipients.
-    /// @param totalWethReward The total weth reward amount sent to fee recipients.
+    /// @param totalWethReward The total weth reward amount sent to fee recipients, using weth's decimals.
     event LogSendWethToFeeRecipients(uint128 indexed marketId, uint256 totalWethReward);
 
     /// @notice Emitted when a user claims their accumulated fees.
@@ -207,23 +207,19 @@ contract FeeDistributionBranch is EngineAccessControl {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
             MarketMakingEngineConfiguration.load();
 
-        // loads the protocol fee recipients storage pointer
-        // todo: create a helper function so the protocol fee recipient logic can be reused
-        EnumerableMap.AddressToUintMap storage protocolFeeRecipients =
-            marketMakingEngineConfigurationData.protocolFeeRecipients;
+        // load weth collateral configuration
+        Collateral.Data storage wethCollateralData = Collateral.load(marketMakingEngineConfigurationData.weth);
 
-        // store the length of the fee recipients list
-        uint256 recipientListLength = protocolFeeRecipients.length();
+        // convert collected fees to UD60x18 and convert decimals if needed, to ensure it's using the network's weth
+        // decimals value
+        uint256 pendingProtocolWethReward =
+            wethCollateralData.convertUd60x18ToTokenAmount(ud60x18(market.pendingProtocolWethReward));
 
-        // weth address
-        address weth = marketMakingEngineConfigurationData.weth;
+        // sends the accumulated protocol weth reward to the configured fee recipients
+        marketMakingEngineConfigurationData.distributeProtocolWethReward(pendingProtocolWethReward);
 
-        // convert collected fees to UD60x18
-        UD60x18 pendingProtocolWethRewardX18 = ud60x18(market.pendingProtocolWethReward);
-
-        marketMakingEngineConfigurationData.distributeProtocolWethReward(pendingProtocolWethRewardX18.intoUint256());
-
-        emit LogSendWethToFeeRecipients(marketId, pendingProtocolWethRewardX18.intoUint256());
+        // emit event to log the weth sent to fee recipients
+        emit LogSendWethToFeeRecipients(marketId, pendingProtocolWethReward);
     }
 
     /// @notice allows user to claim their share of fees
