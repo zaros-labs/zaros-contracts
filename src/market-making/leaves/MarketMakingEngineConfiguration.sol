@@ -63,10 +63,11 @@ library MarketMakingEngineConfiguration {
         }
     }
 
-    /// @notice Sends the accumulated protocol WETH reward to the configured recipients.
+    /// @notice Sends the accumulated protocol reward to the configured recipients using the given asset.
     /// @param self The {MarketMakingEngineConfiguration} storage pointer.
-    /// @param wethReward The accumulated WETH reward to distribute.
-    function distributeProtocolWethReward(Data storage self, uint256 wethReward) internal {
+    /// @param asset The asset to be distributed as reward.
+    /// @param amount The accumulated reward amount.
+    function distributeProtocolAssetReward(Data storage self, address asset, uint256 amount) internal {
         // cache the length of the protocol fee recipients
         uint256 feeRecipientsLength = self.protocolFeeRecipients.length();
 
@@ -76,11 +77,11 @@ library MarketMakingEngineConfiguration {
             (address feeRecipient, uint256 shares) = self.protocolFeeRecipients.at(i);
 
             // Calculate the fee recipient reward
-            uint256 feeRecipientWethReward =
-                ud60x18(wethReward).mul(ud60x18(shares).div(getTotalFeeRecipientsShares(self))).intoUint256();
+            uint256 feeRecipientReward =
+                ud60x18(amount).mul(ud60x18(shares).div(getTotalFeeRecipientsShares(self))).intoUint256();
 
             // Transfer the fee recipient reward
-            IERC20(self.weth).safeTransfer(feeRecipient, feeRecipientWethReward);
+            IERC20(asset).safeTransfer(feeRecipient, feeRecipientReward);
         }
     }
 }

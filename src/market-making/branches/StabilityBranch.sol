@@ -313,7 +313,6 @@ contract StabilityBranch is EngineAccessControl {
         UD60x18 baseFeeAssetUnitX18 = oneUsdAssetUnitX18.mul(ud60x18(tokenSwapData.baseFeeUsd));
 
         // UD60x18 -> uint256
-        // todo: create protocol fee recipient sending helper to re-use here and at fee distribution branch
         uint256 baseFeeAsset = collateral.convertUd60x18ToTokenAmount(baseFeeAssetUnitX18);
 
         // calculate fee amount

@@ -204,11 +204,14 @@ contract FeeDistributionBranch is EngineAccessControl {
         if (market.pendingProtocolWethReward == 0) revert Errors.NoWethFeesCollected();
 
         // loads the market making engine configuration data storage pointer
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
+        // cache the weth address
+        address weth = marketMakingEngineConfiguration.weth;
+
         // load weth collateral configuration
-        Collateral.Data storage wethCollateralData = Collateral.load(marketMakingEngineConfigurationData.weth);
+        Collateral.Data storage wethCollateralData = Collateral.load(weth);
 
         // convert collected fees to UD60x18 and convert decimals if needed, to ensure it's using the network's weth
         // decimals value
@@ -216,7 +219,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             wethCollateralData.convertUd60x18ToTokenAmount(ud60x18(market.pendingProtocolWethReward));
 
         // sends the accumulated protocol weth reward to the configured fee recipients
-        marketMakingEngineConfigurationData.distributeProtocolWethReward(pendingProtocolWethReward);
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(weth, pendingProtocolWethReward);
 
         // emit event to log the weth sent to fee recipients
         emit LogSendWethToFeeRecipients(marketId, pendingProtocolWethReward);
