@@ -7,7 +7,6 @@ import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { UsdToken } from "@zaros/usd/UsdToken.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Math } from "@zaros/utils/Math.sol";
 import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 import { StabilityConfiguration } from "@zaros/market-making/leaves/StabilityConfiguration.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
@@ -22,11 +21,12 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract StabilityBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
+    using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using SafeCast for uint120;
-    using UsdTokenSwap for UsdTokenSwap.Data;
     using StabilityConfiguration for StabilityConfiguration.Data;
+    using UsdTokenSwap for UsdTokenSwap.Data;
 
     /// @notice Emitted to trigger the Chainlink Log based upkeep
     event LogInitiateSwap(
@@ -296,7 +296,9 @@ contract StabilityBranch is EngineAccessControl {
     /// @param asset The address of the asset for which the fee is being calculated.
     /// @param priceX18 The current price of the asset in UD60x18 format.
     /// @return The amount remaining after the base and settlement fees have been deducted.
-    function _handleFeeAsset(uint256 amountOut, address asset, UD60x18 priceX18) internal view returns (uint256) {
+    // todo: refactor this function in two steps, view and non-view, to return the expected amount out to external
+    // clients taking fees into account.
+    function _handleFeeAsset(uint256 amountOut, address asset, UD60x18 priceX18) internal returns (uint256) {
         // load swap data
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
@@ -310,19 +312,32 @@ contract StabilityBranch is EngineAccessControl {
         UD60x18 oneUsdAssetUnitX18 = oneAssetUnitX18.div(priceX18);
 
         // multiply the $1 worth of asset amount by the base fee in USD
-        UD60x18 baseFeeAssetUnitX18 = oneUsdAssetUnitX18.mul(ud60x18(tokenSwapData.baseFeeUsd));
+        UD60x18 baseFeeX18 = oneUsdAssetUnitX18.mul(ud60x18(tokenSwapData.baseFeeUsd));
 
         // UD60x18 -> uint256
-        uint256 baseFeeAsset = collateral.convertUd60x18ToTokenAmount(baseFeeAssetUnitX18);
+        uint256 baseFee = collateral.convertUd60x18ToTokenAmount(baseFeeX18);
+        // calculates the swap fee portion
+        uint256 totalSwapFee = (amountOut * tokenSwapData.swapSettlementFeeBps) / 10_000;
 
-        // calculate fee amount
-        uint256 feeAmount = baseFeeAsset + (amountOut * tokenSwapData.swapSettlementFeeBps) / 10_000;
+        // load the mm engine configuration pointer
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
 
-        // TODO: Send fee amount to fee receiver. At this time the fee is just sitting in the vault
+        // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
+        // recipients' share.
+        uint256 protocolSwapFee =
+            (ud60x18(totalSwapFee).mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares()).intoUint256());
+        // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
+        uint256 protocolRewardAmount = baseFee + protocolSwapFee;
+
         // todo: distribute fee straight to the vault's weth reward distribution? or store it somewhere else?
+        // todo: distribute swapFee - protocolSwapFee to vaults
+
+        // distributes the protocol reward paid in the asset
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolRewardAmount);
 
         // deduct the fee from the amount in
-        amountOut -= feeAmount;
+        amountOut -= baseFee + totalSwapFee;
 
         // return amountIn after fee was applied
         return amountOut;
@@ -389,15 +404,7 @@ contract StabilityBranch is EngineAccessControl {
     /// @param asset The address of the asset for which the fee is being calculated.
     /// @param priceX18 The current price of the asset in UD60x18 format.
     /// @return The amount remaining after the base and settlement fees have been deducted.
-    function deductFeeCollateral(
-        uint256 assetAmount,
-        address asset,
-        UD60x18 priceX18
-    )
-        external
-        view
-        returns (uint256)
-    {
+    function deductFeeCollateral(uint256 assetAmount, address asset, UD60x18 priceX18) external returns (uint256) {
         return _handleFeeAsset(assetAmount, asset, priceX18);
     }
 
