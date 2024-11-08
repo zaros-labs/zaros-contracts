@@ -313,12 +313,14 @@ contract StabilityBranch is EngineAccessControl {
         UD60x18 baseFeeAssetUnitX18 = oneUsdAssetUnitX18.mul(ud60x18(tokenSwapData.baseFeeUsd));
 
         // UD60x18 -> uint256
+        // todo: create protocol fee recipient sending helper to re-use here and at fee distribution branch
         uint256 baseFeeAsset = collateral.convertUd60x18ToTokenAmount(baseFeeAssetUnitX18);
 
         // calculate fee amount
         uint256 feeAmount = baseFeeAsset + (amountOut * tokenSwapData.swapSettlementFeeBps) / 10_000;
 
         // TODO: Send fee amount to fee receiver. At this time the fee is just sitting in the vault
+        // todo: distribute fee straight to the vault's weth reward distribution? or store it somewhere else?
 
         // deduct the fee from the amount in
         amountOut -= feeAmount;

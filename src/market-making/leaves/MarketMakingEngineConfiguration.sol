@@ -5,10 +5,12 @@ pragma solidity 0.8.25;
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 
 // Open Zeppelin dependencies
+import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 
 library MarketMakingEngineConfiguration {
+    using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
@@ -40,9 +42,7 @@ library MarketMakingEngineConfiguration {
     /// @notice calculate the total fee recipients shares
     /// @param self The {MarketMakingEngineConfiguration} storage pointer.
     /// @return totalFeeRecipientsSharesX18 The total fee recipients shares.
-    function getTotalFeeRecipientsShares(
-        Data storage self
-    )
+    function getTotalFeeRecipientsShares(Data storage self)
         internal
         view
         returns (UD60x18 totalFeeRecipientsSharesX18)
@@ -60,6 +60,25 @@ library MarketMakingEngineConfiguration {
 
             // Add the shares to the total fee recipients shares
             totalFeeRecipientsSharesX18 = totalFeeRecipientsSharesX18.add(ud60x18(shares));
+        }
+    }
+
+    // todo: natspec
+    function distributeProtocolWethReward(Data storage self, uint256 wethReward) internal {
+        // Cache the length of the protocol fee recipients
+        uint256 feeRecipientsLength = self.protocolFeeRecipients.length();
+
+        // Iterate over the protocol fee recipients
+        for (uint256 i; i < feeRecipientsLength; i++) {
+            // Load the fee recipient address and shares
+            (address feeRecipient, uint256 shares) = self.protocolFeeRecipients.at(i);
+
+            // Calculate the fee recipient reward
+            uint256 feeRecipientWethReward =
+                ud60x18(wethReward).mul(ud60x18(shares).div(getTotalFeeRecipientsShares(self))).intoUint256();
+
+            // Transfer the fee recipient reward
+            IERC20(self.weth).safeTransfer(feeRecipient, feeRecipientWethReward);
         }
     }
 }

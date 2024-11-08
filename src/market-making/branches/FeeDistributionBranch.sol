@@ -208,6 +208,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             MarketMakingEngineConfiguration.load();
 
         // loads the protocol fee recipients storage pointer
+        // todo: create a helper function so the protocol fee recipient logic can be reused
         EnumerableMap.AddressToUintMap storage protocolFeeRecipients =
             marketMakingEngineConfigurationData.protocolFeeRecipients;
 
