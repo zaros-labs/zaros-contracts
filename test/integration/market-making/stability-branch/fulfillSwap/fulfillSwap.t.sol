@@ -193,7 +193,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         uint128 requestId = 1;
         UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
 
-        uint256 amountOut = marketMakingEngine.getAmountOutCollateral(swapAmount, ud60x18(1e10));
+        uint256 amountOut = marketMakingEngine.getAmountOfAssetOut(swapAmount, ud60x18(1e10));
         uint256 amountOutAfterFee =
             marketMakingEngine.deductFeeCollateral(amountOut, fuzzVaultConfig.asset, ud60x18(1e10));
 

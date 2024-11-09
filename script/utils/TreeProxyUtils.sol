@@ -498,7 +498,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     stabilityBranchSelectors[1] = StabilityBranch.refundSwap.selector;
     stabilityBranchSelectors[2] = StabilityBranch.fulfillSwap.selector;
     stabilityBranchSelectors[3] = StabilityBranch.getSwapRequest.selector;
-    stabilityBranchSelectors[4] = StabilityBranch.getAmountOutCollateral.selector;
+    stabilityBranchSelectors[4] = StabilityBranch.getAmountOfAssetOut.selector;
     stabilityBranchSelectors[5] = StabilityBranch.deductFeeCollateral.selector;
     stabilityBranchSelectors[6] = StabilityBranch.deductFeeUsd.selector;
 
