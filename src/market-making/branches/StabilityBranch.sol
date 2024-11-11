@@ -184,18 +184,39 @@ contract StabilityBranch is EngineAccessControl {
     )
         external
     {
-        _validateSwapData(vaultIds, amountsIn, minAmountsOut);
+        // Perform length checks
+        if (vaultIds.length != amountsIn.length) {
+            revert Errors.ArrayLengthMismatch(vaultIds.length, amountsIn.length);
+        }
 
-        // load market making engine config
-        MarketMakingEngineConfiguration.Data storage configuration = MarketMakingEngineConfiguration.load();
+        if (amountsIn.length != minAmountsOut.length) {
+            revert Errors.ArrayLengthMismatch(amountsIn.length, minAmountsOut.length);
+        }
 
         // Load the first vault to store the initial collateral asset for comparison
         Vault.Data storage initialVault = Vault.load(vaultIds[0]);
 
-        // load Usd token swap data
+        // cache the collateral asset's address
+        address initialVaultCollateralAsset = initialVault.collateral.asset;
+
+        // load collateral data
+        Collateral.Data storage collateral = Collateral.load(initialVaultCollateralAsset);
+
+        // Ensure the collateral asset is enabled
+        collateral.verifyIsEnabled();
+
+        // load market making engine config
+        MarketMakingEngineConfiguration.Data storage configuration = MarketMakingEngineConfiguration.load();
+
+        // load usd token swap data
         UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
         for (uint256 i; i < amountsIn.length; i++) {
+            // if trying to create a swap request with a different collateral asset, we must revert
+            if (Vault.load(vaultsIds[i]).collateral.asset != initialVaultCollateralAsset) {
+                revert Errors.VaultsCollateralAssetsMismatch();
+            }
+
             // transfer USD: user => address(this) - burned in fulfillSwap
             IERC20(configuration.usdTokenOfEngine[address(this)]).safeTransferFrom(
                 msg.sender, address(this), amountsIn[i]
@@ -210,7 +231,7 @@ contract StabilityBranch is EngineAccessControl {
             // Set swap request parameters
             swapRequest.minAmountOut = minAmountsOut[i];
             swapRequest.vaultId = vaultIds[i];
-            swapRequest.assetOut = initialVault.collateral.asset;
+            swapRequest.assetOut = initialVaultCollateralAsset;
             swapRequest.deadline = uint120(block.timestamp) + uint120(tokenSwapData.maxExecutionTime);
             swapRequest.amountIn = amountsIn[i];
 
@@ -424,35 +445,4 @@ contract StabilityBranch is EngineAccessControl {
     //     // return amountIn after fee was applied
     //     return assetsAmountOut;
     // }
-
-    /// @notice Validates the input data for initiating a swap.
-    /// @param vaultIds An array of vault IDs that the swap will involve.
-    /// @param amountsIn An array of USD token amounts to be swapped from the user.
-    /// @param minAmountsOut An array of minimum acceptable amounts of collateral to be received.
-    function _validateSwapData(
-        uint128[] calldata vaultIds,
-        uint128[] calldata amountsIn,
-        uint128[] calldata minAmountsOut
-    )
-        internal
-        view
-    {
-        // Perform length checks
-        if (vaultIds.length != amountsIn.length) {
-            revert Errors.ArrayLengthMismatch(vaultIds.length, amountsIn.length);
-        }
-
-        if (amountsIn.length != minAmountsOut.length) {
-            revert Errors.ArrayLengthMismatch(amountsIn.length, minAmountsOut.length);
-        }
-
-        // load first vault by id
-        Vault.Data storage vault = Vault.load(vaultIds[0]);
-
-        // load collateral data
-        Collateral.Data storage collateral = Collateral.load(vault.collateral.asset);
-
-        // Ensure the collateral asset is enabled
-        collateral.verifyIsEnabled();
-    }
 }

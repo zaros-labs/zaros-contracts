@@ -283,9 +283,9 @@ library Errors {
     /// @param requestId The id of the request
     error RequestAlreadyProcessed(address user, uint128 requestId);
 
-    /// @notice Thrown when USD token swap is unsupported
-    /// @param asset The address of the asset
-    error InvalidUsdTokenSwap(address asset);
+    /// @notice Thrown when trying to swap usd tokens for different assets in a single `StabilityBranch::initiateSwap`
+    /// call.
+    error VaultsCollateralAssetsMismatch();
 
     /// @notice Thrown when the data stream report has expired
     error DataStreamReportExpired();
