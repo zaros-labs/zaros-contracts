@@ -81,36 +81,23 @@ contract StabilityBranch is EngineAccessControl {
         request = tokenSwapData.swapRequests[caller][requestId];
     }
 
-    /// @notice Calculates the amount of assets to be received in a swap based on the input USD amount and its price.
+    /// @notice Calculates the amount of assets to be received in a swap based on the input USD amount, its current
+    /// price and the premium or discount to be applied.
     /// @param usdAmountInX18 The amount of USD tokens to be swapped in 18-decimal fixed-point format (UD60x18).
     /// @param priceX18 The price of the collateral asset in 18-decimal fixed-point format (UD60x18).
     /// @return amountOut The amount of assets to be received using in the ERC20's decimals, calculated from the input
     /// USD amount and its price.
     function getAmountOfAssetOut(
         UD60x18 usdAmountInX18,
-        address asset,
         UD60x18 priceX18
     )
         public
         pure
-        returns (uint256 amountOut)
+        returns (UD60x18 amountOutX18)
     {
-        // uint256 -> UD60x18
-        UD60x18 usdAmountInX18 = ud60x18(usdAmountIn);
-
         // TODO: apply premium / discount
         // get amounts out taking into consideration CL price
-        UD60x18 amountOutBeforeFeeX18 = usdAmountInX18.div(priceX18);
-
-        // get the base and swap fee values in 18 decimals
-        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) = getFeesForAssetsAmountOut(amountOutBeforeFeeX18);
-
-        // loads the asset's collateral config pointer
-        Collateral.Data storage collateral = Collateral.load(asset);
-
-        // subtract the fees and convert the UD60x18 value to the collateral's decimals value
-        amountOut =
-            collateral.convertUd60x18ToTokenAmount(amountOutBeforeFee.sub(baseFeeX18.add(swapFeeX18))).intoUint256();
+        amountOutX18 = usdAmountInX18.div(priceX18);
     }
 
     /// @notice Returns the applicable fees for the specified amount of assets being paid in a swap.
@@ -151,6 +138,7 @@ contract StabilityBranch is EngineAccessControl {
     /// @notice Applies the swap fee to the USD token amount in the context of a refund.
     /// @dev The base and swap fees are only applied to the usd token amount in when the user requests a refund,
     /// otherwise, fees will be collected from the assets being paid out.
+    /// @dev Zaros USD tokens must always implement 18 decimals by default, otherwise assumptions would break.
     /// @param usdAmountInX18 The original amount of USD tokens to be swapped, before the fee is deducted, in UD60x18.
     /// @return baseFeeUsdX18 The base fee charged from the usd token amount in UD60x18.
     /// @return swapFeeUsdX18 The dynamic swap fee charged from the usd token amount in UD60x18.
@@ -300,15 +288,21 @@ contract StabilityBranch is EngineAccessControl {
         UD60x18 priceX18 = stabilityConfiguration.verifyOffchainPrice(priceData);
 
         // get amount out asset
-        uint256 amountOut = getAmountOfAssetOut(request.amountIn, priceX18);
+        ud60X18 amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(request.amountIn), priceX18);
 
-        // deduct fee
-        uint256 amountOutAfterFee = _handleFeeAsset(amountOut, vault.collateral.asset, priceX18);
+        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) = getFeeForAssetAmountOut(amountOutBeforeFeesX18);
+
+        // subtract the fees and convert the UD60x18 value to the collateral's decimals value
+        uint256 amountOut = collateral.convertUd60x18ToTokenAmount(
+            amountOutBeforeFeesX18.sub(baseFeeX18.add(swapFeeX18))
+        ).intoUint256();
 
         // slippage check
-        if (amountOutAfterFee < request.minAmountOut) {
-            revert Errors.SlippageCheckFailed(request.minAmountOut, amountOutAfterFee);
+        if (amountOut < request.minAmountOut) {
+            revert Errors.SlippageCheckFailed(request.minAmountOut, amountOut);
         }
+
+        // todo: distribute rewards to protocol fee recipients and vaults
 
         // burn usd amount from address(this)
         usdToken.burn(request.amountIn);
@@ -317,7 +311,7 @@ contract StabilityBranch is EngineAccessControl {
         vault.unsettledRealizedDebtUsd -= int128(request.amountIn);
 
         // vault => user
-        IERC20(vault.collateral.asset).safeTransferFrom(address(vault.indexToken), user, amountOutAfterFee);
+        IERC20(vault.collateral.asset).safeTransferFrom(address(vault.indexToken), user, amountOut);
 
         emit LogFulfillSwap(
             user,

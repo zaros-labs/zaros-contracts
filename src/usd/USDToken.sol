@@ -9,6 +9,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { ERC20, ERC20Permit } from "@openzeppelin/token/ERC20/extensions/ERC20Permit.sol";
 
+/// @dev Zaros USD Tokens MUST always implement 18 decimals, in order to not break system-wide invariants.
 contract UsdToken is ERC20Permit, Ownable {
     constructor(
         address owner,
