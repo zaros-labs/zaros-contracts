@@ -2,11 +2,12 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { UsdToken } from "@zaros/usd/UsdToken.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
+import { Math } from "@zaros/utils/Math.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
-import { UsdToken } from "@zaros/usd/UsdToken.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
-import { Errors } from "@zaros/utils/Errors.sol";
 import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 import { StabilityConfiguration } from "@zaros/market-making/leaves/StabilityConfiguration.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
@@ -80,43 +81,91 @@ contract StabilityBranch is EngineAccessControl {
         request = tokenSwapData.swapRequests[caller][requestId];
     }
 
-    /// @notice Calculates the amount of assets to be received based on the input USD amount and its price.
-    /// @param usdAmountIn The amount of USD tokens to be swapped.
+    /// @notice Calculates the amount of assets to be received in a swap based on the input USD amount and its price.
+    /// @param usdAmountInX18 The amount of USD tokens to be swapped in 18-decimal fixed-point format (UD60x18).
     /// @param priceX18 The price of the collateral asset in 18-decimal fixed-point format (UD60x18).
-    /// @return The amount of assets to be received, calculated from the input USD amount and its price.
-    function getAmountOfAssetOut(uint256 usdAmountIn, UD60x18 priceX18) public pure returns (uint256) {
-        // uint256 -> SD59x18
-        SD59x18 usdAmountInX18 = sd59x18(usdAmountIn.toInt256());
-
-        // UD60x18 -> SD59x18
-        SD59x18 assetPriceX18 = priceX18.intoSD59x18(); // TODO: Apply premium/discount
-
-        // get amounts out taking into consideration CL price
-        SD59x18 amountOutX18 = usdAmountInX18.div(assetPriceX18);
-    }
-
-    /// @notice Calculates and deducts the applicable fee from the specified asset amount.
-    /// @param assetAmount The initial amount of the asset being processed.
-    /// @param asset The address of the asset for which the fee is being calculated.
-    /// @param priceX18 The current price of the asset in UD60x18 format.
-    /// @return The amount remaining after the base and settlement fees have been deducted.
-    function getFeesForAssetAmount(
-        uint256 amountAssets,
+    /// @return amountOut The amount of assets to be received using in the ERC20's decimals, calculated from the input
+    /// USD amount and its price.
+    function getAmountOfAssetOut(
+        UD60x18 usdAmountInX18,
         address asset,
         UD60x18 priceX18
     )
-        external
-        returns (uint256 baseFee, uint256 swapFee)
+        public
+        pure
+        returns (uint256 amountOut)
     {
-        return _handleFeeAsset(assetAmount, asset, priceX18);
+        // uint256 -> UD60x18
+        UD60x18 usdAmountInX18 = ud60x18(usdAmountIn);
+
+        // TODO: apply premium / discount
+        // get amounts out taking into consideration CL price
+        UD60x18 amountOutBeforeFeeX18 = usdAmountInX18.div(priceX18);
+
+        // get the base and swap fee values in 18 decimals
+        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) = getFeesForAssetsAmountOut(amountOutBeforeFeeX18);
+
+        // loads the asset's collateral config pointer
+        Collateral.Data storage collateral = Collateral.load(asset);
+
+        // subtract the fees and convert the UD60x18 value to the collateral's decimals value
+        amountOut =
+            collateral.convertUd60x18ToTokenAmount(amountOutBeforeFee.sub(baseFeeX18.add(swapFeeX18))).intoUint256();
     }
 
-    /// @notice Applies the swap fee to the USD token amount and either mints or transfers the fee to the fee
-    /// recipient.
-    /// @param usdAmountIn The original amount of USD tokens to be swapped, before the fee is deducted.
-    /// @return The amount of USD tokens remaining after the fee is deducted.
-    function getFeesForUsdTokenAmount(uint256 amountUsd) external returns (uint256 baseFeeUsd, uint256 swapFeeUsd) {
-        return _handleFeeUsd(usdAmountIn);
+    /// @notice Returns the applicable fees for the specified amount of assets being paid in a swap.
+    /// @param assetsAmountOutX18 The desired amount of assets to be acquired.
+    /// @param priceX18 The current price of the asset in UD60x18 format.
+    /// @return baseFeeX18 The base swap fee in assets units in UD60x18 format.
+    /// @return swapFeeX18 The dynamic swap fee in assets units in UD60x18 format.
+    function getFeesForAssetsAmountOut(
+        UD60x18 assetsAmountOutX18,
+        UD60x18 priceX18
+    )
+        public
+        returns (UD60x18 baseFeeX18, UD60x18 swapFeeX18)
+    {
+        // load swap data
+        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+
+        // convert the base fee in usd to the asset amount to be charged
+        baseFeeX18 = ud60x18(tokenSwapData.baseFeeUsd).div(priceX18);
+
+        // calculates the swap fee portion rounding up
+        swapFeeX18 = Math.divUp(
+            assetsAmountOutX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), Constants.BPS_DENOMINATOR_X18
+        );
+
+        // load the mm engine configuration pointer
+        // MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+        //     MarketMakingEngineConfiguration.load();
+
+        // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
+        // recipients' share.
+        // uint256 protocolSwapFee =
+        //     (ud60x18(totalSwapFee).mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares()).intoUint256());
+        // // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
+        // uint256 protocolRewardAmount = baseFee + protocolSwapFee;
+    }
+
+    /// @notice Applies the swap fee to the USD token amount in the context of a refund.
+    /// @dev The base and swap fees are only applied to the usd token amount in when the user requests a refund,
+    /// otherwise, fees will be collected from the assets being paid out.
+    /// @param usdAmountInX18 The original amount of USD tokens to be swapped, before the fee is deducted, in UD60x18.
+    /// @return baseFeeUsdX18 The base fee charged from the usd token amount in UD60x18.
+    /// @return swapFeeUsdX18 The dynamic swap fee charged from the usd token amount in UD60x18.
+    function getFeesForUsdTokenAmountIn(UD60x18 usdAmountInX18)
+        public
+        returns (UD60x18 baseFeeUsdX18, UD60x18 swapFeeUsdX18)
+    {
+        // load swap data
+        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+
+        // returns the base fee in UD60x18
+        baseFeeUsdX18 = ud60x18(tokenSwapData.baseFeeUsd);
+        // calculates and returns the swap fee in UD60x18
+        swapFeeUsdX18 =
+            Math.divUp(usdAmountInX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), Constants.BPS_DENOMINATOR_X18);
     }
 
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
@@ -311,70 +360,70 @@ contract StabilityBranch is EngineAccessControl {
         );
     }
 
-    /// @notice Applies the swap fee to the USD token amount and either mints or transfers the fee to the fee
-    /// recipient.
-    /// @param amountIn The original amount of USD tokens to be swapped, before the fee is deducted.
-    /// @return The amount of USD tokens remaining after the fee is deducted and the fee
-    function _handleFeeUsd(uint256 amountIn) internal view returns (uint256, uint256) {
-        // load swap data
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+    // /// @notice Applies the swap fee to the USD token amount and either mints or transfers the fee to the fee
+    // /// recipient.
+    // /// @param amountIn The original amount of USD tokens to be swapped, before the fee is deducted.
+    // /// @return The amount of USD tokens remaining after the fee is deducted and the fee
+    // function _handleFeeUsd(uint256 amountIn) internal view returns (uint256, uint256) {
+    //     // load swap data
+    //     UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
-        // Calculate the total fee
-        uint256 feeAmount = tokenSwapData.baseFeeUsd + (amountIn * tokenSwapData.swapSettlementFeeBps) / 10_000;
+    //     // Calculate the total fee
+    //     uint256 feeAmount = tokenSwapData.baseFeeUsd + (amountIn * tokenSwapData.swapSettlementFeeBps) / 10_000;
 
-        // deduct the fee from the amountIn
-        amountIn -= feeAmount;
+    //     // deduct the fee from the amountIn
+    //     amountIn -= feeAmount;
 
-        // return amountIn after fee was applied
-        return (amountIn, feeAmount);
-    }
+    //     // return amountIn after fee was applied
+    //     return (amountIn, feeAmount);
+    // }
 
-    /// @notice Calculates and deducts the applicable fee from the specified asset amount.
-    /// @param amountOut The initial amount of the asset being processed.
-    /// @param asset The address of the asset for which the fee is being calculated.
-    /// @param priceX18 The current price of the asset in UD60x18 format.
-    /// @return The amount remaining after the base and settlement fees have been deducted.
-    // todo: refactor this function in two steps, view and non-view, to return the expected amount out to external
-    // clients taking fees into account.
-    function _handleFeeAsset(uint256 amountAssets, address asset, UD60x18 priceX18) internal returns (uint256) {
-        // load swap data
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+    // /// @notice Calculates and deducts the applicable fee from the specified asset amount.
+    // /// @param amountOut The initial amount of the asset being processed.
+    // /// @param asset The address of the asset for which the fee is being calculated.
+    // /// @param priceX18 The current price of the asset in UD60x18 format.
+    // /// @return The amount remaining after the base and settlement fees have been deducted.
+    // // todo: refactor this function in two steps, view and non-view, to return the expected amount out to external
+    // // clients taking fees into account.
+    // function _handleFeeAsset(uint256 assetsAmountOut, address asset, UD60x18 priceX18) internal returns (uint256) {
+    //     // load swap data
+    //     UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
-        // load collateral data
-        Collateral.Data storage collateral = Collateral.load(asset);
+    //     // load collateral data
+    //     Collateral.Data storage collateral = Collateral.load(asset);
 
-        // convert the base fee in usd to the asset amount to be charged
-        UD60x18 baseFeeX18 = ud60x18(tokenSwapData.baseFeeUsd).div(priceX18);
+    //     // convert the base fee in usd to the asset amount to be charged
+    //     UD60x18 baseFeeX18 = ud60x18(tokenSwapData.baseFeeUsd).div(priceX18);
 
-        // UD60x18 -> uint256
-        uint256 baseFee = collateral.convertUd60x18ToTokenAmount(baseFeeX18);
-        // calculates the swap fee portion
-        // TODO: come back here and see if we work with bps using 18 decimals or not
-        uint256 totalSwapFee = amountOut * tokenSwapData.swapSettlementFeeBps / Constants.BPS_DENOMINATOR;
+    //     // UD60x18 -> uint256
+    //     uint256 baseFee = collateral.convertUd60x18ToTokenAmount(baseFeeX18);
+    //     // calculates the swap fee portion
+    //     // TODO: come back here and see if we work with bps using 18 decimals or not
+    //     uint256 totalSwapFee = assetsAmountOut * tokenSwapData.swapSettlementFeeBps / Constants.BPS_DENOMINATOR;
 
-        // load the mm engine configuration pointer
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
+    //     // load the mm engine configuration pointer
+    //     MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+    //         MarketMakingEngineConfiguration.load();
 
-        // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
-        // recipients' share.
-        uint256 protocolSwapFee =
-            (ud60x18(totalSwapFee).mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares()).intoUint256());
-        // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
-        uint256 protocolRewardAmount = baseFee + protocolSwapFee;
+    //     // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
+    //     // recipients' share.
+    //     uint256 protocolSwapFee =
+    //         (ud60x18(totalSwapFee).mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares()).intoUint256());
+    //     // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
+    //     uint256 protocolRewardAmount = baseFee + protocolSwapFee;
 
-        // todo: distribute fee straight to the vault's weth reward distribution? or store it somewhere else?
-        // todo: distribute swapFee - protocolSwapFee to vaults
+    //     // todo: distribute fee straight to the vault's weth reward distribution? or store it somewhere else?
+    //     // todo: distribute swapFee - protocolSwapFee to vaults
 
-        // distributes the protocol reward paid in the asset
-        marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolRewardAmount);
+    //     // distributes the protocol reward paid in the asset
+    //     marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolRewardAmount);
 
-        // deduct the fee from the amount in
-        amountOut -= baseFee + totalSwapFee;
+    //     // deduct the fee from the amount in
+    //     assetsAmountOut -= baseFee + totalSwapFee;
 
-        // return amountIn after fee was applied
-        return amountOut;
-    }
+    //     // return amountIn after fee was applied
+    //     return assetsAmountOut;
+    // }
 
     /// @notice Validates the input data for initiating a swap.
     /// @param vaultIds An array of vault IDs that the swap will involve.

@@ -24,8 +24,8 @@ library Constants {
         "CreateOffchainOrder(uint128 tradingAccountId,uint128 marketId,int128 sizeDelta,uint128 targetPrice,bool shouldIncreaseNonce,uint120 nonce,bytes32 salt)"
     );
 
-    /// @notice BPS denominator value.
-    uint256 internal constant BPS_DENOMINATOR = 10_000;
+    /// @notice BPS denominator value in UD60x18.
+    UD60x18 internal constant BPS_DENOMINATOR_X18 = ud60x18(10_000e18);
 
     /// @notice Maximum value for shares, example 0.5e18 is 50%.
     /// @dev This is used to avoid overflows when calculating shares.
