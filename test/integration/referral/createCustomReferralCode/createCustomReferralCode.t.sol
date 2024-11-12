@@ -5,18 +5,13 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Referral } from "@zaros/referral/Referral.sol";
 
-// Open Zeppelin dependencies
-import { Ownable } from "@openzeppelin/access/Ownable.sol";
-
-contract CreateCustomReferralCode_Integration_Test is Base_Test {
+contract Referral_CreateCustomReferralCode_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_RevertGiven_TheSenderIsNotTheOwner(
+    function testFuzz_RevertGiven_TheSenderIsNotTheRegisteredEngine(
         address referrer,
         string memory customReferralCode
     )
@@ -24,13 +19,13 @@ contract CreateCustomReferralCode_Integration_Test is Base_Test {
     {
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.naruto.account)
+            revertData: abi.encodeWithSelector(Referral.EngineNotRegistered.selector, users.naruto.account)
         });
 
-        perpsEngine.createCustomReferralCode(referrer, customReferralCode);
+        Referral(address(referralModule)).createCustomReferralCode(referrer, customReferralCode);
     }
 
-    modifier givenTheSenderIsTheOwner() {
+    modifier givenTheSenderIsTheRegisteredEngine() {
         _;
     }
 
@@ -39,16 +34,16 @@ contract CreateCustomReferralCode_Integration_Test is Base_Test {
         string memory customReferralCode
     )
         external
-        givenTheSenderIsTheOwner
+        givenTheSenderIsTheRegisteredEngine
     {
-        changePrank({ msgSender: users.owner.account });
+        changePrank({ msgSender: address(perpsEngine) });
 
         // it should emit {LogCreateCustomReferralCode} event
         address referralModule = perpsEngine.workaround_getReferralModule();
         vm.expectEmit({ emitter: referralModule });
         emit Referral.LogCreateCustomReferralCode(referrer, customReferralCode);
 
-        perpsEngine.createCustomReferralCode(referrer, customReferralCode);
+        Referral(address(referralModule)).createCustomReferralCode(referrer, customReferralCode);
 
         // it should the custom referral code and referrer on storage
         address referrerReceived = perpsEngine.getCustomReferralCodeReferrer(customReferralCode);

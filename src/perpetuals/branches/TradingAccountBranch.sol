@@ -9,8 +9,7 @@ import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineCo
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
-import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
-import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -35,7 +34,6 @@ contract TradingAccountBranch {
     using SafeERC20 for IERC20;
     using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
-    using Referral for Referral.Data;
 
     /// @notice Emitted when a new trading account is created.
     /// @param tradingAccountId The trading account id.
@@ -58,20 +56,6 @@ contract TradingAccountBranch {
     /// @param amount The token amount of margin collateral withdrawn (token::decimals()).
     event LogWithdrawMargin(
         address indexed sender, uint128 indexed tradingAccountId, address indexed collateralType, uint256 amount
-    );
-
-    /// @notice Emitted when a referral code is set.
-    /// @param accountOwner The account owner address.
-    /// @param tradingAccountId The newly created trading account id.
-    /// @param referrer The referrer address.
-    /// @param referralCode The referral code.
-    /// @param isCustomReferralCode A boolean indicating if the referral code is custom.
-    event LogReferralSet(
-        address indexed accountOwner,
-        uint128 indexed tradingAccountId,
-        address indexed referrer,
-        bytes referralCode,
-        bool isCustomReferralCode
     );
 
     /// @notice Gets the contract address of the trading accounts NFTs.
@@ -122,7 +106,9 @@ contract TradingAccountBranch {
     /// @return initialMarginUsdX18 The account's initial margin in positions.
     /// @return maintenanceMarginUsdX18 The account's maintenance margin.
     /// @return availableMarginUsdX18 The account's withdrawable margin balance.
-    function getAccountMarginBreakdown(uint128 tradingAccountId)
+    function getAccountMarginBreakdown(
+        uint128 tradingAccountId
+    )
         external
         view
         returns (
@@ -164,7 +150,9 @@ contract TradingAccountBranch {
     /// @notice Returns the total trading account's unrealized pnl across open positions.
     /// @param tradingAccountId The trading account id.
     /// @return accountTotalUnrealizedPnlUsdX18 The account's total unrealized pnl.
-    function getAccountTotalUnrealizedPnl(uint128 tradingAccountId)
+    function getAccountTotalUnrealizedPnl(
+        uint128 tradingAccountId
+    )
         external
         view
         returns (SD59x18 accountTotalUnrealizedPnlUsdX18)
@@ -259,30 +247,11 @@ contract TradingAccountBranch {
 
         emit LogCreateTradingAccount(tradingAccountId, msg.sender);
 
-        Referral.Data storage referral = Referral.load(tradingAccountId);
+        IReferral referralModule = IReferral(perpsEngineConfiguration.referralModule);
 
         if (referralCode.length != 0) {
-            if (isCustomReferralCode) {
-                CustomReferralConfiguration.Data storage customReferral =
-                    CustomReferralConfiguration.load(string(referralCode));
-                if (customReferral.referrer == address(0)) {
-                    revert Errors.InvalidReferralCode();
-                }
-                referral.referralCode = referralCode;
-                referral.isCustomReferralCode = true;
-            } else {
-                address referrer = abi.decode(referralCode, (address));
-
-                if (referrer == msg.sender) {
-                    revert Errors.InvalidReferralCode();
-                }
-
-                referral.referralCode = referralCode;
-                referral.isCustomReferralCode = false;
-            }
-
-            emit LogReferralSet(
-                msg.sender, tradingAccountId, referral.getReferrerAddress(), referralCode, isCustomReferralCode
+            referralModule.registerReferral(
+                abi.encode(tradingAccountId), msg.sender, referralCode, isCustomReferralCode
             );
         }
 
@@ -424,10 +393,16 @@ contract TradingAccountBranch {
     /// @param tradingAccountId The trading account id.
     /// @return referralCode The user's referral code.
     /// @return isCustomReferralCode A boolean indicating if the referral code is custom.
-    function getUserReferralData(uint128 tradingAccountId) external pure returns (bytes memory, bool) {
-        Referral.Data memory referral = Referral.load(tradingAccountId);
+    function getUserReferralData(uint128 tradingAccountId) external view returns (bytes memory, bool) {
+        // fetch storage slot for perps engine configuration
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
-        return (referral.referralCode, referral.isCustomReferralCode);
+        IReferral referralModule = IReferral(perpsEngineConfiguration.referralModule);
+
+        (bytes memory referralCode, bool isCustomReferralCode) =
+            referralModule.getUserReferralData(abi.encode(tradingAccountId));
+
+        return (referralCode, isCustomReferralCode);
     }
 
     /// @notice Reverts if the amount is zero.

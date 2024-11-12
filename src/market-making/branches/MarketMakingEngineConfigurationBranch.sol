@@ -9,6 +9,8 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -99,6 +101,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param marketsIds The markets ids.
     event LogConfigureVaultConnectedMarkets(uint128 vaultId, uint128[] marketsIds);
 
+    /// @notice Emitted whe the referral module is configured.
+    /// @param sender The address that configured the referral module.
+    /// @param referralModule The address of the referral module.
+    event LogConfigureReferralModule(address sender, address referralModule);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -108,9 +115,20 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// TODO: add invariants
     function configureSystemParameters() external onlyOwner { }
 
-    /// @dev Invariants involved in the call:
-    /// TODO: add invariants
-    function createCustomReferralCode() external onlyOwner { }
+    /// @notice Creates a custom referral code.
+    /// @param referrer The address of the referrer.
+    /// @param customReferralCode The custom referral code.
+    function createCustomReferralCode(address referrer, string memory customReferralCode) external onlyOwner {
+        // load the market making engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // load the referral module
+        IReferral referralModule = IReferral(marketMakingEngineConfiguration.referralModule);
+
+        // create the custom referral code
+        referralModule.createCustomReferralCode(referrer, customReferralCode);
+    }
 
     /// @dev Invariants involved in the call:
     /// Must NOT be able to create a vault with id set to 0
@@ -398,5 +416,25 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit event LogConfigureFeeRecipient
         emit LogConfigureFeeRecipient(feeRecipient, share);
+    }
+
+    /// @notice Configures the referral module.
+    /// @dev Only owner can configure the referral module.
+    /// @param referralModule The address of the referral module.
+    function configureReferralModule(address referralModule) external onlyOwner {
+        // revert if the referral module is zero
+        if (referralModule == address(0)) {
+            revert Errors.ZeroInput("referralModule");
+        }
+
+        // load the perps engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // set the referral module
+        marketMakingEngineConfiguration.referralModule = referralModule;
+
+        // emit the LogConfigureReferralModule event
+        emit LogConfigureReferralModule(msg.sender, referralModule);
     }
 }

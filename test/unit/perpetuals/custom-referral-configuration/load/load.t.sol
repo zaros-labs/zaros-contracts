@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
 contract CustomReferralConfiguration_Load_Unit_Test is Base_Test {
     function setUp() public override {
@@ -17,10 +17,10 @@ contract CustomReferralConfiguration_Load_Unit_Test is Base_Test {
 
         perpsEngine.createCustomReferralCode(users.madara.account, customReferralCode);
 
-        CustomReferralConfiguration.Data memory customReferralConfiguration =
-            perpsEngine.exposed_CustomReferralConfiguration_load(customReferralCode);
+        address referralCodeAddress =
+            IReferral(perpsEngine.workaround_getReferralModule()).getCustomReferralCodeReferrer(customReferralCode);
 
         // it should return the referrer
-        assertEq(customReferralConfiguration.referrer, users.madara.account, "the address of referrer is not correct");
+        assertEq(referralCodeAddress, users.madara.account, "the address of referrer is not correct");
     }
 }

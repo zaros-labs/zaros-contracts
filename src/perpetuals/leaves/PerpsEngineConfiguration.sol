@@ -28,6 +28,7 @@ library PerpsEngineConfiguration {
     /// @param liquidationFeeRecipient The address that receives liquidation fees.
     /// @param usdToken The address of the USD token (USD Token).
     /// @param tradingAccountToken The address of the trading account NFT.
+    /// @param referralModule The address of the referral module.
     /// @param maxVerificationDelay The maximum delay allowed for the off chain price verification.
     /// @param nextAccountId The next available trading account id.
     /// @param isLiquidatorEnabled The mapping of liquidator addresses to their enabled status.
@@ -47,6 +48,7 @@ library PerpsEngineConfiguration {
         address marketMakingEngine;
         address usdToken;
         address tradingAccountToken;
+        address referralModule;
         uint256 maxVerificationDelay;
         uint96 nextAccountId;
         mapping(address => bool) isLiquidatorEnabled;
