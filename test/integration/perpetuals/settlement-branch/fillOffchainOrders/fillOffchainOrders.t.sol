@@ -65,11 +65,13 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
             offchainOrders[i] = OffchainOrder.Data({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
-                targetPrice: markPrice,
+                targetPrice: targetPrice,
                 shouldIncreaseNonce: false,
                 nonce: 0,
                 salt: bytes32(0),
@@ -138,11 +140,13 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
             offchainOrders[i] = OffchainOrder.Data({
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
-                targetPrice: markPrice,
+                targetPrice: targetPrice,
                 shouldIncreaseNonce: false,
                 nonce: 0,
                 salt: bytes32(0),
@@ -230,6 +234,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
             bytes32 salt = bytes32(block.prevrandao + i);
 
             bytes32 digest = keccak256(
@@ -242,7 +248,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                             tradingAccountId,
                             fuzzMarketConfig.marketId,
                             sizeDelta,
-                            markPrice,
+                            targetPrice,
                             false,
                             uint120(0),
                             salt
@@ -257,7 +263,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
-                targetPrice: markPrice,
+                targetPrice: targetPrice,
                 shouldIncreaseNonce: false,
                 nonce: 0,
                 salt: salt,
@@ -340,6 +346,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
             bytes32 salt = bytes32(block.prevrandao + i);
 
             bytes32 digest = keccak256(
@@ -352,7 +360,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                             tradingAccountId,
                             fuzzMarketConfig.marketId,
                             sizeDelta,
-                            markPrice,
+                            targetPrice,
                             false,
                             uint120(0),
                             salt
@@ -367,7 +375,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
-                targetPrice: markPrice,
+                targetPrice: targetPrice,
                 shouldIncreaseNonce: false,
                 nonce: 0,
                 salt: salt,
@@ -453,6 +461,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
             bytes32 salt = bytes32(block.prevrandao + i);
 
             bytes32 digest = keccak256(
@@ -465,7 +475,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                             tradingAccountId,
                             fuzzMarketConfig.marketId,
                             sizeDelta,
-                            markPrice,
+                            targetPrice,
                             false,
                             uint120(0),
                             salt
@@ -480,7 +490,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
-                targetPrice: markPrice,
+                targetPrice: targetPrice,
                 shouldIncreaseNonce: false,
                 nonce: 0,
                 salt: salt,
@@ -567,6 +577,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
             bytes32 salt = bytes32(block.prevrandao + i);
 
             bytes32 digest = keccak256(
@@ -579,7 +591,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                             tradingAccountId,
                             fuzzMarketConfig.marketId,
                             sizeDelta,
-                            markPrice,
+                            targetPrice,
                             false,
                             uint120(0),
                             salt
@@ -594,7 +606,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
-                targetPrice: markPrice,
+                targetPrice: targetPrice,
                 shouldIncreaseNonce: false,
                 nonce: 0,
                 salt: salt,
@@ -675,6 +687,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
         ).intoUint128();
 
+        uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
         bytes32 salt = bytes32(block.prevrandao);
 
         bytes32 digest = keccak256(
@@ -687,7 +701,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                         tradingAccountId,
                         fuzzMarketConfig.marketId,
                         sizeDelta,
-                        markPrice,
+                        targetPrice,
                         false,
                         uint120(0),
                         salt
@@ -704,7 +718,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             tradingAccountId: tradingAccountId,
             marketId: fuzzMarketConfig.marketId,
             sizeDelta: sizeDelta,
-            targetPrice: markPrice,
+            targetPrice: targetPrice,
             shouldIncreaseNonce: false,
             nonce: 0,
             salt: salt,
@@ -777,6 +791,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
         ).intoUint128();
 
+        uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
         bytes32 salt = bytes32(block.prevrandao);
 
         bytes32 digest = keccak256(
@@ -789,7 +805,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                         tradingAccountId,
                         fuzzMarketConfig.marketId,
                         sizeDelta,
-                        markPrice,
+                        targetPrice,
                         false,
                         uint120(0),
                         salt
@@ -806,7 +822,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
             tradingAccountId: tradingAccountId,
             marketId: fuzzMarketConfig.marketId,
             sizeDelta: sizeDelta,
-            targetPrice: markPrice,
+            targetPrice: targetPrice,
             shouldIncreaseNonce: false,
             nonce: 0,
             salt: salt,
@@ -1004,6 +1020,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
             bytes32 salt = bytes32(block.prevrandao + i);
             bytes32 structHash = keccak256(
                 abi.encode(
@@ -1011,7 +1029,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                     tradingAccountId,
                     fuzzMarketConfig.marketId,
                     sizeDelta,
-                    markPrice,
+                    targetPrice,
                     true,
                     uint120(0),
                     salt
@@ -1027,7 +1045,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
-                targetPrice: markPrice,
+                targetPrice: targetPrice,
                 shouldIncreaseNonce: true,
                 nonce: 0,
                 salt: salt,
@@ -1120,6 +1138,8 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 fuzzMarketConfig.marketId, fuzzMarketConfig.mockUsdPrice, sizeDelta
             ).intoUint128();
 
+            uint128 targetPrice = sizeDelta > 0 ? markPrice + 1 : markPrice - 1;
+
             bytes32 salt = bytes32(block.prevrandao + i);
             bytes32 structHash = keccak256(
                 abi.encode(
@@ -1127,7 +1147,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                     tradingAccountId,
                     fuzzMarketConfig.marketId,
                     sizeDelta,
-                    markPrice,
+                    targetPrice,
                     false,
                     uint120(0),
                     salt
@@ -1143,7 +1163,7 @@ contract FillOffchainOrders_Integration_Test is Base_Test {
                 tradingAccountId: tradingAccountId,
                 marketId: fuzzMarketConfig.marketId,
                 sizeDelta: sizeDelta,
-                targetPrice: markPrice,
+                targetPrice: targetPrice,
                 shouldIncreaseNonce: false,
                 nonce: 0,
                 salt: salt,

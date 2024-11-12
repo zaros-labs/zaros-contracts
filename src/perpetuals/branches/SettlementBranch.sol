@@ -283,8 +283,8 @@ contract SettlementBranch is EIP712Upgradeable {
             // if the order increases the trading account's position (buy order), the fill price must be less than or
             // equal to the target price, if it decreases the trading account's position (sell order), the fill price
             // must be greater than or equal to the target price.
-            ctx.isFillPriceValid = (ctx.isBuyOrder && ctx.offchainOrder.targetPrice <= ctx.fillPriceX18.intoUint256())
-                || (!ctx.isBuyOrder && ctx.offchainOrder.targetPrice >= ctx.fillPriceX18.intoUint256());
+            ctx.isFillPriceValid = (ctx.isBuyOrder && ctx.offchainOrder.targetPrice >= ctx.fillPriceX18.intoUint256())
+                || (!ctx.isBuyOrder && ctx.offchainOrder.targetPrice <= ctx.fillPriceX18.intoUint256());
 
             // we don't revert here because we want to continue filling other orders.
             if (!ctx.isFillPriceValid) {
