@@ -10,7 +10,7 @@ import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { IReferral } from "@zaros/utils/interfaces/IReferral.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
 // Open Zeppelin dependencies
 import { Initializable } from "@openzeppelin-upgradeable/proxy/utils/Initializable.sol";

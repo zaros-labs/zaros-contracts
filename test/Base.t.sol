@@ -26,7 +26,7 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
 import { SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
-import { IReferral } from "@zaros/utils/interfaces/IReferral.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";

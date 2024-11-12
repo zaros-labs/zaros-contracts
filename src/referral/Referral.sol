@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { ReferralConfiguration } from "@zaros/referral/leaves/ReferralConfiguration.sol";
 import { CustomReferralConfiguration } from "@zaros/referral/leaves/CustomReferralConfiguration.sol";
-import { IReferral } from "@zaros/utils/interfaces/IReferral.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
 // Open Zeppelin dependencies

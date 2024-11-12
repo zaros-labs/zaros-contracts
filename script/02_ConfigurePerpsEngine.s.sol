@@ -9,7 +9,7 @@ import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
-import { IReferral } from "@zaros/utils/interfaces/IReferral.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
