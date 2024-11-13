@@ -130,7 +130,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Emitted when the redeem fee is configured.
     /// @param redeemFee The redeem fee.
-    event LogConfigureredeemFee(uint256 redeemFee);
+    event LogConfigureRedeemFee(uint256 redeemFee);
 
     /// @notice Emitted when the vault deposit and redeem fee recipient is configured.
     /// @param vaultDepositAndRedeemFeeRecipient The vault deposit and redeem fee recipient address.
@@ -598,7 +598,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @notice Configure redeem fee on Market Making Engine
     /// @dev Only owner can call this function
     /// @param redeemFee The redeem fee, example 1e18 (100%), 1e17 (10%), 1e16 (1%), 1e15 (0,1%).
-    function configureredeemFee(uint256 redeemFee) external onlyOwner {
+    function configureRedeemFee(uint256 redeemFee) external onlyOwner {
         // load the market making engine configuration from storage
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
@@ -606,8 +606,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         // update the redeem fee
         marketMakingEngineConfiguration.redeemFee = redeemFee;
 
-        // emit the LogConfigureredeemFee event
-        emit LogConfigureredeemFee(redeemFee);
+        // emit the LogConfigureRedeemFee event
+        emit LogConfigureRedeemFee(redeemFee);
     }
 
     /// @notice Configure the vault deposit and redeem fee recipient

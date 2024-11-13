@@ -451,12 +451,12 @@ contract VaultRouterBranch {
             MarketMakingEngineConfiguration.load();
 
         // get assets minus redeem fee
-        UD60x18 expectedAssetsMinusredeemFeeX18 =
+        UD60x18 expectedAssetsMinusRedeemFeeX18 =
             expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(marketMakingEngineConfiguration.redeemFee)));
 
         // calculate assets minus redeem fee as shares
         UD60x18 sharesMinusRedeemFeesX18 =
-            getVaultAssetSwapRate(vaultId, expectedAssetsMinusredeemFeeX18.intoUint256(), false);
+            getVaultAssetSwapRate(vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false);
 
         uint256 sharesFees = withdrawalRequest.shares - sharesMinusRedeemFeesX18.intoUint256();
 

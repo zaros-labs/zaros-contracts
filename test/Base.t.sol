@@ -284,7 +284,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         marketMakingEngine.configureDepositFee(MOCK_DEPOSIT_FEE);
 
-        marketMakingEngine.configureredeemFee(MOCK_REDEEM_FEE);
+        marketMakingEngine.configureRedeemFee(MOCK_REDEEM_FEE);
 
         marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(users.owner.account);
 
