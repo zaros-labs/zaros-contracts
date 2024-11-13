@@ -23,8 +23,6 @@ import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/I
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 // TODO: think about referrals
 contract VaultRouterBranch {
     using SafeERC20 for IERC20;
@@ -277,10 +275,6 @@ contract VaultRouterBranch {
         // ud60x18 -> uint256 asset decimals
         uint256 assetFees = Math.convertUd60x18ToTokenAmount(vaultAssetDecimals, assetFeesX18);
         uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(vaultAssetDecimals, assetsMinusFeesX18);
-
-        console.log("assets: ", assets);
-        console.log("assetFees: ", assetFees);
-        console.log("assetsMinusFees: ", assetsMinusFees);
 
         // prepare the `Vault::recalculateVaultsCreditCapacity` call
         uint256[] memory vaultsIds = new uint256[](1);
