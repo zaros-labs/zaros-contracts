@@ -582,7 +582,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Configure deposit fee on Market Making Engine
     /// @dev Only owner can call this function
-    /// @param depositFee The deposit fee, example 1e18 (100%), 0.5e18 (50%), 0.05e18 (5%), 0.005e18 (0.05%).
+    /// @param depositFee The deposit fee, example 1e18 (100%), 1e17 (10%), 1e16 (1%), 1e15 (0,1%).
     function configureDepositFee(uint256 depositFee) external onlyOwner {
         // load the market making engine configuration from storage
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
@@ -597,7 +597,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Configure redeem fee on Market Making Engine
     /// @dev Only owner can call this function
-    /// @param redeemFee The redeem fee, example 1e18 (100%), 0.5e18 (50%), 0.05e18 (5%), 0.005e18 (0.05%).
+    /// @param redeemFee The redeem fee, example 1e18 (100%), 1e17 (10%), 1e16 (1%), 1e15 (0,1%).
     function configureredeemFee(uint256 redeemFee) external onlyOwner {
         // load the market making engine configuration from storage
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =

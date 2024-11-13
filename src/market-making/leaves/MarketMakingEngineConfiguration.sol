@@ -19,10 +19,8 @@ library MarketMakingEngineConfiguration {
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketMakingEngineConfiguration")) - 1));
 
     /// @notice The storage structure for the {MarketMakingEngineConfiguration} namespace.
-    /// @param depositFee The despoit fee in the Vault, example 1e18 (100%), 0.5e18 (50%), 0.05e18 (5%), 0.005e18
-    /// (0.05%).
-    /// @param redeemFee The redeem fee in the Vault, example 1e18 (100%), 0.5e18 (50%), 0.05e18 (5%), 0.005e18
-    /// (0.05%).
+    /// @param depositFee The despoit fee in the Vault, example 1e18 (100%), 1e17 (10%), 1e16 (1%), 1e15 (0,1%).
+    /// @param redeemFee The redeem fee in the Vault, example 1e18 (100%), 1e17 (10%), 1e16 (1%), 1e15 (0,1%).
     /// @param usdc The USDC token address.
     /// @param weth The WETH token address.
     /// @param feeDistributor The fee distributor address.
