@@ -628,7 +628,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
-        // update the redeem fee
+        // update the vault deposit and redeem fee recipient
         marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient = vaultDepositAndRedeemFeeRecipient;
 
         // emit the LogConfigureVaultDepositAndRedeemFeeRecipient event
