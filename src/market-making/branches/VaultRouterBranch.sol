@@ -156,11 +156,13 @@ contract VaultRouterBranch {
             MathOpenZeppelin.Rounding.Floor
         );
 
+        // verify if should discount redeem fee
         if (shouldDiscountRedeemFee) {
             // load the perps engine configuration from storage
             MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
                 MarketMakingEngineConfiguration.load();
 
+            // get the preview assets out discounting redeem fee
             previewAssetsOut = ud60x18(previewAssetsOut).sub(
                 ud60x18(previewAssetsOut).mul(ud60x18(marketMakingEngineConfiguration.redeemFee))
             ).intoUint256();
